@@ -95,3 +95,19 @@ private func series(from: Double = 0, to: Double, step: Double = 5, _ build: (Do
     }
     #expect(hillIndex(s) == nil)
 }
+
+@Test func hillIndexToleratesAltitudeNoiseOnClimb() {
+    let noise = [0.3, -0.3, 0.3, 0.3, -0.3, -0.3, 0.3, -0.3]
+    let flatEnd = 600.0
+    let s = series(to: 1000) { t in
+        if t <= flatEnd {
+            return FITSample(t: t, heartRate: 150, speed: 3, altitude: 100, distance: t * 3)
+        }
+        let climbed = (t - flatEnd) * 2.4
+        let jitter = noise[Int((t - flatEnd) / 5) % noise.count]
+        return FITSample(t: t, heartRate: 152, speed: 2.4, altitude: 100 + climbed * 0.05 + jitter, distance: flatEnd * 3 + climbed)
+    }
+    let expected = 100 * 2.4 * minettiCost(grade: 0.05) / minettiCost(grade: 0) / 3
+    let index = hillIndex(s)
+    #expect(index != nil && abs(index! - expected) < 3)
+}

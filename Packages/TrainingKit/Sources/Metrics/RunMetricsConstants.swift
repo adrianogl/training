@@ -7,6 +7,7 @@ enum RunMetricsConstants {
     static let decouplingMinimumSeconds = 3600.0
     static let climbMinimumLength = 200.0
     static let climbMinimumGrade = 0.04
+    static let gradeWindowLength = 100.0
     static let flatMaximumGrade = 0.01
     static let flatHeartRateTolerance = 5.0
 }
