@@ -9,17 +9,34 @@ actor FakeDataSource: GarminDataSource {
     nonisolated let activityList: [ActivityDTO]
     private let fitZip: Data?
     private let failure: GarminAPIError?
+    private let zonesError: GarminAPIError?
+    private let fitErrors: [Int64: GarminAPIError]
+    private var sleepFailure: (from: Day, error: GarminAPIError)?
 
     private(set) var hrvFroms: [Day] = []
     private(set) var froms: [Day] = []
+    private(set) var sleepFroms: [Day] = []
     private(set) var activityPageStarts: [Int] = []
     private(set) var fitCalls: [Int64] = []
 
-    init(dataDays: ClosedRange<Day>?, activities: [ActivityDTO] = [], fitZip: Data? = nil, failure: GarminAPIError? = nil) {
+    init(
+        dataDays: ClosedRange<Day>?,
+        activities: [ActivityDTO] = [],
+        fitZip: Data? = nil,
+        failure: GarminAPIError? = nil,
+        zonesError: GarminAPIError? = nil,
+        fitErrors: [Int64: GarminAPIError] = [:]
+    ) {
         self.dataDays = dataDays
         self.activityList = activities
         self.fitZip = fitZip
         self.failure = failure
+        self.zonesError = zonesError
+        self.fitErrors = fitErrors
+    }
+
+    func failSleep(from: Day?, with error: GarminAPIError = .rateLimited) {
+        sleepFailure = from.map { ($0, error) }
     }
 
     nonisolated var dayCount: Int {
@@ -29,7 +46,8 @@ actor FakeDataSource: GarminDataSource {
     nonisolated var activityCount: Int { activityList.count }
 
     func heartRateZones() async throws -> HRZonesDTO {
-        HRZonesDTO(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175)
+        if let zonesError { throw zonesError }
+        return HRZonesDTO(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175)
     }
 
     func dailySummaries(from: Day, to: Day) async throws -> [DailySummaryDTO] {
@@ -48,6 +66,8 @@ actor FakeDataSource: GarminDataSource {
 
     func sleepSummaries(from: Day, to: Day) async throws -> [SleepDTO] {
         froms.append(from)
+        sleepFroms.append(from)
+        if let sleepFailure, sleepFailure.from == from { throw sleepFailure.error }
         return days(from: from, to: to).map {
             SleepDTO(day: $0, sleepTimeSeconds: 27_000, deepSleepSeconds: 5_400, lightSleepSeconds: 14_400, remSleepSeconds: 5_400, awakeSleepSeconds: 1_800, overallScore: 80, sleepEndTimestampGMT: Self.sleepEndMs($0))
         }
@@ -79,6 +99,7 @@ actor FakeDataSource: GarminDataSource {
 
     func fitArchive(activityId: Int64) async throws -> Data {
         fitCalls.append(activityId)
+        if let error = fitErrors[activityId] { throw error }
         guard let fitZip else { throw FakeFITError() }
         return fitZip
     }

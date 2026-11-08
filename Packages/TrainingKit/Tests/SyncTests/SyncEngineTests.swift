@@ -201,3 +201,91 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(try count(DailyRecord.self, in: container) == 0)
     }
 }
+
+@Suite struct SyncEngineFailureTests {
+    @Test func gapRunResumesFromLastSuccessfulSync() async throws {
+        let lastSyncDay = today.adding(days: -60)
+        let fake = FakeDataSource(dataDays: today.adding(days: -70)...today)
+        let container = try TrainingSchema.container(inMemory: true)
+        let firstDay = today.adding(days: -70)
+        let earlier = SyncEngine(source: fake, container: container, today: { lastSyncDay }, firstDay: firstDay)
+        _ = try await earlier.run()
+        let context = ModelContext(container)
+        let state = try #require(try context.fetch(FetchDescriptor<SyncState>()).first)
+        state.lastSync = ActivityTime.startOfDay(lastSyncDay).addingTimeInterval(12 * 3_600)
+        try context.save()
+
+        let engine = SyncEngine(source: fake, container: container, today: { today }, firstDay: firstDay)
+        let gapStart = lastSyncDay.adding(days: -3)
+        let sleepWindows = windows(from: gapStart, to: today, maxDays: 28).map(\.lowerBound)
+        await fake.failSleep(from: sleepWindows[1])
+        await #expect(throws: GarminAPIError.rateLimited) {
+            try await engine.run()
+        }
+        await fake.failSleep(from: nil)
+        let callsBeforeRetry = await fake.sleepFroms.count
+
+        _ = try await engine.run()
+
+        #expect(Array(await fake.sleepFroms.dropFirst(callsBeforeRetry)) == sleepWindows)
+        let records = Dictionary(uniqueKeysWithValues: try fetch(DailyRecord.self, in: container).map { ($0.day, $0) })
+        for offset in 0...gapStart.days(until: today) {
+            #expect(records[gapStart.adding(days: offset).iso]?.sleepSeconds == 27_000)
+        }
+    }
+
+    @Test func zonesDecodingFailureDoesNotAbortRun() async throws {
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, zonesError: .decoding(path: "/biometric-service/heartRateZones/v2"))
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        let report = try await engine.run()
+
+        #expect(report.dailyUpserted == 3)
+        #expect(await engine.heartRateZones == nil)
+        #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted == true)
+    }
+
+    @Test func zonesUnauthorizedPropagates() async throws {
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, zonesError: .unauthorized)
+        let (engine, _) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        await #expect(throws: GarminAPIError.unauthorized) {
+            try await engine.run()
+        }
+    }
+
+    @Test func fitInvalidKeyPropagates() async throws {
+        let activities = [
+            FakeDataSource.activity(id: 30, typeKey: "running", day: today),
+            FakeDataSource.activity(id: 31, typeKey: "running", day: today.adding(days: -1)),
+        ]
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities, fitZip: try FITZipBuilder.run(seconds: 300), fitErrors: [30: .invalidKey])
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        await #expect(throws: GarminAPIError.invalidKey) {
+            try await engine.run()
+        }
+        #expect(await fake.fitCalls == [30])
+        #expect(try count(ActivityRecord.self, in: container) == 2)
+        #expect(try count(DailyRecord.self, in: container) == 3)
+        #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted != true)
+    }
+
+    @Test func fitRateLimitStopsFitStepAndRunSucceeds() async throws {
+        let activities = [
+            FakeDataSource.activity(id: 40, typeKey: "running", day: today),
+            FakeDataSource.activity(id: 41, typeKey: "running", day: today.adding(days: -1)),
+            FakeDataSource.activity(id: 42, typeKey: "running", day: today.adding(days: -2)),
+        ]
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities, fitZip: try FITZipBuilder.run(seconds: 300), fitErrors: [40: .rateLimited])
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        let report = try await engine.run()
+
+        #expect(await fake.fitCalls == [40])
+        #expect(report.fitProcessed == 0)
+        #expect(try fetch(ActivityRecord.self, in: container).allSatisfy { !$0.fitProcessed })
+        #expect(try fetch(DailyRecord.self, in: container).allSatisfy { $0.readinessScore != nil })
+        #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted == true)
+    }
+}

@@ -46,10 +46,10 @@ public actor SyncEngine: ModelActor {
         let state = try syncState()
         progress(C.progressAfterCleanup)
 
-        heartRateZones = try await source.heartRateZones()
+        try await fetchHeartRateZones()
         progress(C.progressAfterZones)
 
-        let from = try dailyStart(state: state, today: today)
+        let from = dailyStart(state: state, today: today)
         let touchedDays = try await syncDaily(from: from, to: today) { fraction in
             progress(C.progressAfterZones + fraction * (C.progressAfterDaily - C.progressAfterZones))
         }
@@ -91,17 +91,22 @@ public actor SyncEngine: ModelActor {
         return state
     }
 
-    private func dailyStart(state: SyncState, today: Day) throws -> Day {
+    private func dailyStart(state: SyncState, today: Day) -> Day {
         guard state.firstLoadCompleted else { return firstDay }
-        let overlapStart = today.adding(days: -SyncConstants.incrementalOverlapDays)
-        guard let latest = try latestStoredDay() else { return overlapStart }
-        return min(overlapStart, latest)
+        let overlap = SyncConstants.incrementalOverlapDays
+        let overlapStart = today.adding(days: -overlap)
+        guard let lastSync = state.lastSync else { return overlapStart }
+        return min(overlapStart, ActivityTime.day(of: lastSync).adding(days: -overlap))
     }
 
-    private func latestStoredDay() throws -> Day? {
-        var descriptor = FetchDescriptor<DailyRecord>(sortBy: [SortDescriptor(\.day, order: .reverse)])
-        descriptor.fetchLimit = 1
-        return try modelContext.fetch(descriptor).first.flatMap { Day(iso: $0.day) }
+    private func fetchHeartRateZones() async throws {
+        do {
+            heartRateZones = try await source.heartRateZones()
+        } catch let error as GarminAPIError where SyncErrorPolicy.isCredentialFailure(error) {
+            throw error
+        } catch {
+            return
+        }
     }
 
     private func latestActivityStart() throws -> Date? {
