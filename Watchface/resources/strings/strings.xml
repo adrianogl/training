@@ -1,0 +1,12 @@
+<strings>
+    <string id="AppName">trAIning</string>
+    <string id="WeeklyGoalTitle">Meta semanal (km)</string>
+    <string id="RaceNameTitle">Próxima prova</string>
+    <string id="RaceDateTitle">Data da prova (AAAA-MM-DD)</string>
+    <string id="RaceGoalTitle">Meta de tempo (H:MM:SS)</string>
+    <string id="RaceDistanceTitle">Distância da prova</string>
+    <string id="Distance5">5 km</string>
+    <string id="Distance10">10 km</string>
+    <string id="Distance21">Meia maratona</string>
+    <string id="Distance42">Maratona</string>
+</strings>
