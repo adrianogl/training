@@ -19,6 +19,8 @@ import WorkoutAnalysis
     private(set) var comparison: WorkoutComparison?
     private(set) var comparisonRows: [ComparisonRow] = []
     private(set) var comparisonTitle = ""
+    private(set) var comparisonNotice: String?
+    private(set) var evolutionText: String?
 
     init(activityId: Int64, context: ModelContext) {
         self.activityId = activityId
@@ -34,7 +36,9 @@ import WorkoutAnalysis
         blocks = Self.blocks(record, structure: structure, zones: zones)
         bars = BlockBarScale.bars(blocks, zones: zones)
 
-        let previous = Self.previous(of: record, in: records).compactMap { Self.occurrence($0, zones: zones) }
+        let previous = Self.previous(of: record, in: records)
+            .prefix(WorkoutDetailConstants.maxComparisons)
+            .compactMap { Self.occurrence($0, zones: zones) }
         assessment = assess(blocks, context: AssessmentContext(
             readinessScore: Self.readiness(record, context: context),
             acuteChronic: Self.acuteChronic(record, records: records),
@@ -43,17 +47,23 @@ import WorkoutAnalysis
         let current = WorkoutOccurrence(activityId: record.activityId, day: Self.day(record), blocks: blocks)
         comparison = compare(current: current, previous: previous)
         comparisonTitle = record.workoutName ?? WorkoutDetailConstants.similarRunsTitle
-        if let comparison {
-            comparisonRows = hasPrescription
-                ? Self.rows(comparison, occurrences: [current] + previous, records: records)
-                : Self.totalRows(comparison, records: records)
+        guard let comparison else { return }
+        guard hasPrescription else {
+            comparisonRows = Self.totalRows(comparison, records: records)
+            evolutionText = Self.rowEvolution(comparisonRows)
+            return
+        }
+        let commonActive = Self.commonActiveLabels(comparison, current: current)
+        comparisonRows = Self.rows(comparison, occurrences: [current] + previous, activeLabels: commonActive, records: records)
+        if commonActive.isEmpty {
+            evolutionText = Self.rowEvolution(comparisonRows)
+            comparisonNotice = comparison.sameStructure ? nil : ComparisonText.ownActiveBlocksNotice
+        } else {
+            evolutionText = Self.deltaEvolution(comparison, rows: comparisonRows)
+            comparisonNotice = comparison.sameStructure ? nil : ComparisonText.commonBlocksNotice
         }
     }
 
-    var evolutionText: String? {
-        guard comparisonRows.count > 1, let current = comparisonRows.first, let oldest = comparisonRows.last else { return nil }
-        return ComparisonText.evolution(current: current, oldest: oldest)
-    }
 
     private static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
         guard let data = record.structureData else { return nil }
@@ -138,27 +148,30 @@ import WorkoutAnalysis
         )
     }
 
-    private static func rows(_ comparison: WorkoutComparison, occurrences: [WorkoutOccurrence], records: [ActivityRecord]) -> [ComparisonRow] {
-        let labels = Set(comparison.blocks.map(\.label))
-        return comparison.occurrences.compactMap { id in
+    private static func commonActiveLabels(_ comparison: WorkoutComparison, current: WorkoutOccurrence) -> Set<String> {
+        let common = Set(comparison.blocks.map(\.label))
+        return Set(current.blocks.filter { $0.kind == .active && common.contains($0.label) }.map(\.label))
+    }
+
+    private static func rows(_ comparison: WorkoutComparison, occurrences: [WorkoutOccurrence], activeLabels: Set<String>, records: [ActivityRecord]) -> [ComparisonRow] {
+        comparison.occurrences.compactMap { id in
             guard let occurrence = occurrences.first(where: { $0.activityId == id }) else { return nil }
-            let comparable = occurrence.blocks.filter { labels.contains($0.label) }
-            let active = comparable.filter { $0.kind == .active }
-            let measured = active.isEmpty ? comparable : active
-            let seconds = measured.reduce(0) { $0 + $1.seconds }
-            let speed = seconds > 0 ? measured.reduce(0) { $0 + $1.distance } / seconds : nil
-            let withHeartRate = measured.filter { $0.avgHeartRate != nil && $0.seconds > 0 }
+            let active = occurrence.blocks.filter { $0.kind == .active && (activeLabels.isEmpty || activeLabels.contains($0.label)) }
+            let seconds = active.reduce(0) { $0 + $1.seconds }
+            let speed = seconds > 0 ? active.reduce(0) { $0 + $1.distance } / seconds : nil
+            let withHeartRate = active.filter { $0.avgHeartRate != nil && $0.seconds > 0 }
             let heartRateSeconds = withHeartRate.reduce(0) { $0 + $1.seconds }
             let heartRate = heartRateSeconds > 0
                 ? withHeartRate.reduce(0) { $0 + Double($1.avgHeartRate ?? 0) * $1.seconds } / heartRateSeconds
                 : nil
-            let targeted = comparable.filter { $0.prescribed != nil && $0.status != .noTarget }
+            let targeted = active.filter { hasTarget($0) }
             let inTarget = targeted.filter { $0.status == .inTarget }.count
+            let isCurrent = id == comparison.occurrences.first
             let start = records.first { $0.activityId == id }?.start
             return ComparisonRow(
                 activityId: id,
-                dateText: id == comparison.occurrences.first ? ComparisonText.currentLabel : start.map(ComparisonText.shortDate) ?? "",
-                isCurrent: id == comparison.occurrences.first,
+                dateText: isCurrent ? ComparisonText.currentLabel : start.map(ComparisonText.shortDate) ?? "",
+                isCurrent: isCurrent,
                 paceText: WorkoutListModel.paceClock(metersPerSecond: speed),
                 heartRateText: heartRate.map { "\(Int($0.rounded()))" },
                 inTargetText: targeted.isEmpty ? nil : "\(inTarget)/\(targeted.count)",
@@ -166,6 +179,28 @@ import WorkoutAnalysis
                 heartRate: heartRate
             )
         }
+    }
+
+    private static func hasTarget(_ block: WorkoutBlock) -> Bool {
+        guard let target = block.prescribed?.target else { return false }
+        return target != .open
+    }
+
+    private static func rowEvolution(_ rows: [ComparisonRow]) -> String? {
+        guard rows.count > 1, let current = rows.first, let oldest = rows.last,
+              let currentPace = current.secondsPerKilometer, let oldestPace = oldest.secondsPerKilometer else { return nil }
+        let heartRateDelta = current.heartRate.flatMap { now in oldest.heartRate.map { now - $0 } }
+        return ComparisonText.evolution(paceDelta: currentPace - oldestPace, heartRateDelta: heartRateDelta, oldestDate: oldest.dateText)
+    }
+
+    private static func deltaEvolution(_ comparison: WorkoutComparison, rows: [ComparisonRow]) -> String? {
+        guard rows.count > 1, let oldest = rows.last, let currentPace = rows.first?.secondsPerKilometer,
+              let speedDelta = comparison.activeSpeedDelta else { return nil }
+        let currentSpeed = WorkoutConstants.metersPerKilometer / currentPace
+        let oldestSpeed = currentSpeed - speedDelta
+        guard oldestSpeed > 0 else { return nil }
+        let paceDelta = currentPace - WorkoutConstants.metersPerKilometer / oldestSpeed
+        return ComparisonText.evolution(paceDelta: paceDelta, heartRateDelta: comparison.activeHeartRateDelta, oldestDate: oldest.dateText)
     }
 
     private static func totalRows(_ comparison: WorkoutComparison, records: [ActivityRecord]) -> [ComparisonRow] {

@@ -64,6 +64,42 @@ import WorkoutAnalysis
         #expect(model.comparisonRows.first?.inTargetText == "3/3")
     }
 
+    @Test func comparisonWithoutCommonActiveBlockUsesEachOwnActiveBlocks() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(F.run(id: 1, meters: 4_000, workoutName: "Limiar", structure: F.singleBlockStructure()))
+        context.insert(F.run(id: 2, daysAgo: 7, meters: 5_900, workoutName: "Limiar", structure: F.intervalStructure(tiroSeconds: 250)))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        let comparison = try #require(model.comparison)
+        #expect(comparison.occurrences == [1, 2])
+        #expect(comparison.blocks.map(\.label).contains("Aquecimento"))
+        #expect(model.comparisonRows.map(\.paceText) == ["4:05", "4:10"])
+        #expect(model.comparisonRows.map(\.heartRateText) == ["168", "168"])
+        #expect(model.comparisonRows.map(\.inTargetText) == ["1/1", "3/3"])
+        #expect(model.comparisonNotice == "A estrutura mudou; pace e FC são a média dos blocos ativos de cada treino.")
+    }
+
+    @Test func evolutionFollowsActiveSpeedDelta() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(F.run(id: 1, meters: 5_900, workoutName: "Tiros", structure: F.intervalStructure(tiroSeconds: 245)))
+        context.insert(F.run(id: 2, daysAgo: 7, meters: 5_900, workoutName: "Tiros", structure: F.intervalStructure(tiroSeconds: 250)))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        let comparison = try #require(model.comparison)
+        let delta = try #require(comparison.activeSpeedDelta)
+        let currentSpeed = 1_000.0 / 245
+        let paceDelta = 1_000 / currentSpeed - 1_000 / (currentSpeed - delta)
+        #expect(Int(abs(paceDelta).rounded()) == 5)
+        #expect(model.evolutionText?.hasPrefix("5 s/km mais rápido, FC igual") == true)
+        #expect(model.comparisonNotice == nil)
+    }
+
     @Test func freeRunComparesBySimilarDistance() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext

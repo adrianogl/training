@@ -50,14 +50,14 @@ struct WorkoutDetailView: View {
                     .id(WorkoutDetailSection.blocks)
                 BlocksSection(blocks: model.blocks, bars: model.bars, showsTarget: model.hasPrescription)
             }
-            if let comparison = model.comparison, !model.comparisonRows.isEmpty {
+            if model.comparison != nil, !model.comparisonRows.isEmpty {
                 sectionLabel("Comparado com treinos parecidos")
                     .id(WorkoutDetailSection.comparison)
                 ComparisonSection(
                     title: model.comparisonTitle,
                     rows: model.comparisonRows,
                     evolution: model.evolutionText,
-                    sameStructure: comparison.sameStructure || !model.hasPrescription,
+                    notice: model.comparisonNotice,
                     showsTarget: model.hasPrescription
                 )
             }

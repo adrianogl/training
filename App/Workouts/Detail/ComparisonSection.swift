@@ -4,7 +4,7 @@ struct ComparisonSection: View {
     let title: String
     let rows: [ComparisonRow]
     let evolution: String?
-    let sameStructure: Bool
+    let notice: String?
     let showsTarget: Bool
 
     var body: some View {
@@ -20,8 +20,8 @@ struct ComparisonSection: View {
                     .foregroundStyle(BrandColors.dim)
                     .padding(.top, 10)
             }
-            if !sameStructure {
-                Text("A estrutura do treino mudou entre as ocorrências. A comparação usa só os blocos em comum.")
+            if let notice {
+                Text(notice)
                     .font(.footnote)
                     .foregroundStyle(BrandColors.attention)
                     .padding(.top, 6)

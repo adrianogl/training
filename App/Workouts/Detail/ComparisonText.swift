@@ -7,9 +7,10 @@ enum ComparisonText {
         date.formatted(.dateTime.day().month(.abbreviated).locale(WorkoutConstants.locale))
     }
 
-    static func evolution(current: ComparisonRow, oldest: ComparisonRow) -> String? {
-        guard let currentPace = current.secondsPerKilometer, let oldestPace = oldest.secondsPerKilometer else { return nil }
-        let paceDelta = currentPace - oldestPace
+    static let commonBlocksNotice = "A estrutura do treino mudou entre as ocorrências. A comparação usa só os blocos em comum."
+    static let ownActiveBlocksNotice = "A estrutura mudou; pace e FC são a média dos blocos ativos de cada treino."
+
+    static func evolution(paceDelta: Double, heartRateDelta: Double?, oldestDate: String) -> String {
         let paceSeconds = Int(abs(paceDelta).rounded())
         let pace: String
         if abs(paceDelta) < WorkoutDetailConstants.paceDeltaThreshold {
@@ -17,11 +18,8 @@ enum ComparisonText {
         } else {
             pace = paceDelta < 0 ? "\(paceSeconds) s/km mais rápido" : "\(paceSeconds) s/km mais lento"
         }
-        let since = "em relação a \(oldest.dateText.trimmingCharacters(in: CharacterSet(charactersIn: ".")))"
-        guard let currentHeartRate = current.heartRate, let oldestHeartRate = oldest.heartRate else {
-            return "\(pace) \(since)."
-        }
-        let heartRateDelta = currentHeartRate - oldestHeartRate
+        let since = "em relação a \(oldestDate.trimmingCharacters(in: CharacterSet(charactersIn: ".")))"
+        guard let heartRateDelta else { return "\(pace) \(since)." }
         let beats = Int(abs(heartRateDelta).rounded())
         let heartRate: String
         if abs(heartRateDelta) < WorkoutDetailConstants.heartRateDeltaThreshold {

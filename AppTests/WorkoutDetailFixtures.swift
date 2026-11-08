@@ -11,7 +11,7 @@ enum WorkoutDetailFixtures {
         Day.today(in: TimeZone(secondsFromGMT: 0)!, now: date).iso
     }
 
-    static func intervalStructure() -> WorkoutStructure {
+    static func intervalStructure(tiroSeconds: Double = 245) -> WorkoutStructure {
         let steps = [
             PrescribedStep(index: 0, intensity: .warmup, duration: .distance(meters: 1_000), target: .open),
             PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 1_000), target: .speed(low: 1_000.0 / 250, high: 1_000.0 / 240)),
@@ -30,7 +30,7 @@ enum WorkoutDetailFixtures {
         }
         lap(0, .warmup, seconds: 360, distance: 1_000, hr: 130)
         for _ in 0..<3 {
-            lap(1, .active, seconds: 245, distance: 1_000, hr: 168)
+            lap(1, .active, seconds: tiroSeconds, distance: 1_000, hr: 168)
             lap(2, .recovery, seconds: 120, distance: 300, hr: 140)
         }
         lap(4, .cooldown, seconds: 380, distance: 1_000, hr: 135)
@@ -38,6 +38,21 @@ enum WorkoutDetailFixtures {
             prescription: WorkoutPrescription(name: "Tiros 3 x 1 km", steps: steps),
             laps: laps
         )
+    }
+
+    static func singleBlockStructure() -> WorkoutStructure {
+        let steps = [
+            PrescribedStep(index: 0, intensity: .warmup, duration: .distance(meters: 1_000), target: .open),
+            PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 2_000), target: .speed(low: 1_000.0 / 250, high: 1_000.0 / 240)),
+            PrescribedStep(index: 2, intensity: .cooldown, duration: .distance(meters: 1_000), target: .open),
+        ]
+        let laps = [
+            LapSummary(stepIndex: 0, intensity: .warmup, startOffset: 0, timerSeconds: 360, distance: 1_000, avgSpeed: 1_000.0 / 360, avgHeartRate: 130),
+            LapSummary(stepIndex: 1, intensity: .active, startOffset: 360, timerSeconds: 245, distance: 1_000, avgSpeed: 1_000.0 / 245, avgHeartRate: 165),
+            LapSummary(stepIndex: 1, intensity: .active, startOffset: 605, timerSeconds: 245, distance: 1_000, avgSpeed: 1_000.0 / 245, avgHeartRate: 171),
+            LapSummary(stepIndex: 2, intensity: .cooldown, startOffset: 850, timerSeconds: 380, distance: 1_000, avgSpeed: 1_000.0 / 380, avgHeartRate: 135),
+        ]
+        return WorkoutStructure(prescription: WorkoutPrescription(name: "Limiar", steps: steps), laps: laps)
     }
 
     static func freeStructure(kilometers: Int, secondsPerKm: Double = 330, hr: Int = 150) -> WorkoutStructure {

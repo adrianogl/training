@@ -12,6 +12,7 @@ enum WorkoutDetailConstants {
     static let barDomainPadding = 0.08
     static let barMinimumWidth = 0.1
     static let targetDomainPadding = 0.6
+    static let maxComparisons = 4
     static let similarRunsTitle = "Distância parecida"
     static let shortLabels = [
         "Aquecimento": "Aquec.",
