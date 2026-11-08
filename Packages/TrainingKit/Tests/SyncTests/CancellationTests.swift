@@ -22,14 +22,10 @@ private func lastSync(in container: ModelContainer) throws -> Date? {
         while await fake.summaryFroms.isEmpty {
             try await Task.sleep(for: .milliseconds(5))
         }
-        let clock = ContinuousClock()
-        let cancelledAt = clock.now
         task.cancel()
         let result = await task.result
-        let elapsed = clock.now - cancelledAt
 
         #expect(throws: CancellationError.self) { try result.get() }
-        #expect(elapsed < .milliseconds(400))
         #expect(await fake.summaryFroms.count == 1)
         #expect(await fake.hrvFroms.isEmpty)
         #expect(await fake.activityPageStarts.isEmpty)

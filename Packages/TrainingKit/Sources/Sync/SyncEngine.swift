@@ -45,7 +45,9 @@ public actor SyncEngine: ModelActor {
             if inFlight.operation == operation {
                 return try await awaitCancellable(inFlight.task)
             }
-            _ = await inFlight.task.result
+            let awaited = inFlight.task
+            _ = await awaited.result
+            if self.inFlight?.task == awaited { self.inFlight = nil }
             try Task.checkCancellation()
         }
         let task = Task { try await work() }
