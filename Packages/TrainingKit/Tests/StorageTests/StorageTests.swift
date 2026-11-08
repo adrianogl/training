@@ -40,6 +40,26 @@ import Testing
         #expect(states[0].lastSync == nil)
     }
 
+    @Test func containerEmArquivoPersisteEntreAberturas() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appending(path: "store.sqlite")
+
+        do {
+            let context = ModelContext(try TrainingSchema.container(url: url))
+            context.insert(DailyRecord(day: "2026-01-10", restingHR: 48))
+            context.insert(ActivityRecord(activityId: 42, typeKey: "running"))
+            try context.save()
+        }
+
+        let reopened = ModelContext(try TrainingSchema.container(url: url))
+        let daily = try reopened.fetch(FetchDescriptor<DailyRecord>())
+        #expect(daily.map(\.day) == ["2026-01-10"])
+        #expect(daily.first?.restingHR == 48)
+        #expect(try reopened.fetch(FetchDescriptor<ActivityRecord>()).map(\.activityId) == [42])
+    }
+
     @Test func schemaCompativelComCloudKit() {
         let schema = Schema(TrainingSchema.models)
         #expect(schema.entities.count == 4)

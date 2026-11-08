@@ -1,3 +1,4 @@
+import Foundation
 import SwiftData
 
 public enum TrainingSchema {
@@ -12,6 +13,13 @@ public enum TrainingSchema {
         try ModelContainer(
             for: Schema(models),
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
+        )
+    }
+
+    public static func container(url: URL) throws -> ModelContainer {
+        try ModelContainer(
+            for: Schema(models),
+            configurations: ModelConfiguration(url: url)
         )
     }
 }
