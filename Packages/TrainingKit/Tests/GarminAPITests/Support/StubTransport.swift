@@ -24,6 +24,7 @@ final class StubTransport: HTTPTransport {
     }
 
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        try await Task.sleep(for: .milliseconds(20))
         let response = state.withLock { state -> Response? in
             state.requests.append(request)
             return state.queue.isEmpty ? nil : state.queue.removeFirst()

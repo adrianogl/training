@@ -8,6 +8,7 @@ public actor TokenProvider {
     private let transport: HTTPTransport
     private let now: @Sendable () -> Date
     private var cached: (token: String, expiry: Date)?
+    private var inFlight: Task<String, Error>?
 
     public init(apiKey: String, baseURL: URL, transport: HTTPTransport, now: @escaping @Sendable () -> Date = { .now }) {
         self.apiKey = apiKey
@@ -20,6 +21,16 @@ public actor TokenProvider {
         if let cached, cached.expiry.timeIntervalSince(now()) >= Self.refreshMargin {
             return cached.token
         }
+        if let inFlight {
+            return try await inFlight.value
+        }
+        let task = Task { try await self.refresh() }
+        inFlight = task
+        return try await task.value
+    }
+
+    private func refresh() async throws -> String {
+        defer { inFlight = nil }
         let token = try await exchange()
         cached = (token, try Self.expiry(of: token))
         return token

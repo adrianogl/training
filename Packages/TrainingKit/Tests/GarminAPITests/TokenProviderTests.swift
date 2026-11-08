@@ -51,3 +51,20 @@ func tokenExchangeMapsStatus(status: Int, expected: GarminAPIError) async {
     let p = provider(StubTransport([.ok(makeJWT(exp: nil))]))
     await #expect(throws: GarminAPIError.invalidKey) { try await p.bearer() }
 }
+
+@Test func concurrentCallsShareSingleExchange() async throws {
+    let jwt = makeJWT(exp: 1_000_000 + 86_400)
+    let stub = StubTransport([.ok(jwt), .ok(jwt), .ok(jwt), .ok(jwt), .ok(jwt), .ok(jwt), .ok(jwt), .ok(jwt)])
+    let p = provider(stub)
+    let tokens = try await withThrowingTaskGroup(of: String.self) { group in
+        for _ in 0..<8 { group.addTask { try await p.bearer() } }
+        return try await group.reduce(into: []) { $0.append($1) }
+    }
+    #expect(tokens == Array(repeating: jwt, count: 8))
+    #expect(stub.requests.count == 1)
+}
+
+@Test func malformedJWTIsInvalidKey() async {
+    let p = provider(StubTransport([.ok("onlyonesegment")]))
+    await #expect(throws: GarminAPIError.invalidKey) { try await p.bearer() }
+}
