@@ -36,12 +36,12 @@ public func project(
     points.reserveCapacity(horizonDays)
     for h in 1...horizonDays {
         let next = cursor + slope
-        if let ceiling = softCeiling {
+        if let ceiling = softCeiling, slope > 0 {
             let high = max(cursor, next)
             let low = min(cursor, next)
             let above = max(0, high - max(low, ceiling))
             let effective = (high - low) - above * (1 - ProjectionConstants.ceilingFactor)
-            cursor += slope < 0 ? -effective : effective
+            cursor += effective
         } else {
             cursor = next
         }

@@ -70,3 +70,12 @@ private func noisySeries() -> [(Day, Double)] {
     let s = (0..<20).map { (today, 40.0 + Double($0)) }
     #expect(project(s, today: today, horizonDays: 30) == nil)
 }
+
+@Test func softCeilingDoesNotSlowDecline() {
+    let series = linearSeries(start: 80, slope: -0.1)
+    let free = project(series, today: today, horizonDays: 60)!
+    let capped = project(series, today: today, horizonDays: 60, softCeiling: 52)!
+    for (a, b) in zip(free.points, capped.points) {
+        #expect(abs(a.mid - b.mid) < 1e-9)
+    }
+}
