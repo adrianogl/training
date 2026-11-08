@@ -1,6 +1,7 @@
 import Foundation
 import Storage
 import TrainingCore
+import WorkoutAnalysis
 
 enum WorkoutListModel {
     static func rows(filter: WorkoutFilter, records: [ActivityRecord]) -> [WorkoutRowData] {
@@ -49,19 +50,11 @@ enum WorkoutListModel {
     }
 
     static func distanceText(_ meters: Double) -> String {
-        let kilometers = (meters / WorkoutConstants.metersPerKilometer)
-            .formatted(.number.precision(.fractionLength(1)).locale(WorkoutConstants.locale))
-        return "\(kilometers) \(WorkoutConstants.distanceUnit)"
+        "\(WorkoutFormat.kilometers(meters)) \(WorkoutConstants.distanceUnit)"
     }
 
     static func clockText(_ seconds: Double) -> String {
-        let total = Int(seconds.rounded())
-        let hours = total / 3_600
-        let minutes = (total % 3_600) / 60
-        let secs = total % 60
-        return hours > 0
-            ? String(format: "%d:%02d:%02d", hours, minutes, secs)
-            : String(format: "%d:%02d", minutes, secs)
+        WorkoutFormat.clock(seconds)
     }
 
     static func dateText(_ date: Date) -> String {

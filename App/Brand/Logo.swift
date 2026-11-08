@@ -2,10 +2,14 @@ import SwiftUI
 
 struct Logo: View {
     var showsTagline: Bool
+    var showsIcon = true
+    var fontSize = BrandConstants.logoFontSize
 
     var body: some View {
         HStack(spacing: 12) {
-            AIIcon(size: BrandConstants.logoIconSize)
+            if showsIcon {
+                AIIcon(size: BrandConstants.logoIconSize)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 wordmark
                 if showsTagline {
@@ -22,8 +26,8 @@ struct Logo: View {
     private var wordmark: some View {
         let highlight = Text(BrandConstants.logoHighlight).foregroundStyle(BrandColors.accent)
         return Text("\(BrandConstants.logoPrefix)\(highlight)\(BrandConstants.logoSuffix)")
-            .font(.system(size: BrandConstants.logoFontSize, weight: .heavy))
-            .tracking(BrandConstants.logoTracking)
+            .font(.system(size: fontSize, weight: .heavy))
+            .tracking(fontSize * BrandConstants.logoTracking / BrandConstants.logoFontSize)
             .foregroundStyle(.white)
     }
 }

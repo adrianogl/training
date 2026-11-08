@@ -11,5 +11,7 @@ enum AppConstants {
     static let initialSectionDefaultsKey = "initialSection"
     static let openActivityDefaultsKey = "openActivity"
     static let detailScrollDefaultsKey = "detailScroll"
+    static let openShareDefaultsKey = "openShare"
+    static let exportShareDefaultsKey = "exportShare"
     static let createKeyURL = URL(string: "https://connect.garmin.com/app/settings/personalApiToken")!
 }

@@ -5,6 +5,7 @@ struct WorkoutDetailView: View {
     let activityId: Int64
     @Environment(\.modelContext) private var context
     @State private var model: WorkoutDetailModel?
+    @State private var showsShare = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -20,7 +21,9 @@ struct WorkoutDetailView: View {
                 .padding(.bottom, 32)
             }
             .onChange(of: model == nil) { _, isLoading in
-                guard !isLoading, let anchor = Self.debugScrollAnchor() else { return }
+                guard !isLoading else { return }
+                showsShare = model?.shareInput != nil && Self.debugOpensShare()
+                guard let anchor = Self.debugScrollAnchor() else { return }
                 proxy.scrollTo(anchor, anchor: .top)
             }
         }
@@ -28,6 +31,11 @@ struct WorkoutDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: activityId) {
             model = WorkoutDetailModel(activityId: activityId, context: context)
+        }
+        .sheet(isPresented: $showsShare) {
+            if let input = model?.shareInput {
+                ShareEditorView(input: input)
+            }
         }
     }
 
@@ -84,6 +92,24 @@ struct WorkoutDetailView: View {
                 showsTarget: model.hasPrescription
             )
         }
+        if model.shareInput != nil {
+            shareButton
+        }
+    }
+
+    private var shareButton: some View {
+        Button {
+            showsShare = true
+        } label: {
+            Text("Compartilhar")
+                .font(.system(size: ShareConstants.buttonFontSize, weight: .bold))
+                .foregroundStyle(BrandColors.onAccent)
+                .frame(maxWidth: .infinity)
+                .padding(ShareConstants.buttonPadding)
+                .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .padding(.top, 18)
     }
 
     private var notice: some View {
@@ -97,6 +123,14 @@ struct WorkoutDetailView: View {
         }
         .glassCard()
         .padding(.top, 16)
+    }
+
+    private static func debugOpensShare(defaults: UserDefaults = .standard) -> Bool {
+        #if DEBUG
+        return defaults.bool(forKey: AppConstants.openShareDefaultsKey)
+        #else
+        return false
+        #endif
     }
 
     private static func debugScrollAnchor(defaults: UserDefaults = .standard) -> WorkoutDetailSection? {

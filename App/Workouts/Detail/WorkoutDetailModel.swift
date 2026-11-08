@@ -27,6 +27,7 @@ import WorkoutAnalysis
     private(set) var zoneBands: [ZoneBand] = []
     private(set) var activeSpans: [BlockSpan] = []
     private(set) var zoneShares: [ZoneShare] = []
+    private(set) var shareInput: WorkoutShareInput?
 
     init(activityId: Int64, context: ModelContext) {
         self.activityId = activityId
@@ -60,6 +61,7 @@ import WorkoutAnalysis
         ))
         let current = WorkoutOccurrence(activityId: record.activityId, day: Self.day(record), blocks: blocks)
         comparison = compare(current: current, previous: previous)
+        shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, assessment: assessment)
         comparisonTitle = record.workoutName ?? WorkoutDetailConstants.similarRunsTitle
         guard let comparison else { return }
         guard hasPrescription else {
@@ -78,6 +80,35 @@ import WorkoutAnalysis
         }
     }
 
+
+    private static func shareInput(
+        _ record: ActivityRecord,
+        blocks: [WorkoutBlock],
+        route: [Coordinate],
+        hasPrescription: Bool,
+        assessment: WorkoutAssessment
+    ) -> WorkoutShareInput {
+        let distance = record.distance.flatMap { $0 > 0 ? $0 : nil }
+        let seconds = WorkoutListModel.movingSeconds(record)
+        let pace = distance.flatMap { meters in seconds.map { $0 / (meters / WorkoutConstants.metersPerKilometer) } }
+        let active = blocks.filter { $0.kind == .active }
+        let activeSeconds = active.reduce(0) { $0 + $1.seconds }
+        let activeDistance = active.reduce(0) { $0 + $1.distance }
+        let activePace = hasPrescription && activeDistance > 0 ? activeSeconds / (activeDistance / WorkoutConstants.metersPerKilometer) : nil
+        return WorkoutShareInput(
+            title: record.workoutName ?? record.name,
+            dateText: ComparisonText.shortDate(record.start),
+            distanceMeters: distance,
+            movingSeconds: seconds,
+            avgPaceSecondsPerKm: pace,
+            avgHeartRate: record.averageHR,
+            activePaceSecondsPerKm: activePace,
+            elevationGain: record.elevationGain,
+            route: route,
+            blocks: blocks,
+            readingLine: assessment.positives.first.map { FindingTemplates.text($0, blocks: blocks) }
+        )
+    }
 
     private static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
         guard let data = record.structureData else { return nil }
@@ -165,7 +196,7 @@ import WorkoutAnalysis
             title: row.title,
             dateText: row.dateText,
             subtitle: subtitle,
-            distanceText: record.distance.flatMap { $0 > 0 ? $0 : nil }.map { ($0 / WorkoutConstants.metersPerKilometer).formatted(.number.precision(.fractionLength(1)).locale(WorkoutConstants.locale)) },
+            distanceText: record.distance.flatMap { $0 > 0 ? $0 : nil }.map(WorkoutFormat.kilometers),
             durationText: row.durationText,
             paceText: row.paceText,
             averageHeartRateText: record.averageHR.map { "\(Int($0.rounded()))" },

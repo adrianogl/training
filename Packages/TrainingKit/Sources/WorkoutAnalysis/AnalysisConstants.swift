@@ -23,4 +23,5 @@ enum AnalysisConstants {
     static let lowReadiness = 50
     static let highAcuteChronic = 1.5
     static let maxComparisons = 4
+    static let metersPerKilometer = 1_000.0
 }
