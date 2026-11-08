@@ -231,3 +231,44 @@ private let zones = HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRa
     #expect(blocks.map(\.label) == ["Aquecimento", "Bloco 1", "Recuperação 1"])
     #expect(blocks[2].kind == .recovery)
 }
+
+private func singleStepRepeat(lastRepMeters: Double) -> WorkoutStructure {
+    let prescription = WorkoutPrescription(steps: [
+        PrescribedStep(index: 0, intensity: .warmup, duration: .time(seconds: 600), target: .open),
+        PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 800), target: .speed(low: 4.4, high: 4.7)),
+        PrescribedStep(index: 2, intensity: .active, duration: .repeatSteps(fromIndex: 1, count: 6), target: .open),
+        PrescribedStep(index: 3, intensity: .cooldown, duration: .time(seconds: 600), target: .open),
+    ])
+    let executed = laps([
+        (0, .warmup, 1, 600, 1800),
+        (1, .active, 5, 176, 805),
+        (1, .active, 1, lastRepMeters / 4.5, lastRepMeters),
+        (3, .cooldown, 1, 600, 1700),
+    ])
+    return WorkoutStructure(prescription: prescription, laps: executed)
+}
+
+@Test func unrollsSingleStepRepeat() {
+    let blocks = buildBlocks(singleStepRepeat(lastRepMeters: 800), zones: nil)
+    #expect(blocks.map(\.label) == ["Aquecimento"] + (1...6).map { "Tiro \($0)" } + ["Desaquecimento"])
+    let tiros = blocks.filter { $0.kind == .active }
+    #expect(tiros.allSatisfy { $0.laps.count == 1 && $0.distance >= 800 && $0.distance <= 805 })
+    #expect(tiros.allSatisfy { $0.status == .inTarget })
+
+    let short = buildBlocks(singleStepRepeat(lastRepMeters: 500), zones: nil).filter { $0.kind == .active }
+    #expect(short.count == 6)
+    #expect(short.prefix(5).allSatisfy { $0.status == .inTarget })
+    #expect(short[5].distance == 500)
+    #expect(short[5].status == .incomplete)
+}
+
+@Test func singleStepRepeatWithOpenDurationSplitsPerLap() {
+    let prescription = WorkoutPrescription(steps: [
+        PrescribedStep(index: 0, intensity: .active, duration: .open, target: .open),
+        PrescribedStep(index: 1, intensity: .active, duration: .repeatSteps(fromIndex: 0, count: 3), target: .open),
+    ])
+    let executed = laps([(0, .active, 4, 60, 250)])
+    let blocks = buildBlocks(WorkoutStructure(prescription: prescription, laps: executed), zones: nil)
+    #expect(blocks.map(\.label) == ["Tiro 1", "Tiro 2", "Tiro 3"])
+    #expect(blocks.map(\.laps.count) == [1, 1, 2])
+}

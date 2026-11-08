@@ -25,18 +25,16 @@ public func buildBlocks(_ structure: WorkoutStructure, zones: HeartRateZones?) -
         for skipped in expected[cursor..<match] {
             blocks.append(block(for: skipped, laps: [], labeler: &labeler, zones: zones))
         }
-        blocks.append(block(for: expected[match], laps: group.laps, labeler: &labeler, zones: zones))
-        cursor = match + 1
+        let repetitions = splitAcrossRepetitions(group.laps, step: expected[match].step, available: consecutiveRepetitions(expected, from: match))
+        for (offset, laps) in repetitions.enumerated() {
+            blocks.append(block(for: expected[match + offset], laps: laps, labeler: &labeler, zones: zones))
+        }
+        cursor = match + repetitions.count
     }
     for remaining in expected[cursor...] {
         blocks.append(block(for: remaining, laps: [], labeler: &labeler, zones: zones))
     }
     return blocks
-}
-
-private struct LapGroup {
-    var stepIndex: Int?
-    var laps: [LapSummary]
 }
 
 private struct BlockLabeler {
@@ -83,6 +81,37 @@ private func unroll(_ steps: [PrescribedStep]) -> [ExpectedStep] {
         }
     }
     return expanded
+}
+
+private func consecutiveRepetitions(_ expected: [ExpectedStep], from start: Int) -> Int {
+    let index = expected[start].step.index
+    return expected[start...].prefix { $0.step.index == index }.count
+}
+
+private func splitAcrossRepetitions(_ laps: [LapSummary], step: PrescribedStep, available: Int) -> [[LapSummary]] {
+    guard available > 1 else { return [laps] }
+    var repetitions: [[LapSummary]] = []
+    var current: [LapSummary] = []
+    for lap in laps {
+        current.append(lap)
+        if repetitions.count < available - 1, reachesDuration(current, step: step) {
+            repetitions.append(current)
+            current = []
+        }
+    }
+    if !current.isEmpty { repetitions.append(current) }
+    return repetitions
+}
+
+private func reachesDuration(_ laps: [LapSummary], step: PrescribedStep) -> Bool {
+    switch step.duration {
+    case let .distance(meters):
+        laps.reduce(0) { $0 + $1.distance } >= meters * AnalysisConstants.completionRatio
+    case let .time(seconds):
+        laps.reduce(0) { $0 + $1.timerSeconds } >= seconds * AnalysisConstants.completionRatio
+    case .open, .repeatSteps:
+        true
+    }
 }
 
 private func isStray(_ lap: LapSummary) -> Bool {

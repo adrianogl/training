@@ -65,3 +65,8 @@ struct ExpectedStep {
     var step: PrescribedStep
     var insideRepeat: Bool
 }
+
+struct LapGroup {
+    var stepIndex: Int?
+    var laps: [LapSummary]
+}
