@@ -40,19 +40,19 @@ public struct SleepDTO: Decodable, Equatable, Sendable {
 
     private struct Scores: Decodable {
         var overall: Overall?
-        struct Overall: Decodable { var value: Int? }
+        struct Overall: Decodable { var value: LenientInt? }
     }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         day = try c.decode(Day.self, forKey: .calendarDate)
-        sleepTimeSeconds = try c.decodeIfPresent(Int.self, forKey: .sleepTimeSeconds)
-        deepSleepSeconds = try c.decodeIfPresent(Int.self, forKey: .deepSleepSeconds)
-        lightSleepSeconds = try c.decodeIfPresent(Int.self, forKey: .lightSleepSeconds)
-        remSleepSeconds = try c.decodeIfPresent(Int.self, forKey: .remSleepSeconds)
-        awakeSleepSeconds = try c.decodeIfPresent(Int.self, forKey: .awakeSleepSeconds)
-        sleepEndTimestampGMT = try c.decodeIfPresent(Int64.self, forKey: .sleepEndTimestampGMT)
-        sleepEndTimestampLocal = try c.decodeIfPresent(Int64.self, forKey: .sleepEndTimestampLocal)
-        overallScore = try c.decodeIfPresent(Scores.self, forKey: .sleepScores)?.overall?.value
+        sleepTimeSeconds = try c.decodeRoundedInt(forKey: .sleepTimeSeconds)
+        deepSleepSeconds = try c.decodeRoundedInt(forKey: .deepSleepSeconds)
+        lightSleepSeconds = try c.decodeRoundedInt(forKey: .lightSleepSeconds)
+        remSleepSeconds = try c.decodeRoundedInt(forKey: .remSleepSeconds)
+        awakeSleepSeconds = try c.decodeRoundedInt(forKey: .awakeSleepSeconds)
+        sleepEndTimestampGMT = try c.decodeRoundedInt(forKey: .sleepEndTimestampGMT).map(Int64.init)
+        sleepEndTimestampLocal = try c.decodeRoundedInt(forKey: .sleepEndTimestampLocal).map(Int64.init)
+        overallScore = try c.decodeIfPresent(Scores.self, forKey: .sleepScores)?.overall?.value?.value
     }
 }

@@ -20,8 +20,8 @@ public struct BodyBatteryDayDTO: Decodable, Equatable, Sendable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         day = try c.decode(Day.self, forKey: .date)
-        charged = try c.decodeIfPresent(Int.self, forKey: .charged)
-        drained = try c.decodeIfPresent(Int.self, forKey: .drained)
+        charged = try c.decodeRoundedInt(forKey: .charged)
+        drained = try c.decodeRoundedInt(forKey: .drained)
         let raw = try c.decodeIfPresent([[Double?]].self, forKey: .bodyBatteryValuesArray) ?? []
         samples = raw.compactMap { pair in
             guard let first = pair.first, let timestamp = first else { return nil }

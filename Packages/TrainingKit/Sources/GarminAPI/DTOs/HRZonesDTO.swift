@@ -30,4 +30,22 @@ public struct HRZonesDTO: Decodable, Equatable, Sendable {
         self.lactateThresholdHeartRateUsed = lactateThresholdHeartRateUsed
         self.restingHeartRateUsed = restingHeartRateUsed
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case sport, zone1Floor, zone2Floor, zone3Floor, zone4Floor, zone5Floor
+        case maxHeartRateUsed, lactateThresholdHeartRateUsed, restingHeartRateUsed
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        sport = try c.decodeIfPresent(String.self, forKey: .sport)
+        zone1Floor = try c.decodeRoundedInt(forKey: .zone1Floor)
+        zone2Floor = try c.decodeRoundedInt(forKey: .zone2Floor)
+        zone3Floor = try c.decodeRoundedInt(forKey: .zone3Floor)
+        zone4Floor = try c.decodeRoundedInt(forKey: .zone4Floor)
+        zone5Floor = try c.decodeRoundedInt(forKey: .zone5Floor)
+        maxHeartRateUsed = try c.decodeRoundedInt(forKey: .maxHeartRateUsed)
+        lactateThresholdHeartRateUsed = try c.decodeRoundedInt(forKey: .lactateThresholdHeartRateUsed)
+        restingHeartRateUsed = try c.decodeRoundedInt(forKey: .restingHeartRateUsed)
+    }
 }

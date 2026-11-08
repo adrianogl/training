@@ -2,8 +2,6 @@ import Foundation
 import TrainingCore
 
 public struct GarminClient: GarminDataSource {
-    private static let envelopeKey = CodingUserInfoKey(rawValue: "garmin.envelopeKey")!
-
     private let tokens: TokenProvider
     private let transport: any HTTPTransport
     private let baseURL: URL
@@ -24,7 +22,7 @@ public struct GarminClient: GarminDataSource {
     public func heartRateZones() async throws -> HRZonesDTO {
         let path = GarminEndpoints.heartRateZonesPath
         let data = try await get(path: path)
-        let zones: [HRZonesDTO] = try decode(data, path: path, envelopeKey: nil)
+        let zones: [HRZonesDTO] = try decode(data, path: path)
         guard let zone = zones.first(where: { $0.sport == "DEFAULT" }) else {
             throw GarminAPIError.decoding(path: path)
         }
@@ -34,15 +32,15 @@ public struct GarminClient: GarminDataSource {
     public func dailySummaries(from: Day, to: Day) async throws -> [DailySummaryDTO] {
         try await ranged(from: from, to: to, maxDays: GarminEndpoints.dailySummariesMaxDays) { window in
             let path = GarminEndpoints.dailySummariesPath
-            let query = [("fromDate", window.lowerBound.iso), ("untilDate", window.upperBound.iso)]
-            return try self.decode(try await self.get(path: path, query: query), path: path, envelopeKey: "data")
+            let query = [("startDate", window.lowerBound.iso), ("endDate", window.upperBound.iso)]
+            return try self.decode(try await self.get(path: path, query: query), path: path, envelope: DataEnvelope<DailySummaryDTO>.self)
         }
     }
 
     public func hrvSummaries(from: Day, to: Day) async throws -> [HRVSummaryDTO] {
         try await ranged(from: from, to: to, maxDays: GarminEndpoints.hrvMaxDays) { window in
             let path = "\(GarminEndpoints.hrvPathPrefix)/\(window.lowerBound.iso)/\(window.upperBound.iso)"
-            return try self.decode(try await self.get(path: path), path: path, envelopeKey: "hrvSummaries")
+            return try self.decode(try await self.get(path: path), path: path, envelope: HRVEnvelope.self)
         }
     }
 
@@ -50,7 +48,7 @@ public struct GarminClient: GarminDataSource {
         try await ranged(from: from, to: to, maxDays: GarminEndpoints.sleepMaxDays) { window in
             let path = GarminEndpoints.sleepPath
             let query = [("startDate", window.lowerBound.iso), ("endDate", window.upperBound.iso)]
-            return try self.decode(try await self.get(path: path, query: query), path: path, envelopeKey: nil)
+            return try self.decode(try await self.get(path: path, query: query), path: path)
         }
     }
 
@@ -58,7 +56,7 @@ public struct GarminClient: GarminDataSource {
         try await ranged(from: from, to: to, maxDays: GarminEndpoints.bodyBatteryMaxDays) { window in
             let path = GarminEndpoints.bodyBatteryPath
             let query = [("startDate", window.lowerBound.iso), ("endDate", window.upperBound.iso)]
-            return try self.decode(try await self.get(path: path, query: query), path: path, envelopeKey: nil)
+            return try self.decode(try await self.get(path: path, query: query), path: path)
         }
     }
 
@@ -67,7 +65,7 @@ public struct GarminClient: GarminDataSource {
         var query = [("start", String(start)), ("limit", String(limit))]
         if let from { query.append(("startDate", from.iso)) }
         if let to { query.append(("endDate", to.iso)) }
-        return try decode(try await get(path: path, query: query), path: path, envelopeKey: nil)
+        return try decode(try await get(path: path, query: query), path: path)
     }
 
     public func fitArchive(activityId: Int64) async throws -> Data {
@@ -87,13 +85,19 @@ public struct GarminClient: GarminDataSource {
         return result
     }
 
-    private func decode<T: Decodable>(_ data: Data, path: String, envelopeKey: String?) throws -> [T] {
+    private func decode<T: Decodable>(_ data: Data, path: String) throws -> [T] {
         guard !data.isEmpty else { return [] }
-        let decoder = JSONDecoder()
         do {
-            guard let envelopeKey else { return try decoder.decode([T].self, from: data) }
-            decoder.userInfo[Self.envelopeKey] = envelopeKey
-            return try decoder.decode(Envelope<T>.self, from: data).items
+            return try JSONDecoder().decode([LossyElement<T>].self, from: data).compactMap(\.value)
+        } catch {
+            throw GarminAPIError.decoding(path: path)
+        }
+    }
+
+    private func decode<E: ListEnvelope>(_ data: Data, path: String, envelope: E.Type) throws -> [E.Element] {
+        guard !data.isEmpty else { return [] }
+        do {
+            return try JSONDecoder().decode(E.self, from: data).elements.compactMap(\.value)
         } catch {
             throw GarminAPIError.decoding(path: path)
         }
@@ -134,23 +138,6 @@ public struct GarminClient: GarminDataSource {
             default:
                 throw GarminAPIError.server(status: status)
             }
-        }
-    }
-
-    private struct Envelope<T: Decodable>: Decodable {
-        let items: [T]
-
-        private struct Key: CodingKey {
-            var stringValue: String
-            var intValue: Int? { nil }
-            init?(stringValue: String) { self.stringValue = stringValue }
-            init?(intValue: Int) { nil }
-        }
-
-        init(from decoder: Decoder) throws {
-            let name = decoder.userInfo[GarminClient.envelopeKey] as! String
-            let container = try decoder.container(keyedBy: Key.self)
-            items = try container.decodeIfPresent([T].self, forKey: Key(stringValue: name)!) ?? []
         }
     }
 }

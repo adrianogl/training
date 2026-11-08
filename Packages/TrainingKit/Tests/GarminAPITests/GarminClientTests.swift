@@ -47,7 +47,10 @@ private func day(_ iso: String) -> Day { Day(iso: iso)! }
     @Test func splitsSleepRangeIn28DayWindows() async throws {
         let h = makeClient(responses: [.ok("[]"), .ok("[]"), .ok("[]")])
         _ = try await h.client.sleepSummaries(from: day("2026-01-01"), to: day("2026-03-01"))
+        let queries = h.stub.requests.map { $0.url?.query ?? "" }
         #expect(h.stub.getPaths.count == 3)
+        #expect(queries.first == "startDate=2026-01-01&endDate=2026-01-28")
+        #expect(queries.last == "startDate=2026-02-26&endDate=2026-03-01")
     }
 
     @Test func emptyBodyMeansEmptyList() async throws {
@@ -196,5 +199,62 @@ private func day(_ iso: String) -> Day { Day(iso: iso)! }
         }
         #expect(h.tokenStub.requests.count == 2)
         #expect(h.stub.requests.count == 2)
+    }
+
+    @Test func dailySummariesSendsStartAndEndDate() async throws {
+        let h = makeClient(responses: [.ok(fixture("dailysummaries"))])
+        _ = try await h.client.dailySummaries(from: day("2026-11-04"), to: day("2026-11-05"))
+        #expect(h.stub.getPaths == ["/usersummary-service/v2/dailysummaries"])
+        #expect(h.stub.requests[0].url?.query == "startDate=2026-11-04&endDate=2026-11-05")
+    }
+
+    @Test func skipsInvalidItemsAndKeepsTheRest() async throws {
+        let body = """
+        {"data": [
+          {"calendarDate": "2026-11-04", "heartRate": {"restingValue": 51}},
+          {"heartRate": {"restingValue": 50}},
+          {"calendarDate": "not-a-date"},
+          {"calendarDate": "2026-11-06", "heartRate": {"restingValue": "x"}},
+          {"calendarDate": "2026-11-07", "heartRate": {"restingValue": 49}}
+        ]}
+        """
+        let h = makeClient(responses: [.ok(body)])
+        let result = try await h.client.dailySummaries(from: day("2026-11-04"), to: day("2026-11-07"))
+        #expect(result.map(\.day.iso) == ["2026-11-04", "2026-11-07"])
+    }
+
+    @Test func skipsInvalidItemsInTopLevelArray() async throws {
+        let body = #"[{"calendarDate": "2026-11-05", "sleepTimeSeconds": 100}, {"sleepTimeSeconds": 5}, 42]"#
+        let h = makeClient(responses: [.ok(body)])
+        let result = try await h.client.sleepSummaries(from: day("2026-11-05"), to: day("2026-11-05"))
+        #expect(result.count == 1 && result[0].sleepTimeSeconds == 100)
+    }
+
+    @Test func roundsFractionalNumbersInIntegerFields() async throws {
+        let body = """
+        {"data": [{"calendarDate": "2026-11-04", "heartRate": {"restingValue": 51.5},
+          "stress": {"avgLevel": 26.4}, "bodyBattery": {"minValue": 11.6, "maxValue": 95.0},
+          "intensityMinutes": {"moderate": 30.5, "vigorous": 0.4}}]}
+        """
+        let h = makeClient(responses: [.ok(body)])
+        let r = try await h.client.dailySummaries(from: day("2026-11-04"), to: day("2026-11-04"))[0]
+        #expect(r.restingHeartRate == 52 && r.avgStress == 26 && r.bodyBatteryMin == 12 && r.bodyBatteryMax == 95)
+        #expect(r.moderateIntensityMinutes == 31 && r.vigorousIntensityMinutes == 0)
+    }
+
+    @Test func roundsFractionalSleepAndBodyBatteryIntegers() async throws {
+        let sleep = makeClient(responses: [.ok(#"[{"calendarDate": "2026-11-05", "sleepTimeSeconds": 27000.6, "sleepEndTimestampGMT": 1793000000000.4}]"#)])
+        let s = try await sleep.client.sleepSummaries(from: day("2026-11-05"), to: day("2026-11-05"))[0]
+        #expect(s.sleepTimeSeconds == 27001 && s.sleepEndTimestampGMT == 1_793_000_000_000)
+        let battery = makeClient(responses: [.ok(#"[{"date": "2026-11-05", "charged": 60.5, "drained": 44.4}]"#)])
+        let b = try await battery.client.bodyBattery(from: day("2026-11-05"), to: day("2026-11-05"))[0]
+        #expect(b.charged == 61 && b.drained == 44)
+    }
+
+    @Test func unparseableEnvelopeIsDecodingError() async {
+        let h = makeClient(responses: [.ok("[1, 2]")])
+        await #expect(throws: GarminAPIError.decoding(path: GarminEndpoints.dailySummariesPath)) {
+            try await h.client.dailySummaries(from: day("2026-11-04"), to: day("2026-11-04"))
+        }
     }
 }

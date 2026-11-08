@@ -34,23 +34,23 @@ public struct DailySummaryDTO: Decodable, Equatable, Sendable {
         case calendarDate, heartRate, stress, bodyBattery, respiration, intensityMinutes
     }
 
-    private struct HeartRate: Decodable { var restingValue: Int? }
-    private struct Stress: Decodable { var avgLevel: Int? }
-    private struct BodyBattery: Decodable { var minValue: Int?; var maxValue: Int? }
+    private struct HeartRate: Decodable { var restingValue: LenientInt? }
+    private struct Stress: Decodable { var avgLevel: LenientInt? }
+    private struct BodyBattery: Decodable { var minValue: LenientInt?; var maxValue: LenientInt? }
     private struct Respiration: Decodable { var avgValue: Double? }
-    private struct IntensityMinutes: Decodable { var moderate: Int?; var vigorous: Int? }
+    private struct IntensityMinutes: Decodable { var moderate: LenientInt?; var vigorous: LenientInt? }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         day = try c.decode(Day.self, forKey: .calendarDate)
-        restingHeartRate = try c.decodeIfPresent(HeartRate.self, forKey: .heartRate)?.restingValue
-        avgStress = try c.decodeIfPresent(Stress.self, forKey: .stress)?.avgLevel
+        restingHeartRate = try c.decodeIfPresent(HeartRate.self, forKey: .heartRate)?.restingValue?.value
+        avgStress = try c.decodeIfPresent(Stress.self, forKey: .stress)?.avgLevel?.value
         let battery = try c.decodeIfPresent(BodyBattery.self, forKey: .bodyBattery)
-        bodyBatteryMin = battery?.minValue
-        bodyBatteryMax = battery?.maxValue
+        bodyBatteryMin = battery?.minValue?.value
+        bodyBatteryMax = battery?.maxValue?.value
         avgRespiration = try c.decodeIfPresent(Respiration.self, forKey: .respiration)?.avgValue
         let intensity = try c.decodeIfPresent(IntensityMinutes.self, forKey: .intensityMinutes)
-        moderateIntensityMinutes = intensity?.moderate
-        vigorousIntensityMinutes = intensity?.vigorous
+        moderateIntensityMinutes = intensity?.moderate?.value
+        vigorousIntensityMinutes = intensity?.vigorous?.value
     }
 }
