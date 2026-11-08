@@ -1,4 +1,5 @@
 import Toybox.Complications;
+import Toybox.Graphics;
 import Toybox.Lang;
 
 module Theme {
@@ -10,6 +11,9 @@ module Theme {
     const ORANGE = 0xFF8A4C;
     const BLUE = 0x7FB2FF;
     const GREEN = 0x6EE07A;
+    const YELLOW = 0xFFC93B;
+    const RED_LIGHT = 0xFF8080;
+    const RED = 0xFF4A4A;
     const AOD_TIME = 0x9AA0A8;
     const AOD_DIM = 0x5C6168;
     const AOD_ORANGE = 0xA35A33;
@@ -47,9 +51,39 @@ module RacePredictors {
     };
 }
 
+module DewPointBands {
+    const UPPER_LIMITS_CELSIUS = [15.5, 18.5, 21.5];
+    const COLORS = [Theme.BLUE, Theme.YELLOW, Theme.RED_LIGHT];
+    const ABOVE_LAST = Theme.RED;
+    const MAGNUS_B = 17.62;
+    const MAGNUS_C = 243.12;
+}
+
 module Defaults {
     const WEEKLY_GOAL_KM = 45;
     const RACE_DISTANCE_KM = 21;
+}
+
+module FontSpecs {
+    const BOLD = "RobotoCondensedBold";
+    const REGULAR = "RobotoCondensedRegular";
+    const ALL = {
+        :time => [BOLD, 104, Graphics.FONT_NUMBER_HOT],
+        :seconds => [BOLD, 40, Graphics.FONT_NUMBER_MILD],
+        :aodTime => [REGULAR, 96, Graphics.FONT_NUMBER_MEDIUM],
+        :date => [BOLD, 19, Graphics.FONT_XTINY],
+        :temperature => [BOLD, 30, Graphics.FONT_SMALL],
+        :humidity => [REGULAR, 24, Graphics.FONT_XTINY],
+        :battery => [BOLD, 24, Graphics.FONT_XTINY],
+        :status => [BOLD, 24, Graphics.FONT_XTINY],
+        :statValue => [BOLD, 32, Graphics.FONT_SMALL],
+        :statGoal => [REGULAR, 22, Graphics.FONT_XTINY],
+        :label => [BOLD, 16, Graphics.FONT_XTINY],
+        :race => [BOLD, 18, Graphics.FONT_XTINY],
+        :raceValue => [BOLD, 28, Graphics.FONT_SMALL],
+        :meeting => [BOLD, 24, Graphics.FONT_XTINY],
+        :tag => [BOLD, 13, Graphics.FONT_XTINY]
+    };
 }
 
 module Layout {

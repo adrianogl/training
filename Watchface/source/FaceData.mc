@@ -7,6 +7,7 @@ import Toybox.Weather;
 class FaceData {
     var temperature = null;
     var humidity = null;
+    var dewPoint = null;
     var battery = null;
     var vo2max = null;
     var weeklyRunMeters = null;
@@ -37,10 +38,12 @@ class FaceData {
     private function readWeather() {
         temperature = null;
         humidity = null;
+        dewPoint = null;
         var conditions = Weather.getCurrentConditions();
         if (conditions != null) {
             temperature = conditions.temperature;
             humidity = conditions.relativeHumidity;
+            dewPoint = DewPoint.fromConditions(conditions);
         }
     }
 
@@ -49,7 +52,11 @@ class FaceData {
         if (type == null) {
             return null;
         }
-        return complicationValue(type);
+        var seconds = complicationValue(type);
+        if (seconds == null || seconds <= 0) {
+            return null;
+        }
+        return seconds;
     }
 
     private function readBridge() {
