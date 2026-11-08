@@ -6,3 +6,5 @@ DerivedData/
 *.fit
 *.zip
 .superpowers/
+*.xcodeproj/
+App/**/xcuserdata

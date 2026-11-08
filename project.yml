@@ -1,0 +1,70 @@
+name: trAIning
+options:
+  bundleIdPrefix: dev.aglv
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+packages:
+  TrainingKit:
+    path: Packages/TrainingKit
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""
+targets:
+  trAIning:
+    type: application
+    platform: iOS
+    sources:
+      - App
+    dependencies:
+      - package: TrainingKit
+        products:
+          - Storage
+          - Sync
+          - GarminAPI
+          - TrainingCore
+          - WorkoutAnalysis
+          - Reports
+    settings:
+      base:
+        PRODUCT_NAME: trAIning
+        PRODUCT_BUNDLE_IDENTIFIER: dev.aglv.training
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: App/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: trAIning
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        CODE_SIGN_STYLE: Automatic
+  AppTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - AppTests
+    dependencies:
+      - target: trAIning
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: dev.aglv.training.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/trAIning.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/trAIning"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  trAIning:
+    build:
+      targets:
+        trAIning: all
+        AppTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - AppTests
+      environmentVariables:
+        TRAINING_TEST_HOST: "1"
