@@ -35,6 +35,14 @@ let package = Package(
         .testTarget(name: "MetricsTests", dependencies: ["Metrics"]),
         .testTarget(name: "ProjectionsTests", dependencies: ["Projections"]),
         .testTarget(name: "StorageTests", dependencies: ["Storage"]),
-        .testTarget(name: "SyncTests", dependencies: ["Sync"]),
+        .testTarget(name: "SyncTests", dependencies: [
+            "Sync",
+            "TrainingCore",
+            "GarminAPI",
+            "FITReader",
+            "Storage",
+            .product(name: "FITSwiftSDK", package: "fit-swift-sdk"),
+            .product(name: "ZIPFoundation", package: "ZIPFoundation"),
+        ]),
     ]
 )
