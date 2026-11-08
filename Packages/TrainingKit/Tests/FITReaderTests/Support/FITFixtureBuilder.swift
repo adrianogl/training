@@ -3,14 +3,15 @@ import FITSwiftSDK
 import ZIPFoundation
 
 enum FITFixtureBuilder {
-    static func run(seconds: Int, msg140: [UInt8: Int]?) throws -> Data {
+    static let start: UInt32 = 1_100_000_000
+
+    static func run(seconds: Int, msg140: [UInt8: Int]?, extra: [Mesg] = []) throws -> Data {
         let encoder = Encoder()
         let fileId = FileIdMesg()
         try fileId.setType(.activity)
         try fileId.setManufacturer(.garmin)
         encoder.write(mesg: fileId)
 
-        let start: UInt32 = 1_100_000_000
         for second in 0..<seconds {
             let record = RecordMesg()
             let angle = Double(second) / 40
@@ -35,7 +36,98 @@ enum FITFixtureBuilder {
             }
             encoder.write(mesg: mesg)
         }
+        for mesg in extra {
+            encoder.write(mesg: mesg)
+        }
         return encoder.close()
+    }
+
+    static func workout(name: String, description: String?) throws -> WorkoutMesg {
+        let mesg = WorkoutMesg()
+        try mesg.setSport(.running)
+        try mesg.setWktName(name)
+        if let description {
+            try mesg.setWktDescription(description)
+        }
+        return mesg
+    }
+
+    static func step(
+        index: UInt16,
+        intensity: Intensity = .active,
+        meters: Double? = nil,
+        seconds: Double? = nil,
+        speed: (low: Double, high: Double)? = nil,
+        heartRate: (low: UInt32, high: UInt32)? = nil,
+        heartRateZone: UInt32? = nil
+    ) throws -> WorkoutStepMesg {
+        let mesg = WorkoutStepMesg()
+        try mesg.setMessageIndex(index)
+        try mesg.setIntensity(intensity)
+        if let meters {
+            try mesg.setDurationType(.distance)
+            try mesg.setDurationDistance(meters)
+        } else if let seconds {
+            try mesg.setDurationType(.time)
+            try mesg.setDurationTime(seconds)
+        } else {
+            try mesg.setDurationType(.open)
+        }
+        if let speed {
+            try mesg.setTargetType(.speed)
+            try mesg.setTargetValue(0)
+            try mesg.setCustomTargetSpeedLow(speed.low)
+            try mesg.setCustomTargetSpeedHigh(speed.high)
+        } else if let heartRate {
+            try mesg.setTargetType(.heartRate)
+            try mesg.setTargetValue(0)
+            try mesg.setCustomTargetHeartRateLow(heartRate.low)
+            try mesg.setCustomTargetHeartRateHigh(heartRate.high)
+        } else if let heartRateZone {
+            try mesg.setTargetType(.heartRate)
+            try mesg.setTargetHrZone(heartRateZone)
+            try mesg.setCustomTargetValueLow(0)
+            try mesg.setCustomTargetValueHigh(0)
+        } else {
+            try mesg.setTargetType(.open)
+        }
+        return mesg
+    }
+
+    static func repeatStep(index: UInt16, fromIndex: UInt32, count: UInt32) throws -> WorkoutStepMesg {
+        let mesg = WorkoutStepMesg()
+        try mesg.setMessageIndex(index)
+        try mesg.setDurationType(.repeatUntilStepsCmplt)
+        try mesg.setDurationValue(fromIndex)
+        try mesg.setTargetValue(count)
+        return mesg
+    }
+
+    static func lap(
+        offset: UInt32,
+        seconds: Double,
+        meters: Double,
+        stepIndex: UInt16?,
+        intensity: Intensity = .active,
+        trigger: LapTrigger = .distance,
+        heartRate: (avg: UInt8, max: UInt8)? = nil
+    ) throws -> LapMesg {
+        let mesg = LapMesg()
+        try mesg.setStartTime(DateTime(timestamp: start + offset))
+        try mesg.setTimestamp(DateTime(timestamp: start + offset + UInt32(seconds)))
+        try mesg.setTotalTimerTime(seconds)
+        try mesg.setTotalDistance(meters)
+        try mesg.setEnhancedAvgSpeed(meters / seconds)
+        try mesg.setIntensity(intensity)
+        try mesg.setLapTrigger(trigger)
+        if let stepIndex {
+            try mesg.setWktStepIndex(stepIndex)
+        }
+        if let heartRate {
+            try mesg.setAvgHeartRate(heartRate.avg)
+            try mesg.setMaxHeartRate(heartRate.max)
+        }
+        return mesg
     }
 
     static func zip(containing fit: Data, entryName: String = "activity.fit") throws -> Data {
