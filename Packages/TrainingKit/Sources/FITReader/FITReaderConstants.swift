@@ -1,4 +1,5 @@
-enum FITReaderConstants {
+public enum FITReaderConstants {
+    public static let processingVersion = 2
     static let bucketSeconds = 5.0
     static let maxRoutePoints = 500
     static let initialSimplificationTolerance = 1e-6
@@ -9,4 +10,6 @@ enum FITReaderConstants {
     static let performanceConditionField: UInt8 = 17
     static let vo2maxDivisor = 65536.0
     static let vo2maxFactor = 3.5
+    static let heartRateBpmOffset = 100
+    static let heartRateZones = 1...5
 }

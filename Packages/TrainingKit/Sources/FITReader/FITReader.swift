@@ -35,7 +35,13 @@ public enum FITReader {
         return FITSummary(
             samples: resample(collector.records),
             route: RouteSimplifier.simplify(route(from: collector.records)),
-            physio: physio(from: collector.physioMessages)
+            physio: physio(from: collector.physioMessages),
+            structure: WorkoutStructureReader.structure(
+                workouts: collector.workouts,
+                steps: collector.steps,
+                laps: collector.laps,
+                origin: collector.records.lazy.compactMap { $0.getTimestamp()?.date.timeIntervalSince1970 }.first
+            )
         )
     }
 
@@ -111,10 +117,19 @@ public enum FITReader {
 private final class MessageCollector: MesgListener {
     var records: [RecordMesg] = []
     var physioMessages: [Mesg] = []
+    var workouts: [WorkoutMesg] = []
+    var steps: [WorkoutStepMesg] = []
+    var laps: [LapMesg] = []
 
     func onMesg(_ mesg: Mesg) {
         if mesg.mesgNum == Profile.MesgNum.record {
             records.append(RecordMesg(mesg: mesg))
+        } else if mesg.mesgNum == Profile.MesgNum.workout {
+            workouts.append(WorkoutMesg(mesg: mesg))
+        } else if mesg.mesgNum == Profile.MesgNum.workoutStep {
+            steps.append(WorkoutStepMesg(mesg: mesg))
+        } else if mesg.mesgNum == Profile.MesgNum.lap {
+            laps.append(LapMesg(mesg: mesg))
         } else if mesg.mesgNum == FITReaderConstants.physioMessageNumber {
             physioMessages.append(mesg)
         }
