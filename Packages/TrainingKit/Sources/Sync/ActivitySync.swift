@@ -15,6 +15,7 @@ extension SyncEngine {
         var touched: Set<Int64> = []
         var start = initialStart
         while true {
+            try Task.checkCancellation()
             let page = try await source.activities(start: start, limit: pageSize, from: from, to: nil)
             for dto in page {
                 try upsertActivity(dto)

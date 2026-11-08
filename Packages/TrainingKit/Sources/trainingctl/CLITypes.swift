@@ -1,12 +1,13 @@
 import Foundation
 
 enum Command: String {
-    case sync, report
+    case sync, report, reprocess
 }
 
 struct Invocation {
     var command: Command
     var store: URL
+    var limit: Int?
 }
 
 enum CLIError: Error {

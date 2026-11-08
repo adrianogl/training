@@ -11,6 +11,9 @@ actor FakeDataSource: GarminDataSource {
     private let failure: GarminAPIError?
     private let zonesError: GarminAPIError?
     private let fitErrors: [Int64: GarminAPIError]
+    private let cancelledFITs: Set<Int64>
+    private let cancelsZones: Bool
+    private let dailyDelay: Duration?
     private var sleepFailure: (from: Day, error: GarminAPIError)?
     private var activityFailure: (start: Int, error: GarminAPIError)?
 
@@ -21,6 +24,7 @@ actor FakeDataSource: GarminDataSource {
     private(set) var sleepFroms: [Day] = []
     private(set) var activityPageStarts: [Int] = []
     private(set) var fitCalls: [Int64] = []
+    private(set) var zonesCalls = 0
 
     init(
         dataDays: ClosedRange<Day>?,
@@ -28,7 +32,10 @@ actor FakeDataSource: GarminDataSource {
         fitZip: Data? = nil,
         failure: GarminAPIError? = nil,
         zonesError: GarminAPIError? = nil,
-        fitErrors: [Int64: GarminAPIError] = [:]
+        fitErrors: [Int64: GarminAPIError] = [:],
+        cancelledFITs: Set<Int64> = [],
+        cancelsZones: Bool = false,
+        dailyDelay: Duration? = nil
     ) {
         self.dataDays = dataDays
         self.activityList = activities
@@ -36,6 +43,9 @@ actor FakeDataSource: GarminDataSource {
         self.failure = failure
         self.zonesError = zonesError
         self.fitErrors = fitErrors
+        self.cancelledFITs = cancelledFITs
+        self.cancelsZones = cancelsZones
+        self.dailyDelay = dailyDelay
     }
 
     func failSleep(from: Day?, with error: GarminAPIError = .rateLimited(path: GarminEndpoints.sleepPath)) {
@@ -53,6 +63,8 @@ actor FakeDataSource: GarminDataSource {
     nonisolated var activityCount: Int { activityList.count }
 
     func heartRateZones() async throws -> HRZonesDTO {
+        zonesCalls += 1
+        if cancelsZones { throw CancellationError() }
         if let zonesError { throw zonesError }
         return HRZonesDTO(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175)
     }
@@ -60,6 +72,7 @@ actor FakeDataSource: GarminDataSource {
     func dailySummaries(from: Day, to: Day) async throws -> [DailySummaryDTO] {
         froms.append(from)
         summaryFroms.append(from)
+        if let dailyDelay { try? await Task.sleep(for: dailyDelay) }
         if let failure { throw failure }
         return days(from: from, to: to).map { DailySummaryDTO(day: $0, restingHeartRate: 50, avgStress: 25) }
     }
@@ -109,6 +122,7 @@ actor FakeDataSource: GarminDataSource {
 
     func fitArchive(activityId: Int64) async throws -> Data {
         fitCalls.append(activityId)
+        if cancelledFITs.contains(activityId) { throw CancellationError() }
         if let error = fitErrors[activityId] { throw error }
         guard let fitZip else { throw FakeFITError() }
         return fitZip

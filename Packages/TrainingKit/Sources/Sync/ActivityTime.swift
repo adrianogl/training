@@ -14,6 +14,10 @@ enum ActivityTime {
         return calendar.date(from: components)
     }
 
+    static func localDay(_ value: String) -> String? {
+        Day(iso: String(value.prefix(10)))?.iso
+    }
+
     static func day(of date: Date) -> Day {
         Day.today(in: calendar.timeZone, now: date)
     }

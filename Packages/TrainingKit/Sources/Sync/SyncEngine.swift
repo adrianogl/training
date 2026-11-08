@@ -10,30 +10,67 @@ public actor SyncEngine: ModelActor {
     let source: any GarminDataSource
     let today: @Sendable () -> Day
     let firstDay: Day
+    let fitLimit: Int?
     public private(set) var heartRateZones: HRZonesDTO?
-    private var currentRun: Task<SyncReport, Error>?
+    private var inFlight: InFlightOperation?
 
     public init(
         source: any GarminDataSource,
         container: ModelContainer,
         today: @escaping @Sendable () -> Day,
-        firstDay: Day = Day(iso: "2024-01-01")!
+        firstDay: Day = Day(iso: "2024-01-01")!,
+        fitLimit: Int? = nil
     ) {
         self.modelContainer = container
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(container))
         self.source = source
         self.today = today
         self.firstDay = firstDay
+        self.fitLimit = fitLimit
     }
 
     public func run(progress: @escaping @Sendable (Double) -> Void = { _ in }) async throws -> SyncReport {
-        if let currentRun {
-            return try await currentRun.value
+        try await singleFlight(.sync) { try await self.perform(progress: progress) }
+    }
+
+    public func reprocess(limit: Int?) async throws -> SyncReport {
+        try await singleFlight(.reprocess) { try await self.performReprocess(limit: limit) }
+    }
+
+    private func singleFlight(
+        _ operation: SyncOperation,
+        work: @escaping @Sendable () async throws -> SyncReport
+    ) async throws -> SyncReport {
+        while let inFlight {
+            if inFlight.operation == operation {
+                return try await awaitCancellable(inFlight.task)
+            }
+            _ = await inFlight.task.result
+            try Task.checkCancellation()
         }
-        let task = Task { try await self.perform(progress: progress) }
-        currentRun = task
-        defer { currentRun = nil }
-        return try await task.value
+        let task = Task { try await work() }
+        inFlight = InFlightOperation(operation: operation, task: task)
+        defer {
+            if self.inFlight?.task == task { self.inFlight = nil }
+        }
+        return try await awaitCancellable(task)
+    }
+
+    private func awaitCancellable(_ task: Task<SyncReport, Error>) async throws -> SyncReport {
+        try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
+
+    private func performReprocess(limit: Int?) async throws -> SyncReport {
+        try backfillLocalDays()
+        let result = try await processFITQueue(try fitQueue(includesNewRuns: false, limit: limit ?? fitLimit)) { _ in }
+        var report = SyncReport()
+        report.reprocessed = result.reprocessed
+        report.fitStoppedByRateLimit = result.stoppedByRateLimit
+        return report
     }
 
     private func perform(progress: @escaping @Sendable (Double) -> Void) async throws -> SyncReport {
@@ -43,6 +80,7 @@ public actor SyncEngine: ModelActor {
         progress(0)
 
         report.duplicatesRemoved = try removeDuplicates()
+        try backfillLocalDays()
         let state = try syncState()
         progress(C.progressAfterCleanup)
 
@@ -73,14 +111,18 @@ public actor SyncEngine: ModelActor {
         ).count
         progress(C.progressAfterActivities)
 
-        report.fitProcessed = try await processPendingFIT { fraction in
+        let fit = try await processFITQueue(try fitQueue(includesNewRuns: true, limit: fitLimit)) { fraction in
             progress(C.progressAfterActivities + fraction * (C.progressAfterFIT - C.progressAfterActivities))
         }
+        report.fitProcessed = fit.processed
+        report.reprocessed = fit.reprocessed
+        report.fitStoppedByRateLimit = fit.stoppedByRateLimit
         progress(C.progressAfterFIT)
 
         try updateReadiness(days: isFirstLoad ? try storedDays() : touchedDays)
         progress(C.progressAfterDerived)
 
+        try Task.checkCancellation()
         state.clearResumeCursors()
         state.firstLoadCompleted = true
         state.lastSync = .now
@@ -123,13 +165,17 @@ public actor SyncEngine: ModelActor {
     }
 
     private func fetchHeartRateZones() async throws {
+        let zones: HRZonesDTO
         do {
-            heartRateZones = try await source.heartRateZones()
+            zones = try await source.heartRateZones()
         } catch let error as GarminAPIError where SyncErrorPolicy.isCredentialFailure(error) {
             throw error
         } catch {
+            if SyncErrorPolicy.isCancellation(error) { throw CancellationError() }
             return
         }
+        heartRateZones = zones
+        try upsertHeartRateZones(zones)
     }
 
     private func latestActivityStart() throws -> Date? {

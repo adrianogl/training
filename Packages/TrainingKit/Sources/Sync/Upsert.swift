@@ -72,6 +72,9 @@ extension ActivityRecord {
         if let local = dto.startTimeLocal, let parsed = ActivityTime.parseLocal(local) {
             start = parsed
         }
+        if let local = dto.startTimeLocal, let day = ActivityTime.localDay(local) {
+            localDay = day
+        }
         locationName = dto.locationName
         distance = dto.distance
         duration = dto.duration

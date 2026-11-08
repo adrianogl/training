@@ -19,11 +19,15 @@ enum SyncCommand {
         return key
     }
 
-    static func run(apiKey: String, container: ModelContainer) async throws -> SyncReport {
+    static func engine(apiKey: String, container: ModelContainer) -> SyncEngine {
         let transport = URLSessionTransport()
         let tokens = TokenProvider(apiKey: apiKey, baseURL: GarminEndpoints.base, transport: transport)
         let client = GarminClient(tokens: tokens, transport: transport)
-        let engine = SyncEngine(source: client, container: container, today: { Day.today() })
+        return SyncEngine(source: client, container: container, today: { Day.today() })
+    }
+
+    static func run(apiKey: String, container: ModelContainer) async throws -> SyncReport {
+        let engine = engine(apiKey: apiKey, container: container)
         let lastPercent = Mutex(-1)
         return try await engine.run { fraction in
             let percent = Int((fraction * 100).rounded(.down))
@@ -41,6 +45,8 @@ enum SyncCommand {
             "Dias gravados: \(report.dailyUpserted)",
             "Atividades gravadas: \(report.activitiesUpserted)",
             "FIT processados: \(report.fitProcessed)",
+            "FIT reprocessados: \(report.reprocessed)",
+            "FIT parou no limite do Garmin (429): \(report.fitStoppedByRateLimit ? "sim" : "não")",
             "Duplicatas removidas: \(report.duplicatesRemoved)",
         ]
     }

@@ -5,14 +5,14 @@ public struct GarminClient: GarminDataSource {
     private let tokens: TokenProvider
     private let transport: any HTTPTransport
     private let baseURL: URL
-    private let sleep: @Sendable (Duration) async -> Void
+    private let sleep: @Sendable (Duration) async throws -> Void
     private let now: @Sendable () -> Date
 
     public init(
         tokens: TokenProvider,
         transport: any HTTPTransport,
         baseURL: URL = GarminEndpoints.base,
-        sleep: @escaping @Sendable (Duration) async -> Void = { try? await Task.sleep(for: $0) },
+        sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) },
         now: @escaping @Sendable () -> Date = { .now }
     ) {
         self.tokens = tokens
@@ -136,12 +136,12 @@ public struct GarminClient: GarminDataSource {
                 let schedule = GarminEndpoints.rateLimitDelaysSeconds
                 guard retries < schedule.count else { throw GarminAPIError.rateLimited(path: path) }
                 let header = response.value(forHTTPHeaderField: GarminEndpoints.retryAfterHeader)
-                await sleep(.seconds(RetryAfter.seconds(from: header, now: now()) ?? schedule[retries]))
+                try await sleep(.seconds(RetryAfter.seconds(from: header, now: now()) ?? schedule[retries]))
                 retries += 1
             case 500..<600:
                 let schedule = GarminEndpoints.retryDelaysSeconds
                 guard retries < schedule.count else { throw GarminAPIError.server(status: status) }
-                await sleep(.seconds(schedule[retries]))
+                try await sleep(.seconds(schedule[retries]))
                 retries += 1
             default:
                 throw GarminAPIError.server(status: status)

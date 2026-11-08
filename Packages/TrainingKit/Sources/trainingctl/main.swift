@@ -8,15 +8,25 @@ func parse(_ arguments: [String]) throws -> Invocation {
     guard let first = arguments.first else { throw CLIError.usage("Faltou o comando.") }
     guard let command = Command(rawValue: first) else { throw CLIError.usage("Comando desconhecido: \(first)") }
     var store: String?
+    var limit: Int?
     var rest = arguments.dropFirst()
     while let argument = rest.popFirst() {
-        guard argument == "--store" else { throw CLIError.usage("Argumento desconhecido: \(argument)") }
-        guard let value = rest.popFirst(), !value.hasPrefix("--") else { throw CLIError.usage("Faltou o caminho depois de --store.") }
-        store = value
+        switch argument {
+        case "--store":
+            guard let value = rest.popFirst(), !value.hasPrefix("--") else { throw CLIError.usage("Faltou o caminho depois de --store.") }
+            store = value
+        case "--limit" where command == .reprocess:
+            guard let value = rest.popFirst(), let parsed = Int(value), parsed > 0 else {
+                throw CLIError.usage("--limit precisa de um número inteiro positivo.")
+            }
+            limit = parsed
+        default:
+            throw CLIError.usage("Argumento desconhecido: \(argument)")
+        }
     }
     guard let store else { throw CLIError.usage("Faltou --store <caminho>.") }
     let path = (store as NSString).expandingTildeInPath
-    return Invocation(command: command, store: URL(filePath: path, relativeTo: URL.currentDirectory()).absoluteURL)
+    return Invocation(command: command, store: URL(filePath: path, relativeTo: URL.currentDirectory()).absoluteURL, limit: limit)
 }
 
 func openContainer(at store: URL) throws -> ModelContainer {
@@ -37,6 +47,11 @@ do {
         let apiKey = try SyncCommand.readKey(at: SyncCommand.keyPath())
         let container = try openContainer(at: invocation.store)
         SyncCommand.lines(try await SyncCommand.run(apiKey: apiKey, container: container)).forEach { print($0) }
+    case .reprocess:
+        let apiKey = try SyncCommand.readKey(at: SyncCommand.keyPath())
+        let container = try openContainer(at: invocation.store)
+        let report = try await ReprocessCommand.run(apiKey: apiKey, container: container, limit: invocation.limit)
+        ReprocessCommand.lines(report).forEach { print($0) }
     case .report:
         let container = try openContainer(at: invocation.store)
         let report = try ReportBuilder(context: ModelContext(container), today: Day.today()).build()

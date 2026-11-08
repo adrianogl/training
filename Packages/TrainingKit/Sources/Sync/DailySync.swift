@@ -32,6 +32,7 @@ extension SyncEngine {
         }
 
         for window in summaryWindows {
+            try Task.checkCancellation()
             for dto in try await source.dailySummaries(from: window.lowerBound, to: window.upperBound) {
                 try upsertDaily(dto.day) { $0.apply(dto) }
                 touched.insert(dto.day)
@@ -39,6 +40,7 @@ extension SyncEngine {
             try finish(window, cursor: \.resumeDailyFrom)
         }
         for window in hrvWindows {
+            try Task.checkCancellation()
             for dto in try await source.hrvSummaries(from: window.lowerBound, to: window.upperBound) {
                 try upsertDaily(dto.day) { $0.apply(dto) }
                 touched.insert(dto.day)
@@ -46,6 +48,7 @@ extension SyncEngine {
             try finish(window, cursor: \.resumeHRVFrom)
         }
         for window in sleepWindows {
+            try Task.checkCancellation()
             for dto in try await source.sleepSummaries(from: window.lowerBound, to: window.upperBound) {
                 try upsertDaily(dto.day) { $0.apply(dto) }
                 touched.insert(dto.day)
@@ -53,6 +56,7 @@ extension SyncEngine {
             try finish(window, cursor: \.resumeSleepFrom)
         }
         for window in batteryWindows {
+            try Task.checkCancellation()
             let days = try await source.bodyBattery(from: window.lowerBound, to: window.upperBound)
             let samplesByDay = Dictionary(days.map { ($0.day, $0.samples) }, uniquingKeysWith: +)
             for dto in days {

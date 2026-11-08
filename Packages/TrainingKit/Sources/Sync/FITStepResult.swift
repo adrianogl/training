@@ -1,0 +1,5 @@
+struct FITStepResult {
+    var processed = 0
+    var reprocessed = 0
+    var stoppedByRateLimit = false
+}

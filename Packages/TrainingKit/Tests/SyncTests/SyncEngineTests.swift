@@ -123,7 +123,7 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         let fake = FakeDataSource(dataDays: nil, activities: activities, fitZip: try FITZipBuilder.run(seconds: 900))
         let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -5))
         let context = ModelContext(container)
-        context.insert(ActivityRecord(activityId: 5, typeKey: "treadmill_running", fitProcessed: true))
+        context.insert(ActivityRecord(activityId: 5, typeKey: "treadmill_running", fitProcessed: true, processingVersion: FITReaderConstants.processingVersion))
         try context.save()
 
         let first = try await engine.run()
