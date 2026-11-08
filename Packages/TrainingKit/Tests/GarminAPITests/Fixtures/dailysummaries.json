@@ -1,0 +1,6 @@
+{"data": [
+  {"calendarDate": "2026-11-04", "heartRate": {"minValue": 44, "maxValue": 171, "restingValue": 51},
+   "stress": {"avgLevel": 27, "maxLevel": 90}, "bodyBattery": {"minValue": 12, "maxValue": 95},
+   "respiration": {"avgValue": 14.5}, "intensityMinutes": {"goal": 150, "moderate": 30, "vigorous": 20}, "steps": 9000},
+  {"calendarDate": "2026-11-05", "heartRate": {"restingValue": 52}}
+]}

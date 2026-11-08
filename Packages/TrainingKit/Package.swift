@@ -30,7 +30,7 @@ let package = Package(
         .target(name: "Storage", dependencies: ["TrainingCore"]),
         .target(name: "Sync", dependencies: ["TrainingCore", "GarminAPI", "FITReader", "Metrics", "Projections", "Storage"]),
         .testTarget(name: "TrainingCoreTests", dependencies: ["TrainingCore"]),
-        .testTarget(name: "GarminAPITests", dependencies: ["GarminAPI"]),
+        .testTarget(name: "GarminAPITests", dependencies: ["GarminAPI"], resources: [.copy("Fixtures")]),
         .testTarget(name: "FITReaderTests", dependencies: ["FITReader"]),
         .testTarget(name: "MetricsTests", dependencies: ["Metrics"]),
         .testTarget(name: "ProjectionsTests", dependencies: ["Projections"]),

@@ -1,0 +1,10 @@
+{
+  "hrvSummaries": [
+    {"calendarDate": "2026-01-01", "weeklyAvg": 52, "lastNightAvg": 49, "lastNight5MinHigh": 88,
+     "baseline": {"lowUpper": 40, "balancedLow": 45, "balancedUpper": 62, "markerValue": 0.5},
+     "status": "BALANCED", "createTimeStamp": "2026-01-01T07:00:00.0", "extraField": {"x": 1}},
+    {"calendarDate": "2026-01-02", "weeklyAvg": null, "lastNightAvg": null, "lastNight5MinHigh": null,
+     "baseline": null, "status": "NONE"}
+  ],
+  "userProfilePk": 1
+}

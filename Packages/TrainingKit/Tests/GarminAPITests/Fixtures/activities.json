@@ -1,0 +1,12 @@
+[
+  {"activityId": 9000000001, "activityName": "Corrida de teste", "activityType": {"typeId": 1, "typeKey": "running", "parentTypeId": 17},
+   "startTimeLocal": "2026-11-05 19:43:34", "locationName": "Cidade", "distance": 10250.5, "duration": 3300.2,
+   "movingDuration": 3280.0, "averageHR": 150.0, "maxHR": 178.0, "activityTrainingLoad": 139.2,
+   "aerobicTrainingEffect": 3.4, "anaerobicTrainingEffect": 0.5, "trainingEffectLabel": "TEMPO",
+   "averageRunningCadenceInStepsPerMinute": 172.5, "avgGroundContactTime": 245.0, "avgVerticalOscillation": 8.5,
+   "avgVerticalRatio": 8.1, "avgStrideLength": 105.0, "avgPower": 260.0, "elevationGain": 80.0, "elevationLoss": 78.0,
+   "hrTimeInZone_1": 70.2, "hrTimeInZone_2": 300.0, "hrTimeInZone_3": 900.0, "hrTimeInZone_4": 1000.0, "hrTimeInZone_5": 126.0,
+   "fastestSplit_1000": 300.1, "fastestSplit_5000": 1550.0, "pr": true, "unknownField": [1, 2]},
+  {"activityId": 9000000002, "activityName": "Musculação", "activityType": {"typeId": 13, "typeKey": "strength_training", "parentTypeId": 29},
+   "startTimeLocal": "2026-11-04 07:00:00", "duration": 3600.0, "pr": false}
+]

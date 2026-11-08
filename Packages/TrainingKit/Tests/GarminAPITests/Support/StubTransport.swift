@@ -23,6 +23,10 @@ final class StubTransport: HTTPTransport {
         state.withLock { $0.requests }
     }
 
+    var getPaths: [String] {
+        requests.filter { $0.httpMethod == "GET" }.compactMap { $0.url?.path }
+    }
+
     func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
         try await Task.sleep(for: .milliseconds(20))
         let response = state.withLock { state -> Response? in

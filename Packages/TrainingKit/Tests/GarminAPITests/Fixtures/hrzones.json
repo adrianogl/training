@@ -1,0 +1,8 @@
+[
+  {"trainingMethod": "HR_RESERVE", "restingHeartRateUsed": 50, "lactateThresholdHeartRateUsed": 165,
+   "zone1Floor": 120, "zone2Floor": 135, "zone3Floor": 150, "zone4Floor": 160, "zone5Floor": 175,
+   "maxHeartRateUsed": 190, "restingHrAutoUpdateUsed": true, "sport": "RUNNING"},
+  {"trainingMethod": "HR_RESERVE", "restingHeartRateUsed": 51, "lactateThresholdHeartRateUsed": 166,
+   "zone1Floor": 121, "zone2Floor": 136, "zone3Floor": 151, "zone4Floor": 161, "zone5Floor": 176,
+   "maxHeartRateUsed": 191, "restingHrAutoUpdateUsed": true, "sport": "DEFAULT"}
+]
