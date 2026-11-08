@@ -8,4 +8,19 @@ enum AnalysisConstants {
     static let activeLabel = "Bloco"
     static let recoveryLabel = "Recuperação"
     static let freeRunLabel = "Volta"
+
+    static let fullLapMinimumDistance = 500.0
+    static let minimumFullLaps = 3
+    static let steadyPaceSpread = 6.0
+    static let fadeThreshold = 8.0
+    static let driftThreshold = 0.05
+    static let driftMaxSpeedChange = 0.02
+    static let goodRecoveryDrop = 25
+    static let lowerHeartRateMargin = 3
+    static let sameSpeedTolerance = 0.02
+    static let easyBlockZoneLimit = 3
+    static let hardZone = 4
+    static let lowReadiness = 50
+    static let highAcuteChronic = 1.5
+    static let maxComparisons = 4
 }

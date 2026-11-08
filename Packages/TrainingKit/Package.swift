@@ -40,7 +40,7 @@ let package = Package(
         .testTarget(name: "MetricsTests", dependencies: ["Metrics"]),
         .testTarget(name: "ProjectionsTests", dependencies: ["Projections"]),
         .testTarget(name: "StorageTests", dependencies: ["Storage"]),
-        .testTarget(name: "WorkoutAnalysisTests", dependencies: ["WorkoutAnalysis", "FITReader"]),
+        .testTarget(name: "WorkoutAnalysisTests", dependencies: ["WorkoutAnalysis", "FITReader", "TrainingCore"]),
         .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore"]),
         .testTarget(name: "SyncTests", dependencies: [
             "Sync",
