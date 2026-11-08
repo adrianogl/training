@@ -309,7 +309,8 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         let interrupted = try #require(try fetch(SyncState.self, in: container).first)
         #expect(interrupted.firstLoadCompleted == false)
         #expect(interrupted.resumeActivityStart == 100)
-        let nextDay = today.adding(days: 1).iso
+        let partialStart = today.adding(days: -3)
+        let nextDay = partialStart.iso
         #expect(interrupted.resumeDailyFrom == nextDay)
         #expect(interrupted.resumeHRVFrom == nextDay)
         #expect(interrupted.resumeSleepFrom == nextDay)
@@ -326,17 +327,49 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         let report = try await engine.run()
 
         #expect(Array(await fake.activityPageStarts.dropFirst(3)) == [100, 150])
-        #expect(await fake.summaryFroms.count == summaryBefore)
-        #expect(await fake.hrvFroms.count == hrvBefore)
-        #expect(await fake.sleepFroms.count == sleepBefore)
-        #expect(await fake.batteryFroms.count == batteryBefore)
-        #expect(await fake.froms.count - fromsBefore == 2)
+        #expect(Array(await fake.summaryFroms.dropFirst(summaryBefore)) == [partialStart])
+        #expect(Array(await fake.hrvFroms.dropFirst(hrvBefore)) == [partialStart])
+        #expect(Array(await fake.sleepFroms.dropFirst(sleepBefore)) == [partialStart])
+        #expect(Array(await fake.batteryFroms.dropFirst(batteryBefore)) == [partialStart])
+        #expect(await fake.froms.count - fromsBefore == 6)
         #expect(report.activitiesUpserted == 60)
         #expect(try count(ActivityRecord.self, in: container) == 160)
         let state = try #require(try fetch(SyncState.self, in: container).first)
         #expect(state.firstLoadCompleted)
         #expect(cursors(state).allSatisfy { $0 == nil })
         #expect(try fetch(DailyRecord.self, in: container).allSatisfy { $0.readinessScore != nil })
+    }
+
+    @Test func resumeDaysLaterRereadsPartialToday() async throws {
+        let firstDay = today.adding(days: -40)
+        let later = today.adding(days: 5)
+        let fake = FakeDataSource(dataDays: firstDay...later, activities: spacedActivities(count: 60, perDay: 2))
+        let container = try TrainingSchema.container(inMemory: true)
+        let interrupted = SyncEngine(source: fake, container: container, today: { today }, firstDay: firstDay)
+        await fake.failActivities(start: 50)
+        await #expect(throws: GarminAPIError.rateLimited(path: GarminEndpoints.activitiesPath)) {
+            try await interrupted.run()
+        }
+        await fake.failActivities(start: nil)
+        let summaryBefore = await fake.summaryFroms.count
+        let hrvBefore = await fake.hrvFroms.count
+        let sleepBefore = await fake.sleepFroms.count
+        let batteryBefore = await fake.batteryFroms.count
+
+        let resumed = SyncEngine(source: fake, container: container, today: { later }, firstDay: firstDay)
+        _ = try await resumed.run()
+
+        for froms in [
+            Array(await fake.summaryFroms.dropFirst(summaryBefore)),
+            Array(await fake.hrvFroms.dropFirst(hrvBefore)),
+            Array(await fake.sleepFroms.dropFirst(sleepBefore)),
+            Array(await fake.batteryFroms.dropFirst(batteryBefore)),
+        ] {
+            let first = try #require(froms.first)
+            #expect(first <= today)
+        }
+        let records = Dictionary(uniqueKeysWithValues: try fetch(DailyRecord.self, in: container).map { ($0.day, $0) })
+        #expect(records[later.iso]?.sleepSeconds == 27_000)
     }
 
     @Test func firstLoadResumesSleepFromFailedWindow() async throws {
@@ -351,7 +384,8 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         }
 
         let interrupted = try #require(try fetch(SyncState.self, in: container).first)
-        let nextDay = today.adding(days: 1).iso
+        let partialStart = today.adding(days: -3)
+        let nextDay = partialStart.iso
         #expect(interrupted.firstLoadCompleted == false)
         #expect(interrupted.resumeDailyFrom == nextDay)
         #expect(interrupted.resumeHRVFrom == nextDay)
@@ -368,8 +402,8 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
 
         _ = try await engine.run()
 
-        #expect(await fake.summaryFroms.count == summaryBefore)
-        #expect(await fake.hrvFroms.count == hrvBefore)
+        #expect(Array(await fake.summaryFroms.dropFirst(summaryBefore)) == [partialStart])
+        #expect(Array(await fake.hrvFroms.dropFirst(hrvBefore)) == [partialStart])
         #expect(Array(await fake.sleepFroms.dropFirst(sleepBefore)) == Array(sleepWindows.dropFirst(2)))
         #expect(await fake.batteryFroms == sleepWindows)
         #expect(await fake.activityPageStarts == [0])

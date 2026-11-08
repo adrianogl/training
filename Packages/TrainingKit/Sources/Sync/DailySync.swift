@@ -20,10 +20,11 @@ extension SyncEngine {
         let total = Double(summaryWindows.count + hrvWindows.count + sleepWindows.count + batteryWindows.count)
         var completed = 0.0
         var touched: Set<Day> = []
+        let partialDaysStart = to.adding(days: -C.incrementalOverlapDays)
 
         func finish(_ window: ClosedRange<Day>, cursor: ReferenceWritableKeyPath<SyncState, String?>) throws {
             if tracksResume {
-                state[keyPath: cursor] = window.upperBound.adding(days: 1).iso
+                state[keyPath: cursor] = min(window.upperBound.adding(days: 1), partialDaysStart).iso
             }
             try modelContext.save()
             completed += 1
