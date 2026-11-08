@@ -21,6 +21,7 @@ import TrainingCore
     @ObservationIgnored private var client: (key: String, client: GarminClient)?
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var runningTrigger: SyncTrigger?
+    @ObservationIgnored private var narrativeFailures: Set<String> = []
 
     init(
         container: ModelContainer,
@@ -149,12 +150,14 @@ import TrainingCore
     }
 
     private func writeNarratives(processed: Set<Int64>) async {
-        try? await NarrativeBackfill.run(
+        let failures = try? await NarrativeBackfill.run(
             context: container.mainContext,
             narrator: makeNarrator(),
             processed: processed,
-            limit: AppConstants.narrativeBackfillLimit
+            limit: AppConstants.narrativeBackfillLimit,
+            skipping: narrativeFailures
         )
+        narrativeFailures.formUnion(failures ?? [])
     }
 
     private func updateProgress(_ fraction: Double) {

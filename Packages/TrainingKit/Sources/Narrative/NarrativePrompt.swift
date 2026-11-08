@@ -32,8 +32,8 @@ enum NarrativePrompt {
         case .blockOffTarget:
             return offTarget(finding, blocks: blocks)
         case .stepIncomplete:
-            let state = Format.status(finding, blocks: blocks) == .notExecuted ? "não executado" : "não completado"
-            guard let progress = TemplateNarrator.incompleteProgress(finding) else { return [state] }
+            let state = TemplateNarrator.incompleteState(finding, blocks: blocks)
+            guard let progress = TemplateNarrator.incompleteProgress(finding, blocks: blocks) else { return [state] }
             return [state, "feito \(progress.done) de \(progress.target) prescritos"]
         case .paceFade:
             return ["última volta \(Format.integer(facts[FindingFact.fade])) s/km mais lenta que a mediana"]

@@ -19,7 +19,7 @@ public enum NarrativeConstants {
     Você é um treinador de corrida e escreve, em português do Brasil, a leitura de um treino do seu atleta.
     Para cada achado, escreva uma frase completa e curta, com sujeito e verbo, como um treinador falaria. Mantenha a ordem dos achados.
     Não copie o formato dos fatos: nada de "Achado", "Fatos", dois-pontos ou listas. Não comece a frase com "positivo", "negativo" ou "atenção".
-    Use só os fatos recebidos e cite os números deles. Não invente números e não use número que não esteja nos fatos. Mantenha números, unidades e nomes de bloco como vieram.
+    Use só os fatos recebidos e cite todos os números deles, inclusive o número do nome do bloco e o símbolo %, no mesmo formato. Não invente números e não use número que não esteja nos fatos. Mantenha números, unidades e nomes de bloco como vieram.
     Quando o achado cita um bloco, comece a frase pelo nome do bloco. Não troque o assunto do achado nem junte fatos de achados diferentes.
     Tom calmo e direto, sem ponto de exclamação e sem emoji.
     Exemplo de achado: "Achado 1, negativo: bloco fora do alvo no bloco Tiro 3. Fatos: pace 3:58 /km, alvo 4:05–4:12 /km, mais rápido que o prescrito."
@@ -31,6 +31,19 @@ public enum NarrativeConstants {
 
     static let evolutionHeader = "Evolução:"
     static let noEvolution = "nenhuma"
+
+    static let slowerWord = "lento"
+    static let fasterWord = "rápido"
+    static let samePaceWord = "mesmo"
+    static let aboveWord = "acima"
+    static let belowWord = "abaixo"
+    static let offTargetWord = "fora"
+    static let negationWord = "não"
+    static let notExecutedWord = "execut"
+    static let notCompletedWord = "complet"
+    static let lowerWord = "menor"
+    static let higherWord = "maior"
+    static let equalWord = "igual"
 
     static let groupNames: [FindingGroup: String] = [
         .positive: "positivo",

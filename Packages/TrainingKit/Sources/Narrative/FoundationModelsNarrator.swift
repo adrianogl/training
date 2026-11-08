@@ -44,27 +44,26 @@ public struct FoundationModelsNarrator: Narrator {
             return template
         }
         let sentences = draft.findings.map(Self.trimmed)
-        let evolutionText = evolution == nil ? nil : Self.trimmed(draft.evolution)
-        let allowedNumbers = Self.numbers(in: prompt)
-        let output = sentences + [evolutionText].compactMap { $0 }
-        guard sentences.count == findings.count,
-              !output.contains(where: \.isEmpty),
-              !output.contains(where: Self.copiesFormat),
-              output.allSatisfy({ Self.numbers(in: $0).isSubset(of: allowedNumbers) }) else {
-            return template
+        guard sentences.count == findings.count else { return template }
+        for (index, finding) in findings.enumerated() {
+            let words = NarrativeCheck.words(finding, blocks: blocks)
+            guard NarrativeCheck.matches(sentences[index], template: template.findings[index], words: words) else { return template }
         }
-        return WorkoutNarrative(findings: sentences, evolution: evolutionText, generatedBy: NarrativeConstants.foundationModelsSource)
+        var evolutionText: String?
+        if let evolution, let expected = template.evolution {
+            let text = Self.trimmed(draft.evolution)
+            guard NarrativeCheck.matches(text, template: expected, words: NarrativeCheck.words(evolution)) else { return template }
+            evolutionText = text
+        }
+        return WorkoutNarrative(
+            findings: sentences,
+            evolution: evolutionText,
+            generatedBy: NarrativeConstants.foundationModelsSource,
+            factsKey: template.factsKey
+        )
     }
 
     private static func trimmed(_ text: String) -> String {
         text.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private static func copiesFormat(_ text: String) -> Bool {
-        NarrativeConstants.forbiddenFragments.contains { text.contains($0) }
-    }
-
-    private static func numbers(in text: String) -> Set<String> {
-        Set(text.matches(of: /\d+/).map { String($0.output) })
     }
 }

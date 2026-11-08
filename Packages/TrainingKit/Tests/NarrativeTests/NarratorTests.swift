@@ -42,6 +42,12 @@ private let assessment = WorkoutAssessment(
     attention: []
 )
 
+private let offTarget = WorkoutAssessment(positives: [], negatives: [
+    Finding(group: .negative, kind: .blockOffTarget, blockOrdinal: 1, facts: [
+        FindingFact.speed: 1_000.0 / 245, FindingFact.targetLow: 1_000.0 / 250, FindingFact.targetHigh: 1_000.0 / 240,
+    ]),
+], attention: [])
+
 private let evolution = EvolutionFacts(paceDelta: -5, heartRateDelta: 0.4, oldestDate: "1 de nov.")
 
 @Suite struct NarratorTests {
@@ -154,7 +160,12 @@ private let evolution = EvolutionFacts(paceDelta: -5, heartRateDelta: 0.4, oldes
 
         let narrative = await narrator.narrate(assessment, blocks: blocks, evolution: evolution)
 
-        #expect(narrative == WorkoutNarrative(findings: output.findings, evolution: output.evolution, generatedBy: "foundation-models"))
+        #expect(narrative == WorkoutNarrative(
+            findings: output.findings,
+            evolution: output.evolution,
+            generatedBy: "foundation-models",
+            factsKey: NarrativeFacts.key(assessment, blocks: blocks, evolution: evolution)
+        ))
     }
 
     @Test func dropsModelEvolutionWithoutFacts() async {
@@ -167,6 +178,82 @@ private let evolution = EvolutionFacts(paceDelta: -5, heartRateDelta: 0.4, oldes
 
         #expect(narrative.generatedBy == "foundation-models")
         #expect(narrative.evolution == nil)
+    }
+
+    @Test func fallsBackOnAnotherFindingNumber() async {
+        let narrator = FoundationModelsNarrator(generator: FixedGenerator(output: GeneratedNarrative(
+            findings: ["2 de 3 tiros no alvo.", "O Tiro 1 perdeu 3 s/km na última volta."],
+            evolution: "5 s/km mais rápido que em 1 de nov., com a FC igual."
+        )))
+
+        let narrative = await narrator.narrate(assessment, blocks: blocks, evolution: evolution)
+
+        #expect(narrative.generatedBy == "template")
+    }
+
+    @Test func fallsBackOnSwappedBlock() async {
+        let narrator = FoundationModelsNarrator(generator: FixedGenerator(output: GeneratedNarrative(
+            findings: ["2 de 3 tiros no alvo.", "O Tiro 2 perdeu 9 s/km na última volta."],
+            evolution: "5 s/km mais rápido que em 1 de nov., com a FC igual."
+        )))
+
+        let narrative = await narrator.narrate(assessment, blocks: blocks, evolution: evolution)
+
+        #expect(narrative.generatedBy == "template")
+    }
+
+    @Test func fallsBackOnOmittedPercent() async {
+        let drift = WorkoutAssessment(positives: [], negatives: [], attention: [
+            Finding(group: .attention, kind: .cardiacDrift, blockOrdinal: 1, facts: [
+                FindingFact.rise: 0.06, FindingFact.fromHR: 150, FindingFact.toHR: 159,
+            ]),
+        ])
+        let narrator = FoundationModelsNarrator(generator: FixedGenerator(output: GeneratedNarrative(
+            findings: ["No Tiro 1, a FC subiu de 150 bpm para 159 bpm com o pace estável."],
+            evolution: ""
+        )))
+
+        let narrative = await narrator.narrate(drift, blocks: blocks, evolution: nil)
+
+        #expect(narrative.generatedBy == "template")
+    }
+
+    @Test func fallsBackOnWrongDirection() async {
+        let narrator = FoundationModelsNarrator(generator: FixedGenerator(output: GeneratedNarrative(
+            findings: ["O Tiro 1 saiu mais rápido que o prescrito, a 4:05 /km para um alvo de 4:00–4:10 /km."],
+            evolution: ""
+        )))
+
+        let narrative = await narrator.narrate(offTarget, blocks: blocks, evolution: nil)
+
+        #expect(narrative.generatedBy == "template")
+    }
+
+    @Test func faithfulParaphrasePasses() async {
+        let narrator = FoundationModelsNarrator(generator: FixedGenerator(output: GeneratedNarrative(
+            findings: ["O Tiro 1 saiu mais lento que o prescrito, a 4:05 /km para um alvo de 4:00–4:10 /km."],
+            evolution: ""
+        )))
+
+        let narrative = await narrator.narrate(offTarget, blocks: blocks, evolution: nil)
+
+        #expect(narrative.generatedBy == "foundation-models")
+    }
+
+    @Test func factsKeyFollowsFacts() {
+        let key = NarrativeFacts.key(assessment, blocks: blocks, evolution: evolution)
+        var moved = assessment
+        moved.attention = moved.negatives
+        moved.negatives = []
+        var changed = assessment
+        changed.negatives[0].facts[FindingFact.fade] = 12
+
+        #expect(key == NarrativeFacts.key(assessment, blocks: blocks, evolution: evolution))
+        #expect(key.count == 64)
+        #expect(key != NarrativeFacts.key(moved, blocks: blocks, evolution: evolution))
+        #expect(key != NarrativeFacts.key(changed, blocks: blocks, evolution: evolution))
+        #expect(key != NarrativeFacts.key(assessment, blocks: blocks, evolution: nil))
+        #expect(TemplateNarrator().narrative(assessment, blocks: blocks, evolution: evolution).factsKey == key)
     }
 
     @Test func promptCarriesFormattedFacts() {

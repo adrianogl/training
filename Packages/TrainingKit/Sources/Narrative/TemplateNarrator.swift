@@ -12,7 +12,8 @@ public struct TemplateNarrator: Narrator {
         WorkoutNarrative(
             findings: assessment.orderedFindings.map { Self.text($0, blocks: blocks) },
             evolution: evolution.map(Self.evolution),
-            generatedBy: NarrativeConstants.templateSource
+            generatedBy: NarrativeConstants.templateSource,
+            factsKey: NarrativeFacts.key(assessment, blocks: blocks, evolution: evolution)
         )
     }
 
@@ -117,22 +118,25 @@ public struct TemplateNarrator: Narrator {
         return "\(label) \(direction): \(pace) para \(range)."
     }
 
-    static func incompleteProgress(_ finding: Finding) -> (done: String, target: String)? {
+    static func incompleteState(_ finding: Finding, blocks: [WorkoutBlock]) -> String {
+        NarrativeFormat.status(finding, blocks: blocks) == .notExecuted ? "não executado" : "não completado"
+    }
+
+    static func incompleteProgress(_ finding: Finding, blocks: [WorkoutBlock]) -> (done: String, target: String)? {
         let facts = finding.facts
+        let notExecuted = NarrativeFormat.status(finding, blocks: blocks) == .notExecuted
         if let target = facts[FindingFact.targetDistance] {
-            return (NarrativeFormat.distance(facts[FindingFact.distance] ?? 0), NarrativeFormat.distance(target))
+            return (NarrativeFormat.distance(notExecuted ? 0 : facts[FindingFact.distance] ?? 0), NarrativeFormat.distance(target))
         }
         if let target = facts[FindingFact.targetSeconds] {
-            return (WorkoutFormat.clock(facts[FindingFact.seconds] ?? 0), WorkoutFormat.clock(target))
+            return (WorkoutFormat.clock(notExecuted ? 0 : facts[FindingFact.seconds] ?? 0), WorkoutFormat.clock(target))
         }
         return nil
     }
 
     private static func incomplete(_ finding: Finding, label: String, blocks: [WorkoutBlock]) -> String {
-        let notExecuted = NarrativeFormat.status(finding, blocks: blocks) == .notExecuted
-        let state = notExecuted ? "não executado" : "não completado"
-        guard let progress = incompleteProgress(finding) else { return "\(label) \(state)." }
-        let done = notExecuted ? (finding.facts[FindingFact.targetDistance] != nil ? "0 m" : "0:00") : progress.done
-        return "\(label) \(state): \(done) de \(progress.target)."
+        let state = incompleteState(finding, blocks: blocks)
+        guard let progress = incompleteProgress(finding, blocks: blocks) else { return "\(label) \(state)." }
+        return "\(label) \(state): \(progress.done) de \(progress.target)."
     }
 }

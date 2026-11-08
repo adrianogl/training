@@ -118,35 +118,44 @@ import WorkoutAnalysis
         #expect(model.comparisonRows.allSatisfy { $0.inTargetText == nil })
     }
 
-    @Test func screenUsesStoredNarrativeWhenCountMatches() throws {
+    private func storedNarrative(_ texts: (Int) -> [String], key: (WorkoutAnalysisContext) -> String) throws -> (WorkoutDetailModel, [String]) {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         let record = F.run(id: 1, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: F.intervalStructure())
         context.insert(record)
         try context.save()
-        let count = WorkoutDetailModel(activityId: 1, context: context).reading.findings.count
-        let stored = (0..<count).map { "Frase do modelo \($0)" }
-        record.narrativeData = F.encoded(WorkoutNarrative(findings: stored, evolution: nil, generatedBy: NarrativeConstants.foundationModelsSource))
+        let analysis = WorkoutAnalysisContext.build(record: record, records: [record], in: context)
+        let stored = texts(analysis.assessment.orderedFindings.count)
+        record.narrativeData = F.encoded(WorkoutNarrative(
+            findings: stored, evolution: nil, generatedBy: NarrativeConstants.foundationModelsSource, factsKey: key(analysis)
+        ))
         try context.save()
+        return (WorkoutDetailModel(activityId: 1, context: context), stored)
+    }
 
-        let model = WorkoutDetailModel(activityId: 1, context: context)
+    @Test func screenUsesStoredNarrativeWhenKeyMatches() throws {
+        let (model, stored) = try storedNarrative({ count in (0..<count).map { "Frase do modelo \($0)" } }) {
+            NarrativeFacts.key($0.assessment, blocks: $0.blocks, evolution: $0.evolution)
+        }
 
-        #expect(count > 0)
+        #expect(!stored.isEmpty)
         #expect(model.reading.findings == stored)
         #expect(model.reading.findingsOnDevice)
     }
 
-    @Test func screenFallsBackWhenCountMismatch() throws {
-        let container = try TrainingSchema.container(inMemory: true)
-        let context = container.mainContext
-        let record = F.run(id: 1, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: F.intervalStructure())
-        record.narrativeData = F.encoded(WorkoutNarrative(
-            findings: Array(repeating: "Frase velha", count: 7), evolution: nil, generatedBy: NarrativeConstants.foundationModelsSource
-        ))
-        context.insert(record)
-        try context.save()
+    @Test func screenFallsBackWhenFactsChangeWithSameCount() throws {
+        let (model, stored) = try storedNarrative({ count in (0..<count).map { "Frase velha \($0)" } }) { _ in "chave-antiga" }
 
-        let model = WorkoutDetailModel(activityId: 1, context: context)
+        let template = TemplateNarrator().narrative(model.assessment, blocks: model.blocks, evolution: nil)
+        #expect(stored.count == template.findings.count)
+        #expect(model.reading.findings == template.findings)
+        #expect(model.reading.findingsOnDevice == false)
+    }
+
+    @Test func screenFallsBackWhenCountMismatch() throws {
+        let (model, _) = try storedNarrative({ _ in Array(repeating: "Frase velha", count: 7) }) {
+            NarrativeFacts.key($0.assessment, blocks: $0.blocks, evolution: $0.evolution)
+        }
 
         let template = TemplateNarrator().narrative(model.assessment, blocks: model.blocks, evolution: nil)
         #expect(template.findings.count != 7)
