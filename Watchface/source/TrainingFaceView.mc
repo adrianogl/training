@@ -14,6 +14,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
     private var _scale = 1.0;
     private var _cx = 227;
     private var _cy = 227;
+    private var _fonts = {};
 
     function initialize() {
         WatchFace.initialize();
@@ -26,6 +27,30 @@ class TrainingFaceView extends WatchUi.WatchFace {
         _cy = dc.getHeight() / 2;
         var settings = System.getDeviceSettings();
         _burnInProtection = (settings has :requiresBurnInProtection) && settings.requiresBurnInProtection;
+        loadFonts();
+    }
+
+    private function loadFonts() {
+        var specs = FontSpecs.ALL;
+        var keys = specs.keys();
+        for (var i = 0; i < keys.size(); i++) {
+            var spec = specs[keys[i]];
+            _fonts[keys[i]] = vectorFont(spec[0], s(spec[1]), spec[2]);
+        }
+    }
+
+    private function vectorFont(face, size, fallback) {
+        if (Graphics has :getVectorFont) {
+            var font = Graphics.getVectorFont({ :face => face, :size => size });
+            if (font != null) {
+                return font;
+            }
+        }
+        return fallback;
+    }
+
+    private function font(key) {
+        return _fonts[key];
     }
 
     function onShow() {
@@ -70,13 +95,13 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (showSeconds) {
             drawSecondsRing(dc, clock.sec);
         }
-        drawCentered(dc, 86, Graphics.FONT_XTINY, Format.dateLine(today), Theme.DIM);
-        drawWeatherAndBattery(dc, 120);
-        drawClock(dc, s(204), clock, showSeconds, Theme.TXT, 0, Graphics.FONT_NUMBER_HOT);
+        drawCentered(dc, 80, font(:date), Format.dateLine(today), Theme.DIM);
+        drawWeatherAndBattery(dc, 114);
+        drawClock(dc, s(204), clock, showSeconds, Theme.TXT, 0, font(:time));
         drawReadiness(dc, 240);
-        drawStats(dc, 288, 312);
+        drawStats(dc, 280, 305);
         drawRace(dc, today);
-        drawNextEvent(dc, 418);
+        drawNextEvent(dc, 410);
     }
 
     private function drawAlwaysOn(dc, clock) {
@@ -84,12 +109,12 @@ class TrainingFaceView extends WatchUi.WatchFace {
         var dx = s(shift[0]);
         var dy = s(shift[1]);
         var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        drawPx(dc, _cx + dx, s(140) + dy, Graphics.FONT_XTINY, Format.dateLine(today), Theme.AOD_DIM, Graphics.TEXT_JUSTIFY_CENTER);
-        drawClock(dc, s(240) + dy, clock, false, Theme.AOD_TIME, dx, Graphics.FONT_NUMBER_MEDIUM);
+        drawPx(dc, _cx + dx, s(140) + dy, font(:date), Format.dateLine(today), Theme.AOD_DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawClock(dc, s(240) + dy, clock, false, Theme.AOD_TIME, dx, font(:aodTime));
         var days = raceDaysLeft(today);
         if (days != null) {
             var line = Texts.RACE_IN + " " + Format.daysCountdown(days);
-            drawPx(dc, _cx + dx, s(292) + dy, Graphics.FONT_XTINY, line, Theme.AOD_ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
+            drawPx(dc, _cx + dx, s(292) + dy, font(:race), line, Theme.AOD_ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
@@ -123,9 +148,15 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (_data.temperature != null) {
             temperature = Format.temperature(_data.temperature);
         }
-        drawAt(dc, 172, baseline, Graphics.FONT_MEDIUM, temperature, Theme.TXT, Graphics.TEXT_JUSTIFY_RIGHT);
+        drawAt(dc, 172, baseline, font(:temperature), temperature, Theme.TXT, Graphics.TEXT_JUSTIFY_RIGHT);
 
-        dc.setColor(Theme.BLUE, Graphics.COLOR_TRANSPARENT);
+        var dropColor = Theme.BLUE;
+        var humidityColor = Theme.DIM;
+        if (_data.dewPoint != null && DewPoint.bandIndex(_data.dewPoint) > 0) {
+            dropColor = DewPoint.color(_data.dewPoint);
+            humidityColor = dropColor;
+        }
+        dc.setColor(dropColor, Graphics.COLOR_TRANSPARENT);
         dc.fillCircle(s(180), s(baseline - 5), max(2, s(4)));
         dc.fillPolygon([[s(176), s(baseline - 6)], [s(184), s(baseline - 6)], [s(180), s(baseline - 15)]]);
 
@@ -133,7 +164,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (_data.humidity != null) {
             humidity = Format.percent(_data.humidity);
         }
-        drawAt(dc, 190, baseline, Graphics.FONT_SMALL, humidity, Theme.DIM, Graphics.TEXT_JUSTIFY_LEFT);
+        drawAt(dc, 190, baseline, font(:humidity), humidity, humidityColor, Graphics.TEXT_JUSTIFY_LEFT);
 
         dc.setColor(Theme.FAINT, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(max(1, s(2)));
@@ -155,11 +186,11 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (fill > 0) {
             dc.fillRectangle(s(x + 2), s(baseline - 9), fill, s(8));
         }
-        drawAt(dc, x + 30, baseline, Graphics.FONT_SMALL, pct + "%", Theme.TXT, Graphics.TEXT_JUSTIFY_LEFT);
+        drawAt(dc, x + 30, baseline, font(:battery), pct + "%", Theme.TXT, Graphics.TEXT_JUSTIFY_LEFT);
     }
 
     private function drawClock(dc, baselinePx, clock, showSeconds, color, offsetPx, mainFont) {
-        var secondsFont = Graphics.FONT_NUMBER_MILD;
+        var secondsFont = font(:seconds);
         var main = Format.hoursMinutes(clock);
         var mainWidth = dc.getTextWidthInPixels(main, mainFont);
         var gap = s(5);
@@ -177,8 +208,8 @@ class TrainingFaceView extends WatchUi.WatchFace {
 
     private function drawReadiness(dc, baseline) {
         if (_data.readiness != null) {
-            var scoreFont = Graphics.FONT_SMALL;
-            var verdictFont = Graphics.FONT_XTINY;
+            var scoreFont = font(:statValue);
+            var verdictFont = font(:status);
             var score = _data.readiness.toString();
             var verdict = "";
             if (_data.readinessVerdict != null) {
@@ -196,7 +227,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
             return;
         }
         if (_data.trainingStatus != null) {
-            drawCentered(dc, baseline, Graphics.FONT_SMALL, _data.trainingStatus.toString(), Theme.LIME);
+            drawCentered(dc, baseline, font(:status), _data.trainingStatus.toString(), Theme.LIME);
         }
     }
 
@@ -205,23 +236,23 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (_data.vo2max != null) {
             vo2 = _data.vo2max.toString();
         }
-        drawAt(dc, 146, valueBaseline, Graphics.FONT_MEDIUM, vo2, Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
-        drawAt(dc, 146, labelBaseline, Graphics.FONT_XTINY, Texts.VO2, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 146, valueBaseline, font(:statValue), vo2, Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 146, labelBaseline, font(:label), Texts.VO2, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
 
         drawWeeklyVolume(dc, valueBaseline);
-        drawAt(dc, 227, labelBaseline, Graphics.FONT_XTINY, Texts.WEEK_KM, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 227, labelBaseline, font(:label), Texts.WEEK_KM, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
 
         if (_data.hrv != null) {
-            drawAt(dc, 308, valueBaseline, Graphics.FONT_MEDIUM, _data.hrv.toString(), Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
+            drawAt(dc, 308, valueBaseline, font(:statValue), _data.hrv.toString(), Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
             drawTrend(dc, 334, valueBaseline - 12, _data.hrvTrend);
-            drawAt(dc, 308, labelBaseline, Graphics.FONT_XTINY, Texts.HRV, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+            drawAt(dc, 308, labelBaseline, font(:label), Texts.HRV, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
         } else {
             var bodyBattery = Texts.NO_VALUE;
             if (_data.bodyBattery != null) {
                 bodyBattery = _data.bodyBattery.toString();
             }
-            drawAt(dc, 308, valueBaseline, Graphics.FONT_MEDIUM, bodyBattery, Theme.BLUE, Graphics.TEXT_JUSTIFY_CENTER);
-            drawAt(dc, 308, labelBaseline, Graphics.FONT_XTINY, Texts.BODY_BATTERY, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+            drawAt(dc, 308, valueBaseline, font(:statValue), bodyBattery, Theme.BLUE, Graphics.TEXT_JUSTIFY_CENTER);
+            drawAt(dc, 308, labelBaseline, font(:label), Texts.BODY_BATTERY, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
@@ -231,8 +262,8 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (_data.weeklyRunMeters != null) {
             meters = _data.weeklyRunMeters.toFloat();
         }
-        var doneFont = Graphics.FONT_MEDIUM;
-        var goalFont = Graphics.FONT_SMALL;
+        var doneFont = font(:statValue);
+        var goalFont = font(:statGoal);
         var done = Format.kilometers(meters);
         var goal = "/" + goalKm;
         var doneWidth = dc.getTextWidthInPixels(done, doneFont);
@@ -283,24 +314,24 @@ class TrainingFaceView extends WatchUi.WatchFace {
         }
         dc.setColor(Theme.FAINT, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(max(1, s(2)));
-        dc.drawLine(s(150), s(322), s(304), s(322));
+        dc.drawLine(s(150), s(316), s(304), s(316));
 
         var line = name.toUpper() + " · " + Format.shortDate(date[:day], date[:month]) + " · " + Format.daysCountdown(days);
-        drawCentered(dc, 342, Graphics.FONT_XTINY, line, Theme.ORANGE);
+        drawCentered(dc, 336, font(:race), line, Theme.ORANGE);
 
         var goal = Settings.raceGoal();
         if (goal.length() == 0) {
             goal = Texts.NO_VALUE;
         }
-        drawAt(dc, 170, 370, Graphics.FONT_SMALL, goal, Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
-        drawAt(dc, 170, 386, Graphics.FONT_XTINY, Texts.GOAL, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 170, 364, font(:raceValue), goal, Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 170, 381, font(:label), Texts.GOAL, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
 
         var prediction = Texts.NO_VALUE;
         if (_data.racePredictionSeconds != null) {
             prediction = Format.duration(_data.racePredictionSeconds);
         }
-        drawAt(dc, 286, 370, Graphics.FONT_SMALL, prediction, Theme.ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
-        drawAt(dc, 286, 386, Graphics.FONT_XTINY, Texts.PREDICTION, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 286, 364, font(:raceValue), prediction, Theme.ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
+        drawAt(dc, 286, 381, font(:label), Texts.PREDICTION, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     private function raceDaysLeft(today) {
@@ -320,32 +351,32 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (_data.nextEventTime == null) {
             return;
         }
-        var font = Graphics.FONT_SMALL;
+        var eventFont = font(:meeting);
         var text = _data.nextEventTime.toString();
         var iconWidth = s(14);
         var gap = s(8);
-        var total = iconWidth + gap + dc.getTextWidthInPixels(text, font);
+        var total = iconWidth + gap + dc.getTextWidthInPixels(text, eventFont);
         var left = _cx - total / 2;
         var bottom = s(baseline);
         dc.setColor(Theme.DIM, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(max(1, s(2)));
         dc.drawRoundedRectangle(left, bottom - s(13), iconWidth, s(13), s(2));
         dc.drawLine(left, bottom - s(9), left + iconWidth, bottom - s(9));
-        drawPx(dc, left + iconWidth + gap, bottom, font, text, Theme.TXT, Graphics.TEXT_JUSTIFY_LEFT);
+        drawPx(dc, left + iconWidth + gap, bottom, eventFont, text, Theme.TXT, Graphics.TEXT_JUSTIFY_LEFT);
     }
 
     private function aiTagWidth(dc) {
-        return dc.getTextWidthInPixels("AI", Graphics.FONT_XTINY) + s(8);
+        return dc.getTextWidthInPixels("AI", font(:tag)) + s(8);
     }
 
     private function drawAiTag(dc, left, baselinePx) {
-        var font = Graphics.FONT_XTINY;
+        var tagFont = font(:tag);
         var width = aiTagWidth(dc);
-        var height = Graphics.getFontAscent(font) + s(4);
+        var height = Graphics.getFontAscent(tagFont) + s(4);
         dc.setColor(Theme.LIME, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(max(1, s(2)));
         dc.drawRoundedRectangle(left, baselinePx - height + s(2), width, height, s(4));
-        drawPx(dc, left + width / 2, baselinePx, font, "AI", Theme.LIME, Graphics.TEXT_JUSTIFY_CENTER);
+        drawPx(dc, left + width / 2, baselinePx, tagFont, "AI", Theme.LIME, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     private function drawCentered(dc, baseline, font, text, color) {
