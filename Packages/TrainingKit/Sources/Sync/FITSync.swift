@@ -41,7 +41,7 @@ extension SyncEngine {
             return .read(summary: summary, samples: try encoder.encode(summary.samples), route: try encoder.encode(summary.route))
         } catch let error as GarminAPIError where SyncErrorPolicy.isCredentialFailure(error) {
             throw error
-        } catch GarminAPIError.rateLimited {
+        } catch GarminAPIError.rateLimited(_) {
             return .rateLimited
         } catch {
             return .skipped

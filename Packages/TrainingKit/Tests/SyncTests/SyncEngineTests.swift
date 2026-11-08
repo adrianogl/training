@@ -219,7 +219,7 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         let gapStart = lastSyncDay.adding(days: -3)
         let sleepWindows = windows(from: gapStart, to: today, maxDays: 28).map(\.lowerBound)
         await fake.failSleep(from: sleepWindows[1])
-        await #expect(throws: GarminAPIError.rateLimited) {
+        await #expect(throws: GarminAPIError.rateLimited(path: GarminEndpoints.sleepPath)) {
             try await engine.run()
         }
         await fake.failSleep(from: nil)
@@ -277,7 +277,7 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
             FakeDataSource.activity(id: 41, typeKey: "running", day: today.adding(days: -1)),
             FakeDataSource.activity(id: 42, typeKey: "running", day: today.adding(days: -2)),
         ]
-        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities, fitZip: try FITZipBuilder.run(seconds: 300), fitErrors: [40: .rateLimited])
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities, fitZip: try FITZipBuilder.run(seconds: 300), fitErrors: [40: .rateLimited(path: "\(GarminEndpoints.fitDownloadPathPrefix)/40")])
         let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
 
         let report = try await engine.run()
@@ -287,5 +287,99 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(try fetch(ActivityRecord.self, in: container).allSatisfy { !$0.fitProcessed })
         #expect(try fetch(DailyRecord.self, in: container).allSatisfy { $0.readinessScore != nil })
         #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted == true)
+    }
+}
+
+@Suite struct SyncEngineResumeTests {
+    private func cursors(_ state: SyncState) -> [String?] {
+        [state.resumeDailyFrom, state.resumeHRVFrom, state.resumeSleepFrom, state.resumeBodyBatteryFrom, state.resumeActivityStart.map(String.init)]
+    }
+
+    @Test func firstLoadResumesActivitiesFromFailedPage() async throws {
+        let firstDay = today.adding(days: -100)
+        let fake = FakeDataSource(dataDays: firstDay...today, activities: spacedActivities(count: 160, perDay: 2))
+        let (engine, container) = try makeEngine(fake, firstDay: firstDay)
+        await fake.failActivities(start: 100)
+
+        await #expect(throws: GarminAPIError.rateLimited(path: GarminEndpoints.activitiesPath)) {
+            try await engine.run()
+        }
+
+        #expect(await fake.activityPageStarts == [0, 50, 100])
+        let interrupted = try #require(try fetch(SyncState.self, in: container).first)
+        #expect(interrupted.firstLoadCompleted == false)
+        #expect(interrupted.resumeActivityStart == 100)
+        let nextDay = today.adding(days: 1).iso
+        #expect(interrupted.resumeDailyFrom == nextDay)
+        #expect(interrupted.resumeHRVFrom == nextDay)
+        #expect(interrupted.resumeSleepFrom == nextDay)
+        #expect(interrupted.resumeBodyBatteryFrom == nextDay)
+        #expect(try count(ActivityRecord.self, in: container) == 100)
+
+        await fake.failActivities(start: nil)
+        let fromsBefore = await fake.froms.count
+        let summaryBefore = await fake.summaryFroms.count
+        let hrvBefore = await fake.hrvFroms.count
+        let sleepBefore = await fake.sleepFroms.count
+        let batteryBefore = await fake.batteryFroms.count
+
+        let report = try await engine.run()
+
+        #expect(Array(await fake.activityPageStarts.dropFirst(3)) == [100, 150])
+        #expect(await fake.summaryFroms.count == summaryBefore)
+        #expect(await fake.hrvFroms.count == hrvBefore)
+        #expect(await fake.sleepFroms.count == sleepBefore)
+        #expect(await fake.batteryFroms.count == batteryBefore)
+        #expect(await fake.froms.count - fromsBefore == 2)
+        #expect(report.activitiesUpserted == 60)
+        #expect(try count(ActivityRecord.self, in: container) == 160)
+        let state = try #require(try fetch(SyncState.self, in: container).first)
+        #expect(state.firstLoadCompleted)
+        #expect(cursors(state).allSatisfy { $0 == nil })
+        #expect(try fetch(DailyRecord.self, in: container).allSatisfy { $0.readinessScore != nil })
+    }
+
+    @Test func firstLoadResumesSleepFromFailedWindow() async throws {
+        let firstDay = today.adding(days: -100)
+        let fake = FakeDataSource(dataDays: firstDay...today, activities: spacedActivities(count: 10, perDay: 1))
+        let (engine, container) = try makeEngine(fake, firstDay: firstDay)
+        let sleepWindows = windows(from: firstDay, to: today, maxDays: 28).map(\.lowerBound)
+        await fake.failSleep(from: sleepWindows[2])
+
+        await #expect(throws: GarminAPIError.rateLimited(path: GarminEndpoints.sleepPath)) {
+            try await engine.run()
+        }
+
+        let interrupted = try #require(try fetch(SyncState.self, in: container).first)
+        let nextDay = today.adding(days: 1).iso
+        #expect(interrupted.firstLoadCompleted == false)
+        #expect(interrupted.resumeDailyFrom == nextDay)
+        #expect(interrupted.resumeHRVFrom == nextDay)
+        #expect(interrupted.resumeSleepFrom == sleepWindows[2].iso)
+        #expect(interrupted.resumeBodyBatteryFrom == nil)
+        #expect(interrupted.resumeActivityStart == nil)
+        #expect(await fake.batteryFroms.isEmpty)
+        #expect(await fake.activityPageStarts.isEmpty)
+
+        await fake.failSleep(from: nil)
+        let summaryBefore = await fake.summaryFroms.count
+        let hrvBefore = await fake.hrvFroms.count
+        let sleepBefore = await fake.sleepFroms.count
+
+        _ = try await engine.run()
+
+        #expect(await fake.summaryFroms.count == summaryBefore)
+        #expect(await fake.hrvFroms.count == hrvBefore)
+        #expect(Array(await fake.sleepFroms.dropFirst(sleepBefore)) == Array(sleepWindows.dropFirst(2)))
+        #expect(await fake.batteryFroms == sleepWindows)
+        #expect(await fake.activityPageStarts == [0])
+        let state = try #require(try fetch(SyncState.self, in: container).first)
+        #expect(state.firstLoadCompleted)
+        #expect(cursors(state).allSatisfy { $0 == nil })
+        let records = try fetch(DailyRecord.self, in: container)
+        #expect(records.count == fake.dayCount)
+        #expect(records.allSatisfy { $0.sleepSeconds == 27_000 && $0.hrvLastNight == 60 && $0.restingHR == 50 })
+        #expect(records.allSatisfy { $0.bodyBatteryMorningMax == 85 })
+        #expect(records.allSatisfy { $0.readinessScore != nil })
     }
 }

@@ -12,8 +12,11 @@ actor FakeDataSource: GarminDataSource {
     private let zonesError: GarminAPIError?
     private let fitErrors: [Int64: GarminAPIError]
     private var sleepFailure: (from: Day, error: GarminAPIError)?
+    private var activityFailure: (start: Int, error: GarminAPIError)?
 
+    private(set) var summaryFroms: [Day] = []
     private(set) var hrvFroms: [Day] = []
+    private(set) var batteryFroms: [Day] = []
     private(set) var froms: [Day] = []
     private(set) var sleepFroms: [Day] = []
     private(set) var activityPageStarts: [Int] = []
@@ -35,8 +38,12 @@ actor FakeDataSource: GarminDataSource {
         self.fitErrors = fitErrors
     }
 
-    func failSleep(from: Day?, with error: GarminAPIError = .rateLimited) {
+    func failSleep(from: Day?, with error: GarminAPIError = .rateLimited(path: GarminEndpoints.sleepPath)) {
         sleepFailure = from.map { ($0, error) }
+    }
+
+    func failActivities(start: Int?, with error: GarminAPIError = .rateLimited(path: GarminEndpoints.activitiesPath)) {
+        activityFailure = start.map { ($0, error) }
     }
 
     nonisolated var dayCount: Int {
@@ -52,6 +59,7 @@ actor FakeDataSource: GarminDataSource {
 
     func dailySummaries(from: Day, to: Day) async throws -> [DailySummaryDTO] {
         froms.append(from)
+        summaryFroms.append(from)
         if let failure { throw failure }
         return days(from: from, to: to).map { DailySummaryDTO(day: $0, restingHeartRate: 50, avgStress: 25) }
     }
@@ -75,6 +83,7 @@ actor FakeDataSource: GarminDataSource {
 
     func bodyBattery(from: Day, to: Day) async throws -> [BodyBatteryDayDTO] {
         froms.append(from)
+        batteryFroms.append(from)
         return days(from: from, to: to).map { day in
             let end = Self.sleepEndMs(day)
             let hour: Int64 = 3_600_000
@@ -89,6 +98,7 @@ actor FakeDataSource: GarminDataSource {
     func activities(start: Int, limit: Int, from: Day?, to: Day?) async throws -> [ActivityDTO] {
         if let from { froms.append(from) }
         activityPageStarts.append(start)
+        if let activityFailure, activityFailure.start == start { throw activityFailure.error }
         let filtered = activityList.filter { dto in
             guard let from, let local = dto.startTimeLocal, let day = Day(iso: String(local.prefix(10))) else { return true }
             return day >= from

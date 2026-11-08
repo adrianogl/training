@@ -3,7 +3,7 @@ public enum GarminAPIError: Error, Equatable {
     case unauthorized
     case badRequest(path: String)
     case notAcceptable
-    case rateLimited
+    case rateLimited(path: String)
     case server(status: Int)
     case decoding(path: String)
 }

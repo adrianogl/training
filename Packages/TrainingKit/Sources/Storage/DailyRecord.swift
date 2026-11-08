@@ -22,6 +22,7 @@ public final class DailyRecord {
     public var sleepRemSeconds: Int? = nil
     public var sleepAwakeSeconds: Int? = nil
     public var sleepScore: Int? = nil
+    public var sleepEndGMT: Int64? = nil
     public var readinessScore: Int? = nil
     public var readinessPartial: Bool = false
     public var updatedAt: Date = Date.now
@@ -46,6 +47,7 @@ public final class DailyRecord {
         sleepRemSeconds: Int? = nil,
         sleepAwakeSeconds: Int? = nil,
         sleepScore: Int? = nil,
+        sleepEndGMT: Int64? = nil,
         readinessScore: Int? = nil,
         readinessPartial: Bool = false,
         updatedAt: Date = .now
@@ -69,6 +71,7 @@ public final class DailyRecord {
         self.sleepRemSeconds = sleepRemSeconds
         self.sleepAwakeSeconds = sleepAwakeSeconds
         self.sleepScore = sleepScore
+        self.sleepEndGMT = sleepEndGMT
         self.readinessScore = readinessScore
         self.readinessPartial = readinessPartial
         self.updatedAt = updatedAt

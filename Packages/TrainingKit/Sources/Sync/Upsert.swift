@@ -61,6 +61,7 @@ extension DailyRecord {
         sleepRemSeconds = dto.remSleepSeconds
         sleepAwakeSeconds = dto.awakeSleepSeconds
         sleepScore = dto.overallScore
+        sleepEndGMT = dto.sleepEndTimestampGMT
     }
 }
 

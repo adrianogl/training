@@ -52,7 +52,7 @@ public actor TokenProvider {
         case 400, 401, 403:
             throw GarminAPIError.invalidKey
         case 429:
-            throw GarminAPIError.rateLimited
+            throw GarminAPIError.rateLimited(path: GarminEndpoints.tokenPath)
         default:
             throw GarminAPIError.server(status: response.statusCode)
         }

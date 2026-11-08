@@ -27,8 +27,8 @@ enum CLIMessages {
             return "Garmin respondeu 400 em \(path)."
         case .notAcceptable:
             return "Garmin respondeu 406 (header Accept não aceito)."
-        case .rateLimited:
-            return "Garmin limitou as requisições (429) depois dos retries. Tente de novo mais tarde."
+        case .rateLimited(let path):
+            return "Garmin limitou as requisições (429) em \(path), mesmo depois dos retries. Espere alguns minutos e rode o sync de novo: ele continua de onde parou."
         case .server(let status):
             return "Garmin respondeu \(status)."
         case .decoding(let path):

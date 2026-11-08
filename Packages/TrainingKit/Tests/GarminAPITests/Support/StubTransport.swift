@@ -5,7 +5,7 @@ import Synchronization
 final class StubTransport: HTTPTransport {
     enum Response {
         case ok(String)
-        case status(Int, String)
+        case status(Int, String, headers: [String: String] = [:])
     }
 
     private struct State {
@@ -34,12 +34,12 @@ final class StubTransport: HTTPTransport {
             return state.queue.isEmpty ? nil : state.queue.removeFirst()
         }
         guard let response else { throw URLError(.badServerResponse) }
-        let (status, body): (Int, String)
+        let (status, body, headers): (Int, String, [String: String])
         switch response {
-        case .ok(let text): (status, body) = (200, text)
-        case .status(let code, let text): (status, body) = (code, text)
+        case .ok(let text): (status, body, headers) = (200, text, [:])
+        case .status(let code, let text, let fields): (status, body, headers) = (code, text, fields)
         }
-        let http = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: nil)!
+        let http = HTTPURLResponse(url: request.url!, statusCode: status, httpVersion: nil, headerFields: headers)!
         return (Data(body.utf8), http)
     }
 }

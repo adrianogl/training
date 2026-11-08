@@ -5,58 +5,65 @@ import Storage
 import TrainingCore
 
 extension SyncEngine {
-    func syncDaily(from: Day, to: Day, progress: (Double) -> Void) async throws -> Set<Day> {
+    func syncDaily(
+        starts: DailyStarts,
+        to: Day,
+        state: SyncState,
+        tracksResume: Bool,
+        progress: (Double) -> Void
+    ) async throws -> Set<Day> {
         typealias C = SyncConstants
-        let summaryWindows = windows(from: from, to: to, maxDays: C.dailySummaryWindowDays)
-        let hrvWindows = windows(from: from, to: to, maxDays: C.hrvWindowDays)
-        let sleepWindows = windows(from: from, to: to, maxDays: C.sleepWindowDays)
-        let batteryWindows = windows(from: from, to: to, maxDays: C.bodyBatteryWindowDays)
+        let summaryWindows = windows(from: starts.summary, to: to, maxDays: C.dailySummaryWindowDays)
+        let hrvWindows = windows(from: starts.hrv, to: to, maxDays: C.hrvWindowDays)
+        let sleepWindows = windows(from: starts.sleep, to: to, maxDays: C.sleepWindowDays)
+        let batteryWindows = windows(from: starts.bodyBattery, to: to, maxDays: C.bodyBatteryWindowDays)
         let total = Double(summaryWindows.count + hrvWindows.count + sleepWindows.count + batteryWindows.count)
         var completed = 0.0
         var touched: Set<Day> = []
-        var sleepEnds: [Day: Int64] = [:]
+
+        func finish(_ window: ClosedRange<Day>, cursor: ReferenceWritableKeyPath<SyncState, String?>) throws {
+            if tracksResume {
+                state[keyPath: cursor] = window.upperBound.adding(days: 1).iso
+            }
+            try modelContext.save()
+            completed += 1
+            progress(completed / total)
+        }
 
         for window in summaryWindows {
             for dto in try await source.dailySummaries(from: window.lowerBound, to: window.upperBound) {
                 try upsertDaily(dto.day) { $0.apply(dto) }
                 touched.insert(dto.day)
             }
-            try modelContext.save()
-            completed += 1
-            progress(completed / total)
+            try finish(window, cursor: \.resumeDailyFrom)
         }
         for window in hrvWindows {
             for dto in try await source.hrvSummaries(from: window.lowerBound, to: window.upperBound) {
                 try upsertDaily(dto.day) { $0.apply(dto) }
                 touched.insert(dto.day)
             }
-            try modelContext.save()
-            completed += 1
-            progress(completed / total)
+            try finish(window, cursor: \.resumeHRVFrom)
         }
         for window in sleepWindows {
             for dto in try await source.sleepSummaries(from: window.lowerBound, to: window.upperBound) {
                 try upsertDaily(dto.day) { $0.apply(dto) }
                 touched.insert(dto.day)
-                sleepEnds[dto.day] = dto.sleepEndTimestampGMT
             }
-            try modelContext.save()
-            completed += 1
-            progress(completed / total)
+            try finish(window, cursor: \.resumeSleepFrom)
         }
         for window in batteryWindows {
             let days = try await source.bodyBattery(from: window.lowerBound, to: window.upperBound)
             let samplesByDay = Dictionary(days.map { ($0.day, $0.samples) }, uniquingKeysWith: +)
             for dto in days {
-                let morningMax = sleepEnds[dto.day].flatMap { morningBodyBattery(day: dto.day, sleepEndMs: $0, samplesByDay: samplesByDay) }
                 try upsertDaily(dto.day) { record in
+                    let morningMax = record.sleepEndGMT.flatMap {
+                        morningBodyBattery(day: dto.day, sleepEndMs: $0, samplesByDay: samplesByDay)
+                    }
                     if let morningMax { record.bodyBatteryMorningMax = morningMax }
                 }
                 touched.insert(dto.day)
             }
-            try modelContext.save()
-            completed += 1
-            progress(completed / total)
+            try finish(window, cursor: \.resumeBodyBatteryFrom)
         }
         return touched
     }

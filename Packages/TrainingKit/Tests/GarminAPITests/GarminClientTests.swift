@@ -22,19 +22,32 @@ private struct Harness {
     let sleeps: SleepLog
 }
 
-private func makeClient(responses: [StubTransport.Response], tokenCount: Int = 1) -> Harness {
+private func makeClient(responses: [StubTransport.Response], tokenCount: Int = 1, now: Date = .now) -> Harness {
     let exp = Int(Date.now.timeIntervalSince1970) + 86_400 * 365
     let tokenStub = StubTransport(Array(repeating: .ok(makeJWT(exp: exp)), count: tokenCount))
     let stub = StubTransport(responses)
     let tokens = TokenProvider(apiKey: "k", baseURL: GarminEndpoints.base, transport: tokenStub)
     let sleeps = SleepLog()
-    let client = GarminClient(tokens: tokens, transport: stub) { duration in
-        sleeps.record(duration)
-    }
+    let client = GarminClient(
+        tokens: tokens,
+        transport: stub,
+        sleep: { duration in sleeps.record(duration) },
+        now: { now }
+    )
     return Harness(client: client, stub: stub, tokenStub: tokenStub, sleeps: sleeps)
 }
 
 private func day(_ iso: String) -> Day { Day(iso: iso)! }
+
+private func httpDate(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "GMT")
+    formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss 'GMT'"
+    return formatter.string(from: date)
+}
+
+private let fixedNow = Date(timeIntervalSince1970: 1_800_000_000)
 
 @Suite struct GarminClientTests {
     @Test func splitsHrvRangeIn180DayWindows() async throws {
@@ -144,7 +157,34 @@ private func day(_ iso: String) -> Day { Day(iso: iso)! }
         let h = makeClient(responses: [.status(429, ""), .ok(fixture("sleep"))])
         let result = try await h.client.sleepSummaries(from: day("2026-11-05"), to: day("2026-11-06"))
         #expect(result.count == 2)
-        #expect(h.sleeps.all == [.seconds(1)])
+        #expect(h.sleeps.all == [.seconds(30)])
+    }
+
+    @Test func honorsRetryAfterSeconds() async throws {
+        let h = makeClient(responses: [.status(429, "", headers: ["Retry-After": "12"]), .ok("[]")])
+        let result = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(result.isEmpty)
+        #expect(h.sleeps.all == [.seconds(12)])
+    }
+
+    @Test func capsRetryAfterSeconds() async throws {
+        let h = makeClient(responses: [.status(429, "", headers: ["Retry-After": "3600"]), .ok("[]")])
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(300)])
+    }
+
+    @Test(arguments: [(45.0, 45), (3_600.0, 300), (-60.0, 0)])
+    func honorsRetryAfterHTTPDate(offset: TimeInterval, expectedSeconds: Int) async throws {
+        let header = httpDate(fixedNow.addingTimeInterval(offset))
+        let h = makeClient(responses: [.status(429, "", headers: ["Retry-After": header]), .ok("[]")], now: fixedNow)
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(expectedSeconds)])
+    }
+
+    @Test func invalidRetryAfterFallsBackToSchedule() async throws {
+        let h = makeClient(responses: [.status(429, "", headers: ["Retry-After": "soon"]), .ok("[]")])
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(30)])
     }
 
     @Test func backsOffExponentiallyThenGivesUp() async {
@@ -155,11 +195,13 @@ private func day(_ iso: String) -> Day { Day(iso: iso)! }
         #expect(h.sleeps.all == [.seconds(1), .seconds(2), .seconds(4)])
     }
 
-    @Test func persistent429IsRateLimited() async {
+    @Test func persistent429BacksOffThenIsRateLimitedWithPath() async {
         let h = makeClient(responses: Array(repeating: .status(429, ""), count: 4))
-        await #expect(throws: GarminAPIError.rateLimited) {
+        await #expect(throws: GarminAPIError.rateLimited(path: GarminEndpoints.activitiesPath)) {
             try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
         }
+        #expect(h.sleeps.all == [.seconds(30), .seconds(60), .seconds(120)])
+        #expect(h.stub.requests.count == 4)
     }
 
     @Test func gives400AsBadRequest() async {

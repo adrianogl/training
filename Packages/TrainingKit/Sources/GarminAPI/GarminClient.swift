@@ -6,17 +6,20 @@ public struct GarminClient: GarminDataSource {
     private let transport: any HTTPTransport
     private let baseURL: URL
     private let sleep: @Sendable (Duration) async -> Void
+    private let now: @Sendable () -> Date
 
     public init(
         tokens: TokenProvider,
         transport: any HTTPTransport,
         baseURL: URL = GarminEndpoints.base,
-        sleep: @escaping @Sendable (Duration) async -> Void = { try? await Task.sleep(for: $0) }
+        sleep: @escaping @Sendable (Duration) async -> Void = { try? await Task.sleep(for: $0) },
+        now: @escaping @Sendable () -> Date = { .now }
     ) {
         self.tokens = tokens
         self.transport = transport
         self.baseURL = baseURL
         self.sleep = sleep
+        self.now = now
     }
 
     public func heartRateZones() async throws -> HRZonesDTO {
@@ -129,11 +132,16 @@ public struct GarminClient: GarminDataSource {
                 throw GarminAPIError.badRequest(path: path)
             case 406:
                 throw GarminAPIError.notAcceptable
-            case 429, 500..<600:
-                guard retries < GarminEndpoints.retryDelaysSeconds.count else {
-                    throw status == 429 ? GarminAPIError.rateLimited : GarminAPIError.server(status: status)
-                }
-                await sleep(.seconds(GarminEndpoints.retryDelaysSeconds[retries]))
+            case 429:
+                let schedule = GarminEndpoints.rateLimitDelaysSeconds
+                guard retries < schedule.count else { throw GarminAPIError.rateLimited(path: path) }
+                let header = response.value(forHTTPHeaderField: GarminEndpoints.retryAfterHeader)
+                await sleep(.seconds(RetryAfter.seconds(from: header, now: now()) ?? schedule[retries]))
+                retries += 1
+            case 500..<600:
+                let schedule = GarminEndpoints.retryDelaysSeconds
+                guard retries < schedule.count else { throw GarminAPIError.server(status: status) }
+                await sleep(.seconds(schedule[retries]))
                 retries += 1
             default:
                 throw GarminAPIError.server(status: status)

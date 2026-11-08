@@ -49,19 +49,27 @@ public actor SyncEngine: ModelActor {
         try await fetchHeartRateZones()
         progress(C.progressAfterZones)
 
-        let from = dailyStart(state: state, today: today)
-        let touchedDays = try await syncDaily(from: from, to: today) { fraction in
+        let isFirstLoad = !state.firstLoadCompleted
+        let touchedDays = try await syncDaily(
+            starts: dailyStarts(state: state, today: today),
+            to: today,
+            state: state,
+            tracksResume: isFirstLoad
+        ) { fraction in
             progress(C.progressAfterZones + fraction * (C.progressAfterDaily - C.progressAfterZones))
         }
         report.dailyUpserted = touchedDays.count
         progress(C.progressAfterDaily)
 
-        let incrementalCutoff = state.firstLoadCompleted
-            ? state.lastActivityStart.map { $0.addingTimeInterval(-C.incrementalActivityOverlap) }
-            : nil
+        let incrementalCutoff = isFirstLoad
+            ? nil
+            : state.lastActivityStart.map { $0.addingTimeInterval(-C.incrementalActivityOverlap) }
         report.activitiesUpserted = try await syncActivities(
-            from: state.firstLoadCompleted ? nil : firstDay,
-            incrementalCutoff: incrementalCutoff
+            from: isFirstLoad ? firstDay : nil,
+            startAt: isFirstLoad ? state.resumeActivityStart ?? 0 : 0,
+            incrementalCutoff: incrementalCutoff,
+            state: state,
+            tracksResume: isFirstLoad
         ).count
         progress(C.progressAfterActivities)
 
@@ -70,9 +78,10 @@ public actor SyncEngine: ModelActor {
         }
         progress(C.progressAfterFIT)
 
-        try updateReadiness(days: touchedDays)
+        try updateReadiness(days: isFirstLoad ? try storedDays() : touchedDays)
         progress(C.progressAfterDerived)
 
+        state.clearResumeCursors()
         state.firstLoadCompleted = true
         state.lastSync = .now
         state.lastActivityStart = try latestActivityStart()
@@ -91,12 +100,26 @@ public actor SyncEngine: ModelActor {
         return state
     }
 
-    private func dailyStart(state: SyncState, today: Day) -> Day {
-        guard state.firstLoadCompleted else { return firstDay }
+    private func dailyStarts(state: SyncState, today: Day) -> DailyStarts {
+        guard state.firstLoadCompleted else {
+            func resume(_ cursor: String?) -> Day { cursor.flatMap(Day.init(iso:)) ?? firstDay }
+            return DailyStarts(
+                summary: resume(state.resumeDailyFrom),
+                hrv: resume(state.resumeHRVFrom),
+                sleep: resume(state.resumeSleepFrom),
+                bodyBattery: resume(state.resumeBodyBatteryFrom)
+            )
+        }
         let overlap = SyncConstants.incrementalOverlapDays
         let overlapStart = today.adding(days: -overlap)
-        guard let lastSync = state.lastSync else { return overlapStart }
-        return min(overlapStart, ActivityTime.day(of: lastSync).adding(days: -overlap))
+        guard let lastSync = state.lastSync else { return DailyStarts(all: overlapStart) }
+        return DailyStarts(all: min(overlapStart, ActivityTime.day(of: lastSync).adding(days: -overlap)))
+    }
+
+    private func storedDays() throws -> Set<Day> {
+        var descriptor = FetchDescriptor<DailyRecord>()
+        descriptor.propertiesToFetch = [\.day]
+        return Set(try modelContext.fetch(descriptor).compactMap { Day(iso: $0.day) })
     }
 
     private func fetchHeartRateZones() async throws {

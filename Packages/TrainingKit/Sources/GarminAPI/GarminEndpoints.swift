@@ -13,6 +13,10 @@ public enum GarminEndpoints {
     public static let fitDownloadPathPrefix = "/download-service/files/activity"
 
     public static let retryDelaysSeconds = [1, 2, 4]
+    public static let rateLimitDelaysSeconds = [30, 60, 120]
+    public static let maxRetryAfterSeconds = 300
+    public static let retryAfterHeader = "Retry-After"
+    public static let httpDateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
 
     public static let hrvMaxDays = 180
     public static let dailySummariesMaxDays = 180
