@@ -5,13 +5,18 @@ import Storage
 import SwiftData
 import TrainingCore
 
-struct ReportBuilder {
+public struct ReportBuilder {
     let context: ModelContext
     let today: Day
 
-    func build() throws -> TrainingReport {
+    public init(context: ModelContext, today: Day) {
+        self.context = context
+        self.today = today
+    }
+
+    public func build() throws -> TrainingReport {
         let activities = try context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
-        let runs = activities.filter { $0.typeKey.contains(CLIConstants.runTypeKeyMarker) }
+        let runs = activities.filter { $0.typeKey.contains(ReportConstants.runTypeKeyMarker) }
         let todayRecord = try dailyRecord(on: today)
         let load = dailyLoad(activities)
         let fff = fitnessFatigueFormToday(load)
@@ -27,7 +32,7 @@ struct ReportBuilder {
             fatigue: fff?.fatigue,
             form: fff?.form,
             acuteChronic: acuteChronicRatio(dailyLoad: load, on: today),
-            predictions: CLIConstants.predictionDistances.map {
+            predictions: ReportConstants.predictionDistances.map {
                 Prediction(label: $0.label, seconds: predict(distance: $0.meters, efforts: efforts, on: today))
             },
             durability: latest(in: runs.filter(isContinuous), metric: decoupling),
@@ -68,10 +73,10 @@ struct ReportBuilder {
         for run in runs {
             let runDay = day(of: run.start)
             if let seconds = run.fastestSplit_5000, seconds > 0 {
-                efforts.append(Effort(distance: CLIConstants.split5kMeters, seconds: seconds, day: runDay, kind: .split5k))
+                efforts.append(Effort(distance: ReportConstants.split5kMeters, seconds: seconds, day: runDay, kind: .split5k))
             }
             if let seconds = run.fastestSplit_1000, seconds > 0 {
-                efforts.append(Effort(distance: CLIConstants.split1kMeters, seconds: seconds, day: runDay, kind: .split1k))
+                efforts.append(Effort(distance: ReportConstants.split1kMeters, seconds: seconds, day: runDay, kind: .split1k))
             }
         }
         let byId = Dictionary(all.map { ($0.activityId, $0) }, uniquingKeysWith: { first, _ in first })
@@ -84,7 +89,7 @@ struct ReportBuilder {
     }
 
     private func isContinuous(_ run: ActivityRecord) -> Bool {
-        (run.anaerobicTrainingEffect ?? 0) < CLIConstants.intervalAnaerobicEffect
+        (run.anaerobicTrainingEffect ?? 0) < ReportConstants.intervalAnaerobicEffect
     }
 
     private func latest(in runs: [ActivityRecord], metric: ([FITSample]) -> Double?) -> DatedValue? {

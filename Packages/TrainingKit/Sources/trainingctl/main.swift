@@ -1,4 +1,5 @@
 import Foundation
+import Reports
 import Storage
 import SwiftData
 import TrainingCore

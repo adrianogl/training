@@ -33,6 +33,36 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
     #expect(p != nil && abs(p! - expected) < 1e-6)
 }
 
+@Test func predictionUsesBestEffortOfEachKind() {
+    var efforts = (1...20).map { Effort(distance: 5000, seconds: 1680, day: today.adding(days: -$0), kind: .split5k) }
+    efforts.append(Effort(distance: 5000, seconds: 1320, day: today.adding(days: -5), kind: .split5k))
+    let p = predict(distance: 5000, efforts: efforts, on: today)
+    #expect(p != nil && abs(p! - 1320) < 1)
+}
+
+@Test func olderBestEffortBeatsNewerSlowOne() {
+    let oldFast = Effort(distance: 5000, seconds: 1320, day: today.adding(days: -60), kind: .split5k)
+    let newSlow = Effort(distance: 5000, seconds: 1680, day: today, kind: .split5k)
+    let p = predict(distance: 10_000, efforts: [newSlow, oldFast], on: today)
+    #expect(p != nil && abs(p! - riegel(seconds: 1320, from: 5000, to: 10_000)) < 1e-6)
+    #expect(bestEfforts([newSlow, oldFast], for: 10_000, on: today) == [oldFast])
+}
+
+@Test func onePerKindKeepsWeightingAcrossKinds() {
+    let race = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -45), kind: .race)
+    let split5k = Effort(distance: 5000, seconds: 1250, day: today.adding(days: -9), kind: .split5k)
+    let split1k = Effort(distance: 1000, seconds: 225, day: today.adding(days: -18), kind: .split1k)
+    let weights = [1.0 * (1 - 45.0 / 90), 0.7 * (1 - 9.0 / 90), 0.3 * (1 - 18.0 / 90)]
+    let times = [
+        riegel(seconds: 2700, from: 10_000, to: 21_097.5),
+        riegel(seconds: 1250, from: 5000, to: 21_097.5),
+        riegel(seconds: 225, from: 1000, to: 21_097.5),
+    ]
+    let expected = zip(weights, times).reduce(0) { $0 + $1.0 * $1.1 } / weights.reduce(0, +)
+    let p = predict(distance: 21_097.5, efforts: [race, split5k, split1k], on: today)
+    #expect(p != nil && abs(p! - expected) < 1e-6)
+}
+
 @Test func predictionIgnoresFutureEfforts() {
     let future = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: 1), kind: .race)
     #expect(predict(distance: 21_097.5, efforts: [future], on: today) == nil)

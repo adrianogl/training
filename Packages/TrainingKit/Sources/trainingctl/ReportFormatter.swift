@@ -1,4 +1,5 @@
 import Foundation
+import Reports
 
 enum ReportFormatter {
     static func lines(_ report: TrainingReport) -> [String] {
