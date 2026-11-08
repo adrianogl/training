@@ -62,7 +62,7 @@ import Testing
 
     @Test func schemaCompativelComCloudKit() {
         let schema = Schema(TrainingSchema.models)
-        #expect(schema.entities.count == 4)
+        #expect(Set(schema.entities.map(\.name)) == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState", "HeartRateZonesRecord"])
         for entity in schema.entities {
             for attribute in entity.attributes {
                 #expect(!attribute.options.contains(.unique), "\(entity.name).\(attribute.name)")

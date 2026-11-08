@@ -32,9 +32,14 @@ public final class ActivityRecord {
     public var vo2max: Double? = nil
     public var recoveryMinutes: Int? = nil
     public var performanceCondition: Int? = nil
-    public var samplesData: Data? = nil
-    public var routeData: Data? = nil
+    @Attribute(.externalStorage) public var samplesData: Data? = nil
+    @Attribute(.externalStorage) public var routeData: Data? = nil
     public var fitProcessed: Bool = false
+    public var localDay: String? = nil
+    public var processingVersion: Int = 0
+    public var workoutName: String? = nil
+    public var structureData: Data? = nil
+    public var narrativeData: Data? = nil
     public var updatedAt: Date = Date.now
 
     public init(
@@ -70,6 +75,11 @@ public final class ActivityRecord {
         samplesData: Data? = nil,
         routeData: Data? = nil,
         fitProcessed: Bool = false,
+        localDay: String? = nil,
+        processingVersion: Int = 0,
+        workoutName: String? = nil,
+        structureData: Data? = nil,
+        narrativeData: Data? = nil,
         updatedAt: Date = .now
     ) {
         self.activityId = activityId
@@ -104,6 +114,11 @@ public final class ActivityRecord {
         self.samplesData = samplesData
         self.routeData = routeData
         self.fitProcessed = fitProcessed
+        self.localDay = localDay
+        self.processingVersion = processingVersion
+        self.workoutName = workoutName
+        self.structureData = structureData
+        self.narrativeData = narrativeData
         self.updatedAt = updatedAt
     }
 }
