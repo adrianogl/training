@@ -73,3 +73,18 @@ import Testing
         }
     }
 }
+
+@Suite struct TrainingSchemaCloudKitTests {
+    @Test func containersDisableCloudKit() throws {
+        let memory = try TrainingSchema.container(inMemory: true)
+        let url = FileManager.default.temporaryDirectory.appending(path: "training-\(UUID().uuidString).sqlite")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let file = try TrainingSchema.container(url: url)
+
+        #expect(String(describing: ModelConfiguration.CloudKitDatabase.none) != String(describing: ModelConfiguration.CloudKitDatabase.automatic))
+        for container in [memory, file] {
+            let configuration = try #require(container.configurations.first)
+            #expect(String(describing: configuration.cloudKitDatabase) == String(describing: ModelConfiguration.CloudKitDatabase.none))
+        }
+    }
+}

@@ -12,14 +12,14 @@ public enum TrainingSchema {
     public static func container(inMemory: Bool) throws -> ModelContainer {
         try ModelContainer(
             for: Schema(models),
-            configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory)
+            configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
         )
     }
 
     public static func container(url: URL) throws -> ModelContainer {
         try ModelContainer(
             for: Schema(models),
-            configurations: ModelConfiguration(url: url)
+            configurations: ModelConfiguration(url: url, cloudKitDatabase: .none)
         )
     }
 }
