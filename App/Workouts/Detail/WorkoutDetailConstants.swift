@@ -25,8 +25,6 @@ enum WorkoutDetailConstants {
     static let barHeight: CGFloat = 8
     static let bandHeight: CGFloat = 14
     static let comparisonValueWidth: CGFloat = 58
-    static let paceDeltaThreshold = 1.0
-    static let heartRateDeltaThreshold = 1.0
     static let maxChartPoints = 600
     static let secondsPerMinute = 60.0
     static let heartRateDomainPadding = 5.0
@@ -43,4 +41,5 @@ enum WorkoutDetailConstants {
     static let activeBlockOpacity = 0.09
     static let altitudeFillOpacity = 0.25
     static let zoneCount = 5
+    static let onDeviceCaption = "texto gerado no aparelho"
 }

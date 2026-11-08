@@ -24,6 +24,7 @@ extension SyncEngine {
                 record.fitProcessed = true
                 record.updatedAt = .now
                 try modelContext.save()
+                result.activityIds.insert(record.activityId)
                 if wasProcessed {
                     result.reprocessed += 1
                 } else {

@@ -53,3 +53,10 @@ struct ZoneShare: Equatable {
     let share: Double
     let seconds: Double
 }
+
+struct WorkoutReading: Equatable {
+    let findings: [String]
+    let evolution: String?
+    let findingsOnDevice: Bool
+    let evolutionOnDevice: Bool
+}

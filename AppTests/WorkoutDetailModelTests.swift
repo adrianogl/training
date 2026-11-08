@@ -1,4 +1,5 @@
 import FITReader
+import Narrative
 import Foundation
 import Storage
 import SwiftData
@@ -117,39 +118,39 @@ import WorkoutAnalysis
         #expect(model.comparisonRows.allSatisfy { $0.inTargetText == nil })
     }
 
-    @Test func templatesNeverEmpty() {
-        let blocks = buildBlocks(F.intervalStructure(), zones: nil)
-        let cases: [(Finding, String)] = [
-            (Finding(group: .positive, kind: .blockInTarget, blockOrdinal: nil, facts: [FindingFact.inTarget: 5, FindingFact.total: 6]), "5 de 6"),
-            (Finding(group: .positive, kind: .steadyPace, blockOrdinal: 1, facts: [FindingFact.spread: 4]), "4 s/km"),
-            (Finding(group: .positive, kind: .lowerHeartRateThanBefore, blockOrdinal: 1, facts: [FindingFact.delta: 5]), "5 bpm"),
-            (Finding(group: .positive, kind: .goodRecovery, blockOrdinal: 2, facts: [FindingFact.drop: 31]), "31 bpm"),
-            (Finding(group: .negative, kind: .blockOffTarget, blockOrdinal: 1, facts: [
-                FindingFact.speed: 1_000.0 / 245, FindingFact.targetLow: 1_000.0 / 250, FindingFact.targetHigh: 1_000.0 / 240,
-            ]), "4:05 /km"),
-            (Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: 1, facts: [
-                FindingFact.distance: 800, FindingFact.seconds: 200, FindingFact.targetDistance: 1_000,
-            ]), "800 m"),
-            (Finding(group: .negative, kind: .paceFade, blockOrdinal: 1, facts: [FindingFact.fade: 9]), "9 s/km"),
-            (Finding(group: .attention, kind: .cardiacDrift, blockOrdinal: 1, facts: [
-                FindingFact.rise: 0.06, FindingFact.fromHR: 150, FindingFact.toHR: 159,
-            ]), "159 bpm"),
-            (Finding(group: .attention, kind: .zoneAboveTarget, blockOrdinal: 0, facts: [FindingFact.zone: 3]), "Z3"),
-            (Finding(group: .attention, kind: .hardOnLowReadiness, blockOrdinal: nil, facts: [FindingFact.readiness: 42]), "42"),
-            (Finding(group: .attention, kind: .highAcuteChronic, blockOrdinal: nil, facts: [FindingFact.ratio: 1.62]), "1,62"),
-        ]
-        let kinds: Set<FindingKind> = [
-            .blockInTarget, .steadyPace, .lowerHeartRateThanBefore, .goodRecovery, .blockOffTarget, .stepIncomplete,
-            .paceFade, .cardiacDrift, .zoneAboveTarget, .hardOnLowReadiness, .highAcuteChronic,
-        ]
-        #expect(Set(cases.map(\.0.kind)) == kinds)
-        for (finding, number) in cases {
-            let text = FindingTemplates.text(finding, blocks: blocks)
-            #expect(!text.isEmpty, "\(finding.kind)")
-            #expect(text.contains(number), "\(finding.kind): \(text)")
-        }
-        let offTarget = FindingTemplates.text(cases[4].0, blocks: blocks)
-        #expect(offTarget.contains("Tiro 1"))
-        #expect(offTarget.contains("4:00–4:10"))
+    @Test func screenUsesStoredNarrativeWhenCountMatches() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let record = F.run(id: 1, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: F.intervalStructure())
+        context.insert(record)
+        try context.save()
+        let count = WorkoutDetailModel(activityId: 1, context: context).reading.findings.count
+        let stored = (0..<count).map { "Frase do modelo \($0)" }
+        record.narrativeData = F.encoded(WorkoutNarrative(findings: stored, evolution: nil, generatedBy: NarrativeConstants.foundationModelsSource))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        #expect(count > 0)
+        #expect(model.reading.findings == stored)
+        #expect(model.reading.findingsOnDevice)
+    }
+
+    @Test func screenFallsBackWhenCountMismatch() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let record = F.run(id: 1, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: F.intervalStructure())
+        record.narrativeData = F.encoded(WorkoutNarrative(
+            findings: Array(repeating: "Frase velha", count: 7), evolution: nil, generatedBy: NarrativeConstants.foundationModelsSource
+        ))
+        context.insert(record)
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        let template = TemplateNarrator().narrative(model.assessment, blocks: model.blocks, evolution: nil)
+        #expect(template.findings.count != 7)
+        #expect(model.reading.findings == template.findings)
+        #expect(model.reading.findingsOnDevice == false)
     }
 }

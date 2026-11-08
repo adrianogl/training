@@ -7,6 +7,7 @@ enum AppConstants {
     static let apiKeyEnvironmentVariable = "TRAINING_API_KEY"
     static let testHostEnvironmentVariable = "TRAINING_TEST_HOST"
     static let launchFITLimit = 25
+    static let narrativeBackfillLimit = 10
     static let urlScheme = "training"
     static let initialSectionDefaultsKey = "initialSection"
     static let openActivityDefaultsKey = "openActivity"

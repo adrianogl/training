@@ -71,6 +71,7 @@ public actor SyncEngine: ModelActor {
         let result = try await processFITQueue(try fitQueue(includesNewRuns: false, limit: limit ?? fitLimit)) { _ in }
         var report = SyncReport()
         report.reprocessed = result.reprocessed
+        report.processedActivityIds = result.activityIds
         report.fitStoppedByRateLimit = result.stoppedByRateLimit
         return report
     }
@@ -118,6 +119,7 @@ public actor SyncEngine: ModelActor {
         }
         report.fitProcessed = fit.processed
         report.reprocessed = fit.reprocessed
+        report.processedActivityIds = fit.activityIds
         report.fitStoppedByRateLimit = fit.stoppedByRateLimit
         progress(C.progressAfterFIT)
 

@@ -27,6 +27,7 @@ targets:
           - FITReader
           - Metrics
           - WorkoutAnalysis
+          - Narrative
           - Reports
     settings:
       base:

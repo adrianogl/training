@@ -4,6 +4,7 @@ struct ComparisonSection: View {
     let title: String
     let rows: [ComparisonRow]
     let evolution: String?
+    let evolutionOnDevice: Bool
     let notice: String?
     let showsTarget: Bool
 
@@ -19,6 +20,10 @@ struct ComparisonSection: View {
                     .font(.footnote)
                     .foregroundStyle(BrandColors.dim)
                     .padding(.top, 10)
+                if evolutionOnDevice {
+                    OnDeviceCaption()
+                        .padding(.top, 4)
+                }
             }
             if let notice {
                 Text(notice)

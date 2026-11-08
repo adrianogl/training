@@ -60,7 +60,7 @@ struct WorkoutDetailView: View {
             notice
         }
         SectionLabel("Leitura")
-        FindingsSection(assessment: model.assessment, blocks: model.blocks)
+        FindingsSection(assessment: model.assessment, reading: model.reading)
         if !model.blocks.isEmpty {
             SectionLabel(model.hasPrescription ? "Blocos × prescrito" : "Parciais")
                 .id(WorkoutDetailSection.blocks)
@@ -88,6 +88,7 @@ struct WorkoutDetailView: View {
                 title: model.comparisonTitle,
                 rows: model.comparisonRows,
                 evolution: model.evolutionText,
+                evolutionOnDevice: model.reading.evolutionOnDevice,
                 notice: model.comparisonNotice,
                 showsTarget: model.hasPrescription
             )

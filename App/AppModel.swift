@@ -1,5 +1,6 @@
 import Foundation
 import GarminAPI
+import Narrative
 import Observation
 import Storage
 import Sync
@@ -16,6 +17,7 @@ import TrainingCore
 
     @ObservationIgnored private let keyStore: any APIKeyStore
     @ObservationIgnored private let transport: any HTTPTransport
+    @ObservationIgnored private let makeNarrator: @MainActor () -> any Narrator
     @ObservationIgnored private var client: (key: String, client: GarminClient)?
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var runningTrigger: SyncTrigger?
@@ -25,13 +27,15 @@ import TrainingCore
         storeError: String? = nil,
         keyStore: any APIKeyStore,
         transport: any HTTPTransport = URLSessionTransport(),
-        autoSyncEnabled: Bool = true
+        autoSyncEnabled: Bool = true,
+        makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() }
     ) {
         self.container = container
         self.storeError = storeError
         self.keyStore = keyStore
         self.transport = transport
         self.autoSyncEnabled = autoSyncEnabled
+        self.makeNarrator = makeNarrator
         self.hasKey = ((try? keyStore.read()) ?? nil)?.isEmpty == false
     }
 
@@ -108,10 +112,11 @@ import TrainingCore
         syncStatus = .running(progress: 0)
         let task = Task { [weak self] in
             do {
-                _ = try await engine.run { fraction in
+                let report = try await engine.run { fraction in
                     Task { @MainActor in self?.updateProgress(fraction) }
                 }
                 self?.syncStatus = .finished(.now)
+                await self?.writeNarratives(processed: report.processedActivityIds)
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
@@ -141,6 +146,15 @@ import TrainingCore
 
     private func deleteAll<T: PersistentModel>(_ model: T.Type, in context: ModelContext) throws {
         try context.delete(model: model)
+    }
+
+    private func writeNarratives(processed: Set<Int64>) async {
+        try? await NarrativeBackfill.run(
+            context: container.mainContext,
+            narrator: makeNarrator(),
+            processed: processed,
+            limit: AppConstants.narrativeBackfillLimit
+        )
     }
 
     private func updateProgress(_ fraction: Double) {
