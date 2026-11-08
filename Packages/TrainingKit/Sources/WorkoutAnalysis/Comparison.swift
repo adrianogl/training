@@ -1,6 +1,6 @@
 public func compare(current: WorkoutOccurrence, previous: [WorkoutOccurrence]) -> WorkoutComparison? {
-    guard !previous.isEmpty else { return nil }
-    let earlier = previous.sorted { $0.day > $1.day }.prefix(AnalysisConstants.maxComparisons)
+    let earlier = distinctEarlier(previous, excluding: current.activityId).prefix(AnalysisConstants.maxComparisons)
+    guard !earlier.isEmpty else { return nil }
     let shown = [current] + earlier
     let currentLabels = current.blocks.map(\.label)
     let sameStructure = earlier.allSatisfy { $0.blocks.map(\.label) == currentLabels }
@@ -24,6 +24,13 @@ public func compare(current: WorkoutOccurrence, previous: [WorkoutOccurrence]) -
         activeSpeedDelta: difference(weightedSpeed(currentActive), weightedSpeed(oldestActive)),
         activeHeartRateDelta: difference(weightedHeartRate(currentActive), weightedHeartRate(oldestActive))
     )
+}
+
+private func distinctEarlier(_ previous: [WorkoutOccurrence], excluding currentId: Int64) -> [WorkoutOccurrence] {
+    var seen: Set<Int64> = [currentId]
+    return previous
+        .sorted { ($0.day, $0.activityId) > ($1.day, $1.activityId) }
+        .filter { seen.insert($0.activityId).inserted }
 }
 
 private func uniqueLabels(_ labels: [String]) -> [String] {

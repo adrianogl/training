@@ -88,3 +88,41 @@ private func occurrence(_ id: Int64, day: Int, _ blocks: [WorkoutBlock]) -> Work
 
     #expect(compare(current: current, previous: []) == nil)
 }
+
+@Test func compareIgnoresCurrentInPrevious() throws {
+    let current = occurrence(100, day: 30, intervals(activeSeconds: 240, heartRate: 160))
+    let previous = [current, occurrence(90, day: 23, intervals(activeSeconds: 250, heartRate: 165))]
+
+    let comparison = try #require(compare(current: current, previous: previous))
+
+    #expect(comparison.occurrences == [100, 90])
+}
+
+@Test func compareDeduplicatesPrevious() throws {
+    let current = occurrence(100, day: 30, intervals(activeSeconds: 240, heartRate: 160))
+    let earlier = occurrence(90, day: 23, intervals(activeSeconds: 250, heartRate: 165))
+
+    let comparison = try #require(compare(current: current, previous: [earlier, earlier]))
+
+    #expect(comparison.occurrences == [100, 90])
+    #expect(comparison.blocks.allSatisfy { $0.values.count == 2 })
+}
+
+@Test func compareWithOnlyCurrentInPreviousIsNil() {
+    let current = occurrence(100, day: 30, intervals(activeSeconds: 240, heartRate: 160))
+
+    #expect(compare(current: current, previous: [current, current]) == nil)
+}
+
+@Test func compareBreaksSameDayTiesByActivityId() throws {
+    let current = occurrence(100, day: 30, intervals(activeSeconds: 240, heartRate: 160))
+    let previous = [
+        occurrence(40, day: 20, intervals(activeSeconds: 250, heartRate: 165)),
+        occurrence(60, day: 20, intervals(activeSeconds: 250, heartRate: 165)),
+        occurrence(50, day: 20, intervals(activeSeconds: 250, heartRate: 165)),
+    ]
+
+    let comparison = try #require(compare(current: current, previous: previous))
+
+    #expect(comparison.occurrences == [100, 60, 50, 40])
+}
