@@ -1,0 +1,22 @@
+<settings>
+    <setting propertyKey="@Properties.WeeklyGoalKm" title="@Strings.WeeklyGoalTitle">
+        <settingConfig type="numeric" min="1" max="300"/>
+    </setting>
+    <setting propertyKey="@Properties.RaceName" title="@Strings.RaceNameTitle">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
+    <setting propertyKey="@Properties.RaceDate" title="@Strings.RaceDateTitle">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
+    <setting propertyKey="@Properties.RaceGoal" title="@Strings.RaceGoalTitle">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
+    <setting propertyKey="@Properties.RaceDistance" title="@Strings.RaceDistanceTitle">
+        <settingConfig type="list">
+            <listEntry value="5">@Strings.Distance5</listEntry>
+            <listEntry value="10">@Strings.Distance10</listEntry>
+            <listEntry value="21">@Strings.Distance21</listEntry>
+            <listEntry value="42">@Strings.Distance42</listEntry>
+        </settingConfig>
+    </setting>
+</settings>

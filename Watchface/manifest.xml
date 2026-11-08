@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application id="f7f92e37e9d64d3ba17ea13121be884e" type="watchface" name="@Strings.AppName" entry="TrainingFaceApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="4.2.0">
+        <iq:products>
+            <iq:product id="fr965"/>
+        </iq:products>
+        <iq:permissions>
+            <iq:uses-permission id="ComplicationSubscriber"/>
+        </iq:permissions>
+        <iq:languages>
+            <iq:language>por</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>

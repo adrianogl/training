@@ -5,3 +5,8 @@ DerivedData/
 **/garmin-data/
 *.fit
 *.zip
+Watchface/bin/
+*.der
+*.prg
+*.iq
+*.pem

@@ -1,0 +1,7 @@
+<properties>
+    <property id="WeeklyGoalKm" type="number">45</property>
+    <property id="RaceName" type="string">Meia de SP</property>
+    <property id="RaceDate" type="string">2026-11-29</property>
+    <property id="RaceGoal" type="string">1:39:00</property>
+    <property id="RaceDistance" type="number">21</property>
+</properties>
