@@ -20,7 +20,7 @@ import Testing
         ))
         context.insert(ActivityRecord(
             activityId: 3, typeKey: "running", name: "Corrida",
-            start: base, distance: 10_000, duration: 3_000, workoutName: "Limiar 6 x 800 m"
+            start: base, distance: 10_000, duration: 3_240, movingDuration: 3_000, workoutName: "Limiar 6 x 800 m"
         ))
         try context.save()
         let records = try context.fetch(FetchDescriptor<ActivityRecord>())
@@ -33,6 +33,8 @@ import Testing
         #expect(rows[0].paceText == "5:00 /km")
         #expect(rows[0].distanceText == "10,0 km")
         #expect(rows[0].durationText == "50:00")
+        #expect(rows[1].paceText == "5:50 /km")
+        #expect(rows[1].durationText == "46:40")
         #expect(rows.map(\.hasPrescription) == [true, false])
         #expect(WorkoutListModel.rows(filter: .strength, records: records).map(\.activityId) == [2])
         #expect(WorkoutListModel.rows(filter: .all, records: records).count == 3)

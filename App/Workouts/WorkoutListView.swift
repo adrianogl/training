@@ -44,7 +44,7 @@ struct WorkoutListView: View {
                 .padding(.bottom, 24)
             }
             .background(BrandBackground())
-            .refreshable { await model.syncNow() }
+            .refreshable { await model.syncNow(.launch) }
             .navigationDestination(for: WorkoutRowData.self) { row in
                 WorkoutDetailPlaceholder(row: row)
             }

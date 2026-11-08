@@ -12,7 +12,7 @@ enum WorkoutListModel {
 
     static func row(_ record: ActivityRecord) -> WorkoutRowData {
         let distance = record.distance.flatMap { $0 > 0 ? $0 : nil }
-        let duration = record.duration.flatMap { $0 > 0 ? $0 : nil }
+        let duration = (record.movingDuration ?? record.duration).flatMap { $0 > 0 ? $0 : nil }
         let isRun = ActivityTypeKey.isRun(record.typeKey)
         return WorkoutRowData(
             activityId: record.activityId,

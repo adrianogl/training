@@ -28,12 +28,20 @@ struct KeychainKeyStore: APIKeyStore {
     }
 
     func save(_ key: String) throws {
-        try delete()
-        var attributes = baseQuery
-        attributes[kSecValueData as String] = Data(key.utf8)
-        attributes[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        let status = SecItemAdd(attributes as CFDictionary, nil)
-        guard status == errSecSuccess else { throw KeychainError(status: status) }
+        let values: [String: Any] = [
+            kSecValueData as String: Data(key.utf8),
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
+        ]
+        let updateStatus = SecItemUpdate(baseQuery as CFDictionary, values as CFDictionary)
+        switch updateStatus {
+        case errSecSuccess:
+            return
+        case errSecItemNotFound:
+            let addStatus = SecItemAdd(baseQuery.merging(values) { _, new in new } as CFDictionary, nil)
+            guard addStatus == errSecSuccess else { throw KeychainError(status: addStatus) }
+        default:
+            throw KeychainError(status: updateStatus)
+        }
     }
 
     func delete() throws {

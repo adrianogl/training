@@ -16,7 +16,7 @@ struct TrainingApp: App {
         .onChange(of: scenePhase, initial: true) { _, phase in
             switch phase {
             case .active where model.autoSyncEnabled:
-                Task { await model.syncNow() }
+                Task { await model.syncNow(.launch) }
             case .background:
                 model.cancelSync()
             default:

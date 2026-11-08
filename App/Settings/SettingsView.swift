@@ -79,7 +79,7 @@ struct SettingsView: View {
                 Button("Cancelar", role: .cancel) { model.cancelSync() }
             } else {
                 Button("Sincronizar agora") {
-                    Task { await model.syncNow() }
+                    Task { await model.syncNow(.settings) }
                 }
             }
             if case .failed(let failure) = model.syncStatus {

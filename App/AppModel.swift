@@ -16,8 +16,9 @@ import TrainingCore
 
     @ObservationIgnored private let keyStore: any APIKeyStore
     @ObservationIgnored private let transport: any HTTPTransport
-    @ObservationIgnored private var engine: (key: String, engine: SyncEngine)?
+    @ObservationIgnored private var client: (key: String, client: GarminClient)?
     @ObservationIgnored private var syncTask: Task<Void, Never>?
+    @ObservationIgnored private var runningTrigger: SyncTrigger?
 
     init(
         container: ModelContainer,
@@ -72,7 +73,7 @@ import TrainingCore
         let key = rawKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { return }
         try keyStore.save(key)
-        engine = nil
+        client = nil
         hasKey = true
         connectionStatus = .untested
     }
@@ -92,16 +93,18 @@ import TrainingCore
         }
     }
 
-    func syncNow() async {
+    func syncNow(_ trigger: SyncTrigger) async {
         if let syncTask {
+            let running = runningTrigger
             await syncTask.value
-            return
+            guard trigger == .settings, running != .settings, self.syncTask == nil else { return }
         }
         guard let key = currentKey() else {
             syncStatus = .failed(.missingKey)
             return
         }
-        let engine = engine(for: key)
+        let engine = SyncEngineConfiguration(trigger: trigger).makeEngine(source: client(for: key), container: container)
+        runningTrigger = trigger
         syncStatus = .running(progress: 0)
         let task = Task { [weak self] in
             do {
@@ -112,10 +115,11 @@ import TrainingCore
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
+            self?.syncTask = nil
+            self?.runningTrigger = nil
         }
         syncTask = task
         await task.value
-        syncTask = nil
     }
 
     func cancelSync() {
@@ -149,12 +153,11 @@ import TrainingCore
         return key
     }
 
-    private func engine(for key: String) -> SyncEngine {
-        if let engine, engine.key == key { return engine.engine }
+    private func client(for key: String) -> GarminClient {
+        if let client, client.key == key { return client.client }
         let tokens = TokenProvider(apiKey: key, baseURL: GarminEndpoints.base, transport: transport)
-        let client = GarminClient(tokens: tokens, transport: transport)
-        let created = SyncEngine(source: client, container: container, today: { Day.today() })
-        engine = (key, created)
+        let created = GarminClient(tokens: tokens, transport: transport)
+        client = (key, created)
         return created
     }
 }
