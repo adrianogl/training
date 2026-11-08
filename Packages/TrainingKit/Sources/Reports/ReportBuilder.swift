@@ -49,9 +49,9 @@ public struct ReportBuilder {
         Day.today(in: .current, now: date)
     }
 
-    private func dailyLoad(_ activities: [ActivityRecord]) -> [Day: Double] {
+    func dailyLoad(_ activities: [ActivityRecord]) -> [Day: Double] {
         var load: [Day: Double] = [:]
-        for activity in activities {
+        for activity in activities where activity.hasStart {
             guard let value = activity.activityTrainingLoad else { continue }
             load[day(of: activity.start), default: 0] += value
         }

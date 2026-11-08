@@ -67,4 +67,21 @@ private func build(_ records: [ActivityRecord]) throws -> TrainingReport {
 
         #expect(report.predictions.first?.seconds != nil)
     }
+
+    @Test func activityWithoutStartDoesNotMoveLoadSeries() throws {
+        let dated = run(id: 1, daysAgo: 10, split5k: 1_400, split1k: 270)
+        let undated = ActivityRecord(activityId: 2, typeKey: "cycling", activityTrainingLoad: 500)
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = ModelContext(container)
+        [dated, undated].forEach(context.insert)
+        try context.save()
+        let builder = ReportBuilder(context: context, today: today)
+
+        let load = builder.dailyLoad(try context.fetch(FetchDescriptor<ActivityRecord>()))
+        let report = try builder.build()
+
+        #expect(load == [today.adding(days: -10): 80])
+        let expected = try #require(fitnessFatigueForm(dailyLoad: load, from: today.adding(days: -10), to: today).last)
+        #expect(report.fitness == expected.fitness && report.fatigue == expected.fatigue)
+    }
 }

@@ -133,7 +133,11 @@ public actor SyncEngine: ModelActor {
     }
 
     private func latestActivityStart() throws -> Date? {
-        var descriptor = FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)])
+        let missing = Date.distantPast
+        var descriptor = FetchDescriptor<ActivityRecord>(
+            predicate: #Predicate { $0.start > missing },
+            sortBy: [SortDescriptor(\.start, order: .reverse)]
+        )
         descriptor.fetchLimit = 1
         return try modelContext.fetch(descriptor).first?.start
     }

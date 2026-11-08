@@ -40,7 +40,7 @@ extension SyncEngine {
         var descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= lower && $0.start < upper })
         descriptor.propertiesToFetch = [\.start, \.activityTrainingLoad]
         var load: [Day: Double] = [:]
-        for activity in try modelContext.fetch(descriptor) {
+        for activity in try modelContext.fetch(descriptor) where activity.hasStart {
             guard let value = activity.activityTrainingLoad else { continue }
             load[ActivityTime.day(of: activity.start), default: 0] += value
         }

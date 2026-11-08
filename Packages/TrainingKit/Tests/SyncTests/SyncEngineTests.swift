@@ -163,6 +163,18 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(report.fitProcessed == 2)
     }
 
+    @Test func activityWithoutStartIsNotLatestStart() async throws {
+        let undated = ActivityDTO(activityId: 70, typeKey: "cycling", distance: 10_000, duration: 3_000, activityTrainingLoad: 100)
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: [undated])
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        _ = try await engine.run()
+
+        let state = try #require(try fetch(SyncState.self, in: container).first)
+        #expect(try fetch(ActivityRecord.self, in: container).first?.start == .distantPast)
+        #expect(state.lastActivityStart == nil)
+    }
+
     @Test func fitFailureDoesNotAbortSync() async throws {
         let activities = [
             FakeDataSource.activity(id: 10, typeKey: "running", day: today),
