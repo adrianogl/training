@@ -61,4 +61,10 @@ private func build(_ records: [ActivityRecord]) throws -> TrainingReport {
         #expect(report.predictions.first?.label == "5 km")
         #expect(abs(fiveK - expected) < 1)
     }
+
+    @Test func countsEveryRunTypeKey() throws {
+        let report = try build([run(id: 1, daysAgo: 3, split5k: 1_400, split1k: 270, typeKey: "virtual_run")])
+
+        #expect(report.predictions.first?.seconds != nil)
+    }
 }

@@ -16,7 +16,7 @@ public struct ReportBuilder {
 
     public func build() throws -> TrainingReport {
         let activities = try context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
-        let runs = activities.filter { $0.typeKey.contains(ReportConstants.runTypeKeyMarker) }
+        let runs = activities.filter { ActivityTypeKey.isRun($0.typeKey) }
         let todayRecord = try dailyRecord(on: today)
         let load = dailyLoad(activities)
         let fff = fitnessFatigueFormToday(load)

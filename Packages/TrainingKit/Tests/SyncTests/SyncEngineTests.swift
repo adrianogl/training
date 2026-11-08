@@ -148,6 +148,21 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(records[5]?.samplesData == nil)
     }
 
+    @Test func processesFitForEveryRunTypeKey() async throws {
+        let activities = [
+            FakeDataSource.activity(id: 60, typeKey: "virtual_run", day: today),
+            FakeDataSource.activity(id: 61, typeKey: "ultra_run", day: today.adding(days: -1)),
+            FakeDataSource.activity(id: 62, typeKey: "running_drills", day: today.adding(days: -2)),
+        ]
+        let fake = FakeDataSource(dataDays: nil, activities: activities, fitZip: try FITZipBuilder.run(seconds: 300))
+        let (engine, _) = try makeEngine(fake, firstDay: today.adding(days: -3))
+
+        let report = try await engine.run()
+
+        #expect(await fake.fitCalls.sorted() == [60, 61])
+        #expect(report.fitProcessed == 2)
+    }
+
     @Test func fitFailureDoesNotAbortSync() async throws {
         let activities = [
             FakeDataSource.activity(id: 10, typeKey: "running", day: today),

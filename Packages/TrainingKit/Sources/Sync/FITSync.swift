@@ -3,6 +3,7 @@ import Foundation
 import GarminAPI
 import Storage
 import SwiftData
+import TrainingCore
 
 extension SyncEngine {
     func processPendingFIT(progress: (Double) -> Void) async throws -> Int {
@@ -10,7 +11,7 @@ extension SyncEngine {
             predicate: #Predicate { !$0.fitProcessed },
             sortBy: [SortDescriptor(\.start, order: .reverse)]
         )
-        let pending = try modelContext.fetch(descriptor).filter { ActivityKind.isRun($0.typeKey) }
+        let pending = try modelContext.fetch(descriptor).filter { ActivityTypeKey.isRun($0.typeKey) }
         var processed = 0
         for (index, record) in pending.enumerated() {
             switch try await readFIT(activityId: record.activityId) {

@@ -1,5 +1,4 @@
 enum ReportConstants {
-    static let runTypeKeyMarker = "running"
     static let intervalAnaerobicEffect = 2.0
     static let predictionDistances: [(meters: Double, label: String)] = [
         (5_000, "5 km"),

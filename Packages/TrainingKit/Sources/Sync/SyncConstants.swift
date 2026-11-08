@@ -9,7 +9,6 @@ enum SyncConstants {
     static let incrementalOverlapDays = 3
     static let incrementalActivityOverlap: TimeInterval = 3 * 86_400
     static let chronicLoadDays = 28
-    static let runTypeKeyMarker = "running"
 
     static let progressAfterCleanup = 0.05
     static let progressAfterZones = 0.1
