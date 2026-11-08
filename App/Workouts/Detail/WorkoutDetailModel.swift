@@ -43,11 +43,12 @@ import WorkoutAnalysis
         blocks = Self.blocks(record, structure: structure, zones: zones)
         bars = BlockBarScale.bars(blocks, zones: zones)
         let samples = Self.samples(record)
-        route = Self.route(record)
-        heartRate = ChartData.thinned(ChartData.heartRateSeries(samples), limit: WorkoutDetailConstants.maxChartPoints)
-        altitude = ChartData.thinned(ChartData.altitudeSeries(samples), limit: WorkoutDetailConstants.maxChartPoints)
-        zoneBands = ChartData.zoneBands(zones, ceiling: Double(heartRate.map { $0.bpm }.max() ?? 0))
-        activeSpans = ChartData.activeSpans(blocks)
+        route = ChartData.routePoints(Self.route(record))
+        let fullHeartRate = ChartData.heartRateSeries(samples)
+        heartRate = ChartData.thinned(fullHeartRate, limit: WorkoutDetailConstants.maxChartPoints) { Double($0.bpm) }
+        altitude = ChartData.thinned(ChartData.altitudeSeries(samples), limit: WorkoutDetailConstants.maxChartPoints) { $0.meters }
+        zoneBands = ChartData.zoneBands(zones, ceiling: Double(fullHeartRate.map { $0.bpm }.max() ?? 0))
+        activeSpans = hasPrescription ? ChartData.activeSpans(blocks) : []
 
         let previous = Self.previous(of: record, in: records)
             .prefix(WorkoutDetailConstants.maxComparisons)
@@ -159,7 +160,7 @@ import WorkoutAnalysis
     private static func summary(_ record: ActivityRecord, isRun: Bool, hasPrescription: Bool) -> WorkoutSummary {
         let row = WorkoutListModel.row(record)
         let kind = hasPrescription ? "Treino do Treinus" : isRun ? "Corrida livre" : record.name
-        let subtitle = [kind, record.locationName].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+        let subtitle = [kind == row.title ? nil : kind, record.locationName].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         return WorkoutSummary(
             title: row.title,
             dateText: row.dateText,

@@ -11,13 +11,15 @@ struct SummaryHeader: View {
             Text(summary.title)
                 .font(.title2.bold())
                 .foregroundStyle(BrandColors.text)
-            HStack(spacing: 8) {
-                if summary.hasPrescription {
-                    TreinusBadge()
+            if summary.hasPrescription || !summary.subtitle.isEmpty {
+                HStack(spacing: 8) {
+                    if summary.hasPrescription {
+                        TreinusBadge()
+                    }
+                    Text(summary.subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(BrandColors.dim)
                 }
-                Text(summary.subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(BrandColors.dim)
             }
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 3), alignment: .leading, spacing: 12) {
                 stat(summary.distanceText, "km")

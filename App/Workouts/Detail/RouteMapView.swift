@@ -18,7 +18,9 @@ struct RouteMapView: View {
     }
 
     private var coordinates: [CLLocationCoordinate2D] {
-        route.map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
+        route
+            .map { CLLocationCoordinate2D(latitude: $0.lat, longitude: $0.lon) }
+            .filter { CLLocationCoordinate2DIsValid($0) && !($0.latitude == 0 && $0.longitude == 0) }
     }
 
     private var map: some View {

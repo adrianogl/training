@@ -27,7 +27,7 @@ struct ZonesBar: View {
                                 .font(.caption2)
                                 .foregroundStyle(BrandColors.dim)
                         }
-                        Text(minutes(item.seconds))
+                        Text(minutes(item))
                             .font(BrandFonts.number(15))
                             .foregroundStyle(item.share > 0 ? BrandColors.text : BrandColors.dim)
                     }
@@ -35,11 +35,17 @@ struct ZonesBar: View {
                     .accessibilityElement(children: .combine)
                 }
             }
+            Text("Tempo abaixo da Z1 não entra na barra.")
+                .font(.caption2)
+                .foregroundStyle(BrandColors.dim)
         }
         .glassCard()
     }
 
-    private func minutes(_ seconds: Double) -> String {
-        "\(Int((seconds / WorkoutDetailConstants.secondsPerMinute).rounded())) min"
+    private func minutes(_ item: ZoneShare) -> String {
+        if item.share > 0, item.seconds < WorkoutDetailConstants.secondsPerMinute / 2 {
+            return "< 1 min"
+        }
+        return "\(Int((item.seconds / WorkoutDetailConstants.secondsPerMinute).rounded())) min"
     }
 }

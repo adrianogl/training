@@ -12,7 +12,7 @@ enum ChartData {
     static func altitudeSeries(_ samples: [FITSample]) -> [(t: Double, meters: Double)] {
         samples
             .sorted { $0.t < $1.t }
-            .compactMap { sample in sample.altitude.map { (t: sample.t, meters: $0) } }
+            .compactMap { sample in sample.altitude.flatMap { $0.isFinite ? (t: sample.t, meters: $0) : nil } }
     }
 
     static func zoneShares(_ zoneSeconds: [Double]) -> [Double] {
@@ -39,9 +39,33 @@ enum ChartData {
         }
     }
 
-    static func thinned<Element>(_ items: [Element], limit: Int) -> [Element] {
-        guard limit > 0, items.count > limit else { return items }
-        let step = Double(items.count - 1) / Double(limit - 1)
-        return (0..<limit).map { items[Int((Double($0) * step).rounded())] }
+    static func thinned<Element>(_ items: [Element], limit: Int, value: (Element) -> Double) -> [Element] {
+        guard limit >= 2, items.count > limit else { return items }
+        let buckets = limit / 2
+        let size = Double(items.count) / Double(buckets)
+        var result: [Element] = []
+        result.reserveCapacity(buckets * 2)
+        for bucket in 0..<buckets {
+            let lower = Int((Double(bucket) * size).rounded(.down))
+            let upper = min(items.count, Int((Double(bucket + 1) * size).rounded(.down)))
+            guard lower < upper else { continue }
+            var low = lower
+            var high = lower
+            for index in lower..<upper {
+                if value(items[index]) < value(items[low]) { low = index }
+                if value(items[index]) > value(items[high]) { high = index }
+            }
+            result.append(items[min(low, high)])
+            if low != high { result.append(items[max(low, high)]) }
+        }
+        return result
+    }
+
+    static func routePoints(_ route: [Coordinate]) -> [Coordinate] {
+        route.filter { point in
+            point.lat.isFinite && point.lon.isFinite
+                && abs(point.lat) <= 90 && abs(point.lon) <= 180
+                && !(point.lat == 0 && point.lon == 0)
+        }
     }
 }
