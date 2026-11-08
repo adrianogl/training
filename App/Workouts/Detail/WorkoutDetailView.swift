@@ -34,33 +34,55 @@ struct WorkoutDetailView: View {
     @ViewBuilder
     private func content(_ model: WorkoutDetailModel) -> some View {
         if let summary = model.summary {
-            SummaryHeader(summary: summary)
+            if model.isRun {
+                SummaryHeader(summary: summary)
+                runSections(model)
+            } else {
+                SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)
+            }
         } else {
             Text("Treino não encontrado.")
                 .foregroundStyle(BrandColors.dim)
         }
-        if model.isRun {
-            if model.structureMissing {
-                notice
-            }
-            sectionLabel("Leitura")
-            FindingsSection(assessment: model.assessment, blocks: model.blocks)
-            if !model.blocks.isEmpty {
-                sectionLabel(model.hasPrescription ? "Blocos × prescrito" : "Parciais")
-                    .id(WorkoutDetailSection.blocks)
-                BlocksSection(blocks: model.blocks, bars: model.bars, showsTarget: model.hasPrescription)
-            }
-            if model.comparison != nil, !model.comparisonRows.isEmpty {
-                sectionLabel("Comparado com treinos parecidos")
-                    .id(WorkoutDetailSection.comparison)
-                ComparisonSection(
-                    title: model.comparisonTitle,
-                    rows: model.comparisonRows,
-                    evolution: model.evolutionText,
-                    notice: model.comparisonNotice,
-                    showsTarget: model.hasPrescription
-                )
-            }
+    }
+
+    @ViewBuilder
+    private func runSections(_ model: WorkoutDetailModel) -> some View {
+        if model.structureMissing {
+            notice
+        }
+        SectionLabel("Leitura")
+        FindingsSection(assessment: model.assessment, blocks: model.blocks)
+        if !model.blocks.isEmpty {
+            SectionLabel(model.hasPrescription ? "Blocos × prescrito" : "Parciais")
+                .id(WorkoutDetailSection.blocks)
+            BlocksSection(blocks: model.blocks, bars: model.bars, showsTarget: model.hasPrescription)
+        }
+        if !model.route.isEmpty {
+            SectionLabel("Percurso")
+                .id(WorkoutDetailSection.route)
+            RouteMapView(route: model.route, altitude: model.altitude)
+        }
+        if !model.heartRate.isEmpty {
+            SectionLabel("Frequência cardíaca")
+                .id(WorkoutDetailSection.heartRate)
+            HeartRateChart(series: model.heartRate, bands: model.zoneBands, spans: model.activeSpans)
+        }
+        if !model.zoneShares.isEmpty {
+            SectionLabel("Tempo em zona de FC")
+                .id(WorkoutDetailSection.zones)
+            ZonesBar(shares: model.zoneShares)
+        }
+        if model.comparison != nil, !model.comparisonRows.isEmpty {
+            SectionLabel("Comparado com treinos parecidos")
+                .id(WorkoutDetailSection.comparison)
+            ComparisonSection(
+                title: model.comparisonTitle,
+                rows: model.comparisonRows,
+                evolution: model.evolutionText,
+                notice: model.comparisonNotice,
+                showsTarget: model.hasPrescription
+            )
         }
     }
 
@@ -75,17 +97,6 @@ struct WorkoutDetailView: View {
         }
         .glassCard()
         .padding(.top, 16)
-    }
-
-    private func sectionLabel(_ text: String) -> some View {
-        Text(text)
-            .font(.caption.weight(.medium))
-            .tracking(1)
-            .textCase(.uppercase)
-            .foregroundStyle(BrandColors.dim)
-            .padding(.top, 20)
-            .padding(.bottom, 8)
-            .padding(.horizontal, 2)
     }
 
     private static func debugScrollAnchor(defaults: UserDefaults = .standard) -> WorkoutDetailSection? {

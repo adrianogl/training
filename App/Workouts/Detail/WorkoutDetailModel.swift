@@ -21,6 +21,12 @@ import WorkoutAnalysis
     private(set) var comparisonTitle = ""
     private(set) var comparisonNotice: String?
     private(set) var evolutionText: String?
+    private(set) var route: [Coordinate] = []
+    private(set) var heartRate: [(t: Double, bpm: Int)] = []
+    private(set) var altitude: [(t: Double, meters: Double)] = []
+    private(set) var zoneBands: [ZoneBand] = []
+    private(set) var activeSpans: [BlockSpan] = []
+    private(set) var zoneShares: [ZoneShare] = []
 
     init(activityId: Int64, context: ModelContext) {
         self.activityId = activityId
@@ -30,11 +36,18 @@ import WorkoutAnalysis
         let structure = Self.structure(record)
         hasPrescription = structure.map(WorkoutAnalysis.hasPrescription) ?? false
         summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription)
+        zoneShares = Self.zoneShares(record.zoneSeconds)
         guard isRun else { return }
         structureMissing = structure == nil
         let zones = Self.zones(context)
         blocks = Self.blocks(record, structure: structure, zones: zones)
         bars = BlockBarScale.bars(blocks, zones: zones)
+        let samples = Self.samples(record)
+        route = Self.route(record)
+        heartRate = ChartData.thinned(ChartData.heartRateSeries(samples), limit: WorkoutDetailConstants.maxChartPoints)
+        altitude = ChartData.thinned(ChartData.altitudeSeries(samples), limit: WorkoutDetailConstants.maxChartPoints)
+        zoneBands = ChartData.zoneBands(zones, ceiling: Double(heartRate.map { $0.bpm }.max() ?? 0))
+        activeSpans = ChartData.activeSpans(blocks)
 
         let previous = Self.previous(of: record, in: records)
             .prefix(WorkoutDetailConstants.maxComparisons)
@@ -68,6 +81,19 @@ import WorkoutAnalysis
     private static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
         guard let data = record.structureData else { return nil }
         return try? JSONDecoder().decode(WorkoutStructure.self, from: data)
+    }
+
+    private static func route(_ record: ActivityRecord) -> [Coordinate] {
+        guard let data = record.routeData else { return [] }
+        return (try? JSONDecoder().decode([Coordinate].self, from: data)) ?? []
+    }
+
+    private static func zoneShares(_ seconds: [Double]) -> [ZoneShare] {
+        let shares = ChartData.zoneShares(seconds)
+        guard shares.contains(where: { $0 > 0 }) else { return [] }
+        return zip(shares, seconds).enumerated().map { index, pair in
+            ZoneShare(zone: index + 1, share: pair.0, seconds: pair.1)
+        }
     }
 
     private static func samples(_ record: ActivityRecord) -> [FITSample] {

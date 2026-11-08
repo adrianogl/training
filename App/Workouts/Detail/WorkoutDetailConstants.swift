@@ -27,4 +27,20 @@ enum WorkoutDetailConstants {
     static let comparisonValueWidth: CGFloat = 58
     static let paceDeltaThreshold = 1.0
     static let heartRateDeltaThreshold = 1.0
+    static let maxChartPoints = 600
+    static let secondsPerMinute = 60.0
+    static let heartRateDomainPadding = 5.0
+    static let altitudeDomainPadding = 3.0
+    static let routeFramePadding = 0.18
+    static let routeMinimumSpan = 400.0
+    static let mapHeight: CGFloat = 220
+    static let altitudeHeight: CGFloat = 64
+    static let heartRateChartHeight: CGFloat = 200
+    static let routeLineWidth: CGFloat = 3.5
+    static let routeMarkerSize: CGFloat = 12
+    static let zoneBarHeight: CGFloat = 12
+    static let zoneBandOpacity = 0.12
+    static let activeBlockOpacity = 0.09
+    static let altitudeFillOpacity = 0.25
+    static let zoneCount = 5
 }

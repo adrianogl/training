@@ -36,3 +36,20 @@ struct BlockBar: Equatable {
     let actual: ClosedRange<Double>?
     let valueText: String?
 }
+
+struct ZoneBand: Equatable {
+    let zone: Int
+    let low: Double
+    let high: Double
+}
+
+struct BlockSpan: Equatable {
+    let start: Double
+    let end: Double
+}
+
+struct ZoneShare: Equatable {
+    let zone: Int
+    let share: Double
+    let seconds: Double
+}
