@@ -13,6 +13,7 @@ let package = Package(
         .library(name: "Storage", targets: ["Storage"]),
         .library(name: "Sync", targets: ["Sync"]),
         .library(name: "Reports", targets: ["Reports"]),
+        .library(name: "WorkoutAnalysis", targets: ["WorkoutAnalysis"]),
     ],
     dependencies: [
         .package(url: "https://github.com/garmin/fit-swift-sdk.git", from: "21.221.0"),
@@ -31,6 +32,7 @@ let package = Package(
         .target(name: "Storage", dependencies: ["TrainingCore"]),
         .target(name: "Sync", dependencies: ["TrainingCore", "GarminAPI", "FITReader", "Metrics", "Projections", "Storage"]),
         .target(name: "Reports", dependencies: ["TrainingCore", "FITReader", "Metrics", "Storage"]),
+        .target(name: "WorkoutAnalysis", dependencies: ["TrainingCore", "FITReader"]),
         .executableTarget(name: "trainingctl", dependencies: ["TrainingCore", "GarminAPI", "Storage", "Sync", "Reports"]),
         .testTarget(name: "TrainingCoreTests", dependencies: ["TrainingCore"]),
         .testTarget(name: "GarminAPITests", dependencies: ["GarminAPI"], resources: [.copy("Fixtures")]),
@@ -38,6 +40,7 @@ let package = Package(
         .testTarget(name: "MetricsTests", dependencies: ["Metrics"]),
         .testTarget(name: "ProjectionsTests", dependencies: ["Projections"]),
         .testTarget(name: "StorageTests", dependencies: ["Storage"]),
+        .testTarget(name: "WorkoutAnalysisTests", dependencies: ["WorkoutAnalysis", "FITReader"]),
         .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore"]),
         .testTarget(name: "SyncTests", dependencies: [
             "Sync",
