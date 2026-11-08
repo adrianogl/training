@@ -6,10 +6,11 @@ struct WorkoutListView: View {
     @Environment(AppModel.self) private var model
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
     @State private var filter: WorkoutFilter = .all
+    @State private var path: [Int64] = WorkoutListView.initialPath()
 
     var body: some View {
         let rows = WorkoutListModel.rows(filter: filter, records: records)
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 10) {
                     Logo(showsTagline: true)
@@ -34,7 +35,7 @@ struct WorkoutListView: View {
                             .glassCard()
                     }
                     ForEach(rows) { row in
-                        NavigationLink(value: row) {
+                        NavigationLink(value: row.activityId) {
                             WorkoutRow(row: row)
                         }
                         .buttonStyle(.plain)
@@ -45,10 +46,19 @@ struct WorkoutListView: View {
             }
             .background(BrandBackground())
             .refreshable { await model.syncNow(.launch) }
-            .navigationDestination(for: WorkoutRowData.self) { row in
-                WorkoutDetailPlaceholder(row: row)
+            .navigationDestination(for: Int64.self) { activityId in
+                WorkoutDetailView(activityId: activityId)
             }
             .toolbarVisibility(.hidden, for: .navigationBar)
         }
+    }
+
+    private static func initialPath(defaults: UserDefaults = .standard) -> [Int64] {
+        #if DEBUG
+        let activityId = defaults.object(forKey: AppConstants.openActivityDefaultsKey).flatMap { "\($0)" }.flatMap(Int64.init)
+        return activityId.map { [$0] } ?? []
+        #else
+        return []
+        #endif
     }
 }

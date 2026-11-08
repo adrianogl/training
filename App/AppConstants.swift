@@ -9,5 +9,7 @@ enum AppConstants {
     static let launchFITLimit = 25
     static let urlScheme = "training"
     static let initialSectionDefaultsKey = "initialSection"
+    static let openActivityDefaultsKey = "openActivity"
+    static let detailScrollDefaultsKey = "detailScroll"
     static let createKeyURL = URL(string: "https://connect.garmin.com/app/settings/personalApiToken")!
 }

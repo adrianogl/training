@@ -24,6 +24,8 @@ targets:
           - Sync
           - GarminAPI
           - TrainingCore
+          - FITReader
+          - Metrics
           - WorkoutAnalysis
           - Reports
     settings:

@@ -12,7 +12,7 @@ enum WorkoutListModel {
 
     static func row(_ record: ActivityRecord) -> WorkoutRowData {
         let distance = record.distance.flatMap { $0 > 0 ? $0 : nil }
-        let duration = (record.movingDuration ?? record.duration).flatMap { $0 > 0 ? $0 : nil }
+        let duration = movingSeconds(record)
         let isRun = ActivityTypeKey.isRun(record.typeKey)
         return WorkoutRowData(
             activityId: record.activityId,
@@ -20,7 +20,7 @@ enum WorkoutListModel {
             dateText: dateText(record.start),
             distanceText: distance.map(distanceText),
             durationText: duration.map(clockText),
-            paceText: isRun ? pace(distance: distance, duration: duration).map { "\(clockText($0)) \(WorkoutConstants.paceUnit)" } : nil,
+            paceText: isRun ? pace(distance: distance, duration: duration).map { paceText(secondsPerKilometer: $0) } : nil,
             hasPrescription: record.workoutName != nil
         )
     }
@@ -30,13 +30,31 @@ enum WorkoutListModel {
         return duration / (distance / WorkoutConstants.metersPerKilometer)
     }
 
-    private static func distanceText(_ meters: Double) -> String {
+    static func paceText(secondsPerKilometer: Double) -> String {
+        "\(clockText(secondsPerKilometer)) \(WorkoutConstants.paceUnit)"
+    }
+
+    static func paceClock(metersPerSecond speed: Double?) -> String? {
+        guard let speed, speed > 0 else { return nil }
+        return clockText(WorkoutConstants.metersPerKilometer / speed)
+    }
+
+    static func paceText(metersPerSecond speed: Double?) -> String? {
+        guard let speed, speed > 0 else { return nil }
+        return paceText(secondsPerKilometer: WorkoutConstants.metersPerKilometer / speed)
+    }
+
+    static func movingSeconds(_ record: ActivityRecord) -> Double? {
+        (record.movingDuration.flatMap { $0 > 0 ? $0 : nil } ?? record.duration).flatMap { $0 > 0 ? $0 : nil }
+    }
+
+    static func distanceText(_ meters: Double) -> String {
         let kilometers = (meters / WorkoutConstants.metersPerKilometer)
             .formatted(.number.precision(.fractionLength(1)).locale(WorkoutConstants.locale))
         return "\(kilometers) \(WorkoutConstants.distanceUnit)"
     }
 
-    private static func clockText(_ seconds: Double) -> String {
+    static func clockText(_ seconds: Double) -> String {
         let total = Int(seconds.rounded())
         let hours = total / 3_600
         let minutes = (total % 3_600) / 60
@@ -46,7 +64,7 @@ enum WorkoutListModel {
             : String(format: "%d:%02d", minutes, secs)
     }
 
-    private static func dateText(_ date: Date) -> String {
+    static func dateText(_ date: Date) -> String {
         guard date > .distantPast else { return "" }
         return date.formatted(
             .dateTime.weekday(.abbreviated).day().month(.abbreviated).hour().minute()
