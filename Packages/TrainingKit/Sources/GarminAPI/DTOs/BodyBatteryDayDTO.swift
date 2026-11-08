@@ -24,9 +24,12 @@ public struct BodyBatteryDayDTO: Decodable, Equatable, Sendable {
         drained = try c.decodeRoundedInt(forKey: .drained)
         let raw = try c.decodeIfPresent([[Double?]].self, forKey: .bodyBatteryValuesArray) ?? []
         samples = raw.compactMap { pair in
-            guard let first = pair.first, let timestamp = first else { return nil }
-            let value = pair.count > 1 ? pair[1] : nil
-            return BodyBatterySampleDTO(timestampMs: Int64(timestamp), value: value.map { Int($0) })
+            guard let first = pair.first, let rawTimestamp = first, let timestamp = Int64(exactly: rawTimestamp.rounded()) else { return nil }
+            guard let rawValue = pair.count > 1 ? pair[1] : nil else {
+                return BodyBatterySampleDTO(timestampMs: timestamp, value: nil)
+            }
+            guard let value = Int(exactly: rawValue.rounded()) else { return nil }
+            return BodyBatterySampleDTO(timestampMs: timestamp, value: value)
         }
     }
 }

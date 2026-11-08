@@ -106,6 +106,13 @@ private let fixedNow = Date(timeIntervalSince1970: 1_800_000_000)
         #expect(result[0].charged == 60)
     }
 
+    @Test func dropsBodyBatterySamplesOutOfRange() async throws {
+        let body = #"[{"date": "2026-11-05", "bodyBatteryValuesArray": [[1e300, 30], [1793000000000, 1e30], [1793000900000.4, 40.6], [-1e19, 50]]}]"#
+        let h = makeClient(responses: [.ok(body)])
+        let result = try await h.client.bodyBattery(from: day("2026-11-05"), to: day("2026-11-05"))
+        #expect(result[0].samples == [BodyBatterySampleDTO(timestampMs: 1_793_000_900_000, value: 41)])
+    }
+
     @Test func picksDefaultHeartRateZones() async throws {
         let h = makeClient(responses: [.ok(fixture("hrzones"))])
         let zones = try await h.client.heartRateZones()
