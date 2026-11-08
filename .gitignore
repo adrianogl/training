@@ -5,3 +5,4 @@ DerivedData/
 **/garmin-data/
 *.fit
 *.zip
+.superpowers/
