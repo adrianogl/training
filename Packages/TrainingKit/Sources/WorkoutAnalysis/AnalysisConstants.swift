@@ -25,3 +25,14 @@ enum AnalysisConstants {
     static let maxComparisons = 4
     static let metersPerKilometer = 1_000.0
 }
+
+extension AnalysisConstants {
+    static let executionWeight = 50.0
+    static let intentWeight = 25.0
+    static let costWeight = 25.0
+    static let costSaturation = 0.05
+    static let costMedianShare = 0.5
+    static let costReasonThreshold = 0.01
+    static let scoreScale = 100.0
+    static let easyZoneNumber = 2
+}
