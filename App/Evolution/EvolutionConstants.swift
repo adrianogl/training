@@ -18,6 +18,7 @@ enum EvolutionConstants {
     static let cardsTitle = "Métricas"
     static let loadingCards = "Calculando as séries…"
     static let endAnchor = "evolucao-fim"
+    static let highlightAnchor = "evolucao-destaque"
     static let gridMinimumWidth: Double = 160
     static let cardChartHeight: Double = 44
     static let compactPointLimit = 90
@@ -25,6 +26,11 @@ enum EvolutionConstants {
     static let monthlyChartHeight: Double = 120
     static let monthlyBars = 12
     static let horizonCapDays = 60
+    static let heatmapWeeks = HeatmapDefaults.weeks
+    static let heatmapTitle = "Atividades"
+    static let heatmapCellSpacing: Double = 2
+    static let heatmapLegend = "km por dia nas últimas 26 semanas"
+    static let heatmapMinimumOpacity = 0.25
     static let defaultPeriod = MetricPeriod.oneYear
     static let minusSign = "\u{2212}"
 

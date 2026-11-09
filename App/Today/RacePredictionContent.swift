@@ -11,7 +11,7 @@ struct RacePredictionContent {
     let lines: [ChartLine]
     let band: [ChartBandPoint]
 
-    init(race: RaceOutlook, today: Day, countdownDays: Int?, priority: String?, historyDays: Int?) {
+    init(race: RaceOutlook, today: Day, countdownDays: Int?, priority: String?, historyDays: Int?, projectionDays: Int? = nil) {
         let raceDay = countdownDays.map { today.adding(days: $0) }
         self.race = race
         self.today = today
@@ -26,12 +26,13 @@ struct RacePredictionContent {
         )
         let from = historyDays.map { today.adding(days: -$0) }
         let history = race.series.filter { point in from.map { point.0 >= $0 } ?? true }.map { ChartPoint(date: $0.0.chartDate, value: $0.1) }
+        let projection = projectionDays.map { days in race.longProjection.isEmpty ? race.projection : Array(race.longProjection.prefix(days)) } ?? race.projection
         var lines = [ChartLine(name: "Previsão", colorKey: .prediction, dashed: false, points: history)]
-        if !race.projection.isEmpty, let start = race.today {
-            let projected = [ChartPoint(date: today.chartDate, value: start)] + race.projection.map { ChartPoint(date: $0.day.chartDate, value: $0.mid) }
+        if !projection.isEmpty, let start = race.today {
+            let projected = [ChartPoint(date: today.chartDate, value: start)] + projection.map { ChartPoint(date: $0.day.chartDate, value: $0.mid) }
             lines.append(ChartLine(name: "Previsão projetada", colorKey: .projection, dashed: true, points: projected))
         }
         self.lines = lines
-        self.band = race.projection.map { ChartBandPoint(date: $0.day.chartDate, low: $0.low, high: $0.high) }
+        self.band = projection.map { ChartBandPoint(date: $0.day.chartDate, low: $0.low, high: $0.high) }
     }
 }

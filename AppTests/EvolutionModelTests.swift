@@ -80,4 +80,30 @@ import TrainingCore
         #expect(model.isLoaded)
         #expect(model.indicatorRows.allSatisfy { $0.todayText == "—" })
     }
+
+    @Test func highlightFollowsHorizon() async throws {
+        let model = EvolutionModel(container: try Self.store(), today: Self.today)
+        await model.load()
+        func projectedCount() -> Int { model.highlight.lines.last(where: { $0.dashed })?.points.count ?? 0 }
+
+        let untilRace = projectedCount()
+        model.horizon = .sixMonths
+        let sixMonths = projectedCount()
+        model.horizon = .oneYear
+        let oneYear = projectedCount()
+
+        #expect(untilRace == 35)
+        #expect(sixMonths == 183)
+        #expect(oneYear == 366)
+    }
+
+    @Test func heatmapCoversTwentySixWeeks() async throws {
+        let model = EvolutionModel(container: try Self.store(), today: Self.today)
+        await model.load()
+
+        let columns = model.heatmapColumns
+        #expect(columns.count == 26)
+        #expect(columns.allSatisfy { $0.count == 7 })
+        #expect(columns.flatMap { $0 }.contains { $0.kilometers > 0 })
+    }
 }

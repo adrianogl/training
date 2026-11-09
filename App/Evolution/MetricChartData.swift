@@ -29,14 +29,6 @@ struct MetricChartData: Sendable {
         return first...last
     }
 
-    func clippingProjection(after limit: Date?) -> MetricChartData {
-        guard let limit else { return self }
-        var copy = self
-        copy.projection = projection.filter { $0.date <= limit }
-        copy.projectionBand = projectionBand.filter { $0.date <= limit }
-        return copy
-    }
-
     static func make(series: MetricSeries, markers: [RaceMarker], raceDay: Day?, today: Day, compact: Bool) -> MetricChartData {
         let average = series.movingAverage7.map { ChartPoint(date: $0.0.chartDate, value: $0.1) }
         let projection = series.projection.map { ChartPoint(date: $0.day.chartDate, value: $0.mid) }

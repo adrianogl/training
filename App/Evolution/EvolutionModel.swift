@@ -18,14 +18,17 @@ import TrainingCore
     private(set) var outlook = TodaySummary.empty.race
     private(set) var raceContext = RaceContext()
     private(set) var cardData: [MetricKind: MetricCardData] = [:]
-    private(set) var period = C.defaultPeriod
+    private(set) var period: MetricPeriod
+    private(set) var heatmap: [Day: Double] = [:]
     private(set) var isLoaded = false
     private(set) var isLoadingCards = false
     var horizon = ProjectionHorizon.untilRace
 
-    init(container: ModelContainer, today: Day) {
+    init(container: ModelContainer, today: Day, period: MetricPeriod = C.defaultPeriod, horizon: ProjectionHorizon = .untilRace) {
         self.container = container
         self.today = today
+        self.period = period
+        self.horizon = horizon
     }
 
     func load() async {
@@ -36,6 +39,7 @@ import TrainingCore
         }.value
         guard !Task.isCancelled else { return }
         overall = overview.overall
+        heatmap = overview.heatmap
         outlook = overview.outlook
         raceContext = overview.race
         overallSentence = TemplateInsightNarrator.overallSentence(overview.overall.facts)
@@ -67,21 +71,33 @@ import TrainingCore
             today: today,
             countdownDays: raceContext.countdownDays,
             priority: raceContext.priority,
-            historyDays: C.periodDays[period]
+            historyDays: C.periodDays[period],
+            projectionDays: projectionDays
         )
     }
 
-    var projectionLimit: Date? {
+    var projectionDays: Int? {
         switch horizon {
-        case .untilRace:
-            return raceContext.countdownDays.map { today.adding(days: $0).chartDate }
-        case .sixMonths, .oneYear:
-            return C.horizonDays[horizon].map { today.adding(days: $0).chartDate }
+        case .untilRace: raceContext.countdownDays == nil ? C.horizonCapDays : nil
+        case .sixMonths, .oneYear: C.horizonDays[horizon]
+        }
+    }
+
+    var heatmapColumns: [[HeatmapCell]] {
+        let weeks = C.heatmapWeeks
+        let first = today.weekStart.adding(days: -(weeks - 1) * 7)
+        let peak = max(heatmap.values.max() ?? 0, 1)
+        return (0..<weeks).map { week in
+            (0..<7).map { weekday in
+                let day = first.adding(days: week * 7 + weekday)
+                let km = heatmap[day] ?? 0
+                return HeatmapCell(day: day, kilometers: km, level: km / peak, isFuture: day > today)
+            }
         }
     }
 
     func chart(for kind: MetricKind) -> MetricChartData? {
-        cardData[kind]?.chart.clippingProjection(after: projectionLimit)
+        cardData[kind]?.chart
     }
 
     private func loadCards(for requested: MetricPeriod) async {
@@ -106,7 +122,8 @@ import TrainingCore
             countdownDays: target.flatMap { Day(iso: $0.day) }.map { today.days(until: $0) },
             priority: target?.priorityLevel.rawValue
         )
-        return EvolutionOverview(overall: overall, outlook: outlook, race: race, markers: raceMarkers(context: context))
+        let heatmap = (try? activityHeatmap(context: context, today: today, weeks: C.heatmapWeeks)) ?? [:]
+        return EvolutionOverview(overall: overall, heatmap: heatmap, outlook: outlook, race: race, markers: raceMarkers(context: context))
     }
 
     nonisolated private static func computeCards(

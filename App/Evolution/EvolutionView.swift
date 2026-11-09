@@ -4,7 +4,6 @@ import TrainingCore
 
 struct EvolutionView: View {
     @Environment(AppModel.self) private var app
-    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var model: EvolutionModel?
     @State private var path: [MetricKind] = EvolutionView.initialPath()
 
@@ -33,10 +32,10 @@ struct EvolutionView: View {
                     .padding(.bottom, 24)
                 }
                 .onChange(of: model?.isLoaded) { _, loaded in
-                    guard loaded == true, Self.debugScrollsToEnd() else { return }
+                    guard loaded == true, let anchor = Self.debugScrollAnchor() else { return }
                     Task {
                         try? await Task.sleep(for: .milliseconds(600))
-                        proxy.scrollTo(EvolutionConstants.endAnchor, anchor: .bottom)
+                        proxy.scrollTo(anchor, anchor: .top)
                     }
                 }
             }
@@ -51,7 +50,12 @@ struct EvolutionView: View {
         }
         .task(id: syncToken) {
             await Task.yield()
-            let loaded = EvolutionModel(container: app.container, today: Day.today())
+            let loaded = EvolutionModel(
+                container: app.container,
+                today: Day.today(),
+                period: model?.period ?? EvolutionConstants.defaultPeriod,
+                horizon: model?.horizon ?? Self.initialHorizon()
+            )
             await loaded.load()
             model = loaded
             await loaded.refreshSentence()
@@ -63,8 +67,9 @@ struct EvolutionView: View {
         VStack(alignment: .leading, spacing: 12) {
             OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, rows: model.indicatorRows)
             selectors(model)
-            RacePredictionCard(content: model.highlight)
+            RacePredictionCard(content: model.highlight).id(EvolutionConstants.highlightAnchor)
             cards(model)
+            HeatmapCard(columns: model.heatmapColumns)
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }
     }
@@ -108,11 +113,23 @@ struct EvolutionView: View {
         #endif
     }
 
-    private static func debugScrollsToEnd(defaults: UserDefaults = .standard) -> Bool {
+    private static func debugScrollAnchor(defaults: UserDefaults = .standard) -> String? {
         #if DEBUG
-        return defaults.bool(forKey: AppConstants.evolutionScrollDefaultsKey)
+        switch defaults.string(forKey: AppConstants.evolutionScrollDefaultsKey) {
+        case "destaque": return EvolutionConstants.highlightAnchor
+        case .some: return EvolutionConstants.endAnchor
+        case .none: return nil
+        }
         #else
-        return false
+        return nil
+        #endif
+    }
+
+    private static func initialHorizon(defaults: UserDefaults = .standard) -> ProjectionHorizon {
+        #if DEBUG
+        return defaults.string(forKey: AppConstants.evolutionHorizonDefaultsKey).flatMap(ProjectionHorizon.init(rawValue:)) ?? .untilRace
+        #else
+        return .untilRace
         #endif
     }
 }

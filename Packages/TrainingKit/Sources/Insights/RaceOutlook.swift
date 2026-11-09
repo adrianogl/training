@@ -38,6 +38,7 @@ func raceOutlook(race: RaceRecord?, efforts: [Effort], today: Day) -> RaceOutloo
         yearAgo: predict(distance: distance, efforts: efforts, on: today.adding(days: -C.yearDays)),
         series: series,
         projection: points,
+        longProjection: projected?.points ?? [],
         goalSeconds: goal,
         goalCrossing: goalCrossing(goal: goal, projection: projected, today: current),
         assessment: goal.flatMap { goal in reference.flatMap { assessGoal(goalSeconds: goal, predictionSeconds: $0) } }

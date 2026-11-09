@@ -1,11 +1,6 @@
 import Charts
 import SwiftUI
 
-enum MetricChartStyle {
-    case compact
-    case full
-}
-
 struct MetricChart: View {
     let data: MetricChartData
     let style: MetricChartStyle
@@ -63,7 +58,6 @@ struct MetricChart: View {
             }
         }
         .chartYScale(domain: .automatic(includesZero: false, reversed: reversed))
-        .chartXAxis(isFull ? .automatic : .hidden)
         .chartXAxis {
             if isFull {
                 AxisMarks(values: .automatic(desiredCount: 4)) { _ in

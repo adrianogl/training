@@ -17,6 +17,7 @@ public struct RaceOutlook: Sendable {
     public var yearAgo: Double?
     public var series: [(Day, Double)]
     public var projection: [ProjectionPoint]
+    public var longProjection: [ProjectionPoint]
     public var goalSeconds: Double?
     public var goalCrossing: GoalCrossing
     public var assessment: GoalAssessment?
@@ -29,6 +30,7 @@ public struct RaceOutlook: Sendable {
         yearAgo: Double?,
         series: [(Day, Double)],
         projection: [ProjectionPoint],
+        longProjection: [ProjectionPoint] = [],
         goalSeconds: Double?,
         goalCrossing: GoalCrossing,
         assessment: GoalAssessment?
@@ -40,6 +42,7 @@ public struct RaceOutlook: Sendable {
         self.yearAgo = yearAgo
         self.series = series
         self.projection = projection
+        self.longProjection = longProjection
         self.goalSeconds = goalSeconds
         self.goalCrossing = goalCrossing
         self.assessment = assessment

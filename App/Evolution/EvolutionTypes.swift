@@ -27,6 +27,7 @@ struct RaceMarker: Sendable, Equatable {
 
 struct EvolutionOverview: Sendable {
     let overall: OverallState
+    let heatmap: [Day: Double]
     let outlook: RaceOutlook
     let race: RaceContext
     let markers: [RaceMarker]
@@ -91,4 +92,18 @@ struct HorizonOption {
     let title: String
 
     static let all = ProjectionHorizon.allCases.map { HorizonOption(horizon: $0, title: EvolutionConstants.horizonTitles[$0] ?? "") }
+}
+
+enum MetricChartStyle {
+    case compact
+    case full
+}
+
+struct HeatmapCell: Identifiable, Equatable {
+    let day: Day
+    let kilometers: Double
+    let level: Double
+    let isFuture: Bool
+
+    var id: Day { day }
 }

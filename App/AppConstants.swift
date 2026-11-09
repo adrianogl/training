@@ -16,6 +16,7 @@ enum AppConstants {
     static let todayScrollDefaultsKey = "todayScroll"
     static let openMetricDefaultsKey = "openMetric"
     static let evolutionScrollDefaultsKey = "evolutionScroll"
+    static let evolutionHorizonDefaultsKey = "evolutionHorizon"
     static let openActivityDefaultsKey = "openActivity"
     static let detailScrollDefaultsKey = "detailScroll"
     static let openShareDefaultsKey = "openShare"

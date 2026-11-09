@@ -85,3 +85,22 @@ import TrainingCore
         #expect(chunked.map(\.1) == plain.map(\.1))
     }
 }
+
+@Suite struct LongProjectionTests {
+    @Test func longProjectionCoversGoalHorizon() throws {
+        var models: [any PersistentModel] = improvingRuns()
+        models.append(race(name: "Prova", inDays: 30, goal: 1_400))
+        let context = try makeContext(models)
+
+        let outlook = try raceOutlook(context: context, today: fixtureToday)
+
+        #expect(outlook.longProjection.count == 365)
+        #expect(outlook.projection.count == 30)
+        #expect(outlook.longProjection.prefix(30).map(\.day) == outlook.projection.map(\.day))
+    }
+
+    @Test func longProjectionEmptyWithoutData() throws {
+        let outlook = try raceOutlook(context: try makeContext(), today: fixtureToday)
+        #expect(outlook.longProjection.isEmpty)
+    }
+}
