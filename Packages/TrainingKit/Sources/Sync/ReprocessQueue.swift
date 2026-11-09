@@ -11,8 +11,11 @@ extension SyncEngine {
             predicate: #Predicate { $0.fitProcessed && $0.processingVersion < currentVersion },
             sortBy: [SortDescriptor(\.start, order: .reverse)]
         )
-        var queue = includesNewRuns ? try pendingRuns() : []
-        queue += try modelContext.fetch(outdated).filter { ActivityTypeKey.isRun($0.typeKey) }
+        let maxFailures = SyncConstants.maxFitTransientFailures
+        var queue = try pendingRuns().filter { includesNewRuns == ($0.fitTransientFailures < maxFailures) }
+        queue += try modelContext.fetch(outdated).filter {
+            ActivityTypeKey.isRun($0.typeKey) && (!includesNewRuns || $0.fitTransientFailures < maxFailures)
+        }
         guard let limit else { return queue }
         return Array(queue.prefix(max(limit, 0)))
     }

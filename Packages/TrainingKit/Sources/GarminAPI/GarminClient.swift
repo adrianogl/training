@@ -8,19 +8,22 @@ public struct GarminClient: GarminDataSource {
     private let baseURL: URL
     private let sleep: @Sendable (Duration) async throws -> Void
     private let now: @Sendable () -> Date
+    private let waitsOnRateLimit: Bool
 
     public init(
         tokens: TokenProvider,
         transport: any HTTPTransport,
         baseURL: URL = GarminEndpoints.base,
         sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) },
-        now: @escaping @Sendable () -> Date = { .now }
+        now: @escaping @Sendable () -> Date = { .now },
+        waitsOnRateLimit: Bool = true
     ) {
         self.tokens = tokens
         self.transport = transport
         self.baseURL = baseURL
         self.sleep = sleep
         self.now = now
+        self.waitsOnRateLimit = waitsOnRateLimit
     }
 
     public func heartRateZones() async throws -> HRZonesDTO {
@@ -151,7 +154,7 @@ public struct GarminClient: GarminDataSource {
                 throw GarminAPIError.notAcceptable
             case 429:
                 let schedule = GarminEndpoints.rateLimitDelaysSeconds
-                guard retries < schedule.count else { throw GarminAPIError.rateLimited(path: path) }
+                guard waitsOnRateLimit, retries < schedule.count else { throw GarminAPIError.rateLimited(path: path) }
                 let header = response.value(forHTTPHeaderField: GarminEndpoints.retryAfterHeader)
                 try await sleep(.seconds(RetryAfter.seconds(from: header, now: now()) ?? schedule[retries]))
                 retries += 1

@@ -11,6 +11,7 @@ public actor SyncEngine: ModelActor {
     let today: @Sendable () -> Day
     let firstDay: Day
     let fitLimit: Int?
+    let mode: SyncMode
     public private(set) var heartRateZones: HRZonesDTO?
     private var inFlight: InFlightOperation?
 
@@ -19,14 +20,16 @@ public actor SyncEngine: ModelActor {
         container: ModelContainer,
         today: @escaping @Sendable () -> Day,
         firstDay: Day = Day(iso: "2024-01-01")!,
-        fitLimit: Int? = nil
+        fitLimit: Int? = nil,
+        mode: SyncMode = .foreground
     ) {
         self.modelContainer = container
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(container))
         self.source = source
         self.today = today
         self.firstDay = firstDay
-        self.fitLimit = fitLimit
+        self.fitLimit = mode == .background ? SyncConstants.backgroundFitLimit : fitLimit
+        self.mode = mode
     }
 
     public func run(progress: @escaping @Sendable (Double) -> Void = { _ in }) async throws -> SyncReport {
@@ -77,7 +80,10 @@ public actor SyncEngine: ModelActor {
 
     private func performReprocess(limit: Int?) async throws -> SyncReport {
         try backfillLocalDays()
-        let result = try await processFITQueue(try fitQueue(includesNewRuns: false, limit: limit ?? fitLimit)) { _ in }
+        let queue = try fitQueue(includesNewRuns: false, limit: limit ?? fitLimit)
+        queue.forEach { $0.fitTransientFailures = 0 }
+        try modelContext.save()
+        let result = try await processFITQueue(queue) { _ in }
         var report = SyncReport()
         report.reprocessed = result.reprocessed
         report.processedActivityIds = result.activityIds
@@ -100,29 +106,37 @@ public actor SyncEngine: ModelActor {
         progress(C.progressAfterZones)
 
         let isFirstLoad = !state.firstLoadCompleted
-        let touchedDays = try await syncDaily(
-            starts: dailyStarts(state: state, today: today),
-            to: today,
-            state: state,
-            tracksResume: isFirstLoad
-        ) { fraction in
-            progress(C.progressAfterZones + fraction * (C.progressAfterDaily - C.progressAfterZones))
-        }
-        report.dailyUpserted = touchedDays.count
-        progress(C.progressAfterDaily)
+        let touchedDays: Set<Day>
+        let upsertedActivities: Set<Int64>
+        do {
+            touchedDays = try await syncDaily(
+                starts: dailyStarts(state: state, today: today),
+                to: today,
+                state: state,
+                tracksResume: isFirstLoad
+            ) { fraction in
+                progress(C.progressAfterZones + fraction * (C.progressAfterDaily - C.progressAfterZones))
+            }
+            report.dailyUpserted = touchedDays.count
+            progress(C.progressAfterDaily)
 
-        let incrementalCutoff = isFirstLoad
-            ? nil
-            : (state.lastActivityStart ?? state.lastSync ?? ActivityTime.startOfDay(firstDay)).addingTimeInterval(-C.incrementalActivityOverlap)
-        let upsertedActivities = try await syncActivities(
-            from: isFirstLoad ? firstDay : nil,
-            startAt: isFirstLoad ? max((state.resumeActivityStart ?? 0) - C.activityPageSize, 0) : 0,
-            incrementalCutoff: incrementalCutoff,
-            state: state,
-            tracksResume: isFirstLoad
-        )
-        report.activitiesUpserted = upsertedActivities.count
-        progress(C.progressAfterActivities)
+            let incrementalCutoff = isFirstLoad
+                ? nil
+                : (state.lastActivityStart ?? state.lastSync ?? ActivityTime.startOfDay(firstDay)).addingTimeInterval(-C.incrementalActivityOverlap)
+            upsertedActivities = try await syncActivities(
+                from: isFirstLoad ? firstDay : nil,
+                startAt: isFirstLoad ? max((state.resumeActivityStart ?? 0) - C.activityPageSize, 0) : 0,
+                incrementalCutoff: incrementalCutoff,
+                state: state,
+                tracksResume: isFirstLoad
+            )
+            report.activitiesUpserted = upsertedActivities.count
+            progress(C.progressAfterActivities)
+        } catch GarminAPIError.rateLimited(_) where mode == .background {
+            try modelContext.save()
+            report.stoppedByRateLimit = true
+            return report
+        }
 
         let fit = try await processFITQueue(try fitQueue(includesNewRuns: true, limit: fitLimit)) { fraction in
             progress(C.progressAfterActivities + fraction * (C.progressAfterFIT - C.progressAfterActivities))
@@ -131,6 +145,7 @@ public actor SyncEngine: ModelActor {
         report.reprocessed = fit.reprocessed
         report.processedActivityIds = fit.activityIds
         report.fitStoppedByRateLimit = fit.stoppedByRateLimit
+        report.stoppedByRateLimit = fit.stoppedByRateLimit
         progress(C.progressAfterFIT)
 
         let recomputesAll = isFirstLoad || state.readinessVersion < C.readinessVersion

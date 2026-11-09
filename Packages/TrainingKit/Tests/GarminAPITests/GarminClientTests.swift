@@ -349,3 +349,20 @@ private let fixedNow = Date(timeIntervalSince1970: 1_800_000_000)
         }
     }
 }
+
+@Suite struct GarminClientBackgroundTests {
+    @Test func clientFailsFastOnRateLimitWhenAsked() async {
+        let exp = Int(Date.now.timeIntervalSince1970) + 86_400 * 365
+        let tokenStub = StubTransport([.ok(makeJWT(exp: exp))])
+        let stub = StubTransport([.status(429, ""), .ok("[]")])
+        let tokens = TokenProvider(apiKey: "k", baseURL: GarminEndpoints.base, transport: tokenStub)
+        let sleeps = SleepLog()
+        let client = GarminClient(tokens: tokens, transport: stub, sleep: { sleeps.record($0) }, waitsOnRateLimit: false)
+
+        await #expect(throws: GarminAPIError.rateLimited(path: GarminEndpoints.activitiesPath)) {
+            try await client.activities(start: 0, limit: 50, from: nil, to: nil)
+        }
+        #expect(sleeps.all.isEmpty)
+        #expect(stub.requests.count == 1)
+    }
+}

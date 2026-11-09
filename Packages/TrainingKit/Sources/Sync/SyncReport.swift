@@ -4,6 +4,7 @@ public struct SyncReport: Sendable, Equatable {
     public var fitProcessed: Int
     public var reprocessed: Int
     public var fitStoppedByRateLimit: Bool
+    public var stoppedByRateLimit: Bool
     public var duplicatesRemoved: Int
     public var processedActivityIds: Set<Int64>
 
@@ -13,6 +14,7 @@ public struct SyncReport: Sendable, Equatable {
         fitProcessed: Int = 0,
         reprocessed: Int = 0,
         fitStoppedByRateLimit: Bool = false,
+        stoppedByRateLimit: Bool = false,
         duplicatesRemoved: Int = 0,
         processedActivityIds: Set<Int64> = []
     ) {
@@ -21,6 +23,7 @@ public struct SyncReport: Sendable, Equatable {
         self.fitProcessed = fitProcessed
         self.reprocessed = reprocessed
         self.fitStoppedByRateLimit = fitStoppedByRateLimit
+        self.stoppedByRateLimit = stoppedByRateLimit
         self.duplicatesRemoved = duplicatesRemoved
         self.processedActivityIds = processedActivityIds
     }

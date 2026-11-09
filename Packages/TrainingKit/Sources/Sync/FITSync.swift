@@ -31,7 +31,8 @@ extension SyncEngine {
                     result.processed += 1
                 }
             case .skipped:
-                break
+                record.fitTransientFailures += 1
+                try modelContext.save()
             case .unavailable:
                 record.processingVersion = FITReaderConstants.processingVersion
                 record.fitProcessed = true
