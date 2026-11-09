@@ -1,6 +1,5 @@
 enum RunMetricsConstants {
     static let vo2SmoothingDays = 14.0
-    static let sampleInterval = 5.0
     static let warmupSeconds = 600.0
     static let minimumSteadySeconds = 300.0
     static let thresholdHeartRateTolerance = 3

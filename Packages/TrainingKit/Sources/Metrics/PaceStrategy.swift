@@ -14,11 +14,13 @@ public func paceStrategy(goalSeconds: Double, distance: Double, profile: [(dista
         if let fixed = manual[index] {
             return KmPlan(index: index, pace: fixed, grade: grade, label: label, manual: true)
         }
-        var pace = base * minettiCost(grade: grade) / flatCost
+        let costGrade = min(max(grade, RaceConstants.minettiGradeRange.lowerBound), RaceConstants.minettiGradeRange.upperBound)
+        var pace = base * minettiCost(grade: costGrade) / flatCost
         if index < RaceConstants.warmupKms { pace += RaceConstants.warmupOffset }
         if index >= kms - RaceConstants.finishKms { pace += RaceConstants.finishOffset }
         return KmPlan(index: index, pace: pace, grade: grade, label: label, manual: false)
     }
+    guard plan.allSatisfy({ !$0.manual || $0.pace > 0 }) else { return [] }
     let free = plan.filter { !$0.manual }
     let freeKm = free.reduce(0) { $0 + kmLength($1.index, kms: kms, distance: distance) / 1000 }
     guard freeKm > 0 else { return plan }
@@ -27,6 +29,7 @@ public func paceStrategy(goalSeconds: Double, distance: Double, profile: [(dista
     for index in plan.indices where !plan[index].manual {
         plan[index].pace += shift
     }
+    guard plan.allSatisfy({ $0.pace > 0 }) else { return [] }
     return plan
 }
 

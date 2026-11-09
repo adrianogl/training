@@ -15,6 +15,7 @@ enum RaceConstants {
     static let finishKms = 3
     static let finishOffset = -3.0
     static let climbLabelGrade = 0.02
+    static let minettiGradeRange = -0.45...0.45
 
     static let warmupLabel = "aquece"
     static let finishLabel = "final"

@@ -8,7 +8,7 @@ public func zone2Pace(_ s: [FITSample], zone2: ClosedRange<Int>) -> Double? {
         else { return nil }
         return speed
     }
-    guard Double(speeds.count) * RunMetricsConstants.sampleInterval >= RunMetricsConstants.minimumSteadySeconds,
+    guard Double(speeds.count) * FITReaderConstants.bucketSeconds >= RunMetricsConstants.minimumSteadySeconds,
           let average = mean(speeds)
     else { return nil }
     return 1000 / average
@@ -18,13 +18,16 @@ public func thresholdPace(_ runs: [[FITSample]], lthr: Int) -> Double? {
     var paces: [Double] = []
     for run in runs {
         var segment: [Double] = []
+        var lastTime: Double?
         func close() {
-            if Double(segment.count) * RunMetricsConstants.sampleInterval >= RunMetricsConstants.minimumSteadySeconds {
+            if Double(segment.count) * FITReaderConstants.bucketSeconds >= RunMetricsConstants.minimumSteadySeconds {
                 paces.append(contentsOf: segment.map { 1000 / $0 })
             }
             segment = []
         }
         for sample in run {
+            if let lastTime, sample.t - lastTime > FITReaderConstants.bucketSeconds { close() }
+            lastTime = sample.t
             if let heartRate = sample.heartRate,
                abs(heartRate - lthr) <= RunMetricsConstants.thresholdHeartRateTolerance,
                let speed = sample.speed, speed > 0 {

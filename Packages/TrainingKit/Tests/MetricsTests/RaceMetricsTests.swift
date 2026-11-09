@@ -122,3 +122,51 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
     #expect(block[5].start == week && block[5].km == 12 && !block[5].projected)
     #expect(block[0].km == 22)
 }
+
+@Test func assessGoalRejectsMissingNumbers() {
+    #expect(assessGoal(goalSeconds: 6300, predictionSeconds: 0) == nil)
+    #expect(assessGoal(goalSeconds: 0, predictionSeconds: 6510) == nil)
+    #expect(assessGoal(goalSeconds: .nan, predictionSeconds: 6510) == nil)
+}
+
+@Test func strategyClampsGradeToMinettiRange() {
+    let wall: [(distance: Double, altitude: Double)] = [(0, 100), (1000, 100), (2000, 900), (5000, 900)]
+    let p = paceStrategy(goalSeconds: 1800, distance: 5000, profile: wall, manual: [:])
+    #expect(abs(p[1].grade - 0.8) < 1e-9)
+    let steep = paceStrategy(goalSeconds: 1800, distance: 5000, profile: [(0, 100), (1000, 100), (2000, 550), (5000, 550)], manual: [:])
+    #expect(abs(p[1].pace - steep[1].pace) < 1e-9)
+    #expect(abs(total(p, 5000) - 1800) < 1e-6)
+}
+
+@Test func strategyIsEmptyWhenManualPacesLeaveNoRoom() {
+    let p = paceStrategy(goalSeconds: 1500, distance: 5000, profile: nil, manual: [0: 600, 1: 600, 2: 600])
+    #expect(p.isEmpty)
+}
+
+@Test func strategyIgnoresManualKmOutsideRace() {
+    let p = paceStrategy(goalSeconds: 1500, distance: 5000, profile: nil, manual: [-1: 100, 7: 100])
+    #expect(p.count == 5 && p.allSatisfy { !$0.manual })
+    #expect(abs(total(p, 5000) - 1500) < 1e-6)
+}
+
+@Test func blockForFarRaceIsAllProjected() {
+    var km: [Day: Double] = [:]
+    for offset in 1...4 { km[today.weekStart.adding(days: -7 * offset)] = 40 }
+    let block = raceBlock(raceDay: today.adding(days: 7 * 20), today: today, weeklyKm: km)
+    #expect(block.count == 12)
+    #expect(block.allSatisfy { $0.projected && $0.km == 40 })
+}
+
+@Test func blockForPastRaceIsAllHistory() {
+    let race = today.adding(days: -30)
+    var km: [Day: Double] = [:]
+    km[race.weekStart] = 21
+    let block = raceBlock(raceDay: race, today: today, weeklyKm: km)
+    #expect(block.allSatisfy { !$0.projected })
+    #expect(block.last?.start == race.weekStart && block.last?.km == 21)
+}
+
+@Test func strategyRejectsNonPositiveManualPace() {
+    let manual = Dictionary(uniqueKeysWithValues: (0..<5).map { ($0, $0 == 2 ? 0.0 : 300.0) })
+    #expect(paceStrategy(goalSeconds: 1500, distance: 5000, profile: nil, manual: manual).isEmpty)
+}

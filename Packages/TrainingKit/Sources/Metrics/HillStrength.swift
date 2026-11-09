@@ -68,11 +68,11 @@ private func deltaKinds(_ points: [GradePoint]) -> [GradeClass] {
         var start = range.lowerBound
         var end = range.upperBound - 1
         while start <= end, GradeClass(rawGrade(points, at: start)) != kind {
-            kinds[start] = .flat
+            kinds[start] = GradeClass(rawGrade(points, at: start))
             start += 1
         }
         while end >= start, GradeClass(rawGrade(points, at: end)) != kind {
-            kinds[end] = .flat
+            kinds[end] = GradeClass(rawGrade(points, at: end))
             end -= 1
         }
     }

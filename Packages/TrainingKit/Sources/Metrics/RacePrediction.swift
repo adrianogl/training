@@ -38,7 +38,8 @@ private func predictionWeight(_ effort: Effort, on: Day) -> Double? {
     return weight > 0 ? weight : nil
 }
 
-public func assessGoal(goalSeconds: Double, predictionSeconds: Double) -> GoalAssessment {
+public func assessGoal(goalSeconds: Double, predictionSeconds: Double) -> GoalAssessment? {
+    guard goalSeconds.isFinite, predictionSeconds.isFinite, goalSeconds > 0, predictionSeconds > 0 else { return nil }
     let gap = (predictionSeconds - goalSeconds) / predictionSeconds
     if gap > RaceConstants.aggressiveGap { return .aggressive }
     if gap > RaceConstants.challengingGap { return .challenging }

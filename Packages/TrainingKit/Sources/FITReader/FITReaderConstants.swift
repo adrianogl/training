@@ -1,6 +1,6 @@
 public enum FITReaderConstants {
     public static let processingVersion = 2
-    static let bucketSeconds = 5.0
+    public static let bucketSeconds = 5.0
     static let maxRoutePoints = 500
     static let initialSimplificationTolerance = 1e-6
     static let semicircleToDegrees = 180.0 / 2_147_483_648.0
