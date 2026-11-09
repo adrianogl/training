@@ -21,7 +21,7 @@ private struct FakeNarrator: Narrator {
     func narrate(_ assessment: WorkoutAssessment, blocks: [WorkoutBlock], evolution: EvolutionFacts?) async -> WorkoutNarrative {
         await log.record()
         let template = TemplateNarrator().narrative(assessment, blocks: blocks, evolution: evolution)
-        guard !fallsBack else { return template }
+        guard !fallsBack, !assessment.orderedFindings.isEmpty || evolution != nil else { return template }
         return WorkoutNarrative(
             findings: assessment.orderedFindings.map { "fake \($0.kind.rawValue)" },
             evolution: evolution.map { _ in "fake evolution" },
@@ -107,5 +107,24 @@ private struct FakeNarrator: Narrator {
         #expect(await again.log.count == 1)
         #expect(refreshed.factsKey != "old")
         #expect(!refreshed.findings.contains("texto velho"))
+    }
+
+    @Test func runsWithNothingToNarrateDoNotSpendAttempts() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        try seed(context)
+        for id: Int64 in 10..<15 {
+            let empty = F.run(id: id, daysAgo: -Double(id), meters: 2_000 * pow(2, Double(id - 9)))
+            empty.localDay = nil
+            context.insert(empty)
+        }
+        try context.save()
+        let narrator = FakeNarrator()
+
+        let failures = try await NarrativeBackfill.run(context: context, narrator: narrator, processed: [], limit: 3)
+
+        #expect(failures.isEmpty)
+        #expect(await narrator.log.count == 3)
+        #expect(try records(context).filter { $0.activityId < 10 }.allSatisfy { $0.narrativeData != nil })
     }
 }

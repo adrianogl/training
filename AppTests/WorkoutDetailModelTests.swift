@@ -162,4 +162,12 @@ import WorkoutAnalysis
         #expect(model.reading.findings == template.findings)
         #expect(model.reading.findingsOnDevice == false)
     }
+
+    @Test func zonesNeedEveryFloor() {
+        let complete = HeartRateZonesRecord(sport: "RUNNING", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175, maxHeartRate: 190)
+        let gap = HeartRateZonesRecord(sport: "RUNNING", zone1Floor: 100, zone2Floor: 120, zone4Floor: 160, zone5Floor: 175, maxHeartRate: 190)
+
+        #expect(WorkoutAnalysisContext.zones(from: complete) == HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRate: 190))
+        #expect(WorkoutAnalysisContext.zones(from: gap) == nil)
+    }
 }

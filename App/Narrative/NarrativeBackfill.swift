@@ -16,6 +16,7 @@ import TrainingCore
         let records = try context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
         let runs = records.filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
         let ordered = runs.filter { processed.contains($0.activityId) } + runs.filter { !processed.contains($0.activityId) }
+        let inputs = WorkoutAnalysisContext.inputs(records: records, in: context)
         let decoder = JSONDecoder()
         let encoder = JSONEncoder()
         var attempts = 0
@@ -29,7 +30,8 @@ import TrainingCore
                 guard checked < AppConstants.narrativeScanLimit else { continue }
                 checked += 1
             }
-            let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
+            let analysis = WorkoutAnalysisContext.build(record: record, records: records, inputs: inputs)
+            guard !analysis.assessment.orderedFindings.isEmpty || analysis.evolution != nil else { continue }
             let key = NarrativeFacts.key(analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
             let attempt = "\(record.activityId):\(key)"
             guard stored?.factsKey != key, !skipping.contains(attempt) else { continue }

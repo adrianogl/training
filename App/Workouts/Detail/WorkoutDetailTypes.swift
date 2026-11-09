@@ -1,4 +1,6 @@
 import Foundation
+import TrainingCore
+import WorkoutAnalysis
 
 struct WorkoutSummary: Equatable {
     let title: String
@@ -59,4 +61,10 @@ struct WorkoutReading: Equatable {
     let evolution: String?
     let findingsOnDevice: Bool
     let evolutionOnDevice: Bool
+}
+
+struct WorkoutAnalysisInputs {
+    let zones: HeartRateZones?
+    let dailyLoad: [Day: Double]
+    let readinessByDay: [String: Int]
 }

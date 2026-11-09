@@ -20,13 +20,25 @@ struct WorkoutAnalysisContext {
     var evolution: EvolutionFacts?
 
     @MainActor static func build(record: ActivityRecord, records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisContext {
+        build(record: record, records: records, inputs: inputs(records: records, in: context))
+    }
+
+    @MainActor static func inputs(records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisInputs {
+        WorkoutAnalysisInputs(
+            zones: zones(context),
+            dailyLoad: dailyLoad(records),
+            readinessByDay: readinessByDay(context)
+        )
+    }
+
+    static func build(record: ActivityRecord, records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> WorkoutAnalysisContext {
         var analysis = WorkoutAnalysisContext()
         analysis.isRun = ActivityTypeKey.isRun(record.typeKey)
         let structure = structure(record)
         analysis.hasPrescription = structure.map(WorkoutAnalysis.hasPrescription) ?? false
         guard analysis.isRun else { return analysis }
         analysis.structureMissing = structure == nil
-        let zones = zones(context)
+        let zones = inputs.zones
         analysis.zones = zones
         let blocks = blocks(record, structure: structure, zones: zones)
         analysis.blocks = blocks
@@ -35,8 +47,8 @@ struct WorkoutAnalysisContext {
             .prefix(WorkoutDetailConstants.maxComparisons)
             .compactMap { occurrence($0, zones: zones) }
         analysis.assessment = assess(blocks, context: AssessmentContext(
-            readinessScore: readiness(record, context: context),
-            acuteChronic: acuteChronic(record, records: records),
+            readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
+            acuteChronic: record.localDay.flatMap(Day.init(iso:)).flatMap { acuteChronicRatio(dailyLoad: inputs.dailyLoad, on: $0) },
             previous: previous.map(\.blocks)
         ))
         let current = WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
@@ -98,26 +110,31 @@ struct WorkoutAnalysisContext {
         guard let record = records.first(where: { $0.sport == WorkoutDetailConstants.defaultZonesSport }) ?? (records.count == 1 ? records.first : nil) else {
             return nil
         }
-        let floors = [record.zone1Floor, record.zone2Floor, record.zone3Floor, record.zone4Floor, record.zone5Floor].compactMap { $0 }
-        guard !floors.isEmpty else { return nil }
-        return HeartRateZones(floors: floors, maxHeartRate: record.maxHeartRate)
+        return zones(from: record)
     }
 
-    @MainActor private static func readiness(_ record: ActivityRecord, context: ModelContext) -> Int? {
-        guard let localDay = record.localDay else { return nil }
-        var descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == localDay })
-        descriptor.fetchLimit = 1
-        return (try? context.fetch(descriptor))?.first?.readinessScore
+    static func zones(from record: HeartRateZonesRecord) -> HeartRateZones? {
+        let floors = [record.zone1Floor, record.zone2Floor, record.zone3Floor, record.zone4Floor, record.zone5Floor]
+        guard floors.allSatisfy({ $0 != nil }) else { return nil }
+        return HeartRateZones(floors: floors.compactMap { $0 }, maxHeartRate: record.maxHeartRate)
     }
 
-    private static func acuteChronic(_ record: ActivityRecord, records: [ActivityRecord]) -> Double? {
-        guard let day = record.localDay.flatMap(Day.init(iso:)) else { return nil }
+    @MainActor private static func readinessByDay(_ context: ModelContext) -> [String: Int] {
+        var descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.readinessScore != nil })
+        descriptor.propertiesToFetch = [\.day, \.readinessScore]
+        let records = (try? context.fetch(descriptor)) ?? []
+        return records.reduce(into: [:]) { result, record in
+            if let score = record.readinessScore { result[record.day] = score }
+        }
+    }
+
+    private static func dailyLoad(_ records: [ActivityRecord]) -> [Day: Double] {
         var dailyLoad: [Day: Double] = [:]
         for activity in records where activity.hasStart {
             guard let activityDay = activity.localDay.flatMap(Day.init(iso:)), let load = activity.activityTrainingLoad else { continue }
             dailyLoad[activityDay, default: 0] += load
         }
-        return acuteChronicRatio(dailyLoad: dailyLoad, on: day)
+        return dailyLoad
     }
 
     private static func day(_ record: ActivityRecord) -> Day {
