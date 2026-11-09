@@ -101,4 +101,35 @@ import TrainingCore
         #expect(summary.race.distance == 10_000)
         #expect(summary.race.label == "10 km")
     }
+
+    @Test func readinessRawCarriesTodayAndNormalInRealUnits() throws {
+        var models: [any PersistentModel] = [daily(daysAgo: 0, hrv: 70, balanced: 50...70, sleepScore: 90, bodyBattery: 85)]
+        for offset in 1...30 {
+            models.append(daily(daysAgo: offset, hrv: Double(50 + offset % 2 * 10), balanced: 50...70, sleepScore: 70, bodyBattery: 60))
+        }
+        let context = try makeContext(models)
+
+        let raw = try todaySummary(context: context, today: fixtureToday).readinessRaw
+
+        #expect(raw[.hrv]?.today == 70)
+        #expect(raw[.hrv]?.normal == 55)
+        #expect(raw[.sleep]?.today == 90)
+        #expect(raw[.sleep]?.normal == 70)
+        #expect(raw[.bodyBattery]?.today == 85)
+        #expect(raw[.bodyBattery]?.normal == 60)
+        #expect(raw[.load]?.normal == nil)
+    }
+
+    @Test func readinessRawNormalNeedsFourteenDays() throws {
+        var models: [any PersistentModel] = [daily(daysAgo: 0, hrv: 70, balanced: 50...70, sleepScore: 90, bodyBattery: 85)]
+        for offset in 1...10 {
+            models.append(daily(daysAgo: offset, hrv: 60, balanced: 50...70, sleepScore: 70, bodyBattery: 60))
+        }
+        let context = try makeContext(models)
+
+        let raw = try todaySummary(context: context, today: fixtureToday).readinessRaw
+
+        #expect(raw[.hrv]?.today == 70)
+        #expect(raw[.hrv]?.normal == nil)
+    }
 }

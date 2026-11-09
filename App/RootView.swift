@@ -4,7 +4,7 @@ struct RootView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var section = AppSection.initial()
     @State private var sidebarSelection: AppSection? = AppSection.initial()
-    @State private var todayPath: [TodayRoute] = []
+    @State private var todayPath: [TodayRoute] = RootView.initialTodayPath()
 
     var body: some View {
         Group {
@@ -54,5 +54,13 @@ struct RootView: View {
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }
+    }
+
+    private static func initialTodayPath(defaults: UserDefaults = .standard) -> [TodayRoute] {
+        #if DEBUG
+        return defaults.string(forKey: AppConstants.openTodayDefaultsKey) == "prontidao" ? [.readiness] : []
+        #else
+        return []
+        #endif
     }
 }

@@ -1,6 +1,8 @@
 import Storage
 
 enum InsightsConstants {
+    static let rawNormalWindowDays = 30
+    static let rawNormalMinimumDays = 14
     static let defaultRaceDistance = 21_097.5
     static let yearDays = 365
     static let effortWindowDays = 90

@@ -6,6 +6,9 @@ enum TodayConstants {
     static let hardThreshold = 70
     static let fitnessHistoryDays = 60
     static let predictionHistoryDays = 120
+    static let endAnchor = "hoje-fim"
+    static let comparisonWindowDays = 90.0
+    static let comparisonFetchLimit = 120
     static let gridMinimumWidth: Double = 360
     static let factorBarFullScale = 10.0
     static let chartHeight: Double = 90
@@ -64,6 +67,7 @@ enum TodayConstants {
     static let weekFooter = "semana passada %@ km · média 4 semanas %@ km"
     static let predictionsTitle = "Previsões"
     static let lastRunTitle = "Último treino"
+    static let lastRunNoComparison = "Sem treinos parecidos para comparar."
 
     static let detailTitle = "Prontidão"
     static let detailUp = "Puxando para cima"

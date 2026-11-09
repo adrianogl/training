@@ -12,19 +12,32 @@ import WorkoutAnalysis
     typealias C = TodayConstants
 
     let today: Day
-    private(set) var summary: TodaySummary
+    @ObservationIgnored private let container: ModelContainer
+    private(set) var summary: TodaySummary = .empty
     private(set) var readinessSentence = ""
     private(set) var readinessDay = ReadinessDay()
     private(set) var lastRun: LastRunSummary?
+    private(set) var isLoaded = false
 
-    init(context: ModelContext, today: Day) {
+    init(container: ModelContainer, today: Day) {
+        self.container = container
         self.today = today
-        summary = (try? todaySummary(context: context, today: today)) ?? .empty
-        readinessDay = Self.readinessDay(context: context, today: today, summary: summary)
-        if let breakdown = summary.readiness, let verdict = summary.verdict {
+    }
+
+    func load() async {
+        let container = container
+        let today = today
+        let result = await Task.detached(priority: .userInitiated) {
+            Self.compute(container: container, today: today)
+        }.value
+        guard !Task.isCancelled else { return }
+        summary = result.summary
+        readinessDay = result.readinessDay
+        lastRun = result.lastRun
+        if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
-        lastRun = Self.lastRun(context: context, id: summary.lastRunId)
+        isLoaded = true
     }
 
     func refreshSentence() async {
@@ -93,11 +106,15 @@ import WorkoutAnalysis
 
     private func row(_ factor: ReadinessFactor) -> ReadinessFactorRowData {
         let name = C.componentNames[factor.component] ?? factor.component.rawValue
-        guard let score = factor.todayScore else {
+        let raw = summary.readinessRaw[factor.component]
+        guard factor.todayScore != nil else {
             return ReadinessFactorRowData(component: factor.component, name: name, detail: C.detailMissingValue, pointsText: nil, points: nil, group: .missing)
         }
-        var parts = [actualValue(factor.component), "nota \(Int(score.rounded()))"]
-        if let normal = factor.normalScore { parts.append("normal \(Int(normal.rounded()))") }
+        var parts: [String?] = [rawText(factor.component, raw?.today, includesLabel: true)]
+        if factor.component == .sleep { parts.append(readinessDay.sleepSeconds.map(TodayText.sleepDuration)) }
+        if let normal = raw?.normal, let text = rawText(factor.component, normal, includesLabel: false) {
+            parts.append("seu normal \(text)")
+        }
         if factor.component == .load { parts.append(C.loadIdealRange) }
         parts.append("peso \(Int((factor.weight * 100).rounded()))%")
         let group: ReadinessGroup = factor.points.map { $0 >= 0 ? .up : .down } ?? .baseline
@@ -111,50 +128,59 @@ import WorkoutAnalysis
         )
     }
 
-    private func actualValue(_ component: ReadinessComponent) -> String? {
+    private func rawText(_ component: ReadinessComponent, _ value: Double?, includesLabel: Bool) -> String? {
+        guard let value else { return nil }
         switch component {
         case .hrv:
-            return readinessDay.hrv.map { "\(Int($0.rounded())) ms" }
+            return "\(Int(value.rounded())) ms"
         case .sleep:
-            return readinessDay.sleepSeconds.map(TodayText.sleepDuration)
+            return includesLabel ? "nota \(Int(value.rounded()))" : "\(Int(value.rounded()))"
         case .bodyBattery:
-            return readinessDay.bodyBattery.map { "\($0)" }
+            return "\(Int(value.rounded()))"
         case .load:
-            return readinessDay.acuteChronic.map { "aguda:crônica \(TodayText.decimal($0, fractionDigits: 2))" }
+            let number = TodayText.decimal(value, fractionDigits: 2)
+            return includesLabel ? "aguda:crônica \(number)" : number
         }
     }
 
-    private static func readinessDay(context: ModelContext, today: Day, summary: TodaySummary) -> ReadinessDay {
+    nonisolated private static func compute(container: ModelContainer, today: Day) -> TodayLoad {
+        let context = ModelContext(container)
+        let summary = (try? todaySummary(context: context, today: today)) ?? .empty
+        return TodayLoad(
+            summary: summary,
+            readinessDay: readinessDay(context: context, today: today, summary: summary),
+            lastRun: lastRun(context: context, id: summary.lastRunId)
+        )
+    }
+
+    nonisolated private static func readinessDay(context: ModelContext, today: Day, summary: TodaySummary) -> ReadinessDay {
         let iso = today.iso
         var descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == iso })
         descriptor.fetchLimit = 1
         let record = (try? context.fetch(descriptor))?.first
-        return ReadinessDay(
-            hrv: record?.hrvLastNight,
-            sleepScore: summary.supporting.sleepScore,
-            sleepSeconds: record?.sleepSeconds,
-            bodyBattery: record?.bodyBatteryMorningMax,
-            acuteChronic: summary.supporting.acuteChronic,
-            stress: summary.supporting.stress
-        )
+        return ReadinessDay(sleepSeconds: record?.sleepSeconds, stress: summary.supporting.stress)
     }
 
-    private static func lastRun(context: ModelContext, id: Int64?) -> LastRunSummary? {
+    nonisolated private static func lastRun(context: ModelContext, id: Int64?) -> LastRunSummary? {
         guard let id else { return nil }
-        let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
-        guard let record = records.first(where: { $0.activityId == id }) else { return nil }
+        var target = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.activityId == id })
+        target.fetchLimit = 1
+        guard let record = (try? context.fetch(target))?.first else { return nil }
+        let records = comparisonRecords(context: context, around: record)
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
+        let title = record.workoutName ?? record.name
+        let dateText = WorkoutListModel.dateText(record.start)
         guard analysis.comparison != nil, !analysis.comparisonRows.isEmpty else {
             return LastRunSummary(
-                activityId: id, title: record.workoutName ?? record.name, dateText: WorkoutListModel.dateText(record.start),
+                activityId: id, title: title, dateText: dateText,
                 comparisonTitle: "", rows: [], evolution: nil, evolutionOnDevice: false, notice: nil, showsTarget: false
             )
         }
         let reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
         return LastRunSummary(
             activityId: id,
-            title: record.workoutName ?? record.name,
-            dateText: WorkoutListModel.dateText(record.start),
+            title: title,
+            dateText: dateText,
             comparisonTitle: record.workoutName ?? WorkoutDetailConstants.similarRunsTitle,
             rows: analysis.comparisonRows,
             evolution: reading.evolution,
@@ -162,5 +188,26 @@ import WorkoutAnalysis
             notice: analysis.comparisonNotice,
             showsTarget: analysis.hasPrescription
         )
+    }
+
+    nonisolated private static func comparisonRecords(context: ModelContext, around record: ActivityRecord) -> [ActivityRecord] {
+        let start = record.start
+        let windowStart = start.addingTimeInterval(-TodayConstants.comparisonWindowDays * WorkoutDetailConstants.secondsPerDay)
+        var recent = FetchDescriptor<ActivityRecord>(
+            predicate: #Predicate { $0.start >= windowStart && $0.start <= start },
+            sortBy: [SortDescriptor(\.start, order: .reverse)]
+        )
+        recent.fetchLimit = TodayConstants.comparisonFetchLimit
+        var records = (try? context.fetch(recent)) ?? []
+        if let name = record.workoutName {
+            var named = FetchDescriptor<ActivityRecord>(
+                predicate: #Predicate { $0.workoutName == name && $0.start <= start },
+                sortBy: [SortDescriptor(\.start, order: .reverse)]
+            )
+            named.fetchLimit = WorkoutDetailConstants.maxComparisons + 1
+            let known = Set(records.map(\.activityId))
+            records += ((try? context.fetch(named)) ?? []).filter { !known.contains($0.activityId) }
+        }
+        return records.sorted { $0.start > $1.start }
     }
 }

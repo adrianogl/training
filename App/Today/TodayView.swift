@@ -16,6 +16,7 @@ struct TodayView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutConstants.locale)))
@@ -35,6 +36,14 @@ struct TodayView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
+            .onChange(of: model?.isLoaded) { _, loaded in
+                guard loaded == true, Self.debugScrollsToEnd() else { return }
+                Task {
+                    try? await Task.sleep(for: .milliseconds(600))
+                    proxy.scrollTo(TodayConstants.endAnchor, anchor: .bottom)
+                }
+            }
+            }
             .background(BrandBackground())
             .refreshable { await app.syncNow(.launch) }
             .toolbarVisibility(.hidden, for: .navigationBar)
@@ -49,7 +58,8 @@ struct TodayView: View {
         }
         .task(id: syncToken) {
             await Task.yield()
-            let loaded = TodayModel(context: context, today: Day.today())
+            let loaded = TodayModel(container: app.container, today: Day.today())
+            await loaded.load()
             model = loaded
             await loaded.refreshSentence()
         }
@@ -67,8 +77,16 @@ struct TodayView: View {
             WeekCard(model: model)
             PredictionsCard(predictions: model.summary.predictions)
             if let lastRun = model.lastRun {
-                LastRunCard(lastRun: lastRun)
+                LastRunCard(lastRun: lastRun).id(TodayConstants.endAnchor)
             }
         }
+    }
+
+    private static func debugScrollsToEnd(defaults: UserDefaults = .standard) -> Bool {
+        #if DEBUG
+        return defaults.bool(forKey: AppConstants.todayScrollDefaultsKey)
+        #else
+        return false
+        #endif
     }
 }

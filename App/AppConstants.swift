@@ -12,6 +12,8 @@ enum AppConstants {
     static let urlScheme = "training"
     static let readinessDeepLinkPath = "/prontidao"
     static let initialSectionDefaultsKey = "initialSection"
+    static let openTodayDefaultsKey = "openToday"
+    static let todayScrollDefaultsKey = "todayScroll"
     static let openActivityDefaultsKey = "openActivity"
     static let detailScrollDefaultsKey = "detailScroll"
     static let openShareDefaultsKey = "openShare"

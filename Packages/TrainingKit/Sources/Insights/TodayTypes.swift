@@ -17,6 +17,16 @@ public struct ReadinessSupport: Sendable, Equatable {
     }
 }
 
+public struct ReadinessRawValue: Sendable, Equatable {
+    public var today: Double?
+    public var normal: Double?
+
+    public init(today: Double?, normal: Double?) {
+        self.today = today
+        self.normal = normal
+    }
+}
+
 public struct WeekVolume: Sendable, Equatable {
     public var perDay: [Day: Double]
     public var total: Double
@@ -42,6 +52,7 @@ public struct TodaySummary: Sendable {
     public var week: WeekVolume
     public var predictions: [Prediction]
     public var lastRunId: Int64?
+    public var readinessRaw: [ReadinessComponent: ReadinessRawValue]
 
     public init(
         readiness: ReadinessBreakdown?,
@@ -53,7 +64,8 @@ public struct TodaySummary: Sendable {
         racePriority: RacePriority?,
         week: WeekVolume,
         predictions: [Prediction],
-        lastRunId: Int64?
+        lastRunId: Int64?,
+        readinessRaw: [ReadinessComponent: ReadinessRawValue] = [:]
     ) {
         self.readiness = readiness
         self.verdict = verdict
@@ -65,5 +77,6 @@ public struct TodaySummary: Sendable {
         self.week = week
         self.predictions = predictions
         self.lastRunId = lastRunId
+        self.readinessRaw = readinessRaw
     }
 }

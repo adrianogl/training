@@ -38,8 +38,27 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
         racePriority: race?.priorityLevel,
         week: weekVolume(runs, today: today),
         predictions: builder.predictions(efforts),
-        lastRunId: runs.last?.activityId
+        lastRunId: runs.last?.activityId,
+        readinessRaw: readinessRaw(today: todayInput, history: history)
     )
+}
+
+func readinessRaw(today: ReadinessInput?, history: [ReadinessInput]) -> [ReadinessComponent: ReadinessRawValue] {
+    typealias C = InsightsConstants
+    let extract: [ReadinessComponent: (ReadinessInput) -> Double?] = [
+        .hrv: { $0.hrvLastNight },
+        .sleep: { $0.sleepScore },
+        .bodyBattery: { $0.bodyBatteryMorningMax },
+        .load: { $0.acuteChronic },
+    ]
+    let recent = history.suffix(C.rawNormalWindowDays)
+    return extract.mapValues { value in
+        let samples = recent.compactMap(value)
+        return ReadinessRawValue(
+            today: today.flatMap(value),
+            normal: samples.count >= C.rawNormalMinimumDays ? samples.reduce(0, +) / Double(samples.count) : nil
+        )
+    }
 }
 
 func hrvVsBaseline(_ record: DailyRecord) -> Double? {

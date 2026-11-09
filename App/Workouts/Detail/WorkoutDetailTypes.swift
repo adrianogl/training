@@ -15,7 +15,7 @@ struct WorkoutSummary: Equatable {
     let hasPrescription: Bool
 }
 
-struct ComparisonRow: Identifiable, Equatable {
+struct ComparisonRow: Identifiable, Equatable, Sendable {
     let activityId: Int64
     let dateText: String
     let isCurrent: Bool

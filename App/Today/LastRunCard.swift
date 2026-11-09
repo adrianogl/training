@@ -22,8 +22,14 @@ struct LastRunCard: View {
                         notice: lastRun.notice,
                         showsTarget: lastRun.showsTarget
                     )
+                } else {
+                    Text(TodayConstants.lastRunNoComparison)
+                        .font(.footnote)
+                        .foregroundStyle(BrandColors.dim)
+                        .glassCard()
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .buttonStyle(.plain)
     }

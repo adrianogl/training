@@ -66,10 +66,9 @@ enum TodayText {
         let rounded = Int(normal.rounded())
         let delta = score - rounded
         if delta == 0 { return "No seu normal (\(rounded))" }
-        let direction = delta > 0 ? "sobre" : "abaixo do"
         return delta > 0
-            ? "\(signed(Double(delta))) sobre o seu normal (\(rounded))"
-            : "\(signed(Double(delta))) \(direction) seu normal (\(rounded))"
+            ? "+\(delta) sobre o seu normal (\(rounded))"
+            : "\(-delta) abaixo do seu normal (\(rounded))"
     }
 
     static func sleepDuration(_ seconds: Int) -> String {

@@ -8,7 +8,7 @@ enum TodayRoute: Hashable {
     case workout(Int64)
 }
 
-struct LastRunSummary: Equatable {
+struct LastRunSummary: Equatable, Sendable {
     let activityId: Int64
     let title: String
     let dateText: String
@@ -20,13 +20,15 @@ struct LastRunSummary: Equatable {
     let showsTarget: Bool
 }
 
-struct ReadinessDay: Equatable {
-    var hrv: Double?
-    var sleepScore: Int?
+struct ReadinessDay: Equatable, Sendable {
     var sleepSeconds: Int?
-    var bodyBattery: Int?
-    var acuteChronic: Double?
     var stress: Int?
+}
+
+struct TodayLoad: Sendable {
+    let summary: TodaySummary
+    let readinessDay: ReadinessDay
+    let lastRun: LastRunSummary?
 }
 
 enum ReadinessGroup {

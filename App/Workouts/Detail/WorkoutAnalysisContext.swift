@@ -19,11 +19,11 @@ struct WorkoutAnalysisContext {
     var comparisonNotice: String?
     var evolution: EvolutionFacts?
 
-    @MainActor static func build(record: ActivityRecord, records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisContext {
+    nonisolated static func build(record: ActivityRecord, records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisContext {
         build(record: record, records: records, inputs: inputs(records: records, in: context))
     }
 
-    @MainActor static func inputs(records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisInputs {
+    nonisolated static func inputs(records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisInputs {
         WorkoutAnalysisInputs(
             zones: zones(context),
             dailyLoad: dailyLoad(records),
@@ -105,7 +105,7 @@ struct WorkoutAnalysisContext {
         }
     }
 
-    @MainActor private static func zones(_ context: ModelContext) -> HeartRateZones? {
+    nonisolated private static func zones(_ context: ModelContext) -> HeartRateZones? {
         let records = (try? context.fetch(FetchDescriptor<HeartRateZonesRecord>())) ?? []
         guard let record = records.first(where: { $0.sport == WorkoutDetailConstants.defaultZonesSport }) ?? (records.count == 1 ? records.first : nil) else {
             return nil
@@ -119,7 +119,7 @@ struct WorkoutAnalysisContext {
         return HeartRateZones(floors: floors.compactMap { $0 }, maxHeartRate: record.maxHeartRate)
     }
 
-    @MainActor private static func readinessByDay(_ context: ModelContext) -> [String: Int] {
+    nonisolated private static func readinessByDay(_ context: ModelContext) -> [String: Int] {
         var descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.readinessScore != nil })
         descriptor.propertiesToFetch = [\.day, \.readinessScore]
         let records = (try? context.fetch(descriptor)) ?? []
