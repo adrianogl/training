@@ -50,3 +50,16 @@ Saída do review final da branch `feat/nucleo-de-dados` (dcc23df..afbf528). Nada
 - Cliente: header `retry-after` em minúsculas, `Retry-After` num 503 (ignorar).
 - Projeções: passo dividido no teto, `targetCrossing == today`, inclinação zero, pontos futuros, dias duplicados; trocar igualdade exata de `Double` por tolerância.
 - Limites de 300 s em `zone2Pace`/`thresholdPace` e `raceBlock` com prova a mais de 12 semanas ou já passada.
+
+## Estado ao fim do plano 2
+
+Resolvido na branch `feat/app-pos-treino`: toda a seção Fundação, as correções de métricas, sync, API e provas acima, e os testes listados em "Testes que faltam".
+
+Fica para o plano 3:
+
+- **Modo background do sync.** O cancelamento já funciona; falta o modo que não espera em 429 e retoma no próximo `BGAppRefreshTask`.
+- **Limite de tentativas de FIT com erro transitório.** FIT ausente (404/410) e `.FIT` inválido saem da fila; 5xx e rede continuam sendo tentados em todo sync. Limitar exige contador no schema (`SchemaV3`).
+- **Calibração com o Garmin Connect.** VO2max a ±1,5 e previsões a ±3% do race predictor, conferidos com a conta real.
+- **Meta já batida na projeção.** `targetCrossing` fica nil quando a tendência já passou da meta; a tela compara valor atual × meta.
+
+Descartado: `withExtendedLifetime` nos testes de storage. O `ModelContext` guarda referência forte ao `ModelContainer`, então o container não é liberado antes do fim do teste.
