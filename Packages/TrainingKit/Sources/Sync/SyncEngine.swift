@@ -43,7 +43,7 @@ public actor SyncEngine: ModelActor {
     ) async throws -> SyncReport {
         while let inFlight {
             if inFlight.operation == operation {
-                return try await awaitCancellable(inFlight.task)
+                return try await join(inFlight.task)
             }
             let awaited = inFlight.task
             _ = await awaited.result
@@ -55,15 +55,24 @@ public actor SyncEngine: ModelActor {
         defer {
             if self.inFlight?.task == task { self.inFlight = nil }
         }
-        return try await awaitCancellable(task)
+        return try await join(task)
     }
 
-    private func awaitCancellable(_ task: Task<SyncReport, Error>) async throws -> SyncReport {
-        try await withTaskCancellationHandler {
+    private func join(_ task: Task<SyncReport, Error>) async throws -> SyncReport {
+        guard inFlight?.task == task else { return try await task.value }
+        inFlight?.awaiters += 1
+        return try await withTaskCancellationHandler {
             try await task.value
         } onCancel: {
-            task.cancel()
+            Task { await self.leave(task) }
         }
+    }
+
+    private func leave(_ task: Task<SyncReport, Error>) {
+        guard inFlight?.task == task, var operation = inFlight else { return }
+        operation.awaiters -= 1
+        inFlight = operation
+        if operation.awaiters <= 0 { task.cancel() }
     }
 
     private func performReprocess(limit: Int?) async throws -> SyncReport {

@@ -32,4 +32,43 @@ private let today = Day(iso: "2026-11-08")!
         #expect(await fake.fitCalls == [90])
         #expect(try ModelContext(container).fetch(FetchDescriptor<SyncState>()).first?.lastSync != nil)
     }
+
+    @Test func cancelledJoinerKeepsOwnerRunning() async throws {
+        let fake = FakeDataSource(dataDays: nil, dailyDelay: .milliseconds(300))
+        let container = try TrainingSchema.container(inMemory: true)
+        let engine = SyncEngine(source: fake, container: container, today: { today }, firstDay: today.adding(days: -2))
+
+        let owner = Task { try await engine.run() }
+        while await fake.summaryFroms.isEmpty {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        let joiner = Task { try await engine.run() }
+        try await Task.sleep(for: .milliseconds(50))
+        joiner.cancel()
+
+        let ownerResult = await owner.result
+        #expect(throws: Never.self) { try ownerResult.get() }
+        #expect(try ModelContext(container).fetch(FetchDescriptor<SyncState>()).first?.lastSync != nil)
+    }
+
+    @Test func cancellingEveryCallerStopsRun() async throws {
+        let fake = FakeDataSource(dataDays: nil, dailyDelay: .milliseconds(300))
+        let container = try TrainingSchema.container(inMemory: true)
+        let engine = SyncEngine(source: fake, container: container, today: { today }, firstDay: today.adding(days: -400))
+
+        let owner = Task { try await engine.run() }
+        while await fake.summaryFroms.isEmpty {
+            try await Task.sleep(for: .milliseconds(5))
+        }
+        let joiner = Task { try await engine.run() }
+        try await Task.sleep(for: .milliseconds(50))
+        joiner.cancel()
+        owner.cancel()
+
+        let ownerResult = await owner.result
+        let joinerResult = await joiner.result
+        #expect(throws: CancellationError.self) { try ownerResult.get() }
+        #expect(throws: CancellationError.self) { try joinerResult.get() }
+        #expect(await fake.hrvFroms.isEmpty)
+    }
 }
