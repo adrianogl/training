@@ -47,24 +47,23 @@ import WorkoutAnalysis
         readinessSentence = sentence
     }
 
+    var predictionContent: RacePredictionContent {
+        RacePredictionContent(
+            race: summary.race,
+            today: today,
+            countdownDays: summary.raceCountdownDays,
+            priority: summary.racePriority?.rawValue,
+            historyDays: C.predictionHistoryDays
+        )
+    }
+
     var raceTitle: String { summary.race.label }
 
     var raceDay: Day? {
         summary.raceCountdownDays.map { today.adding(days: $0) }
     }
 
-    var countdownText: String? {
-        TodayText.countdown(days: summary.raceCountdownDays, priority: summary.racePriority?.rawValue)
-    }
-
-    var goalSentence: String? {
-        TodayText.goalSentence(
-            crossing: summary.race.goalCrossing,
-            goalSeconds: summary.race.goalSeconds,
-            hasPrediction: summary.race.today != nil,
-            raceDay: raceDay
-        )
-    }
+    var goalSentence: String? { predictionContent.goalSentence }
 
     var readinessSummaryText: String? {
         summary.readiness.map { TodayText.readinessSummary(score: $0.score, normal: $0.normal) }
@@ -86,22 +85,6 @@ import WorkoutAnalysis
         lines.append(ChartLine(name: "Fitness projetado", colorKey: .fitness, dashed: true, points: projected.map { ChartPoint(date: $0.day.chartDate, value: $0.fitness) }))
         lines.append(ChartLine(name: "Forma projetada", colorKey: .form, dashed: true, points: projected.map { ChartPoint(date: $0.day.chartDate, value: $0.form) }))
         return lines
-    }
-
-    var predictionLines: [ChartLine] {
-        let race = summary.race
-        let from = today.adding(days: -C.predictionHistoryDays)
-        let history = race.series.filter { $0.0 >= from }.map { ChartPoint(date: $0.0.chartDate, value: $0.1) }
-        var lines = [ChartLine(name: "Previsão", colorKey: .prediction, dashed: false, points: history)]
-        if !race.projection.isEmpty, let start = race.today {
-            let projected = [ChartPoint(date: today.chartDate, value: start)] + race.projection.map { ChartPoint(date: $0.day.chartDate, value: $0.mid) }
-            lines.append(ChartLine(name: "Previsão projetada", colorKey: .projection, dashed: true, points: projected))
-        }
-        return lines
-    }
-
-    var predictionBand: [ChartBandPoint] {
-        summary.race.projection.map { ChartBandPoint(date: $0.day.chartDate, low: $0.low, high: $0.high) }
     }
 
     private func row(_ factor: ReadinessFactor) -> ReadinessFactorRowData {

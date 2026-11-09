@@ -12,7 +12,7 @@ import TrainingCore
 
     private static let today = Day(iso: F.day(F.base))!
 
-    private static func store(withRace: Bool, goalSeconds: Double? = 6_300) throws -> ModelContainer {
+    static func store(withRace: Bool, goalSeconds: Double? = 6_300) throws -> ModelContainer {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         let name = "Tiros 3 x 1 km"

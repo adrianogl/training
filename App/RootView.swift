@@ -50,7 +50,8 @@ struct RootView: View {
     private func screen(for item: AppSection) -> some View {
         switch item {
         case .today: TodayView(path: $todayPath)
-        case .evolution, .races: PlaceholderSectionView(section: item)
+        case .evolution: EvolutionView()
+        case .races: PlaceholderSectionView(section: item)
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }

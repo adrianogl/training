@@ -3,10 +3,10 @@ import SwiftUI
 import WorkoutAnalysis
 
 struct RacePredictionCard: View {
-    let model: TodayModel
+    let content: RacePredictionContent
 
     var body: some View {
-        let race = model.summary.race
+        let race = content.race
         VStack(alignment: .leading, spacing: 10) {
             header
             if race.today == nil {
@@ -16,7 +16,7 @@ struct RacePredictionCard: View {
             } else {
                 HStack(alignment: .top) {
                     time(TodayConstants.predictionToday, race.today, BrandColors.text)
-                    if model.raceDay != nil {
+                    if content.raceDay != nil {
                         time(TodayConstants.predictionRaceDay, race.raceDay?.mid, BrandColors.accent)
                     }
                 }
@@ -24,7 +24,7 @@ struct RacePredictionCard: View {
                     Text(support).font(.caption).foregroundStyle(BrandColors.dim)
                 }
                 chart
-                if let sentence = model.goalSentence {
+                if let sentence = content.goalSentence {
                     Text(sentence)
                         .font(.footnote)
                         .foregroundStyle(BrandColors.text)
@@ -39,10 +39,10 @@ struct RacePredictionCard: View {
 
     private var header: some View {
         HStack(spacing: 6) {
-            SectionLabel("\(TodayConstants.predictionTitle) · \(model.raceTitle)")
+            SectionLabel("\(TodayConstants.predictionTitle) · \(content.title)")
                 .padding(.top, 0)
                 .padding(.bottom, 0)
-            if let countdown = model.countdownText {
+            if let countdown = content.countdownText {
                 Text("· \(countdown)")
                     .font(.caption.weight(.medium))
                     .tracking(1)
@@ -53,7 +53,7 @@ struct RacePredictionCard: View {
     }
 
     private var supportLine: String? {
-        let race = model.summary.race
+        let race = content.race
         var parts: [String] = []
         if let point = race.raceDay {
             parts.append("\(TodayConstants.predictionBandPrefix) \(WorkoutFormat.clock(point.low))–\(WorkoutFormat.clock(point.high))")
@@ -65,13 +65,13 @@ struct RacePredictionCard: View {
     }
 
     private var chart: some View {
-        let race = model.summary.race
+        let race = content.race
         return Chart {
-            ForEach(model.predictionBand) { point in
+            ForEach(content.band) { point in
                 AreaMark(x: .value("Dia", point.date), yStart: .value("Mínimo", point.low), yEnd: .value("Máximo", point.high))
                     .foregroundStyle(BrandColors.accent.opacity(0.14))
             }
-            ForEach(model.predictionLines) { line in
+            ForEach(content.lines) { line in
                 ForEach(line.points) { point in
                     LineMark(x: .value("Dia", point.date), y: .value("Previsão", point.value), series: .value("Série", line.name))
                         .foregroundStyle(line.colorKey == .prediction ? BrandColors.text : BrandColors.accent)
@@ -88,7 +88,7 @@ struct RacePredictionCard: View {
                             .foregroundStyle(BrandColors.race)
                     }
             }
-            if let raceDay = model.raceDay {
+            if let raceDay = content.raceDay {
                 RuleMark(x: .value("Prova", raceDay.chartDate))
                     .foregroundStyle(BrandColors.rest.opacity(0.5))
                 if let point = race.raceDay {

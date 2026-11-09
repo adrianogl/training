@@ -73,7 +73,7 @@ struct TodayView: View {
         LazyVGrid(columns: columns, spacing: 12) {
             ReadinessCard(model: model)
             FitnessCard(model: model)
-            RacePredictionCard(model: model)
+            RacePredictionCard(content: model.predictionContent)
             WeekCard(model: model)
             PredictionsCard(predictions: model.summary.predictions)
             if let lastRun = model.lastRun {
