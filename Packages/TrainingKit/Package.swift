@@ -34,7 +34,7 @@ let package = Package(
         .target(name: "Sync", dependencies: ["TrainingCore", "GarminAPI", "FITReader", "Metrics", "Projections", "Storage"]),
         .target(name: "Reports", dependencies: ["TrainingCore", "FITReader", "Metrics", "Storage"]),
         .target(name: "WorkoutAnalysis", dependencies: ["TrainingCore", "FITReader"]),
-        .target(name: "Narrative", dependencies: ["WorkoutAnalysis"]),
+        .target(name: "Narrative", dependencies: ["WorkoutAnalysis", "Metrics"]),
         .executableTarget(name: "trainingctl", dependencies: ["TrainingCore", "GarminAPI", "Storage", "Sync", "Reports"]),
         .testTarget(name: "TrainingCoreTests", dependencies: ["TrainingCore"]),
         .testTarget(name: "GarminAPITests", dependencies: ["GarminAPI"], resources: [.copy("Fixtures")]),
@@ -43,7 +43,7 @@ let package = Package(
         .testTarget(name: "ProjectionsTests", dependencies: ["Projections"]),
         .testTarget(name: "StorageTests", dependencies: ["Storage"]),
         .testTarget(name: "WorkoutAnalysisTests", dependencies: ["WorkoutAnalysis", "FITReader", "TrainingCore"]),
-        .testTarget(name: "NarrativeTests", dependencies: ["Narrative", "WorkoutAnalysis"]),
+        .testTarget(name: "NarrativeTests", dependencies: ["Narrative", "WorkoutAnalysis", "Metrics"]),
         .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore"]),
         .testTarget(name: "SyncTests", dependencies: [
             "Sync",
