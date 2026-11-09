@@ -2,11 +2,11 @@ import Foundation
 import SwiftData
 
 public enum TrainingSchema {
-    public static let models: [any PersistentModel.Type] = SchemaV2.models
+    public static let models: [any PersistentModel.Type] = SchemaV3.models
 
     public static func container(inMemory: Bool) throws -> ModelContainer {
         try ModelContainer(
-            for: Schema(versionedSchema: SchemaV2.self),
+            for: Schema(versionedSchema: SchemaV3.self),
             migrationPlan: TrainingMigrationPlan.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
         )
@@ -14,7 +14,7 @@ public enum TrainingSchema {
 
     public static func container(url: URL) throws -> ModelContainer {
         try ModelContainer(
-            for: Schema(versionedSchema: SchemaV2.self),
+            for: Schema(versionedSchema: SchemaV3.self),
             migrationPlan: TrainingMigrationPlan.self,
             configurations: ModelConfiguration(url: url, cloudKitDatabase: .none)
         )

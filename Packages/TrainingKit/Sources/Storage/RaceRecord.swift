@@ -15,6 +15,8 @@ public final class RaceRecord {
     public var manualPacesData: Data? = nil
     public var customLabelsData: Data? = nil
     public var resultActivityId: Int64? = nil
+    public var frozenTargetSeconds: Double? = nil
+    public var frozenTargetDay: String? = nil
     public var updatedAt: Date = Date.now
 
     public init(
@@ -30,6 +32,8 @@ public final class RaceRecord {
         manualPacesData: Data? = nil,
         customLabelsData: Data? = nil,
         resultActivityId: Int64? = nil,
+        frozenTargetSeconds: Double? = nil,
+        frozenTargetDay: String? = nil,
         updatedAt: Date = .now
     ) {
         self.id = id
@@ -44,6 +48,8 @@ public final class RaceRecord {
         self.manualPacesData = manualPacesData
         self.customLabelsData = customLabelsData
         self.resultActivityId = resultActivityId
+        self.frozenTargetSeconds = frozenTargetSeconds
+        self.frozenTargetDay = frozenTargetDay
         self.updatedAt = updatedAt
     }
 }

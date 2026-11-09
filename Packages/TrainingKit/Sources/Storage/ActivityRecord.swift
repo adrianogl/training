@@ -40,6 +40,7 @@ public final class ActivityRecord {
     public var workoutName: String? = nil
     public var structureData: Data? = nil
     public var narrativeData: Data? = nil
+    public var fitTransientFailures: Int = 0
     public var updatedAt: Date = Date.now
 
     public init(
@@ -80,6 +81,7 @@ public final class ActivityRecord {
         workoutName: String? = nil,
         structureData: Data? = nil,
         narrativeData: Data? = nil,
+        fitTransientFailures: Int = 0,
         updatedAt: Date = .now
     ) {
         self.activityId = activityId
@@ -119,6 +121,7 @@ public final class ActivityRecord {
         self.workoutName = workoutName
         self.structureData = structureData
         self.narrativeData = narrativeData
+        self.fitTransientFailures = fitTransientFailures
         self.updatedAt = updatedAt
     }
 }

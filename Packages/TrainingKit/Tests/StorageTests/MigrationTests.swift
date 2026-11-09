@@ -37,6 +37,43 @@ import Testing
         #expect(try context.fetch(FetchDescriptor<HeartRateZonesRecord>()).isEmpty)
     }
 
+    @Test func v2StoreMigratesToV3() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appending(path: "store.sqlite")
+        let raceId = UUID()
+
+        do {
+            let container = try ModelContainer(
+                for: Schema(versionedSchema: SchemaV2.self),
+                configurations: ModelConfiguration(url: url, cloudKitDatabase: .none)
+            )
+            let context = ModelContext(container)
+            context.insert(SchemaV2.ActivityRecord(activityId: 303, typeKey: "running", name: "Longo", start: Date(timeIntervalSince1970: 3_000), distance: 21_000))
+            context.insert(SchemaV2.RaceRecord(id: raceId, name: "Meia", day: "2026-06-01", distance: 21_097.5, goalSeconds: 5_400, priority: .a))
+            context.insert(SchemaV2.SyncState(firstLoadCompleted: true, resumeDailyFrom: "2026-01-05"))
+            try context.save()
+        }
+
+        let container = try TrainingSchema.container(url: url)
+        let context = ModelContext(container)
+        let activity = try #require(try context.fetch(FetchDescriptor<ActivityRecord>()).first)
+        #expect(activity.activityId == 303)
+        #expect(activity.distance == 21_000)
+        #expect(activity.fitTransientFailures == 0)
+        let race = try #require(try context.fetch(FetchDescriptor<RaceRecord>()).first)
+        #expect(race.id == raceId)
+        #expect(race.goalSeconds == 5_400)
+        #expect(race.priority == "A")
+        #expect(race.frozenTargetSeconds == nil)
+        #expect(race.frozenTargetDay == nil)
+        let state = try #require(try context.fetch(FetchDescriptor<SyncState>()).first)
+        #expect(state.firstLoadCompleted)
+        #expect(state.resumeDailyFrom == "2026-01-05")
+        #expect(state.readinessVersion == 0)
+    }
+
     @Test @MainActor func zonesRecordRoundTrips() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
@@ -78,8 +115,10 @@ import Testing
     @Test func versionedSchemasKeepEntityNames() {
         let v1 = Set(Schema(versionedSchema: SchemaV1.self).entities.map(\.name))
         let v2 = Set(Schema(versionedSchema: SchemaV2.self).entities.map(\.name))
+        let v3 = Set(Schema(versionedSchema: SchemaV3.self).entities.map(\.name))
         #expect(v1 == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState"])
         #expect(v2 == v1.union(["HeartRateZonesRecord"]))
-        #expect(Set(Schema(TrainingSchema.models).entities.map(\.name)) == v2)
+        #expect(Set(Schema(TrainingSchema.models).entities.map(\.name)) == v3)
+        #expect(v3 == v2)
     }
 }

@@ -22,5 +22,7 @@ struct RaceTransferItem: Codable {
     var manualPacesData: Data?
     var customLabelsData: Data?
     var resultActivityId: Int64?
+    var frozenTargetSeconds: Double?
+    var frozenTargetDay: String?
     var updatedAt: Date
 }

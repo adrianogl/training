@@ -45,6 +45,38 @@ import Testing
         }
     }
 
+    @Test @MainActor func raceTransferRoundTripsFrozenTarget() throws {
+        let race = makeRace(name: "Congelada")
+        race.frozenTargetSeconds = 5_321.5
+        race.frozenTargetDay = "2026-05-20"
+        let data = try export([race])
+
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        _ = try RaceTransfer.importRaces(data, into: context)
+
+        let copy = try #require(try context.fetch(FetchDescriptor<RaceRecord>()).first)
+        #expect(copy.frozenTargetSeconds == 5_321.5)
+        #expect(copy.frozenTargetDay == "2026-05-20")
+    }
+
+    @Test @MainActor func importsFileWithoutFrozenFields() throws {
+        let id = UUID()
+        let json = """
+        {"version":1,"races":[{"id":"\(id.uuidString)","name":"Antiga","day":"2026-06-01","distance":10000,"priority":"B","updatedAt":1700000000}]}
+        """
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+
+        let result = try RaceTransfer.importRaces(Data(json.utf8), into: context)
+
+        #expect(result.inserted == 1)
+        let race = try #require(try context.fetch(FetchDescriptor<RaceRecord>()).first)
+        #expect(race.id == id)
+        #expect(race.frozenTargetSeconds == nil)
+        #expect(race.frozenTargetDay == nil)
+    }
+
     @Test @MainActor func newerEditWins() throws {
         let id = UUID()
         let container = try TrainingSchema.container(inMemory: true)

@@ -64,6 +64,7 @@ extension RaceTransferItem {
             distance: race.distance, goalSeconds: race.goalSeconds, priority: race.priority,
             city: race.city, gpxData: race.gpxData, manualPacesData: race.manualPacesData,
             customLabelsData: race.customLabelsData, resultActivityId: race.resultActivityId,
+            frozenTargetSeconds: race.frozenTargetSeconds, frozenTargetDay: race.frozenTargetDay,
             updatedAt: race.updatedAt
         )
     }
@@ -73,7 +74,8 @@ extension RaceTransferItem {
             id: id, name: name, day: day, distance: distance, startTime: startTime,
             goalSeconds: goalSeconds, priority: RacePriority(rawValue: priority) ?? .c, city: city, gpxData: gpxData,
             manualPacesData: manualPacesData, customLabelsData: customLabelsData,
-            resultActivityId: resultActivityId, updatedAt: updatedAt
+            resultActivityId: resultActivityId, frozenTargetSeconds: frozenTargetSeconds,
+            frozenTargetDay: frozenTargetDay, updatedAt: updatedAt
         )
     }
 
@@ -89,6 +91,8 @@ extension RaceTransferItem {
         race.manualPacesData = manualPacesData
         race.customLabelsData = customLabelsData
         race.resultActivityId = resultActivityId
+        race.frozenTargetSeconds = frozenTargetSeconds
+        race.frozenTargetDay = frozenTargetDay
         race.updatedAt = updatedAt
     }
 }
