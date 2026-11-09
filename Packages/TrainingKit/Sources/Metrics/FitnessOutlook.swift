@@ -25,5 +25,5 @@ public func fitnessOutlook(dailyLoad: [Day: Double], today: Day, raceDay: Day?) 
     let all = fitnessFatigueForm(dailyLoad: extended, from: historyStart, to: today.adding(days: projectionDays))
     let projection = Array(all.dropFirst(history.count))
     let raceDayForm = upcomingRace.flatMap { race in projection.first { $0.day == race }?.form }
-    return FitnessOutlook(history: history, projection: projection, peakFitness: all.map(\.fitness).max(), raceDayForm: raceDayForm)
+    return FitnessOutlook(history: history, projection: projection, peakFitness: (history.suffix(1) + projection).map(\.fitness).max(), raceDayForm: raceDayForm)
 }

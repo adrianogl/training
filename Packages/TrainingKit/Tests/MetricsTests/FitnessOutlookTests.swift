@@ -30,3 +30,15 @@ private func constantLoad(_ value: Double, days: Int) -> [Day: Double] {
     #expect(outlook.history.count == 120)
     #expect(outlook.history.last?.day == today)
 }
+
+@Test func peakFitnessIgnoresPastHistory() throws {
+    var load: [Day: Double] = [:]
+    for offset in 61...120 { load[today.adding(days: -offset)] = 80 }
+    for offset in 0...60 { load[today.adding(days: -offset)] = 20 }
+    let outlook = fitnessOutlook(dailyLoad: load, today: today, raceDay: today.adding(days: 30))
+    let todayPoint = try #require(outlook.history.last)
+    let expected = ([todayPoint] + outlook.projection).map(\.fitness).max()
+    let historyPeak = try #require(outlook.history.map(\.fitness).max())
+    #expect(outlook.peakFitness == expected)
+    #expect(try #require(outlook.peakFitness) < historyPeak)
+}
