@@ -17,4 +17,7 @@ enum ReadinessConstants {
     static let hardThreshold = 70
 
     static let bodyBatteryWindow: TimeInterval = 3 * 3600
+
+    static let normalMinimumDays = 14
+    static let normalWindowDays = 30
 }

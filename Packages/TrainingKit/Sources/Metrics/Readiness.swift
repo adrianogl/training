@@ -32,24 +32,24 @@ private func clampedPercent(_ value: Double) -> Double {
     min(max(value, 0), 100)
 }
 
+public func readinessComponents(_ input: ReadinessInput) -> [ReadinessComponent: Double] {
+    var scores: [ReadinessComponent: Double] = [:]
+    if let value = input.hrvLastNight, let baseline = input.hrvBaseline {
+        scores[.hrv] = hrvComponent(value, baseline)
+    }
+    if let sleep = input.sleepScore { scores[.sleep] = clampedPercent(sleep) }
+    if let battery = input.bodyBatteryMorningMax { scores[.bodyBattery] = clampedPercent(battery) }
+    if let ratio = input.acuteChronic { scores[.load] = loadComponent(ratio) }
+    return scores
+}
+
 public func readiness(_ input: ReadinessInput) -> Readiness? {
     typealias C = ReadinessConstants
-    var hrv: Double?
-    if let value = input.hrvLastNight, let baseline = input.hrvBaseline {
-        hrv = hrvComponent(value, baseline)
-    }
-    let sleep = input.sleepScore.map(clampedPercent)
-    guard hrv != nil || sleep != nil else { return nil }
+    let scores = readinessComponents(input)
+    guard scores[.hrv] != nil || scores[.sleep] != nil else { return nil }
 
-    let components: [(score: Double?, weight: Double)] = [
-        (hrv, C.hrvWeight),
-        (sleep, C.sleepWeight),
-        (input.bodyBatteryMorningMax.map(clampedPercent), C.bodyBatteryWeight),
-        (input.acuteChronic.map(loadComponent), C.loadWeight),
-    ]
-    let present = components.compactMap { component in component.score.map { ($0, component.weight) } }
-    let totalWeight = present.reduce(0) { $0 + $1.1 }
-    let weighted = present.reduce(0) { $0 + $1.0 * $1.1 }
+    let totalWeight = scores.keys.reduce(0) { $0 + $1.weight }
+    let weighted = scores.reduce(0) { $0 + $1.value * $1.key.weight }
     let score = Int((weighted / totalWeight).rounded(.toNearestOrAwayFromZero))
 
     let verdict: ReadinessVerdict
@@ -60,7 +60,7 @@ public func readiness(_ input: ReadinessInput) -> Readiness? {
     } else {
         verdict = .rest
     }
-    return Readiness(score: score, partial: present.count < components.count, verdict: verdict)
+    return Readiness(score: score, partial: scores.count < ReadinessComponent.allCases.count, verdict: verdict)
 }
 
 public func bodyBatteryMorningMax(values: [(Date, Int)], sleepEnd: Date) -> Int? {

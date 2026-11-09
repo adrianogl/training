@@ -25,4 +25,12 @@ enum RaceConstants {
 
     static let blockWeeks = 12
     static let projectionWeeks = 4
+
+    static let taperDays = 14
+    static let taperReduction = 0.4
+    static let outlookHistoryDays = 120
+    static let outlookProjectionDays = 30
+    static let outlookLoadAverageDays = 28
+
+    static let earthRadiusMeters = 6_371_000.0
 }
