@@ -133,7 +133,9 @@ public actor SyncEngine: ModelActor {
         report.fitStoppedByRateLimit = fit.stoppedByRateLimit
         progress(C.progressAfterFIT)
 
-        try updateReadiness(days: isFirstLoad ? try storedDays() : touchedDays.union(try loadAffectedDays(upsertedActivities)))
+        let recomputesAll = isFirstLoad || state.readinessVersion < C.readinessVersion
+        try updateReadiness(days: recomputesAll ? try storedDays() : touchedDays.union(try loadAffectedDays(upsertedActivities)))
+        state.readinessVersion = C.readinessVersion
         progress(C.progressAfterDerived)
 
         try Task.checkCancellation()

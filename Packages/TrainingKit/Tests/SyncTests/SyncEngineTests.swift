@@ -537,6 +537,45 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(try score() != before)
     }
 
+    @Test func readinessIgnoresSameDayLoad() async throws {
+        let firstDay = today.adding(days: -40)
+        let daily = (0...40).map { FakeDataSource.activity(id: Int64(500 + $0), typeKey: "running", day: today.adding(days: -$0), load: 60) }
+        let fake = FakeDataSource(dataDays: firstDay...today, activities: daily)
+        let (engine, container) = try makeEngine(fake, firstDay: firstDay)
+        _ = try await engine.run()
+        func score() throws -> Int? {
+            try fetch(DailyRecord.self, in: container).first { $0.day == today.iso }?.readinessScore
+        }
+        let before = try score()
+
+        await fake.addActivities([FakeDataSource.activity(id: 901, typeKey: "running", day: today, hour: 18, load: 3_000)])
+        _ = try await engine.run()
+
+        #expect(before != nil)
+        #expect(try score() == before)
+    }
+
+    @Test func readinessVersionTriggersFullRecompute() async throws {
+        let firstDay = today.adding(days: -40)
+        let fake = FakeDataSource(dataDays: firstDay...today)
+        let (engine, container) = try makeEngine(fake, firstDay: firstDay)
+        _ = try await engine.run()
+        let context = ModelContext(container)
+        let records = try context.fetch(FetchDescriptor<DailyRecord>())
+        let expected = Dictionary(uniqueKeysWithValues: records.map { ($0.day, $0.readinessScore) })
+        for record in records { record.readinessScore = 1 }
+        let state = try #require(try context.fetch(FetchDescriptor<SyncState>()).first)
+        state.readinessVersion = 0
+        try context.save()
+
+        _ = try await engine.run()
+
+        let after = try fetch(DailyRecord.self, in: container)
+        #expect(after.count == records.count)
+        #expect(after.allSatisfy { $0.readinessScore == expected[$0.day] })
+        #expect(try fetch(SyncState.self, in: container).first?.readinessVersion == 1)
+    }
+
     @Test func incrementalWithoutActivitiesStopsAtLastSync() async throws {
         let firstDay = today.adding(days: -5)
         let fake = FakeDataSource(dataDays: firstDay...today)

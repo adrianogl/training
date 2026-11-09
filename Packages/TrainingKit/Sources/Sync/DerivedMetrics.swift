@@ -12,7 +12,7 @@ extension SyncEngine {
         var days: Set<Day> = []
         for record in try modelContext.fetch(descriptor) {
             guard let day = record.localDay.flatMap(Day.init(iso:)), day <= current else { continue }
-            for offset in 0..<SyncConstants.chronicLoadDays {
+            for offset in 1...SyncConstants.chronicLoadDays {
                 let affected = day.adding(days: offset)
                 guard affected <= current else { break }
                 days.insert(affected)
@@ -23,12 +23,12 @@ extension SyncEngine {
 
     func updateReadiness(days: Set<Day>) throws {
         guard let earliest = days.min(), let latest = days.max() else { return }
-        let dailyLoad = try dailyLoad(from: earliest.adding(days: -(SyncConstants.chronicLoadDays - 1)), to: latest)
+        let dailyLoad = try dailyLoad(from: earliest.adding(days: -SyncConstants.chronicLoadDays), to: latest.adding(days: -1))
         let keys = Set(days.map(\.iso))
         let records = try modelContext.fetch(FetchDescriptor<DailyRecord>(predicate: #Predicate { keys.contains($0.day) }))
         for record in records {
             guard let day = Day(iso: record.day) else { continue }
-            let result = readiness(readinessInput(for: record, acuteChronic: acuteChronicRatio(dailyLoad: dailyLoad, on: day)))
+            let result = readiness(readinessInput(for: record, acuteChronic: acuteChronicRatio(dailyLoad: dailyLoad, on: day.adding(days: -1))))
             record.readinessScore = result?.score
             record.readinessPartial = result?.partial ?? false
         }
