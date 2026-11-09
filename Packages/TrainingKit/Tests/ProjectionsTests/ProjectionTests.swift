@@ -47,7 +47,7 @@ private func noisySeries() -> [(Day, Double)] {
     let capped = project(linearSeries(), today: today, horizonDays: 60, softCeiling: 52)!
     #expect(abs(free.points.last!.mid - 54.9) < 0.01)
     #expect(abs(capped.points.last!.mid - 53.45) < 0.01)
-    #expect(capped.points[19].mid == free.points[19].mid)
+    #expect(abs(capped.points[19].mid - free.points[19].mid) < 1e-9)
 }
 
 @Test func zeroHorizonReturnsNil() {
@@ -78,4 +78,37 @@ private func noisySeries() -> [(Day, Double)] {
     for (a, b) in zip(free.points, capped.points) {
         #expect(abs(a.mid - b.mid) < 1e-9)
     }
+}
+
+@Test func stepAcrossCeilingIsSplit() {
+    let series = linearSeries(start: 40, slope: 1)
+    let capped = project(series, today: today, horizonDays: 2, softCeiling: 129.5)!
+    #expect(abs(capped.points[0].mid - 129.75) < 1e-9)
+    #expect(abs(capped.points[1].mid - 130.25) < 1e-9)
+}
+
+@Test func crossingIsTodayWhenTrendHitsTargetNow() {
+    let p = project(linearSeries(), today: today, horizonDays: 30, target: 48.9)!
+    #expect(p.targetCrossing == today)
+}
+
+@Test func flatTrendHasNoCrossing() {
+    let s = (0..<30).map { (today.adding(days: -29 + $0), 50.0) }
+    let p = project(s, today: today, horizonDays: 30, target: 60)!
+    #expect(p.targetCrossing == nil)
+    #expect(p.points.allSatisfy { abs($0.mid - 50) < 1e-9 })
+}
+
+@Test func futurePointsAreIgnored() {
+    var s = linearSeries()
+    s += (1...20).map { (today.adding(days: $0), 1000.0) }
+    let p = project(s, today: today, horizonDays: 30)!
+    #expect(abs(p.points.last!.mid - 51.9) < 0.01)
+}
+
+@Test func duplicateDaysAreAveragedByRegression() {
+    let base = linearSeries()
+    let doubled = base.flatMap { day, value in [(day, value - 1), (day, value + 1)] }
+    let p = project(doubled, today: today, horizonDays: 30)!
+    #expect(abs(p.points.last!.mid - 51.9) < 0.01)
 }

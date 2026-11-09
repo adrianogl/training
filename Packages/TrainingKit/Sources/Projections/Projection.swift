@@ -57,7 +57,7 @@ public func project(
     var crossing: Day?
     if let target, slope != 0 {
         let ahead = slope > 0 ? target - intercept : intercept - target
-        if ahead == 0 {
+        if abs(ahead) <= ProjectionConstants.targetTolerance * max(1, abs(target)) {
             crossing = today
         } else if ahead > 0 {
             crossing = points.first { slope > 0 ? $0.mid >= target : $0.mid <= target }?.day
