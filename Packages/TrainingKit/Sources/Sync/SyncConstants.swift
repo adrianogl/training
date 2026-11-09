@@ -10,6 +10,7 @@ enum SyncConstants {
     static let incrementalActivityOverlap: TimeInterval = 3 * 86_400
     static let chronicLoadDays = 28
     static let defaultZonesSport = "DEFAULT"
+    static let missingFITStatuses: Set<Int> = [404, 410]
 
     static let progressAfterCleanup = 0.05
     static let progressAfterZones = 0.1

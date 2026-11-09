@@ -32,6 +32,11 @@ extension SyncEngine {
                 }
             case .skipped:
                 break
+            case .unavailable:
+                record.processingVersion = FITReaderConstants.processingVersion
+                record.fitProcessed = true
+                record.updatedAt = .now
+                try modelContext.save()
             case .rateLimited:
                 result.stoppedByRateLimit = true
                 return result
@@ -55,6 +60,10 @@ extension SyncEngine {
             throw error
         } catch GarminAPIError.rateLimited(_) {
             return .rateLimited
+        } catch let error as GarminAPIError where SyncErrorPolicy.isPermanentFITFailure(error) {
+            return .unavailable
+        } catch is FITReaderError {
+            return .unavailable
         } catch {
             if SyncErrorPolicy.isCancellation(error) { throw CancellationError() }
             return .skipped

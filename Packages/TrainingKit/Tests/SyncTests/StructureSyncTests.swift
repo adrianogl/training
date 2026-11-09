@@ -108,6 +108,32 @@ private func insertProcessedRuns(_ ids: [Int64], in container: ModelContainer) t
         #expect(report.fitProcessed == 2)
     }
 
+    @Test func missingFITLeavesQueue() async throws {
+        let activities = [
+            FakeDataSource.activity(id: 60, typeKey: "running", day: today),
+            FakeDataSource.activity(id: 61, typeKey: "running", day: today.adding(days: -1)),
+            FakeDataSource.activity(id: 62, typeKey: "running", day: today.adding(days: -2)),
+        ]
+        let fake = FakeDataSource(
+            dataDays: nil,
+            activities: activities,
+            fitZip: try FITZipBuilder.run(seconds: 300),
+            fitErrors: [60: .server(status: 404), 61: .server(status: 503)]
+        )
+        let (engine, container) = try makeEngine(fake, fitLimit: 2)
+
+        _ = try await engine.run()
+        _ = try await engine.run()
+
+        #expect(await fake.fitCalls == [60, 61, 61, 62])
+        let stored = try records(in: container)
+        #expect(stored[60]?.fitProcessed == true)
+        #expect(stored[60]?.processingVersion == FITReaderConstants.processingVersion)
+        #expect(stored[60]?.structureData == nil)
+        #expect(stored[61]?.fitProcessed == false)
+        #expect(stored[62]?.fitProcessed == true)
+    }
+
     @Test func persistsZones() async throws {
         let fake = FakeDataSource(dataDays: nil)
         let (engine, container) = try makeEngine(fake)
