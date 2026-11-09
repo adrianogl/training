@@ -73,8 +73,9 @@ enum BlockBarScale {
         }
     }
 
-    private static func ordered(_ a: Double, _ b: Double) -> ClosedRange<Double> {
-        min(a, b)...max(a, b)
+    private static func ordered(_ a: Double, _ b: Double) -> ClosedRange<Double>? {
+        guard a > 0, b > 0 else { return nil }
+        return min(a, b)...max(a, b)
     }
 
     private static func domain(_ ranges: [ClosedRange<Double>], padding ratio: Double) -> ClosedRange<Double> {

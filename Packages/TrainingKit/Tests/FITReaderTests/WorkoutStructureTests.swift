@@ -114,3 +114,14 @@ private func paceWorkout() throws -> [Mesg] {
     let structure = try FITReader.read(fit: FITFixtureBuilder.run(seconds: 30, msg140: nil)).structure
     #expect(structure == WorkoutStructure())
 }
+
+@Test func readsOneSidedHeartRateTargetAsBpm() throws {
+    let mesgs: [Mesg] = [
+        try FITFixtureBuilder.workout(name: "FC de teste", description: nil),
+        try FITFixtureBuilder.step(index: 0, seconds: 900, heartRate: (0, 260)),
+        try FITFixtureBuilder.step(index: 1, seconds: 900, heartRate: (245, 0)),
+    ]
+    let steps = try #require(try FITReader.read(fit: FITFixtureBuilder.run(seconds: 30, msg140: nil, extra: mesgs)).structure.prescription).steps
+    #expect(steps[0].target == .heartRateBpm(low: 0, high: 160))
+    #expect(steps[1].target == .heartRateBpm(low: 145, high: 0))
+}

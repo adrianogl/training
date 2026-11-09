@@ -99,11 +99,11 @@ private func blockOffTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
         facts[FindingFact.heartRate] = block.avgHeartRate.map(Double.init)
         switch block.prescribed?.target {
         case let .speed(low, high):
-            facts[FindingFact.targetLow] = low
-            facts[FindingFact.targetHigh] = high
+            facts[FindingFact.targetLow] = low > 0 ? low : nil
+            facts[FindingFact.targetHigh] = high > 0 ? high : nil
         case let .heartRateBpm(low, high):
-            facts[FindingFact.targetLow] = Double(low)
-            facts[FindingFact.targetHigh] = Double(high)
+            facts[FindingFact.targetLow] = low > 0 ? Double(low) : nil
+            facts[FindingFact.targetHigh] = high > 0 ? Double(high) : nil
         default:
             break
         }

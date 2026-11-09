@@ -130,14 +130,29 @@ struct BlocksSection: View {
         }
         let target: String? = switch step.target {
         case let .speed(low, high):
-            [WorkoutListModel.paceClock(metersPerSecond: high), WorkoutListModel.paceClock(metersPerSecond: low)]
-                .compactMap { $0 }.joined(separator: "–") + " \(WorkoutConstants.paceUnit)"
-        case let .heartRateBpm(low, high): "\(low)–\(high) bpm"
-        case let .heartRatePercentMax(low, high): "\(low)–\(high)% da FC máx"
+            range(
+                low: WorkoutListModel.paceClock(metersPerSecond: high),
+                high: WorkoutListModel.paceClock(metersPerSecond: low)
+            ).map { "\($0) \(WorkoutConstants.paceUnit)" }
+        case let .heartRateBpm(low, high): range(low: bound(low), high: bound(high)).map { "\($0) bpm" }
+        case let .heartRatePercentMax(low, high): range(low: bound(low), high: bound(high)).map { "\($0)% da FC máx" }
         case let .heartRateZone(number): "Z\(number)"
         case .open: nil
         }
         return [duration, target].compactMap { $0 }.joined(separator: " · ").ifEmpty("livre")
+    }
+
+    private func bound(_ value: Int) -> String? {
+        value > 0 ? "\(value)" : nil
+    }
+
+    private func range(low: String?, high: String?) -> String? {
+        switch (low, high) {
+        case let (low?, high?): "\(low)–\(high)"
+        case let (low?, nil): "a partir de \(low)"
+        case let (nil, high?): "até \(high)"
+        case (nil, nil): nil
+        }
     }
 
     private func distance(_ meters: Double) -> String {

@@ -69,8 +69,8 @@ enum WorkoutStructureReader {
             return .heartRateZone(Int(zone))
         }
         let offset = FITReaderConstants.heartRateBpmOffset
-        if low > offset && high > offset {
-            return .heartRateBpm(low: low - offset, high: high - offset)
+        if low > offset || high > offset {
+            return .heartRateBpm(low: max(low - offset, 0), high: max(high - offset, 0))
         }
         return .heartRatePercentMax(low: low, high: high)
     }

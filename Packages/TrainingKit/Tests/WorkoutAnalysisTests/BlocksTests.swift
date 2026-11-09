@@ -272,3 +272,17 @@ private func singleStepRepeat(lastRepMeters: Double) -> WorkoutStructure {
     #expect(blocks.map(\.label) == ["Tiro 1", "Tiro 2", "Tiro 3"])
     #expect(blocks.map(\.laps.count) == [1, 1, 2])
 }
+
+@Test func oneSidedTargetIgnoresMissingBound() {
+    func status(_ target: StepTarget, meters: Double = 1000, heartRate: Int? = 150) -> BlockStatus? {
+        buildBlocks(singleStep(target: target, seconds: 250, meters: meters, heartRate: heartRate), zones: zones).first?.status
+    }
+    #expect(status(.speed(low: 3.3, high: 0)) == .inTarget)
+    #expect(status(.speed(low: 3.3, high: 0), meters: 750) == .slower)
+    #expect(status(.speed(low: 0, high: 4.5)) == .inTarget)
+    #expect(status(.speed(low: 0, high: 3.5)) == .faster)
+    #expect(status(.heartRateBpm(low: 0, high: 160)) == .inTarget)
+    #expect(status(.heartRateBpm(low: 0, high: 140)) == .aboveTarget)
+    #expect(status(.heartRateBpm(low: 145, high: 0), heartRate: 170) == .inTarget)
+    #expect(status(.heartRatePercentMax(low: 0, high: 80)) == .inTarget)
+}

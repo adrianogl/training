@@ -231,14 +231,14 @@ private func status(
         return .noTarget
     case let .speed(low, high):
         guard let avgSpeed else { return .noTarget }
-        if avgSpeed > high { return .faster }
+        if high > 0, avgSpeed > high { return .faster }
         if avgSpeed < low { return .slower }
         return .inTarget
     case let .heartRateBpm(low, high):
-        return heartRateStatus(avgHeartRate, low: Double(low), high: Double(high))
+        return heartRateStatus(avgHeartRate, low: Double(low), high: high > 0 ? Double(high) : nil)
     case let .heartRatePercentMax(low, high):
         guard let max = zones?.maxHeartRate else { return .noTarget }
-        return heartRateStatus(avgHeartRate, low: Double(low * max) / 100, high: Double(high * max) / 100)
+        return heartRateStatus(avgHeartRate, low: Double(low * max) / 100, high: high > 0 ? Double(high * max) / 100 : nil)
     case let .heartRateZone(number):
         guard let floors = zones?.floors, number >= 1, number <= floors.count else { return .noTarget }
         let high = number < floors.count ? Double(floors[number] - 1) : nil
