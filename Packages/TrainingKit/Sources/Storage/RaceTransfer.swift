@@ -26,7 +26,18 @@ public enum RaceTransfer {
         let file = try decoder.decode(RaceTransferFile.self, from: data)
 
         var inserted = 0, updated = 0, skipped = 0
+        var order: [UUID] = []
+        var newest: [UUID: RaceTransferItem] = [:]
         for item in file.races {
+            guard let kept = newest[item.id] else {
+                order.append(item.id)
+                newest[item.id] = item
+                continue
+            }
+            skipped += 1
+            if item.updatedAt > kept.updatedAt { newest[item.id] = item }
+        }
+        for item in order.compactMap({ newest[$0] }) {
             let id = item.id
             var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id })
             descriptor.fetchLimit = 1
@@ -60,7 +71,7 @@ extension RaceTransferItem {
     func makeRecord() -> RaceRecord {
         RaceRecord(
             id: id, name: name, day: day, distance: distance, startTime: startTime,
-            goalSeconds: goalSeconds, priority: priority, city: city, gpxData: gpxData,
+            goalSeconds: goalSeconds, priority: RacePriority(rawValue: priority) ?? .c, city: city, gpxData: gpxData,
             manualPacesData: manualPacesData, customLabelsData: customLabelsData,
             resultActivityId: resultActivityId, updatedAt: updatedAt
         )
@@ -72,7 +83,7 @@ extension RaceTransferItem {
         race.startTime = startTime
         race.distance = distance
         race.goalSeconds = goalSeconds
-        race.priority = priority
+        race.priorityLevel = RacePriority(rawValue: priority) ?? .c
         race.city = city
         race.gpxData = gpxData
         race.manualPacesData = manualPacesData

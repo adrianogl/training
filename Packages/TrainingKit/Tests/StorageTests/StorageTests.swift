@@ -9,7 +9,7 @@ import Testing
         let context = container.mainContext
         context.insert(DailyRecord(day: "2026-01-10", restingHR: 48, readinessScore: 72))
         context.insert(ActivityRecord(activityId: 42, typeKey: "running", name: "Corrida", start: Date(timeIntervalSince1970: 1_000), distance: 10_000, zoneSeconds: [1, 2, 3, 4, 5]))
-        context.insert(RaceRecord(name: "Prova", day: "2026-06-01", distance: 21_097, priority: "A"))
+        context.insert(RaceRecord(name: "Prova", day: "2026-06-01", distance: 21_097, priority: .a))
         context.insert(SyncState(firstLoadCompleted: true))
         try context.save()
 
@@ -71,6 +71,58 @@ import Testing
                 #expect(relationship.isOptional, "\(entity.name).\(relationship.name)")
             }
         }
+    }
+}
+
+@Model private final class UniqueProbe {
+    @Attribute(.unique) var key: String = ""
+    init(key: String) { self.key = key }
+}
+
+private func uniqueAttributes(_ schema: Schema) -> [String] {
+    schema.entities.flatMap { entity in
+        entity.attributes.filter { $0.options.contains(.unique) }.map { "\(entity.name).\($0.name)" }
+    }
+}
+
+@Suite struct SchemaRulesTests {
+    @Test func uniqueCheckCatchesUniqueAttribute() {
+        #expect(uniqueAttributes(Schema([UniqueProbe.self])) == ["UniqueProbe.key"])
+        #expect(uniqueAttributes(Schema(TrainingSchema.models)).isEmpty)
+    }
+
+    @Test func everyAttributeIsOptionalOrHasDefault() {
+        for entity in Schema(TrainingSchema.models).entities {
+            for attribute in entity.attributes {
+                #expect(attribute.isOptional || attribute.defaultValue != nil, "\(entity.name).\(attribute.name)")
+            }
+        }
+    }
+
+    @Test func fileStoreRoundTripsBlobsAndOptionals() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let url = directory.appending(path: "store.sqlite")
+        let blob = Data((0..<200_000).map { UInt8($0 % 251) })
+        do {
+            let context = ModelContext(try TrainingSchema.container(url: url))
+            context.insert(DailyRecord(day: "2026-02-01", hrvLastNight: 61.5, hrvStatus: "BALANCED", sleepSeconds: 27_000, sleepScore: 82, sleepEndGMT: 1_780_000_000_000))
+            context.insert(DailyRecord(day: "2026-02-02"))
+            context.insert(ActivityRecord(activityId: 7, typeKey: "running", samplesData: blob, routeData: Data([1, 2]), structureData: Data([3])))
+            try context.save()
+        }
+
+        let reopened = ModelContext(try TrainingSchema.container(url: url))
+        let daily = try reopened.fetch(FetchDescriptor<DailyRecord>(sortBy: [SortDescriptor(\.day)]))
+        #expect(daily.count == 2)
+        #expect(daily[0].hrvLastNight == 61.5 && daily[0].hrvStatus == "BALANCED")
+        #expect(daily[0].sleepSeconds == 27_000 && daily[0].sleepScore == 82 && daily[0].sleepEndGMT == 1_780_000_000_000)
+        #expect(daily[1].hrvLastNight == nil && daily[1].sleepSeconds == nil && daily[1].sleepEndGMT == nil)
+        let activity = try #require(try reopened.fetch(FetchDescriptor<ActivityRecord>()).first)
+        #expect(activity.samplesData == blob)
+        #expect(activity.routeData == Data([1, 2]))
+        #expect(activity.structureData == Data([3]))
     }
 }
 

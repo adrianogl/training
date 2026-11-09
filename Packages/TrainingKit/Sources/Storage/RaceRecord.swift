@@ -24,7 +24,7 @@ public final class RaceRecord {
         distance: Double,
         startTime: String? = nil,
         goalSeconds: Double? = nil,
-        priority: String = "C",
+        priority: RacePriority = .c,
         city: String? = nil,
         gpxData: Data? = nil,
         manualPacesData: Data? = nil,
@@ -38,7 +38,7 @@ public final class RaceRecord {
         self.distance = distance
         self.startTime = startTime
         self.goalSeconds = goalSeconds
-        self.priority = priority
+        self.priority = priority.rawValue
         self.city = city
         self.gpxData = gpxData
         self.manualPacesData = manualPacesData

@@ -7,7 +7,7 @@ import Testing
     private func makeRace(id: UUID = UUID(), name: String = "Prova", updatedAt: Date = Date(timeIntervalSince1970: 1_700_000_000.25)) -> RaceRecord {
         RaceRecord(
             id: id, name: name, day: "2026-06-01", distance: 21_097.5, startTime: "06:30",
-            goalSeconds: 5_400, priority: "A", city: "Cidade",
+            goalSeconds: 5_400, priority: .a, city: "Cidade",
             gpxData: Data([1, 2, 3]), manualPacesData: Data([4, 5]), customLabelsData: Data([6]),
             resultActivityId: 9_000_000_001, updatedAt: updatedAt
         )
@@ -98,5 +98,49 @@ import Testing
         #expect(throws: (any Error).self) {
             try RaceTransfer.importRaces(Data("not json".utf8), into: context)
         }
+    }
+}
+
+@Suite struct RaceTransferEdgeTests {
+    @Test @MainActor func duplicateIdInFileKeepsNewest() throws {
+        let id = UUID()
+        let old = RaceRecord(id: id, name: "Velha", day: "2026-06-01", distance: 10_000, updatedAt: Date(timeIntervalSince1970: 1_000))
+        let new = RaceRecord(id: id, name: "Nova", day: "2026-06-01", distance: 10_000, updatedAt: Date(timeIntervalSince1970: 2_000))
+        let data = try RaceTransfer.export([new, old])
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+
+        let result = try RaceTransfer.importRaces(data, into: context)
+        try context.save()
+
+        let races = try context.fetch(FetchDescriptor<RaceRecord>())
+        #expect(races.count == 1)
+        #expect(races.first?.name == "Nova")
+        #expect(result.inserted == 1 && result.skipped == 1)
+    }
+
+    @Test @MainActor func unknownPriorityFallsBackToC() throws {
+        var item = RaceTransferItem(RaceRecord(name: "Prova", day: "2026-06-01", distance: 10_000, priority: .a))
+        item.priority = "Z"
+        let file = RaceTransferFile(version: RaceTransferConstants.currentVersion, races: [item])
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .secondsSince1970
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+
+        _ = try RaceTransfer.importRaces(try encoder.encode(file), into: context)
+
+        let race = try #require(try context.fetch(FetchDescriptor<RaceRecord>()).first)
+        #expect(race.priorityLevel == .c)
+        #expect(race.priority == "C")
+    }
+
+    @Test func priorityLevelMapsRawValue() {
+        let race = RaceRecord(name: "Prova", day: "2026-06-01", distance: 10_000, priority: .b)
+        #expect(race.priority == "B")
+        race.priorityLevel = .a
+        #expect(race.priority == "A")
+        race.priority = "x"
+        #expect(race.priorityLevel == .c)
     }
 }
