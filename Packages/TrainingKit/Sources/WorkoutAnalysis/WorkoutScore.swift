@@ -10,7 +10,7 @@ public func scoreWorkout(blocks: [WorkoutBlock], zones: HeartRateZones?, previou
         costItem(blocks, previous: previous, hasHeartRate: hasHeartRate),
     ]
     let maximum = items.reduce(0) { $0 + $1.maximum }
-    guard maximum > 0 else { return WorkoutScore(value: 0, items: items) }
+    guard maximum > 0 else { return nil }
     let points = items.reduce(0) { $0 + $1.points }
     return WorkoutScore(value: Int((points / maximum * AnalysisConstants.scoreScale).rounded()), items: items)
 }
@@ -158,6 +158,7 @@ private func costItem(_ blocks: [WorkoutBlock], previous: [WorkoutOccurrence], h
     let references = previous.compactMap { efficiency($0.blocks) }.sorted()
     guard !references.isEmpty else { return absent(.cost, .noHistory) }
     let reference = median(references)
+    guard reference > 0, current.isFinite else { return absent(.cost, .noHistory) }
     let ratio = current / reference - 1
     let share = min(max(AnalysisConstants.costMedianShare + ratio / (2 * AnalysisConstants.costSaturation), 0), 1)
     let reason: ScoreReason? =

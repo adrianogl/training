@@ -167,3 +167,23 @@ private func item(_ score: WorkoutScore?, _ part: ScorePart) -> ScoreItem? {
 @Test func emptyBlocksHaveNoScore() {
     #expect(scoreWorkout(blocks: [], zones: zones, previous: []) == nil)
 }
+
+@Test func zeroReferenceEfficiencyDropsCostWithoutTrapping() {
+    let flat = intervalBlocks().map { block -> WorkoutBlock in
+        var copy = block
+        copy.distance = 0
+        copy.avgSpeed = 0
+        return copy
+    }
+    let score = scoreWorkout(blocks: intervalBlocks(), zones: zones, previous: occurrences(flat, count: 3))
+
+    #expect(item(score, .cost) == ScoreItem(part: .cost, points: 0, maximum: 0, reason: .noHistory))
+    #expect(score?.value == 100)
+}
+
+@Test func unevaluableWorkoutHasNoScore() {
+    let openStep = PrescribedStep(index: 0, intensity: .active, duration: .open, target: .open)
+    let blocks = [block(.active, step: openStep, status: .noTarget, seconds: 600, distance: 2000, heartRate: 150)]
+
+    #expect(scoreWorkout(blocks: blocks, zones: nil, previous: []) == nil)
+}
