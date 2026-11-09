@@ -21,6 +21,7 @@ import TrainingCore
     @ObservationIgnored private var client: (key: String, client: GarminClient)?
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var runningTrigger: SyncTrigger?
+    @ObservationIgnored private var narrativeTask: Task<Void, Never>?
     @ObservationIgnored private var narrativeFailures: Set<String> = []
 
     init(
@@ -111,18 +112,23 @@ import TrainingCore
         let engine = SyncEngineConfiguration(trigger: trigger).makeEngine(source: client(for: key), container: container)
         runningTrigger = trigger
         syncStatus = .running(progress: 0)
+        let pendingNarratives = narrativeTask
+        pendingNarratives?.cancel()
         let task = Task { [weak self] in
+            await pendingNarratives?.value
+            var processed: Set<Int64>?
             do {
                 let report = try await engine.run { fraction in
                     Task { @MainActor in self?.updateProgress(fraction) }
                 }
                 self?.syncStatus = .finished(.now)
-                await self?.writeNarratives(processed: report.processedActivityIds)
+                processed = report.processedActivityIds
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
             self?.syncTask = nil
             self?.runningTrigger = nil
+            if let processed, !Task.isCancelled { self?.startNarratives(processed: processed) }
         }
         syncTask = task
         await task.value
@@ -130,12 +136,17 @@ import TrainingCore
 
     func cancelSync() {
         syncTask?.cancel()
+        narrativeTask?.cancel()
     }
 
     func deleteLocalData() async throws {
         if let syncTask {
             syncTask.cancel()
             await syncTask.value
+        }
+        if let narrativeTask {
+            narrativeTask.cancel()
+            await narrativeTask.value
         }
         let context = container.mainContext
         for model in TrainingSchema.models {
@@ -149,15 +160,21 @@ import TrainingCore
         try context.delete(model: model)
     }
 
-    private func writeNarratives(processed: Set<Int64>) async {
-        let failures = try? await NarrativeBackfill.run(
-            context: container.mainContext,
-            narrator: makeNarrator(),
-            processed: processed,
-            limit: AppConstants.narrativeBackfillLimit,
-            skipping: narrativeFailures
-        )
-        narrativeFailures.formUnion(failures ?? [])
+    private func startNarratives(processed: Set<Int64>) {
+        let narrator = makeNarrator()
+        let skipping = narrativeFailures
+        let task = Task { [weak self, container] in
+            let failures = try? await NarrativeBackfill.run(
+                context: container.mainContext,
+                narrator: narrator,
+                processed: processed,
+                limit: AppConstants.narrativeBackfillLimit,
+                skipping: skipping
+            )
+            self?.narrativeFailures.formUnion(failures ?? [])
+            self?.narrativeTask = nil
+        }
+        narrativeTask = task
     }
 
     private func updateProgress(_ fraction: Double) {
