@@ -20,7 +20,7 @@ public struct ReportBuilder {
         let todayRecord = try dailyRecord(on: today)
         let load = dailyLoad(activities)
         let fff = fitnessFatigueFormToday(load)
-        let efforts = try efforts(runs: runs, all: activities)
+        let efforts = try efforts(from: activities)
         return TrainingReport(
             days: try context.fetchCount(FetchDescriptor<DailyRecord>()),
             activities: activities.count,
@@ -32,10 +32,8 @@ public struct ReportBuilder {
             fatigue: fff?.fatigue,
             form: fff?.form,
             acuteChronic: acuteChronicRatio(dailyLoad: load, on: today),
-            predictions: ReportConstants.predictionDistances.map {
-                Prediction(label: $0.label, seconds: predict(distance: $0.meters, efforts: efforts, on: today))
-            },
-            durability: median(of: values(in: runs.filter(isContinuous), metric: decoupling).prefix(ReportConstants.durabilityRuns)),
+            predictions: predictions(efforts),
+            durability: median(of: values(in: runs.filter(Self.isContinuous), metric: decoupling).prefix(ReportConstants.durabilityRuns)),
             hillStrength: median(of: values(in: runs, metric: hillIndex).prefix {
                 $0.day >= today.adding(days: -ReportConstants.hillStrengthDays)
             })
@@ -51,7 +49,13 @@ public struct ReportBuilder {
         Day.today(in: .current, now: date)
     }
 
-    func dailyLoad(_ activities: [ActivityRecord]) -> [Day: Double] {
+    public func predictions(_ efforts: [Effort]) -> [Prediction] {
+        ReportConstants.predictionDistances.map {
+            Prediction(label: $0.label, seconds: predict(distance: $0.meters, efforts: efforts, on: today))
+        }
+    }
+
+    public func dailyLoad(_ activities: [ActivityRecord]) -> [Day: Double] {
         var load: [Day: Double] = [:]
         for activity in activities where activity.hasStart {
             guard let value = activity.activityTrainingLoad else { continue }
@@ -70,9 +74,13 @@ public struct ReportBuilder {
         return smoothedVo2max(values).last.map { DatedValue(day: $0.0, value: $0.1) }
     }
 
-    private func efforts(runs: [ActivityRecord], all: [ActivityRecord]) throws -> [Effort] {
+    public func efforts() throws -> [Effort] {
+        try efforts(from: context.fetch(FetchDescriptor<ActivityRecord>()))
+    }
+
+    public func efforts(from all: [ActivityRecord]) throws -> [Effort] {
         var efforts: [Effort] = []
-        for run in runs {
+        for run in all where run.hasStart && ActivityTypeKey.isRun(run.typeKey) {
             let runDay = day(of: run.start)
             if let seconds = run.fastestSplit_5000, seconds > 0 {
                 efforts.append(Effort(distance: ReportConstants.split5kMeters, seconds: seconds, day: runDay, kind: .split5k))
@@ -90,7 +98,7 @@ public struct ReportBuilder {
         return efforts
     }
 
-    private func isContinuous(_ run: ActivityRecord) -> Bool {
+    public static func isContinuous(_ run: ActivityRecord) -> Bool {
         (run.anaerobicTrainingEffect ?? 0) < ReportConstants.intervalAnaerobicEffect
     }
 

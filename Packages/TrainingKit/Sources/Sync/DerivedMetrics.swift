@@ -28,25 +28,11 @@ extension SyncEngine {
         let records = try modelContext.fetch(FetchDescriptor<DailyRecord>(predicate: #Predicate { keys.contains($0.day) }))
         for record in records {
             guard let day = Day(iso: record.day) else { continue }
-            let result = readiness(readinessInput(for: record, acuteChronic: acuteChronicRatio(dailyLoad: dailyLoad, on: day.adding(days: -1))))
+            let result = readiness(record.readinessInput(acuteChronic: acuteChronicRatio(dailyLoad: dailyLoad, on: day.adding(days: -1))))
             record.readinessScore = result?.score
             record.readinessPartial = result?.partial ?? false
         }
         try modelContext.save()
-    }
-
-    private func readinessInput(for record: DailyRecord, acuteChronic: Double?) -> ReadinessInput {
-        var baseline: HRVBaseline?
-        if let lowUpper = record.hrvLowUpper, let balancedLow = record.hrvBalancedLow, let balancedUpper = record.hrvBalancedUpper {
-            baseline = HRVBaseline(lowUpper: lowUpper, balancedLow: balancedLow, balancedUpper: balancedUpper)
-        }
-        return ReadinessInput(
-            hrvLastNight: record.hrvLastNight,
-            hrvBaseline: baseline,
-            sleepScore: record.sleepScore.map(Double.init),
-            bodyBatteryMorningMax: record.bodyBatteryMorningMax.map(Double.init),
-            acuteChronic: acuteChronic
-        )
     }
 
     private func dailyLoad(from: Day, to: Day) throws -> [Day: Double] {
