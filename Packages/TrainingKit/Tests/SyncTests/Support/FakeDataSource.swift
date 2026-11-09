@@ -6,7 +6,8 @@ struct FakeFITError: Error {}
 
 actor FakeDataSource: GarminDataSource {
     nonisolated let dataDays: ClosedRange<Day>?
-    nonisolated let activityList: [ActivityDTO]
+    nonisolated let initialActivityCount: Int
+    private var activityList: [ActivityDTO]
     private let fitZip: Data?
     private let failure: GarminAPIError?
     private let zonesError: GarminAPIError?
@@ -39,6 +40,7 @@ actor FakeDataSource: GarminDataSource {
     ) {
         self.dataDays = dataDays
         self.activityList = activities
+        self.initialActivityCount = activities.count
         self.fitZip = fitZip
         self.failure = failure
         self.zonesError = zonesError
@@ -60,7 +62,9 @@ actor FakeDataSource: GarminDataSource {
         dataDays.map { $0.lowerBound.days(until: $0.upperBound) + 1 } ?? 0
     }
 
-    nonisolated var activityCount: Int { activityList.count }
+    func addActivities(_ activities: [ActivityDTO]) {
+        activityList = (activityList + activities).sorted { ($0.startTimeLocal ?? "") > ($1.startTimeLocal ?? "") }
+    }
 
     func heartRateZones() async throws -> HRZonesDTO {
         zonesCalls += 1

@@ -113,14 +113,15 @@ public actor SyncEngine: ModelActor {
 
         let incrementalCutoff = isFirstLoad
             ? nil
-            : state.lastActivityStart.map { $0.addingTimeInterval(-C.incrementalActivityOverlap) }
-        report.activitiesUpserted = try await syncActivities(
+            : (state.lastActivityStart ?? state.lastSync ?? ActivityTime.startOfDay(firstDay)).addingTimeInterval(-C.incrementalActivityOverlap)
+        let upsertedActivities = try await syncActivities(
             from: isFirstLoad ? firstDay : nil,
-            startAt: isFirstLoad ? state.resumeActivityStart ?? 0 : 0,
+            startAt: isFirstLoad ? max((state.resumeActivityStart ?? 0) - C.activityPageSize, 0) : 0,
             incrementalCutoff: incrementalCutoff,
             state: state,
             tracksResume: isFirstLoad
-        ).count
+        )
+        report.activitiesUpserted = upsertedActivities.count
         progress(C.progressAfterActivities)
 
         let fit = try await processFITQueue(try fitQueue(includesNewRuns: true, limit: fitLimit)) { fraction in
@@ -132,7 +133,7 @@ public actor SyncEngine: ModelActor {
         report.fitStoppedByRateLimit = fit.stoppedByRateLimit
         progress(C.progressAfterFIT)
 
-        try updateReadiness(days: isFirstLoad ? try storedDays() : touchedDays)
+        try updateReadiness(days: isFirstLoad ? try storedDays() : touchedDays.union(try loadAffectedDays(upsertedActivities)))
         progress(C.progressAfterDerived)
 
         try Task.checkCancellation()
@@ -146,7 +147,13 @@ public actor SyncEngine: ModelActor {
     }
 
     private func syncState() throws -> SyncState {
-        if let existing = try modelContext.fetch(FetchDescriptor<SyncState>()).first {
+        let states = try modelContext.fetch(FetchDescriptor<SyncState>()).sorted { a, b in
+            if a.firstLoadCompleted != b.firstLoadCompleted { return a.firstLoadCompleted }
+            return (a.lastSync ?? .distantPast) > (b.lastSync ?? .distantPast)
+        }
+        if let existing = states.first {
+            states.dropFirst().forEach(modelContext.delete)
+            if states.count > 1 { try modelContext.save() }
             return existing
         }
         let state = SyncState()

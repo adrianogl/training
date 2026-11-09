@@ -81,7 +81,7 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         let second = try await engine.run()
 
         #expect(try count(DailyRecord.self, in: container) == fake.dayCount)
-        #expect(try count(ActivityRecord.self, in: container) == fake.activityCount)
+        #expect(try count(ActivityRecord.self, in: container) == fake.initialActivityCount)
         #expect(try count(SyncState.self, in: container) == 1)
         #expect(first.dailyUpserted == fake.dayCount)
         #expect(first.activitiesUpserted == 60)
@@ -110,6 +110,42 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(kept.count == 1)
         #expect(kept.first?.restingHR == 45)
         #expect(try count(DailyRecord.self, in: container) == fake.dayCount + 1)
+    }
+
+    @Test func duplicateTieKeepsProcessedActivity() async throws {
+        let fake = FakeDataSource(dataDays: nil)
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -5))
+        let context = ModelContext(container)
+        let stamp = Date(timeIntervalSince1970: 1_000)
+        let start = ActivityTime.startOfDay(today.adding(days: -30))
+        for _ in 0..<4 {
+            context.insert(ActivityRecord(activityId: 77, typeKey: "running", start: start, fitProcessed: false, updatedAt: stamp))
+        }
+        context.insert(ActivityRecord(activityId: 77, typeKey: "running", start: start, fitProcessed: true, updatedAt: stamp))
+        try context.save()
+
+        _ = try await engine.run()
+
+        let kept = try fetch(ActivityRecord.self, in: container).filter { $0.activityId == 77 }
+        #expect(kept.count == 1)
+        #expect(kept.first?.fitProcessed == true)
+    }
+
+    @Test func extraSyncStatesAreRemoved() async throws {
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today)
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
+        let context = ModelContext(container)
+        context.insert(SyncState())
+        context.insert(SyncState(firstLoadCompleted: true, lastSync: ActivityTime.startOfDay(today)))
+        context.insert(SyncState())
+        try context.save()
+
+        _ = try await engine.run()
+
+        let states = try fetch(SyncState.self, in: container)
+        #expect(states.count == 1)
+        #expect(states.first?.firstLoadCompleted == true)
+        #expect(await fake.summaryFroms.allSatisfy { $0 >= today.adding(days: -5) })
     }
 
     @Test func processesFitOnlyForNewRuns() async throws {
@@ -215,6 +251,42 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(record.readinessScore == 85)
         #expect(record.readinessPartial == false)
         #expect(records.values.allSatisfy { $0.readinessScore != nil })
+    }
+
+    @Test func invalidKeyFromActivitiesPropagates() async throws {
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: [FakeDataSource.activity(id: 1, typeKey: "running", day: today)])
+        await fake.failActivities(start: 0, with: .invalidKey)
+        let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        await #expect(throws: GarminAPIError.invalidKey) {
+            try await engine.run()
+        }
+        #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted == false)
+    }
+
+    @Test func invalidKeyFromZonesPropagates() async throws {
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, zonesError: .invalidKey)
+        let (engine, _) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        await #expect(throws: GarminAPIError.invalidKey) {
+            try await engine.run()
+        }
+        #expect(await fake.summaryFroms.isEmpty)
+    }
+
+    @Test func newEngineOnLaterDayRunsIncremental() async throws {
+        let fake = FakeDataSource(dataDays: today.adding(days: -10)...today.adding(days: 2))
+        let container = try TrainingSchema.container(inMemory: true)
+        _ = try await SyncEngine(source: fake, container: container, today: { today }, firstDay: today.adding(days: -10)).run()
+        let before = await fake.summaryFroms.count
+
+        let later = today.adding(days: 2)
+        _ = try await SyncEngine(source: fake, container: container, today: { later }, firstDay: today.adding(days: -10)).run()
+
+        let incremental = Array(await fake.summaryFroms.dropFirst(before))
+        #expect(incremental.allSatisfy { $0 >= today.adding(days: -10) && $0 < later })
+        #expect(try fetch(DailyRecord.self, in: container).contains { $0.day == later.iso })
+        #expect(try count(SyncState.self, in: container) == 1)
     }
 
     @Test func invalidKeyPropagates() async throws {
@@ -353,13 +425,13 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
 
         let report = try await engine.run()
 
-        #expect(Array(await fake.activityPageStarts.dropFirst(3)) == [100, 150])
+        #expect(Array(await fake.activityPageStarts.dropFirst(3)) == [50, 100, 150])
         #expect(Array(await fake.summaryFroms.dropFirst(summaryBefore)) == [partialStart])
         #expect(Array(await fake.hrvFroms.dropFirst(hrvBefore)) == [partialStart])
         #expect(Array(await fake.sleepFroms.dropFirst(sleepBefore)) == [partialStart])
         #expect(Array(await fake.batteryFroms.dropFirst(batteryBefore)) == [partialStart])
-        #expect(await fake.froms.count - fromsBefore == 6)
-        #expect(report.activitiesUpserted == 60)
+        #expect(await fake.froms.count - fromsBefore == 7)
+        #expect(report.activitiesUpserted == 110)
         #expect(try count(ActivityRecord.self, in: container) == 160)
         let state = try #require(try fetch(SyncState.self, in: container).first)
         #expect(state.firstLoadCompleted)
@@ -442,5 +514,39 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(records.allSatisfy { $0.sleepSeconds == 27_000 && $0.hrvLastNight == 60 && $0.restingHR == 50 })
         #expect(records.allSatisfy { $0.bodyBatteryMorningMax == 85 })
         #expect(records.allSatisfy { $0.readinessScore != nil })
+    }
+}
+
+@Suite struct SyncEngineIncrementalTests {
+    @Test func lateActivityRecomputesFollowingReadiness() async throws {
+        let firstDay = today.adding(days: -40)
+        let daily = (0...40).map { FakeDataSource.activity(id: Int64(500 + $0), typeKey: "running", day: today.adding(days: -$0), load: 60) }
+        let fake = FakeDataSource(dataDays: firstDay...today, activities: daily)
+        let (engine, container) = try makeEngine(fake, firstDay: firstDay)
+        _ = try await engine.run()
+        let target = today.adding(days: -10).iso
+        func score() throws -> Int? {
+            try fetch(DailyRecord.self, in: container).first { $0.day == target }?.readinessScore
+        }
+        let before = try score()
+
+        await fake.addActivities([FakeDataSource.activity(id: 900, typeKey: "running", day: today.adding(days: -12), hour: 18, load: 3_000)])
+        _ = try await engine.run()
+
+        #expect(before != nil)
+        #expect(try score() != before)
+    }
+
+    @Test func incrementalWithoutActivitiesStopsAtLastSync() async throws {
+        let firstDay = today.adding(days: -5)
+        let fake = FakeDataSource(dataDays: firstDay...today)
+        let (engine, container) = try makeEngine(fake, firstDay: firstDay)
+        _ = try await engine.run()
+        #expect(try fetch(SyncState.self, in: container).first?.lastActivityStart == nil)
+
+        await fake.addActivities(spacedActivities(count: 150, perDay: 1))
+        _ = try await engine.run()
+
+        #expect(Array(await fake.activityPageStarts.dropFirst()) == [0])
     }
 }
