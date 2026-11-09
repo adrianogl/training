@@ -1,4 +1,5 @@
 import Foundation
+import os
 import TrainingCore
 
 public struct GarminClient: GarminDataSource {
@@ -99,11 +100,17 @@ public struct GarminClient: GarminDataSource {
 
     private func decode<E: ListEnvelope>(_ data: Data, path: String, envelope: E.Type) throws -> [E.Element] {
         guard !data.isEmpty else { return [] }
+        let elements: [LossyElement<E.Element>]
         do {
-            return try JSONDecoder().decode(E.self, from: data).elements.compactMap(\.value)
+            elements = try JSONDecoder().decode(E.self, from: data).elements
         } catch {
             throw GarminAPIError.decoding(path: path)
         }
+        let values = elements.compactMap(\.value)
+        if values.count < elements.count {
+            GarminEndpoints.logger.warning("descartou \(elements.count - values.count, privacy: .public) de \(elements.count, privacy: .public) itens em \(path, privacy: .public)")
+        }
+        return values
     }
 
     private func get(path: String, query: [(String, String)] = [], accept: String = "application/json") async throws -> Data {
@@ -119,7 +126,17 @@ public struct GarminClient: GarminDataSource {
             request.httpMethod = "GET"
             request.setValue(accept, forHTTPHeaderField: "Accept")
             request.setValue("Bearer \(try await tokens.bearer())", forHTTPHeaderField: "Authorization")
-            let (data, response) = try await transport.send(request)
+            let data: Data
+            let response: HTTPURLResponse
+            do {
+                (data, response) = try await transport.send(request)
+            } catch let error as URLError where GarminEndpoints.transientTransportErrors.contains(error.code) {
+                let schedule = GarminEndpoints.retryDelaysSeconds
+                guard retries < schedule.count else { throw error }
+                try await sleep(.seconds(schedule[retries]))
+                retries += 1
+                continue
+            }
             let status = response.statusCode
             switch status {
             case 200..<300:
@@ -143,6 +160,8 @@ public struct GarminClient: GarminDataSource {
                 guard retries < schedule.count else { throw GarminAPIError.server(status: status) }
                 try await sleep(.seconds(schedule[retries]))
                 retries += 1
+            case 400..<500:
+                throw GarminAPIError.client(status: status, path: path)
             default:
                 throw GarminAPIError.server(status: status)
             }

@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 public enum GarminEndpoints {
     public static let base = URL(string: "https://personal.connectapi.garmin.com")!
@@ -15,6 +16,10 @@ public enum GarminEndpoints {
     public static let retryDelaysSeconds = [1, 2, 4]
     public static let rateLimitDelaysSeconds = [30, 60, 120]
     public static let maxRetryAfterSeconds = 300
+    static let logger = Logger(subsystem: "trAIning", category: "GarminAPI")
+    public static let transientTransportErrors: Set<URLError.Code> = [
+        .timedOut, .networkConnectionLost, .notConnectedToInternet, .cannotConnectToHost, .cannotFindHost, .dnsLookupFailed,
+    ]
     public static let retryAfterHeader = "Retry-After"
     public static let httpDateFormat = "EEE, dd MMM yyyy HH:mm:ss zzz"
 

@@ -180,12 +180,54 @@ private let fixedNow = Date(timeIntervalSince1970: 1_800_000_000)
         #expect(h.sleeps.all == [.seconds(300)])
     }
 
-    @Test(arguments: [(45.0, 45), (3_600.0, 300), (-60.0, 0)])
+    @Test(arguments: [(45.0, 45), (3_600.0, 300), (-60.0, 30)])
     func honorsRetryAfterHTTPDate(offset: TimeInterval, expectedSeconds: Int) async throws {
         let header = httpDate(fixedNow.addingTimeInterval(offset))
         let h = makeClient(responses: [.status(429, "", headers: ["Retry-After": header]), .ok("[]")], now: fixedNow)
         _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
         #expect(h.sleeps.all == [.seconds(expectedSeconds)])
+    }
+
+    @Test(arguments: ["0", "-5"])
+    func nonPositiveRetryAfterFallsBackToSchedule(header: String) async throws {
+        let h = makeClient(responses: [.status(429, "", headers: ["Retry-After": header]), .ok("[]")])
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(30)])
+    }
+
+    @Test func readsLowercaseRetryAfter() async throws {
+        let h = makeClient(responses: [.status(429, "", headers: ["retry-after": "45"]), .ok("[]")])
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(45)])
+    }
+
+    @Test func ignoresRetryAfterOnServerError() async throws {
+        let h = makeClient(responses: [.status(503, "", headers: ["Retry-After": "99"]), .ok("[]")])
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(1)])
+    }
+
+    @Test func retriesTransientTransportErrors() async throws {
+        let h = makeClient(responses: [.failure(.timedOut), .failure(.networkConnectionLost), .ok("[]")])
+        _ = try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        #expect(h.sleeps.all == [.seconds(1), .seconds(2)])
+    }
+
+    @Test func offlineGivesUpAfterRetries() async {
+        let h = makeClient(responses: Array(repeating: .failure(.notConnectedToInternet), count: 4))
+        await #expect(throws: URLError(.notConnectedToInternet)) {
+            try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        }
+        #expect(h.sleeps.all == [.seconds(1), .seconds(2), .seconds(4)])
+    }
+
+    @Test(arguments: [403, 404, 410])
+    func clientErrorKeepsStatusAndPath(status: Int) async {
+        let h = makeClient(responses: [.status(status, "")])
+        await #expect(throws: GarminAPIError.client(status: status, path: GarminEndpoints.activitiesPath)) {
+            try await h.client.activities(start: 0, limit: 50, from: nil, to: nil)
+        }
+        #expect(h.sleeps.all.isEmpty)
     }
 
     @Test func invalidRetryAfterFallsBackToSchedule() async throws {

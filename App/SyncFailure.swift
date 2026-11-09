@@ -15,9 +15,9 @@ enum SyncFailure: Equatable {
             self = .invalidKey
         case GarminAPIError.rateLimited:
             self = .rateLimited
-        case GarminAPIError.server(let status):
+        case GarminAPIError.server(let status), GarminAPIError.client(let status, _):
             self = .server(status)
-        case let urlError as URLError where [.notConnectedToInternet, .networkConnectionLost, .timedOut, .cannotFindHost, .cannotConnectToHost].contains(urlError.code):
+        case let urlError as URLError where GarminEndpoints.transientTransportErrors.contains(urlError.code):
             self = .offline
         default:
             self = .other(String(describing: error))

@@ -118,7 +118,7 @@ private func insertProcessedRuns(_ ids: [Int64], in container: ModelContainer) t
             dataDays: nil,
             activities: activities,
             fitZip: try FITZipBuilder.run(seconds: 300),
-            fitErrors: [60: .server(status: 404), 61: .server(status: 503)]
+            fitErrors: [60: .client(status: 404, path: "\(GarminEndpoints.fitDownloadPathPrefix)/60"), 61: .server(status: 503)]
         )
         let (engine, container) = try makeEngine(fake, fitLimit: 2)
 

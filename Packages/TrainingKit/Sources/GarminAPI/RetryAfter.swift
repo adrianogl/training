@@ -10,8 +10,9 @@ enum RetryAfter {
         return clamped(Int(date.timeIntervalSince(now).rounded(.up)))
     }
 
-    private static func clamped(_ seconds: Int) -> Int {
-        min(max(seconds, 0), GarminEndpoints.maxRetryAfterSeconds)
+    private static func clamped(_ seconds: Int) -> Int? {
+        guard seconds > 0 else { return nil }
+        return min(seconds, GarminEndpoints.maxRetryAfterSeconds)
     }
 
     private static func httpDate(_ value: String) -> Date? {

@@ -6,7 +6,7 @@ enum SyncErrorPolicy {
     }
 
     static func isPermanentFITFailure(_ error: GarminAPIError) -> Bool {
-        guard case let .server(status) = error else { return false }
+        guard case let .client(status, _) = error else { return false }
         return SyncConstants.missingFITStatuses.contains(status)
     }
 
