@@ -16,7 +16,7 @@ public struct ReportBuilder {
 
     public func build() throws -> TrainingReport {
         let activities = try context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
-        let runs = activities.filter { ActivityTypeKey.isRun($0.typeKey) }
+        let runs = activities.filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
         let todayRecord = try dailyRecord(on: today)
         let load = dailyLoad(activities)
         let fff = fitnessFatigueFormToday(load)
@@ -35,8 +35,10 @@ public struct ReportBuilder {
             predictions: ReportConstants.predictionDistances.map {
                 Prediction(label: $0.label, seconds: predict(distance: $0.meters, efforts: efforts, on: today))
             },
-            durability: latest(in: runs.filter(isContinuous), metric: decoupling),
-            hillStrength: latest(in: runs, metric: hillIndex)
+            durability: median(of: values(in: runs.filter(isContinuous), metric: decoupling).prefix(ReportConstants.durabilityRuns)),
+            hillStrength: median(of: values(in: runs, metric: hillIndex).prefix {
+                $0.day >= today.adding(days: -ReportConstants.hillStrengthDays)
+            })
         )
     }
 
@@ -92,15 +94,20 @@ public struct ReportBuilder {
         (run.anaerobicTrainingEffect ?? 0) < ReportConstants.intervalAnaerobicEffect
     }
 
-    private func latest(in runs: [ActivityRecord], metric: ([FITSample]) -> Double?) -> DatedValue? {
+    private func values(in runs: [ActivityRecord], metric: @escaping ([FITSample]) -> Double?) -> some Sequence<DatedValue> {
         let decoder = JSONDecoder()
-        for run in runs {
+        return runs.lazy.compactMap { run in
             guard let data = run.samplesData,
                   let samples = try? decoder.decode([FITSample].self, from: data),
                   let value = metric(samples)
-            else { continue }
+            else { return nil }
             return DatedValue(day: day(of: run.start), value: value)
         }
-        return nil
+    }
+
+    private func median<S: Sequence>(of values: S) -> DatedValue? where S.Element == DatedValue {
+        let collected = Array(values)
+        guard let latest = collected.first, let value = Metrics.median(collected.map(\.value)) else { return nil }
+        return DatedValue(day: latest.day, value: value)
     }
 }

@@ -1,3 +1,4 @@
+import FITReader
 import Foundation
 import Metrics
 import Storage
@@ -83,5 +84,31 @@ private func build(_ records: [ActivityRecord]) throws -> TrainingReport {
         #expect(load == [today.adding(days: -10): 80])
         let expected = try #require(fitnessFatigueForm(dailyLoad: load, from: today.adding(days: -10), to: today).last)
         #expect(report.fitness == expected.fitness && report.fatigue == expected.fatigue)
+    }
+
+    @Test func durabilityIsMedianOfDatedEligibleRuns() throws {
+        func samples(secondHalfHeartRate: Int) -> Data {
+            let points = stride(from: 0.0, through: 4_000, by: 5).map { t in
+                FITSample(t: t, heartRate: t < 2_300 ? 140 : secondHalfHeartRate, speed: 3)
+            }
+            return try! JSONEncoder().encode(points)
+        }
+        let heartRates = [150, 160, 141]
+        let records = heartRates.enumerated().map { index, heartRate in
+            let record = run(id: Int64(index + 1), daysAgo: index + 1, split5k: 1_400, split1k: 270)
+            record.samplesData = samples(secondHalfHeartRate: heartRate)
+            return record
+        }
+        let undated = ActivityRecord(activityId: 99, typeKey: "running", vo2max: 70, samplesData: samples(secondHalfHeartRate: 300))
+
+        let report = try build(records + [undated])
+
+        let values = heartRates.compactMap { heartRate in
+            decoupling(try! JSONDecoder().decode([FITSample].self, from: samples(secondHalfHeartRate: heartRate)))
+        }.sorted()
+        let durability = try #require(report.durability)
+        #expect(abs(durability.value - values[1]) < 1e-9)
+        #expect(durability.day == today.adding(days: -1))
+        #expect(report.vo2max == nil)
     }
 }

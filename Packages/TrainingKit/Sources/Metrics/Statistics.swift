@@ -3,7 +3,7 @@ func mean(_ values: [Double]) -> Double? {
     return values.reduce(0, +) / Double(values.count)
 }
 
-func median(_ values: [Double]) -> Double? {
+public func median(_ values: [Double]) -> Double? {
     guard !values.isEmpty else { return nil }
     let sorted = values.sorted()
     let middle = sorted.count / 2

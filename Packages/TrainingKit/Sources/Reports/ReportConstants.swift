@@ -8,4 +8,6 @@ enum ReportConstants {
     ]
     static let split5kMeters = 5_000.0
     static let split1kMeters = 1_000.0
+    static let durabilityRuns = 4
+    static let hillStrengthDays = 28
 }
