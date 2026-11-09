@@ -4,6 +4,7 @@ struct RootView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var section = AppSection.initial()
     @State private var sidebarSelection: AppSection? = AppSection.initial()
+    @State private var todayPath: [TodayRoute] = []
 
     var body: some View {
         Group {
@@ -17,6 +18,9 @@ struct RootView: View {
             guard let target = AppSection(url: url) else { return }
             section = target
             sidebarSelection = target
+            if target == .today {
+                todayPath = url.path() == AppConstants.readinessDeepLinkPath ? [.readiness] : []
+            }
         }
     }
 
@@ -36,14 +40,17 @@ struct RootView: View {
                 Label(item.title, systemImage: item.systemImage).tag(item)
             }
             .navigationTitle("trAIning")
+            .safeAreaInset(edge: .bottom) { SidebarRaceCard() }
         } detail: {
-            screen(for: sidebarSelection ?? .workouts)
+            screen(for: sidebarSelection ?? .today)
         }
     }
 
     @ViewBuilder
     private func screen(for item: AppSection) -> some View {
         switch item {
+        case .today: TodayView(path: $todayPath)
+        case .evolution, .races: PlaceholderSectionView(section: item)
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }

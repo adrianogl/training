@@ -29,6 +29,7 @@ targets:
           - WorkoutAnalysis
           - Narrative
           - Reports
+          - Insights
     settings:
       base:
         PRODUCT_NAME: trAIning

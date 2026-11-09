@@ -1,0 +1,30 @@
+import SwiftUI
+
+struct LastRunCard: View {
+    let lastRun: LastRunSummary
+
+    var body: some View {
+        NavigationLink(value: TodayRoute.workout(lastRun.activityId)) {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionLabel("\(TodayConstants.lastRunTitle) · \(lastRun.dateText)")
+                    .padding(.top, 0)
+                Text(lastRun.title)
+                    .font(.headline)
+                    .foregroundStyle(BrandColors.text)
+                    .padding(.bottom, 8)
+                    .padding(.horizontal, 2)
+                if !lastRun.rows.isEmpty {
+                    ComparisonSection(
+                        title: lastRun.comparisonTitle,
+                        rows: lastRun.rows,
+                        evolution: lastRun.evolution,
+                        evolutionOnDevice: lastRun.evolutionOnDevice,
+                        notice: lastRun.notice,
+                        showsTarget: lastRun.showsTarget
+                    )
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}

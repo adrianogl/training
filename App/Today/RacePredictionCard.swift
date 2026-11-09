@@ -1,0 +1,114 @@
+import Charts
+import SwiftUI
+import WorkoutAnalysis
+
+struct RacePredictionCard: View {
+    let model: TodayModel
+
+    var body: some View {
+        let race = model.summary.race
+        VStack(alignment: .leading, spacing: 10) {
+            header
+            if race.today == nil {
+                Text(TodayConstants.predictionEmpty)
+                    .font(.subheadline)
+                    .foregroundStyle(BrandColors.dim)
+            } else {
+                HStack(alignment: .top) {
+                    time(TodayConstants.predictionToday, race.today, BrandColors.text)
+                    if model.raceDay != nil {
+                        time(TodayConstants.predictionRaceDay, race.raceDay?.mid, BrandColors.accent)
+                    }
+                }
+                if let support = supportLine {
+                    Text(support).font(.caption).foregroundStyle(BrandColors.dim)
+                }
+                chart
+                if let sentence = model.goalSentence {
+                    Text(sentence)
+                        .font(.footnote)
+                        .foregroundStyle(BrandColors.text)
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(BrandColors.raceGlow, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+        }
+        .glassCard()
+    }
+
+    private var header: some View {
+        HStack(spacing: 6) {
+            SectionLabel("\(TodayConstants.predictionTitle) · \(model.raceTitle)")
+                .padding(.top, 0)
+                .padding(.bottom, 0)
+            if let countdown = model.countdownText {
+                Text("· \(countdown)")
+                    .font(.caption.weight(.medium))
+                    .tracking(1)
+                    .textCase(.uppercase)
+                    .foregroundStyle(BrandColors.race)
+            }
+        }
+    }
+
+    private var supportLine: String? {
+        let race = model.summary.race
+        var parts: [String] = []
+        if let point = race.raceDay {
+            parts.append("\(TodayConstants.predictionBandPrefix) \(WorkoutFormat.clock(point.low))–\(WorkoutFormat.clock(point.high))")
+        }
+        if let yearAgo = race.yearAgo {
+            parts.append("\(TodayConstants.predictionYearAgoPrefix): \(WorkoutFormat.clock(yearAgo))")
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private var chart: some View {
+        let race = model.summary.race
+        return Chart {
+            ForEach(model.predictionBand) { point in
+                AreaMark(x: .value("Dia", point.date), yStart: .value("Mínimo", point.low), yEnd: .value("Máximo", point.high))
+                    .foregroundStyle(BrandColors.accent.opacity(0.14))
+            }
+            ForEach(model.predictionLines) { line in
+                ForEach(line.points) { point in
+                    LineMark(x: .value("Dia", point.date), y: .value("Previsão", point.value), series: .value("Série", line.name))
+                        .foregroundStyle(line.colorKey == .prediction ? BrandColors.text : BrandColors.accent)
+                        .lineStyle(StrokeStyle(lineWidth: 2, dash: line.dashed ? [5, 4] : []))
+                }
+            }
+            if let goal = race.goalSeconds {
+                RuleMark(y: .value("Meta", goal))
+                    .foregroundStyle(BrandColors.race)
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                    .annotation(position: .top, alignment: .leading) {
+                        Text("\(TodayConstants.goalPrefix) \(TodayText.goalClock(goal))")
+                            .font(.caption2)
+                            .foregroundStyle(BrandColors.race)
+                    }
+            }
+            if let raceDay = model.raceDay {
+                RuleMark(x: .value("Prova", raceDay.chartDate))
+                    .foregroundStyle(BrandColors.rest.opacity(0.5))
+                if let point = race.raceDay {
+                    PointMark(x: .value("Prova", raceDay.chartDate), y: .value("Previsão", point.mid))
+                        .foregroundStyle(BrandColors.accent)
+                        .symbolSize(60)
+                }
+            }
+        }
+        .chartYScale(domain: .automatic(includesZero: false, reversed: true))
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: TodayConstants.predictionChartHeight)
+    }
+
+    private func time(_ label: String, _ seconds: Double?, _ color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(label).font(.caption).foregroundStyle(color == BrandColors.text ? BrandColors.dim : color)
+            Text(seconds.map(WorkoutFormat.clock) ?? "—").font(BrandFonts.number(30)).foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
