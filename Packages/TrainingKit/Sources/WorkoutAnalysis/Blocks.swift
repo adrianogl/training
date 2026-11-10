@@ -201,7 +201,7 @@ private func weightedHeartRate(_ laps: [LapSummary]) -> Int? {
     return Int((weighted / totalSeconds).rounded())
 }
 
-private func zone(of heartRate: Int, zones: HeartRateZones?) -> Int? {
+func zone(of heartRate: Int, zones: HeartRateZones?) -> Int? {
     guard let floors = zones?.floors else { return nil }
     let zone = floors.filter { $0 <= heartRate }.count
     return zone > 0 ? zone : nil
@@ -226,7 +226,11 @@ private func status(
     default:
         break
     }
-    switch prescribed.target {
+    return targetStatus(prescribed.target, avgSpeed: avgSpeed, avgHeartRate: avgHeartRate, zones: zones)
+}
+
+func targetStatus(_ target: StepTarget, avgSpeed: Double?, avgHeartRate: Int?, zones: HeartRateZones?) -> BlockStatus {
+    switch target {
     case .open:
         return .noTarget
     case let .speed(low, high):

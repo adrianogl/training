@@ -8,6 +8,12 @@ enum AnalysisConstants {
     static let activeLabel = "Bloco"
     static let recoveryLabel = "Recuperação"
     static let freeRunLabel = "Volta"
+    static let kilometerLabel = "Km"
+    static let kilometerSplitDistance = 1_000.0
+    static let minimumPartialSplit = 100.0
+    static let pauseGapSeconds = 10.0
+    static let splitBlockMinimumDistance = 3_000.0
+    static let splitBlockMinimumSeconds = 900.0
 
     static let fullLapMinimumDistance = 500.0
     static let minimumFullLaps = 3

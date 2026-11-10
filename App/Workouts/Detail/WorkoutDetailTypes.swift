@@ -39,6 +39,11 @@ struct BlockBar: Equatable {
     let valueText: String?
 }
 
+struct ScaledBars: Equatable {
+    let blocks: [BlockBar]
+    let kilometers: [Int: [BlockBar]]
+}
+
 struct ZoneBand: Equatable {
     let zone: Int
     let low: Double

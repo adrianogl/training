@@ -13,6 +13,8 @@ import WorkoutAnalysis
     private(set) var structureMissing = false
     private(set) var blocks: [WorkoutBlock] = []
     private(set) var bars: [BlockBar] = []
+    private(set) var kilometers: BlockKilometers = [:]
+    private(set) var kilometerBars: [Int: [BlockBar]] = [:]
     private(set) var assessment = WorkoutAssessment(positives: [], negatives: [], attention: [])
     private(set) var comparison: WorkoutComparison?
     private(set) var comparisonRows: [ComparisonRow] = []
@@ -42,7 +44,10 @@ import WorkoutAnalysis
         guard isRun else { return }
         structureMissing = analysis.structureMissing
         blocks = analysis.blocks
-        bars = BlockBarScale.bars(blocks, zones: analysis.zones)
+        kilometers = analysis.kilometers
+        let scaled = BlockBarScale.bars(blocks, kilometers: kilometers, zones: analysis.zones)
+        bars = scaled.blocks
+        kilometerBars = scaled.kilometers
         let samples = WorkoutAnalysisContext.samples(record)
         route = ChartData.routePoints(Self.route(record))
         let fullHeartRate = ChartData.heartRateSeries(samples)

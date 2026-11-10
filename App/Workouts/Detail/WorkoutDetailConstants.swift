@@ -3,9 +3,6 @@ import Foundation
 
 enum WorkoutDetailConstants {
     static let defaultZonesSport = "DEFAULT"
-    static let kmSplitDistance = 1_000.0
-    static let minimumPartialSplit = 100.0
-    static let kmLabel = "Km"
     static let similarDistanceTolerance = 0.2
     static let similarRunWindowDays = 90.0
     static let secondsPerDay = 86_400.0
@@ -20,6 +17,7 @@ enum WorkoutDetailConstants {
         "Recuperação": "Recup.",
     ]
     static let labelColumnWidth: CGFloat = 76
+    static let kilometerIndent: CGFloat = 14
     static let valueColumnWidth: CGFloat = 52
     static let dotColumnWidth: CGFloat = 14
     static let barHeight: CGFloat = 8

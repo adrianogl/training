@@ -2,13 +2,13 @@ import FITReader
 
 public func assess(_ blocks: [WorkoutBlock], context: AssessmentContext) -> WorkoutAssessment {
     let findings = blockInTarget(blocks)
-        + steadyPace(blocks)
+        + steadyPace(blocks, kilometers: context.kilometers)
         + lowerHeartRateThanBefore(blocks, previous: context.previous)
         + goodRecovery(blocks)
         + blockOffTarget(blocks)
         + stepIncomplete(blocks)
-        + paceFade(blocks)
-        + cardiacDrift(blocks)
+        + paceFade(blocks, kilometers: context.kilometers)
+        + cardiacDrift(blocks, kilometers: context.kilometers)
         + zoneAboveTarget(blocks)
         + hardOnLowReadiness(blocks, readiness: context.readinessScore)
         + highAcuteChronic(context.acuteChronic)
@@ -29,8 +29,8 @@ private func blockInTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
     ])]
 }
 
-private func steadyPace(_ blocks: [WorkoutBlock]) -> [Finding] {
-    eligibleForLapRules(blocks).compactMap { position, laps in
+private func steadyPace(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
+    eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let paces = laps.map(pace)
         guard let fastest = paces.min(), let slowest = paces.max() else { return nil }
         let spread = slowest - fastest
@@ -39,8 +39,8 @@ private func steadyPace(_ blocks: [WorkoutBlock]) -> [Finding] {
     }
 }
 
-private func paceFade(_ blocks: [WorkoutBlock]) -> [Finding] {
-    eligibleForLapRules(blocks).compactMap { position, laps in
+private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
+    eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let paces = laps.map(pace)
         guard let last = paces.last else { return nil }
         let fade = last - median(paces)
@@ -49,8 +49,8 @@ private func paceFade(_ blocks: [WorkoutBlock]) -> [Finding] {
     }
 }
 
-private func cardiacDrift(_ blocks: [WorkoutBlock]) -> [Finding] {
-    eligibleForLapRules(blocks).compactMap { position, laps in
+private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
+    eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let third = max(1, laps.count / 3)
         let first = Array(laps.prefix(third))
         let final = Array(laps.suffix(third))
@@ -150,10 +150,11 @@ private func hasTarget(_ block: WorkoutBlock) -> Bool {
     return target != .open
 }
 
-private func eligibleForLapRules(_ blocks: [WorkoutBlock]) -> [(position: Int, laps: [LapSummary])] {
+private func eligibleForLapRules(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [(position: Int, laps: [LapSummary])] {
     blocks.enumerated().compactMap { position, block in
         guard block.kind == .active else { return nil }
-        let full = block.laps.filter { $0.distance >= AnalysisConstants.fullLapMinimumDistance && lapSpeed($0) > 0 }
+        let laps = kilometers[position]?.flatMap(\.laps) ?? block.laps
+        let full = laps.filter { $0.distance >= AnalysisConstants.fullLapMinimumDistance && lapSpeed($0) > 0 }
         return full.count >= AnalysisConstants.minimumFullLaps ? (position, full) : nil
     }
 }

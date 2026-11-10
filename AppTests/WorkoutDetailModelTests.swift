@@ -45,6 +45,27 @@ import WorkoutAnalysis
         #expect(model.blocks.allSatisfy { $0.status == .noTarget && $0.prescribed == nil })
     }
 
+    @Test func continuousBlockOpensInKilometers() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(F.run(
+            id: 1, meters: 8_000, workoutName: "Rodagem contínua",
+            structure: F.continuousStructure(activeKilometers: 6),
+            samples: F.samples(kilometers: 8, secondsPerKm: 300)
+        ))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        #expect(model.blocks.map(\.label) == ["Aquecimento", "Bloco 1", "Desaquecimento"])
+        #expect(Array(model.kilometers.keys) == [1])
+        #expect(model.kilometers[1]?.map(\.label) == ["Km 1", "Km 2", "Km 3", "Km 4", "Km 5", "Km 6"])
+        #expect(model.kilometers[1]?.allSatisfy { $0.status == .inTarget } == true)
+        #expect(model.kilometerBars[1]?.count == 6)
+        #expect(model.bars.count == 3)
+        #expect(model.assessment.positives.contains { $0.kind == .steadyPace && $0.blockOrdinal == 1 })
+    }
+
     @Test func comparisonUsesSameWorkoutName() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext

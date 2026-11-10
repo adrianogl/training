@@ -202,7 +202,7 @@ import WorkoutAnalysis
         let planned = race.frozenTargetSeconds.map {
             paceStrategy(goalSeconds: $0, distance: race.distance, profile: race.gpxData.flatMap { try? gpxProfile($0) }, manual: race.manualPaces)
         } ?? []
-        return KmSplits.blocks(samples, zones: nil).enumerated().compactMap { index, block in
+        return kilometerSplits(samples, zones: nil).enumerated().compactMap { index, block in
             guard block.distance > 0 else { return nil }
             return RaceSplit(
                 index: index,

@@ -5,6 +5,8 @@ import WorkoutAnalysis
 struct BlocksSection: View {
     let blocks: [WorkoutBlock]
     let bars: [BlockBar]
+    let kilometers: [Int: [WorkoutBlock]]
+    let kilometerBars: [Int: [BlockBar]]
     let showsTarget: Bool
     @State private var expanded: Set<Int> = []
 
@@ -12,6 +14,11 @@ struct BlocksSection: View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(blocks.enumerated()), id: \.offset) { position, block in
                 row(position: position, block: block)
+                ForEach(Array((kilometers[position] ?? []).enumerated()), id: \.offset) { index, kilometer in
+                    let rowBars = kilometerBars[position] ?? []
+                    line(kilometer, bar: rowBars.indices.contains(index) ? rowBars[index] : nil, indent: WorkoutDetailConstants.kilometerIndent)
+                        .padding(.vertical, 5)
+                }
                 if position < blocks.count - 1 {
                     Divider().overlay(BrandColors.line)
                 }
@@ -27,25 +34,7 @@ struct BlocksSection: View {
         let bar = bars.indices.contains(position) ? bars[position] : nil
         let canExpand = block.laps.count > 1 || (showsTarget && block.prescribed != nil)
         return VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Text(shortLabel(block.label))
-                    .font(.footnote)
-                    .foregroundStyle(BrandColors.dim)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .frame(width: WorkoutDetailConstants.labelColumnWidth, alignment: .leading)
-                BlockBarView(bar: bar, color: BrandColors.zone(block.dominantZone))
-                Text(bar?.valueText ?? "—")
-                    .font(BrandFonts.number(15))
-                    .foregroundStyle(BrandColors.text)
-                    .frame(width: WorkoutDetailConstants.valueColumnWidth, alignment: .trailing)
-                if showsTarget {
-                    Circle()
-                        .fill(statusColor(block.status))
-                        .frame(width: 8, height: 8)
-                        .frame(width: WorkoutDetailConstants.dotColumnWidth)
-                }
-            }
+            line(block, bar: bar, indent: 0)
             if expanded.contains(position) {
                 details(block)
             }
@@ -61,6 +50,29 @@ struct BlocksSection: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(canExpand ? .isButton : [])
+    }
+
+    private func line(_ block: WorkoutBlock, bar: BlockBar?, indent: CGFloat) -> some View {
+        HStack(spacing: 8) {
+            Text(shortLabel(block.label))
+                .font(indent > 0 ? .caption : .footnote)
+                .foregroundStyle(BrandColors.dim)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.leading, indent)
+                .frame(width: WorkoutDetailConstants.labelColumnWidth, alignment: .leading)
+            BlockBarView(bar: bar, color: BrandColors.zone(block.dominantZone))
+            Text(bar?.valueText ?? "—")
+                .font(BrandFonts.number(indent > 0 ? 14 : 15))
+                .foregroundStyle(indent > 0 ? BrandColors.dim : BrandColors.text)
+                .frame(width: WorkoutDetailConstants.valueColumnWidth, alignment: .trailing)
+            if showsTarget {
+                Circle()
+                    .fill(statusColor(block.status))
+                    .frame(width: 8, height: 8)
+                    .frame(width: WorkoutDetailConstants.dotColumnWidth)
+            }
+        }
     }
 
     private func details(_ block: WorkoutBlock) -> some View {

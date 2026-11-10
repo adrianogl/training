@@ -13,6 +13,7 @@ struct WorkoutAnalysisContext {
     var structureMissing = false
     var zones: HeartRateZones?
     var blocks: [WorkoutBlock] = []
+    var kilometers: BlockKilometers = [:]
     var assessment = WorkoutAssessment(positives: [], negatives: [], attention: [])
     var comparison: WorkoutComparison?
     var comparisonRows: [ComparisonRow] = []
@@ -43,6 +44,9 @@ struct WorkoutAnalysisContext {
         analysis.zones = zones
         let blocks = blocks(record, structure: structure, zones: zones)
         analysis.blocks = blocks
+        if analysis.hasPrescription {
+            analysis.kilometers = kilometerSplits(of: blocks, samples: samples(record), zones: zones)
+        }
 
         let previous = previous(of: record, in: records)
             .prefix(WorkoutDetailConstants.maxComparisons)
@@ -51,7 +55,8 @@ struct WorkoutAnalysisContext {
         analysis.assessment = assess(blocks, context: AssessmentContext(
             readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
             acuteChronic: record.localDay.flatMap(Day.init(iso:)).flatMap { acuteChronicRatio(dailyLoad: inputs.dailyLoad, on: $0) },
-            previous: previous.map(\.blocks)
+            previous: previous.map(\.blocks),
+            kilometers: analysis.kilometers
         ))
         let current = WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
         guard let comparison = compare(current: current, previous: previous) else { return analysis }
@@ -84,7 +89,7 @@ struct WorkoutAnalysisContext {
     }
 
     private static func blocks(_ record: ActivityRecord, structure: WorkoutStructure?, zones: HeartRateZones?) -> [WorkoutBlock] {
-        guard let structure else { return KmSplits.blocks(samples(record), zones: zones) }
+        guard let structure else { return kilometerSplits(samples(record), zones: zones) }
         return buildBlocks(structure, zones: zones)
     }
 

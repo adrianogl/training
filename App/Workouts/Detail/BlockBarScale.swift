@@ -24,6 +24,20 @@ enum BlockBarScale {
         }
     }
 
+    static func bars(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, zones: HeartRateZones?) -> ScaledBars {
+        let positions = kilometers.keys.sorted()
+        var remaining = bars(blocks + positions.flatMap { kilometers[$0] ?? [] }, zones: zones)[...]
+        let blockBars = Array(remaining.prefix(blocks.count))
+        remaining = remaining.dropFirst(blocks.count)
+        var kilometerBars: [Int: [BlockBar]] = [:]
+        for position in positions {
+            let count = kilometers[position]?.count ?? 0
+            kilometerBars[position] = Array(remaining.prefix(count))
+            remaining = remaining.dropFirst(count)
+        }
+        return ScaledBars(blocks: blockBars, kilometers: kilometerBars)
+    }
+
     private static func metric(_ block: WorkoutBlock) -> BlockMetric {
         switch block.prescribed?.target {
         case .heartRateBpm, .heartRatePercentMax, .heartRateZone: .heartRate

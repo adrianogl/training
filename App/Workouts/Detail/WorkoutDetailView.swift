@@ -73,7 +73,7 @@ struct WorkoutDetailView: View {
         if !model.blocks.isEmpty {
             SectionLabel(model.hasPrescription ? "Blocos × prescrito" : "Parciais")
                 .id(WorkoutDetailSection.blocks)
-            BlocksSection(blocks: model.blocks, bars: model.bars, showsTarget: model.hasPrescription)
+            BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription)
         }
         if !model.route.isEmpty {
             SectionLabel("Percurso")

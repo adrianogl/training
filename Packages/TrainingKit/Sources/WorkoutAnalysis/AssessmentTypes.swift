@@ -61,10 +61,12 @@ public struct AssessmentContext: Sendable {
     public var readinessScore: Int?
     public var acuteChronic: Double?
     public var previous: [[WorkoutBlock]]
+    public var kilometers: BlockKilometers
 
-    public init(readinessScore: Int? = nil, acuteChronic: Double? = nil, previous: [[WorkoutBlock]] = []) {
+    public init(readinessScore: Int? = nil, acuteChronic: Double? = nil, previous: [[WorkoutBlock]] = [], kilometers: BlockKilometers = [:]) {
         self.readinessScore = readinessScore
         self.acuteChronic = acuteChronic
         self.previous = previous
+        self.kilometers = kilometers
     }
 }

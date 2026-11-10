@@ -61,6 +61,14 @@ public struct WorkoutBlock: Codable, Sendable, Equatable {
     }
 }
 
+public typealias BlockKilometers = [Int: [WorkoutBlock]]
+
+struct TrackPoint {
+    var t: Double
+    var distance: Double
+    var heartRate: Int?
+}
+
 struct ExpectedStep {
     var step: PrescribedStep
     var insideRepeat: Bool
