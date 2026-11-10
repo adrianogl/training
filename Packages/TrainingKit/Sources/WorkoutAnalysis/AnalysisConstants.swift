@@ -12,6 +12,7 @@ enum AnalysisConstants {
     static let kilometerSplitDistance = 1_000.0
     static let minimumPartialSplit = 100.0
     static let pauseGapSeconds = 10.0
+    static let pauseMaximumSpeed = 0.5
     static let splitBlockMinimumDistance = 3_000.0
     static let splitBlockMinimumSeconds = 900.0
 

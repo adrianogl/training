@@ -41,6 +41,7 @@ private func split(_ points: [TrackPoint], start: Double, kind: BlockKind, presc
     var startTime = start
     var startDistance = first.distance
     var previousTime = start
+    var previousDistance = first.distance
     var seconds = 0.0
     var heartRates: [Int] = []
     func close(at point: TrackPoint) {
@@ -57,8 +58,9 @@ private func split(_ points: [TrackPoint], start: Double, kind: BlockKind, presc
     }
     for point in points {
         let interval = point.t - previousTime
-        if interval <= AnalysisConstants.pauseGapSeconds { seconds += max(0, interval) }
+        if !isPause(interval: interval, distance: point.distance - previousDistance) { seconds += max(0, interval) }
         previousTime = point.t
+        previousDistance = point.distance
         if let heartRate = point.heartRate { heartRates.append(heartRate) }
         guard point.distance - startDistance >= AnalysisConstants.kilometerSplitDistance else { continue }
         close(at: point)
@@ -71,6 +73,10 @@ private func split(_ points: [TrackPoint], start: Double, kind: BlockKind, presc
         close(at: last)
     }
     return rows
+}
+
+private func isPause(interval: Double, distance: Double) -> Bool {
+    interval > AnalysisConstants.pauseGapSeconds && distance < interval * AnalysisConstants.pauseMaximumSpeed
 }
 
 private func kilometer(

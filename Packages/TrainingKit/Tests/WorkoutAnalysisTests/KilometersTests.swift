@@ -172,3 +172,50 @@ private let zones = HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRa
     #expect(rows.map(\.status) == [.inTarget, .inTarget, .inTarget])
     #expect(kilometerSplits(samples, zones: nil).allSatisfy { abs($0.seconds - 300) < 6 })
 }
+
+@Test func longGapWithDistanceAdvancingKeepsTime() {
+    let (structure, continuousSamples) = continuous(kilometers([300, 300, 300]), target: .speed(low: 1_000 / 305, high: 1_000 / 295))
+    let gapped = continuousSamples.filter { $0.t <= 400 || $0.t >= 420 }
+    let blocks = buildBlocks(structure, zones: zones)
+
+    let rows = try! #require(kilometerSplits(of: blocks, samples: gapped, zones: zones)[0])
+    let reference = try! #require(kilometerSplits(of: blocks, samples: continuousSamples, zones: zones)[0])
+
+    #expect(rows.map(\.seconds) == reference.map(\.seconds))
+    #expect(rows.map(\.status) == [.inTarget, .inTarget, .inTarget])
+    #expect(kilometerSplits(gapped, zones: nil).map(\.seconds) == kilometerSplits(continuousSamples, zones: nil).map(\.seconds))
+}
+
+@Test func blocksAreChronologicalForKilometerWindow() {
+    let prescription = WorkoutPrescription(steps: [
+        PrescribedStep(index: 0, intensity: .warmup, duration: .time(seconds: 900), target: .open),
+        PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 1_000), target: .speed(low: 4.0, high: 4.4)),
+        PrescribedStep(index: 2, intensity: .recovery, duration: .time(seconds: 120), target: .open),
+        PrescribedStep(index: 3, intensity: .active, duration: .repeatSteps(fromIndex: 1, count: 3), target: .open),
+        PrescribedStep(index: 4, intensity: .active, duration: .distance(meters: 5_000), target: .open),
+        PrescribedStep(index: 5, intensity: .cooldown, duration: .time(seconds: 600), target: .open),
+    ])
+    var laps: [LapSummary] = []
+    var offset = 0.0
+    func add(_ step: Int, _ intensity: StepIntensity, _ segments: [Segment]) {
+        laps.append(lap(step: step, intensity: intensity, start: offset, segments: segments))
+        offset += segments.reduce(0) { $0 + $1.seconds } + 30
+    }
+    add(0, .warmup, [Segment(seconds: 900, meters: 2_700)])
+    add(1, .active, [Segment(seconds: 240, meters: 1_000)])
+    add(2, .recovery, [Segment(seconds: 120, meters: 300)])
+    add(1, .active, [Segment(seconds: 240, meters: 1_000)])
+    for _ in 0..<5 { add(4, .active, kilometers([300])) }
+    add(5, .cooldown, [Segment(seconds: 600, meters: 1_800)])
+
+    let blocks = buildBlocks(WorkoutStructure(prescription: prescription, laps: laps), zones: nil)
+    let executed = blocks.filter { !$0.laps.isEmpty }
+
+    #expect(executed.flatMap(\.laps) == laps)
+    for (current, next) in zip(executed, executed.dropFirst()) {
+        let lastLap = try! #require(current.laps.last)
+        let nextStart = try! #require(next.laps.first?.startOffset)
+        #expect(lastLap.startOffset + lastLap.timerSeconds <= nextStart)
+    }
+    #expect(blocks.contains { $0.laps.isEmpty && $0.status == .notExecuted })
+}
