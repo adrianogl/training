@@ -39,4 +39,25 @@ import Testing
         #expect(WorkoutListModel.rows(filter: .strength, records: records).map(\.activityId) == [2])
         #expect(WorkoutListModel.rows(filter: .all, records: records).count == 3)
     }
+
+    @Test func listShowsScoreOnlyForRuns() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let run = WorkoutDetailFixtures.run(id: 1, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: WorkoutDetailFixtures.intervalStructure())
+        context.insert(run)
+        context.insert(ActivityRecord(
+            activityId: 2, typeKey: "strength_training", name: "Força",
+            start: WorkoutDetailFixtures.base, duration: 2_400
+        ))
+        try context.save()
+        let records = try context.fetch(FetchDescriptor<ActivityRecord>())
+        let inputs = WorkoutAnalysisContext.inputs(records: records, in: context)
+
+        let scores = WorkoutListModel.scores(records: records, inputs: inputs)
+        let rows = WorkoutListModel.rows(filter: .all, records: records, scores: scores)
+
+        #expect(scores.keys.sorted() == [1])
+        #expect(rows.first { $0.activityId == 1 }?.score != nil)
+        #expect(rows.first { $0.activityId == 2 }?.score == nil)
+    }
 }

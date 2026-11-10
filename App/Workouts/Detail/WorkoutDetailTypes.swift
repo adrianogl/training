@@ -63,6 +63,18 @@ struct WorkoutReading: Equatable {
     let evolutionOnDevice: Bool
 }
 
+struct ScoreRowData: Identifiable, Equatable {
+    let part: ScorePart
+    let name: String
+    let points: Double
+    let maximum: Double
+    let pointsText: String?
+    let reasonText: String?
+
+    var id: ScorePart { part }
+    var isIncluded: Bool { maximum > 0 }
+}
+
 struct WorkoutAnalysisInputs {
     let zones: HeartRateZones?
     let dailyLoad: [Day: Double]

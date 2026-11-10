@@ -18,6 +18,9 @@ struct WorkoutRow: View {
                 }
             }
             Spacer(minLength: 8)
+            if let score = row.score {
+                ScoreBadge(value: score, size: ScoreConstants.rowBadgeSize)
+            }
             VStack(alignment: .trailing, spacing: 2) {
                 if let distance = row.distanceText {
                     Text(distance)

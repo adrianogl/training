@@ -5,11 +5,13 @@ import SwiftUI
 struct WorkoutListView: View {
     @Environment(AppModel.self) private var model
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
+    @Environment(\.modelContext) private var modelContext
     @State private var filter: WorkoutFilter = .all
+    @State private var scores: [Int64: Int] = [:]
     @State private var path: [Int64] = WorkoutListView.initialPath()
 
     var body: some View {
-        let rows = WorkoutListModel.rows(filter: filter, records: records)
+        let rows = WorkoutListModel.rows(filter: filter, records: records, scores: scores)
         NavigationStack(path: $path) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 10) {
@@ -46,6 +48,12 @@ struct WorkoutListView: View {
             }
             .background(BrandBackground())
             .refreshable { await model.syncNow(.launch) }
+            .task(id: records.count) {
+                let container = modelContext.container
+                scores = await Task.detached(priority: .utility) {
+                    WorkoutListModel.loadScores(container: container)
+                }.value
+            }
             .navigationDestination(for: Int64.self) { activityId in
                 WorkoutDetailView(activityId: activityId)
             }

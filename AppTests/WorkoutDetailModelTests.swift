@@ -170,4 +170,37 @@ import WorkoutAnalysis
         #expect(WorkoutAnalysisContext.zones(from: complete) == HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRate: 190))
         #expect(WorkoutAnalysisContext.zones(from: gap) == nil)
     }
+
+    @Test func detailShowsScoreForInterval() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let name = "Tiros 3 x 1 km"
+        context.insert(HeartRateZonesRecord(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175, maxHeartRate: 190))
+        context.insert(F.run(id: 1, meters: 5_900, workoutName: name, structure: F.intervalStructure()))
+        context.insert(F.run(id: 2, daysAgo: 7, meters: 5_900, workoutName: name, structure: F.intervalStructure()))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        let score = try #require(model.score)
+        #expect(score.value > 0)
+        #expect(model.scoreRows.map(\.part) == [.execution, .intent, .cost])
+        #expect(model.scoreRows.map(\.maximum) == [50, 25, 25])
+        #expect(model.scoreRows[0].pointsText == "50/50")
+    }
+
+    @Test func freeRunScoreHasOnlyCost() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(HeartRateZonesRecord(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175, maxHeartRate: 190))
+        context.insert(F.run(id: 1, meters: 5_000, structure: F.freeStructure(kilometers: 5)))
+        context.insert(F.run(id: 2, daysAgo: 7, meters: 5_000, structure: F.freeStructure(kilometers: 5, secondsPerKm: 340)))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+
+        #expect(model.score != nil)
+        #expect(model.scoreRows.map(\.part) == [.cost])
+        #expect(model.scoreRows[0].maximum == 25)
+    }
 }

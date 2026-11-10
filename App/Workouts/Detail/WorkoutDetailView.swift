@@ -59,6 +59,15 @@ struct WorkoutDetailView: View {
         if model.structureMissing {
             notice
         }
+        if let score = model.score, !model.scoreRows.isEmpty {
+            SectionLabel(ScoreConstants.breakdownTitle)
+            HStack(alignment: .top) {
+                ScoreBadge(value: score.value)
+                Spacer()
+            }
+            .padding(.bottom, 8)
+            ScoreBreakdownView(rows: model.scoreRows)
+        }
         SectionLabel("Leitura")
         FindingsSection(assessment: model.assessment, reading: model.reading)
         if !model.blocks.isEmpty {

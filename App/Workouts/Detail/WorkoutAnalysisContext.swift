@@ -18,6 +18,7 @@ struct WorkoutAnalysisContext {
     var comparisonRows: [ComparisonRow] = []
     var comparisonNotice: String?
     var evolution: EvolutionFacts?
+    var score: WorkoutScore?
 
     nonisolated static func build(record: ActivityRecord, records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisContext {
         build(record: record, records: records, inputs: inputs(records: records, in: context))
@@ -46,6 +47,7 @@ struct WorkoutAnalysisContext {
         let previous = previous(of: record, in: records)
             .prefix(WorkoutDetailConstants.maxComparisons)
             .compactMap { occurrence($0, zones: zones) }
+        analysis.score = scoreWorkout(blocks: blocks, zones: zones, previous: previous)
         analysis.assessment = assess(blocks, context: AssessmentContext(
             readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
             acuteChronic: record.localDay.flatMap(Day.init(iso:)).flatMap { acuteChronicRatio(dailyLoad: inputs.dailyLoad, on: $0) },

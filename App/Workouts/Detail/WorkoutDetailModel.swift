@@ -27,6 +27,8 @@ import WorkoutAnalysis
     private(set) var activeSpans: [BlockSpan] = []
     private(set) var zoneShares: [ZoneShare] = []
     private(set) var shareInput: WorkoutShareInput?
+    private(set) var score: WorkoutScore?
+    private(set) var scoreRows: [ScoreRowData] = []
 
     init(activityId: Int64, context: ModelContext) {
         self.activityId = activityId
@@ -49,6 +51,8 @@ import WorkoutAnalysis
         zoneBands = ChartData.zoneBands(analysis.zones, ceiling: Double(fullHeartRate.map { $0.bpm }.max() ?? 0))
         activeSpans = hasPrescription ? ChartData.activeSpans(blocks) : []
 
+        score = analysis.score
+        scoreRows = analysis.score.map(ScoreRows.rows) ?? []
         assessment = analysis.assessment
         comparison = analysis.comparison
         comparisonRows = analysis.comparisonRows

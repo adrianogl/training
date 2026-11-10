@@ -8,6 +8,7 @@ struct WorkoutRowData: Identifiable, Hashable {
     let durationText: String?
     let paceText: String?
     let hasPrescription: Bool
+    var score: Int?
 
     var id: Int64 { activityId }
 }

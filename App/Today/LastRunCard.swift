@@ -8,11 +8,17 @@ struct LastRunCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 SectionLabel("\(TodayConstants.lastRunTitle) · \(lastRun.dateText)")
                     .padding(.top, 0)
-                Text(lastRun.title)
-                    .font(.headline)
-                    .foregroundStyle(BrandColors.text)
-                    .padding(.bottom, 8)
-                    .padding(.horizontal, 2)
+                HStack(alignment: .center) {
+                    Text(lastRun.title)
+                        .font(.headline)
+                        .foregroundStyle(BrandColors.text)
+                    Spacer()
+                    if let score = lastRun.score {
+                        ScoreBadge(value: score, size: ScoreConstants.cardBadgeSize)
+                    }
+                }
+                .padding(.bottom, 8)
+                .padding(.horizontal, 2)
                 if !lastRun.rows.isEmpty {
                     ComparisonSection(
                         title: lastRun.comparisonTitle,

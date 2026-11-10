@@ -18,6 +18,7 @@ struct LastRunSummary: Equatable, Sendable {
     let evolutionOnDevice: Bool
     let notice: String?
     let showsTarget: Bool
+    let score: Int?
 }
 
 struct ReadinessDay: Equatable, Sendable {

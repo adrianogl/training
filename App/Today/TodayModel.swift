@@ -157,7 +157,8 @@ import WorkoutAnalysis
         guard analysis.comparison != nil, !analysis.comparisonRows.isEmpty else {
             return LastRunSummary(
                 activityId: id, title: title, dateText: dateText,
-                comparisonTitle: "", rows: [], evolution: nil, evolutionOnDevice: false, notice: nil, showsTarget: false
+                comparisonTitle: "", rows: [], evolution: nil, evolutionOnDevice: false, notice: nil, showsTarget: false,
+                score: analysis.score?.value
             )
         }
         let reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
@@ -170,7 +171,8 @@ import WorkoutAnalysis
             evolution: reading.evolution,
             evolutionOnDevice: reading.evolutionOnDevice,
             notice: analysis.comparisonNotice,
-            showsTarget: analysis.hasPrescription
+            showsTarget: analysis.hasPrescription,
+            score: analysis.score?.value
         )
     }
 
