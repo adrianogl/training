@@ -51,7 +51,7 @@ struct RootView: View {
         switch item {
         case .today: TodayView(path: $todayPath)
         case .evolution: EvolutionView()
-        case .races: PlaceholderSectionView(section: item)
+        case .races: RaceListView()
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }

@@ -88,6 +88,5 @@ enum TodayConstants {
         .load: "Carga da semana",
     ]
 
-    static let comingSoon = "Em breve"
     static let sidebarRaceTitle = "Prova-alvo"
 }

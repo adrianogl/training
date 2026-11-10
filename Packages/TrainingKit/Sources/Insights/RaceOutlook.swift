@@ -1,3 +1,4 @@
+import Foundation
 import Metrics
 import Projections
 import Reports
@@ -13,16 +14,29 @@ public func targetRace(in context: ModelContext, today: Day) throws -> RaceRecor
 }
 
 public func raceOutlook(context: ModelContext, today: Day) throws -> RaceOutlook {
+    raceOutlook(race: try targetRace(in: context, today: today), efforts: try raceEfforts(context: context, today: today), today: today)
+}
+
+public func raceEfforts(context: ModelContext, today: Day) throws -> [Effort] {
     let activities = try fetchActivities(context, since: today.adding(days: -InsightsConstants.raceHistoryDays), through: today)
-    let efforts = try ReportBuilder(context: context, today: today).efforts(from: activities)
-    return raceOutlook(race: try targetRace(in: context, today: today), efforts: efforts, today: today)
+    return try ReportBuilder(context: context, today: today).efforts(from: activities)
 }
 
 func raceOutlook(race: RaceRecord?, efforts: [Effort], today: Day) -> RaceOutlook {
+    raceOutlook(
+        distance: race?.distance ?? 0,
+        raceDay: race.flatMap { Day(iso: $0.day) },
+        goalSeconds: race?.goalSeconds,
+        efforts: efforts,
+        today: today
+    )
+}
+
+public func raceOutlook(distance raceDistance: Double, raceDay upcoming: Day?, goalSeconds: Double?, efforts: [Effort], today: Day) -> RaceOutlook {
     typealias C = InsightsConstants
-    let raceDay = race.flatMap { Day(iso: $0.day) }.flatMap { $0 > today ? $0 : nil }
-    let distance = race.flatMap { $0.distance > 0 ? $0.distance : nil } ?? C.defaultRaceDistance
-    let goal = race?.goalSeconds.flatMap { $0 > 0 ? $0 : nil }
+    let raceDay = upcoming.flatMap { $0 > today ? $0 : nil }
+    let distance = raceDistance > 0 ? raceDistance : C.defaultRaceDistance
+    let goal = goalSeconds.flatMap { $0 > 0 ? $0 : nil }
     let series = chunkedPredictionSeries(distance: distance, efforts: efforts, from: today.adding(days: -C.yearDays), to: today)
     let current = predict(distance: distance, efforts: efforts, on: today)
     let displayDays = raceDay.map { today.days(until: $0) } ?? C.raceProjectionFallbackDays
@@ -43,6 +57,27 @@ func raceOutlook(race: RaceRecord?, efforts: [Effort], today: Day) -> RaceOutloo
         goalCrossing: goalCrossing(goal: goal, projection: projected, today: current),
         assessment: goal.flatMap { goal in reference.flatMap { assessGoal(goalSeconds: goal, predictionSeconds: $0) } }
     )
+}
+
+public func strategyTarget(race: RaceRecord, outlook: RaceOutlook, today: Day, context: ModelContext) throws -> StrategyTarget? {
+    if let frozen = race.frozenTargetSeconds, frozen > 0 {
+        return StrategyTarget(seconds: frozen, source: .frozen, frozenOn: race.frozenTargetDay.flatMap(Day.init(iso:)))
+    }
+    let current: StrategyTarget? = if let mid = outlook.raceDay?.mid {
+        StrategyTarget(seconds: mid, source: .raceDayProjection, frozenOn: nil)
+    } else if let prediction = outlook.today {
+        StrategyTarget(seconds: prediction, source: .todayPrediction, frozenOn: nil)
+    } else if let goal = race.goalSeconds, goal > 0 {
+        StrategyTarget(seconds: goal, source: .goal, frozenOn: nil)
+    } else {
+        nil
+    }
+    guard let current, let raceDay = Day(iso: race.day), today >= raceDay.adding(days: -1), today <= raceDay else { return current }
+    race.frozenTargetSeconds = current.seconds
+    race.frozenTargetDay = today.iso
+    race.updatedAt = .now
+    try context.save()
+    return StrategyTarget(seconds: current.seconds, source: .frozen, frozenOn: today)
 }
 
 func goalCrossing(goal: Double?, projection: Projection?, today: Double?) -> GoalCrossing {

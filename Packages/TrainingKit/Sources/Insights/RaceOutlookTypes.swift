@@ -48,3 +48,22 @@ public struct RaceOutlook: Sendable {
         self.assessment = assessment
     }
 }
+
+public enum StrategyTargetSource: Sendable, Hashable {
+    case raceDayProjection
+    case todayPrediction
+    case goal
+    case frozen
+}
+
+public struct StrategyTarget: Sendable, Equatable {
+    public var seconds: Double
+    public var source: StrategyTargetSource
+    public var frozenOn: Day?
+
+    public init(seconds: Double, source: StrategyTargetSource, frozenOn: Day?) {
+        self.seconds = seconds
+        self.source = source
+        self.frozenOn = frozenOn
+    }
+}
