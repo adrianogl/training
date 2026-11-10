@@ -9,6 +9,8 @@ struct SettingsView: View {
     @State private var keyMessage: String?
     @State private var confirmsDelete = false
     @State private var deleteMessage: String?
+    @AppStorage(BackgroundConstants.noticeEnabledDefaultsKey) private var noticeEnabled = BackgroundConstants.defaultNoticeEnabled
+    @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
 
     var body: some View {
         NavigationStack {
@@ -16,6 +18,7 @@ struct SettingsView: View {
                 keySection
                 connectionSection
                 syncSection
+                noticeSection
                 dataSection
                 if let storeError = model.storeError {
                     Section("Banco local") {
@@ -86,6 +89,31 @@ struct SettingsView: View {
                 FailureView(failure: failure)
             }
             LabeledContent("Último sync", value: lastSyncText)
+        }
+    }
+
+    private var noticeSection: some View {
+        Section {
+            Toggle("Aviso de prontidão", isOn: $noticeEnabled)
+                .onChange(of: noticeEnabled) { _, enabled in
+                    guard enabled else { return }
+                    Task { await UserNotificationScheduler.requestAuthorization() }
+                }
+            DatePicker("Horário mínimo", selection: noticeMinimumTime, displayedComponents: .hourAndMinute)
+                .disabled(!noticeEnabled)
+        } header: {
+            Text("Aviso de manhã")
+        } footer: {
+            Text("Avisa a prontidão do dia quando o HRV e o sono da noite chegam, nunca antes do horário mínimo. O iOS decide quando o app acorda, então em alguns dias o aviso não sai.")
+        }
+    }
+
+    private var noticeMinimumTime: Binding<Date> {
+        Binding {
+            Calendar.current.date(byAdding: .minute, value: noticeMinimumMinutes, to: Calendar.current.startOfDay(for: .now)) ?? .now
+        } set: { date in
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            noticeMinimumMinutes = (components.hour ?? 0) * BackgroundConstants.minutesPerHour + (components.minute ?? 0)
         }
     }
 

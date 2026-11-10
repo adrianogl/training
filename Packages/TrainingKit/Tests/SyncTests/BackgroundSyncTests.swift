@@ -44,6 +44,23 @@ private func runs(_ count: Int) -> [ActivityDTO] {
         #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted == true)
     }
 
+    @Test func backgroundStopsOnDailyRateLimitWithoutThrowing() async throws {
+        let firstDay = today.adding(days: -40)
+        let fake = FakeDataSource(dataDays: firstDay...today, activities: runs(2))
+        let container = try TrainingSchema.container(inMemory: true)
+        await fake.failSleep(from: firstDay.adding(days: 28))
+        let engine = SyncEngine(source: fake, container: container, today: { today }, firstDay: firstDay, mode: .background)
+
+        let report = try await engine.run()
+
+        #expect(report.stoppedByRateLimit)
+        #expect(await fake.activityPageStarts.isEmpty)
+        let state = try #require(try fetch(SyncState.self, in: container).first)
+        #expect(state.firstLoadCompleted == false)
+        #expect(state.lastSync == nil)
+        #expect(state.resumeSleepFrom == firstDay.adding(days: 28).iso)
+    }
+
     @Test func backgroundRespectsFitLimit() async throws {
         let fake = FakeDataSource(dataDays: today.adding(days: -5)...today, activities: runs(5), fitZip: try FITZipBuilder.run(seconds: 300))
         let container = try TrainingSchema.container(inMemory: true)

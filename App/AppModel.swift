@@ -15,11 +15,13 @@ import TrainingCore
     private(set) var connectionStatus: ConnectionStatus = .untested
     private(set) var hasKey: Bool
     let autoSyncEnabled: Bool
+    @ObservationIgnored let notifier: MorningNotifier
+    @ObservationIgnored private(set) var todayReadinessComplete = false
 
     @ObservationIgnored private let keyStore: any APIKeyStore
     @ObservationIgnored private let transport: any HTTPTransport
     @ObservationIgnored private let makeNarrator: @MainActor () -> any Narrator
-    @ObservationIgnored private var client: (key: String, client: GarminClient)?
+    @ObservationIgnored private var clients: [Bool: (key: String, client: GarminClient)] = [:]
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var runningTrigger: SyncTrigger?
     @ObservationIgnored private var narrativeTask: Task<Void, Never>?
@@ -31,8 +33,10 @@ import TrainingCore
         keyStore: any APIKeyStore,
         transport: any HTTPTransport = URLSessionTransport(),
         autoSyncEnabled: Bool = true,
-        makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() }
+        makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() },
+        notifier: MorningNotifier = MorningNotifier()
     ) {
+        self.notifier = notifier
         self.container = container
         self.storeError = storeError
         self.keyStore = keyStore
@@ -80,7 +84,7 @@ import TrainingCore
         let key = rawKey.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { return }
         try keyStore.save(key)
-        client = nil
+        clients = [:]
         hasKey = true
         connectionStatus = .untested
     }
@@ -100,17 +104,34 @@ import TrainingCore
         }
     }
 
-    func syncNow(_ trigger: SyncTrigger) async {
+    func appBecameActive() async {
+        await notifier.appOpened(now: .now)
+        let defaults = UserDefaults.standard
+        if notifier.settings.enabled, !defaults.bool(forKey: BackgroundConstants.permissionRequestedDefaultsKey) {
+            defaults.set(true, forKey: BackgroundConstants.permissionRequestedDefaultsKey)
+            Task { await UserNotificationScheduler.requestAuthorization() }
+        }
+        await syncNow(.launch)
+    }
+
+    func enteredBackground() {
+        if runningTrigger != .background { cancelSync() }
+        BackgroundSync.schedule()
+    }
+
+    @discardableResult
+    func syncNow(_ trigger: SyncTrigger) async -> Bool {
         if let syncTask {
             let running = runningTrigger
             await syncTask.value
-            guard trigger == .settings, running != .settings, self.syncTask == nil else { return }
+            guard trigger == .settings, running != .settings, self.syncTask == nil else { return syncStatus.isFinished }
         }
         guard let key = currentKey() else {
             syncStatus = .failed(.missingKey)
-            return
+            return false
         }
-        let engine = SyncEngineConfiguration(trigger: trigger).makeEngine(source: client(for: key), container: container)
+        let configuration = SyncEngineConfiguration(trigger: trigger)
+        let engine = configuration.makeEngine(source: client(for: key, configuration: configuration), container: container)
         runningTrigger = trigger
         syncStatus = .running(progress: 0)
         let pendingNarratives = narrativeTask
@@ -123,11 +144,14 @@ import TrainingCore
                 let report = try await engine.run { fraction in
                     Task { @MainActor in self?.updateProgress(fraction) }
                 }
-                await Task.detached(priority: .utility) {
-                    try? freezeEveTargets(in: ModelContext(container), today: Day.today())
+                let summary = await Task.detached(priority: .utility) {
+                    let context = ModelContext(container)
+                    try? freezeEveTargets(in: context, today: Day.today())
+                    return try? todaySummary(context: context, today: Day.today())
                 }.value
                 self?.syncStatus = .finished(.now)
-                processed = report.processedActivityIds
+                processed = trigger == .background ? nil : report.processedActivityIds
+                if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
@@ -137,6 +161,7 @@ import TrainingCore
         }
         syncTask = task
         await task.value
+        return syncStatus.isFinished
     }
 
     func cancelSync() {
@@ -182,6 +207,15 @@ import TrainingCore
         narrativeTask = task
     }
 
+    private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {
+        todayReadinessComplete = MorningNotifier.hasNightData(summary)
+        guard trigger == .background else {
+            await notifier.foregroundSyncFinished(summary: summary, now: .now)
+            return
+        }
+        await notifier.evaluate(summary: summary, now: .now, lastAppOpen: notifier.lastAppOpen, settings: notifier.settings)
+    }
+
     private func updateProgress(_ fraction: Double) {
         guard case .running(let current) = syncStatus, fraction > current else { return }
         syncStatus = .running(progress: fraction)
@@ -192,11 +226,12 @@ import TrainingCore
         return key
     }
 
-    private func client(for key: String) -> GarminClient {
-        if let client, client.key == key { return client.client }
+    private func client(for key: String, configuration: SyncEngineConfiguration) -> GarminClient {
+        let waits = configuration.waitsOnRateLimit
+        if let cached = clients[waits], cached.key == key { return cached.client }
         let tokens = TokenProvider(apiKey: key, baseURL: GarminEndpoints.base, transport: transport)
-        let created = GarminClient(tokens: tokens, transport: transport)
-        client = (key, created)
+        let created = configuration.makeClient(tokens: tokens, transport: transport)
+        clients[waits] = (key, created)
         return created
     }
 }
