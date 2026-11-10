@@ -43,7 +43,7 @@ import TrainingCore
 
     @Test func raceOutlookUnreachable() throws {
         var models: [any PersistentModel] = improvingRuns(todaySplit: 1_500, slopePerDay: -2)
-        models.append(race(name: "Prova", inDays: 30, goal: 1_200))
+        models.append(race(name: "Prova", inDays: 30, goal: 1_100))
         let context = try makeContext(models)
 
         let outlook = try raceOutlook(context: context, today: fixtureToday)

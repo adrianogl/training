@@ -10,13 +10,13 @@ private func series(from: Double = 0, to: Double, step: Double = 5, _ build: (Do
     stride(from: from, through: to, by: step).map(build)
 }
 
-@Test func vo2Smoothing() { #expect(smoothedVo2max([(d1, 56), (d2, 42)]).last!.1 == 55) }
+@Test func vo2Smoothing() { #expect(smoothedVo2max([(d1, 56), (d2, 42)]).last!.1 == 49) }
 
 @Test func vo2SmoothingSortsByDay() {
     let p = smoothedVo2max([(d2, 42), (d1, 56)])
     #expect(p.count == 2)
     #expect(p[0].0 == d1 && p[0].1 == 56)
-    #expect(p[1].0 == d2 && p[1].1 == 55)
+    #expect(p[1].0 == d2 && p[1].1 == 49)
 }
 
 @Test func vo2SmoothingEmpty() { #expect(smoothedVo2max([]).isEmpty) }
