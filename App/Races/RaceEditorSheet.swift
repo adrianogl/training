@@ -84,8 +84,8 @@ struct RaceEditorSheet: View {
                     Text(assessment.sentence)
                         .font(.footnote.weight(.semibold))
                         .foregroundStyle(color(assessment))
-                    if assessment.referenceSeconds > 0 {
-                        Text(assessment.reference == .raceDayProjection ? RacesConstants.comparedRaceDay : RacesConstants.comparedToday)
+                    if let compared = assessment.comparedText {
+                        Text(compared)
                             .font(.caption2)
                             .foregroundStyle(BrandColors.dim)
                     }

@@ -128,6 +128,7 @@ import WorkoutAnalysis
 
     nonisolated private static func compute(container: ModelContainer, today: Day) -> TodayLoad {
         let context = ModelContext(container)
+        try? freezeEveTargets(in: context, today: today)
         let summary = (try? todaySummary(context: context, today: today)) ?? .empty
         return TodayLoad(
             summary: summary,

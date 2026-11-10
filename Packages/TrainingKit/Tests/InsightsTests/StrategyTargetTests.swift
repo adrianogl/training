@@ -72,6 +72,41 @@ import TrainingCore
         #expect(!context.hasChanges)
     }
 
+    @Test func strategyDoesNotWriteOnRaceDay() throws {
+        let prova = race(name: "Prova", inDays: 0, distance: 21_097.5, goal: 6_300)
+        let context = try makeContext([prova])
+
+        let target = try strategyTarget(race: prova, outlook: outlook(today: 6_500, raceDay: nil, goal: 6_300), today: fixtureToday, context: context)
+
+        #expect(target == StrategyTarget(seconds: 6_500, source: .todayPrediction, frozenOn: nil))
+        #expect(prova.frozenTargetSeconds == nil)
+        #expect(prova.frozenTargetDay == nil)
+    }
+
+    @Test func freezeEveTargetsUsesRaceDayProjectionOnEveOnly() throws {
+        var models: [any PersistentModel] = improvingRuns()
+        let eve = race(name: "Amanhã", inDays: 1, goal: 1_400)
+        let raceToday = race(name: "Hoje", inDays: 0, goal: 1_400)
+        let later = race(name: "Depois", inDays: 2, goal: 1_400)
+        let frozen = race(name: "Já congelada", inDays: 1, goal: 1_400)
+        frozen.frozenTargetSeconds = 1_234
+        frozen.frozenTargetDay = fixtureToday.adding(days: -1).iso
+        models += [eve, raceToday, later, frozen]
+        let context = try makeContext(models)
+        let efforts = try raceEfforts(context: context, today: fixtureToday)
+        let expected = raceOutlook(distance: 5_000, raceDay: fixtureToday.adding(days: 1), goalSeconds: 1_400, efforts: efforts, today: fixtureToday)
+        let raceDayPoint = try #require(expected.raceDay)
+
+        try freezeEveTargets(in: context, today: fixtureToday)
+
+        #expect(eve.frozenTargetSeconds == raceDayPoint.mid)
+        #expect(eve.frozenTargetDay == fixtureToday.iso)
+        #expect(raceToday.frozenTargetSeconds == nil)
+        #expect(later.frozenTargetSeconds == nil)
+        #expect(frozen.frozenTargetSeconds == 1_234)
+        #expect(!context.hasChanges)
+    }
+
     @Test func strategyDoesNotFreezeAfterRace() throws {
         let prova = race(name: "Prova", inDays: -3, distance: 21_097.5, goal: 6_300)
         let context = try makeContext([prova])

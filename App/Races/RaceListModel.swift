@@ -45,6 +45,46 @@ import WorkoutAnalysis
         try? context.save()
     }
 
+    func unlinkResult(raceId: UUID) {
+        let context = container.mainContext
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        descriptor.fetchLimit = 1
+        guard let race = try? context.fetch(descriptor).first else { return }
+        race.resultActivityId = nil
+        race.updatedAt = .now
+        try? context.save()
+    }
+
+    func resultOptions(for raceId: UUID) async -> [ResultOption] {
+        let container = container
+        return await Task.detached(priority: .userInitiated) {
+            Self.options(container: container, raceId: raceId)
+        }.value
+    }
+
+    nonisolated private static func options(container: ModelContainer, raceId: UUID) -> [ResultOption] {
+        let context = ModelContext(container)
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        descriptor.fetchLimit = 1
+        guard let race = (try? context.fetch(descriptor))?.first, let day = Day(iso: race.day) else { return [] }
+        let lower = day.adding(days: -C.pickerWindowDays).chartDate
+        let upper = day.adding(days: C.pickerWindowDays + 1).chartDate
+        let records = ((try? context.fetch(FetchDescriptor<ActivityRecord>(
+            predicate: #Predicate { $0.start >= lower && $0.start < upper },
+            sortBy: [SortDescriptor(\.start)]
+        ))) ?? []).filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
+        return records.map { record in
+            ResultOption(
+                activityId: record.activityId,
+                title: record.workoutName ?? record.name,
+                dateText: WorkoutListModel.dateText(record.start),
+                distanceText: record.distance.map(WorkoutListModel.distanceText) ?? "—",
+                durationText: record.duration.map(WorkoutFormat.clock) ?? "—",
+                isLinked: record.activityId == race.resultActivityId
+            )
+        }
+    }
+
     nonisolated private static func compute(container: ModelContainer, today: Day) -> RaceListLoad {
         let context = ModelContext(container)
         let races = ((try? context.fetch(FetchDescriptor<RaceRecord>())) ?? [])

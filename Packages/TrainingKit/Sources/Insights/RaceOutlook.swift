@@ -72,7 +72,7 @@ public func strategyTarget(race: RaceRecord, outlook: RaceOutlook, today: Day, c
     } else {
         nil
     }
-    guard let current, let raceDay = Day(iso: race.day), today >= raceDay.adding(days: -1), today <= raceDay else { return current }
+    guard let current, let raceDay = Day(iso: race.day), today == raceDay.adding(days: -1) else { return current }
     race.frozenTargetSeconds = current.seconds
     race.frozenTargetDay = today.iso
     race.updatedAt = .now
@@ -87,4 +87,16 @@ func goalCrossing(goal: Double?, projection: Projection?, today: Double?) -> Goa
     if let crossing = projection?.targetCrossing, improving { return .on(crossing) }
     guard let latest = points.first?.mid ?? today else { return .unreachable }
     return latest <= goal ? .alreadyBeaten : .unreachable
+}
+
+public func freezeEveTargets(in context: ModelContext, today: Day) throws {
+    let tomorrow = today.adding(days: 1).iso
+    let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.day == tomorrow }))
+        .filter { $0.frozenTargetSeconds == nil }
+    guard !races.isEmpty else { return }
+    let efforts = try raceEfforts(context: context, today: today)
+    for race in races {
+        let outlook = raceOutlook(distance: race.distance, raceDay: Day(iso: race.day), goalSeconds: race.goalSeconds, efforts: efforts, today: today)
+        _ = try strategyTarget(race: race, outlook: outlook, today: today, context: context)
+    }
 }

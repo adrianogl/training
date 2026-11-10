@@ -5,6 +5,7 @@ struct CompletedRaceView: View {
     let summary: CompletedRaceSummary
     let model: RaceListModel
     @State private var showsEditor = false
+    @State private var showsPicker = false
 
     var body: some View {
         ScrollView {
@@ -34,6 +35,9 @@ struct CompletedRaceView: View {
         }
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: summary.info.id)
+        }
+        .sheet(isPresented: $showsPicker) {
+            ResultPickerSheet(raceId: summary.info.id, model: model)
         }
     }
 
@@ -83,26 +87,37 @@ struct CompletedRaceView: View {
 
     @ViewBuilder
     private var activityLink: some View {
-        if let activityId = summary.resultActivityId {
-            HStack {
+        VStack(alignment: .leading, spacing: 8) {
+            if let activityId = summary.resultActivityId {
                 if summary.resultIsSuggestion {
                     Text(RacesConstants.suggestionNote).font(.caption).foregroundStyle(BrandColors.dim)
-                    Spacer()
-                    Button(RacesConstants.useSuggestion) {
-                        model.linkResult(raceId: summary.info.id, activityId: activityId)
+                    HStack {
+                        actionButton(RacesConstants.useSuggestion) { model.linkResult(raceId: summary.info.id, activityId: activityId) }
+                        Spacer()
+                        actionButton(RacesConstants.chooseActivity) { showsPicker = true }
                     }
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(BrandColors.accent)
                 } else {
-                    Spacer()
-                    NavigationLink(RacesConstants.openActivity, value: activityId)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(BrandColors.accent)
+                    HStack {
+                        NavigationLink(RacesConstants.openActivity, value: activityId)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(BrandColors.accent)
+                        Spacer()
+                        actionButton(RacesConstants.changeActivity) { showsPicker = true }
+                        actionButton(RacesConstants.unlinkActivity) { model.unlinkResult(raceId: summary.info.id) }
+                    }
                 }
+            } else {
+                Text(RacesConstants.noActivity).font(.caption).foregroundStyle(BrandColors.dim)
+                actionButton(RacesConstants.chooseActivity) { showsPicker = true }
             }
-        } else {
-            Text(RacesConstants.noActivity).font(.caption).foregroundStyle(BrandColors.dim)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(BrandColors.accent)
     }
 
     private var splitsCard: some View {
@@ -130,5 +145,59 @@ struct CompletedRaceView: View {
             Text(detail ?? " ").font(.caption2).foregroundStyle(BrandColors.dim).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
+    }
+}
+
+private struct ResultPickerSheet: View {
+    let raceId: UUID
+    let model: RaceListModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var options: [ResultOption]?
+
+    var body: some View {
+        NavigationStack {
+            Group {
+                if let options {
+                    if options.isEmpty {
+                        Text(RacesConstants.pickerEmpty).foregroundStyle(BrandColors.dim)
+                    } else {
+                        List(options) { option in
+                            Button {
+                                model.linkResult(raceId: raceId, activityId: option.activityId)
+                                dismiss()
+                            } label: {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(option.title).foregroundStyle(BrandColors.text)
+                                        Text(option.dateText).font(.caption).foregroundStyle(BrandColors.dim)
+                                    }
+                                    Spacer()
+                                    VStack(alignment: .trailing, spacing: 2) {
+                                        Text(option.distanceText).font(BrandFonts.number(17)).foregroundStyle(BrandColors.text)
+                                        Text(option.durationText).font(BrandFonts.number(14)).foregroundStyle(BrandColors.dim)
+                                    }
+                                    if option.isLinked {
+                                        Image(systemName: "checkmark").foregroundStyle(BrandColors.accent)
+                                    }
+                                }
+                            }
+                        }
+                        .scrollContentBackground(.hidden)
+                    }
+                } else {
+                    ProgressView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(BrandBackground())
+            .navigationTitle(RacesConstants.pickerTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(RacesConstants.cancel) { dismiss() }
+                }
+            }
+        }
+        .task { options = await model.resultOptions(for: raceId) }
     }
 }

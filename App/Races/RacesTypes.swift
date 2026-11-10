@@ -112,6 +112,11 @@ struct EditorAssessment: Equatable, Sendable {
     let referenceSeconds: Double
     let level: GoalAssessment?
     let sentence: String
+
+    var comparedText: String? {
+        guard referenceSeconds > 0 else { return nil }
+        return reference == .raceDayProjection ? RacesConstants.comparedRaceDay : RacesConstants.comparedToday
+    }
 }
 
 struct NextRaceLoad: Sendable {
@@ -148,4 +153,15 @@ struct PaceEditTarget: Identifiable {
     let plan: KmPlan
 
     var id: Int { plan.index }
+}
+
+struct ResultOption: Identifiable, Equatable, Sendable {
+    let activityId: Int64
+    let title: String
+    let dateText: String
+    let distanceText: String
+    let durationText: String
+    let isLinked: Bool
+
+    var id: Int64 { activityId }
 }

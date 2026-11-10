@@ -117,6 +117,12 @@ enum RacesConstants {
     static let suggestionNote = "Atividade sugerida: corrida do dia com distância compatível."
     static let useSuggestion = "Usar esta atividade"
     static let openActivity = "Abrir treino"
+    static let chooseActivity = "Escolher atividade"
+    static let changeActivity = "Trocar atividade"
+    static let unlinkActivity = "Desligar atividade"
+    static let pickerTitle = "Atividade da prova"
+    static let pickerEmpty = "Nenhuma corrida perto do dia da prova."
+    static let pickerWindowDays = 3
     static let noActivity = "Nenhuma corrida no dia da prova com distância compatível."
     static let lessonGoalFormat = "Você fechou em %@, %@ da meta"
     static let lessonEveFormat = " e %@ da previsão da véspera"

@@ -30,18 +30,29 @@ import TrainingCore
     }
 
     @Test func editorFallsBackToTodayPredictionWithoutProjection() async throws {
-        let container = try TodayModelTests.store(withRace: false)
+        let container = try TrainingSchema.container(inMemory: true)
+        let run = WorkoutDetailFixtures.run(id: 1, daysAgo: 0, meters: 5_000)
+        run.fastestSplit_5000 = 1_500
+        container.mainContext.insert(run)
+        try container.mainContext.save()
         let editor = RaceEditorModel(container: container, raceId: nil, today: Self.today)
         await editor.load()
         editor.distanceOption = .half
-        editor.date = Self.today.adding(days: 1).chartDate
+        editor.date = Self.today.adding(days: 30).chartDate
         editor.goalText = "1:45:00"
         await editor.evaluate()
 
+        let efforts = try raceEfforts(context: container.mainContext, today: Self.today)
+        let outlook = raceOutlook(distance: 21_097.5, raceDay: Self.today.adding(days: 30), goalSeconds: 6_300, efforts: efforts, today: Self.today)
+        #expect(outlook.raceDay == nil)
+        let todaySeconds = try #require(outlook.today)
         let assessment = try #require(editor.assessment)
         #expect(editor.goalSeconds == 6_300)
         #expect(assessment.targetPaceText == "4:59 /km")
-        #expect(assessment.reference == .raceDayProjection || assessment.reference == .todayPrediction)
+        #expect(assessment.reference == .todayPrediction)
+        #expect(assessment.referenceSeconds == todaySeconds)
+        #expect(assessment.comparedText == RacesConstants.comparedToday)
+        #expect(assessment.sentence.hasSuffix("da previsão de hoje."))
     }
 
     @Test func savesNewRaceAndClearsFrozenTargetWhenDateMoves() async throws {

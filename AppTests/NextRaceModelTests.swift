@@ -142,4 +142,38 @@ import TrainingCore
         #expect(model.completed.map(\.id).sorted() == [linked.id, unlinked.id].sorted())
         #expect(model.upcoming.isEmpty)
     }
+
+    @Test func pickedActivityLinksAndUnlinks() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let short = F.run(id: 900, daysAgo: 10, meters: 10_000)
+        let dayBefore = F.run(id: 902, daysAgo: 11, meters: 21_000)
+        let farAway = F.run(id: 903, daysAgo: 30, meters: 21_000)
+        [short, dayBefore, farAway].forEach(context.insert)
+        let raceDay = Day(iso: short.localDay!)!
+        let half = RaceRecord(name: "Meia", day: raceDay.iso, distance: 21_097.5, goalSeconds: 6_300, priority: .a)
+        context.insert(half)
+        try context.save()
+
+        let model = RaceListModel(container: container, today: Self.today)
+        await model.load()
+        #expect(model.summaries[half.id]?.resultActivityId == nil)
+
+        let options = await model.resultOptions(for: half.id)
+        #expect(Set(options.map(\.activityId)) == [900, 902])
+
+        model.linkResult(raceId: half.id, activityId: 902)
+        await model.load()
+        let linked = try #require(model.summaries[half.id])
+        #expect(linked.resultActivityId == 902)
+        #expect(linked.resultIsSuggestion == false)
+        #expect(linked.resultSeconds == 21_000 * 0.33)
+        #expect(await model.resultOptions(for: half.id).first { $0.activityId == 902 }?.isLinked == true)
+
+        model.unlinkResult(raceId: half.id)
+        await model.load()
+        #expect(half.resultActivityId == nil)
+        #expect(model.summaries[half.id]?.resultActivityId == nil)
+        #expect(model.summaries[half.id]?.resultSeconds == nil)
+    }
 }

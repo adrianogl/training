@@ -1,5 +1,6 @@
 import Foundation
 import GarminAPI
+import Insights
 import Narrative
 import Observation
 import Storage
@@ -114,6 +115,7 @@ import TrainingCore
         syncStatus = .running(progress: 0)
         let pendingNarratives = narrativeTask
         pendingNarratives?.cancel()
+        let container = container
         let task = Task { [weak self] in
             await pendingNarratives?.value
             var processed: Set<Int64>?
@@ -121,6 +123,9 @@ import TrainingCore
                 let report = try await engine.run { fraction in
                     Task { @MainActor in self?.updateProgress(fraction) }
                 }
+                await Task.detached(priority: .utility) {
+                    try? freezeEveTargets(in: ModelContext(container), today: Day.today())
+                }.value
                 self?.syncStatus = .finished(.now)
                 processed = report.processedActivityIds
             } catch {
