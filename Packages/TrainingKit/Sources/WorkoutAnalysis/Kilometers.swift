@@ -1,3 +1,4 @@
+import TrainingCore
 import FITReader
 
 public func kilometerSplits(_ samples: [FITSample], zones: HeartRateZones?) -> [WorkoutBlock] {

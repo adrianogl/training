@@ -1,3 +1,4 @@
+import TrainingCore
 import FITReader
 import Testing
 @testable import WorkoutAnalysis

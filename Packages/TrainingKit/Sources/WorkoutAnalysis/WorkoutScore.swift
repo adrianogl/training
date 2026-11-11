@@ -1,3 +1,4 @@
+import TrainingCore
 import FITReader
 
 public func scoreWorkout(blocks: [WorkoutBlock], zones: HeartRateZones?, previous: [WorkoutOccurrence]) -> WorkoutScore? {

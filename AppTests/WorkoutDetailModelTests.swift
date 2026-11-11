@@ -1,3 +1,4 @@
+import TrainingCore
 import FITReader
 import Narrative
 import Foundation

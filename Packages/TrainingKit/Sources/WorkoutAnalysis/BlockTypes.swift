@@ -1,14 +1,5 @@
 import FITReader
-
-public struct HeartRateZones: Sendable, Equatable {
-    public var floors: [Int]
-    public var maxHeartRate: Int?
-
-    public init(floors: [Int], maxHeartRate: Int? = nil) {
-        self.floors = floors
-        self.maxHeartRate = maxHeartRate
-    }
-}
+import TrainingCore
 
 public enum BlockKind: String, Codable, Sendable {
     case warmup, active, recovery, cooldown

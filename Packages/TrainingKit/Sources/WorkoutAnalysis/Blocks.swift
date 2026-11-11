@@ -1,3 +1,4 @@
+import TrainingCore
 import FITReader
 
 public func hasPrescription(_ structure: WorkoutStructure) -> Bool {
