@@ -71,6 +71,20 @@ enum WorkoutDetailFixtures {
         return WorkoutStructure(prescription: WorkoutPrescription(name: "Rodagem contínua", steps: steps), laps: laps)
     }
 
+    static func easyStructure(activeTarget: StepTarget = .open, activeHeartRate: Int = 148) -> WorkoutStructure {
+        let steps = [
+            PrescribedStep(index: 0, intensity: .warmup, duration: .time(seconds: 600), target: .open),
+            PrescribedStep(index: 1, intensity: .active, duration: .time(seconds: 1_800), target: activeTarget),
+            PrescribedStep(index: 2, intensity: .cooldown, duration: .time(seconds: 300), target: .open),
+        ]
+        let laps = [
+            LapSummary(stepIndex: 0, intensity: .warmup, startOffset: 0, timerSeconds: 600, distance: 1_600, avgSpeed: 1_600.0 / 600, avgHeartRate: 135),
+            LapSummary(stepIndex: 1, intensity: .active, startOffset: 600, timerSeconds: 1_800, distance: 5_000, avgSpeed: 5_000.0 / 1_800, avgHeartRate: activeHeartRate),
+            LapSummary(stepIndex: 2, intensity: .cooldown, startOffset: 2_400, timerSeconds: 300, distance: 800, avgSpeed: 800.0 / 300, avgHeartRate: 135),
+        ]
+        return WorkoutStructure(prescription: WorkoutPrescription(name: "Rodagem leve", steps: steps), laps: laps)
+    }
+
     static func freeStructure(kilometers: Int, secondsPerKm: Double = 330, hr: Int = 150) -> WorkoutStructure {
         let laps = (0..<kilometers).map { index in
             LapSummary(

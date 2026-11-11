@@ -4,6 +4,7 @@ import Metrics
 import Narrative
 import Storage
 import SwiftData
+import Sync
 import TrainingCore
 import WorkoutAnalysis
 
@@ -12,6 +13,8 @@ struct WorkoutAnalysisContext {
     var hasPrescription = false
     var structureMissing = false
     var zones: HeartRateZones?
+    var watchZones: HeartRateZones?
+    var thresholdHeartRate: Int?
     var blocks: [WorkoutBlock] = []
     var kilometers: BlockKilometers = [:]
     var assessment = WorkoutAssessment(positives: [], negatives: [], attention: [])
@@ -26,8 +29,12 @@ struct WorkoutAnalysisContext {
     }
 
     nonisolated static func inputs(records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisInputs {
-        WorkoutAnalysisInputs(
-            zones: zones(context),
+        let watchRecord = watchZonesRecord(context)
+        let sport = watchRecord?.sport ?? WorkoutDetailConstants.defaultZonesSport
+        let runDays = records.filter { ActivityTypeKey.isRun($0.typeKey) }.map(day)
+        return WorkoutAnalysisInputs(
+            watchZones: watchRecord.flatMap(zones(from:)),
+            thresholdByDay: (try? thresholdHeartRates(on: runDays, sport: sport, in: context)) ?? [:],
             dailyLoad: dailyLoad(records),
             readinessByDay: readinessByDay(context)
         )
@@ -40,8 +47,10 @@ struct WorkoutAnalysisContext {
         analysis.hasPrescription = structure.map(WorkoutAnalysis.hasPrescription) ?? false
         guard analysis.isRun else { return analysis }
         analysis.structureMissing = structure == nil
-        let zones = inputs.zones
+        let zones = Self.zones(on: day(record), inputs: inputs)
         analysis.zones = zones
+        analysis.watchZones = inputs.watchZones
+        analysis.thresholdHeartRate = inputs.thresholdByDay[day(record)]
         let blocks = blocks(record, structure: structure, zones: zones)
         analysis.blocks = blocks
         if analysis.hasPrescription {
@@ -50,7 +59,7 @@ struct WorkoutAnalysisContext {
 
         let previous = previous(of: record, in: records)
             .prefix(WorkoutDetailConstants.maxComparisons)
-            .compactMap { occurrence($0, zones: zones) }
+            .compactMap { occurrence($0, zones: Self.zones(on: day($0), inputs: inputs)) }
         analysis.score = scoreWorkout(blocks: blocks, zones: zones, previous: previous)
         analysis.assessment = assess(blocks, context: AssessmentContext(
             readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
@@ -112,12 +121,16 @@ struct WorkoutAnalysisContext {
         }
     }
 
-    nonisolated private static func zones(_ context: ModelContext) -> HeartRateZones? {
+    static func zones(on day: Day, inputs: WorkoutAnalysisInputs) -> HeartRateZones? {
+        guard let threshold = inputs.thresholdByDay[day] else { return inputs.watchZones }
+        var zones = thresholdZones(thresholdHeartRate: threshold)
+        zones.maxHeartRate = inputs.watchZones?.maxHeartRate
+        return zones
+    }
+
+    nonisolated private static func watchZonesRecord(_ context: ModelContext) -> HeartRateZonesRecord? {
         let records = (try? context.fetch(FetchDescriptor<HeartRateZonesRecord>())) ?? []
-        guard let record = records.first(where: { $0.sport == WorkoutDetailConstants.defaultZonesSport }) ?? (records.count == 1 ? records.first : nil) else {
-            return nil
-        }
-        return zones(from: record)
+        return records.first { $0.sport == WorkoutDetailConstants.defaultZonesSport } ?? (records.count == 1 ? records.first : nil)
     }
 
     static func zones(from record: HeartRateZonesRecord) -> HeartRateZones? {

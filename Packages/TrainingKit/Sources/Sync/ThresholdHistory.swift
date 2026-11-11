@@ -9,6 +9,13 @@ public func thresholdHeartRate(on day: Day, sport: String, in context: ModelCont
     try ThresholdTimeline(sport: sport, in: context).heartRate(on: day)
 }
 
+public func thresholdHeartRates(on days: some Sequence<Day>, sport: String, in context: ModelContext) throws -> [Day: Int] {
+    let timeline = try ThresholdTimeline(sport: sport, in: context)
+    return days.reduce(into: [:]) { result, day in
+        result[day] = timeline.heartRate(on: day)
+    }
+}
+
 func recordThreshold(_ heartRate: Int, sport: String, on today: Day, in context: ModelContext) throws {
     var descriptor = FetchDescriptor<ThresholdHistoryRecord>(
         predicate: #Predicate { $0.sport == sport },

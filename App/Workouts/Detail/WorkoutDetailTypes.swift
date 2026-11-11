@@ -81,7 +81,31 @@ struct ScoreRowData: Identifiable, Equatable {
 }
 
 struct WorkoutAnalysisInputs {
-    let zones: HeartRateZones?
+    let watchZones: HeartRateZones?
+    let thresholdByDay: [Day: Int]
     let dailyLoad: [Day: Double]
     let readinessByDay: [String: Int]
+}
+
+struct ZoneBar: Equatable, Sendable {
+    let floors: [Int]
+    let seconds: [Double]
+}
+
+struct ZoneRulerData: Equatable, Sendable {
+    let watch: ZoneBar
+    let threshold: ZoneBar?
+    let divergence: Int?
+    let thresholdHeartRate: Int?
+}
+
+struct ZoneSegment: Equatable {
+    let zone: Int
+    let start: Double
+    let end: Double
+}
+
+struct ZoneMark: Equatable {
+    let bpm: Int
+    let position: Double
 }

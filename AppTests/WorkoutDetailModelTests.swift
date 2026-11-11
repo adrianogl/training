@@ -225,4 +225,40 @@ import WorkoutAnalysis
         #expect(model.scoreRows.map(\.part) == [.cost])
         #expect(model.scoreRows[0].maximum == 25)
     }
+
+    private func easyRunModel(activeTarget: StepTarget, threshold: Int?) throws -> WorkoutDetailModel {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(HeartRateZonesRecord(
+            sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175,
+            maxHeartRate: 190, lactateThresholdHeartRate: threshold
+        ))
+        context.insert(F.run(id: 1, meters: 7_400, workoutName: "Rodagem leve", structure: F.easyStructure(activeTarget: activeTarget)))
+        try context.save()
+        return WorkoutDetailModel(activityId: 1, context: context)
+    }
+
+    @Test func scoreUsesThresholdZones() throws {
+        let byThreshold = try easyRunModel(activeTarget: .open, threshold: 170)
+        let byWatch = try easyRunModel(activeTarget: .open, threshold: nil)
+
+        let intent = try #require(byThreshold.score?.items.first { $0.part == .intent })
+        #expect(intent.points == intent.maximum)
+        #expect(intent.reason == nil)
+        let watchIntent = try #require(byWatch.score?.items.first { $0.part == .intent })
+        #expect(watchIntent.points < watchIntent.maximum)
+        #expect(watchIntent.reason == .easyTooHard)
+    }
+
+    @Test func zoneTargetBlockJudgedByThreshold() throws {
+        let byThreshold = try easyRunModel(activeTarget: .heartRateZone(2), threshold: 170)
+        let byWatch = try easyRunModel(activeTarget: .heartRateZone(2), threshold: nil)
+        let bpmTarget = try easyRunModel(activeTarget: .heartRateBpm(low: 120, high: 139), threshold: 170)
+        let percentTarget = try easyRunModel(activeTarget: .heartRatePercentMax(low: 60, high: 73), threshold: 170)
+
+        #expect(byThreshold.blocks[1].status == .inTarget)
+        #expect(byWatch.blocks[1].status == .aboveTarget)
+        #expect(bpmTarget.blocks[1].status == .aboveTarget)
+        #expect(percentTarget.blocks[1].status == .aboveTarget)
+    }
 }

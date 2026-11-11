@@ -75,6 +75,22 @@ private func activity(_ id: Int64, in container: ModelContainer) throws -> Activ
         #expect(try thresholdHeartRate(on: today, sport: "cycling", in: context) == nil)
     }
 
+    @Test func thresholdsForManyDaysMatchSingleLookup() throws {
+        let context = ModelContext(try TrainingSchema.container(inMemory: true))
+        context.insert(ThresholdHistoryRecord(sport: "running", day: "2026-10-01", heartRate: 158))
+        context.insert(ThresholdHistoryRecord(sport: "running", day: "2026-10-20", heartRate: 162))
+        try context.save()
+        let days = ["2025-01-01", "2026-10-15", "2026-10-20", "2026-11-01", "2026-10-15"].compactMap(Day.init(iso:))
+
+        let thresholds = try thresholdHeartRates(on: days, sport: "running", in: context)
+
+        #expect(thresholds.count == 4)
+        for day in days {
+            #expect(thresholds[day] == (try thresholdHeartRate(on: day, sport: "running", in: context)))
+        }
+        #expect(try thresholdHeartRates(on: days, sport: "cycling", in: context).isEmpty)
+    }
+
     @Test func processedRunGetsThresholdZoneSeconds() async throws {
         let fake = FakeDataSource(
             dataDays: nil,

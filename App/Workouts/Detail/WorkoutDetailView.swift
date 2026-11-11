@@ -85,7 +85,11 @@ struct WorkoutDetailView: View {
                 .id(WorkoutDetailSection.heartRate)
             HeartRateChart(series: model.heartRate, bands: model.zoneBands, spans: model.activeSpans)
         }
-        if !model.zoneShares.isEmpty {
+        if let ruler = model.ruler {
+            SectionLabel("Tempo em zona de FC")
+                .id(WorkoutDetailSection.zones)
+            ZoneRuler(data: ruler)
+        } else if !model.zoneShares.isEmpty {
             SectionLabel("Tempo em zona de FC")
                 .id(WorkoutDetailSection.zones)
             ZonesBar(shares: model.zoneShares)

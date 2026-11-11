@@ -28,6 +28,7 @@ import WorkoutAnalysis
     private(set) var zoneBands: [ZoneBand] = []
     private(set) var activeSpans: [BlockSpan] = []
     private(set) var zoneShares: [ZoneShare] = []
+    private(set) var ruler: ZoneRulerData?
     private(set) var shareInput: WorkoutShareInput?
     private(set) var score: WorkoutScore?
     private(set) var scoreRows: [ScoreRowData] = []
@@ -43,6 +44,12 @@ import WorkoutAnalysis
         zoneShares = Self.zoneShares(record.zoneSeconds)
         guard isRun else { return }
         structureMissing = analysis.structureMissing
+        ruler = ZoneRulerData.make(
+            watchZones: analysis.watchZones,
+            watchSeconds: record.zoneSeconds,
+            thresholdHeartRate: record.thresholdUsed ?? analysis.thresholdHeartRate,
+            thresholdSeconds: record.thresholdZoneSeconds
+        )
         blocks = analysis.blocks
         kilometers = analysis.kilometers
         let scaled = BlockBarScale.bars(blocks, kilometers: kilometers, zones: analysis.zones)

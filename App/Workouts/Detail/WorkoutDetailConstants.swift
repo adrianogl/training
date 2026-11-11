@@ -40,4 +40,16 @@ enum WorkoutDetailConstants {
     static let altitudeFillOpacity = 0.25
     static let zoneCount = 5
     static let onDeviceCaption = "texto gerado no aparelho"
+    static let rulerRange = 100...180
+    static let rulerTopMargin = 10
+    static let rulerBarHeight: CGFloat = 16
+    static let rulerBarCornerRadius: CGFloat = 6
+    static let rulerTickHeight: CGFloat = 5
+    static let rulerScaleHeight: CGFloat = 22
+    static let rulerWatchTitle = "Relógio (Garmin)"
+    static let rulerThresholdTitle = "Pelo limiar (%d bpm)"
+    static let rulerMissingThreshold = "sem FC de limiar no Garmin"
+    static let rulerDivergenceBelow = "Zonas do relógio %d bpm abaixo do limiar"
+    static let rulerDivergenceAbove = "Zonas do relógio %d bpm acima do limiar"
+    static let rulerTimeSeparator = " · "
 }
