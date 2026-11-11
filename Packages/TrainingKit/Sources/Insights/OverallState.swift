@@ -11,12 +11,18 @@ public func overallState(context: ModelContext, today: Day) throws -> OverallSta
     let builder = ReportBuilder(context: context, today: today)
     let efforts = try builder.efforts(from: activities)
     let outlook = raceOutlook(race: try targetRace(in: context, today: today), efforts: efforts, today: today)
+    let runs = activities.filter(isRun)
+    var zone2ByDay: [Day: ClosedRange<Int>] = [:]
+    for day in Set(runs.map(activityDay)).union([today]) {
+        zone2ByDay[day] = zone2Range(try runningZones(on: day, context))
+    }
     let source = IndicatorSource(
-        runs: activities.filter(isRun),
+        runs: runs,
         load: builder.dailyLoad(activities),
         efforts: efforts,
         distance: outlook.distance,
-        zones: try runningZones(context),
+        zones: try watchZonesRecord(context),
+        zone2ByDay: zone2ByDay,
         today: today
     )
     let past = today.adding(days: -C.comparisonDays)
@@ -62,17 +68,17 @@ struct IndicatorSource {
     let runs: [ActivityRecord]
     let efforts: [Effort]
     let distance: Double
-    let zone2: ClosedRange<Int>?
+    let zone2ByDay: [Day: ClosedRange<Int>]
     let thresholdHeartRate: Int?
     let vo2max: [(Day, Double)]
     let fitness: [Day: Double]
     let runDays: [Day]
 
-    init(runs: [ActivityRecord], load: [Day: Double], efforts: [Effort], distance: Double, zones: HeartRateZonesRecord?, today: Day) {
+    init(runs: [ActivityRecord], load: [Day: Double], efforts: [Effort], distance: Double, zones: HeartRateZonesRecord?, zone2ByDay: [Day: ClosedRange<Int>], today: Day) {
         self.runs = runs
         self.efforts = efforts
         self.distance = distance
-        zone2 = zone2Range(zones)
+        self.zone2ByDay = zone2ByDay
         thresholdHeartRate = zones?.lactateThresholdHeartRate
         vo2max = smoothedVo2max(runs.compactMap { run in run.vo2max.map { (activityDay(run), $0) } })
         var fitness: [Day: Double] = [:]
@@ -95,8 +101,9 @@ struct IndicatorSource {
         case .fitness:
             return fitness[day]
         case .zone2Pace:
-            guard let zone2 else { return nil }
-            return median(window(C.paceWindowDays, endingOn: day).compactMap { samples(of: $0).flatMap { zone2Pace($0, zone2: zone2) } })
+            return median(window(C.paceWindowDays, endingOn: day).compactMap { run in
+                zone2ByDay[activityDay(run)].flatMap { zone2 in samples(of: run).flatMap { zone2Pace($0, zone2: zone2) } }
+            })
         case .thresholdPace:
             guard let thresholdHeartRate else { return nil }
             let sampled = window(C.paceWindowDays, endingOn: day).compactMap(samples(of:))

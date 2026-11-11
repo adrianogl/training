@@ -4,6 +4,7 @@ import Projections
 import Reports
 import Storage
 import SwiftData
+import Sync
 import TrainingCore
 
 public func metricSeries(_ kind: MetricKind, context: ModelContext, today: Day, period: MetricPeriod) throws -> MetricSeries {
@@ -73,20 +74,25 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
         })
     case .loadFocus:
         let activities = try fetchActivities(context, since: lower?.adding(days: -C.focusWindowDays), through: today)
+        let thresholdAvailable = try hasThreshold(context, today: today)
         var items: [Day: [(load: Double, zoneSeconds: [Double])]] = [:]
         for activity in activities {
-            guard let load = activity.activityTrainingLoad, activity.zoneSeconds.count == C.zoneCount else { continue }
-            items[activityDay(activity), default: []].append((load, activity.zoneSeconds))
+            let seconds = focusZoneSeconds(activity, thresholdAvailable: thresholdAvailable)
+            guard let load = activity.activityTrainingLoad, seconds.count == C.zoneCount else { continue }
+            items[activityDay(activity), default: []].append((load, seconds))
         }
         return RawMetric(values: rolling(keys: Set(items.keys), since: lower, today: today, window: C.focusWindowDays) { days in
             loadFocus(days.flatMap { items[$0] ?? [] }).map { $0.lowAerobic * C.percent }
         })
     case .zoneDistribution:
         let runs = try fetchActivities(context, since: lower?.adding(days: -C.focusWindowDays), through: today).filter(isRun)
+        let thresholdAvailable = try hasThreshold(context, today: today)
         var seconds: [Day: [Double]] = [:]
-        for run in runs where run.zoneSeconds.count == C.zoneCount {
+        for run in runs {
+            let runSeconds = focusZoneSeconds(run, thresholdAvailable: thresholdAvailable)
+            guard runSeconds.count == C.zoneCount else { continue }
             let current = seconds[activityDay(run)] ?? Array(repeating: 0, count: C.zoneCount)
-            seconds[activityDay(run)] = zip(current, run.zoneSeconds).map { $0 + $1 }
+            seconds[activityDay(run)] = zip(current, runSeconds).map { $0 + $1 }
         }
         return RawMetric(values: rolling(keys: Set(seconds.keys), since: lower, today: today, window: C.focusWindowDays) { days in
             let zones = days.compactMap { seconds[$0] }
@@ -95,17 +101,20 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
             return zones.reduce(0) { $0 + $1.prefix(C.lowZoneCount).reduce(0, +) } / total * C.percent
         })
     case .zone2Pace:
-        guard let zone2 = zone2Range(try runningZones(context)) else { return RawMetric(values: []) }
+        var zone2ByDay: [Day: ClosedRange<Int>?] = [:]
         return RawMetric(values: try runValues(context, since: lower, today: today) { run in
-            samples(of: run).flatMap { zone2Pace($0, zone2: zone2) }
+            let day = activityDay(run)
+            if zone2ByDay[day] == nil { zone2ByDay[day] = .some(zone2Range(try runningZones(on: day, context))) }
+            guard let zone2 = zone2ByDay[day] ?? nil else { return nil }
+            return samples(of: run).flatMap { zone2Pace($0, zone2: zone2) }
         })
     case .thresholdPace:
-        guard let lthr = try runningZones(context)?.lactateThresholdHeartRate else { return RawMetric(values: []) }
+        guard let lthr = try watchZonesRecord(context)?.lactateThresholdHeartRate else { return RawMetric(values: []) }
         return RawMetric(values: try runValues(context, since: lower, today: today) { run in
             samples(of: run).flatMap { thresholdPace([$0], lthr: lthr) }
         })
     case .thresholdHeartRate:
-        guard let lthr = try runningZones(context)?.lactateThresholdHeartRate else { return RawMetric(values: []) }
+        guard let lthr = try watchZonesRecord(context)?.lactateThresholdHeartRate else { return RawMetric(values: []) }
         return RawMetric(values: [(today, Double(lthr))])
     case .durability:
         return RawMetric(values: try runValues(context, since: lower, today: today) { run in
@@ -132,9 +141,9 @@ private func dailyValues(_ context: ModelContext, since lower: Day?, today: Day,
     try fetchDaily(context, since: lower, through: today).compactMap { day, record in value(record).map { (day, $0) } }
 }
 
-private func runValues(_ context: ModelContext, since lower: Day?, today: Day, value: (ActivityRecord) -> Double?) throws -> [(Day, Double)] {
+private func runValues(_ context: ModelContext, since lower: Day?, today: Day, value: (ActivityRecord) throws -> Double?) throws -> [(Day, Double)] {
     let runs = try fetchActivities(context, since: lower, through: today).filter(isRun)
-    return dailyMeans(runs.compactMap { run in value(run).map { (activityDay(run), $0) } })
+    return try dailyMeans(runs.compactMap { run in try value(run).map { (activityDay(run), $0) } })
 }
 
 private func rolling(keys: Set<Day>, since lower: Day?, today: Day, window: Int, value: ([Day]) -> Double?) -> [(Day, Double)] {

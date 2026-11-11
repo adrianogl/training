@@ -3,6 +3,7 @@ import Foundation
 import Metrics
 import Storage
 import SwiftData
+import Sync
 import TrainingCore
 
 func activityDay(_ activity: ActivityRecord) -> Day {
@@ -45,14 +46,33 @@ func fetchDaily(_ context: ModelContext, since day: Day?, through today: Day) th
     return try context.fetch(descriptor).compactMap { record in Day(iso: record.day).map { ($0, record) } }
 }
 
-func runningZones(_ context: ModelContext) throws -> HeartRateZonesRecord? {
+func watchZonesRecord(_ context: ModelContext) throws -> HeartRateZonesRecord? {
     let records = try context.fetch(FetchDescriptor<HeartRateZonesRecord>())
     return records.first { $0.sport == InsightsConstants.zonesSport } ?? (records.count == 1 ? records.first : nil)
 }
 
-func zone2Range(_ zones: HeartRateZonesRecord?) -> ClosedRange<Int>? {
-    guard let floor = zones?.zone2Floor, let next = zones?.zone3Floor, next - 1 >= floor else { return nil }
-    return floor...(next - 1)
+func runningZones(on day: Day, _ context: ModelContext) throws -> HeartRateZones? {
+    let record = try watchZonesRecord(context)
+    let sport = record?.sport ?? InsightsConstants.zonesSport
+    if let threshold = try thresholdHeartRate(on: day, sport: sport, in: context) {
+        return thresholdZones(thresholdHeartRate: threshold)
+    }
+    let floors = [record?.zone1Floor, record?.zone2Floor, record?.zone3Floor, record?.zone4Floor, record?.zone5Floor].compactMap { $0 }
+    return floors.count == InsightsConstants.zoneCount ? HeartRateZones(floors: floors, maxHeartRate: record?.maxHeartRate) : nil
+}
+
+func hasThreshold(_ context: ModelContext, today: Day) throws -> Bool {
+    let sport = try watchZonesRecord(context)?.sport ?? InsightsConstants.zonesSport
+    return try thresholdHeartRate(on: today, sport: sport, in: context) != nil
+}
+
+func zone2Range(_ zones: HeartRateZones?) -> ClosedRange<Int>? {
+    guard let floors = zones?.floors, floors.count > 2, floors[2] - 1 >= floors[1] else { return nil }
+    return floors[1]...(floors[2] - 1)
+}
+
+func focusZoneSeconds(_ activity: ActivityRecord, thresholdAvailable: Bool) -> [Double] {
+    thresholdAvailable && isRun(activity) ? activity.thresholdZoneSeconds : activity.zoneSeconds
 }
 
 func samples(of activity: ActivityRecord) -> [FITSample]? {
