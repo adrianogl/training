@@ -17,6 +17,7 @@ public final class RaceRecord {
     public var resultActivityId: Int64? = nil
     public var frozenTargetSeconds: Double? = nil
     public var frozenTargetDay: String? = nil
+    public var manuallyUnlinked: Bool = false
     public var updatedAt: Date = Date.now
 
     public init(
@@ -34,6 +35,7 @@ public final class RaceRecord {
         resultActivityId: Int64? = nil,
         frozenTargetSeconds: Double? = nil,
         frozenTargetDay: String? = nil,
+        manuallyUnlinked: Bool = false,
         updatedAt: Date = .now
     ) {
         self.id = id
@@ -50,6 +52,7 @@ public final class RaceRecord {
         self.resultActivityId = resultActivityId
         self.frozenTargetSeconds = frozenTargetSeconds
         self.frozenTargetDay = frozenTargetDay
+        self.manuallyUnlinked = manuallyUnlinked
         self.updatedAt = updatedAt
     }
 }

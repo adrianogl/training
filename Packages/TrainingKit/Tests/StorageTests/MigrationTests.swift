@@ -116,9 +116,11 @@ import Testing
         let v1 = Set(Schema(versionedSchema: SchemaV1.self).entities.map(\.name))
         let v2 = Set(Schema(versionedSchema: SchemaV2.self).entities.map(\.name))
         let v3 = Set(Schema(versionedSchema: SchemaV3.self).entities.map(\.name))
+        let v4 = Set(Schema(versionedSchema: SchemaV4.self).entities.map(\.name))
         #expect(v1 == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState"])
         #expect(v2 == v1.union(["HeartRateZonesRecord"]))
-        #expect(Set(Schema(TrainingSchema.models).entities.map(\.name)) == v3)
         #expect(v3 == v2)
+        #expect(v4 == v3.union(["ThresholdHistoryRecord", "RaceDecisionRecord"]))
+        #expect(Set(Schema(TrainingSchema.models).entities.map(\.name)) == v4)
     }
 }

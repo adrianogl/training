@@ -41,6 +41,11 @@ public final class ActivityRecord {
     public var structureData: Data? = nil
     public var narrativeData: Data? = nil
     public var fitTransientFailures: Int = 0
+    public var thresholdZoneSeconds: [Double] = []
+    public var thresholdUsed: Int? = nil
+    public var scoreValue: Int? = nil
+    public var scoreKey: String? = nil
+    @Attribute(.externalStorage) public var scoreData: Data? = nil
     public var updatedAt: Date = Date.now
 
     public init(
@@ -82,6 +87,11 @@ public final class ActivityRecord {
         structureData: Data? = nil,
         narrativeData: Data? = nil,
         fitTransientFailures: Int = 0,
+        thresholdZoneSeconds: [Double] = [],
+        thresholdUsed: Int? = nil,
+        scoreValue: Int? = nil,
+        scoreKey: String? = nil,
+        scoreData: Data? = nil,
         updatedAt: Date = .now
     ) {
         self.activityId = activityId
@@ -122,6 +132,11 @@ public final class ActivityRecord {
         self.structureData = structureData
         self.narrativeData = narrativeData
         self.fitTransientFailures = fitTransientFailures
+        self.thresholdZoneSeconds = thresholdZoneSeconds
+        self.thresholdUsed = thresholdUsed
+        self.scoreValue = scoreValue
+        self.scoreKey = scoreKey
+        self.scoreData = scoreData
         self.updatedAt = updatedAt
     }
 }

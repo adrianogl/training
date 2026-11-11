@@ -60,6 +60,19 @@ import Testing
         #expect(copy.frozenTargetDay == "2026-05-20")
     }
 
+    @Test @MainActor func raceTransferRoundTripsManuallyUnlinked() throws {
+        let race = makeRace(name: "Desvinculada")
+        race.manuallyUnlinked = true
+        let data = try export([race])
+
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        _ = try RaceTransfer.importRaces(data, into: context)
+
+        let copy = try #require(try context.fetch(FetchDescriptor<RaceRecord>()).first)
+        #expect(copy.manuallyUnlinked == true)
+    }
+
     @Test @MainActor func importsFileWithoutFrozenFields() throws {
         let id = UUID()
         let json = """
@@ -75,6 +88,7 @@ import Testing
         #expect(race.id == id)
         #expect(race.frozenTargetSeconds == nil)
         #expect(race.frozenTargetDay == nil)
+        #expect(race.manuallyUnlinked == false)
     }
 
     @Test @MainActor func newerEditWins() throws {

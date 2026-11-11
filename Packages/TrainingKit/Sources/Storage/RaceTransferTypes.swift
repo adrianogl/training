@@ -24,5 +24,6 @@ struct RaceTransferItem: Codable {
     var resultActivityId: Int64?
     var frozenTargetSeconds: Double?
     var frozenTargetDay: String?
+    var manuallyUnlinked: Bool?
     var updatedAt: Date
 }
