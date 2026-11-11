@@ -11,7 +11,7 @@ enum BackgroundSync {
         }
     }
 
-    static func schedule(now: Date = .now, calendar: Calendar = .current, readinessComplete: Bool = true) {
+    static func schedule(now: Date = .now, calendar: Calendar = .current, readinessComplete: Bool) {
         let request = BGAppRefreshTaskRequest(identifier: C.refreshTaskId)
         request.earliestBeginDate = nextBeginDate(after: now, calendar: calendar, readinessComplete: readinessComplete)
         try? BGTaskScheduler.shared.submit(request)
@@ -29,7 +29,7 @@ enum BackgroundSync {
     }
 
     @MainActor private static func handle(_ task: BGTask, model: AppModel) {
-        schedule()
+        schedule(readinessComplete: false)
         nonisolated(unsafe) let task = task
         task.expirationHandler = { @Sendable in
             Task { @MainActor in model.cancelSync() }

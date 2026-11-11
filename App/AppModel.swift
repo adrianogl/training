@@ -116,11 +116,12 @@ import TrainingCore
 
     func enteredBackground() {
         if runningTrigger != .background { cancelSync() }
-        BackgroundSync.schedule()
+        BackgroundSync.schedule(readinessComplete: todayReadinessComplete)
     }
 
     @discardableResult
     func syncNow(_ trigger: SyncTrigger) async -> Bool {
+        if trigger == .background { todayReadinessComplete = false }
         if let syncTask {
             let running = runningTrigger
             await syncTask.value

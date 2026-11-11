@@ -25,4 +25,8 @@ import Testing
     @Test func withoutReadinessPastCeilingSchedulesTomorrowAtFour() {
         #expect(BackgroundSync.nextBeginDate(after: date(hour: 10, minute: 30), calendar: calendar, readinessComplete: false) == date(hour: 4, day: 11))
     }
+
+    @Test func backgroundAtFiveThirtyWithoutReadinessRetriesAtSixThirty() {
+        #expect(BackgroundSync.nextBeginDate(after: date(hour: 5, minute: 30), calendar: calendar, readinessComplete: false) == date(hour: 6, minute: 30))
+    }
 }
