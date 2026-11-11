@@ -55,11 +55,11 @@ Saída do review final da branch `feat/nucleo-de-dados` (dcc23df..afbf528). Nada
 
 Resolvido na branch `feat/app-pos-treino`: toda a seção Fundação, as correções de métricas, sync, API e provas acima, e os testes listados em "Testes que faltam".
 
-Fica para o plano 3:
+Resolvido no plano 3, na branch `feat/hoje-evolucao-provas`:
 
-- **Modo background do sync.** O cancelamento já funciona; falta o modo que não espera em 429 e retoma no próximo `BGAppRefreshTask`.
-- **Limite de tentativas de FIT com erro transitório.** FIT ausente (404/410) e `.FIT` inválido saem da fila; 5xx e rede continuam sendo tentados em todo sync. Limitar exige contador no schema (`SchemaV3`).
-- **Calibração com o Garmin Connect.** VO2max a ±1,5 e previsões a ±3% do race predictor, conferidos com a conta real.
-- **Meta já batida na projeção.** `targetCrossing` fica nil quando a tendência já passou da meta; a tela compara valor atual × meta.
+- **Modo background do sync.** `SyncMode.background` não espera em 429 e limita o passo de FIT a `SyncConstants.backgroundFitLimit` (`SyncEngine.swift`, commit c9073a8). O `BGAppRefreshTask` está em `App/Background/BackgroundSync.swift`. A execução real em aparelho ainda não foi vista, porque o simulador do iOS 27 recusa `submitTaskRequest` (ver `2026-11-11-pendencias-plano-3.md`).
+- **Limite de tentativas de FIT com erro transitório.** `ActivityRecord.fitTransientFailures` (`SchemaV3`) conta as falhas e `ReprocessQueue` para de tentar depois de `SyncConstants.maxFitTransientFailures` (5).
+- **Calibração com o Garmin Connect.** VO2max e as quatro previsões ficaram dentro de ±1,5 e ±3% do race predictor depois do commit b81a5ab (janela de esforços de 150 dias e suavização do VO2max menor). As margens são curtas; ver o arquivo do plano 3.
+- **Meta já batida na projeção.** `RaceOutlook.goalCrossing` devolve `.alreadyBeaten` quando o valor mais recente já passou da meta, e `TodayText` mostra o texto correspondente.
 
 Descartado: `withExtendedLifetime` nos testes de storage. O `ModelContext` guarda referência forte ao `ModelContainer`, então o container não é liberado antes do fim do teste.
