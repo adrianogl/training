@@ -8,7 +8,7 @@ import TrainingCore
 
 public func targetRace(in context: ModelContext, today: Day) throws -> RaceRecord? {
     let upcoming = try context.fetch(FetchDescriptor<RaceRecord>())
-        .compactMap { race in Day(iso: race.day).flatMap { $0 > today ? (race, $0) : nil } }
+        .compactMap { race in Day(iso: race.day).flatMap { $0 >= today ? (race, $0) : nil } }
         .sorted { $0.1 < $1.1 }
     return (upcoming.first { $0.0.priorityLevel == .a } ?? upcoming.first)?.0
 }
@@ -34,7 +34,7 @@ func raceOutlook(race: RaceRecord?, efforts: [Effort], today: Day) -> RaceOutloo
 
 public func raceOutlook(distance raceDistance: Double, raceDay upcoming: Day?, goalSeconds: Double?, efforts: [Effort], today: Day) -> RaceOutlook {
     typealias C = InsightsConstants
-    let raceDay = upcoming.flatMap { $0 > today ? $0 : nil }
+    let raceDay = upcoming.flatMap { $0 >= today ? $0 : nil }
     let distance = raceDistance > 0 ? raceDistance : C.defaultRaceDistance
     let goal = goalSeconds.flatMap { $0 > 0 ? $0 : nil }
     let series = chunkedPredictionSeries(distance: distance, efforts: efforts, from: today.adding(days: -C.yearDays), to: today)
@@ -42,7 +42,9 @@ public func raceOutlook(distance raceDistance: Double, raceDay upcoming: Day?, g
     let displayDays = raceDay.map { today.days(until: $0) } ?? C.raceProjectionFallbackDays
     let projected = project(series, today: today, horizonDays: max(displayDays, C.goalHorizonDays), target: goal)
     let points = Array((projected?.points ?? []).prefix(displayDays))
-    let racePoint = raceDay.flatMap { day in points.first { $0.day == day } }
+    let racePoint = raceDay.flatMap { day in
+        day == today ? current.map { ProjectionPoint(day: day, mid: $0, low: $0, high: $0) } : points.first { $0.day == day }
+    }
     let reference = racePoint?.mid ?? current
     return RaceOutlook(
         distance: distance,

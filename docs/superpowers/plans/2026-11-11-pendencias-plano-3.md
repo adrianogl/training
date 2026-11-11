@@ -40,10 +40,10 @@ Saída do review final da branch `feat/hoje-evolucao-provas` (ab64561..e8ab265).
 - O bucket inicial do bloco pode ser descartado (até 5 s), há `try! #require` em testes que não são `throws` e as linhas de km não usam `accessibilityElement(children: .combine)`.
 - `pauseMaximumSpeed` fixo em 0,5 m/s trata caminhada muito lenta, em buraco de samples maior que 10 s, como pausa.
 
-## Decisões para o Adriano rever
+## Decisões do Adriano (2026-11-11)
 
-- Parciais sem o tempo parado (Ruling 16). Os splits por km de corrida livre, prova e bloco excluem pausa, como o tempo em movimento do Garmin. A pausa só conta quando a distância quase não avança no intervalo. Se preferir o tempo total, é uma constante ou flag.
-- Prova no dia dela (Ruling 19). A prova-alvo é a próxima a partir de amanhã, então na manhã da prova Hoje e a sidebar mostram a seguinte, e a prova do dia aparece só em Provas. Se Hoje deve mostrar a prova do dia, muda o filtro `targetRace > today`.
+- Parciais sem o tempo parado (Ruling 16): decidido, os splits por km de corrida livre, prova e bloco continuam excluindo pausa, como o tempo em movimento do Garmin. A pausa só conta quando a distância quase não avança no intervalo. Sem mudança.
+- Prova no dia dela (Ruling 19): decidido, Hoje e a sidebar mostram a prova do dia como prova-alvo. `targetRace` passa a usar `day >= today` e a prova vira concluída a partir do dia seguinte. Na manhã da prova a previsão do dia é a de hoje, sem projeção, e o contador diz "hoje". Feito no commit `fix(insights): mostra a prova do dia em hoje`.
 
 ## Adiado
 

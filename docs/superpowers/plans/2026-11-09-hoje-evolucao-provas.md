@@ -27,7 +27,7 @@
 ## Review Focus
 
 - Primeiro uso sem prova cadastrada, sem 30 dias de histórico e sem zonas → Hoje, Evolução e Provas renderizam versões reduzidas com motivo, sem crash nem "—" em tudo. Teste em Task 8 (`InsightsEmptyStoreTests`).
-- Prova no passado ou hoje como prova-alvo → prova-alvo é a próxima a partir de amanhã; prova de hoje aparece em Provas como "hoje", não some. Teste em Task 8.
+- Prova no passado ou hoje como prova-alvo → prova-alvo é a próxima de hoje em diante (`day >= today`); a prova passa a concluída no dia seguinte. Teste em Task 8.
 - Prontidão calculada antes das 6h, recalculada depois com outro número → aviso agendado troca o texto, nunca dois avisos no dia. Teste em Task 13.
 - Prova com paces manuais que deixam o resto inviável depois que o alvo muda → card diz que a estratégia ficou inviável e oferece limpar, sem tabela vazia muda. Teste em Task 11.
 - Corrida com prescrição mas sem FC (sensor desligado) → nota do treino só com execução, decomposição diz "sem FC". Teste em Task 5.

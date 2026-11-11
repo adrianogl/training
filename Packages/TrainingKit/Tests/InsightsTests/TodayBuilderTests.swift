@@ -20,17 +20,28 @@ import TrainingCore
         #expect(target?.name == "A próxima")
     }
 
-    @Test func targetRaceSkipsTodayAndPast() throws {
+    @Test func targetRaceIncludesRaceOnItsDay() throws {
         let context = try makeContext([
             race(name: "A hoje", inDays: 0, priority: .a),
             race(name: "A passada", inDays: -20, priority: .a),
-            race(name: "C mais longe", inDays: 30, priority: .c),
+            race(name: "A depois", inDays: 30, priority: .a),
             race(name: "B próxima", inDays: 5, priority: .b),
         ])
 
-        let target = try targetRace(in: context, today: fixtureToday)
+        #expect(try targetRace(in: context, today: fixtureToday)?.name == "A hoje")
+        #expect(try targetRace(in: context, today: fixtureToday.adding(days: 1))?.name == "A depois")
+    }
 
-        #expect(target?.name == "B próxima")
+    @Test func targetRaceWithoutAUsesNextOfAnyPriorityFromToday() throws {
+        let context = try makeContext([
+            race(name: "C hoje", inDays: 0, priority: .c),
+            race(name: "B próxima", inDays: 5, priority: .b),
+            race(name: "A passada", inDays: -20, priority: .a),
+        ])
+
+        #expect(try targetRace(in: context, today: fixtureToday)?.name == "C hoje")
+        #expect(try targetRace(in: context, today: fixtureToday.adding(days: 1))?.name == "B próxima")
+        #expect(try targetRace(in: context, today: fixtureToday.adding(days: 6)) == nil)
         #expect(try targetRace(in: makeContext(), today: fixtureToday) == nil)
     }
 

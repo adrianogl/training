@@ -57,6 +57,7 @@ enum TodayText {
 
     static func countdown(days: Int?, priority: String?) -> String? {
         guard let days else { return nil }
+        if days == 0 { return "prova \(priority ?? "") hoje".replacingOccurrences(of: "  ", with: " ") }
         let unit = days == 1 ? "dia" : "dias"
         return "prova \(priority ?? "") em \(days) \(unit)".replacingOccurrences(of: "  ", with: " ")
     }

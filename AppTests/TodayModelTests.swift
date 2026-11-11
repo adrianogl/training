@@ -12,7 +12,7 @@ import TrainingCore
 
     private static let today = Day(iso: F.day(F.base))!
 
-    static func store(withRace: Bool, goalSeconds: Double? = 6_300) throws -> ModelContainer {
+    static func store(withRace: Bool, goalSeconds: Double? = 6_300, raceInDays: Int = 34) throws -> ModelContainer {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         let name = "Tiros 3 x 1 km"
@@ -36,7 +36,7 @@ import TrainingCore
             ))
         }
         if withRace {
-            context.insert(RaceRecord(name: "Alvo", day: today.adding(days: 34).iso, distance: 21_097.5, goalSeconds: goalSeconds, priority: .a))
+            context.insert(RaceRecord(name: "Alvo", day: today.adding(days: raceInDays).iso, distance: 21_097.5, goalSeconds: goalSeconds, priority: .a))
         }
         try context.save()
         return container
@@ -62,6 +62,23 @@ import TrainingCore
         #expect(!model.readinessSentence.isEmpty)
         #expect(model.readinessDay.sleepSeconds == 7 * 3_600)
         #expect(model.isLoaded)
+    }
+
+    @Test func todayModelOnRaceDayShowsThatRaceWithHojeCountdown() async throws {
+        let container = try Self.store(withRace: true, raceInDays: 0)
+
+        let model = TodayModel(container: container, today: Self.today)
+        await model.load()
+
+        #expect(model.summary.raceCountdownDays == 0)
+        #expect(model.summary.racePriority == .a)
+        #expect(model.summary.race.goalSeconds == 6_300)
+        #expect(model.summary.race.raceDay?.day == Self.today)
+        #expect(model.summary.race.projection.isEmpty)
+        #expect(model.raceDay == Self.today)
+        #expect(model.summary.fitness.raceDayForm != nil)
+        #expect(model.predictionContent.countdownText == "prova A hoje")
+        #expect(model.predictionContent.lines.allSatisfy { !$0.dashed })
     }
 
     @Test func todayModelWithoutRaceShowsHalfAndNoCountdown() async throws {

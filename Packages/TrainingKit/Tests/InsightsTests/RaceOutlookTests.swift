@@ -52,6 +52,22 @@ import TrainingCore
         #expect(outlook.assessment == .aggressive)
     }
 
+    @Test func raceOutlookOnRaceDayUsesTodayPrediction() throws {
+        var models: [any PersistentModel] = improvingRuns()
+        models.append(race(name: "Prova", inDays: 0, goal: 1_400))
+        let context = try makeContext(models)
+
+        let outlook = try raceOutlook(context: context, today: fixtureToday)
+
+        let point = try #require(outlook.raceDay)
+        let current = try #require(outlook.today)
+        #expect(point.day == fixtureToday)
+        #expect(point.mid == current)
+        #expect(outlook.projection.isEmpty)
+        #expect(outlook.projection.allSatisfy { $0.day > fixtureToday })
+        #expect(outlook.assessment != nil)
+    }
+
     @Test func raceOutlookWithoutRaceUsesHalf() throws {
         let context = try makeContext(improvingRuns(over: 400))
 

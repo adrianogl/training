@@ -83,6 +83,22 @@ import TrainingCore
         #expect(prova.frozenTargetDay == nil)
     }
 
+    @Test func strategyOnRaceDayDoesNotFreeze() throws {
+        let prova = race(name: "Prova", inDays: 0, distance: 21_097.5, goal: 6_300)
+        let context = try makeContext([prova])
+
+        let live = try strategyTarget(race: prova, outlook: outlook(today: 6_500, raceDay: (fixtureToday, 6_500), goal: 6_300), today: fixtureToday, context: context)
+        #expect(live == StrategyTarget(seconds: 6_500, source: .raceDayProjection, frozenOn: nil))
+        #expect(prova.frozenTargetSeconds == nil)
+        #expect(prova.frozenTargetDay == nil)
+        #expect(!context.hasChanges)
+
+        prova.frozenTargetSeconds = 6_400
+        prova.frozenTargetDay = fixtureToday.adding(days: -1).iso
+        let frozen = try strategyTarget(race: prova, outlook: outlook(today: 6_500, raceDay: (fixtureToday, 6_500), goal: 6_300), today: fixtureToday, context: context)
+        #expect(frozen == StrategyTarget(seconds: 6_400, source: .frozen, frozenOn: fixtureToday.adding(days: -1)))
+    }
+
     @Test func freezeEveTargetsUsesRaceDayProjectionOnEveOnly() throws {
         var models: [any PersistentModel] = improvingRuns()
         let eve = race(name: "Amanhã", inDays: 1, goal: 1_400)

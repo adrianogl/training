@@ -22,6 +22,12 @@ private func constantLoad(_ value: Double, days: Int) -> [Day: Double] {
     #expect(peak > finalFitness)
 }
 
+@Test func raceTodayUsesTodayFormWithoutProjection() {
+    let outlook = fitnessOutlook(dailyLoad: constantLoad(60, days: 120), today: today, raceDay: today)
+    #expect(outlook.projection.isEmpty)
+    #expect(outlook.raceDayForm == outlook.history.last?.form)
+}
+
 @Test func noRaceProjectsThirtyDaysFlat() {
     let outlook = fitnessOutlook(dailyLoad: constantLoad(60, days: 120), today: today, raceDay: nil)
     #expect(outlook.projection.count == 30)
