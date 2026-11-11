@@ -20,6 +20,7 @@ extension SyncEngine {
                 record.routeData = route
                 record.structureData = structure
                 record.workoutName = summary.structure.prescription?.name
+                try applyThresholdZones(to: record, samples: summary.samples)
                 record.processingVersion = FITReaderConstants.processingVersion
                 record.fitProcessed = true
                 record.updatedAt = .now

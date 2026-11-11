@@ -32,6 +32,13 @@ private func steady(_ heartRate: Int, from start: Int, seconds: Int) -> [FITSamp
         #expect(zoneSeconds([], zones: thresholdZones(thresholdHeartRate: 160)) == nil)
     }
 
+    @Test func zoneSecondsIgnoresZeroHeartRate() throws {
+        let samples = steady(0, from: 0, seconds: 30) + steady(150, from: 30, seconds: 31)
+        let seconds = try #require(zoneSeconds(samples, zones: thresholdZones(thresholdHeartRate: 160)))
+        #expect(seconds == [0, 0, 30, 0, 0])
+        #expect(zoneSeconds(steady(0, from: 0, seconds: 30), zones: thresholdZones(thresholdHeartRate: 160)) == nil)
+    }
+
     @Test func divergenceBothDirections() {
         #expect(zoneDivergence(watchZone5Floor: 154, thresholdHeartRate: 160) == -6)
         #expect(zoneDivergence(watchZone5Floor: 175, thresholdHeartRate: 165) == 10)

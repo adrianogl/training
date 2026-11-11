@@ -102,7 +102,7 @@ public actor SyncEngine: ModelActor {
         let state = try syncState()
         progress(C.progressAfterCleanup)
 
-        try await fetchHeartRateZones()
+        try await fetchHeartRateZones(today: today)
         progress(C.progressAfterZones)
 
         let isFirstLoad = !state.firstLoadCompleted
@@ -151,6 +151,7 @@ public actor SyncEngine: ModelActor {
         let recomputesAll = isFirstLoad || state.readinessVersion < C.readinessVersion
         try updateReadiness(days: recomputesAll ? try storedDays() : touchedDays.union(try loadAffectedDays(upsertedActivities)))
         state.readinessVersion = C.readinessVersion
+        try refreshThresholdZoneSeconds(in: modelContext, limit: mode == .background ? C.backgroundThresholdRefreshLimit : nil)
         progress(C.progressAfterDerived)
 
         try Task.checkCancellation()
@@ -201,7 +202,7 @@ public actor SyncEngine: ModelActor {
         return Set(try modelContext.fetch(descriptor).compactMap { Day(iso: $0.day) })
     }
 
-    private func fetchHeartRateZones() async throws {
+    private func fetchHeartRateZones(today: Day) async throws {
         let zones: HRZonesDTO
         do {
             zones = try await source.heartRateZones()
@@ -212,7 +213,7 @@ public actor SyncEngine: ModelActor {
             return
         }
         heartRateZones = zones
-        try upsertHeartRateZones(zones)
+        try upsertHeartRateZones(zones, today: today)
     }
 
     private func latestActivityStart() throws -> Date? {

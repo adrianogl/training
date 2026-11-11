@@ -10,12 +10,12 @@ public func zoneSeconds(_ samples: [FITSample], zones: HeartRateZones) -> [Doubl
     guard !zones.floors.isEmpty else { return nil }
     var seconds = [Double](repeating: 0, count: zones.floors.count)
     for (index, sample) in samples.enumerated() {
-        guard let heartRate = sample.heartRate, index + 1 < samples.count else { continue }
+        guard let heartRate = sample.heartRate, heartRate > 0, index + 1 < samples.count else { continue }
         let gap = min(max(samples[index + 1].t - sample.t, 0), ThresholdZonesConstants.maxSampleGap)
         let zone = zones.floors.lastIndex { heartRate >= $0 } ?? 0
         seconds[zone] += gap
     }
-    return samples.contains { $0.heartRate != nil } ? seconds : nil
+    return samples.contains { ($0.heartRate ?? 0) > 0 } ? seconds : nil
 }
 
 public func zoneDivergence(watchZone5Floor: Int?, thresholdHeartRate: Int?) -> Int? {

@@ -6,15 +6,15 @@ enum FITZipBuilder {
     static let workoutName = "Intervalado sintético"
     private static let start: UInt32 = 1_100_000_000
 
-    static func run(seconds: Int) throws -> Data {
-        try zip(try fit(seconds: seconds, extra: []))
+    static func run(seconds: Int, withHeartRate: Bool = true) throws -> Data {
+        try zip(try fit(seconds: seconds, extra: [], withHeartRate: withHeartRate))
     }
 
     static func structuredRun(seconds: Int) throws -> Data {
         try zip(try fit(seconds: seconds, extra: try workoutMesgs()))
     }
 
-    private static func fit(seconds: Int, extra: [Mesg]) throws -> Data {
+    private static func fit(seconds: Int, extra: [Mesg], withHeartRate: Bool = true) throws -> Data {
         let encoder = Encoder()
         let fileId = FileIdMesg()
         try fileId.setType(.activity)
@@ -24,7 +24,9 @@ enum FITZipBuilder {
         for second in 0..<seconds {
             let record = RecordMesg()
             try record.setTimestamp(DateTime(timestamp: start + UInt32(second)))
-            try record.setHeartRate(UInt8(130 + second % 20))
+            if withHeartRate {
+                try record.setHeartRate(UInt8(130 + second % 20))
+            }
             try record.setEnhancedSpeed(3.2)
             try record.setEnhancedAltitude(100)
             try record.setDistance(Double(second) * 3.2)

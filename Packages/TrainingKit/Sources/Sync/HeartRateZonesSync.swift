@@ -2,9 +2,10 @@ import Foundation
 import GarminAPI
 import Storage
 import SwiftData
+import TrainingCore
 
 extension SyncEngine {
-    func upsertHeartRateZones(_ dto: HRZonesDTO) throws {
+    func upsertHeartRateZones(_ dto: HRZonesDTO, today: Day) throws {
         let sport = dto.sport ?? SyncConstants.defaultZonesSport
         var descriptor = FetchDescriptor<HeartRateZonesRecord>(predicate: #Predicate { $0.sport == sport })
         descriptor.fetchLimit = 1
@@ -24,6 +25,9 @@ extension SyncEngine {
         record.lactateThresholdHeartRate = dto.lactateThresholdHeartRateUsed
         record.restingHeartRate = dto.restingHeartRateUsed
         record.updatedAt = .now
+        if let threshold = dto.lactateThresholdHeartRateUsed {
+            try recordThreshold(threshold, sport: sport, on: today, in: modelContext)
+        }
         try modelContext.save()
     }
 }

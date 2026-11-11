@@ -17,6 +17,7 @@ actor FakeDataSource: GarminDataSource {
     private let dailyDelay: Duration?
     private var sleepFailure: (from: Day, error: GarminAPIError)?
     private var activityFailure: (start: Int, error: GarminAPIError)?
+    private var lactateThreshold: Int?
 
     private(set) var summaryFroms: [Day] = []
     private(set) var hrvFroms: [Day] = []
@@ -58,6 +59,10 @@ actor FakeDataSource: GarminDataSource {
         activityFailure = start.map { ($0, error) }
     }
 
+    func setLactateThreshold(_ value: Int?) {
+        lactateThreshold = value
+    }
+
     nonisolated var dayCount: Int {
         dataDays.map { $0.lowerBound.days(until: $0.upperBound) + 1 } ?? 0
     }
@@ -70,7 +75,7 @@ actor FakeDataSource: GarminDataSource {
         zonesCalls += 1
         if cancelsZones { throw CancellationError() }
         if let zonesError { throw zonesError }
-        return HRZonesDTO(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175)
+        return HRZonesDTO(sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175, lactateThresholdHeartRateUsed: lactateThreshold)
     }
 
     func dailySummaries(from: Day, to: Day) async throws -> [DailySummaryDTO] {

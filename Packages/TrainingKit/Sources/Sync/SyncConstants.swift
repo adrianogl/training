@@ -13,6 +13,8 @@ enum SyncConstants {
     static let backgroundFitLimit = 3
     static let maxFitTransientFailures = 5
     static let defaultZonesSport = "DEFAULT"
+    static let runningZonesSport = "running"
+    static let backgroundThresholdRefreshLimit = 50
     static let missingFITStatuses: Set<Int> = [404, 410]
 
     static let progressAfterCleanup = 0.05
