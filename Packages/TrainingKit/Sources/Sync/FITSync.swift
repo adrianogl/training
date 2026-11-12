@@ -77,7 +77,7 @@ extension SyncEngine {
             return .unavailable
         } catch {
             if SyncErrorPolicy.isCancellation(error) { throw CancellationError() }
-            let reason = "\(type(of: error)): \(error)"
+            let reason = FITFailureDescription.make(error)
             SyncConstants.fitLogger.error("FIT pulado, atividade \(activityId, privacy: .public): \(reason, privacy: .public)")
             return .skipped(reason: reason)
         }

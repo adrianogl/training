@@ -52,6 +52,7 @@ let package = Package(
             "Insights", "TrainingCore", "FITReader", "Metrics", "Projections", "Storage", "Reports", "Narrative", "Sync",
         ]),
         .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore"]),
+        .testTarget(name: "trainingctlTests", dependencies: ["trainingctl", "Sync"]),
         .testTarget(name: "SyncTests", dependencies: [
             "Sync",
             "TrainingCore",

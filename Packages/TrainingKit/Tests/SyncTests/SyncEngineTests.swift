@@ -241,6 +241,21 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(report.skippedFITs.first?.description.contains("FakeFITError") == true)
     }
 
+    @Test func skippedFITDescriptionOmitsUrlAndUserInfo() async throws {
+        let url = URL(string: "https://example.com/download?key=SEGREDO")!
+        let error = URLError(.badServerResponse, userInfo: [NSURLErrorFailingURLErrorKey: url])
+        let activities = [FakeDataSource.activity(id: 10, typeKey: "running", day: today)]
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities, fitFailures: [10: error])
+        let (engine, _) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        let report = try await engine.run()
+
+        let description = try #require(report.skippedFITs.first?.description)
+        #expect(description.contains("URLError"))
+        #expect(!description.contains("SEGREDO"))
+        #expect(!description.contains("example.com"))
+    }
+
     @Test func storesReadiness() async throws {
         let span = today.adding(days: -40)...today
         let activities = (0...40).map { offset in
