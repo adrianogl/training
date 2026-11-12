@@ -94,7 +94,7 @@ extension RaceTransferItem {
         race.resultActivityId = resultActivityId
         race.frozenTargetSeconds = frozenTargetSeconds
         race.frozenTargetDay = frozenTargetDay
-        race.manuallyUnlinked = manuallyUnlinked ?? false
+        race.manuallyUnlinked = manuallyUnlinked ?? race.manuallyUnlinked
         race.updatedAt = updatedAt
     }
 }

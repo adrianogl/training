@@ -91,6 +91,32 @@ import Testing
         #expect(race.manuallyUnlinked == false)
     }
 
+    @Test @MainActor func importWithoutUnlinkedFieldKeepsLocalValue() throws {
+        let id = UUID()
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let local = makeRace(id: id, name: "Local", updatedAt: Date(timeIntervalSince1970: 1_000))
+        local.manuallyUnlinked = true
+        context.insert(local)
+
+        let withoutField = """
+        {"version":1,"races":[{"id":"\(id.uuidString)","name":"Antiga","day":"2026-06-01","distance":10000,"priority":"B","updatedAt":2000}]}
+        """
+        let result = try RaceTransfer.importRaces(Data(withoutField.utf8), into: context)
+
+        #expect(result.updated == 1)
+        #expect(local.name == "Antiga")
+        #expect(local.manuallyUnlinked == true)
+
+        let withFalse = """
+        {"version":1,"races":[{"id":"\(id.uuidString)","name":"Nova","day":"2026-06-01","distance":10000,"priority":"B","manuallyUnlinked":false,"updatedAt":3000}]}
+        """
+        _ = try RaceTransfer.importRaces(Data(withFalse.utf8), into: context)
+
+        #expect(local.name == "Nova")
+        #expect(local.manuallyUnlinked == false)
+    }
+
     @Test @MainActor func newerEditWins() throws {
         let id = UUID()
         let container = try TrainingSchema.container(inMemory: true)
