@@ -3,6 +3,7 @@ import Narrative
 import Reports
 import Storage
 import SwiftData
+import Sync
 import TrainingCore
 
 public func overallState(context: ModelContext, today: Day) throws -> OverallState {
@@ -21,7 +22,7 @@ public func overallState(context: ModelContext, today: Day) throws -> OverallSta
         load: builder.dailyLoad(activities),
         efforts: efforts,
         distance: outlook.distance,
-        zones: try watchZonesRecord(context),
+        thresholdHeartRate: try thresholdHeartRate(on: today, in: context),
         zone2ByDay: zone2ByDay,
         today: today
     )
@@ -74,12 +75,12 @@ struct IndicatorSource {
     let fitness: [Day: Double]
     let runDays: [Day]
 
-    init(runs: [ActivityRecord], load: [Day: Double], efforts: [Effort], distance: Double, zones: HeartRateZonesRecord?, zone2ByDay: [Day: ClosedRange<Int>], today: Day) {
+    init(runs: [ActivityRecord], load: [Day: Double], efforts: [Effort], distance: Double, thresholdHeartRate: Int?, zone2ByDay: [Day: ClosedRange<Int>], today: Day) {
         self.runs = runs
         self.efforts = efforts
         self.distance = distance
         self.zone2ByDay = zone2ByDay
-        thresholdHeartRate = zones?.lactateThresholdHeartRate
+        self.thresholdHeartRate = thresholdHeartRate
         vo2max = smoothedVo2max(runs.compactMap { run in run.vo2max.map { (activityDay(run), $0) } })
         var fitness: [Day: Double] = [:]
         if let first = load.keys.min(), first <= today {

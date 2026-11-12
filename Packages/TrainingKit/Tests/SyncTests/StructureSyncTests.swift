@@ -40,7 +40,7 @@ private func insertProcessedRuns(_ ids: [Int64], in container: ModelContainer) t
         #expect(report.processedActivityIds == [1])
         let record = try #require(try records(in: container)[1])
         #expect(record.processingVersion == FITReaderConstants.processingVersion)
-        #expect(record.processingVersion == 2)
+        #expect(record.processingVersion == 3)
         #expect(record.workoutName == FITZipBuilder.workoutName)
         let stored = try JSONDecoder().decode(WorkoutStructure.self, from: try #require(record.structureData))
         let expected = try FITReader.read(zip: zip).structure

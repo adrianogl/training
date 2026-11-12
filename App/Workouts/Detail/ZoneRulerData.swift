@@ -4,9 +4,16 @@ import TrainingCore
 import WorkoutAnalysis
 
 extension ZoneRulerData {
-    static func make(watchZones: HeartRateZones?, watchSeconds: [Double], thresholdHeartRate: Int?, thresholdSeconds: [Double]) -> ZoneRulerData? {
-        guard let watchZones, watchZones.floors.count == WorkoutDetailConstants.zoneCount else { return nil }
-        let watch = ZoneBar(floors: watchZones.floors, seconds: Array(watchSeconds.prefix(WorkoutDetailConstants.zoneCount)))
+    static func make(
+        activityFloors: [Int] = [],
+        watchZones: HeartRateZones?,
+        watchSeconds: [Double],
+        thresholdHeartRate: Int?,
+        thresholdSeconds: [Double]
+    ) -> ZoneRulerData? {
+        let floors = activityFloors.count == WorkoutDetailConstants.zoneCount ? activityFloors : watchZones?.floors ?? []
+        guard floors.count == WorkoutDetailConstants.zoneCount else { return nil }
+        let watch = ZoneBar(floors: floors, seconds: Array(watchSeconds.prefix(WorkoutDetailConstants.zoneCount)))
         let threshold = thresholdHeartRate.flatMap { heartRate in
             thresholdSeconds.isEmpty ? nil : ZoneBar(floors: thresholdZones(thresholdHeartRate: heartRate).floors, seconds: thresholdSeconds)
         }
@@ -14,7 +21,7 @@ extension ZoneRulerData {
         return ZoneRulerData(
             watch: watch,
             threshold: threshold,
-            divergence: zoneDivergence(watchZone5Floor: watchZones.floors.last, thresholdHeartRate: thresholdHeartRate),
+            divergence: zoneDivergence(watchZone5Floor: floors.last, thresholdHeartRate: thresholdHeartRate),
             thresholdHeartRate: thresholdHeartRate
         )
     }

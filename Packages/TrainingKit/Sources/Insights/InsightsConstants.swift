@@ -22,7 +22,6 @@ enum InsightsConstants {
     static let metersPerKm = 1_000.0
     static let verdictDifference = 2
     static let stableFraction = 0.01
-    static let zonesSport = "running"
     static let lowZoneCount = 2
     static let zoneCount = 5
     static let percent = 100.0

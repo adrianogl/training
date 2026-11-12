@@ -9,6 +9,7 @@ actor FakeDataSource: GarminDataSource {
     nonisolated let initialActivityCount: Int
     private var activityList: [ActivityDTO]
     private let fitZip: Data?
+    private let fitZips: [Int64: Data]
     private let failure: GarminAPIError?
     private let zonesError: GarminAPIError?
     private let fitErrors: [Int64: GarminAPIError]
@@ -32,6 +33,7 @@ actor FakeDataSource: GarminDataSource {
         dataDays: ClosedRange<Day>?,
         activities: [ActivityDTO] = [],
         fitZip: Data? = nil,
+        fitZips: [Int64: Data] = [:],
         failure: GarminAPIError? = nil,
         zonesError: GarminAPIError? = nil,
         fitErrors: [Int64: GarminAPIError] = [:],
@@ -43,6 +45,7 @@ actor FakeDataSource: GarminDataSource {
         self.activityList = activities
         self.initialActivityCount = activities.count
         self.fitZip = fitZip
+        self.fitZips = fitZips
         self.failure = failure
         self.zonesError = zonesError
         self.fitErrors = fitErrors
@@ -133,6 +136,7 @@ actor FakeDataSource: GarminDataSource {
         fitCalls.append(activityId)
         if cancelledFITs.contains(activityId) { throw CancellationError() }
         if let error = fitErrors[activityId] { throw error }
+        if let zip = fitZips[activityId] { return zip }
         guard let fitZip else { throw FakeFITError() }
         return fitZip
     }

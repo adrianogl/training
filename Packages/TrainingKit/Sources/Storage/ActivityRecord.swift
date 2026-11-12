@@ -43,6 +43,8 @@ public final class ActivityRecord {
     public var fitTransientFailures: Int = 0
     public var thresholdZoneSeconds: [Double] = []
     public var thresholdUsed: Int? = nil
+    public var fitThresholdHeartRate: Int? = nil
+    public var watchZoneFloors: [Int] = []
     public var scoreValue: Int? = nil
     public var scoreKey: String? = nil
     @Attribute(.externalStorage) public var scoreData: Data? = nil
@@ -89,6 +91,8 @@ public final class ActivityRecord {
         fitTransientFailures: Int = 0,
         thresholdZoneSeconds: [Double] = [],
         thresholdUsed: Int? = nil,
+        fitThresholdHeartRate: Int? = nil,
+        watchZoneFloors: [Int] = [],
         scoreValue: Int? = nil,
         scoreKey: String? = nil,
         scoreData: Data? = nil,
@@ -134,6 +138,8 @@ public final class ActivityRecord {
         self.fitTransientFailures = fitTransientFailures
         self.thresholdZoneSeconds = thresholdZoneSeconds
         self.thresholdUsed = thresholdUsed
+        self.fitThresholdHeartRate = fitThresholdHeartRate
+        self.watchZoneFloors = watchZoneFloors
         self.scoreValue = scoreValue
         self.scoreKey = scoreKey
         self.scoreData = scoreData

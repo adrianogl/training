@@ -20,6 +20,7 @@ extension SyncEngine {
                 record.routeData = route
                 record.structureData = structure
                 record.workoutName = summary.structure.prescription?.name
+                try applyWatchZoneInfo(summary.zoneInfo, to: record)
                 try applyThresholdZones(to: record, samples: summary.samples)
                 record.processingVersion = FITReaderConstants.processingVersion
                 record.fitProcessed = true
@@ -46,6 +47,13 @@ extension SyncEngine {
             progress(Double(index + 1) / Double(queue.count))
         }
         return result
+    }
+
+    private func applyWatchZoneInfo(_ info: HeartRateZoneInfo?, to record: ActivityRecord) throws {
+        record.fitThresholdHeartRate = info?.thresholdHeartRate
+        record.watchZoneFloors = info?.floors ?? []
+        guard ActivityTypeKey.isRun(record.typeKey), let threshold = info?.thresholdHeartRate else { return }
+        try recordFITThreshold(threshold, on: activityDay(record), in: modelContext)
     }
 
     private func readFIT(activityId: Int64) async throws -> FITOutcome {

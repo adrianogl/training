@@ -130,6 +130,28 @@ enum FITFixtureBuilder {
         return mesg
     }
 
+    static func timeInZone(
+        reference: MesgNum,
+        boundaries: [UInt8],
+        threshold: UInt8,
+        maxHeartRate: UInt8 = 190,
+        restingHeartRate: UInt8 = 48,
+        calcType: HrZoneCalc = .percentLthr
+    ) throws -> TimeInZoneMesg {
+        let mesg = TimeInZoneMesg()
+        try mesg.setTimestamp(DateTime(timestamp: start))
+        try mesg.setReferenceMesg(reference)
+        try mesg.setReferenceIndex(0)
+        for (index, value) in boundaries.enumerated() {
+            try mesg.setHrZoneHighBoundary(index: index, value: value)
+        }
+        try mesg.setThresholdHeartRate(threshold)
+        try mesg.setMaxHeartRate(maxHeartRate)
+        try mesg.setRestingHeartRate(restingHeartRate)
+        try mesg.setHrCalcType(calcType)
+        return mesg
+    }
+
     static func zip(containing fit: Data, entryName: String = "activity.fit") throws -> Data {
         let archive = try Archive(accessMode: .create)
         try archive.addEntry(with: entryName, type: .file, uncompressedSize: Int64(fit.count)) { position, size in

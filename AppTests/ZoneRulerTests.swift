@@ -20,7 +20,7 @@ import TrainingCore
         )
     }
 
-    private func model(threshold: Int?, thresholdUsed: Int?, thresholdSeconds: [Double]) throws -> WorkoutDetailModel {
+    private func model(threshold: Int?, thresholdUsed: Int?, thresholdSeconds: [Double], activityFloors: [Int] = []) throws -> WorkoutDetailModel {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         context.insert(zonesRecord(threshold: threshold))
@@ -28,6 +28,7 @@ import TrainingCore
         run.zoneSeconds = watchSeconds
         run.thresholdZoneSeconds = thresholdSeconds
         run.thresholdUsed = thresholdUsed
+        run.watchZoneFloors = activityFloors
         context.insert(run)
         try context.save()
         return WorkoutDetailModel(activityId: 1, context: context)
@@ -60,6 +61,26 @@ import TrainingCore
         #expect(ruler.thresholdHeartRate == nil)
         #expect(ruler.divergence == nil)
         #expect(ruler.note == "sem FC de limiar no Garmin")
+    }
+
+    @Test func rulerUsesActivityWatchFloors() throws {
+        let ruler = try #require(try model(
+            threshold: 150, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [105, 129, 142, 153, 160]
+        ).ruler)
+
+        #expect(ruler.watch.floors == [105, 129, 142, 153, 160])
+        #expect(ruler.thresholdHeartRate == 170)
+        #expect(ruler.divergence == -10)
+        #expect(ruler.note == "Zonas do relógio 10 bpm abaixo do limiar")
+    }
+
+    @Test func rulerFallsBackToZonesRecordFloors() throws {
+        let ruler = try #require(try model(
+            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [105, 129]
+        ).ruler)
+
+        #expect(ruler.watch.floors == [100, 120, 140, 160, 175])
+        #expect(ruler.divergence == 5)
     }
 
     @Test func divergenceTextBelowAndAbove() throws {

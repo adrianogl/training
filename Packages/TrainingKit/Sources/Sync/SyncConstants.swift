@@ -1,6 +1,7 @@
 import Foundation
 
-enum SyncConstants {
+public enum SyncConstants {
+    public static let fitThresholdSport = "fit"
     static let dailySummaryWindowDays = 180
     static let hrvWindowDays = 180
     static let sleepWindowDays = 28

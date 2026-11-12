@@ -1,6 +1,7 @@
 import Foundation
 import Storage
 import SwiftData
+import Sync
 import Testing
 import TrainingCore
 @testable import Insights
@@ -44,7 +45,7 @@ private func easyRuns(around distance: Double = 10_000, days: [Int] = [20, 30, 4
 }
 
 private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
-    ThresholdHistoryRecord(sport: "running", day: daysAgo(200).iso, heartRate: heartRate)
+    ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(200).iso, heartRate: heartRate)
 }
 
 @Suite struct RaceDetectionTests {

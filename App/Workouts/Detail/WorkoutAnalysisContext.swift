@@ -29,12 +29,10 @@ struct WorkoutAnalysisContext {
     }
 
     nonisolated static func inputs(records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisInputs {
-        let watchRecord = watchZonesRecord(context)
-        let sport = watchRecord?.sport ?? WorkoutDetailConstants.defaultZonesSport
         let runDays = records.filter { ActivityTypeKey.isRun($0.typeKey) }.map(day)
         return WorkoutAnalysisInputs(
-            watchZones: watchRecord.flatMap(zones(from:)),
-            thresholdByDay: (try? thresholdHeartRates(on: runDays, sport: sport, in: context)) ?? [:],
+            watchZones: (try? runningZonesRecord(in: context)).flatMap(zones(from:)),
+            thresholdByDay: (try? thresholdHeartRates(on: runDays, in: context)) ?? [:],
             dailyLoad: dailyLoad(records),
             readinessByDay: readinessByDay(context)
         )
@@ -126,11 +124,6 @@ struct WorkoutAnalysisContext {
         var zones = thresholdZones(thresholdHeartRate: threshold)
         zones.maxHeartRate = inputs.watchZones?.maxHeartRate
         return zones
-    }
-
-    nonisolated private static func watchZonesRecord(_ context: ModelContext) -> HeartRateZonesRecord? {
-        let records = (try? context.fetch(FetchDescriptor<HeartRateZonesRecord>())) ?? []
-        return records.first { $0.sport == WorkoutDetailConstants.defaultZonesSport } ?? (records.count == 1 ? records.first : nil)
     }
 
     static func zones(from record: HeartRateZonesRecord) -> HeartRateZones? {

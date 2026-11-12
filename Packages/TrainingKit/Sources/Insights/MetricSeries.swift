@@ -109,12 +109,12 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
             return samples(of: run).flatMap { zone2Pace($0, zone2: zone2) }
         })
     case .thresholdPace:
-        guard let lthr = try watchZonesRecord(context)?.lactateThresholdHeartRate else { return RawMetric(values: []) }
+        guard let lthr = try thresholdHeartRate(on: today, in: context) else { return RawMetric(values: []) }
         return RawMetric(values: try runValues(context, since: lower, today: today) { run in
             samples(of: run).flatMap { thresholdPace([$0], lthr: lthr) }
         })
     case .thresholdHeartRate:
-        guard let lthr = try watchZonesRecord(context)?.lactateThresholdHeartRate else { return RawMetric(values: []) }
+        guard let lthr = try thresholdHeartRate(on: today, in: context) else { return RawMetric(values: []) }
         return RawMetric(values: [(today, Double(lthr))])
     case .durability:
         return RawMetric(values: try runValues(context, since: lower, today: today) { run in

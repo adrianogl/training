@@ -3,6 +3,7 @@ import Foundation
 import Metrics
 import Storage
 import SwiftData
+import Sync
 import Testing
 import TrainingCore
 @testable import Insights
@@ -28,7 +29,7 @@ private func thresholdRun(id: Int64, daysAgo offset: Int, seconds: [Double], thr
 
 @Suite struct ThresholdZonesInsightsTests {
     @Test func zone2RangeComesFromThreshold() throws {
-        let context = try makeContext([watchZones(threshold: 150), ThresholdHistoryRecord(sport: "running", day: daysAgo(30).iso, heartRate: 160)])
+        let context = try makeContext([watchZones(threshold: 150), ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(30).iso, heartRate: 160)])
 
         let zones = try runningZones(on: fixtureToday, context)
 
@@ -39,8 +40,8 @@ private func thresholdRun(id: Int64, daysAgo offset: Int, seconds: [Double], thr
     @Test func zoneRangeFollowsTheThresholdOfEachDay() throws {
         let context = try makeContext([
             watchZones(),
-            ThresholdHistoryRecord(sport: "running", day: daysAgo(100).iso, heartRate: 150),
-            ThresholdHistoryRecord(sport: "running", day: daysAgo(10).iso, heartRate: 160),
+            ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(100).iso, heartRate: 150),
+            ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(10).iso, heartRate: 160),
         ])
 
         #expect(zone2Range(try runningZones(on: daysAgo(50), context)) == 128...134)
@@ -108,8 +109,8 @@ private func thresholdRun(id: Int64, daysAgo offset: Int, seconds: [Double], thr
         recent.samplesData = data
         let context = try makeContext([
             watchZones(),
-            ThresholdHistoryRecord(sport: "running", day: daysAgo(100).iso, heartRate: 150),
-            ThresholdHistoryRecord(sport: "running", day: daysAgo(10).iso, heartRate: 160),
+            ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(100).iso, heartRate: 150),
+            ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(10).iso, heartRate: 160),
             early,
             recent,
         ])
@@ -125,7 +126,7 @@ private func thresholdRun(id: Int64, daysAgo offset: Int, seconds: [Double], thr
         let data = try JSONEncoder().encode(samples)
         let recent = run(id: 1, daysAgo: 0)
         recent.samplesData = data
-        let context = try makeContext([watchZones(), ThresholdHistoryRecord(sport: "running", day: daysAgo(10).iso, heartRate: 160), recent])
+        let context = try makeContext([watchZones(), ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(10).iso, heartRate: 160), recent])
 
         let state = try overallState(context: context, today: fixtureToday)
 

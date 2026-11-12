@@ -6,8 +6,11 @@ enum FITZipBuilder {
     static let workoutName = "Intervalado sintético"
     private static let start: UInt32 = 1_100_000_000
 
-    static func run(seconds: Int, withHeartRate: Bool = true) throws -> Data {
-        try zip(try fit(seconds: seconds, extra: [], withHeartRate: withHeartRate))
+    static let watchZoneBoundaries: [UInt8] = [105, 129, 142, 153, 160, 186]
+
+    static func run(seconds: Int, withHeartRate: Bool = true, zoneThreshold: UInt8? = nil) throws -> Data {
+        let extra: [Mesg] = try zoneThreshold.map { [try timeInZone(threshold: $0)] } ?? []
+        return try zip(try fit(seconds: seconds, extra: extra, withHeartRate: withHeartRate))
     }
 
     static func structuredRun(seconds: Int) throws -> Data {
@@ -96,6 +99,19 @@ enum FITZipBuilder {
         try mesg.setWktStepIndex(stepIndex)
         try mesg.setAvgHeartRate(145)
         try mesg.setMaxHeartRate(158)
+        return mesg
+    }
+
+    private static func timeInZone(threshold: UInt8) throws -> TimeInZoneMesg {
+        let mesg = TimeInZoneMesg()
+        try mesg.setTimestamp(DateTime(timestamp: start))
+        try mesg.setReferenceMesg(.session)
+        try mesg.setReferenceIndex(0)
+        for (index, value) in watchZoneBoundaries.enumerated() {
+            try mesg.setHrZoneHighBoundary(index: index, value: value)
+        }
+        try mesg.setThresholdHeartRate(threshold)
+        try mesg.setHrCalcType(.percentLthr)
         return mesg
     }
 

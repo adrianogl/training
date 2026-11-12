@@ -13,11 +13,10 @@ public func raceCandidates(in context: ModelContext, today: Day) throws -> [Race
     let decided = Set(try context.fetch(FetchDescriptor<RaceDecisionRecord>()).map(\.activityId))
     let linked = Set(try context.fetch(FetchDescriptor<RaceRecord>()).compactMap(\.resultActivityId))
     let unstructured = runs.filter(isUnstructured)
-    let sport = try watchZonesRecord(context)?.sport ?? InsightsConstants.zonesSport
     let firstDay = today.adding(days: -C.lookbackDays)
     return try unstructured
         .filter { runDay($0) >= firstDay && !decided.contains($0.activityId) && !linked.contains($0.activityId) }
-        .filter { try looksLikeRace($0, baseline: unstructured, sport: sport, context: context) }
+        .filter { try looksLikeRace($0, baseline: unstructured, context: context) }
         .sorted { $0.start > $1.start }
         .compactMap(candidate)
 }
@@ -101,7 +100,7 @@ private func isAtRaceDistance(_ distance: Double) -> Bool {
     return abs(distance - nominal) / nominal <= RaceDetectionConstants.distanceTolerance
 }
 
-private func looksLikeRace(_ run: ActivityRecord, baseline: [ActivityRecord], sport: String, context: ModelContext) throws -> Bool {
+private func looksLikeRace(_ run: ActivityRecord, baseline: [ActivityRecord], context: ModelContext) throws -> Bool {
     typealias C = RaceDetectionConstants
     guard ReportBuilder.isContinuous(run), let distance = run.distance, isAtRaceDistance(distance), let pace = movingPace(run) else { return false }
     let day = runDay(run)
@@ -115,7 +114,7 @@ private func looksLikeRace(_ run: ActivityRecord, baseline: [ActivityRecord], sp
     if let reference = median(paces) {
         return pace <= reference * (1 - C.fasterThanBaseline)
     }
-    guard let averageHR = run.averageHR, let threshold = try thresholdHeartRate(on: day, sport: sport, in: context) else { return false }
+    guard let averageHR = run.averageHR, let threshold = try thresholdHeartRate(on: day, in: context) else { return false }
     return averageHR >= Double(threshold) * C.thresholdFraction
 }
 

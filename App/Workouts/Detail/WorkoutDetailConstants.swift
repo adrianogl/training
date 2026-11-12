@@ -2,7 +2,6 @@ import CoreGraphics
 import Foundation
 
 enum WorkoutDetailConstants {
-    static let defaultZonesSport = "DEFAULT"
     static let similarDistanceTolerance = 0.2
     static let similarRunWindowDays = 90.0
     static let secondsPerDay = 86_400.0

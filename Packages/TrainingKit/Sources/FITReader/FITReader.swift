@@ -41,7 +41,8 @@ public enum FITReader {
                 steps: collector.steps,
                 laps: collector.laps,
                 origin: collector.records.lazy.compactMap { $0.getTimestamp()?.date.timeIntervalSince1970 }.first
-            )
+            ),
+            zoneInfo: collector.sessionTimeInZone.map(zoneInfo(from:))
         )
     }
 
@@ -96,6 +97,24 @@ public enum FITReader {
         return metrics
     }
 
+    private static func zoneInfo(from mesg: TimeInZoneMesg) -> HeartRateZoneInfo {
+        let boundaries = (mesg.getHrZoneHighBoundary() ?? []).prefix(FITReaderConstants.watchZoneFloorCount).map(heartRate)
+        let floors = boundaries.compactMap { $0 }
+        let calcType = mesg.getHrCalcType().flatMap { $0 == .invalid ? nil : Int($0.rawValue) }
+        return HeartRateZoneInfo(
+            thresholdHeartRate: heartRate(mesg.getThresholdHeartRate()),
+            maxHeartRate: heartRate(mesg.getMaxHeartRate()),
+            restingHeartRate: heartRate(mesg.getRestingHeartRate()),
+            calcType: calcType,
+            floors: floors.count == FITReaderConstants.watchZoneFloorCount ? floors : []
+        )
+    }
+
+    private static func heartRate(_ value: UInt8?) -> Int? {
+        guard let value, value > 0, value != FITReaderConstants.invalidHeartRate else { return nil }
+        return Int(value)
+    }
+
     private static func number(_ value: Any?) -> Double? {
         switch value {
         case let v as Double: v
@@ -120,6 +139,7 @@ private final class MessageCollector: MesgListener {
     var workouts: [WorkoutMesg] = []
     var steps: [WorkoutStepMesg] = []
     var laps: [LapMesg] = []
+    var sessionTimeInZone: TimeInZoneMesg?
 
     func onMesg(_ mesg: Mesg) {
         if mesg.mesgNum == Profile.MesgNum.record {
@@ -130,6 +150,11 @@ private final class MessageCollector: MesgListener {
             steps.append(WorkoutStepMesg(mesg: mesg))
         } else if mesg.mesgNum == Profile.MesgNum.lap {
             laps.append(LapMesg(mesg: mesg))
+        } else if mesg.mesgNum == Profile.MesgNum.timeInZone {
+            let timeInZone = TimeInZoneMesg(mesg: mesg)
+            if sessionTimeInZone == nil, timeInZone.getReferenceMesg() == .session {
+                sessionTimeInZone = timeInZone
+            }
         } else if mesg.mesgNum == FITReaderConstants.physioMessageNumber {
             physioMessages.append(mesg)
         }

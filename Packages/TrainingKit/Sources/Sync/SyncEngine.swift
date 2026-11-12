@@ -102,7 +102,7 @@ public actor SyncEngine: ModelActor {
         let state = try syncState()
         progress(C.progressAfterCleanup)
 
-        try await fetchHeartRateZones(today: today)
+        try await fetchHeartRateZones()
         progress(C.progressAfterZones)
 
         let isFirstLoad = !state.firstLoadCompleted
@@ -202,7 +202,7 @@ public actor SyncEngine: ModelActor {
         return Set(try modelContext.fetch(descriptor).compactMap { Day(iso: $0.day) })
     }
 
-    private func fetchHeartRateZones(today: Day) async throws {
+    private func fetchHeartRateZones() async throws {
         let zones: HRZonesDTO
         do {
             zones = try await source.heartRateZones()
@@ -213,7 +213,7 @@ public actor SyncEngine: ModelActor {
             return
         }
         heartRateZones = zones
-        try upsertHeartRateZones(zones, today: today)
+        try upsertHeartRateZones(zones)
     }
 
     private func latestActivityStart() throws -> Date? {

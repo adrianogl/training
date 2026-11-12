@@ -45,6 +45,7 @@ import WorkoutAnalysis
         guard isRun else { return }
         structureMissing = analysis.structureMissing
         ruler = ZoneRulerData.make(
+            activityFloors: record.watchZoneFloors,
             watchZones: analysis.watchZones,
             watchSeconds: record.zoneSeconds,
             thresholdHeartRate: record.thresholdUsed ?? analysis.thresholdHeartRate,
