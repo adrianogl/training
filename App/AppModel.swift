@@ -159,6 +159,7 @@ import TrainingCore
                 self?.syncStatus = .finished(.now)
                 processed = trigger == .background ? nil : report.processedActivityIds
                 if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
+                await ScoreStore.refresh(container: container, ids: nil)
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }

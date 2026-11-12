@@ -1,4 +1,5 @@
-enum AnalysisConstants {
+public enum AnalysisConstants {
+    public static let scoreVersion = 1
     static let completionRatio = 0.95
     static let minimumStraySeconds = 10.0
     static let sessionEndTrigger = "session_end"

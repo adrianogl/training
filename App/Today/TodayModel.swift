@@ -158,7 +158,7 @@ import WorkoutAnalysis
             return LastRunSummary(
                 activityId: id, title: title, dateText: dateText,
                 comparisonTitle: "", rows: [], evolution: nil, evolutionOnDevice: false, notice: nil, showsTarget: false,
-                score: analysis.score?.value
+                score: record.scoreValue ?? analysis.score?.value
             )
         }
         let reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
@@ -172,7 +172,7 @@ import WorkoutAnalysis
             evolutionOnDevice: reading.evolutionOnDevice,
             notice: analysis.comparisonNotice,
             showsTarget: analysis.hasPrescription,
-            score: analysis.score?.value
+            score: record.scoreValue ?? analysis.score?.value
         )
     }
 

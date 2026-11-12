@@ -1,13 +1,13 @@
-public enum ScorePart: String, Sendable {
+public enum ScorePart: String, Sendable, Codable {
     case execution, intent, cost
 }
 
-public enum ScoreReason: String, Sendable {
+public enum ScoreReason: String, Sendable, Codable {
     case blocksOffTarget, incompleteStep, notExecuted, easyTooHard, hardTooEasy, heartRateTargetMissed
     case lessEfficient, moreEfficient, noHeartRate, noZones, noHistory, noPrescription
 }
 
-public struct ScoreItem: Sendable, Equatable {
+public struct ScoreItem: Sendable, Equatable, Codable {
     public var part: ScorePart
     public var points: Double
     public var maximum: Double
@@ -21,7 +21,7 @@ public struct ScoreItem: Sendable, Equatable {
     }
 }
 
-public struct WorkoutScore: Sendable, Equatable {
+public struct WorkoutScore: Sendable, Equatable, Codable {
     public var value: Int
     public var items: [ScoreItem]
 

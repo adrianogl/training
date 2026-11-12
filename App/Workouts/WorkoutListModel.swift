@@ -1,35 +1,14 @@
 import Foundation
 import Storage
-import SwiftData
 import TrainingCore
 import WorkoutAnalysis
 
 enum WorkoutListModel {
-    static func rows(filter: WorkoutFilter, records: [ActivityRecord], scores: [Int64: Int] = [:]) -> [WorkoutRowData] {
+    static func rows(filter: WorkoutFilter, records: [ActivityRecord]) -> [WorkoutRowData] {
         records
             .filter { filter.matches($0.typeKey) }
             .sorted { $0.start > $1.start }
-            .map { record in
-                var data = row(record)
-                data.score = scores[record.activityId]
-                return data
-            }
-    }
-
-    nonisolated static func scores(records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [Int64: Int] {
-        var scores: [Int64: Int] = [:]
-        for record in records where ActivityTypeKey.isRun(record.typeKey) {
-            if let score = WorkoutAnalysisContext.build(record: record, records: records, inputs: inputs).score {
-                scores[record.activityId] = score.value
-            }
-        }
-        return scores
-    }
-
-    nonisolated static func loadScores(container: ModelContainer) -> [Int64: Int] {
-        let context = ModelContext(container)
-        let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
-        return scores(records: records, inputs: WorkoutAnalysisContext.inputs(records: records, in: context))
+            .map(row)
     }
 
     static func row(_ record: ActivityRecord) -> WorkoutRowData {
@@ -43,7 +22,8 @@ enum WorkoutListModel {
             distanceText: distance.map(distanceText),
             durationText: duration.map(clockText),
             paceText: isRun ? pace(distance: distance, duration: duration).map { paceText(secondsPerKilometer: $0) } : nil,
-            hasPrescription: record.workoutName != nil
+            hasPrescription: record.workoutName != nil,
+            score: isRun ? record.scoreValue : nil
         )
     }
 

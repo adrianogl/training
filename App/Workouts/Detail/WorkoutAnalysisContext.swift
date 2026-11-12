@@ -55,9 +55,7 @@ struct WorkoutAnalysisContext {
             analysis.kilometers = kilometerSplits(of: blocks, samples: samples(record), zones: zones)
         }
 
-        let previous = previous(of: record, in: records)
-            .prefix(WorkoutDetailConstants.maxComparisons)
-            .compactMap { occurrence($0, zones: Self.zones(on: day($0), inputs: inputs)) }
+        let previous = previousOccurrences(of: record, in: records, inputs: inputs)
         analysis.score = scoreWorkout(blocks: blocks, zones: zones, previous: previous)
         analysis.assessment = assess(blocks, context: AssessmentContext(
             readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
@@ -83,6 +81,21 @@ struct WorkoutAnalysisContext {
             analysis.comparisonNotice = comparison.sameStructure ? nil : ComparisonText.commonBlocksNotice
         }
         return analysis
+    }
+
+    static func score(record: ActivityRecord, records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> WorkoutScore? {
+        guard ActivityTypeKey.isRun(record.typeKey) else { return nil }
+        let zones = zones(on: day(record), inputs: inputs)
+        let blocks = blocks(record, structure: structure(record), zones: zones)
+        return scoreWorkout(blocks: blocks, zones: zones, previous: previousOccurrences(of: record, in: records, inputs: inputs))
+    }
+
+    static func comparisonCandidates(of record: ActivityRecord, in records: [ActivityRecord]) -> [ActivityRecord] {
+        Array(previous(of: record, in: records).prefix(WorkoutDetailConstants.maxComparisons))
+    }
+
+    private static func previousOccurrences(of record: ActivityRecord, in records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [WorkoutOccurrence] {
+        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(on: day($0), inputs: inputs)) }
     }
 
     static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
