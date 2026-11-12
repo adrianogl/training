@@ -2,37 +2,39 @@
 
 Saída do review final da branch `feat/hoje-evolucao-provas` (ab64561..e8ab265). Nada aqui bloqueia o merge, exceto a verificação no aparelho.
 
+Estado ao fim do plano 4 (`feat/zonas-limiar-e-provas`): itens com "Resolvido no plano 4" entraram nessa branch, com o commit entre parênteses. Os demais seguem abertos; o que sobrou do plano 4 está em `2026-11-12-pendencias-plano-4.md`.
+
 ## Verificação no aparelho (antes do merge)
 
 - BGTask real: o simulador do iOS 27 recusa `submitTaskRequest` (Code=1). Falta ver a execução de madrugada, a entrega do aviso e o toque abrindo `training://hoje/prontidao`.
 
 ## Background e aviso
 
-- Sync `.launch` que falha mantém `todayReadinessComplete` do dia anterior. Se o app for para background depois das 4h, perde o retry de +1h (`AppModel.swift`).
-- Falta teste de "execução em background falha com o dia anterior completo, reagenda em +1h". Hoje só a inspeção cobre o reset no início de `syncNow(.background)`, porque a flag é `private(set)`.
+- Resolvido no plano 4 (`65d623e`): `todayReadinessComplete` passou a guardar o dia e só vale quando é hoje. Descrição original: sync `.launch` que falha mantém `todayReadinessComplete` do dia anterior. Se o app for para background depois das 4h, perde o retry de +1h (`AppModel.swift`).
+- Resolvido no plano 4 (`65d623e`, `BackgroundSyncTests`): descrição original: falta teste de "execução em background falha com o dia anterior completo, reagenda em +1h". Hoje só a inspeção cobre o reset no início de `syncNow(.background)`, porque a flag é `private(set)`.
 - O retorno antecipado por 429 em background pula `updateReadiness`, e o `readinessScore` gravado de hoje atrasa até o próximo sync completo. Hoje e o aviso calculam ao vivo e não são afetados. `hardOnLowReadiness` usa o valor gravado.
 - `notifiedDay` é gravado mesmo quando o `add` da notificação falha, e a permissão é pedida em paralelo no primeiro launch (`UserNotificationScheduler.swift`).
 
 ## Desempenho
 
-- A lista de treinos recalcula a nota de todas as corridas a cada mudança em `records.count` e decodifica samples dos prescritos (`kilometerSplits`). Opções: guardar a nota (a spec permite) ou calcular só as linhas visíveis.
-- `NarrativeBackfill` é `@MainActor` e decodifica samples dos prescritos na main depois do sync de abertura. Mover a análise para fora da main.
+- Resolvido no plano 4 (`d94321d`, `f906a24`): a nota passou a ser guardada em `ActivityRecord`, com chave que acompanha zonas e treinos anteriores. Descrição original: a lista de treinos recalcula a nota de todas as corridas a cada mudança em `records.count` e decodifica samples dos prescritos (`kilometerSplits`). Opções: guardar a nota (a spec permite) ou calcular só as linhas visíveis.
+- Resolvido no plano 4 (`6f9965f`, `e1650bd`): o backfill roda fora da main. Descrição original: `NarrativeBackfill` é `@MainActor` e decodifica samples dos prescritos na main depois do sync de abertura. Mover a análise para fora da main.
 
 ## Provas
 
-- Selo PR vem do flag `pr` da atividade, que também vale para best effort interno. Pode marcar como PR uma prova que não foi recorde na distância.
+- Aberto: selo PR vem do flag `pr` da atividade, que também vale para best effort interno. Pode marcar como PR uma prova que não foi recorde na distância.
 - O checklist é calculado no app (`NextRaceModel`), não no pacote, e as regras não têm teste.
 - O picker de atividade do resultado não exclui corrida já ligada a outra prova.
 
 ## Previsões e VO2max
 
-- A previsão de 5 km depende de um único esforço de meses atrás, porque nos últimos 90 dias não há prova vinculada nem esforço máximo. Caminhos: reconhecer e vincular provas automaticamente, ou ancorar a previsão no VO2max.
-- Margens curtas no alvo (5 km perto de +3%, VO2max perto de −1,5). Recalibrar quando houver prova nova.
+- Parcial no plano 4 (`c575c62`, `a2a3071`, `4a02250`): o app reconhece corridas que parecem prova, pergunta em "Parece prova?" e a prova confirmada pesa por um ano na previsão. Falta dado: sem histórico de limiar e com poucas corridas de base, poucas corridas viram candidatas. A previsão de 5 km só muda depois da recalibração (ver plano 4).
+- Aberto: margens curtas no alvo (5 km perto de +3%, VO2max perto de −1,5). A Task 13 do plano 4 não rodou; ver plano 4.
 - A série e a projeção de VO2max na Evolução ficam mais ruidosas com a suavização menor, e não têm teste. O nome `vo2SmoothingDays` não descreve o fator.
 
 ## Narrativa
 
-- O validador de frases confere números, mas não a direção (acima/abaixo, melhor/pior). Passar veredito e direção como `words`.
+- Resolvido no plano 4 (`0c4da50`, `c1066d9`): o validador confere a direção pela lista de palavras do veredito. Descrição original: o validador de frases conferia números, mas não a direção (acima/abaixo, melhor/pior).
 
 ## Nota do treino e análise por km
 
