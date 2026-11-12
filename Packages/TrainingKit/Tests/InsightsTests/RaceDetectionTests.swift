@@ -172,6 +172,20 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
         #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
     }
 
+    @Test func slightlyFasterThanBaselineIsNotAsked() throws {
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, seconds: 3_510)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func withoutBaselineHeartRateBelowThresholdFractionIsNotAsked() throws {
+        let steady = raceRun(id: 1, daysAgo: 5, distance: 21_100, seconds: 6_300, averageHR: 150)
+        let easy = raceRun(id: 2, daysAgo: 60, distance: 5_000, seconds: 1_500, averageHR: 140)
+        let context = try makeContext([threshold(160), steady, easy])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
     @Test func withoutBaselineOrThresholdNothingIsAsked() throws {
         let context = try makeContext([raceRun(id: 1, daysAgo: 5, averageHR: 180)])
 
@@ -220,6 +234,15 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
         #expect(race.resultActivityId == 1)
         #expect(try context.fetch(FetchDescriptor<RaceDecisionRecord>()).map(\.raceDecision) == [.race])
         #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func confirmUnknownActivityRecordsNothing() throws {
+        let context = try makeContext(easyRuns())
+
+        try confirmRace(activityId: 999, in: context)
+
+        #expect(try context.fetch(FetchDescriptor<RaceRecord>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<RaceDecisionRecord>()).isEmpty)
     }
 
     @Test func confirmOnRaceDayLinksRegisteredRace() throws {

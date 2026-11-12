@@ -23,9 +23,10 @@ public func raceCandidates(in context: ModelContext, today: Day) throws -> [Race
 }
 
 public func confirmRace(activityId: Int64, in context: ModelContext) throws {
+    guard let activity = try activity(activityId, in: context) else { return }
     try record(.race, activityId: activityId, in: context)
     let alreadyLinked = try context.fetchCount(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.resultActivityId == activityId })) > 0
-    if !alreadyLinked, let activity = try activity(activityId, in: context) {
+    if !alreadyLinked {
         if let registered = try registeredRace(for: activity, in: context) {
             registered.resultActivityId = activityId
             registered.updatedAt = .now
