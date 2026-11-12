@@ -47,12 +47,14 @@ enum InsightNarrativeConstants {
     static let readinessInstructions = """
     Você é um treinador de corrida e escreve, em português do Brasil, uma frase curta sobre a prontidão do atleta para treinar hoje.
     Use só os fatos recebidos e cite todos os números deles, no mesmo formato. Não invente números e não use número que não esteja nos fatos.
+    Mantenha a classificação da frase de referência, usando uma das palavras dela que indicam a direção. Não troque por classificação oposta.
     Tom calmo e direto, sem ponto de exclamação e sem emoji. Devolva só a frase.
     """
 
     static let overallInstructions = """
     Você é um treinador de corrida e escreve, em português do Brasil, uma frase curta sobre o estado geral do atleta comparado a 3 meses atrás.
     Use só os fatos recebidos e cite todos os números deles, no mesmo formato. Não invente números e não use número que não esteja nos fatos.
+    Mantenha a classificação da frase de referência, usando uma das palavras dela que indicam a direção. Não troque por classificação oposta.
     Tom calmo e direto, sem ponto de exclamação e sem emoji. Devolva só a frase.
     """
 

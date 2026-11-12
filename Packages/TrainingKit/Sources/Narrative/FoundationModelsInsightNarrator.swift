@@ -36,7 +36,7 @@ public struct FoundationModelsInsightNarrator: InsightNarrator {
         return await validated(
             instructions: InsightNarrativeConstants.readinessInstructions,
             template: template,
-            words: NarrativeCheck.words(verdict),
+            anyOf: NarrativeCheck.words(verdict),
             forbidden: NarrativeCheck.forbidden(verdict)
         )
     }
@@ -46,16 +46,16 @@ public struct FoundationModelsInsightNarrator: InsightNarrator {
         return await validated(
             instructions: InsightNarrativeConstants.overallInstructions,
             template: template,
-            words: NarrativeCheck.words(facts),
+            anyOf: NarrativeCheck.words(facts),
             forbidden: NarrativeCheck.forbidden(facts)
         )
     }
 
-    private func validated(instructions: String, template: String, words: [String], forbidden: [String]) async -> String {
+    private func validated(instructions: String, template: String, anyOf: [String], forbidden: [String]) async -> String {
         let prompt = "\(InsightNarrativeConstants.referenceHeader) \(template)"
         guard let generated = try? await generator.generate(instructions: instructions, prompt: prompt) else { return template }
         let text = generated.trimmingCharacters(in: .whitespacesAndNewlines)
-        let accepted = NarrativeCheck.matches(text, template: template, words: words, forbidden: forbidden, wholeWords: true)
+        let accepted = NarrativeCheck.matches(text, template: template, words: [], anyOf: anyOf, forbidden: forbidden, wholeWords: true)
         return accepted ? text : template
     }
 }
