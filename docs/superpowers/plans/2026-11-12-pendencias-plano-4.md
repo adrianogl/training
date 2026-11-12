@@ -1,17 +1,19 @@
 # trAIning — Pendências do plano 4 (Zonas pelo limiar e Provas)
 
-Estado da branch `feat/zonas-limiar-e-provas` ao fim do plano 4. A Task 13 (recalibração com provas confirmadas) não rodou por um bloqueio externo. O resto são itens não bloqueantes do review final e dos reviews por tarefa, sem dado da conta.
+Estado ao fim do plano 4. A Task 13 (recalibração com provas confirmadas) rodou em 2026-11-12, depois de duas correções. O resto são itens não bloqueantes do review final e dos reviews por tarefa, sem dado da conta.
 
-## Recalibração (Task 13, não feita)
+## Recalibração (Task 13, feita)
 
-- A recalibração com provas confirmadas mira previsões a ±3% do Garmin Connect e VO2max a ±1,5. Não rodou: o download do FIT (`/download-service/files/activity/<id>`) responde 404 para qualquer atividade, e o mesmo endpoint funcionou no plano 2.
-- O reprocessamento para `processingVersion` 3 (limiar e zonas vindos do FIT de cada corrida) está pendente nos dados do usuário. Sem ele, `ThresholdHistoryRecord` fica vazio e `thresholdZoneSeconds` não é preenchido.
-- Maratona e meia só viram candidatas a prova quando houver histórico de limiar. Sem limiar, a regra cai no fallback de FC ≥ 95% do limiar e não tem como avaliar.
-- O corte do coeficiente de variação do pace das voltas (0,06) tem folga curta para maratona com paradas: provas ficam em 0,015–0,044, e um longo com uma parada chegou a 0,053. Revisar com provas reais depois do reprocessamento.
+- O "404 do FIT" era a chave da Personal API apagada no Garmin: a troca de token responde 404 e virava `server(status: 404)`. Com chave nova, o download responde 200 com `Accept: */*`. O 404 da troca de token passou a ser `.invalidKey`.
+- Reprocessamento para `processingVersion` 3 feito no simulador; o histórico do limiar ficou preenchido.
+- A previsão de maratona saía 4,2% mais rápida que a do Garmin porque `bestEfforts` usava o 10 km projetado por Riegel e descartava a maratona real. Entre provas, passou a valer a de distância mais próxima. Depois disso: 5 km −0,1%, 10 km −1,1%, meia −1,2%, maratona −1,9%, VO2max +0,5. Todos dentro de ±3% e ±1,5, sem mudar constante.
+- Pull-to-refresh usa `syncNow(.launch)`, com `launchFITLimit`, e não termina um reprocessamento grande; só Ajustes › Forçar sync processa a fila inteira. Decidir se o pull-to-refresh deve tirar o limite enquanto houver corrida desatualizada.
+- Em DEBUG, a chave injetada pelo `dev-run.sh` só vale com Keychain vazio. Trocar a chave em `~/.config/garmin/connect-personal-api-key` exige zerar o Keychain do simulador (`xcrun simctl keychain <udid> reset`).
+- O corte do coeficiente de variação do pace das voltas (0,06) tem folga curta para maratona com paradas: provas ficam em 0,015–0,044, e um longo com uma parada chegou a 0,053. Revisar com mais provas confirmadas.
 
 ## Sync e FIT
 
-- O 404 do FIT chega como `GarminAPIError.server(status: 404)`, sem path, e é tratado como transitório (Ruling 18). Cada sync tenta de novo todas as corridas pendentes. Decidir a classificação quando o comportamento do endpoint for conhecido: se for FIT apagado, vira permanente; se for mudança de API, continua transitório.
+- Com a causa do 404 conhecida, falta decidir se 404 no próprio download do FIT (FIT apagado) vira falha permanente. Hoje `missingFITStatuses` decide isso para `.client`.
 - `SyncReport.skippedFITs` não tem limite próprio; hoje depende de `fitLimit`.
 - Corrida mais tardia do dia sem `time_in_zone` não atualiza o histórico do limiar, e o dia fica com o valor da corrida anterior ou com um valor antigo.
 - Durante o reprocessamento, dias antes do primeiro registro vindo do FIT usam `entries.first`.
