@@ -117,8 +117,8 @@ import TrainingCore
 
     @Test func divergenceTextBelowAndAbove() throws {
         let below = try #require(ZoneRulerData.make(
-            watchZones: HeartRateZones(floors: [102, 126, 139, 150, 157]), watchSeconds: watchSeconds,
-            thresholdHeartRate: 163, thresholdSeconds: thresholdSeconds
+            watchZones: HeartRateZones(floors: [100, 124, 137, 148, 154]), watchSeconds: watchSeconds,
+            thresholdHeartRate: 160, thresholdSeconds: thresholdSeconds
         ))
         let above = try #require(ZoneRulerData.make(
             watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 170, thresholdSeconds: thresholdSeconds
@@ -141,8 +141,8 @@ import TrainingCore
 
     @Test func rangeWidensForLowFloorAndHighThreshold() throws {
         let standard = try #require(ZoneRulerData.make(
-            watchZones: HeartRateZones(floors: [102, 126, 139, 150, 157]), watchSeconds: watchSeconds,
-            thresholdHeartRate: 163, thresholdSeconds: thresholdSeconds
+            watchZones: HeartRateZones(floors: [100, 124, 137, 148, 154]), watchSeconds: watchSeconds,
+            thresholdHeartRate: 160, thresholdSeconds: thresholdSeconds
         ))
         let wide = try #require(ZoneRulerData.make(
             watchZones: HeartRateZones(floors: [92, 120, 140, 160, 178]), watchSeconds: watchSeconds,
@@ -154,29 +154,29 @@ import TrainingCore
     }
 
     @Test func segmentsAndMarksFollowFloors() {
-        let bar = ZoneBar(floors: [102, 126, 139, 150, 157], seconds: watchSeconds)
-        let threshold = ZoneBar(floors: [0, 139, 147, 155, 163], seconds: thresholdSeconds)
+        let bar = ZoneBar(floors: [100, 124, 137, 148, 154], seconds: watchSeconds)
+        let threshold = ZoneBar(floors: [0, 136, 144, 152, 160], seconds: thresholdSeconds)
 
         #expect(bar.segments(in: 100...180) == [
-            ZoneSegment(zone: 1, start: 0, end: 0.325),
-            ZoneSegment(zone: 2, start: 0.325, end: 0.4875),
-            ZoneSegment(zone: 3, start: 0.4875, end: 0.625),
-            ZoneSegment(zone: 4, start: 0.625, end: 0.7125),
-            ZoneSegment(zone: 5, start: 0.7125, end: 1),
+            ZoneSegment(zone: 1, start: 0, end: 0.3),
+            ZoneSegment(zone: 2, start: 0.3, end: 0.4625),
+            ZoneSegment(zone: 3, start: 0.4625, end: 0.6),
+            ZoneSegment(zone: 4, start: 0.6, end: 0.675),
+            ZoneSegment(zone: 5, start: 0.675, end: 1),
         ])
         #expect(bar.marks(in: 100...180) == [
-            ZoneMark(bpm: 102, position: 0.025),
-            ZoneMark(bpm: 126, position: 0.325),
-            ZoneMark(bpm: 139, position: 0.4875),
-            ZoneMark(bpm: 150, position: 0.625),
-            ZoneMark(bpm: 157, position: 0.7125),
+            ZoneMark(bpm: 100, position: 0),
+            ZoneMark(bpm: 124, position: 0.3),
+            ZoneMark(bpm: 137, position: 0.4625),
+            ZoneMark(bpm: 148, position: 0.6),
+            ZoneMark(bpm: 154, position: 0.675),
         ])
-        #expect(threshold.segments(in: 100...180).first == ZoneSegment(zone: 1, start: 0, end: 0.4875))
-        #expect(threshold.marks(in: 100...180).map(\.bpm) == [139, 147, 155, 163])
+        #expect(threshold.segments(in: 100...180).first == ZoneSegment(zone: 1, start: 0, end: 0.45))
+        #expect(threshold.marks(in: 100...180).map(\.bpm) == [136, 144, 152, 160])
     }
 
     @Test func timeTextListsEveryZone() {
-        #expect(ZoneBar(floors: [102, 126, 139, 150, 157], seconds: watchSeconds).timeText == "Z1 1:24 · Z2 6:43 · Z3 22:50 · Z4 24:26 · Z5 2:16")
-        #expect(ZoneBar(floors: [102, 126, 139, 150, 157], seconds: []).timeText == nil)
+        #expect(ZoneBar(floors: [100, 124, 137, 148, 154], seconds: watchSeconds).timeText == "Z1 1:24 · Z2 6:43 · Z3 22:50 · Z4 24:26 · Z5 2:16")
+        #expect(ZoneBar(floors: [100, 124, 137, 148, 154], seconds: []).timeText == nil)
     }
 }

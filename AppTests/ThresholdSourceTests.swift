@@ -19,8 +19,8 @@ import TrainingCore
             maxHeartRate: 190, lactateThresholdHeartRate: 150
         ))
         context.insert(HeartRateZonesRecord(
-            sport: "running", zone1Floor: 102, zone2Floor: 126, zone3Floor: 139, zone4Floor: 150, zone5Floor: 157,
-            maxHeartRate: 188, lactateThresholdHeartRate: 163
+            sport: "running", zone1Floor: 100, zone2Floor: 124, zone3Floor: 137, zone4Floor: 148, zone5Floor: 154,
+            maxHeartRate: 188, lactateThresholdHeartRate: 160
         ))
         let run = F.run(id: 1, meters: 8_000, structure: F.freeStructure(kilometers: 8))
         context.insert(run)
@@ -39,10 +39,10 @@ import TrainingCore
 
         let threshold = try resolved(context, run: run, day: day)
 
-        #expect(threshold.sync == 163)
-        #expect(threshold.insights == 163)
-        #expect(threshold.app == 163)
-        #expect(WorkoutAnalysisContext.inputs(records: [run], in: context).watchZones?.floors == [102, 126, 139, 150, 157])
+        #expect(threshold.sync == 160)
+        #expect(threshold.insights == 160)
+        #expect(threshold.app == 160)
+        #expect(WorkoutAnalysisContext.inputs(records: [run], in: context).watchZones?.floors == [100, 124, 137, 148, 154])
     }
 
     @Test func syncInsightsAndAppAgreeOnFitThreshold() throws {
