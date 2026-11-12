@@ -150,9 +150,6 @@ import TrainingCore
             syncStatus = .failed(.missingKey)
             return false
         }
-        let hasOutdatedRuns = trigger == .pull && (try? SyncEngineConfiguration.hasOutdatedRuns(in: container.mainContext)) == true
-        let configuration = SyncEngineConfiguration(trigger: trigger, hasOutdatedRuns: hasOutdatedRuns)
-        let engine = configuration.makeEngine(source: client(for: key, configuration: configuration), container: container)
         runningTrigger = trigger
         syncStatus = .running(progress: 0)
         let pendingNarratives = narrativeTask
@@ -160,6 +157,10 @@ import TrainingCore
         let container = container
         let task = Task { [weak self] in
             await pendingNarratives?.value
+            let hasOutdatedRuns = trigger == .pull ? await SyncEngineConfiguration.hasOutdatedRuns(container: container) : false
+            let configuration = SyncEngineConfiguration(trigger: trigger, hasOutdatedRuns: hasOutdatedRuns)
+            guard let source = self?.client(for: key, configuration: configuration) else { return }
+            let engine = configuration.makeEngine(source: source, container: container)
             var processed: Set<Int64>?
             do {
                 let report = try await engine.run { fraction in

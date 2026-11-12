@@ -27,18 +27,21 @@ import Testing
         #expect(SyncEngineConfiguration(trigger: .launch, hasOutdatedRuns: true).fitLimit == AppConstants.launchFITLimit)
     }
 
-    @Test func outdatedRunsAreProcessedRunsWithOlderVersion() throws {
+    @Test func outdatedRunsCheckUsesSyncRuleOffTheMainContext() async throws {
         let current = FITReaderConstants.processingVersion
         let container = try TrainingSchema.container(inMemory: true)
-        let context = container.mainContext
+        let context = ModelContext(container)
         context.insert(Self.activity(id: 1, version: current))
         context.insert(Self.activity(id: 2, fitProcessed: false, version: 0))
         context.insert(Self.activity(id: 3, typeKey: "cycling", version: current - 1))
+        let exhausted = Self.activity(id: 4, version: current - 1)
+        exhausted.fitTransientFailures = 5
+        context.insert(exhausted)
         try context.save()
-        #expect(try SyncEngineConfiguration.hasOutdatedRuns(in: context) == false)
+        #expect(await SyncEngineConfiguration.hasOutdatedRuns(container: container) == false)
 
-        context.insert(Self.activity(id: 4, version: current - 1))
+        context.insert(Self.activity(id: 5, version: current - 1))
         try context.save()
-        #expect(try SyncEngineConfiguration.hasOutdatedRuns(in: context))
+        #expect(await SyncEngineConfiguration.hasOutdatedRuns(container: container))
     }
 }
