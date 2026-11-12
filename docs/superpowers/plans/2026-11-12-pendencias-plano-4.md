@@ -7,7 +7,6 @@ Estado ao fim do plano 4. A Task 13 (recalibração com provas confirmadas) rodo
 - O "404 do FIT" era a chave da Personal API apagada no Garmin: a troca de token responde 404 e virava `server(status: 404)`. Com chave nova, o download responde 200 com `Accept: */*`. O 404 da troca de token passou a ser `.invalidKey`.
 - Reprocessamento para `processingVersion` 3 feito no simulador; o histórico do limiar ficou preenchido.
 - A previsão de maratona saía 4,2% mais rápida que a do Garmin porque `bestEfforts` usava o 10 km projetado por Riegel e descartava a maratona real. Entre provas, passou a valer a de distância mais próxima. Depois disso: 5 km −0,1%, 10 km −1,1%, meia −1,2%, maratona −1,9%, VO2max +0,5. Todos dentro de ±3% e ±1,5, sem mudar constante.
-- Pull-to-refresh usa `syncNow(.launch)`, com `launchFITLimit`, e não termina um reprocessamento grande; só Ajustes › Forçar sync processa a fila inteira. Decidir se o pull-to-refresh deve tirar o limite enquanto houver corrida desatualizada.
 - Em DEBUG, a chave injetada pelo `dev-run.sh` só vale com Keychain vazio. Trocar a chave em `~/.config/garmin/connect-personal-api-key` exige zerar o Keychain do simulador (`xcrun simctl keychain <udid> reset`).
 - O corte do coeficiente de variação do pace das voltas (0,06) tem folga curta para maratona com paradas: provas ficam em 0,015–0,044, e um longo com uma parada chegou a 0,053. Revisar com mais provas confirmadas.
 
@@ -36,9 +35,8 @@ Estado ao fim do plano 4. A Task 13 (recalibração com provas confirmadas) rodo
 - `RaceCandidate.seconds` usa `duration` (tempo total), não o tempo em movimento.
 - `avgSpeed` 0 explícito descarta a volta sem recalcular por `distance` e `timerSeconds`.
 - `structureData` corrompido conta como corrida livre (fail-open).
-- Import de exportação antiga, mais nova que o registro local, zera `manuallyUnlinked` (`RaceTransfer.apply` usa `?? false`).
 - `confirmRace` não tem teste com prova já ligada a outra atividade.
-- Os botões "Foi prova" e "Não foi" não desabilitam no toque e `try?` engole o erro sem log.
+- Os botões "Foi prova" e "Não foi" não desabilitam no toque.
 - O teste não cobre a chamada de `runPostSyncWork` dentro de `syncNow`.
 
 ## Previsão e histórico de provas
@@ -51,7 +49,6 @@ Estado ao fim do plano 4. A Task 13 (recalibração com provas confirmadas) rodo
 ## Zonas e régua
 
 - A divergência de zonas aparece sem a barra do limiar quando não há samples, e não diz qual limiar usou.
-- `ForEach(marks, id: \.bpm)` colide quando dois pisos são iguais.
 - `WorkoutAnalysisContext.day` usa `Day.today` como fallback, e o Sync usa `ActivityTime.day(of:)`.
 - `ZoneRulerData.make(activityFloors:)` não tem caller em produção.
 - `zoneSeconds` supõe amostras ordenadas.
