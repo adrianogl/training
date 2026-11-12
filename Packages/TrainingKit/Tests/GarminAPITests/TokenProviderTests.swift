@@ -41,7 +41,7 @@ private func provider(_ stub: StubTransport) -> TokenProvider {
     #expect(stub.requests.count == 2)
 }
 
-@Test(arguments: [(401, GarminAPIError.invalidKey), (403, .invalidKey), (400, .invalidKey), (429, .rateLimited(path: GarminEndpoints.tokenPath)), (503, .server(status: 503))])
+@Test(arguments: [(401, GarminAPIError.invalidKey), (403, .invalidKey), (400, .invalidKey), (404, .invalidKey), (429, .rateLimited(path: GarminEndpoints.tokenPath)), (503, .server(status: 503))])
 func tokenExchangeMapsStatus(status: Int, expected: GarminAPIError) async {
     let p = provider(StubTransport([.status(status, "")]))
     await #expect(throws: expected) { try await p.bearer() }

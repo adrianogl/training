@@ -49,7 +49,7 @@ public actor TokenProvider {
         switch response.statusCode {
         case 200..<300:
             break
-        case 400, 401, 403:
+        case 400, 401, 403, 404:
             throw GarminAPIError.invalidKey
         case 429:
             throw GarminAPIError.rateLimited(path: GarminEndpoints.tokenPath)
