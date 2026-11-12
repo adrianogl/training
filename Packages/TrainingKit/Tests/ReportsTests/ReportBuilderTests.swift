@@ -63,6 +63,20 @@ private func build(_ records: [ActivityRecord]) throws -> TrainingReport {
         #expect(abs(fiveK - expected) < 1)
     }
 
+    @Test func raceEffortUsesActivityDistance() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = ModelContext(container)
+        context.insert(ActivityRecord(activityId: 7, typeKey: "running", start: noon(today.adding(days: -10)), distance: 9_700, duration: 2_700))
+        context.insert(RaceRecord(name: "Prova", day: today.adding(days: -10).iso, distance: 10_000, resultActivityId: 7))
+        try context.save()
+
+        let efforts = try ReportBuilder(context: context, today: today).efforts()
+
+        let race = try #require(efforts.first { $0.kind == .race })
+        #expect(race.distance == 9_700)
+        #expect(race.seconds == 2_700)
+    }
+
     @Test func countsEveryRunTypeKey() throws {
         let report = try build([run(id: 1, daysAgo: 3, split5k: 1_400, split1k: 270, typeKey: "virtual_run")])
 

@@ -6,8 +6,9 @@ enum InsightsConstants {
     static let defaultRaceDistance = 21_097.5
     static let yearDays = 365
     static let effortWindowDays = 150
+    static let raceEffortWindowDays = 365
     static let predictionChunkDays = 30
-    static let raceHistoryDays = yearDays + effortWindowDays
+    static let raceHistoryDays = yearDays + raceEffortWindowDays
     static let goalHorizonDays = 365
     static let raceProjectionFallbackDays = 60
     static let metricProjectionDays = 60

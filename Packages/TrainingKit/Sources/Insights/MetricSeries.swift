@@ -130,7 +130,7 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
         return RawMetric(values: try runValues(context, since: lower, today: today) { $0.avgVerticalOscillation })
     case .prediction5k, .prediction10k, .predictionHalf, .predictionFull:
         guard let distance = C.predictionDistances[kind] else { return RawMetric(values: []) }
-        let activities = try fetchActivities(context, since: lower?.adding(days: -C.effortWindowDays), through: today)
+        let activities = try fetchActivities(context, since: lower?.adding(days: -C.raceEffortWindowDays), through: today)
         let efforts = try ReportBuilder(context: context, today: today).efforts(from: activities)
         guard let first = lower ?? efforts.map(\.day).min() else { return RawMetric(values: []) }
         return RawMetric(values: chunkedPredictionSeries(distance: distance, efforts: efforts, from: first, to: today))

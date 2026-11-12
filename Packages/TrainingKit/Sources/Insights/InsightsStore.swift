@@ -99,7 +99,7 @@ func chunkedPredictionSeries(distance: Double, efforts: [Effort], from: Day, to:
     var chunkStart = from
     while chunkStart <= to {
         let chunkEnd = min(chunkStart.adding(days: C.predictionChunkDays - 1), to)
-        let earliest = chunkStart.adding(days: -C.effortWindowDays)
+        let earliest = chunkStart.adding(days: -C.raceEffortWindowDays)
         let relevant = efforts.filter { $0.day >= earliest && $0.day <= chunkEnd }
         if !relevant.isEmpty {
             series += predictionSeries(distance: distance, efforts: relevant, from: chunkStart, to: chunkEnd)

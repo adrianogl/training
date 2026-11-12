@@ -33,8 +33,9 @@ public func bestEfforts(_ efforts: [Effort], for distance: Double, on: Day) -> [
 private func predictionWeight(_ effort: Effort, on: Day) -> Double? {
     guard effort.distance > 0, effort.seconds > 0 else { return nil }
     let age = Double(effort.day.days(until: on))
-    guard age >= 0, age < RaceConstants.effortWindowDays else { return nil }
-    let weight = (RaceConstants.kindWeight[effort.kind] ?? 0) * (1 - age / RaceConstants.effortWindowDays)
+    let window = effort.kind == .race ? RaceConstants.raceEffortWindowDays : RaceConstants.effortWindowDays
+    guard age >= 0, age < window else { return nil }
+    let weight = (RaceConstants.kindWeight[effort.kind] ?? 0) * (1 - age / window)
     return weight > 0 ? weight : nil
 }
 

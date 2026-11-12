@@ -16,16 +16,16 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
 @Test func riegelHalfFromTen() { #expect(abs(riegel(seconds: 2700, from: 10_000, to: 21_097.5) - 5958) < 2) }
 
 @Test func predictionIgnoresOldEfforts() {
-    let old = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -Int(RaceConstants.effortWindowDays) - 30), kind: .race)
+    let old = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -Int(RaceConstants.raceEffortWindowDays) - 30), kind: .race)
     #expect(predict(distance: 21_097.5, efforts: [old], on: today) == nil)
-    let edge = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -Int(RaceConstants.effortWindowDays)), kind: .race)
+    let edge = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -Int(RaceConstants.raceEffortWindowDays)), kind: .race)
     #expect(predict(distance: 21_097.5, efforts: [edge], on: today) == nil)
 }
 
 @Test func predictionWeightsByKindAndAge() {
     let race = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -30), kind: .race)
     let split = Effort(distance: 5000, seconds: 1200, day: today, kind: .split5k)
-    let wRace = 1.0 * (1 - 30.0 / RaceConstants.effortWindowDays)
+    let wRace = 1.0 * (1 - 30.0 / RaceConstants.raceEffortWindowDays)
     let wSplit = 0.7
     let expected = (wRace * riegel(seconds: 2700, from: 10_000, to: 21_097.5)
         + wSplit * riegel(seconds: 1200, from: 5000, to: 21_097.5)) / (wRace + wSplit)
@@ -53,7 +53,7 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
     let split5k = Effort(distance: 5000, seconds: 1250, day: today.adding(days: -9), kind: .split5k)
     let split1k = Effort(distance: 1000, seconds: 225, day: today.adding(days: -18), kind: .split1k)
     let window = RaceConstants.effortWindowDays
-    let weights = [1.0 * (1 - 45.0 / window), 0.7 * (1 - 9.0 / window), 0.3 * (1 - 18.0 / window)]
+    let weights = [1.0 * (1 - 45.0 / RaceConstants.raceEffortWindowDays), 0.7 * (1 - 9.0 / window), 0.3 * (1 - 18.0 / window)]
     let times = [
         riegel(seconds: 2700, from: 10_000, to: 21_097.5),
         riegel(seconds: 1250, from: 5000, to: 21_097.5),
@@ -170,4 +170,11 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
 @Test func strategyRejectsNonPositiveManualPace() {
     let manual = Dictionary(uniqueKeysWithValues: (0..<5).map { ($0, $0 == 2 ? 0.0 : 300.0) })
     #expect(paceStrategy(goalSeconds: 1500, distance: 5000, profile: nil, manual: manual).isEmpty)
+}
+
+@Test func raceEffortKeepsWeightUntil365Days() {
+    let race = Effort(distance: 10_000, seconds: 2700, day: today.adding(days: -300), kind: .race)
+    let split = Effort(distance: 5000, seconds: 1200, day: today.adding(days: -300), kind: .split5k)
+    #expect(predict(distance: 10_000, efforts: [race], on: today) != nil)
+    #expect(predict(distance: 10_000, efforts: [split], on: today) == nil)
 }

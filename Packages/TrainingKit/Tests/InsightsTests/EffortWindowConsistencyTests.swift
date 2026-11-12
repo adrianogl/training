@@ -6,4 +6,8 @@ import Testing
     @Test func insightsAndRaceUseTheSameEffortWindow() {
         #expect(Double(InsightsConstants.effortWindowDays) == RaceConstants.effortWindowDays)
     }
+
+    @Test func raceWindowsMatchAcrossModules() {
+        #expect(Double(InsightsConstants.raceEffortWindowDays) == RaceConstants.raceEffortWindowDays)
+    }
 }
