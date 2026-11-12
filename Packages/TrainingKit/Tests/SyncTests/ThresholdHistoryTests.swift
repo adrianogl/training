@@ -57,13 +57,41 @@ private func activity(_ id: Int64, in container: ModelContainer) throws -> Activ
 
         let records = try history(in: container)
         #expect(records.map(\.day) == [today.adding(days: -3).iso, today.adding(days: -1).iso])
-        #expect(records.map(\.heartRate) == [168, 171])
+        #expect(records.map(\.heartRate) == [168, 172])
         #expect(records.allSatisfy { $0.sport == SyncConstants.fitThresholdSport })
         let run = try activity(3, in: container)
         #expect(run.fitThresholdHeartRate == 168)
         #expect(run.watchZoneFloors == [105, 129, 142, 153, 160])
         #expect(run.thresholdUsed == 168)
         #expect(try activity(1, in: container).fitThresholdHeartRate == 172)
+    }
+
+    @Test func reprocessingEarlierRunKeepsLatestRunThreshold() async throws {
+        let fake = FakeDataSource(
+            dataDays: nil,
+            activities: [
+                FakeDataSource.activity(id: 1, typeKey: "running", day: today.adding(days: -1), hour: 18),
+                FakeDataSource.activity(id: 2, typeKey: "running", day: today.adding(days: -1), hour: 7),
+            ],
+            fitZips: [
+                1: try FITZipBuilder.run(seconds: 300, zoneThreshold: 172),
+                2: try FITZipBuilder.run(seconds: 300, zoneThreshold: 171),
+            ]
+        )
+        let container = try TrainingSchema.container(inMemory: true)
+        let engine = SyncEngine(source: fake, container: container, today: { today }, firstDay: today.adding(days: -2))
+        _ = try await engine.run()
+        let context = ModelContext(container)
+        let early = try #require(try context.fetch(FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.activityId == 2 })).first)
+        early.processingVersion = 0
+        try context.save()
+
+        let report = try await engine.reprocess(limit: nil)
+
+        #expect(report.reprocessed == 1)
+        let records = try history(in: container)
+        #expect(records.map(\.day) == [today.adding(days: -1).iso])
+        #expect(records.map(\.heartRate) == [172])
     }
 
     @Test func thresholdOnDayUsesLatestBefore() throws {

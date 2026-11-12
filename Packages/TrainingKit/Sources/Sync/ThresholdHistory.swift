@@ -29,9 +29,17 @@ public func runningZonesRecord(in context: ModelContext) throws -> HeartRateZone
     return try context.fetch(descriptor).first
 }
 
-func recordFITThreshold(_ heartRate: Int, on day: Day, in context: ModelContext) throws {
-    let sport = SyncConstants.fitThresholdSport
+func recordFITThreshold(for record: ActivityRecord, in context: ModelContext) throws {
+    let day = activityDay(record)
     let iso = day.iso
+    let sameDay = try context.fetch(FetchDescriptor<ActivityRecord>(
+        predicate: #Predicate { $0.localDay == iso && $0.fitThresholdHeartRate != nil }
+    ))
+    let latest = (sameDay + [record])
+        .filter { ActivityTypeKey.isRun($0.typeKey) && $0.fitThresholdHeartRate != nil && activityDay($0) == day }
+        .max { $0.start < $1.start }
+    guard let heartRate = latest?.fitThresholdHeartRate else { return }
+    let sport = SyncConstants.fitThresholdSport
     var descriptor = FetchDescriptor<ThresholdHistoryRecord>(predicate: #Predicate { $0.sport == sport && $0.day == iso })
     descriptor.fetchLimit = 1
     if let existing = try context.fetch(descriptor).first {

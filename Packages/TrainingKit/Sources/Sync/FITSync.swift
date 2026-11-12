@@ -52,8 +52,8 @@ extension SyncEngine {
     private func applyWatchZoneInfo(_ info: HeartRateZoneInfo?, to record: ActivityRecord) throws {
         record.fitThresholdHeartRate = info?.thresholdHeartRate
         record.watchZoneFloors = info?.floors ?? []
-        guard ActivityTypeKey.isRun(record.typeKey), let threshold = info?.thresholdHeartRate else { return }
-        try recordFITThreshold(threshold, on: activityDay(record), in: modelContext)
+        guard ActivityTypeKey.isRun(record.typeKey), info?.thresholdHeartRate != nil else { return }
+        try recordFITThreshold(for: record, in: modelContext)
     }
 
     private func readFIT(activityId: Int64) async throws -> FITOutcome {
