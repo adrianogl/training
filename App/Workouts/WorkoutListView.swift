@@ -45,7 +45,7 @@ struct WorkoutListView: View {
                 .padding(.bottom, 24)
             }
             .background(BrandBackground())
-            .refreshable { await model.syncNow(.launch) }
+            .refreshable { await model.syncNow(.pull) }
             .task {
                 model.scoreRefresher.refresh()
             }

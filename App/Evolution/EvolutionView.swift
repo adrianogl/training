@@ -40,7 +40,7 @@ struct EvolutionView: View {
                 }
             }
             .background(BrandBackground())
-            .refreshable { await app.syncNow(.launch) }
+            .refreshable { await app.syncNow(.pull) }
             .toolbarVisibility(.hidden, for: .navigationBar)
             .navigationDestination(for: MetricKind.self) { kind in
                 if let model {

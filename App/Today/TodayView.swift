@@ -51,7 +51,7 @@ struct TodayView: View {
             }
             }
             .background(BrandBackground())
-            .refreshable { await app.syncNow(.launch) }
+            .refreshable { await app.syncNow(.pull) }
             .toolbarVisibility(.hidden, for: .navigationBar)
             .navigationDestination(for: TodayRoute.self) { route in
                 switch route {

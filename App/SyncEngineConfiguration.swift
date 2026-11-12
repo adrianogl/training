@@ -1,4 +1,7 @@
+import FITReader
+import Foundation
 import GarminAPI
+import Storage
 import Sync
 import SwiftData
 import TrainingCore
@@ -8,10 +11,13 @@ struct SyncEngineConfiguration: Equatable {
     let mode: SyncMode
     let waitsOnRateLimit: Bool
 
-    init(trigger: SyncTrigger) {
+    init(trigger: SyncTrigger, hasOutdatedRuns: Bool = false) {
         switch trigger {
         case .launch:
             fitLimit = AppConstants.launchFITLimit
+            mode = .foreground
+        case .pull:
+            fitLimit = hasOutdatedRuns ? nil : AppConstants.launchFITLimit
             mode = .foreground
         case .settings:
             fitLimit = nil
@@ -21,6 +27,15 @@ struct SyncEngineConfiguration: Equatable {
             mode = .background
         }
         waitsOnRateLimit = mode == .foreground
+    }
+
+    static func hasOutdatedRuns(in context: ModelContext) throws -> Bool {
+        let currentVersion = FITReaderConstants.processingVersion
+        var descriptor = FetchDescriptor<ActivityRecord>(
+            predicate: #Predicate { $0.fitProcessed && $0.processingVersion < currentVersion }
+        )
+        descriptor.propertiesToFetch = [\.typeKey]
+        return try context.fetch(descriptor).contains { ActivityTypeKey.isRun($0.typeKey) }
     }
 
     func makeClient(tokens: TokenProvider, transport: any HTTPTransport) -> GarminClient {

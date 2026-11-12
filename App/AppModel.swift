@@ -150,7 +150,8 @@ import TrainingCore
             syncStatus = .failed(.missingKey)
             return false
         }
-        let configuration = SyncEngineConfiguration(trigger: trigger)
+        let hasOutdatedRuns = trigger == .pull && (try? SyncEngineConfiguration.hasOutdatedRuns(in: container.mainContext)) == true
+        let configuration = SyncEngineConfiguration(trigger: trigger, hasOutdatedRuns: hasOutdatedRuns)
         let engine = configuration.makeEngine(source: client(for: key, configuration: configuration), container: container)
         runningTrigger = trigger
         syncStatus = .running(progress: 0)
