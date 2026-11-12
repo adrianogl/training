@@ -32,7 +32,8 @@ extension SyncEngine {
                 } else {
                     result.processed += 1
                 }
-            case .skipped:
+            case .skipped(let reason):
+                result.skipped.append(SkippedFIT(activityId: record.activityId, description: reason))
                 record.fitTransientFailures += 1
                 try modelContext.save()
             case .unavailable:
@@ -76,7 +77,9 @@ extension SyncEngine {
             return .unavailable
         } catch {
             if SyncErrorPolicy.isCancellation(error) { throw CancellationError() }
-            return .skipped
+            let reason = "\(type(of: error)): \(error)"
+            SyncConstants.fitLogger.error("FIT pulado, atividade \(activityId, privacy: .public): \(reason, privacy: .public)")
+            return .skipped(reason: reason)
         }
     }
 }

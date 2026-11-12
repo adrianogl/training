@@ -7,9 +7,16 @@ enum ReprocessCommand {
     }
 
     static func lines(_ report: SyncReport) -> [String] {
-        [
+        var lines = [
             "FIT reprocessados: \(report.reprocessed)",
             "Parou no limite do Garmin (429): \(report.fitStoppedByRateLimit ? "sim" : "não")",
         ]
+        if !report.skippedFITs.isEmpty {
+            lines.append("FIT pulados: \(report.skippedFITs.count)")
+            lines += report.skippedFITs.prefix(CLIConstants.maxSkippedFITLines).map {
+                "  atividade \($0.activityId): \($0.description)"
+            }
+        }
+        return lines
     }
 }

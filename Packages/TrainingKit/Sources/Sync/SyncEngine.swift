@@ -88,6 +88,7 @@ public actor SyncEngine: ModelActor {
         report.reprocessed = result.reprocessed
         report.processedActivityIds = result.activityIds
         report.fitStoppedByRateLimit = result.stoppedByRateLimit
+        report.skippedFITs = result.skipped
         return report
     }
 
@@ -145,6 +146,7 @@ public actor SyncEngine: ModelActor {
         report.reprocessed = fit.reprocessed
         report.processedActivityIds = fit.activityIds
         report.fitStoppedByRateLimit = fit.stoppedByRateLimit
+        report.skippedFITs = fit.skipped
         report.stoppedByRateLimit = fit.stoppedByRateLimit
         progress(C.progressAfterFIT)
 

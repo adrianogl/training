@@ -2,6 +2,7 @@ import Foundation
 
 enum CLIConstants {
     static let keyRelativePath = ".config/garmin/connect-personal-api-key"
+    static let maxSkippedFITLines = 5
     static let missing = "—"
     static let usageExitCode: Int32 = 64
     static let failureExitCode: Int32 = 1

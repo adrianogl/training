@@ -230,6 +230,17 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(try fetch(SyncState.self, in: container).first?.firstLoadCompleted == true)
     }
 
+    @Test func skippedFITReportsActivityAndCause() async throws {
+        let activities = [FakeDataSource.activity(id: 10, typeKey: "running", day: today)]
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities)
+        let (engine, _) = try makeEngine(fake, firstDay: today.adding(days: -2))
+
+        let report = try await engine.run()
+
+        #expect(report.skippedFITs.map(\.activityId) == [10])
+        #expect(report.skippedFITs.first?.description.contains("FakeFITError") == true)
+    }
+
     @Test func storesReadiness() async throws {
         let span = today.adding(days: -40)...today
         let activities = (0...40).map { offset in

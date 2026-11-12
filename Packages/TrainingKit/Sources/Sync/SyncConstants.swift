@@ -1,6 +1,8 @@
 import Foundation
+import os
 
 public enum SyncConstants {
+    static let fitLogger = Logger(subsystem: "trAIning", category: "FIT")
     public static let fitThresholdSport = "fit"
     static let dailySummaryWindowDays = 180
     static let hrvWindowDays = 180
