@@ -5,7 +5,6 @@ import SwiftUI
 struct WorkoutListView: View {
     @Environment(AppModel.self) private var model
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
-    @Environment(\.modelContext) private var modelContext
     @State private var filter: WorkoutFilter = .all
     @State private var path: [Int64] = WorkoutListView.initialPath()
 
@@ -48,7 +47,7 @@ struct WorkoutListView: View {
             .background(BrandBackground())
             .refreshable { await model.syncNow(.launch) }
             .task {
-                await ScoreStore.refresh(container: modelContext.container, ids: nil)
+                model.scoreRefresher.refresh()
             }
             .navigationDestination(for: Int64.self) { activityId in
                 WorkoutDetailView(activityId: activityId)

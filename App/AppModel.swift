@@ -17,6 +17,7 @@ import TrainingCore
     let autoSyncEnabled: Bool
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private(set) var todayReadinessComplete = false
+    @ObservationIgnored let scoreRefresher: ScoreRefresher
 
     @ObservationIgnored private let keyStore: any APIKeyStore
     @ObservationIgnored private let transport: any HTTPTransport
@@ -38,6 +39,7 @@ import TrainingCore
     ) {
         self.notifier = notifier
         self.container = container
+        self.scoreRefresher = ScoreRefresher { await ScoreStore.refresh(container: container, ids: nil) }
         self.storeError = storeError
         self.keyStore = keyStore
         self.transport = transport
@@ -159,7 +161,7 @@ import TrainingCore
                 self?.syncStatus = .finished(.now)
                 processed = trigger == .background ? nil : report.processedActivityIds
                 if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
-                await ScoreStore.refresh(container: container, ids: nil)
+                if trigger != .background { self?.scoreRefresher.refresh() }
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
@@ -186,6 +188,7 @@ import TrainingCore
             narrativeTask.cancel()
             await narrativeTask.value
         }
+        await scoreRefresher.finish()
         let context = container.mainContext
         for model in TrainingSchema.models {
             try deleteAll(model, in: context)
