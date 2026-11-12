@@ -50,6 +50,16 @@ private let freeRunLaps = WorkoutStructure(laps: [
     LapSummary(trigger: "distance", startOffset: 290, timerSeconds: 290, distance: 1_000),
 ])
 
+private func kilometerLaps(_ paces: [Double]) -> WorkoutStructure {
+    var offset = 0.0
+    var laps: [LapSummary] = paces.map { pace in
+        defer { offset += pace }
+        return LapSummary(trigger: "distance", startOffset: offset, timerSeconds: pace, distance: 1_000)
+    }
+    laps.append(LapSummary(trigger: "session_end", startOffset: offset, timerSeconds: 30, distance: 50))
+    return WorkoutStructure(laps: laps)
+}
+
 private let thresholdPrescription = WorkoutStructure(
     prescription: WorkoutPrescription(steps: [
         PrescribedStep(index: 0, intensity: .warmup, duration: .time(seconds: 900), target: .open),
@@ -123,9 +133,35 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
     }
 
     @Test func ignoresIntervalsWithoutGarminWorkout() throws {
-        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, anaerobic: 3.1)])
+        let intervals = kilometerLaps([240, 330, 240, 330, 240, 330, 240, 330, 240, 330])
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, structure: intervals, anaerobic: 0.4)])
 
         #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func steadyLapsCountAsContinuousDespiteAnaerobicEffect() throws {
+        let steady = kilometerLaps([292, 288, 290, 291, 289, 290, 287, 290, 292, 289])
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, structure: steady, anaerobic: 2.4)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
+    }
+
+    @Test func withoutEnoughLapsFallsBackToAnaerobicEffect() throws {
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, structure: freeRunLaps, anaerobic: 3.1)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func smallBaselineFallsBackToThresholdAndLowHeartRateIsNotAsked() throws {
+        let context = try makeContext([threshold(170)] + easyRuns(days: [20, 30]) + [raceRun(id: 1, daysAgo: 5, averageHR: 150)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func smallBaselineFallsBackToThresholdAndHighHeartRateIsAsked() throws {
+        let context = try makeContext([threshold(170)] + easyRuns(days: [20, 30]) + [raceRun(id: 1, daysAgo: 5, averageHR: 162)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
     }
 
     @Test func usesThresholdWhenNoBaseline() throws {

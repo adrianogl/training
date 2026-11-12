@@ -85,8 +85,29 @@ private func runDay(_ activity: ActivityRecord) -> Day {
 
 private func isUnstructured(_ run: ActivityRecord) -> Bool {
     guard run.workoutName == nil else { return false }
-    guard let data = run.structureData, let structure = try? JSONDecoder().decode(WorkoutStructure.self, from: data) else { return true }
+    guard let structure = structure(of: run) else { return true }
     return !hasPrescription(structure)
+}
+
+private func structure(of run: ActivityRecord) -> WorkoutStructure? {
+    guard let data = run.structureData else { return nil }
+    return try? JSONDecoder().decode(WorkoutStructure.self, from: data)
+}
+
+private func isSteady(_ run: ActivityRecord) -> Bool {
+    typealias C = RaceDetectionConstants
+    let paces = (structure(of: run)?.laps ?? [])
+        .filter { $0.distance >= C.fullLapMinimumDistance }
+        .compactMap(lapPace)
+    guard paces.count >= C.minimumFullLaps else { return ReportBuilder.isContinuous(run) }
+    let mean = paces.reduce(0, +) / Double(paces.count)
+    let variance = paces.reduce(0) { $0 + ($1 - mean) * ($1 - mean) } / Double(paces.count)
+    return variance.squareRoot() / mean <= C.maximumLapPaceVariation
+}
+
+private func lapPace(_ lap: LapSummary) -> Double? {
+    let speed = lap.avgSpeed ?? (lap.timerSeconds > 0 ? lap.distance / lap.timerSeconds : 0)
+    return speed > 0 ? 1 / speed : nil
 }
 
 private func movingPace(_ run: ActivityRecord) -> Double? {
@@ -105,7 +126,7 @@ private func isAtRaceDistance(_ distance: Double) -> Bool {
 
 private func looksLikeRace(_ run: ActivityRecord, baseline: [ActivityRecord], context: ModelContext) throws -> Bool {
     typealias C = RaceDetectionConstants
-    guard ReportBuilder.isContinuous(run), let distance = run.distance, isAtRaceDistance(distance), let pace = movingPace(run) else { return false }
+    guard isSteady(run), let distance = run.distance, isAtRaceDistance(distance), let pace = movingPace(run) else { return false }
     let day = runDay(run)
     let earliest = day.adding(days: -C.baselineDays)
     let paces = baseline.compactMap { other -> Double? in
@@ -114,7 +135,7 @@ private func looksLikeRace(_ run: ActivityRecord, baseline: [ActivityRecord], co
         else { return nil }
         return movingPace(other)
     }
-    if let reference = median(paces) {
+    if paces.count >= C.minimumBaselineRuns, let reference = median(paces) {
         return pace <= reference * (1 - C.fasterThanBaseline)
     }
     guard let averageHR = run.averageHR, let threshold = try thresholdHeartRate(on: day, in: context) else { return false }
