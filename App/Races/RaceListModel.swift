@@ -1,5 +1,6 @@
 import FITReader
 import Foundation
+import Insights
 import Metrics
 import Observation
 import Storage
@@ -12,6 +13,7 @@ import WorkoutAnalysis
 
     let today: Day
     @ObservationIgnored private let container: ModelContainer
+    private(set) var candidates: [RaceCandidate] = []
     private(set) var upcoming: [RaceRowData] = []
     private(set) var completed: [RaceRowData] = []
     private(set) var summaries: [UUID: CompletedRaceSummary] = [:]
@@ -29,10 +31,21 @@ import WorkoutAnalysis
             Self.compute(container: container, today: today)
         }.value
         guard !Task.isCancelled else { return }
+        candidates = result.candidates
         upcoming = result.upcoming
         completed = result.completed
         summaries = result.summaries
         isLoaded = true
+    }
+
+    func confirm(_ activityId: Int64) async {
+        try? confirmRace(activityId: activityId, in: container.mainContext)
+        await load()
+    }
+
+    func decline(_ activityId: Int64) async {
+        try? declineRace(activityId: activityId, in: container.mainContext)
+        await load()
     }
 
     func linkResult(raceId: UUID, activityId: Int64) {
@@ -153,7 +166,8 @@ import WorkoutAnalysis
                 isUpcoming: false
             )
         }
-        return RaceListLoad(upcoming: upcomingRows, completed: completedRows, summaries: summaries)
+        let pending = (try? raceCandidates(in: context, today: today)) ?? []
+        return RaceListLoad(candidates: pending, upcoming: upcomingRows, completed: completedRows, summaries: summaries)
     }
 
     nonisolated static func info(_ race: RaceRecord, day: Day) -> RaceInfo {

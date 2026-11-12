@@ -119,6 +119,13 @@ import TrainingCore
         BackgroundSync.schedule(readinessComplete: todayReadinessComplete)
     }
 
+    nonisolated static func runPostSyncWork(container: ModelContainer, today: Day) -> TodaySummary? {
+        let context = ModelContext(container)
+        try? autoLinkRaces(in: context, today: today)
+        try? freezeEveTargets(in: context, today: today)
+        return try? todaySummary(context: context, today: today)
+    }
+
     @discardableResult
     func syncNow(_ trigger: SyncTrigger) async -> Bool {
         if trigger == .background { todayReadinessComplete = false }
@@ -146,9 +153,7 @@ import TrainingCore
                     Task { @MainActor in self?.updateProgress(fraction) }
                 }
                 let summary = await Task.detached(priority: .utility) {
-                    let context = ModelContext(container)
-                    try? freezeEveTargets(in: context, today: Day.today())
-                    return try? todaySummary(context: context, today: Day.today())
+                    Self.runPostSyncWork(container: container, today: Day.today())
                 }.value
                 self?.syncStatus = .finished(.now)
                 processed = trigger == .background ? nil : report.processedActivityIds

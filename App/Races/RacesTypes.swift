@@ -136,6 +136,7 @@ struct GPXPoint: Equatable, Sendable {
 }
 
 struct RaceListLoad: Sendable {
+    let candidates: [RaceCandidate]
     let upcoming: [RaceRowData]
     let completed: [RaceRowData]
     let summaries: [UUID: CompletedRaceSummary]

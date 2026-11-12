@@ -1,3 +1,4 @@
+import Insights
 import Storage
 import SwiftData
 import SwiftUI
@@ -76,7 +77,7 @@ struct RaceListView: View {
 
     @ViewBuilder
     private func content(_ model: RaceListModel) -> some View {
-        if model.upcoming.isEmpty && model.completed.isEmpty {
+        if model.upcoming.isEmpty && model.completed.isEmpty && model.candidates.isEmpty {
             Text(RacesConstants.emptyList)
                 .font(.subheadline)
                 .foregroundStyle(BrandColors.dim)
@@ -87,6 +88,16 @@ struct RaceListView: View {
             ForEach(model.upcoming) { row in
                 NavigationLink(value: RaceRoute.next(row.id)) { RaceRow(row: row) }
                     .buttonStyle(.plain)
+            }
+        }
+        if !model.candidates.isEmpty {
+            SectionLabel(RacesConstants.candidatesTitle)
+            ForEach(model.candidates) { candidate in
+                RaceCandidateRow(
+                    candidate: candidate,
+                    onConfirm: { Task { await model.confirm(candidate.activityId) } },
+                    onDecline: { Task { await model.decline(candidate.activityId) } }
+                )
             }
         }
         if !model.completed.isEmpty {
