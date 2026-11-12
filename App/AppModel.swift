@@ -119,6 +119,7 @@ import TrainingCore
         BackgroundSync.schedule(readinessComplete: todayReadinessComplete)
     }
 
+    @discardableResult
     nonisolated static func runPostSyncWork(container: ModelContainer, today: Day) -> TodaySummary? {
         let context = ModelContext(container)
         try? autoLinkRaces(in: context, today: today)
