@@ -222,6 +222,61 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
         #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
     }
 
+    @Test func confirmOnRaceDayLinksRegisteredRace() throws {
+        let registered = RaceRecord(name: "10 km da cidade", day: fixtureToday.iso, distance: 10_000, goalSeconds: 2_700, priority: .a)
+        let other = RaceRecord(name: "5 km", day: fixtureToday.iso, distance: 5_000)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 0), registered, other])
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
+
+        try confirmRace(activityId: 1, in: context)
+
+        let races = try context.fetch(FetchDescriptor<RaceRecord>())
+        #expect(races.count == 2)
+        #expect(registered.resultActivityId == 1)
+        #expect(registered.priorityLevel == .a)
+        #expect(registered.goalSeconds == 2_700)
+        #expect(other.resultActivityId == nil)
+        #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+        try autoLinkRaces(in: context, today: fixtureToday.adding(days: 1))
+        #expect(try context.fetch(FetchDescriptor<RaceRecord>()).count == 2)
+    }
+
+    @Test func confirmLinksClosestRegisteredRaceOfTheDay() throws {
+        let far = RaceRecord(name: "10 km A", day: daysAgo(5).iso, distance: 9_800)
+        let near = RaceRecord(name: "10 km B", day: daysAgo(5).iso, distance: 10_000)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5), far, near])
+
+        try confirmRace(activityId: 1, in: context)
+
+        #expect(try context.fetch(FetchDescriptor<RaceRecord>()).count == 2)
+        #expect(near.resultActivityId == 1)
+        #expect(far.resultActivityId == nil)
+    }
+
+    @Test func confirmIgnoresManuallyUnlinkedRace() throws {
+        let unlinked = RaceRecord(name: "10 km", day: fixtureToday.iso, distance: 10_000, manuallyUnlinked: true)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 0), unlinked])
+
+        try confirmRace(activityId: 1, in: context)
+
+        let races = try context.fetch(FetchDescriptor<RaceRecord>())
+        #expect(races.count == 2)
+        #expect(unlinked.resultActivityId == nil)
+        #expect(races.filter { $0.resultActivityId == 1 }.map(\.priorityLevel) == [.c])
+    }
+
+    @Test func confirmIgnoresRegisteredRaceOutsideDistanceTolerance() throws {
+        let half = RaceRecord(name: "Meia", day: fixtureToday.iso, distance: 21_097.5)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 0), half])
+
+        try confirmRace(activityId: 1, in: context)
+
+        let races = try context.fetch(FetchDescriptor<RaceRecord>())
+        #expect(races.count == 2)
+        #expect(half.resultActivityId == nil)
+        #expect(races.filter { $0.resultActivityId == 1 }.map(\.distance) == [10_000])
+    }
+
     @Test func deletingConfirmedRaceDoesNotAskAgain() throws {
         let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5)])
 

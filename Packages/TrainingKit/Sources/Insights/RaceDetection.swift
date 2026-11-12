@@ -26,6 +26,12 @@ public func confirmRace(activityId: Int64, in context: ModelContext) throws {
     try record(.race, activityId: activityId, in: context)
     let alreadyLinked = try context.fetchCount(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.resultActivityId == activityId })) > 0
     if !alreadyLinked, let activity = try activity(activityId, in: context) {
+        if let registered = try registeredRace(for: activity, in: context) {
+            registered.resultActivityId = activityId
+            registered.updatedAt = .now
+            try context.save()
+            return
+        }
         context.insert(RaceRecord(
             name: activity.name,
             day: runDay(activity).iso,
@@ -51,8 +57,7 @@ public func autoLinkRaces(in context: ModelContext, today: Day) throws {
         guard let day = Day(iso: race.day), day < today else { continue }
         let match = try fetchActivities(context, since: day.adding(days: -1), through: day.adding(days: 1))
             .filter { isRun($0) && runDay($0) == day && !linked.contains($0.activityId) }
-            .compactMap { run in run.distance.map { (run, abs($0 - race.distance) / race.distance) } }
-            .filter { $0.1 <= RaceDetectionConstants.distanceTolerance }
+            .compactMap { run in run.distance.flatMap { distance in distanceGap(distance, race: race).map { (run, $0) } } }
             .min { $0.1 < $1.1 }?.0
         guard let match else { continue }
         race.resultActivityId = match.activityId
@@ -61,6 +66,23 @@ public func autoLinkRaces(in context: ModelContext, today: Day) throws {
         changed = true
     }
     if changed { try context.save() }
+}
+
+private func registeredRace(for activity: ActivityRecord, in context: ModelContext) throws -> RaceRecord? {
+    guard let distance = activity.distance else { return nil }
+    let day = runDay(activity).iso
+    let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate {
+        $0.day == day && $0.resultActivityId == nil && !$0.manuallyUnlinked
+    }))
+    return races
+        .compactMap { race in distanceGap(distance, race: race).map { (race, $0) } }
+        .min { $0.1 < $1.1 }?.0
+}
+
+private func distanceGap(_ distance: Double, race: RaceRecord) -> Double? {
+    guard race.distance > 0 else { return nil }
+    let gap = abs(distance - race.distance) / race.distance
+    return gap <= RaceDetectionConstants.distanceTolerance ? gap : nil
 }
 
 private func record(_ decision: RaceDecision, activityId: Int64, in context: ModelContext) throws {
