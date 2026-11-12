@@ -41,6 +41,7 @@ import WorkoutAnalysis
         descriptor.fetchLimit = 1
         guard let race = try? context.fetch(descriptor).first else { return }
         race.resultActivityId = activityId
+        race.manuallyUnlinked = false
         race.updatedAt = .now
         try? context.save()
     }
@@ -51,6 +52,7 @@ import WorkoutAnalysis
         descriptor.fetchLimit = 1
         guard let race = try? context.fetch(descriptor).first else { return }
         race.resultActivityId = nil
+        race.manuallyUnlinked = true
         race.updatedAt = .now
         try? context.save()
     }

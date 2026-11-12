@@ -167,12 +167,14 @@ import TrainingCore
         let linked = try #require(model.summaries[half.id])
         #expect(linked.resultActivityId == 902)
         #expect(linked.resultIsSuggestion == false)
+        #expect(half.manuallyUnlinked == false)
         #expect(linked.resultSeconds == 21_000 * 0.33)
         #expect(await model.resultOptions(for: half.id).first { $0.activityId == 902 }?.isLinked == true)
 
         model.unlinkResult(raceId: half.id)
         await model.load()
         #expect(half.resultActivityId == nil)
+        #expect(half.manuallyUnlinked == true)
         #expect(model.summaries[half.id]?.resultActivityId == nil)
         #expect(model.summaries[half.id]?.resultSeconds == nil)
     }
