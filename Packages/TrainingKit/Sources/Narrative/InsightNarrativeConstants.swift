@@ -21,6 +21,24 @@ enum InsightNarrativeConstants {
         .load: "carga",
     ]
 
+    static let readinessRequiredWords: [ReadinessVerdict: [String]] = [
+        .hard: ["forte"],
+        .moderate: ["moderado"],
+        .rest: ["descanso"],
+    ]
+
+    static let readinessForbiddenWords: [ReadinessVerdict: [String]] = [
+        .hard: ["moderado", "descanso"],
+        .moderate: ["forte", "descanso"],
+        .rest: ["forte", "moderado"],
+    ]
+
+    static let betterWords = ["melhor", "melhorou", "melhoraram"]
+    static let worseWords = ["pior", "piorou", "pioraram"]
+    static let stableWord = "estável"
+    static let aboveGoalWord = "acima"
+    static let belowGoalWord = "abaixo"
+
     static let overallBetter = "Melhor que há 3 meses: %d de %d indicadores melhoraram."
     static let overallStable = "Estável em relação a 3 meses atrás."
     static let overallWorse = "Pior que há 3 meses: %d de %d indicadores pioraram."

@@ -1,12 +1,48 @@
+import Foundation
+import Metrics
 import WorkoutAnalysis
 
 enum NarrativeCheck {
-    static func matches(_ sentence: String, template: String, words: [String]) -> Bool {
+    static func matches(
+        _ sentence: String, template: String, words: [String], forbidden: [String] = [], wholeWords: Bool = false
+    ) -> Bool {
         let lowered = sentence.lowercased()
+        let tokens = Set(lowered.split { !$0.isLetter }.map(String.init))
+        let hasWord: (String) -> Bool = { wholeWords ? tokens.contains($0) : lowered.contains($0) }
         return !sentence.isEmpty
             && !NarrativeConstants.forbiddenFragments.contains { sentence.contains($0) }
             && numbers(in: sentence) == numbers(in: template)
-            && words.allSatisfy { lowered.contains($0) }
+            && words.allSatisfy(hasWord)
+            && !forbidden.contains { tokens.contains($0) }
+    }
+
+    static func words(_ verdict: ReadinessVerdict) -> [String] {
+        InsightNarrativeConstants.readinessRequiredWords[verdict] ?? []
+    }
+
+    static func forbidden(_ verdict: ReadinessVerdict) -> [String] {
+        InsightNarrativeConstants.readinessForbiddenWords[verdict] ?? []
+    }
+
+    static func words(_ facts: OverallFacts) -> [String] {
+        switch facts.verdict {
+        case .better: [InsightNarrativeConstants.betterWords[0]]
+        case .worse: [InsightNarrativeConstants.worseWords[0]]
+        case .stable: [InsightNarrativeConstants.stableWord]
+        }
+    }
+
+    static func forbidden(_ facts: OverallFacts) -> [String] {
+        var forbidden: [String]
+        switch facts.verdict {
+        case .better: forbidden = InsightNarrativeConstants.worseWords
+        case .worse: forbidden = InsightNarrativeConstants.betterWords
+        case .stable: forbidden = [InsightNarrativeConstants.betterWords[0], InsightNarrativeConstants.worseWords[0]]
+        }
+        if let gap = facts.goalGapSeconds, gap != 0 {
+            forbidden.append(gap > 0 ? InsightNarrativeConstants.belowGoalWord : InsightNarrativeConstants.aboveGoalWord)
+        }
+        return forbidden
     }
 
     static func words(_ finding: Finding, blocks: [WorkoutBlock]) -> [String] {

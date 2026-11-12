@@ -33,19 +33,30 @@ public struct FoundationModelsInsightNarrator: InsightNarrator {
 
     public func readinessSentence(_ breakdown: ReadinessBreakdown, verdict: ReadinessVerdict) async -> String {
         let template = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
-        return await validated(instructions: InsightNarrativeConstants.readinessInstructions, template: template)
+        return await validated(
+            instructions: InsightNarrativeConstants.readinessInstructions,
+            template: template,
+            words: NarrativeCheck.words(verdict),
+            forbidden: NarrativeCheck.forbidden(verdict)
+        )
     }
 
     public func overallSentence(_ facts: OverallFacts) async -> String {
         let template = TemplateInsightNarrator.overallSentence(facts)
-        return await validated(instructions: InsightNarrativeConstants.overallInstructions, template: template)
+        return await validated(
+            instructions: InsightNarrativeConstants.overallInstructions,
+            template: template,
+            words: NarrativeCheck.words(facts),
+            forbidden: NarrativeCheck.forbidden(facts)
+        )
     }
 
-    private func validated(instructions: String, template: String) async -> String {
+    private func validated(instructions: String, template: String, words: [String], forbidden: [String]) async -> String {
         let prompt = "\(InsightNarrativeConstants.referenceHeader) \(template)"
         guard let generated = try? await generator.generate(instructions: instructions, prompt: prompt) else { return template }
         let text = generated.trimmingCharacters(in: .whitespacesAndNewlines)
-        return NarrativeCheck.matches(text, template: template, words: []) ? text : template
+        let accepted = NarrativeCheck.matches(text, template: template, words: words, forbidden: forbidden, wholeWords: true)
+        return accepted ? text : template
     }
 }
 
