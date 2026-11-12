@@ -16,7 +16,10 @@ import TrainingCore
     private(set) var hasKey: Bool
     let autoSyncEnabled: Bool
     @ObservationIgnored let notifier: MorningNotifier
-    @ObservationIgnored private(set) var todayReadinessComplete = false
+    @ObservationIgnored private var readinessComplete: Bool
+    @ObservationIgnored private var readinessDay: Day?
+    @ObservationIgnored private let today: @Sendable () -> Day
+    @ObservationIgnored var todayReadinessComplete: Bool { readinessComplete && readinessDay == today() }
     @ObservationIgnored let scoreRefresher: ScoreRefresher
 
     @ObservationIgnored private let keyStore: any APIKeyStore
@@ -35,8 +38,14 @@ import TrainingCore
         transport: any HTTPTransport = URLSessionTransport(),
         autoSyncEnabled: Bool = true,
         makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() },
-        notifier: MorningNotifier = MorningNotifier()
+        notifier: MorningNotifier = MorningNotifier(),
+        readinessComplete: Bool = false,
+        readinessDay: Day? = nil,
+        today: @escaping @Sendable () -> Day = { Day.today() }
     ) {
+        self.readinessComplete = readinessComplete
+        self.readinessDay = readinessDay
+        self.today = today
         self.notifier = notifier
         self.container = container
         self.scoreRefresher = ScoreRefresher { await ScoreStore.refresh(container: container, ids: nil) }
@@ -131,7 +140,7 @@ import TrainingCore
 
     @discardableResult
     func syncNow(_ trigger: SyncTrigger) async -> Bool {
-        if trigger == .background { todayReadinessComplete = false }
+        if trigger == .background { readinessComplete = false }
         if let syncTask {
             let running = runningTrigger
             await syncTask.value
@@ -219,7 +228,8 @@ import TrainingCore
     }
 
     private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {
-        todayReadinessComplete = MorningNotifier.hasNightData(summary)
+        readinessComplete = MorningNotifier.hasNightData(summary)
+        readinessDay = today()
         guard trigger == .background else {
             await notifier.foregroundSyncFinished(summary: summary, now: .now)
             return
