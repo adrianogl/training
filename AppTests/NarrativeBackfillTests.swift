@@ -97,12 +97,29 @@ private struct FakeNarrator: Narrator {
     @Test func backfillRunsOffMainActor() async throws {
         let container = try TrainingSchema.container(inMemory: true)
         try seed(container.mainContext)
-        let narrator = FakeNarrator()
+        let flag = MainThreadFlag()
 
-        _ = try await NarrativeBackfill.run(container: container, narrator: narrator, processed: [], limit: 10)
+        _ = try await NarrativeBackfill.run(
+            container: container, narrator: FakeNarrator(), processed: [], limit: 10,
+            onStep: { noteIfMainThread(flag) }
+        )
 
-        #expect(await narrator.log.count > 0)
-        #expect(!narrator.ranOnMainThread.isSet)
+        #expect(!flag.isSet)
+    }
+
+    @Test func mainContextSeesNarrativeStoredByBackfill() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        try seed(context)
+        let held = try #require(try records(context).first { $0.activityId == 1 })
+        #expect(held.narrativeData == nil)
+
+        _ = try await NarrativeBackfill.run(container: container, narrator: FakeNarrator(), processed: [1], limit: 1)
+
+        let refetched = try #require(try records(context).first { $0.activityId == 1 })
+        let stored = try JSONDecoder().decode(WorkoutNarrative.self, from: try #require(refetched.narrativeData))
+        #expect(stored.generatedBy == NarrativeConstants.foundationModelsSource)
+        #expect(held.narrativeData != nil)
     }
 
     @Test func hookStoresNothingWhenNarratorFallsBack() async throws {

@@ -10,10 +10,11 @@ enum NarrativeBackfill {
         narrator: any Narrator,
         processed: Set<Int64>,
         limit: Int,
-        skipping: Set<String> = []
+        skipping: Set<String> = [],
+        onStep: (@Sendable () -> Void)? = nil
     ) async throws -> Set<String> {
         let task = Task.detached(priority: .utility) {
-            try await backfill(container: container, narrator: narrator, processed: processed, limit: limit, skipping: skipping)
+            try await backfill(container: container, narrator: narrator, processed: processed, limit: limit, skipping: skipping, onStep: onStep)
         }
         return try await withTaskCancellationHandler {
             try await task.value
@@ -27,9 +28,11 @@ enum NarrativeBackfill {
         narrator: any Narrator,
         processed: Set<Int64>,
         limit: Int,
-        skipping: Set<String>
+        skipping: Set<String>,
+        onStep: (@Sendable () -> Void)?
     ) async throws -> Set<String> {
         guard !(narrator is TemplateNarrator) else { return [] }
+        onStep?()
         let context = ModelContext(container)
         let records = try context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
         let runs = records.filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
@@ -42,6 +45,7 @@ enum NarrativeBackfill {
         var failures: Set<String> = []
         for record in ordered where attempts < limit {
             try Task.checkCancellation()
+            onStep?()
             let stored = record.narrativeData.flatMap { try? decoder.decode(WorkoutNarrative.self, from: $0) }
             let isFresh = processed.contains(record.activityId)
             if stored != nil, !isFresh {
