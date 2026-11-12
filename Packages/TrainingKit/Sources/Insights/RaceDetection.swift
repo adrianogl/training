@@ -1,3 +1,4 @@
+import FITReader
 import Foundation
 import Metrics
 import Reports
@@ -5,17 +6,17 @@ import Storage
 import SwiftData
 import Sync
 import TrainingCore
+import WorkoutAnalysis
 
 public func raceCandidates(in context: ModelContext, today: Day) throws -> [RaceCandidate] {
     typealias C = RaceDetectionConstants
     let since = today.adding(days: -(C.lookbackDays + C.baselineDays))
-    let runs = try fetchActivities(context, since: since, through: today).filter { isRun($0) && $0.fitProcessed }
+    let unstructured = try fetchActivities(context, since: since, through: today).filter { isRun($0) && isUnstructured($0) }
     let decided = Set(try context.fetch(FetchDescriptor<RaceDecisionRecord>()).map(\.activityId))
     let linked = Set(try context.fetch(FetchDescriptor<RaceRecord>()).compactMap(\.resultActivityId))
-    let unstructured = runs.filter(isUnstructured)
     let firstDay = today.adding(days: -C.lookbackDays)
     return try unstructured
-        .filter { runDay($0) >= firstDay && !decided.contains($0.activityId) && !linked.contains($0.activityId) }
+        .filter { $0.fitProcessed && runDay($0) >= firstDay && !decided.contains($0.activityId) && !linked.contains($0.activityId) }
         .filter { try looksLikeRace($0, baseline: unstructured, context: context) }
         .sorted { $0.start > $1.start }
         .compactMap(candidate)
@@ -83,7 +84,9 @@ private func runDay(_ activity: ActivityRecord) -> Day {
 }
 
 private func isUnstructured(_ run: ActivityRecord) -> Bool {
-    run.workoutName == nil && run.structureData == nil
+    guard run.workoutName == nil else { return false }
+    guard let data = run.structureData, let structure = try? JSONDecoder().decode(WorkoutStructure.self, from: data) else { return true }
+    return !hasPrescription(structure)
 }
 
 private func movingPace(_ run: ActivityRecord) -> Double? {

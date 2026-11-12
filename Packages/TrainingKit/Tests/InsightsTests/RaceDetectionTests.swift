@@ -1,3 +1,4 @@
+import FITReader
 import Foundation
 import Storage
 import SwiftData
@@ -14,7 +15,7 @@ private func raceRun(
     averageHR: Double? = 165,
     name: String = "Corrida 10K",
     workoutName: String? = nil,
-    structured: Bool = false,
+    structure: WorkoutStructure? = nil,
     fitProcessed: Bool = true,
     anaerobic: Double? = 1.2,
     pr: Bool? = nil
@@ -34,15 +35,28 @@ private func raceRun(
         fitProcessed: fitProcessed,
         localDay: day.iso,
         workoutName: workoutName,
-        structureData: structured ? Data([1]) : nil
+        structureData: structure.flatMap { try? JSONEncoder().encode($0) }
     )
 }
 
-private func easyRuns(around distance: Double = 10_000, days: [Int] = [20, 30, 40], startingId: Int64 = 100) -> [ActivityRecord] {
+private func easyRuns(around distance: Double = 10_000, days: [Int] = [20, 30, 40], startingId: Int64 = 100, fitProcessed: Bool = true) -> [ActivityRecord] {
     days.enumerated().map { index, offset in
-        raceRun(id: startingId + Int64(index), daysAgo: offset, distance: distance, seconds: distance * 0.36, averageHR: 140, name: "Corrida leve")
+        raceRun(id: startingId + Int64(index), daysAgo: offset, distance: distance, seconds: distance * 0.36, averageHR: 140, name: "Corrida leve", fitProcessed: fitProcessed)
     }
 }
+
+private let freeRunLaps = WorkoutStructure(laps: [
+    LapSummary(trigger: "distance", startOffset: 0, timerSeconds: 290, distance: 1_000),
+    LapSummary(trigger: "distance", startOffset: 290, timerSeconds: 290, distance: 1_000),
+])
+
+private let thresholdPrescription = WorkoutStructure(
+    prescription: WorkoutPrescription(steps: [
+        PrescribedStep(index: 0, intensity: .warmup, duration: .time(seconds: 900), target: .open),
+        PrescribedStep(index: 1, intensity: .active, duration: .time(seconds: 600), target: .heartRateZone(4)),
+    ]),
+    laps: freeRunLaps.laps
+)
 
 private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
     ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: daysAgo(200).iso, heartRate: heartRate)
@@ -68,10 +82,38 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
 
     @Test func ignoresStructuredWorkouts() throws {
         let named = raceRun(id: 1, daysAgo: 5, workoutName: "Limiar 3x10")
-        let structured = raceRun(id: 2, daysAgo: 6, structured: true)
+        let structured = raceRun(id: 2, daysAgo: 6, structure: thresholdPrescription)
         let context = try makeContext(easyRuns() + [named, structured])
 
         #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func freeRunWithLapsIsStillCandidate() throws {
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, structure: freeRunLaps)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
+    }
+
+    @Test func ignoresPrescribedRunWithoutWorkoutName() throws {
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5, structure: thresholdPrescription)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).isEmpty)
+    }
+
+    @Test func baselineCountsFreeRunsWithLaps() throws {
+        let laps = easyRuns().map { run in
+            run.structureData = try? JSONEncoder().encode(freeRunLaps)
+            return run
+        }
+        let context = try makeContext(laps + [raceRun(id: 1, daysAgo: 5)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
+    }
+
+    @Test func baselineIncludesRunsWithoutFIT() throws {
+        let context = try makeContext(easyRuns(fitProcessed: false) + [raceRun(id: 1, daysAgo: 5)])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
     }
 
     @Test func ignoresUnprocessedRuns() throws {
