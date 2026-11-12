@@ -20,14 +20,29 @@ public func bestEfforts(_ efforts: [Effort], for distance: Double, on: Day) -> [
     var best: [EffortKind: (effort: Effort, predicted: Double)] = [:]
     for effort in efforts where predictionWeight(effort, on: on) != nil {
         let predicted = riegel(seconds: effort.seconds, from: effort.distance, to: distance)
-        if let current = best[effort.kind] {
-            let faster = predicted < current.predicted
-            let tieButNewer = predicted == current.predicted && current.effort.day < effort.day
-            guard faster || tieButNewer else { continue }
+        if let current = best[effort.kind],
+           !replaces(effort, predicted: predicted, current: current.effort, currentPredicted: current.predicted, target: distance) {
+            continue
         }
         best[effort.kind] = (effort, predicted)
     }
     return best.values.map(\.effort).sorted { ($1.day, $0.kind.rawValue) < ($0.day, $1.kind.rawValue) }
+}
+
+private func replaces(_ effort: Effort, predicted: Double, current: Effort, currentPredicted: Double, target: Double) -> Bool {
+    if effort.kind == .race {
+        let gap = distanceGap(effort.distance, target)
+        let currentGap = distanceGap(current.distance, target)
+        let tolerance = RaceConstants.sameRaceDistanceLogTolerance
+        if gap < currentGap - tolerance { return true }
+        if gap > currentGap + tolerance { return false }
+    }
+    if predicted != currentPredicted { return predicted < currentPredicted }
+    return current.day < effort.day
+}
+
+private func distanceGap(_ distance: Double, _ target: Double) -> Double {
+    abs(log(distance / target))
 }
 
 private func predictionWeight(_ effort: Effort, on: Day) -> Double? {

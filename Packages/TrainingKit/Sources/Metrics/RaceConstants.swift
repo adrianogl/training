@@ -2,6 +2,7 @@ enum RaceConstants {
     static let effortWindowDays = 150.0
     static let raceEffortWindowDays = 365.0
     static let kindWeight: [EffortKind: Double] = [.race: 1.0, .split5k: 0.7, .split1k: 0.3]
+    static let sameRaceDistanceLogTolerance = 0.1
 
     static let aggressiveGap = 0.06
     static let challengingGap = 0.01

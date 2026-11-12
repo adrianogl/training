@@ -178,3 +178,17 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
     #expect(predict(distance: 10_000, efforts: [race], on: today) != nil)
     #expect(predict(distance: 10_000, efforts: [split], on: today) == nil)
 }
+
+@Test func raceClosestToTargetDistanceWins() {
+    let fastTen = Effort(distance: 10_000, seconds: 2400, day: today.adding(days: -200), kind: .race)
+    let marathon = Effort(distance: 42_195, seconds: 11_600, day: today.adding(days: -100), kind: .race)
+    #expect(bestEfforts([fastTen, marathon], for: 42_195, on: today) == [marathon])
+    #expect(bestEfforts([fastTen, marathon], for: 10_000, on: today) == [fastTen])
+}
+
+@Test func racesOfSameDistanceKeepFastestProjection() {
+    let slower = Effort(distance: 10_080, seconds: 2460, day: today.adding(days: -200), kind: .race)
+    let faster = Effort(distance: 10_030, seconds: 2440, day: today.adding(days: -170), kind: .race)
+    let marathon = Effort(distance: 42_195, seconds: 11_600, day: today.adding(days: -100), kind: .race)
+    #expect(bestEfforts([slower, faster, marathon], for: 10_000, on: today) == [faster])
+}
