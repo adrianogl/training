@@ -6,7 +6,7 @@ enum FITZipBuilder {
     static let workoutName = "Intervalado sintético"
     private static let start: UInt32 = 1_100_000_000
 
-    static let watchZoneBoundaries: [UInt8] = [105, 129, 142, 153, 160, 186]
+    static let watchZoneBoundaries: [UInt8] = [110, 130, 140, 150, 160, 190]
 
     static func run(seconds: Int, withHeartRate: Bool = true, zoneThreshold: UInt8? = nil) throws -> Data {
         let extra: [Mesg] = try zoneThreshold.map { [try timeInZone(threshold: $0)] } ?? []

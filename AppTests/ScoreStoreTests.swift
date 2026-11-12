@@ -183,11 +183,11 @@ import WorkoutAnalysis
         let container = try Self.store(threshold: nil)
         let context = ModelContext(container)
         for run in try context.fetch(FetchDescriptor<ActivityRecord>()) where run.typeKey == "running" {
-            run.watchZoneFloors = [105, 129, 142, 153, 160]
+            run.watchZoneFloors = [110, 130, 140, 150, 160]
         }
         try context.save()
         await ScoreStore.refresh(container: container, ids: nil)
-        #expect(try Self.record(1, in: container).scoreKey?.contains("105/129/142/153/160") == true)
+        #expect(try Self.record(1, in: container).scoreKey?.contains("110/130/140/150/160") == true)
 
         try Self.edit(container) { context, _ in
             let zones = try? context.fetch(FetchDescriptor<HeartRateZonesRecord>()).first
@@ -196,7 +196,7 @@ import WorkoutAnalysis
         await ScoreStore.refresh(container: container, ids: nil)
         #expect(try Self.record(1, in: container).scoreValue == Self.sentinel)
 
-        try Self.edit(container) { _, record in record.watchZoneFloors = [105, 131, 142, 153, 160] }
+        try Self.edit(container) { _, record in record.watchZoneFloors = [110, 135, 140, 150, 160] }
         await ScoreStore.refresh(container: container, ids: nil)
         #expect(try Self.record(1, in: container).scoreValue != Self.sentinel)
     }

@@ -11,7 +11,7 @@ import TrainingCore
     private typealias F = WorkoutDetailFixtures
 
     private let watchZones = HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRate: 190)
-    private let watchSeconds: [Double] = [84, 403, 1_370, 1_466, 136]
+    private let watchSeconds: [Double] = [60, 300, 1_200, 1_500, 120]
     private let thresholdSeconds: [Double] = [300, 1_700, 1_300, 160, 0]
 
     private func zonesRecord(threshold: Int?) -> HeartRateZonesRecord {
@@ -74,10 +74,10 @@ import TrainingCore
 
     @Test func rulerUsesActivityWatchFloors() throws {
         let ruler = try #require(try model(
-            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [105, 129, 142, 153, 160]
+            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [110, 130, 140, 150, 160]
         ).ruler)
 
-        #expect(ruler.watch.floors == [105, 129, 142, 153, 160])
+        #expect(ruler.watch.floors == [110, 130, 140, 150, 160])
         #expect(ruler.thresholdHeartRate == 170)
         #expect(ruler.divergence == -10)
         #expect(ruler.note == "Zonas do relógio 10 bpm abaixo do limiar")
@@ -97,7 +97,7 @@ import TrainingCore
     }
 
     @Test func runWithoutThresholdUsesActivityFloorsInRulerAndBlocks() throws {
-        let floors = [105, 129, 142, 153, 160]
+        let floors = [110, 130, 140, 150, 160]
         let (model, analysis) = try analyzed(threshold: nil, thresholdUsed: nil, thresholdSeconds: [], activityFloors: floors)
         let ruler = try #require(model.ruler)
 
@@ -108,7 +108,7 @@ import TrainingCore
 
     @Test func rulerFallsBackToZonesRecordFloors() throws {
         let ruler = try #require(try model(
-            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [105, 129]
+            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [110, 130]
         ).ruler)
 
         #expect(ruler.watch.floors == [100, 120, 140, 160, 175])
@@ -176,7 +176,7 @@ import TrainingCore
     }
 
     @Test func timeTextListsEveryZone() {
-        #expect(ZoneBar(floors: [100, 124, 137, 148, 154], seconds: watchSeconds).timeText == "Z1 1:24 · Z2 6:43 · Z3 22:50 · Z4 24:26 · Z5 2:16")
+        #expect(ZoneBar(floors: [100, 124, 137, 148, 154], seconds: watchSeconds).timeText == "Z1 1:00 · Z2 5:00 · Z3 20:00 · Z4 25:00 · Z5 2:00")
         #expect(ZoneBar(floors: [100, 124, 137, 148, 154], seconds: []).timeText == nil)
     }
 }

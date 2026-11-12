@@ -61,7 +61,7 @@ private func activity(_ id: Int64, in container: ModelContainer) throws -> Activ
         #expect(records.allSatisfy { $0.sport == SyncConstants.fitThresholdSport })
         let run = try activity(3, in: container)
         #expect(run.fitThresholdHeartRate == 168)
-        #expect(run.watchZoneFloors == [105, 129, 142, 153, 160])
+        #expect(run.watchZoneFloors == [110, 130, 140, 150, 160])
         #expect(run.thresholdUsed == 168)
         #expect(try activity(1, in: container).fitThresholdHeartRate == 172)
     }
