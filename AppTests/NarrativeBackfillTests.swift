@@ -14,12 +14,35 @@ private actor CallLog {
     }
 }
 
+private final class MainThreadFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    func set() {
+        lock.lock()
+        value = true
+        lock.unlock()
+    }
+
+    var isSet: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return value
+    }
+}
+
+private func noteIfMainThread(_ flag: MainThreadFlag) {
+    if Thread.isMainThread { flag.set() }
+}
+
 private struct FakeNarrator: Narrator {
     let log = CallLog()
+    let ranOnMainThread = MainThreadFlag()
     var fallsBack = false
 
     func narrate(_ assessment: WorkoutAssessment, blocks: [WorkoutBlock], evolution: EvolutionFacts?) async -> WorkoutNarrative {
         await log.record()
+        noteIfMainThread(ranOnMainThread)
         let template = TemplateNarrator().narrative(assessment, blocks: blocks, evolution: evolution)
         guard !fallsBack, !assessment.orderedFindings.isEmpty || evolution != nil else { return template }
         return WorkoutNarrative(
@@ -53,7 +76,7 @@ private struct FakeNarrator: Narrator {
         try seed(context)
         let narrator = FakeNarrator()
 
-        _ = try await NarrativeBackfill.run(context: context, narrator: narrator, processed: [3], limit: 2)
+        _ = try await NarrativeBackfill.run(container: container, narrator: narrator, processed: [3], limit: 2)
 
         let all = try records(context)
         let byId = Dictionary(uniqueKeysWithValues: all.map { ($0.activityId, $0) })
@@ -71,19 +94,30 @@ private struct FakeNarrator: Narrator {
         #expect(await narrator.log.count == 2)
     }
 
+    @Test func backfillRunsOffMainActor() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        try seed(container.mainContext)
+        let narrator = FakeNarrator()
+
+        _ = try await NarrativeBackfill.run(container: container, narrator: narrator, processed: [], limit: 10)
+
+        #expect(await narrator.log.count > 0)
+        #expect(!narrator.ranOnMainThread.isSet)
+    }
+
     @Test func hookStoresNothingWhenNarratorFallsBack() async throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         try seed(context)
         let narrator = FakeNarrator(fallsBack: true)
 
-        let failures = try await NarrativeBackfill.run(context: context, narrator: narrator, processed: [], limit: 10)
+        let failures = try await NarrativeBackfill.run(container: container, narrator: narrator, processed: [], limit: 10)
 
         #expect(try records(context).allSatisfy { $0.narrativeData == nil })
         #expect(failures.count == 3)
 
         let retry = FakeNarrator()
-        _ = try await NarrativeBackfill.run(context: context, narrator: retry, processed: [], limit: 10, skipping: failures)
+        _ = try await NarrativeBackfill.run(container: container, narrator: retry, processed: [], limit: 10, skipping: failures)
         #expect(await retry.log.count == 0)
     }
 
@@ -92,7 +126,7 @@ private struct FakeNarrator: Narrator {
         let context = container.mainContext
         try seed(context)
         let narrator = FakeNarrator()
-        _ = try await NarrativeBackfill.run(context: context, narrator: narrator, processed: [], limit: 10)
+        _ = try await NarrativeBackfill.run(container: container, narrator: narrator, processed: [], limit: 10)
         let stale = try #require(try records(context).first { $0.activityId == 2 })
         var narrative = try JSONDecoder().decode(WorkoutNarrative.self, from: try #require(stale.narrativeData))
         narrative.factsKey = "old"
@@ -101,9 +135,10 @@ private struct FakeNarrator: Narrator {
         try context.save()
 
         let again = FakeNarrator()
-        _ = try await NarrativeBackfill.run(context: context, narrator: again, processed: [], limit: 10)
+        _ = try await NarrativeBackfill.run(container: container, narrator: again, processed: [], limit: 10)
 
-        let refreshed = try JSONDecoder().decode(WorkoutNarrative.self, from: try #require(stale.narrativeData))
+        let reloaded = try #require(try records(ModelContext(container)).first { $0.activityId == 2 })
+        let refreshed = try JSONDecoder().decode(WorkoutNarrative.self, from: try #require(reloaded.narrativeData))
         #expect(await again.log.count == 1)
         #expect(refreshed.factsKey != "old")
         #expect(!refreshed.findings.contains("texto velho"))
@@ -121,7 +156,7 @@ private struct FakeNarrator: Narrator {
         try context.save()
         let narrator = FakeNarrator()
 
-        let failures = try await NarrativeBackfill.run(context: context, narrator: narrator, processed: [], limit: 3)
+        let failures = try await NarrativeBackfill.run(container: container, narrator: narrator, processed: [], limit: 3)
 
         #expect(failures.isEmpty)
         #expect(await narrator.log.count == 3)

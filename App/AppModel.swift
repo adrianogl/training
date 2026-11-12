@@ -206,7 +206,7 @@ import TrainingCore
         let skipping = narrativeFailures
         let task = Task { [weak self, container] in
             let failures = try? await NarrativeBackfill.run(
-                context: container.mainContext,
+                container: container,
                 narrator: narrator,
                 processed: processed,
                 limit: AppConstants.narrativeBackfillLimit,

@@ -4,15 +4,33 @@ import Storage
 import SwiftData
 import TrainingCore
 
-@MainActor enum NarrativeBackfill {
+enum NarrativeBackfill {
     static func run(
-        context: ModelContext,
+        container: ModelContainer,
         narrator: any Narrator,
         processed: Set<Int64>,
         limit: Int,
         skipping: Set<String> = []
     ) async throws -> Set<String> {
+        let task = Task.detached(priority: .utility) {
+            try await backfill(container: container, narrator: narrator, processed: processed, limit: limit, skipping: skipping)
+        }
+        return try await withTaskCancellationHandler {
+            try await task.value
+        } onCancel: {
+            task.cancel()
+        }
+    }
+
+    private static func backfill(
+        container: ModelContainer,
+        narrator: any Narrator,
+        processed: Set<Int64>,
+        limit: Int,
+        skipping: Set<String>
+    ) async throws -> Set<String> {
         guard !(narrator is TemplateNarrator) else { return [] }
+        let context = ModelContext(container)
         let records = try context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
         let runs = records.filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
         let ordered = runs.filter { processed.contains($0.activityId) } + runs.filter { !processed.contains($0.activityId) }
