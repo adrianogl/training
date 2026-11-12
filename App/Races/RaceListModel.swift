@@ -3,6 +3,7 @@ import Foundation
 import Insights
 import Metrics
 import Observation
+import os
 import Storage
 import SwiftData
 import TrainingCore
@@ -13,15 +14,25 @@ import WorkoutAnalysis
 
     let today: Day
     @ObservationIgnored private let container: ModelContainer
+    @ObservationIgnored private let confirmAnswer: RaceAnswer
+    @ObservationIgnored private let declineAnswer: RaceAnswer
     private(set) var candidates: [RaceCandidate] = []
     private(set) var upcoming: [RaceRowData] = []
     private(set) var completed: [RaceRowData] = []
     private(set) var summaries: [UUID: CompletedRaceSummary] = [:]
     private(set) var isLoaded = false
+    private(set) var answerFailed = false
 
-    init(container: ModelContainer, today: Day) {
+    init(
+        container: ModelContainer,
+        today: Day,
+        confirmAnswer: @escaping RaceAnswer = { try confirmRace(activityId: $0, in: $1) },
+        declineAnswer: @escaping RaceAnswer = { try declineRace(activityId: $0, in: $1) }
+    ) {
         self.container = container
         self.today = today
+        self.confirmAnswer = confirmAnswer
+        self.declineAnswer = declineAnswer
     }
 
     func load() async {
@@ -39,13 +50,23 @@ import WorkoutAnalysis
     }
 
     func confirm(_ activityId: Int64) async {
-        try? confirmRace(activityId: activityId, in: container.mainContext)
+        answer(activityId, with: confirmAnswer, action: "confirmar")
         await load()
     }
 
     func decline(_ activityId: Int64) async {
-        try? declineRace(activityId: activityId, in: container.mainContext)
+        answer(activityId, with: declineAnswer, action: "recusar")
         await load()
+    }
+
+    private func answer(_ activityId: Int64, with answer: RaceAnswer, action: String) {
+        do {
+            try answer(activityId, container.mainContext)
+            answerFailed = false
+        } catch {
+            answerFailed = true
+            C.logger.error("Falha ao \(action, privacy: .public) prova da atividade \(activityId, privacy: .private): \(String(describing: error), privacy: .private)")
+        }
     }
 
     func linkResult(raceId: UUID, activityId: Int64) {

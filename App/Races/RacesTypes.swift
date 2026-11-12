@@ -2,7 +2,10 @@ import Foundation
 import Insights
 import Metrics
 import Storage
+import SwiftData
 import TrainingCore
+
+typealias RaceAnswer = (Int64, ModelContext) throws -> Void
 
 enum RaceRoute: Hashable {
     case next(UUID)

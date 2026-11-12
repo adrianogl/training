@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import Storage
 import SwiftData
 import Testing
@@ -76,6 +77,44 @@ import TrainingCore
         #expect(model.candidates.isEmpty)
         #expect(model.completed.isEmpty)
         #expect(try container.mainContext.fetch(FetchDescriptor<RaceRecord>()).isEmpty)
+    }
+
+    @Test func failedAnswerKeepsCandidateAndIsRecorded() async throws {
+        let container = try Self.store()
+        let failing: RaceAnswer = { _, _ in throw CocoaError(.fileWriteUnknown) }
+        let model = RaceListModel(container: container, today: Self.today, confirmAnswer: failing, declineAnswer: failing)
+        await model.load()
+
+        await model.confirm(Self.candidateId)
+
+        #expect(model.answerFailed)
+        #expect(model.candidates.map(\.activityId) == [Self.candidateId])
+
+        await model.decline(Self.candidateId)
+
+        #expect(model.answerFailed)
+        #expect(model.candidates.map(\.activityId) == [Self.candidateId])
+    }
+
+    @Test func successfulAnswerClearsFailure() async throws {
+        let container = try Self.store()
+        var shouldFail = true
+        let model = RaceListModel(
+            container: container, today: Self.today,
+            confirmAnswer: { id, context in
+                if shouldFail { throw CocoaError(.fileWriteUnknown) }
+                try confirmRace(activityId: id, in: context)
+            }
+        )
+        await model.load()
+        await model.confirm(Self.candidateId)
+        #expect(model.answerFailed)
+
+        shouldFail = false
+        await model.confirm(Self.candidateId)
+
+        #expect(!model.answerFailed)
+        #expect(model.candidates.isEmpty)
     }
 
     @Test func sectionHiddenWithoutCandidates() async throws {

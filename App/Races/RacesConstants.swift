@@ -1,8 +1,10 @@
 import Foundation
 import Insights
 import Metrics
+import os
 
 enum RacesConstants {
+    static let logger = Logger(subsystem: "trAIning", category: "Races")
     static let title = "Provas"
     static let upcomingTitle = "Próximas"
     static let completedTitle = "Concluídas"
