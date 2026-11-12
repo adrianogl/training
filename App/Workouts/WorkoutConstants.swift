@@ -11,4 +11,5 @@ enum WorkoutConstants {
     static let scoreKeyIdSeparator = ","
     static let scoreKeyMissing = "-"
     static let scoreKeyFieldSeparator = ":"
+    static let scoreKeyFloorSeparator = "/"
 }

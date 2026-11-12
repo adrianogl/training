@@ -45,9 +45,9 @@ struct WorkoutAnalysisContext {
         analysis.hasPrescription = structure.map(WorkoutAnalysis.hasPrescription) ?? false
         guard analysis.isRun else { return analysis }
         analysis.structureMissing = structure == nil
-        let zones = Self.zones(on: day(record), inputs: inputs)
+        let zones = Self.zones(for: record, inputs: inputs)
         analysis.zones = zones
-        analysis.watchZones = inputs.watchZones
+        analysis.watchZones = watchZones(for: record, fallback: inputs.watchZones)
         analysis.thresholdHeartRate = inputs.thresholdByDay[day(record)]
         let blocks = blocks(record, structure: structure, zones: zones)
         analysis.blocks = blocks
@@ -85,7 +85,7 @@ struct WorkoutAnalysisContext {
 
     static func score(record: ActivityRecord, records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> WorkoutScore? {
         guard ActivityTypeKey.isRun(record.typeKey) else { return nil }
-        let zones = zones(on: day(record), inputs: inputs)
+        let zones = zones(for: record, inputs: inputs)
         let blocks = blocks(record, structure: structure(record), zones: zones)
         return scoreWorkout(blocks: blocks, zones: zones, previous: previousOccurrences(of: record, in: records, inputs: inputs))
     }
@@ -95,7 +95,7 @@ struct WorkoutAnalysisContext {
     }
 
     private static func previousOccurrences(of record: ActivityRecord, in records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [WorkoutOccurrence] {
-        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(on: day($0), inputs: inputs)) }
+        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs)) }
     }
 
     static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
@@ -132,11 +132,16 @@ struct WorkoutAnalysisContext {
         }
     }
 
-    static func zones(on day: Day, inputs: WorkoutAnalysisInputs) -> HeartRateZones? {
-        guard let threshold = inputs.thresholdByDay[day] else { return inputs.watchZones }
+    static func zones(for record: ActivityRecord, inputs: WorkoutAnalysisInputs) -> HeartRateZones? {
+        guard let threshold = inputs.thresholdByDay[day(record)] else { return watchZones(for: record, fallback: inputs.watchZones) }
         var zones = thresholdZones(thresholdHeartRate: threshold)
         zones.maxHeartRate = inputs.watchZones?.maxHeartRate
         return zones
+    }
+
+    static func watchZones(for record: ActivityRecord, fallback: HeartRateZones?) -> HeartRateZones? {
+        guard record.watchZoneFloors.count == WorkoutDetailConstants.zoneCount else { return fallback }
+        return HeartRateZones(floors: record.watchZoneFloors, maxHeartRate: fallback?.maxHeartRate)
     }
 
     static func zones(from record: HeartRateZonesRecord) -> HeartRateZones? {
@@ -163,7 +168,7 @@ struct WorkoutAnalysisContext {
         return dailyLoad
     }
 
-    private static func day(_ record: ActivityRecord) -> Day {
+    static func day(_ record: ActivityRecord) -> Day {
         record.localDay.flatMap(Day.init(iso:)) ?? Day.today(now: record.start)
     }
 

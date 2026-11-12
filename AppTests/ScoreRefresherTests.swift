@@ -1,6 +1,7 @@
 import Foundation
 import Storage
 import SwiftData
+import Sync
 import Testing
 @testable import trAIning
 
@@ -46,16 +47,15 @@ private actor RefreshLog {
         let container = try TrainingSchema.container(inMemory: true)
         let context = ModelContext(container)
         for (index, daysAgo) in [0.0, 7].enumerated() {
-            let record = F.run(id: Int64(index + 1), daysAgo: daysAgo, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: F.intervalStructure())
-            record.thresholdUsed = 170
-            context.insert(record)
+            context.insert(F.run(id: Int64(index + 1), daysAgo: daysAgo, meters: 5_900, workoutName: "Tiros 3 x 1 km", structure: F.intervalStructure()))
         }
+        let entry = ThresholdHistoryRecord(sport: SyncConstants.fitThresholdSport, day: F.day(F.base.addingTimeInterval(-30 * 86_400)), heartRate: 170)
+        context.insert(entry)
         try context.save()
         let refresher = ScoreRefresher { await ScoreStore.refresh(container: container, ids: nil) }
 
         refresher.refresh()
-        let latest = try #require(try context.fetch(FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.activityId == 1 })).first)
-        latest.thresholdUsed = 175
+        entry.heartRate = 175
         try context.save()
         await refresher.refresh().value
 
@@ -63,7 +63,8 @@ private actor RefreshLog {
         let records = try check.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
         let record = try #require(records.first { $0.activityId == 1 })
         let previous = WorkoutAnalysisContext.comparisonCandidates(of: record, in: records)
-        #expect(record.scoreKey == ScoreStore.key(record: record, previous: previous, watchFloors: nil))
+        let thresholds = try thresholdHeartRates(on: records.map(WorkoutAnalysisContext.day), in: check)
+        #expect(record.scoreKey == ScoreStore.key(record: record, previous: previous, thresholdByDay: thresholds, watchZones: nil))
         #expect(record.scoreKey?.contains("175") == true)
     }
 }

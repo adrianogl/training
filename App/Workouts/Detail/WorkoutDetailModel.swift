@@ -1,5 +1,6 @@
 import FITReader
 import Foundation
+import Metrics
 import Observation
 import Storage
 import SwiftData
@@ -44,19 +45,18 @@ import WorkoutAnalysis
         zoneShares = Self.zoneShares(record.zoneSeconds)
         guard isRun else { return }
         structureMissing = analysis.structureMissing
+        let samples = WorkoutAnalysisContext.samples(record)
         ruler = ZoneRulerData.make(
-            activityFloors: record.watchZoneFloors,
             watchZones: analysis.watchZones,
             watchSeconds: record.zoneSeconds,
-            thresholdHeartRate: record.thresholdUsed ?? analysis.thresholdHeartRate,
-            thresholdSeconds: record.thresholdZoneSeconds
+            thresholdHeartRate: analysis.thresholdHeartRate,
+            thresholdSeconds: Self.thresholdSeconds(record, threshold: analysis.thresholdHeartRate, samples: samples)
         )
         blocks = analysis.blocks
         kilometers = analysis.kilometers
         let scaled = BlockBarScale.bars(blocks, kilometers: kilometers, zones: analysis.zones)
         bars = scaled.blocks
         kilometerBars = scaled.kilometers
-        let samples = WorkoutAnalysisContext.samples(record)
         route = ChartData.routePoints(Self.route(record))
         let fullHeartRate = ChartData.heartRateSeries(samples)
         heartRate = ChartData.thinned(fullHeartRate, limit: WorkoutDetailConstants.maxChartPoints) { Double($0.bpm) }
@@ -104,6 +104,12 @@ import WorkoutAnalysis
             blocks: blocks,
             readingLine: assessment.positives.isEmpty ? nil : reading.findings.first
         )
+    }
+
+    private static func thresholdSeconds(_ record: ActivityRecord, threshold: Int?, samples: [FITSample]) -> [Double] {
+        guard let threshold else { return [] }
+        if record.thresholdUsed == threshold { return record.thresholdZoneSeconds }
+        return zoneSeconds(samples, zones: thresholdZones(thresholdHeartRate: threshold)) ?? []
     }
 
     private static func route(_ record: ActivityRecord) -> [Coordinate] {

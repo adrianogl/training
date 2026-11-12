@@ -6,28 +6,28 @@ import TrainingCore
 import WorkoutAnalysis
 
 enum ScoreStore {
-    static func key(record: ActivityRecord, previous: [ActivityRecord], watchFloors: [Int]?) -> String {
-        key(record: record, previous: previous, watchFloors: watchFloors, version: AnalysisConstants.scoreVersion)
-    }
-
-    static func key(record: ActivityRecord, previous: [ActivityRecord], watchFloors: [Int]?, version: Int) -> String {
-        let usesWatchZones = ([record] + previous).contains { $0.thresholdUsed == nil }
+    static func key(
+        record: ActivityRecord,
+        previous: [ActivityRecord],
+        thresholdByDay: [Day: Int],
+        watchZones: HeartRateZones?,
+        version: Int = AnalysisConstants.scoreVersion
+    ) -> String {
+        let zones = { (run: ActivityRecord) in zoneSource(run, thresholdByDay: thresholdByDay, watchZones: watchZones) }
         return [
             String(version),
-            optional(record.thresholdUsed),
+            zones(record),
             String(record.processingVersion),
-            usesWatchZones ? watchFloors.map(list) ?? WorkoutConstants.scoreKeyMissing : WorkoutConstants.scoreKeyMissing,
-            previous.map { [String($0.activityId), optional($0.thresholdUsed), String($0.processingVersion)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
+            previous.map { [String($0.activityId), zones($0), String($0.processingVersion)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
                 .joined(separator: WorkoutConstants.scoreKeyIdSeparator),
         ].joined(separator: WorkoutConstants.scoreKeySeparator)
     }
 
-    private static func optional(_ value: Int?) -> String {
-        value.map(String.init) ?? WorkoutConstants.scoreKeyMissing
-    }
-
-    private static func list(_ values: [Int]) -> String {
-        values.map(String.init).joined(separator: WorkoutConstants.scoreKeyIdSeparator)
+    private static func zoneSource(_ record: ActivityRecord, thresholdByDay: [Day: Int], watchZones: HeartRateZones?) -> String {
+        if let threshold = thresholdByDay[WorkoutAnalysisContext.day(record)] { return String(threshold) }
+        return WorkoutAnalysisContext.watchZones(for: record, fallback: watchZones)?.floors
+            .map(String.init)
+            .joined(separator: WorkoutConstants.scoreKeyFloorSeparator) ?? WorkoutConstants.scoreKeyMissing
     }
 
     static func refresh(container: ModelContainer, ids: [Int64]?) async {
@@ -42,12 +42,18 @@ enum ScoreStore {
         let runs = records.filter { ActivityTypeKey.isRun($0.typeKey) }
         let runStarts = runs.map(\.start)
         let named = Dictionary(grouping: records.filter { $0.workoutName != nil }) { $0.workoutName ?? "" }
-        let watchFloors = (try? runningZonesRecord(in: context)).flatMap(WorkoutAnalysisContext.zones(from:))?.floors
+        let watchZones = (try? runningZonesRecord(in: context)).flatMap(WorkoutAnalysisContext.zones(from:))
+        let thresholdByDay = (try? thresholdHeartRates(on: runs.map(WorkoutAnalysisContext.day), in: context)) ?? [:]
         var inputs: WorkoutAnalysisInputs?
         var changed = false
         for record in runs where wanted?.contains(record.activityId) != false {
             let pool = record.workoutName.flatMap { named[$0] } ?? window(before: record, runs: runs, starts: runStarts)
-            let key = key(record: record, previous: WorkoutAnalysisContext.comparisonCandidates(of: record, in: pool), watchFloors: watchFloors)
+            let key = key(
+                record: record,
+                previous: WorkoutAnalysisContext.comparisonCandidates(of: record, in: pool),
+                thresholdByDay: thresholdByDay,
+                watchZones: watchZones
+            )
             guard record.scoreKey != key else { continue }
             let resolved = inputs ?? WorkoutAnalysisContext.inputs(records: records, in: context)
             inputs = resolved

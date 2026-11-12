@@ -1,3 +1,4 @@
+import FITReader
 import Foundation
 import Storage
 import SwiftData
@@ -20,18 +21,26 @@ import TrainingCore
         )
     }
 
-    private func model(threshold: Int?, thresholdUsed: Int?, thresholdSeconds: [Double], activityFloors: [Int] = []) throws -> WorkoutDetailModel {
+    private func model(
+        threshold: Int?, thresholdUsed: Int?, thresholdSeconds: [Double], activityFloors: [Int] = [], samples: [FITSample]? = nil
+    ) throws -> WorkoutDetailModel {
+        try analyzed(threshold: threshold, thresholdUsed: thresholdUsed, thresholdSeconds: thresholdSeconds, activityFloors: activityFloors, samples: samples).model
+    }
+
+    private func analyzed(
+        threshold: Int?, thresholdUsed: Int?, thresholdSeconds: [Double], activityFloors: [Int] = [], samples: [FITSample]? = nil
+    ) throws -> (model: WorkoutDetailModel, analysis: WorkoutAnalysisContext) {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         context.insert(zonesRecord(threshold: threshold))
-        let run = F.run(id: 1, meters: 8_000, structure: F.freeStructure(kilometers: 8))
+        let run = F.run(id: 1, meters: 8_000, structure: F.freeStructure(kilometers: 8), samples: samples)
         run.zoneSeconds = watchSeconds
         run.thresholdZoneSeconds = thresholdSeconds
         run.thresholdUsed = thresholdUsed
         run.watchZoneFloors = activityFloors
         context.insert(run)
         try context.save()
-        return WorkoutDetailModel(activityId: 1, context: context)
+        return (WorkoutDetailModel(activityId: 1, context: context), WorkoutAnalysisContext.build(record: run, records: [run], in: context))
     }
 
     @Test func rulerShowsBothBarsWithThreshold() throws {
@@ -65,13 +74,36 @@ import TrainingCore
 
     @Test func rulerUsesActivityWatchFloors() throws {
         let ruler = try #require(try model(
-            threshold: 150, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [105, 129, 142, 153, 160]
+            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [105, 129, 142, 153, 160]
         ).ruler)
 
         #expect(ruler.watch.floors == [105, 129, 142, 153, 160])
         #expect(ruler.thresholdHeartRate == 170)
         #expect(ruler.divergence == -10)
         #expect(ruler.note == "Zonas do relógio 10 bpm abaixo do limiar")
+    }
+
+    @Test func rulerAndBlocksUseTheThresholdOfTheDay() throws {
+        let (model, analysis) = try analyzed(
+            threshold: 150, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, samples: F.samples(kilometers: 8, secondsPerKm: 330)
+        )
+        let ruler = try #require(model.ruler)
+
+        #expect(analysis.thresholdHeartRate == 150)
+        #expect(ruler.thresholdHeartRate == 150)
+        #expect(ruler.threshold?.floors == analysis.zones?.floors)
+        #expect(ruler.threshold?.floors == [0, 128, 135, 143, 150])
+        #expect(ruler.threshold?.seconds != thresholdSeconds)
+    }
+
+    @Test func runWithoutThresholdUsesActivityFloorsInRulerAndBlocks() throws {
+        let floors = [105, 129, 142, 153, 160]
+        let (model, analysis) = try analyzed(threshold: nil, thresholdUsed: nil, thresholdSeconds: [], activityFloors: floors)
+        let ruler = try #require(model.ruler)
+
+        #expect(ruler.watch.floors == floors)
+        #expect(analysis.zones?.floors == floors)
+        #expect(analysis.zones?.maxHeartRate == 190)
     }
 
     @Test func rulerFallsBackToZonesRecordFloors() throws {
