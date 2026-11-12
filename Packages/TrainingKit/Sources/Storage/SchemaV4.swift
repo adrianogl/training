@@ -6,13 +6,13 @@ public enum SchemaV4: VersionedSchema {
 
     public static var models: [any PersistentModel.Type] {
         [
-            Storage.DailyRecord.self,
-            Storage.ActivityRecord.self,
-            Storage.RaceRecord.self,
-            Storage.SyncState.self,
-            Storage.HeartRateZonesRecord.self,
-            Storage.ThresholdHistoryRecord.self,
-            Storage.RaceDecisionRecord.self,
+            SchemaV4.DailyRecord.self,
+            SchemaV4.ActivityRecord.self,
+            SchemaV4.RaceRecord.self,
+            SchemaV4.SyncState.self,
+            SchemaV4.HeartRateZonesRecord.self,
+            SchemaV4.ThresholdHistoryRecord.self,
+            SchemaV4.RaceDecisionRecord.self,
         ]
     }
 }
