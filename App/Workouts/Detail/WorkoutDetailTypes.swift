@@ -105,7 +105,8 @@ struct ZoneSegment: Equatable {
     let end: Double
 }
 
-struct ZoneMark: Equatable {
+struct ZoneMark: Equatable, Identifiable {
+    let id: Int
     let bpm: Int
     let position: Double
 }

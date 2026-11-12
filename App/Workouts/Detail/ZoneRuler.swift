@@ -65,7 +65,7 @@ struct ZoneRuler: View {
 
     private func scale(_ marks: [ZoneMark]) -> some View {
         GeometryReader { proxy in
-            ForEach(marks, id: \.bpm) { mark in
+            ForEach(marks) { mark in
                 VStack(spacing: 2) {
                     Rectangle()
                         .fill(BrandColors.dim)

@@ -67,7 +67,9 @@ extension ZoneBar {
     }
 
     func marks(in range: ClosedRange<Int>) -> [ZoneMark] {
-        floors.filter { $0 > 0 && range.contains($0) }.map { ZoneMark(bpm: $0, position: Self.position($0, in: range)) }
+        floors.enumerated()
+            .filter { $0.element > 0 && range.contains($0.element) }
+            .map { ZoneMark(id: $0.offset, bpm: $0.element, position: Self.position($0.element, in: range)) }
     }
 
     private static func position(_ bpm: Int, in range: ClosedRange<Int>) -> Double {

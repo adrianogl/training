@@ -165,14 +165,25 @@ import TrainingCore
             ZoneSegment(zone: 5, start: 0.675, end: 1),
         ])
         #expect(bar.marks(in: 100...180) == [
-            ZoneMark(bpm: 100, position: 0),
-            ZoneMark(bpm: 124, position: 0.3),
-            ZoneMark(bpm: 137, position: 0.4625),
-            ZoneMark(bpm: 148, position: 0.6),
-            ZoneMark(bpm: 154, position: 0.675),
+            ZoneMark(id: 0, bpm: 100, position: 0),
+            ZoneMark(id: 1, bpm: 124, position: 0.3),
+            ZoneMark(id: 2, bpm: 137, position: 0.4625),
+            ZoneMark(id: 3, bpm: 148, position: 0.6),
+            ZoneMark(id: 4, bpm: 154, position: 0.675),
         ])
         #expect(threshold.segments(in: 100...180).first == ZoneSegment(zone: 1, start: 0, end: 0.45))
         #expect(threshold.marks(in: 100...180).map(\.bpm) == [136, 144, 152, 160])
+    }
+
+    @Test func repeatedFloorsGetDistinctMarkIds() throws {
+        let ruler = try #require(ZoneRulerData.make(
+            watchZones: HeartRateZones(floors: [100, 124, 137, 148, 148]), watchSeconds: watchSeconds,
+            thresholdHeartRate: 160, thresholdSeconds: thresholdSeconds
+        ))
+        let marks = ruler.watch.marks(in: ruler.range)
+
+        #expect(marks.map(\.bpm) == [100, 124, 137, 148, 148])
+        #expect(Set(marks.map(\.id)).count == marks.count)
     }
 
     @Test func timeTextListsEveryZone() {
