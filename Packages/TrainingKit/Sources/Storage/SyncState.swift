@@ -12,6 +12,8 @@ public final class SyncState {
     public var resumeBodyBatteryFrom: String? = nil
     public var resumeActivityStart: Int? = nil
     public var readinessVersion: Int = 0
+    public var remoteCursor: Int64 = 0
+    public var remoteLastPush: Date? = nil
 
     public init(
         firstLoadCompleted: Bool = false,
@@ -22,7 +24,9 @@ public final class SyncState {
         resumeSleepFrom: String? = nil,
         resumeBodyBatteryFrom: String? = nil,
         resumeActivityStart: Int? = nil,
-        readinessVersion: Int = 0
+        readinessVersion: Int = 0,
+        remoteCursor: Int64 = 0,
+        remoteLastPush: Date? = nil
     ) {
         self.firstLoadCompleted = firstLoadCompleted
         self.lastSync = lastSync
@@ -33,6 +37,8 @@ public final class SyncState {
         self.resumeBodyBatteryFrom = resumeBodyBatteryFrom
         self.resumeActivityStart = resumeActivityStart
         self.readinessVersion = readinessVersion
+        self.remoteCursor = remoteCursor
+        self.remoteLastPush = remoteLastPush
     }
 
     public func clearResumeCursors() {

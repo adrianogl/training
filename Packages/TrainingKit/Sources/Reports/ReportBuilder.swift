@@ -90,7 +90,7 @@ public struct ReportBuilder {
             }
         }
         let byId = Dictionary(all.map { ($0.activityId, $0) }, uniquingKeysWith: { first, _ in first })
-        for race in try context.fetch(FetchDescriptor<RaceRecord>()) {
+        for race in try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil })) {
             guard let id = race.resultActivityId, let activity = byId[id], let seconds = activity.duration, seconds > 0 else { continue }
             guard let distance = activity.distance, distance > 0 else { continue }
             efforts.append(Effort(distance: distance, seconds: seconds, day: day(of: activity.start), kind: .race))

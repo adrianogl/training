@@ -5,7 +5,7 @@ public enum RaceTransfer {
     public static func export(_ races: [RaceRecord]) throws -> Data {
         let file = RaceTransferFile(
             version: RaceTransferConstants.currentVersion,
-            races: races.map(RaceTransferItem.init)
+            races: races.filter { $0.deletedAt == nil }.map(RaceTransferItem.init)
         )
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .secondsSince1970
@@ -53,12 +53,17 @@ public enum RaceTransfer {
                 inserted += 1
             }
         }
+        if inserted + updated > 0 {
+            for state in try context.fetch(FetchDescriptor<SyncState>()) {
+                state.remoteLastPush = nil
+            }
+        }
         return (inserted, updated, skipped)
     }
 }
 
 extension RaceTransferItem {
-    init(_ race: RaceRecord) {
+    public init(_ race: RaceRecord) {
         self.init(
             id: race.id, name: race.name, day: race.day, startTime: race.startTime,
             distance: race.distance, goalSeconds: race.goalSeconds, priority: race.priority,
@@ -69,7 +74,7 @@ extension RaceTransferItem {
         )
     }
 
-    func makeRecord() -> RaceRecord {
+    public func makeRecord() -> RaceRecord {
         RaceRecord(
             id: id, name: name, day: day, distance: distance, startTime: startTime,
             goalSeconds: goalSeconds, priority: RacePriority(rawValue: priority) ?? .c, city: city, gpxData: gpxData,
@@ -80,7 +85,7 @@ extension RaceTransferItem {
         )
     }
 
-    func apply(to race: RaceRecord) {
+    public func apply(to race: RaceRecord) {
         race.name = name
         race.day = day
         race.startTime = startTime
@@ -96,5 +101,6 @@ extension RaceTransferItem {
         race.frozenTargetDay = frozenTargetDay
         race.manuallyUnlinked = manuallyUnlinked ?? race.manuallyUnlinked
         race.updatedAt = updatedAt
+        race.deletedAt = nil
     }
 }

@@ -12,8 +12,8 @@ public func raceCandidates(in context: ModelContext, today: Day) throws -> [Race
     typealias C = RaceDetectionConstants
     let since = today.adding(days: -(C.lookbackDays + C.baselineDays))
     let unstructured = try fetchActivities(context, since: since, through: today).filter { isRun($0) && isUnstructured($0) }
-    let decided = Set(try context.fetch(FetchDescriptor<RaceDecisionRecord>()).map(\.activityId))
-    let linked = Set(try context.fetch(FetchDescriptor<RaceRecord>()).compactMap(\.resultActivityId))
+    let decided = Set(try context.fetch(FetchDescriptor<RaceDecisionRecord>(predicate: #Predicate { $0.deletedAt == nil })).map(\.activityId))
+    let linked = Set(try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil })).compactMap(\.resultActivityId))
     let firstDay = today.adding(days: -C.lookbackDays)
     return try unstructured
         .filter { $0.fitProcessed && runDay($0) >= firstDay && !decided.contains($0.activityId) && !linked.contains($0.activityId) }
@@ -25,7 +25,7 @@ public func raceCandidates(in context: ModelContext, today: Day) throws -> [Race
 public func confirmRace(activityId: Int64, in context: ModelContext) throws {
     guard let activity = try activity(activityId, in: context) else { return }
     try record(.race, activityId: activityId, in: context)
-    let alreadyLinked = try context.fetchCount(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.resultActivityId == activityId })) > 0
+    let alreadyLinked = try context.fetchCount(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.resultActivityId == activityId && $0.deletedAt == nil })) > 0
     if !alreadyLinked {
         if let registered = try registeredRace(for: activity, in: context) {
             registered.resultActivityId = activityId
@@ -51,7 +51,7 @@ public func declineRace(activityId: Int64, in context: ModelContext) throws {
 }
 
 public func autoLinkRaces(in context: ModelContext, today: Day) throws {
-    let races = try context.fetch(FetchDescriptor<RaceRecord>())
+    let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))
     var linked = Set(races.compactMap(\.resultActivityId))
     var changed = false
     for race in races where race.resultActivityId == nil && !race.manuallyUnlinked && race.distance > 0 {
@@ -73,7 +73,7 @@ private func registeredRace(for activity: ActivityRecord, in context: ModelConte
     guard let distance = activity.distance else { return nil }
     let day = runDay(activity).iso
     let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate {
-        $0.day == day && $0.resultActivityId == nil && !$0.manuallyUnlinked
+        $0.day == day && $0.resultActivityId == nil && !$0.manuallyUnlinked && $0.deletedAt == nil
     }))
     return races
         .compactMap { race in distanceGap(distance, race: race).map { (race, $0) } }
@@ -90,7 +90,8 @@ private func record(_ decision: RaceDecision, activityId: Int64, in context: Mod
     let existing = try context.fetch(FetchDescriptor<RaceDecisionRecord>(predicate: #Predicate { $0.activityId == activityId }))
     if let first = existing.first {
         first.raceDecision = decision
-        first.decidedAt = .now
+        first.updatedAt = .now
+        first.deletedAt = nil
     } else {
         context.insert(RaceDecisionRecord(activityId: activityId, decision: decision))
     }

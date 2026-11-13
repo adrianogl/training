@@ -7,7 +7,7 @@ import SwiftData
 import TrainingCore
 
 public func targetRace(in context: ModelContext, today: Day) throws -> RaceRecord? {
-    let upcoming = try context.fetch(FetchDescriptor<RaceRecord>())
+    let upcoming = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))
         .compactMap { race in Day(iso: race.day).flatMap { $0 >= today ? (race, $0) : nil } }
         .sorted { $0.1 < $1.1 }
     return (upcoming.first { $0.0.priorityLevel == .a } ?? upcoming.first)?.0
@@ -93,7 +93,7 @@ func goalCrossing(goal: Double?, projection: Projection?, today: Double?) -> Goa
 
 public func freezeEveTargets(in context: ModelContext, today: Day) throws {
     let tomorrow = today.adding(days: 1).iso
-    let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.day == tomorrow }))
+    let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.day == tomorrow && $0.deletedAt == nil }))
         .filter { $0.frozenTargetSeconds == nil }
     guard !races.isEmpty else { return }
     let efforts = try raceEfforts(context: context, today: today)

@@ -354,3 +354,84 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
         #expect(race.resultActivityId == nil)
     }
 }
+
+@Suite struct RaceTombstoneTests {
+    @Test func tombstonedDecisionDoesNotHideCandidate() throws {
+        let decision = RaceDecisionRecord(activityId: 1, decision: .notRace, deletedAt: .now)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5), decision])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
+    }
+
+    @Test func tombstonedRaceLinkDoesNotHideCandidate() throws {
+        let deleted = RaceRecord(name: "10 km", day: daysAgo(5).iso, distance: 10_000, resultActivityId: 1, deletedAt: .now)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5), deleted])
+
+        #expect(try raceCandidates(in: context, today: fixtureToday).map(\.activityId) == [1])
+    }
+
+    @Test func confirmSkipsTombstonedRaceAndRevivesDecision() throws {
+        let deleted = RaceRecord(name: "10 km apagada", day: fixtureToday.iso, distance: 10_000, deletedAt: .now)
+        let old = Date(timeIntervalSince1970: 1_000)
+        let decision = RaceDecisionRecord(activityId: 1, decision: .notRace, updatedAt: old, deletedAt: old)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 0), deleted, decision])
+
+        try confirmRace(activityId: 1, in: context)
+
+        #expect(deleted.resultActivityId == nil)
+        let live = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))
+        #expect(live.map(\.resultActivityId) == [1])
+        #expect(decision.raceDecision == .race)
+        #expect(decision.deletedAt == nil)
+        #expect(decision.updatedAt > old)
+    }
+
+    @Test func confirmLinksAgainWhenOnlyTombstoneHadTheActivity() throws {
+        let deleted = RaceRecord(name: "10 km apagada", day: daysAgo(5).iso, distance: 10_000, resultActivityId: 1, deletedAt: .now)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5), deleted])
+
+        try confirmRace(activityId: 1, in: context)
+
+        let live = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))
+        #expect(live.map(\.resultActivityId) == [1])
+    }
+
+    @Test func declineStampsUpdatedAt() throws {
+        let old = Date(timeIntervalSince1970: 1_000)
+        let decision = RaceDecisionRecord(activityId: 1, decision: .race, updatedAt: old)
+        let context = try makeContext(easyRuns() + [raceRun(id: 1, daysAgo: 5), decision])
+
+        try declineRace(activityId: 1, in: context)
+
+        #expect(decision.raceDecision == .notRace)
+        #expect(decision.updatedAt > old)
+    }
+
+    @Test func autoLinkSkipsTombstonedRace() throws {
+        let deleted = RaceRecord(name: "10 km", day: daysAgo(3).iso, distance: 10_000, deletedAt: .now)
+        let context = try makeContext([deleted, raceRun(id: 1, daysAgo: 3, distance: 10_000)])
+
+        try autoLinkRaces(in: context, today: fixtureToday)
+
+        #expect(deleted.resultActivityId == nil)
+    }
+
+    @Test func targetRaceIgnoresTombstone() throws {
+        let deleted = race(name: "A apagada", inDays: 10, priority: .a)
+        deleted.deletedAt = .now
+        let kept = race(name: "B viva", inDays: 20, priority: .b)
+        let context = try makeContext([deleted, kept])
+
+        #expect(try targetRace(in: context, today: fixtureToday)?.name == "B viva")
+    }
+
+    @Test func freezeEveTargetsSkipsTombstone() throws {
+        let deleted = race(name: "Amanhã apagada", inDays: 1, goal: 1_400)
+        deleted.deletedAt = .now
+        let context = try makeContext(improvingRuns() + [deleted])
+
+        try freezeEveTargets(in: context, today: fixtureToday)
+
+        #expect(deleted.frozenTargetSeconds == nil)
+    }
+}

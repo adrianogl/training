@@ -74,11 +74,9 @@ import Testing
         #expect(!attributes.contains("watchZoneFloors"))
     }
 
-    @Test func currentSchemaIsV5() {
+    @Test func schemaV5KeepsSevenModels() {
         let names = Set(Schema(versionedSchema: SchemaV5.self).entities.map(\.name))
         #expect(names == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState", "HeartRateZonesRecord", "ThresholdHistoryRecord", "RaceDecisionRecord"])
         #expect(SchemaV5.versionIdentifier == Schema.Version(5, 0, 0))
-        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV5.self))
-        #expect(TrainingSchema.models.count == 7)
     }
 }

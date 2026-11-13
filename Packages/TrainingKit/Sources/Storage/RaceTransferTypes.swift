@@ -9,21 +9,21 @@ struct RaceTransferVersionProbe: Decodable {
     var version: Int
 }
 
-struct RaceTransferItem: Codable {
-    var id: UUID
-    var name: String
-    var day: String
-    var startTime: String?
-    var distance: Double
-    var goalSeconds: Double?
-    var priority: String
-    var city: String?
-    var gpxData: Data?
-    var manualPacesData: Data?
-    var customLabelsData: Data?
-    var resultActivityId: Int64?
-    var frozenTargetSeconds: Double?
-    var frozenTargetDay: String?
-    var manuallyUnlinked: Bool?
-    var updatedAt: Date
+public struct RaceTransferItem: Codable, Sendable, Equatable {
+    public var id: UUID
+    public var name: String
+    public var day: String
+    public var startTime: String?
+    public var distance: Double
+    public var goalSeconds: Double?
+    public var priority: String
+    public var city: String?
+    public var gpxData: Data?
+    public var manualPacesData: Data?
+    public var customLabelsData: Data?
+    public var resultActivityId: Int64?
+    public var frozenTargetSeconds: Double?
+    public var frozenTargetDay: String?
+    public var manuallyUnlinked: Bool?
+    public var updatedAt: Date
 }

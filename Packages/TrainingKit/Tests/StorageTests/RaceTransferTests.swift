@@ -216,3 +216,32 @@ import Testing
         #expect(race.priorityLevel == .c)
     }
 }
+
+@Suite struct RaceTransferRemoteSyncTests {
+    @Test @MainActor func importThatChangesSomethingForcesFullPush() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(SyncState(remoteCursor: 4, remoteLastPush: Date(timeIntervalSince1970: 2_000_000_000)))
+        let data = try RaceTransfer.export([RaceRecord(name: "Antiga", day: "2026-06-01", distance: 10_000, updatedAt: Date(timeIntervalSince1970: 1_000))])
+
+        _ = try RaceTransfer.importRaces(data, into: context)
+
+        let state = try #require(try context.fetch(FetchDescriptor<SyncState>()).first)
+        #expect(state.remoteLastPush == nil)
+        #expect(state.remoteCursor == 4)
+    }
+
+    @Test @MainActor func importThatChangesNothingKeepsLastPush() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        let push = Date(timeIntervalSince1970: 2_000_000_000)
+        let race = RaceRecord(name: "Igual", day: "2026-06-01", distance: 10_000, updatedAt: Date(timeIntervalSince1970: 1_000))
+        context.insert(race)
+        context.insert(SyncState(remoteLastPush: push))
+        let data = try RaceTransfer.export([race])
+
+        _ = try RaceTransfer.importRaces(data, into: context)
+
+        #expect(try context.fetch(FetchDescriptor<SyncState>()).first?.remoteLastPush == push)
+    }
+}
