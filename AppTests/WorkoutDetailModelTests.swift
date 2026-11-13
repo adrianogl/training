@@ -67,6 +67,26 @@ import WorkoutAnalysis
         #expect(model.assessment.positives.contains { $0.kind == .steadyPace && $0.blockOrdinal == 1 })
     }
 
+    @Test func analysisSplitsExpectedFromPositiveAndNegative() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = container.mainContext
+        context.insert(F.run(
+            id: 1, meters: 8_000, workoutName: "Rodagem contínua",
+            structure: F.continuousStructure(activeKilometers: 6),
+            samples: F.samples(kilometers: 8, secondsPerKm: 300)
+        ))
+        try context.save()
+
+        let model = WorkoutDetailModel(activityId: 1, context: context)
+        let columns = model.analysisColumns
+        let total = model.assessment.positives.count + model.assessment.negatives.count + model.assessment.attention.count
+
+        #expect(columns.expected.contains { $0.blockOrdinal == 1 })
+        #expect(columns.negative.count == model.assessment.negatives.count + model.assessment.attention.count)
+        #expect(columns.expected.count + columns.positive.count == model.assessment.positives.count)
+        #expect(Set((columns.negative + columns.positive + columns.expected).map(\.id)) == Set(0..<total))
+    }
+
     @Test func comparisonUsesSameWorkoutName() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext

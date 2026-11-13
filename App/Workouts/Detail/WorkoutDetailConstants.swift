@@ -1,5 +1,6 @@
 import CoreGraphics
 import Foundation
+import WorkoutAnalysis
 
 enum WorkoutDetailConstants {
     static let similarDistanceTolerance = 0.2
@@ -51,4 +52,36 @@ enum WorkoutDetailConstants {
     static let rulerDivergenceBelow = "Zonas do relógio %d bpm abaixo do limiar"
     static let rulerDivergenceAbove = "Zonas do relógio %d bpm acima do limiar"
     static let rulerTimeSeparator = " · "
+
+    static let effectTitle = "Efeito esperado do treino"
+    static let effectFallback = "Efeito do treino"
+    static let effectLabels: [String: String] = [
+        "AEROBIC_BASE": "Base aeróbica",
+        "TEMPO": "Tempo",
+        "LACTATE_THRESHOLD": "Limiar de lactato",
+        "VO2MAX": "Estímulo de VO2máx.",
+        "ANAEROBIC_CAPACITY": "Capacidade anaeróbica",
+        "SPEED": "Velocidade",
+        "RECOVERY": "Recuperação",
+    ]
+    static let effectLevels = ["sem efeito", "efeito pequeno", "manutenção", "melhora", "grande melhora", "excessivo"]
+    static let effectAerobic = "Training Effect aeróbico"
+    static let effectAnaerobic = "Training Effect anaeróbico"
+    static let effectHighZones = "Tempo em Z4–Z5"
+    static let effectLoad = "Carga do treino"
+    static let effectSentenceFormat = "Efeito aeróbico %@ (%@) e anaeróbico %@ (%@)."
+    static let effectEmpty = "O Garmin não mandou o Training Effect deste treino."
+    static let highZoneIndices = [3, 4]
+    static let analysisTitle = "Análise"
+    static let analysisNegative = "O que foi negativo"
+    static let analysisPositive = "O que foi positivo"
+    static let analysisExpected = "Dentro do esperado"
+    static let analysisNone = "Nenhum"
+    static let analysisBlockFormat = "bloco %d"
+    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace]
+    static let scoreGaugeSize: Double = 120
+    static let compactScoreGaugeSize: Double = 104
+    static let scorePartNameWidth: Double = 76
+    static let scorePartBarHeight: Double = 8
+    static let pairWeights: [Double] = [1, 1]
 }

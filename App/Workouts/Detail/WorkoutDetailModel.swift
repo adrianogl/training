@@ -33,6 +33,7 @@ import WorkoutAnalysis
     private(set) var shareInput: WorkoutShareInput?
     private(set) var score: WorkoutScore?
     private(set) var scoreRows: [ScoreRowData] = []
+    private(set) var trainingEffect: TrainingEffectData?
 
     init(activityId: Int64, context: ModelContext) {
         self.activityId = activityId
@@ -43,6 +44,13 @@ import WorkoutAnalysis
         hasPrescription = analysis.hasPrescription
         summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription)
         zoneShares = Self.zoneShares(record.zoneSeconds)
+        trainingEffect = TrainingEffectData(
+            label: record.trainingEffectLabel,
+            aerobic: record.aerobicTrainingEffect,
+            anaerobic: record.anaerobicTrainingEffect,
+            highZoneSeconds: record.zoneSeconds.count >= 5 ? WorkoutDetailConstants.highZoneIndices.reduce(0) { $0 + record.zoneSeconds[$1] } : nil,
+            load: record.activityTrainingLoad
+        )
         guard isRun else { return }
         structureMissing = analysis.structureMissing
         let samples = WorkoutAnalysisContext.samples(record)
@@ -74,6 +82,19 @@ import WorkoutAnalysis
         reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: assessment, blocks: blocks, evolution: analysis.evolution)
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
+    }
+
+    var analysisColumns: AnalysisColumns {
+        let findings = assessment.positives + assessment.negatives + assessment.attention
+        let items = findings.enumerated().compactMap { index, finding -> (Finding, AnalysisItem)? in
+            guard index < reading.findings.count else { return nil }
+            return (finding, AnalysisItem(id: index, text: reading.findings[index], blockOrdinal: finding.blockOrdinal))
+        }
+        let expectedKinds = WorkoutDetailConstants.expectedKinds
+        let expected = items.filter { item in item.0.group == .positive && expectedKinds.contains(item.0.kind) }.map { $0.1 }
+        let positive = items.filter { item in item.0.group == .positive && !expectedKinds.contains(item.0.kind) }.map { $0.1 }
+        let negative = items.filter { item in item.0.group != .positive }.map { $0.1 }
+        return AnalysisColumns(negative: negative, positive: positive, expected: expected)
     }
 
     private static func shareInput(
@@ -137,7 +158,7 @@ import WorkoutAnalysis
             durationText: row.durationText,
             paceText: row.paceText,
             averageHeartRateText: record.averageHR.map { "\(Int($0.rounded()))" },
-            maxHeartRateText: record.maxHR.map { "\(Int($0.rounded()))" },
+            elevationText: record.elevationGain.map { "+\(Int($0.rounded())) m" },
             loadText: record.activityTrainingLoad.map { "\(Int($0.rounded()))" },
             hasPrescription: hasPrescription
         )

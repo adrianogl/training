@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SummaryHeader: View {
     let summary: WorkoutSummary
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -21,12 +22,12 @@ struct SummaryHeader: View {
                         .foregroundStyle(BrandColors.dim)
                 }
             }
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: 3), alignment: .leading, spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: sizeClass == .regular ? 6 : 3), alignment: .leading, spacing: 12) {
                 stat(summary.distanceText, "km")
                 stat(summary.durationText, "tempo")
                 stat(summary.paceText.map(stripUnit), "pace médio")
                 stat(summary.averageHeartRateText, "FC média")
-                stat(summary.maxHeartRateText, "FC máx")
+                stat(summary.elevationText, "desnível")
                 stat(summary.loadText, "carga")
             }
             .padding(.top, 12)

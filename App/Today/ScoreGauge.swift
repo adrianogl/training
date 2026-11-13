@@ -1,8 +1,11 @@
 import SwiftUI
 
-struct ReadinessGauge: View {
+struct ScoreGauge: View {
     let score: Int
     let size: Double
+    var moderate = TodayConstants.moderateThreshold
+    var hard = TodayConstants.hardThreshold
+    var accessibilityName = TodayConstants.readinessTitle
 
     private typealias C = TodayConstants
 
@@ -13,7 +16,7 @@ struct ReadinessGauge: View {
                     .stroke(segment.color.opacity(C.gaugeTrackOpacity), style: StrokeStyle(lineWidth: C.gaugeLineWidth, lineCap: .round))
             }
             arc(from: 0, to: fraction)
-                .stroke(ReadinessGauge.fill(for: score), style: StrokeStyle(lineWidth: C.gaugeLineWidth, lineCap: .round))
+                .stroke(fill, style: StrokeStyle(lineWidth: C.gaugeLineWidth, lineCap: .round))
             Circle()
                 .fill(BrandColors.text)
                 .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 3))
@@ -22,7 +25,7 @@ struct ReadinessGauge: View {
             VStack(spacing: 0) {
                 Text("\(score)")
                     .font(BrandFonts.number(size * C.gaugeScoreRatio))
-                    .foregroundStyle(ReadinessRuler.color(for: score))
+                    .foregroundStyle(textColor)
                 Text(C.gaugeScale)
                     .font(.caption2)
                     .foregroundStyle(BrandColors.dim)
@@ -30,21 +33,27 @@ struct ReadinessGauge: View {
         }
         .frame(width: size, height: size)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Prontidão \(score) de 100")
+        .accessibilityLabel("\(accessibilityName) \(score) de 100")
     }
 
-    static func fill(for score: Int) -> Color {
-        if score < C.moderateThreshold { return BrandColors.rest }
-        if score < C.hardThreshold { return BrandColors.attention }
+    private var fill: Color {
+        if score < moderate { return BrandColors.rest }
+        if score < hard { return BrandColors.attention }
         return BrandColors.accentFill
+    }
+
+    private var textColor: Color {
+        if score < moderate { return BrandColors.rest }
+        if score < hard { return BrandColors.attention }
+        return BrandColors.accent
     }
 
     private var fraction: Double { min(max(Double(score) / 100, 0), 1) }
 
     private var segments: [(from: Double, to: Double, color: Color)] {
-        let moderate = Double(C.moderateThreshold) / 100
-        let hard = Double(C.hardThreshold) / 100
-        return [(0, moderate, BrandColors.rest), (moderate, hard, BrandColors.attention), (hard, 1, BrandColors.accentFill)]
+        let low = Double(moderate) / 100
+        let high = Double(hard) / 100
+        return [(0, low, BrandColors.rest), (low, high, BrandColors.attention), (high, 1, BrandColors.accentFill)]
     }
 
     private func arc(from start: Double, to end: Double) -> some Shape {

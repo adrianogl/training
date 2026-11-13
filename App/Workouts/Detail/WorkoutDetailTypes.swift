@@ -10,7 +10,7 @@ struct WorkoutSummary: Equatable {
     let durationText: String?
     let paceText: String?
     let averageHeartRateText: String?
-    let maxHeartRateText: String?
+    let elevationText: String?
     let loadText: String?
     let hasPrescription: Bool
 }
@@ -59,6 +59,26 @@ struct ZoneShare: Equatable {
     let zone: Int
     let share: Double
     let seconds: Double
+}
+
+struct TrainingEffectData: Equatable {
+    let label: String?
+    let aerobic: Double?
+    let anaerobic: Double?
+    let highZoneSeconds: Double?
+    let load: Double?
+}
+
+struct AnalysisItem: Identifiable, Equatable {
+    let id: Int
+    let text: String
+    let blockOrdinal: Int?
+}
+
+struct AnalysisColumns: Equatable {
+    let negative: [AnalysisItem]
+    let positive: [AnalysisItem]
+    let expected: [AnalysisItem]
 }
 
 struct WorkoutReading: Equatable {

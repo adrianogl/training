@@ -12,7 +12,7 @@ struct ReadinessHeroCard: View {
                 SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
                 if let breakdown = model.summary.readiness {
                     HStack(alignment: .center, spacing: 18) {
-                        ReadinessGauge(score: breakdown.score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
+                        ScoreGauge(score: breakdown.score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
                         VStack(alignment: .leading, spacing: 6) {
                             Text(model.summary.verdict.flatMap { C.verdictPhrases[$0] } ?? "")
                                 .font(.title3.weight(.semibold))
