@@ -1,6 +1,7 @@
 import Toybox.Application;
 import Toybox.Lang;
 
+(:background)
 module Settings {
     function read(key, fallback) {
         var value = Application.Properties.getValue(key);
@@ -28,5 +29,13 @@ module Settings {
 
     function raceDistanceKm() {
         return read("RaceDistance", Defaults.RACE_DISTANCE_KM);
+    }
+
+    function watchToken() {
+        var token = read("watchToken", "");
+        if (token.length() == 0) {
+            return null;
+        }
+        return token;
     }
 }

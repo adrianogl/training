@@ -19,4 +19,7 @@
             <listEntry value="42">@Strings.Distance42</listEntry>
         </settingConfig>
     </setting>
+    <setting propertyKey="@Properties.watchToken" title="@Strings.WatchTokenTitle" prompt="@Strings.WatchTokenPrompt">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
 </settings>

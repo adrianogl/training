@@ -55,4 +55,8 @@ module Format {
         }
         return days + " " + Texts.DAYS;
     }
+
+    function isoDate(info) {
+        return info.year.format("%04d") + "-" + info.month.format("%02d") + "-" + info.day.format("%02d");
+    }
 }

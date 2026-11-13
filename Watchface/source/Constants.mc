@@ -4,13 +4,13 @@ import Toybox.Lang;
 
 module Theme {
     const BG = 0x000000;
-    const TXT = 0xEDEFF2;
-    const DIM = 0x8A9099;
-    const FAINT = 0x2A2D31;
-    const LIME = 0xC8F05A;
-    const ORANGE = 0xFF8A4C;
-    const BLUE = 0x7FB2FF;
-    const GREEN = 0x6EE07A;
+    const TXT = 0xFFFFFF;
+    const DIM = 0xB3BAC4;
+    const FAINT = 0x3A3F46;
+    const LIME = 0xE4FF1A;
+    const ORANGE = 0xFF8A1A;
+    const BLUE = 0x5CB0FF;
+    const GREEN = 0x3DFF6E;
     const YELLOW = 0xFFC93B;
     const RED_LIGHT = 0xFF8080;
     const RED = 0xFF4A4A;
@@ -27,19 +27,29 @@ module Texts {
     const RACE_TODAY = "É HOJE";
     const VO2 = "VO2";
     const WEEK_KM = "KM SEMANA";
-    const HRV = "HRV";
-    const BODY_BATTERY = "BB";
+    const READINESS = "PRONTIDÃO";
     const GOAL = "META";
     const PREDICTION = "PREVISÃO";
     const RACE_IN = "PROVA EM";
     const NO_VALUE = "--";
 }
 
+(:background)
 module StorageKeys {
     const READINESS = "readiness";
+    const READINESS_DAY = "readinessDay";
     const READINESS_VERDICT = "readinessVerdict";
-    const HRV = "hrv";
-    const HRV_TREND = "hrvTrend";
+}
+
+(:background)
+module ReadinessBridge {
+    const URL = "https://training-sync-ashy.vercel.app/api/v1/watch/readiness";
+    const INTERVAL_SECONDS = 15 * 60;
+    const DAY = "day";
+    const SCORE = "score";
+    const VERDICT = "verdict";
+    const UNAUTHORIZED = 401;
+    const NOT_FOUND = 404;
 }
 
 module RacePredictors {
@@ -68,21 +78,21 @@ module FontSpecs {
     const BOLD = "RobotoCondensedBold";
     const REGULAR = "RobotoCondensedRegular";
     const ALL = {
-        :time => [BOLD, 104, Graphics.FONT_NUMBER_HOT],
-        :seconds => [BOLD, 40, Graphics.FONT_NUMBER_MILD],
+        :time => [BOLD, 90, Graphics.FONT_NUMBER_HOT],
+        :seconds => [BOLD, 34, Graphics.FONT_NUMBER_MILD],
         :aodTime => [REGULAR, 96, Graphics.FONT_NUMBER_MEDIUM],
-        :date => [BOLD, 19, Graphics.FONT_XTINY],
-        :temperature => [BOLD, 30, Graphics.FONT_SMALL],
-        :humidity => [REGULAR, 24, Graphics.FONT_XTINY],
-        :battery => [BOLD, 24, Graphics.FONT_XTINY],
+        :date => [BOLD, 24, Graphics.FONT_XTINY],
+        :temperature => [BOLD, 36, Graphics.FONT_SMALL],
+        :humidity => [REGULAR, 28, Graphics.FONT_XTINY],
+        :battery => [BOLD, 28, Graphics.FONT_XTINY],
         :status => [BOLD, 24, Graphics.FONT_XTINY],
-        :statValue => [BOLD, 32, Graphics.FONT_SMALL],
-        :statGoal => [REGULAR, 22, Graphics.FONT_XTINY],
-        :label => [BOLD, 16, Graphics.FONT_XTINY],
-        :race => [BOLD, 18, Graphics.FONT_XTINY],
-        :raceValue => [BOLD, 28, Graphics.FONT_SMALL],
-        :meeting => [BOLD, 24, Graphics.FONT_XTINY],
-        :tag => [BOLD, 13, Graphics.FONT_XTINY]
+        :statValue => [BOLD, 42, Graphics.FONT_SMALL],
+        :statGoal => [REGULAR, 26, Graphics.FONT_XTINY],
+        :label => [BOLD, 20, Graphics.FONT_XTINY],
+        :race => [BOLD, 22, Graphics.FONT_XTINY],
+        :raceValue => [BOLD, 36, Graphics.FONT_SMALL],
+        :meeting => [BOLD, 28, Graphics.FONT_XTINY],
+        :tag => [BOLD, 16, Graphics.FONT_XTINY]
     };
 }
 

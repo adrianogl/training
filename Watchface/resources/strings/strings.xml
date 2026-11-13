@@ -9,4 +9,6 @@
     <string id="Distance10">10 km</string>
     <string id="Distance21">Meia maratona</string>
     <string id="Distance42">Maratona</string>
+    <string id="WatchTokenTitle">Token do relógio</string>
+    <string id="WatchTokenPrompt">Gere no app trAIning em Ajustes › Sincronização › Relógio e cole aqui</string>
 </strings>

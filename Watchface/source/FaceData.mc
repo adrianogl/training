@@ -2,6 +2,8 @@ import Toybox.Application;
 import Toybox.Complications;
 import Toybox.Lang;
 import Toybox.System;
+import Toybox.Time;
+import Toybox.Time.Gregorian;
 import Toybox.Weather;
 
 class FaceData {
@@ -12,13 +14,8 @@ class FaceData {
     var vo2max = null;
     var weeklyRunMeters = null;
     var nextEventTime = null;
-    var trainingStatus = null;
-    var bodyBattery = null;
     var racePredictionSeconds = null;
     var readiness = null;
-    var readinessVerdict = null;
-    var hrv = null;
-    var hrvTrend = null;
 
     function initialize() {
     }
@@ -29,8 +26,6 @@ class FaceData {
         vo2max = complicationValue(Complications.COMPLICATION_TYPE_VO2MAX_RUN);
         weeklyRunMeters = complicationValue(Complications.COMPLICATION_TYPE_WEEKLY_RUN_DISTANCE);
         nextEventTime = complicationValue(Complications.COMPLICATION_TYPE_CALENDAR_EVENTS);
-        trainingStatus = complicationValue(Complications.COMPLICATION_TYPE_TRAINING_STATUS);
-        bodyBattery = complicationValue(Complications.COMPLICATION_TYPE_BODY_BATTERY);
         racePredictionSeconds = readRacePrediction();
         readBridge();
     }
@@ -60,10 +55,12 @@ class FaceData {
     }
 
     private function readBridge() {
-        readiness = Application.Storage.getValue(StorageKeys.READINESS);
-        readinessVerdict = Application.Storage.getValue(StorageKeys.READINESS_VERDICT);
-        hrv = Application.Storage.getValue(StorageKeys.HRV);
-        hrvTrend = Application.Storage.getValue(StorageKeys.HRV_TREND);
+        readiness = null;
+        var day = Application.Storage.getValue(StorageKeys.READINESS_DAY);
+        var today = Format.isoDate(Gregorian.info(Time.now(), Time.FORMAT_SHORT));
+        if (day instanceof String && day.equals(today)) {
+            readiness = Application.Storage.getValue(StorageKeys.READINESS);
+        }
     }
 
     private function complicationValue(type) {
