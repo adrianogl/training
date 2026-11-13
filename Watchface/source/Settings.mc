@@ -34,6 +34,9 @@ module Settings {
     function watchToken() {
         var token = read("watchToken", "");
         if (token.length() == 0) {
+            token = BuildToken.WATCH_TOKEN;
+        }
+        if (token.length() == 0) {
             return null;
         }
         return token;
