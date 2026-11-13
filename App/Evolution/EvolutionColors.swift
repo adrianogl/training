@@ -9,4 +9,12 @@ enum EvolutionColors {
         case .same, .unknown: BrandColors.dim
         }
     }
+
+    static func trendFill(_ trend: IndicatorTrend) -> Color {
+        switch trend {
+        case .better: BrandColors.accentFill
+        case .worse: BrandColors.attention
+        case .same, .unknown: BrandColors.neutralBar
+        }
+    }
 }

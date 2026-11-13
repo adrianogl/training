@@ -4,11 +4,18 @@ import WorkoutAnalysis
 
 struct RacePredictionCard: View {
     let content: RacePredictionContent
+    var horizon: Binding<ProjectionHorizon>?
 
     var body: some View {
         let race = content.race
         VStack(alignment: .leading, spacing: 10) {
             header
+            if let horizon {
+                Picker(EvolutionConstants.horizonLabel, selection: horizon) {
+                    ForEach(HorizonOption.all, id: \.horizon) { Text($0.title).tag($0.horizon) }
+                }
+                .pickerStyle(.segmented)
+            }
             if race.today == nil {
                 Text(TodayConstants.predictionEmpty)
                     .font(.subheadline)
@@ -17,7 +24,7 @@ struct RacePredictionCard: View {
                 HStack(alignment: .top) {
                     time(TodayConstants.predictionToday, race.today, BrandColors.text)
                     if content.raceDay != nil {
-                        time(TodayConstants.predictionRaceDay, race.raceDay?.mid, BrandColors.accent)
+                        time(TodayConstants.predictionRaceDay, race.raceDay?.mid, BrandColors.race)
                     }
                 }
                 if let support = supportLine {
@@ -34,7 +41,7 @@ struct RacePredictionCard: View {
                 }
             }
         }
-        .brandCard()
+        .brandCard(fillsHeight: true)
     }
 
     private var header: some View {
@@ -69,38 +76,53 @@ struct RacePredictionCard: View {
         return Chart {
             ForEach(content.band) { point in
                 AreaMark(x: .value("Dia", point.date), yStart: .value("Mínimo", point.low), yEnd: .value("Máximo", point.high))
-                    .foregroundStyle(BrandColors.accent.opacity(0.14))
+                    .foregroundStyle(BrandColors.race.opacity(0.14))
             }
             ForEach(content.lines) { line in
                 ForEach(line.points) { point in
                     LineMark(x: .value("Dia", point.date), y: .value("Previsão", point.value), series: .value("Série", line.name))
-                        .foregroundStyle(line.colorKey == .prediction ? BrandColors.text : BrandColors.accent)
+                        .foregroundStyle(line.colorKey == .prediction ? BrandColors.text : BrandColors.race)
                         .lineStyle(StrokeStyle(lineWidth: 2, dash: line.dashed ? [5, 4] : []))
                 }
             }
             if let goal = race.goalSeconds {
                 RuleMark(y: .value("Meta", goal))
-                    .foregroundStyle(BrandColors.race)
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [3, 3]))
-                    .annotation(position: .top, alignment: .leading) {
+                    .foregroundStyle(BrandColors.accent)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                    .annotation(position: .top, alignment: .trailing) {
                         Text("\(TodayConstants.goalPrefix) \(TodayText.goalClock(goal))")
-                            .font(.caption2)
-                            .foregroundStyle(BrandColors.race)
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(BrandColors.accent)
                     }
             }
             if let raceDay = content.raceDay {
                 RuleMark(x: .value("Prova", raceDay.chartDate))
-                    .foregroundStyle(BrandColors.rest.opacity(0.5))
+                    .foregroundStyle(BrandColors.race.opacity(0.5))
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [2, 3]))
                 if let point = race.raceDay {
                     PointMark(x: .value("Prova", raceDay.chartDate), y: .value("Previsão", point.mid))
-                        .foregroundStyle(BrandColors.accent)
-                        .symbolSize(60)
+                        .foregroundStyle(BrandColors.race)
+                        .symbolSize(70)
                 }
+            }
+            if let today = race.today {
+                PointMark(x: .value("Hoje", content.today.chartDate), y: .value("Previsão", today))
+                    .foregroundStyle(BrandColors.text)
+                    .symbolSize(40)
             }
         }
         .chartYScale(domain: .automatic(includesZero: false, reversed: true))
         .chartXAxis(.hidden)
-        .chartYAxis(.hidden)
+        .chartYAxis {
+            AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
+                AxisGridLine().foregroundStyle(BrandColors.line)
+                AxisValueLabel {
+                    if let seconds = value.as(Double.self) {
+                        Text(TodayText.goalClock(seconds)).font(.caption2).foregroundStyle(BrandColors.dim)
+                    }
+                }
+            }
+        }
         .frame(height: TodayConstants.predictionChartHeight)
     }
 

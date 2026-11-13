@@ -37,13 +37,25 @@ struct MetricCardData: Sendable, Identifiable {
     let kind: MetricKind
     let stats: MetricStats
     let chart: MetricChartData
+    var monthly: [MonthlyMean] = []
 
     var id: MetricKind { kind }
 }
 
-struct IndicatorRowData: Identifiable, Equatable {
+struct MetricGroup: Identifiable, Sendable {
+    let title: String
+    let kinds: [MetricKind]
+
+    var id: String { title }
+}
+
+struct IndicatorDumbbellData: Identifiable, Equatable {
     let kind: IndicatorKind
     let name: String
+    let then: Double?
+    let today: Double?
+    let goal: Double?
+    let lowerIsBetter: Bool
     let todayText: String
     let windowed: Bool
     let deltaText: String?

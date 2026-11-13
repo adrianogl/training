@@ -24,9 +24,14 @@ struct FitnessCard: View {
                     }
                 }
                 chart
-                Text(TodayConstants.fitnessLegend)
-                    .font(.caption2)
-                    .foregroundStyle(BrandColors.dim)
+                HStack(spacing: 14) {
+                    legend(TodayConstants.fitnessLegendFitness, BrandColors.fitness)
+                    legend(TodayConstants.fitnessLegendForm, BrandColors.form)
+                    if hasRace { legend(TodayConstants.fitnessLegendRace, BrandColors.race) }
+                    Text(TodayConstants.fitnessLegendProjection)
+                }
+                .font(.caption2)
+                .foregroundStyle(BrandColors.dim)
             }
         }
         .brandCard()
@@ -51,6 +56,13 @@ struct FitnessCard: View {
         .chartXAxis(.hidden)
         .chartYAxis(.hidden)
         .frame(height: TodayConstants.chartHeight)
+    }
+
+    private func legend(_ label: String, _ color: Color) -> some View {
+        HStack(spacing: 5) {
+            Capsule().fill(color).frame(width: TodayConstants.legendSwatchWidth, height: TodayConstants.legendSwatchHeight)
+            Text(label)
+        }
     }
 
     private func stat(_ value: String?, _ label: String, _ color: Color) -> some View {

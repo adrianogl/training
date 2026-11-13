@@ -41,7 +41,6 @@ enum TodayConstants {
     static let fitnessNow = "hoje"
     static let fitnessPeak = "pico"
     static let fitnessRaceForm = "forma no dia"
-    static let fitnessLegend = "azul: fitness · amarelo: forma · tracejado: projeção"
     static let fitnessEmpty = "Ainda sem treinos com carga para calcular o fitness."
 
     static let predictionTitle = "Previsão"
@@ -59,6 +58,15 @@ enum TodayConstants {
     static let predictionsTitle = "Previsões"
     static let lastRunTitle = "Último treino"
     static let lastRunNoComparison = "Sem treinos parecidos para comparar."
+    static let lastRunDistance = "distância"
+    static let lastRunPace = "pace"
+    static let lastRunHeartRate = "FC média"
+    static let fitnessLegendFitness = "fitness"
+    static let fitnessLegendForm = "forma"
+    static let fitnessLegendProjection = "tracejado: projeção"
+    static let fitnessLegendRace = "prova"
+    static let legendSwatchWidth: Double = 14
+    static let legendSwatchHeight: Double = 3
 
     static let detailTitle = "Prontidão"
     static let detailUp = "Puxando para cima"

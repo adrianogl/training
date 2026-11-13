@@ -61,8 +61,8 @@ import TrainingCore
 
     var verdictTitle: String { EvolutionText.verdictTitle(overall.facts.verdict) }
 
-    var indicatorRows: [IndicatorRowData] {
-        EvolutionText.rows(overall: overall, outlook: outlook)
+    var indicators: [IndicatorDumbbellData] {
+        EvolutionText.dumbbells(overall: overall, outlook: outlook)
     }
 
     var highlight: RacePredictionContent {
@@ -138,7 +138,8 @@ import TrainingCore
             result[kind] = MetricCardData(
                 kind: kind,
                 stats: series.stats,
-                chart: MetricChartData.make(series: series, markers: [], raceDay: raceDay, today: today, compact: true)
+                chart: MetricChartData.make(series: series, markers: [], raceDay: raceDay, today: today, compact: true),
+                monthly: series.monthly.suffix(C.monthlyBars).map { MonthlyMean(date: $0.0.chartDate, value: $0.1) }
             )
         }
         return result

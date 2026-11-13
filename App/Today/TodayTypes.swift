@@ -12,12 +12,12 @@ struct LastRunSummary: Equatable, Sendable {
     let activityId: Int64
     let title: String
     let dateText: String
-    let comparisonTitle: String
-    let rows: [ComparisonRow]
+    let kilometers: Double?
+    let paceSeconds: Double?
+    let averageHeartRate: Int?
     let evolution: String?
     let evolutionOnDevice: Bool
     let notice: String?
-    let showsTarget: Bool
     let score: Int?
 }
 

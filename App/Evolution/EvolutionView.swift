@@ -4,6 +4,7 @@ import TrainingCore
 
 struct EvolutionView: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var model: EvolutionModel?
     @State private var path: [MetricKind] = EvolutionView.initialPath()
 
@@ -18,10 +19,16 @@ struct EvolutionView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         CompactLogoHeader()
-                        Text(EvolutionConstants.title)
-                            .font(.largeTitle.weight(.bold))
-                            .foregroundStyle(BrandColors.text)
-                            .padding(.bottom, 14)
+                        HStack(alignment: .firstTextBaseline) {
+                            Text(EvolutionConstants.title)
+                                .font(.largeTitle.weight(.bold))
+                                .foregroundStyle(BrandColors.text)
+                            if sizeClass == .regular, let model, model.isLoaded {
+                                Spacer()
+                                periodPicker(model).frame(maxWidth: EvolutionConstants.periodPickerWidth)
+                            }
+                        }
+                        .padding(.bottom, 14)
                         if let model, model.isLoaded {
                             content(model)
                         } else {
@@ -65,44 +72,57 @@ struct EvolutionView: View {
 
     @ViewBuilder
     private func content(_ model: EvolutionModel) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, rows: model.indicatorRows)
-            selectors(model)
-            RacePredictionCard(content: model.highlight).id(EvolutionConstants.highlightAnchor)
-            cards(model)
+        VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
+            if sizeClass != .regular {
+                periodPicker(model)
+            }
+            row(weights: [1, 1]) {
+                OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
+                RacePredictionCard(content: model.highlight, horizon: Binding(get: { model.horizon }, set: { model.horizon = $0 }))
+                    .id(EvolutionConstants.highlightAnchor)
+            }
+            IndicatorsCard(indicators: model.indicators)
+            SectionLabel(EvolutionConstants.metricsTitle)
+            groups(model)
             HeatmapCard(columns: model.heatmapColumns)
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }
     }
 
-    private func selectors(_ model: EvolutionModel) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Picker(EvolutionConstants.periodLabel, selection: Binding(
-                get: { model.period },
-                set: { period in Task { await model.select(period: period) } }
-            )) {
-                ForEach(MetricPeriodOption.all, id: \.period) { Text($0.title).tag($0.period) }
+    private func periodPicker(_ model: EvolutionModel) -> some View {
+        Picker(EvolutionConstants.periodLabel, selection: Binding(
+            get: { model.period },
+            set: { period in Task { await model.select(period: period) } }
+        )) {
+            ForEach(MetricPeriodOption.all, id: \.period) { Text($0.title).tag($0.period) }
+        }
+        .pickerStyle(.segmented)
+    }
+
+    @ViewBuilder
+    private func groups(_ model: EvolutionModel) -> some View {
+        if model.cardData.isEmpty && model.isLoadingCards {
+            ProgressView(EvolutionConstants.loadingCards).frame(maxWidth: .infinity).padding(.top, 12)
+        } else {
+            let groups = EvolutionConstants.metricGroups
+            let pairs = stride(from: 0, to: groups.count, by: 2).map { Array(groups[$0..<min($0 + 2, groups.count)]) }
+            VStack(spacing: TodayConstants.rowSpacing) {
+                ForEach(pairs, id: \.first?.id) { pair in
+                    row(weights: [1, 1]) {
+                        ForEach(pair) { group in MetricGroupCard(group: group, data: model.cardData) }
+                    }
+                }
             }
-            .pickerStyle(.segmented)
-            Picker(EvolutionConstants.horizonLabel, selection: Binding(get: { model.horizon }, set: { model.horizon = $0 })) {
-                ForEach(HorizonOption.all, id: \.horizon) { Text($0.title).tag($0.horizon) }
-            }
-            .pickerStyle(.segmented)
+            .opacity(model.isLoadingCards ? 0.5 : 1)
         }
     }
 
     @ViewBuilder
-    private func cards(_ model: EvolutionModel) -> some View {
-        if model.cardData.isEmpty && model.isLoadingCards {
-            ProgressView(EvolutionConstants.loadingCards).frame(maxWidth: .infinity).padding(.top, 12)
+    private func row<Content: View>(weights: [Double], @ViewBuilder content: () -> Content) -> some View {
+        if sizeClass == .regular {
+            ProportionalHStack(weights: weights, spacing: TodayConstants.rowSpacing) { content() }
         } else {
-            let columns = [GridItem(.adaptive(minimum: EvolutionConstants.gridMinimumWidth), spacing: 12, alignment: .top)]
-            LazyVGrid(columns: columns, spacing: 12) {
-                ForEach(model.cards, id: \.self) { kind in
-                    MetricCard(kind: kind, data: model.cardData[kind], chart: model.chart(for: kind))
-                }
-            }
-            .opacity(model.isLoadingCards ? 0.5 : 1)
+            VStack(spacing: TodayConstants.rowSpacing) { content() }
         }
     }
 

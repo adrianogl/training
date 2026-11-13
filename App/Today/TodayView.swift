@@ -90,12 +90,12 @@ struct TodayView: View {
                 ReadinessHeroCard(model: model)
             }
             WeekCalendarCard(runs: model.weekRuns, today: model.today)
+            VolumeHistoryCard(week: model.summary.week)
             row(weights: [1, 1]) {
-                VolumeHistoryCard(week: model.summary.week)
+                if let lastRun = model.lastRun {
+                    LastRunCard(lastRun: lastRun)
+                }
                 PredictionsCard(predictions: model.summary.predictions)
-            }
-            if let lastRun = model.lastRun {
-                LastRunCard(lastRun: lastRun)
             }
             SectionLabel(TodayConstants.trendTitle)
             FitnessCard(model: model).id(TodayConstants.endAnchor)

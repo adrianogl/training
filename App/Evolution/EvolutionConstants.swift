@@ -11,11 +11,8 @@ enum EvolutionConstants {
     static let columnDelta = "vs 3 meses"
     static let columnGoal = "vs meta"
     static let windowedToday = "hoje (28 dias)"
-    static let tableLegend = "verde = melhorou · amarelo = piorou ou falta chegar"
-    static let windowedFootnote = "Nos paces, \"hoje (28 dias)\" é a mediana dos últimos 28 dias. O card do pace mostra o valor do último treino."
     static let predictionPrefix = "Previsão"
     static let emptyValue = "—"
-    static let cardsTitle = "Métricas"
     static let loadingCards = "Calculando as séries…"
     static let endAnchor = "evolucao-fim"
     static let highlightAnchor = "evolucao-destaque"
@@ -34,6 +31,45 @@ enum EvolutionConstants {
     static let defaultPeriod = MetricPeriod.oneYear
     static let minusSign = "\u{2212}"
 
+    static let overallTitleWindow = "Estado geral · vs. 3 meses"
+    static let tallyHeight: Double = 10
+    static let tallyFormat = "%d melhoraram · %d estáveis · %d pioraram"
+    static let indicatorsTitle = "Indicadores · de 3 meses atrás para hoje"
+    static let indicatorsLegend = "○ 3 meses · ● hoje · | meta"
+    static let indicatorsFootnote = "Mais à direita é melhor, inclusive nos paces e na previsão."
+    static let dumbbellWidth: Double = 150
+    static let compactDumbbellWidth: Double = 92
+    static let dumbbellHeight: Double = 18
+    static let dumbbellPaddingRatio = 0.15
+    static let indicatorValueWidth: Double = 76
+    static let indicatorDeltaWidth: Double = 58
+    static let indicatorGoalWidth: Double = 60
+    static let lowerIsBetterIndicators: Set<IndicatorKind> = [.racePrediction, .zone2Pace, .thresholdPace]
+    static let metricsTitle = "Métricas"
+    static let sparklineWidth: Double = 96
+    static let compactSparklineWidth: Double = 64
+    static let sparklineHeight: Double = 24
+    static let metricValueWidth: Double = 80
+    static let metricChangeWidth: Double = 60
+    static let sparklineMinWidth: Double = 36
+    static let monthlyBarHeight: Double = 56
+    static let metricGroups: [MetricGroup] = [
+        MetricGroup(title: "Capacidade", kinds: [.vo2max, .fitness, .hillStrength, .durability]),
+        MetricGroup(title: "Ritmo e limiar", kinds: [.zone2Pace, .thresholdPace, .thresholdHeartRate]),
+        MetricGroup(title: "Volume e carga", kinds: [.monthlyVolume, .loadFocus, .zoneDistribution]),
+        MetricGroup(title: "Recuperação", kinds: [.restingHeartRate, .hrv, .sleep, .bodyBattery]),
+        MetricGroup(title: "Técnica de corrida", kinds: [.cadence, .groundContact, .verticalOscillation]),
+        MetricGroup(title: "Previsões", kinds: [.prediction5k, .prediction10k, .predictionHalf, .predictionFull]),
+    ]
+    static let heatmapWeekdayLabels = ["S", "", "Q", "", "S", "", "D"]
+    static let heatmapLabelWidth: Double = 14
+    static let heatmapMonthFormat = "MMM"
+    static let heatmapTotalFormat = "%@ km nas últimas 26 semanas"
+    static let heatmapLess = "menos"
+    static let heatmapMore = "mais"
+    static let heatmapScaleSteps = [0.0, 0.3, 0.55, 0.8, 1.0]
+    static let heatmapScaleCell: Double = 10
+
     static let periodTitles: [MetricPeriod: String] = [
         .sixMonths: "6M", .oneYear: "1 ano", .twoYears: "2 anos", .all: "Tudo",
     ]
@@ -43,6 +79,7 @@ enum EvolutionConstants {
     ]
     static let horizonDays: [ProjectionHorizon: Int] = [.sixMonths: 182, .oneYear: 365]
     static let periodLabel = "Período"
+    static let periodPickerWidth: Double = 320
     static let horizonLabel = "Projeção"
 
     static let cardKinds: [MetricKind] = [

@@ -35,13 +35,19 @@ enum EvolutionText {
         }
     }
 
-    static func rows(overall: OverallState, outlook: RaceOutlook) -> [IndicatorRowData] {
+    static func dumbbells(overall: OverallState, outlook: RaceOutlook) -> [IndicatorDumbbellData] {
         overall.indicators.map { indicator in
             let format = C.indicatorFormats[indicator.kind]
             let isPrediction = indicator.kind == .racePrediction
-            return IndicatorRowData(
+            let then = indicator.today.flatMap { today in indicator.delta.map { today - $0 } }
+            let goal = isPrediction ? indicator.today.flatMap { today in indicator.goalGap.map { today - $0 } } : nil
+            return IndicatorDumbbellData(
                 kind: indicator.kind,
                 name: name(indicator.kind, outlook: outlook),
+                then: then,
+                today: indicator.today,
+                goal: goal,
+                lowerIsBetter: C.lowerIsBetterIndicators.contains(indicator.kind),
                 todayText: value(indicator.today, format),
                 windowed: C.windowedIndicators.contains(indicator.kind),
                 deltaText: delta(indicator.delta, format),

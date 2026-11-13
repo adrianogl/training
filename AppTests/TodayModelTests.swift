@@ -107,8 +107,10 @@ import TrainingCore
         let expected = WorkoutAnalysisContext.build(record: record, records: records, in: context)
 
         let lastRun = try #require(model.lastRun)
-        #expect(lastRun.rows == expected.comparisonRows)
-        #expect(!lastRun.rows.isEmpty)
+        #expect(!expected.comparisonRows.isEmpty)
+        #expect(lastRun.evolution != nil)
+        #expect(lastRun.kilometers == record.distance.map { $0 / 1_000 })
+        #expect(lastRun.averageHeartRate == record.averageHR.map { Int($0.rounded()) })
         #expect(lastRun.title == "Tiros 3 x 1 km")
         #expect(lastRun.activityId == id)
     }

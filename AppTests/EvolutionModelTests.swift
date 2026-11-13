@@ -27,13 +27,13 @@ import TrainingCore
 
         #expect(model.isLoaded)
         #expect(model.overall.indicators.map(\.kind) == [.racePrediction, .vo2max, .fitness, .zone2Pace, .thresholdPace, .monthlyVolume])
-        #expect(model.indicatorRows.count == 6)
-        #expect(model.indicatorRows.first?.name == "Previsão 21,1 km")
+        #expect(model.indicators.count == 6)
+        #expect(model.indicators.first?.name == "Previsão 21,1 km")
         #expect(!model.overallSentence.isEmpty)
         #expect(model.cards.first == .vo2max)
         #expect(Set(model.cards).isSuperset(of: [.hrv, .sleep, .restingHeartRate, .bodyBattery, .zoneDistribution]))
         #expect(model.cardData[.restingHeartRate] != nil)
-        #expect(model.indicatorRows.filter(\.windowed).map(\.kind) == [.zone2Pace, .thresholdPace])
+        #expect(model.indicators.filter(\.windowed).map(\.kind) == [.zone2Pace, .thresholdPace])
     }
 
     @Test func goalGapOnlyOnPrediction() async throws {
@@ -42,7 +42,13 @@ import TrainingCore
 
         let withGoal = model.overall.indicators.filter { $0.goalGap != nil }.map(\.kind)
         #expect(withGoal == [.racePrediction])
-        #expect(model.indicatorRows.filter { $0.goalText != nil }.map(\.kind) == [.racePrediction])
+        #expect(model.indicators.filter { $0.goalText != nil }.map(\.kind) == [.racePrediction])
+        let prediction = try #require(model.indicators.first { $0.kind == .racePrediction })
+        let source = try #require(model.overall.indicators.first { $0.kind == .racePrediction })
+        #expect(prediction.lowerIsBetter)
+        #expect(prediction.goal == source.today.flatMap { today in source.goalGap.map { today - $0 } })
+        #expect(prediction.then == source.today.flatMap { today in source.delta.map { today - $0 } })
+        #expect(model.indicators.filter(\.lowerIsBetter).map(\.kind) == [.racePrediction, .zone2Pace, .thresholdPace])
     }
 
     @Test func evolutionPeriodReloadsCards() async throws {
@@ -78,7 +84,7 @@ import TrainingCore
         let model = EvolutionModel(container: container, today: Self.today)
         await model.load()
         #expect(model.isLoaded)
-        #expect(model.indicatorRows.allSatisfy { $0.todayText == "—" })
+        #expect(model.indicators.allSatisfy { $0.todayText == "—" })
     }
 
     @Test func highlightFollowsHorizon() async throws {

@@ -181,26 +181,22 @@ import WorkoutAnalysis
         guard let record = (try? context.fetch(target))?.first else { return nil }
         let records = comparisonRecords(context: context, around: record)
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
-        let title = record.workoutName ?? record.name
-        let dateText = WorkoutListModel.dateText(record.start)
-        guard analysis.comparison != nil, !analysis.comparisonRows.isEmpty else {
-            return LastRunSummary(
-                activityId: id, title: title, dateText: dateText,
-                comparisonTitle: "", rows: [], evolution: nil, evolutionOnDevice: false, notice: nil, showsTarget: false,
-                score: record.scoreValue ?? analysis.score?.value
-            )
-        }
-        let reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
+        let hasComparison = analysis.comparison != nil && !analysis.comparisonRows.isEmpty
+        let reading = hasComparison
+            ? WorkoutReading.resolve(stored: record.narrativeData, assessment: analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
+            : nil
+        let kilometers = record.distance.map { $0 / WorkoutConstants.metersPerKilometer }
+        let seconds = record.movingDuration ?? record.duration
         return LastRunSummary(
             activityId: id,
-            title: title,
-            dateText: dateText,
-            comparisonTitle: record.workoutName ?? WorkoutDetailConstants.similarRunsTitle,
-            rows: analysis.comparisonRows,
-            evolution: reading.evolution,
-            evolutionOnDevice: reading.evolutionOnDevice,
-            notice: analysis.comparisonNotice,
-            showsTarget: analysis.hasPrescription,
+            title: record.workoutName ?? record.name,
+            dateText: WorkoutListModel.dateText(record.start),
+            kilometers: kilometers,
+            paceSeconds: kilometers.flatMap { km in km > 0 ? seconds.map { $0 / km } : nil },
+            averageHeartRate: record.averageHR.map { Int($0.rounded()) },
+            evolution: reading?.evolution,
+            evolutionOnDevice: reading?.evolutionOnDevice ?? false,
+            notice: hasComparison ? analysis.comparisonNotice : nil,
             score: record.scoreValue ?? analysis.score?.value
         )
     }
