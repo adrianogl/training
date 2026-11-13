@@ -1,3 +1,4 @@
+import GarminAPI
 import Foundation
 import Metrics
 
@@ -146,4 +147,26 @@ enum TodayConstants {
     static let predictionsToday = "hoje"
     static let predictionsYearAgo = "vs. 12 meses"
     static let trendTitle = "Tendência"
+    static let planTitle = "Treino de hoje"
+    static let planEstimateFormat = "%@ km · ~%@"
+    static let planStepNames: [PlannedStepKind: String] = [
+        .warmup: "Aquecimento", .active: "Bloco", .recovery: "Recuperação", .cooldown: "Desaquecimento", .rest: "Descanso", .other: "Passo",
+    ]
+    static let planRepeatFormat = "%d×"
+    static let planZoneFormat = "Z%d"
+    static let planHeartRateFormat = "%d–%d bpm"
+    static let planMinutesFormat = "%d min"
+    static let planMetersFormat = "%d m"
+    static let planShapeHeight: Double = 40
+    static let planShapeDefaultPace = 330.0
+    static let planShapeLevels: [PlannedStepKind: Int] = [.warmup: 2, .active: 4, .recovery: 1, .cooldown: 1, .rest: 1, .other: 2]
+    static let planAdjustTitle = "Ajuste para hoje"
+    static let planAdjust: [ReadinessVerdict: String] = [
+        .hard: "Prontidão boa: siga o plano como está.",
+        .moderate: "Prontidão moderada: faça os blocos fortes no lado mais lento da faixa e pare um bloco antes se a FC subir demais.",
+        .rest: "Prontidão baixa: troque por rodagem leve em Z1–Z2 ou descanse hoje.",
+    ]
+    static let calendarPlannedLabel = "planejado"
+    static let calendarPlannedFormat = "planejado %@ km"
+    static let calendarDonePlannedFormat = "%@ km feitos de %@ km planejados"
 }

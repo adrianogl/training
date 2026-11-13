@@ -1,3 +1,4 @@
+import GarminAPI
 import SwiftUI
 import TrainingCore
 
@@ -5,6 +6,7 @@ struct WeekCalendarCard: View {
     let runs: [Day: [WeekRun]]
     let today: Day
     var goal = 0
+    var planned: [Day: [PlannedWorkout]] = [:]
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = TodayConstants
@@ -16,7 +18,7 @@ struct WeekCalendarCard: View {
             HStack {
                 SectionLabel(C.calendarTitle).padding(.top, 0).padding(.bottom, 0)
                 Spacer()
-                Text(String(format: C.calendarSummaryFormat, TodayText.decimal(all.reduce(0) { $0 + $1.kilometers }, fractionDigits: 1), all.count) + (goal > 0 ? String(format: C.calendarGoalFormat, goal) : ""))
+                Text(summaryText(all) + (goal > 0 ? String(format: C.calendarGoalFormat, goal) : ""))
                     .font(.caption)
                     .foregroundStyle(BrandColors.dim)
             }
@@ -48,10 +50,25 @@ struct WeekCalendarCard: View {
                     Image(systemName: "checkmark").font(.caption2.weight(.bold)).foregroundStyle(BrandColors.accent)
                 }
             }
-            if dayRuns.isEmpty {
+            let dayPlans = planned[day] ?? []
+            if dayRuns.isEmpty && dayPlans.isEmpty {
                 Text(isFuture || isToday ? C.calendarFuture : C.calendarRest)
                     .font(.footnote)
                     .foregroundStyle(BrandColors.dim)
+            }
+            if dayRuns.isEmpty {
+                ForEach(dayPlans) { plan in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(plan.title)
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(BrandColors.text.opacity(0.8))
+                            .lineLimit(2)
+                        PlannedShape(steps: plan.steps).frame(height: 16)
+                        Text(plan.estimatedMeters.map { String(format: C.calendarPlannedFormat, TodayText.decimal($0 / WorkoutConstants.metersPerKilometer, fractionDigits: 1)) } ?? C.calendarPlannedLabel)
+                            .font(.caption2)
+                            .foregroundStyle(BrandColors.dim)
+                    }
+                }
             }
             ForEach(dayRuns) { run in
                 VStack(alignment: .leading, spacing: 4) {
@@ -83,6 +100,15 @@ struct WeekCalendarCard: View {
                 shape.strokeBorder(BrandColors.line, lineWidth: 1)
             }
         }
+    }
+
+    private func summaryText(_ all: [WeekRun]) -> String {
+        let done = all.reduce(0) { $0 + $1.kilometers }
+        let plannedMeters = planned.values.flatMap { $0 }.compactMap(\.estimatedMeters).reduce(0, +)
+        guard plannedMeters > 0 else {
+            return String(format: C.calendarSummaryFormat, TodayText.decimal(done, fractionDigits: 1), all.count)
+        }
+        return String(format: C.calendarDonePlannedFormat, TodayText.decimal(done, fractionDigits: 1), TodayText.decimal(plannedMeters / WorkoutConstants.metersPerKilometer, fractionDigits: 1))
     }
 
     private func dayLabel(_ day: Day) -> String {

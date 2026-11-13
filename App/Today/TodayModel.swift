@@ -1,4 +1,5 @@
 import Foundation
+import GarminAPI
 import Insights
 import Metrics
 import Narrative
@@ -19,6 +20,7 @@ import WorkoutAnalysis
     private(set) var lastRun: LastRunSummary?
     private(set) var raceName: String?
     private(set) var weekRuns: [Day: [WeekRun]] = [:]
+    private(set) var planned: [Day: [PlannedWorkout]] = [:]
     private(set) var isLoaded = false
 
     init(container: ModelContainer, today: Day) {
@@ -42,6 +44,17 @@ import WorkoutAnalysis
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
         isLoaded = true
+    }
+
+    var todayPlan: PlannedWorkout? { planned[today]?.first }
+
+    func loadPlanned(client: GarminAccountClient?) async {
+        guard let client else { return }
+        let first = today.weekStart
+        guard let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: first.adding(days: 6)),
+              !Task.isCancelled
+        else { return }
+        planned = Dictionary(grouping: workouts) { Day(iso: $0.day) ?? today }
     }
 
     func refreshSentence() async {

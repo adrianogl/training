@@ -74,6 +74,7 @@ struct TodayView: View {
             let loaded = TodayModel(container: app.container, today: Day.today())
             await loaded.load()
             model = loaded
+            await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.refreshSentence()
         }
     }
@@ -90,7 +91,10 @@ struct TodayView: View {
             } else {
                 ReadinessHeroCard(model: model)
             }
-            WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal)
+            if let plan = model.todayPlan {
+                TodayPlanCard(plan: plan, verdict: model.summary.verdict)
+            }
+            WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal, planned: model.planned)
             VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal)
             row(weights: [1, 1]) {
                 if let lastRun = model.lastRun {
