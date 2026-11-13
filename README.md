@@ -73,13 +73,21 @@ scripts/dev-run.sh --reset-data  # recopia o snapshot
 
 Com a conta gratuita, o perfil de instalação vence 7 dias depois de cada instalação. Depois disso o app não abre. Para voltar a usar, conecte o aparelho e rode de novo pelo Xcode (Product > Run). Os dados ficam, porque o bundle id é o mesmo; a chave continua no Keychain.
 
-Cada aparelho busca os próprios dados no Garmin e guarda os seus; não há sincronização entre iPhone e iPad. A chave precisa ser colada em cada um.
+Cada aparelho busca os próprios dados no Garmin, e a chave do Garmin precisa ser colada em cada um. Provas cadastradas e respostas do "Parece prova?" podem ser sincronizadas entre iPhone e iPad (veja abaixo).
+
+### Sincronização entre aparelhos (opcional)
+
+Em Ajustes > Sincronização entre aparelhos, toque em "Ativar neste aparelho". O app gera uma chave de sync. Copie a chave (pede Face ID ou o código do aparelho), mande para você mesmo por AirDrop ou mensagem, e no outro aparelho toque em "Já tenho uma chave de outro aparelho" e cole. Daí em diante as provas e as respostas sobem e descem sozinhas, depois de cada mudança e a cada sync do Garmin.
+
+O servidor fica em [`server/`](server/) (Vercel Functions + Neon Postgres). Para rodar o seu, veja [`server/README.md`](server/README.md) e troque `remoteSyncBaseURL` em `App/AppConstants.swift`.
 
 ## Privacidade
 
-- Sem servidor. O app fala direto com a API do Garmin e com mais nada.
-- Os dados ficam no aparelho, em SwiftData. Sem telemetria, sem analytics, sem iCloud.
-- A chave fica no Keychain local, sem sincronização.
+- Os dados do Garmin vão direto do Garmin para o aparelho e não passam por nenhum servidor nosso.
+- A sincronização entre aparelhos é opcional. Ligada, ela manda para o servidor só as provas cadastradas e as respostas do "Parece prova?", cifradas no aparelho com AES-GCM. A chave de cifra é derivada da chave de sync e nunca sai do aparelho: o servidor guarda texto cifrado, o id, a data da última edição e a marca de apagado. Ele não lê nome de prova, meta, GPX nem paces.
+- O servidor guarda só o hash da chave de conta. Não há e-mail, login nem nome. "Apagar dados do servidor", em Ajustes, apaga a conta e tudo o que ela tinha.
+- Fora isso, os dados ficam no aparelho, em SwiftData. Sem telemetria, sem analytics, sem iCloud.
+- A chave do Garmin e a chave de sync ficam no Keychain local, sem sincronização pelo iCloud.
 - Os arquivos `.FIT` são baixados, processados e descartados; o app guarda só o que extraiu deles.
 - Em Ajustes, "Apagar dados locais" apaga treinos, dados diários e provas do aparelho. A chave continua no Keychain até você trocá-la.
 

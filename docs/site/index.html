@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>trAIning — Inteligência do pulso à linha de chegada</title>
-<meta name="description" content="App pessoal para iPhone e iPad que lê os dados do Garmin pela Personal API e calcula prontidão, evolução com projeção, nota dos treinos e previsão de prova. Sem servidor: os dados ficam no aparelho.">
+<meta name="description" content="App pessoal para iPhone e iPad que lê os dados do Garmin pela Personal API e calcula prontidão, evolução com projeção, nota dos treinos e previsão de prova. Os dados ficam no aparelho; o sync entre aparelhos é opcional e cifrado.">
 <meta name="theme-color" content="#07080A">
 <meta name="color-scheme" content="dark">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -33,7 +33,7 @@
       <ul class="chips" aria-label="Resumo">
         <li>iOS e iPadOS 26</li>
         <li>Personal API do Garmin</li>
-        <li>Sem servidor</li>
+        <li>Sync cifrado e opcional</li>
       </ul>
     </div>
 
@@ -342,9 +342,10 @@
   <section class="privacy" id="privacidade">
     <div class="card priv">
       <p class="eyebrow">Privacidade</p>
-      <h2>Seus dados não saem do aparelho</h2>
+      <h2>Seus dados ficam com você</h2>
       <div class="priv-grid">
-        <div><div class="t">Sem servidor</div><p>O app fala direto com o Garmin. Não existe backend, conta nem telemetria.</p></div>
+        <div><div class="t">Garmin direto no aparelho</div><p>Os dados do Garmin vão do Garmin para o aparelho, sem passar por servidor nosso. Sem telemetria.</p></div>
+        <div><div class="t">Sync cifrado e opcional</div><p>Para usar no iPhone e no iPad, as provas e respostas sobem cifradas no aparelho. O servidor não lê nome de prova, meta nem rota, e um botão em Ajustes apaga tudo dele.</p></div>
         <div><div class="t">Chave no Keychain</div><p>A chave da Personal API fica no Keychain do aparelho, sem sincronizar com o iCloud.</p></div>
         <div><div class="t">Textos locais</div><p>As leituras em texto são geradas pelo Foundation Models da Apple, no próprio aparelho. Sem ele, o app usa templates.</p></div>
         <div><div class="t">Apagar quando quiser</div><p>Em Ajustes, um botão apaga do aparelho os treinos, os dados diários e as provas.</p></div>

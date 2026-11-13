@@ -221,6 +221,8 @@ O repositório é **público** no GitHub (o que também libera o GitHub Pages no
 
 ## Privacidade
 
+> Atualização (2026-11-12): a sincronização opcional entre aparelhos por servidor próprio, com cifra no aparelho, está descrita no README (seções Sincronização entre aparelhos e Privacidade) e em `server/README.md`.
+
 - Dados ficam só no aparelho. Nenhuma telemetria, nenhum serviço de terceiros.
 - "Apagar todos os dados locais" em Ajustes apaga SwiftData, Keychain e caches.
 
