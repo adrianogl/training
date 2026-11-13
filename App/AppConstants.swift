@@ -25,7 +25,12 @@ enum AppConstants {
     static let openShareDefaultsKey = "openShare"
     static let exportShareDefaultsKey = "exportShare"
     static let appearanceDefaultsKey = "appearance"
-    static let sidebarCollapsedSections: Set<AppSection> = [.workouts, .races]
+    static let weeklyGoalDefaultsKey = "weeklyGoalKm"
+    static let weeklyGoalRange = 0...200
+    static let weeklyGoalStep = 5
+    static let settingsListWidth: Double = 320
+    static let settingsIconSize: Double = 30
+    static let sidebarCollapsedSections: Set<AppSection> = [.workouts, .races, .settings]
     static let introDuration = Duration.milliseconds(1700)
     static let introReducedMotionDuration = Duration.milliseconds(500)
     static let introFadeSeconds = 0.35

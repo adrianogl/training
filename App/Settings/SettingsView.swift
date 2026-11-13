@@ -12,21 +12,96 @@ struct SettingsView: View {
     @AppStorage(BackgroundConstants.noticeEnabledDefaultsKey) private var noticeEnabled = BackgroundConstants.defaultNoticeEnabled
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
     @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
+    @AppStorage(AppConstants.weeklyGoalDefaultsKey) private var weeklyGoal = 0
+    @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var selection: SettingsGroup = SettingsView.initialGroup()
 
     var body: some View {
-        NavigationStack {
-            ScrollViewReader { proxy in
-            Form {
-                CompactLogoHeader()
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
+        if sizeClass == .regular {
+            HStack(spacing: 0) {
+                groupList
+                    .frame(width: AppConstants.settingsListWidth)
+                Divider().overlay(BrandColors.line)
+                NavigationStack {
+                    form(for: selection)
+                }
+            }
+        } else {
+            NavigationStack {
+                groupList
+                    .navigationDestination(for: SettingsGroup.self) { group in form(for: group) }
+            }
+        }
+    }
+
+    private var groupList: some View {
+        List {
+            CompactLogoHeader()
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            ForEach(SettingsGroup.allCases) { group in
+                if sizeClass == .regular {
+                    Button { selection = group } label: { groupRow(group) }
+                        .buttonStyle(.plain)
+                        .listRowBackground(group == selection ? BrandColors.accentFill.opacity(0.18) : BrandColors.card)
+                } else {
+                    NavigationLink(value: group) { groupRow(group) }
+                        .listRowBackground(BrandColors.card)
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(BrandBackground())
+        .navigationTitle("Ajustes")
+    }
+
+    private func groupRow(_ group: SettingsGroup) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: group.systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: AppConstants.settingsIconSize, height: AppConstants.settingsIconSize)
+                .background(group.tint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(group.title).font(.body.weight(.semibold)).foregroundStyle(BrandColors.text)
+                Text(status(group)).font(.caption).foregroundStyle(BrandColors.dim).lineLimit(1)
+            }
+            Spacer(minLength: 0)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private func status(_ group: SettingsGroup) -> String {
+        switch group {
+        case .garmin: model.hasKey ? "Chave guardada · sync \(lastSyncText)" : "Sem chave da API"
+        case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
+        case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
+        case .notice: noticeEnabled ? "Ligado · a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Desligado"
+        case .goals: weeklyGoal > 0 ? "\(weeklyGoal) km por semana" : "Sem meta semanal"
+        case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
+        case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
+        }
+    }
+
+    @ViewBuilder
+    private func form(for group: SettingsGroup) -> some View {
+        Form {
+            switch group {
+            case .garmin:
                 keySection
                 connectionSection
                 syncSection
-                RemoteSyncSection(model: model.remoteSync)
-                    .id(RemoteSyncSettingsConstants.sectionAnchor)
+            case .devices:
+                RemoteSyncSection(model: model.remoteSync, part: .sync)
+            case .watch:
+                RemoteSyncSection(model: model.remoteSync, part: .watch)
+            case .notice:
                 noticeSection
+            case .goals:
+                goalsSection
+            case .appearance:
                 appearanceSection
+            case .data:
                 dataSection
                 if let storeError = model.storeError {
                     Section("Banco local") {
@@ -35,15 +110,25 @@ struct SettingsView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
-            .background(BrandBackground())
-            .navigationTitle("Ajustes")
-            .task {
-                guard Self.debugScrollsToRemoteSync() else { return }
-                try? await Task.sleep(for: .milliseconds(600))
-                proxy.scrollTo(RemoteSyncSettingsConstants.sectionAnchor, anchor: .top)
+        }
+        .scrollContentBackground(.hidden)
+        .background(BrandBackground())
+        .navigationTitle(group.title)
+    }
+
+    private var goalsSection: some View {
+        Section {
+            Stepper(value: $weeklyGoal, in: AppConstants.weeklyGoalRange, step: AppConstants.weeklyGoalStep) {
+                HStack {
+                    Text("Volume semanal")
+                    Spacer()
+                    Text(weeklyGoal > 0 ? "\(weeklyGoal) km" : "sem meta").foregroundStyle(BrandColors.dim)
+                }
             }
-            }
+        } header: {
+            Text("Metas")
+        } footer: {
+            Text("A meta semanal aparece no volume semanal e na semana de treino da Hoje.")
         }
     }
 
@@ -164,11 +249,11 @@ struct SettingsView: View {
         }
     }
 
-    private static func debugScrollsToRemoteSync(defaults: UserDefaults = .standard) -> Bool {
+    private static func initialGroup(defaults: UserDefaults = .standard) -> SettingsGroup {
         #if DEBUG
-        return defaults.bool(forKey: AppConstants.settingsScrollDefaultsKey)
+        return defaults.bool(forKey: AppConstants.settingsScrollDefaultsKey) ? .devices : .garmin
         #else
-        return false
+        return .garmin
         #endif
     }
 

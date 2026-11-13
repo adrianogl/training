@@ -139,6 +139,8 @@ enum TodayConstants {
     static let volumeFooterFormat = "esta semana %@ km · média 4 semanas %@ km"
     static let volumeCurrentOpacity = 0.45
     static let volumeAverageLabel = "média 4 sem."
+    static let volumeGoalLabel = "meta"
+    static let calendarGoalFormat = " · meta %d km"
     static let volumeWeekFormat = "d MMM"
     static let predictionsDistance = "distância"
     static let predictionsToday = "hoje"

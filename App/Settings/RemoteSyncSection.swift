@@ -3,6 +3,7 @@ import SwiftUI
 struct RemoteSyncSection: View {
     typealias C = RemoteSyncSettingsConstants
     let model: RemoteSyncModel
+    var part = RemoteSyncPart.sync
     @State private var revealedKey: String?
     @State private var confirmsDisable = false
     @State private var confirmsDelete = false
@@ -12,10 +13,21 @@ struct RemoteSyncSection: View {
     @State private var confirmsRevoke = false
 
     var body: some View {
-        if model.isEnabled {
-            enabledSections
-        } else {
-            disabledSection
+        switch part {
+        case .sync:
+            if model.isEnabled {
+                enabledSections
+            } else {
+                disabledSection
+            }
+        case .watch:
+            if model.isEnabled {
+                watchSection
+            } else {
+                Section {
+                    Text(C.watchNeedsSync).foregroundStyle(BrandColors.dim)
+                }
+            }
         }
     }
 
@@ -99,7 +111,6 @@ struct RemoteSyncSection: View {
         } footer: {
             Text(C.keyNote)
         }
-        watchSection
         Section {
             Button(C.disable, role: .destructive) { confirmsDisable = true }
                 .disabled(model.status == .syncing || model.isWorking)

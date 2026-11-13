@@ -5,6 +5,7 @@ import SwiftUI
 
 struct VolumeHistoryCard: View {
     let week: WeekVolume
+    var goal = 0
 
     private typealias C = TodayConstants
 
@@ -26,6 +27,14 @@ struct VolumeHistoryCard: View {
                             .font(.caption2)
                             .foregroundStyle(isCurrent ? BrandColors.text : BrandColors.dim)
                     }
+                }
+                if goal > 0 {
+                    RuleMark(y: .value(C.volumeGoalLabel, Double(goal)))
+                        .foregroundStyle(BrandColors.accent)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
+                        .annotation(position: .top, alignment: .trailing) {
+                            Text("\(C.volumeGoalLabel) \(goal) km").font(.caption2.weight(.bold)).foregroundStyle(BrandColors.accent)
+                        }
                 }
                 if week.average4Weeks > 0 {
                     RuleMark(y: .value(C.volumeAverageLabel, week.average4Weeks))

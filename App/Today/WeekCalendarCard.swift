@@ -4,6 +4,7 @@ import TrainingCore
 struct WeekCalendarCard: View {
     let runs: [Day: [WeekRun]]
     let today: Day
+    var goal = 0
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = TodayConstants
@@ -15,7 +16,7 @@ struct WeekCalendarCard: View {
             HStack {
                 SectionLabel(C.calendarTitle).padding(.top, 0).padding(.bottom, 0)
                 Spacer()
-                Text(String(format: C.calendarSummaryFormat, TodayText.decimal(all.reduce(0) { $0 + $1.kilometers }, fractionDigits: 1), all.count))
+                Text(String(format: C.calendarSummaryFormat, TodayText.decimal(all.reduce(0) { $0 + $1.kilometers }, fractionDigits: 1), all.count) + (goal > 0 ? String(format: C.calendarGoalFormat, goal) : ""))
                     .font(.caption)
                     .foregroundStyle(BrandColors.dim)
             }

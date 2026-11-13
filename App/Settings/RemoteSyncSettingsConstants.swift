@@ -4,7 +4,6 @@ import os
 enum RemoteSyncSettingsConstants {
     static let logger = Logger(subsystem: "trAIning", category: "RemoteSync")
     static let keyLength = 43
-    static let sectionAnchor = "remoteSync"
     static let sectionTitle = "Sincronização entre aparelhos"
     static let offDescription = "Desligada. Provas e respostas do \"Parece prova?\" ficam só neste aparelho."
     static let activate = "Ativar neste aparelho"
@@ -39,6 +38,7 @@ enum RemoteSyncSettingsConstants {
     static let deleteServerFailed = "Não apagou do servidor. Confira a conexão e tente de novo."
     static let cancel = "Cancelar"
     static let watchSectionTitle = "Relógio"
+    static let watchNeedsSync = "Ligue a sincronização entre aparelhos para gerar o token do relógio."
     static let watchOffDescription = "Gere um token para o mostrador TrainingFace mostrar a prontidão de hoje."
     static let watchGenerate = "Gerar token do relógio"
     static let watchGenerating = "Gerando…"

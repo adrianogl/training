@@ -45,3 +45,8 @@ protocol DeviceOwnerAuthenticating: Sendable {
 protocol KeyClipboard: Sendable {
     func copy(_ key: String)
 }
+
+enum RemoteSyncPart {
+    case sync
+    case watch
+}

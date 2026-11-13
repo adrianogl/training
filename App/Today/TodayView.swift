@@ -6,6 +6,7 @@ struct TodayView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.modelContext) private var context
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @AppStorage(AppConstants.weeklyGoalDefaultsKey) private var weeklyGoal = 0
     @Binding var path: [TodayRoute]
     var openSettings: () -> Void = {}
     @State private var model: TodayModel?
@@ -89,8 +90,8 @@ struct TodayView: View {
             } else {
                 ReadinessHeroCard(model: model)
             }
-            WeekCalendarCard(runs: model.weekRuns, today: model.today)
-            VolumeHistoryCard(week: model.summary.week)
+            WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal)
+            VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal)
             row(weights: [1, 1]) {
                 if let lastRun = model.lastRun {
                     LastRunCard(lastRun: lastRun)
