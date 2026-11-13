@@ -30,6 +30,18 @@ struct TodayLoad: Sendable {
     let summary: TodaySummary
     let readinessDay: ReadinessDay
     let lastRun: LastRunSummary?
+    let raceName: String?
+    let weekRuns: [Day: [WeekRun]]
+}
+
+struct WeekRun: Identifiable, Equatable, Sendable {
+    let activityId: Int64
+    let title: String
+    let kilometers: Double
+    let score: Int?
+    let zoneShares: [Double]
+
+    var id: Int64 { activityId }
 }
 
 enum ReadinessGroup {

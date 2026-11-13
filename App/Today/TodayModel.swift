@@ -17,6 +17,8 @@ import WorkoutAnalysis
     private(set) var readinessSentence = ""
     private(set) var readinessDay = ReadinessDay()
     private(set) var lastRun: LastRunSummary?
+    private(set) var raceName: String?
+    private(set) var weekRuns: [Day: [WeekRun]] = [:]
     private(set) var isLoaded = false
 
     init(container: ModelContainer, today: Day) {
@@ -34,6 +36,8 @@ import WorkoutAnalysis
         summary = result.summary
         readinessDay = result.readinessDay
         lastRun = result.lastRun
+        raceName = result.raceName
+        weekRuns = result.weekRuns
         if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
@@ -133,8 +137,33 @@ import WorkoutAnalysis
         return TodayLoad(
             summary: summary,
             readinessDay: readinessDay(context: context, today: today, summary: summary),
-            lastRun: lastRun(context: context, id: summary.lastRunId)
+            lastRun: lastRun(context: context, id: summary.lastRunId),
+            raceName: (try? targetRace(in: context, today: today))?.name,
+            weekRuns: weekRuns(context: context, today: today)
         )
+    }
+
+    nonisolated private static func weekRuns(context: ModelContext, today: Day) -> [Day: [WeekRun]] {
+        let start = today.weekStart.chartDate
+        let end = today.adding(days: 1).chartDate
+        let descriptor = FetchDescriptor<ActivityRecord>(
+            predicate: #Predicate { $0.start >= start && $0.start < end },
+            sortBy: [SortDescriptor(\.start)]
+        )
+        let records = ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) }
+        var result: [Day: [WeekRun]] = [:]
+        for record in records {
+            let total = record.zoneSeconds.reduce(0, +)
+            let run = WeekRun(
+                activityId: record.activityId,
+                title: record.workoutName ?? record.name,
+                kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer,
+                score: record.scoreValue,
+                zoneShares: total > 0 ? record.zoneSeconds.map { $0 / total } : []
+            )
+            result[Day.today(now: record.start), default: []].append(run)
+        }
+        return result
     }
 
     nonisolated private static func readinessDay(context: ModelContext, today: Day, summary: TodaySummary) -> ReadinessDay {

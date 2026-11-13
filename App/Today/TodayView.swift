@@ -79,18 +79,35 @@ struct TodayView: View {
 
     @ViewBuilder
     private func cards(_ model: TodayModel) -> some View {
-        let columns = sizeClass == .regular
-            ? [GridItem(.adaptive(minimum: TodayConstants.gridMinimumWidth), spacing: 12, alignment: .top)]
-            : [GridItem(.flexible())]
-        LazyVGrid(columns: columns, spacing: 12) {
-            ReadinessCard(model: model)
-            FitnessCard(model: model)
-            RacePredictionCard(content: model.predictionContent)
-            WeekCard(model: model)
-            PredictionsCard(predictions: model.summary.predictions)
-            if let lastRun = model.lastRun {
-                LastRunCard(lastRun: lastRun).id(TodayConstants.endAnchor)
+        let spacing = TodayConstants.rowSpacing
+        VStack(alignment: .leading, spacing: spacing) {
+            if let days = model.summary.raceCountdownDays {
+                row(weights: TodayConstants.topRowWeights) {
+                    ReadinessHeroCard(model: model)
+                    RaceCountdownCard(model: model, days: days)
+                }
+            } else {
+                ReadinessHeroCard(model: model)
             }
+            WeekCalendarCard(runs: model.weekRuns, today: model.today)
+            row(weights: [1, 1]) {
+                VolumeHistoryCard(week: model.summary.week)
+                PredictionsCard(predictions: model.summary.predictions)
+            }
+            if let lastRun = model.lastRun {
+                LastRunCard(lastRun: lastRun)
+            }
+            SectionLabel(TodayConstants.trendTitle)
+            FitnessCard(model: model).id(TodayConstants.endAnchor)
+        }
+    }
+
+    @ViewBuilder
+    private func row<Content: View>(weights: [Double], @ViewBuilder content: () -> Content) -> some View {
+        if sizeClass == .regular {
+            ProportionalHStack(weights: weights, spacing: TodayConstants.rowSpacing) { content() }
+        } else {
+            VStack(spacing: TodayConstants.rowSpacing) { content() }
         }
     }
 

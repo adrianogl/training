@@ -19,6 +19,7 @@ enum InsightsConstants {
     static let focusWindowDays = 28
     static let movingAverageDays = 7
     static let previousWeeks = 4
+    static let volumeHistoryWeeks = 8
     static let daysPerWeek = 7
     static let metersPerKm = 1_000.0
     static let verdictDifference = 2

@@ -68,6 +68,11 @@ import TrainingCore
         #expect(week.total == 15)
         #expect(week.lastWeek == 32)
         #expect(abs(week.average4Weeks - (32 + 8 + 0 + 10) / 4) < 1e-9)
+        #expect(week.recentWeeks.count == 8)
+        #expect(week.recentWeeks.last == WeekTotal(start: fixtureToday.weekStart, kilometers: 15))
+        #expect(week.recentWeeks[6].kilometers == 32)
+        #expect(week.recentWeeks[1].kilometers == 99)
+        #expect(week.recentWeeks.map(\.start) == week.recentWeeks.map(\.start).sorted())
     }
 
     @Test func readinessUsesMorningLoadAndSupportNumbers() throws {

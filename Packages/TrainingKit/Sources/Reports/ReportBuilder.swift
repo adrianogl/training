@@ -51,7 +51,11 @@ public struct ReportBuilder {
 
     public func predictions(_ efforts: [Effort]) -> [Prediction] {
         ReportConstants.predictionDistances.map {
-            Prediction(label: $0.label, seconds: predict(distance: $0.meters, efforts: efforts, on: today))
+            Prediction(
+                label: $0.label,
+                seconds: predict(distance: $0.meters, efforts: efforts, on: today),
+                yearAgoSeconds: predict(distance: $0.meters, efforts: efforts, on: today.adding(days: -ReportConstants.yearDays))
+            )
         }
     }
 

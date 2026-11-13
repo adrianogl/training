@@ -83,10 +83,15 @@ func weekVolume(_ runs: [ActivityRecord], today: Day) -> WeekVolume {
         (0..<C.daysPerWeek).reduce(0) { $0 + (km[first.adding(days: $1)] ?? 0) }
     }
     let previous = (1...C.previousWeeks).map { total(weekStarting: start.adding(days: -C.daysPerWeek * $0)) }
+    let recent = (0..<C.volumeHistoryWeeks).reversed().map { offset in
+        let first = start.adding(days: -C.daysPerWeek * offset)
+        return WeekTotal(start: first, kilometers: total(weekStarting: first))
+    }
     return WeekVolume(
         perDay: perDay,
         total: perDay.values.reduce(0, +),
         lastWeek: previous.first ?? 0,
-        average4Weeks: previous.reduce(0, +) / Double(C.previousWeeks)
+        average4Weeks: previous.reduce(0, +) / Double(C.previousWeeks),
+        recentWeeks: recent
     )
 }

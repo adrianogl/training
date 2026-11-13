@@ -32,12 +32,24 @@ public struct WeekVolume: Sendable, Equatable {
     public var total: Double
     public var lastWeek: Double
     public var average4Weeks: Double
+    public var recentWeeks: [WeekTotal]
 
-    public init(perDay: [Day: Double], total: Double, lastWeek: Double, average4Weeks: Double) {
+    public init(perDay: [Day: Double], total: Double, lastWeek: Double, average4Weeks: Double, recentWeeks: [WeekTotal] = []) {
         self.perDay = perDay
         self.total = total
         self.lastWeek = lastWeek
         self.average4Weeks = average4Weeks
+        self.recentWeeks = recentWeeks
+    }
+}
+
+public struct WeekTotal: Sendable, Equatable {
+    public var start: Day
+    public var kilometers: Double
+
+    public init(start: Day, kilometers: Double) {
+        self.start = start
+        self.kilometers = kilometers
     }
 }
 

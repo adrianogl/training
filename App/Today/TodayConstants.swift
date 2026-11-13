@@ -9,13 +9,9 @@ enum TodayConstants {
     static let endAnchor = "hoje-fim"
     static let comparisonWindowDays = 90.0
     static let comparisonFetchLimit = 120
-    static let gridMinimumWidth: Double = 360
     static let factorBarFullScale = 10.0
     static let chartHeight: Double = 90
     static let predictionChartHeight: Double = 120
-    static let weekBarHeight: Double = 60
-    static let weekBarMinimum: Double = 3
-    static let weekdayLetters = ["S", "T", "Q", "Q", "S", "S", "D"]
     static let months = [
         "janeiro", "fevereiro", "março", "abril", "maio", "junho",
         "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
@@ -35,9 +31,6 @@ enum TodayConstants {
         .moderate: "Treino moderado",
         .rest: "Dia de descanso",
     ]
-    static let supportHRV = "HRV"
-    static let supportSleep = "Sono"
-    static let supportLoad = "A:C"
     static let supportStress = "Stress"
     static let rulerRest = "descanso"
     static let rulerModerate = "moderado"
@@ -63,8 +56,6 @@ enum TodayConstants {
     static let goalBeaten = "A previsão já está abaixo da meta."
     static let goalUnreachable = "Na tendência atual, a meta não é alcançada."
 
-    static let weekTitle = "Semana"
-    static let weekFooter = "semana passada %@ km · média 4 semanas %@ km"
     static let predictionsTitle = "Previsões"
     static let lastRunTitle = "Último treino"
     static let lastRunNoComparison = "Sem treinos parecidos para comparar."
@@ -89,4 +80,60 @@ enum TodayConstants {
     ]
 
     static let sidebarRaceTitle = "Prova-alvo"
+
+    static let topRowWeights: [Double] = [3, 2]
+    static let rowSpacing: Double = 12
+    static let heroGaugeSize: Double = 150
+    static let compactGaugeSize: Double = 112
+    static let gaugeLineWidth: Double = 12
+    static let gaugeSweep = 0.75
+    static let gaugeStartDegrees = 135.0
+    static let gaugeGap = 0.006
+    static let gaugeTrackOpacity = 0.25
+    static let gaugeMarkerSize: Double = 16
+    static let gaugeScoreRatio = 0.34
+    static let gaugeScale = "de 100"
+    static let driverNameWidth: Double = 112
+    static let driverValueWidth: Double = 44
+    static let driverBarHeight: Double = 8
+    static let driverScaleMinimum = 10.0
+    static let driverDown = "puxa para baixo"
+    static let driverUp = "puxa para cima"
+    static let stressContextFormat = "Stress do dia %d · entra só como contexto"
+    static let countdownFontSize: Double = 72
+    static let compactCountdownFontSize: Double = 60
+    static let daysLabel = "dias"
+    static let weekStripHeight: Double = 6
+    static let weeksLeftFormat = "%d semanas e %d dias de treino"
+    static let raceDayFormLabel = "forma prevista no dia"
+    static let bulletHeight: Double = 76
+    static let bulletTrackHeight: Double = 10
+    static let bulletPaddingRatio = 0.25
+    static let bulletMinimumSpan = 120.0
+    static let bulletToday = "hoje"
+    static let bulletRaceDay = "no dia"
+    static let bulletGoal = "meta"
+    static let bulletFaster = "mais rápido →"
+    static let calendarTitle = "Semana de treino"
+    static let calendarRest = "Descanso"
+    static let calendarFuture = "—"
+    static let calendarCellMinHeight: Double = 122
+    static let calendarCompactCellWidth: Double = 116
+    static let calendarCornerRadius: Double = 14
+    static let calendarDoneTintOpacity = 0.12
+    static let calendarDash: [CGFloat] = [4, 3]
+    static let calendarDayFormat = "EEE d"
+    static let calendarScoreFormat = "nota %d"
+    static let calendarSummaryFormat = "%@ km em %d corridas"
+    static let zoneStripHeight: Double = 4
+    static let volumeTitle = "Volume semanal"
+    static let volumeChartHeight: Double = 150
+    static let volumeFooterFormat = "esta semana %@ km · média 4 semanas %@ km"
+    static let volumeCurrentOpacity = 0.45
+    static let volumeAverageLabel = "média 4 sem."
+    static let volumeWeekFormat = "d MMM"
+    static let predictionsDistance = "distância"
+    static let predictionsToday = "hoje"
+    static let predictionsYearAgo = "vs. 12 meses"
+    static let trendTitle = "Tendência"
 }

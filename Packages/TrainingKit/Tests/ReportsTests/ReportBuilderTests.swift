@@ -63,6 +63,26 @@ private func build(_ records: [ActivityRecord]) throws -> TrainingReport {
         #expect(abs(fiveK - expected) < 1)
     }
 
+    @Test func predictionCarriesYearAgoFromOlderEfforts() throws {
+        let records = [
+            run(id: 1, daysAgo: 370, split5k: 1_500, split1k: 290),
+            run(id: 2, daysAgo: 5, split5k: 1_300, split1k: 250),
+        ]
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = ModelContext(container)
+        records.forEach(context.insert)
+        try context.save()
+        let builder = ReportBuilder(context: context, today: today)
+
+        let fiveK = try #require(builder.predictions(builder.efforts(from: records)).first)
+
+        let now = try #require(fiveK.seconds)
+        let yearAgo = try #require(fiveK.yearAgoSeconds)
+        #expect(now < yearAgo)
+        #expect(abs(now - 1_300) < 60)
+        #expect(abs(yearAgo - 1_500) < 60)
+    }
+
     @Test func raceEffortUsesActivityDistance() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = ModelContext(container)

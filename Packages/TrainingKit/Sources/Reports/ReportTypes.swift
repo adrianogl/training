@@ -13,10 +13,12 @@ public struct DatedValue: Sendable, Equatable {
 public struct Prediction: Sendable, Equatable {
     public var label: String
     public var seconds: Double?
+    public var yearAgoSeconds: Double?
 
-    public init(label: String, seconds: Double?) {
+    public init(label: String, seconds: Double?, yearAgoSeconds: Double? = nil) {
         self.label = label
         self.seconds = seconds
+        self.yearAgoSeconds = yearAgoSeconds
     }
 }
 
