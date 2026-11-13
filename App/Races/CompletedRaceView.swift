@@ -1,3 +1,4 @@
+import Charts
 import SwiftUI
 import WorkoutAnalysis
 
@@ -5,15 +6,18 @@ struct CompletedRaceView: View {
     let summary: CompletedRaceSummary
     let model: RaceListModel
     @State private var showsEditor = false
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var showsPicker = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 header
-                resultCard
-                if !summary.splits.isEmpty {
-                    splitsCard
+                pair {
+                    resultCard
+                    if !summary.splits.isEmpty {
+                        splitsCard
+                    }
                 }
                 VStack(alignment: .leading, spacing: 6) {
                     SectionLabel(RacesConstants.lessonTitle).padding(.top, 0).padding(.bottom, 0)
@@ -64,25 +68,30 @@ struct CompletedRaceView: View {
     }
 
     private var resultCard: some View {
-        VStack(spacing: 10) {
-            HStack(alignment: .top) {
-                column(RacesConstants.resultLabel, summary.resultSeconds.map(WorkoutFormat.clock) ?? "—", nil, color: BrandColors.accent)
-                column(
-                    RacesConstants.goalLabel,
-                    summary.goalSeconds.map(WorkoutFormat.clock) ?? "—",
-                    summary.resultVsGoalText.map { "resultado \($0)" },
-                    color: BrandColors.text
+        VStack(alignment: .leading, spacing: 12) {
+            SectionLabel(RacesConstants.resultLabel).padding(.top, 0).padding(.bottom, 0)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(summary.resultSeconds.map(WorkoutFormat.clock) ?? "—")
+                    .font(BrandFonts.number(TodayConstants.compactCountdownFontSize))
+                    .foregroundStyle(BrandColors.text)
+                Text(RacesText.distanceText(summary.info.distance)).foregroundStyle(BrandColors.dim)
+            }
+            if summary.resultSeconds != nil {
+                GoalBulletChart(
+                    today: summary.eveSeconds,
+                    raceDay: summary.resultSeconds,
+                    goal: summary.goalSeconds,
+                    todayLabel: RacesConstants.eveShort,
+                    raceDayLabel: RacesConstants.resultShort
                 )
-                column(
-                    RacesConstants.eveLabel,
-                    summary.eveSeconds.map(WorkoutFormat.clock) ?? "—",
-                    summary.resultVsEveText.map { "resultado \($0)" } ?? summary.eveNote,
-                    color: BrandColors.text
-                )
+            }
+            let parts = [summary.resultVsGoalText.map { "\($0) da meta" }, summary.resultVsEveText.map { "\($0) da previsão da véspera" } ?? summary.eveNote].compactMap { $0 }
+            if !parts.isEmpty {
+                Text(parts.joined(separator: " · ")).font(.footnote).foregroundStyle(BrandColors.text.opacity(0.85))
             }
             activityLink
         }
-        .brandCard()
+        .brandCard(fillsHeight: true)
     }
 
     @ViewBuilder
@@ -121,31 +130,51 @@ struct CompletedRaceView: View {
     }
 
     private var splitsCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(RacesConstants.splitsTitle).padding(.top, 0).padding(.bottom, 0)
-            ForEach(summary.splits) { split in
-                HStack {
-                    Text("\(split.index + 1)").frame(width: 30, alignment: .leading).foregroundStyle(BrandColors.dim)
-                    Text(RacesText.paceText(split.pace)).fontWeight(.bold).foregroundStyle(BrandColors.text)
-                    Spacer()
-                    if let planned = split.planned {
-                        Text("plano \(WorkoutFormat.clock(planned))").foregroundStyle(BrandColors.dim)
+        let average = summary.splits.map(\.pace).reduce(0, +) / Double(max(summary.splits.count, 1))
+        return VStack(alignment: .leading, spacing: 10) {
+            SectionLabel(RacesConstants.splitsDivergingTitle).padding(.top, 0).padding(.bottom, 0)
+            Chart(summary.splits) { split in
+                BarMark(
+                    x: .value("Km", split.index + 1),
+                    yStart: .value("Média", average),
+                    yEnd: .value("Pace", split.pace)
+                )
+                .foregroundStyle(split.pace > average ? BrandColors.attention : BrandColors.accentFill)
+                .cornerRadius(2)
+                RuleMark(y: .value("Média", average))
+                    .foregroundStyle(BrandColors.marker)
+                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+            }
+            .chartYScale(domain: .automatic(includesZero: false, reversed: true))
+            .chartYAxis {
+                AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
+                    AxisValueLabel {
+                        if let pace = value.as(Double.self) { Text(WorkoutFormat.clock(pace)).font(.caption2).foregroundStyle(BrandColors.dim) }
                     }
                 }
-                .font(.subheadline.monospacedDigit())
             }
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 6)) { _ in
+                    AxisValueLabel().foregroundStyle(BrandColors.dim)
+                }
+            }
+            .frame(height: RacesConstants.splitsChartHeight)
+            Text(String(format: RacesConstants.splitsAverageFormat, WorkoutFormat.clock(average)))
+                .font(.caption)
+                .foregroundStyle(BrandColors.dim)
         }
-        .brandCard()
+        .brandCard(fillsHeight: true)
     }
 
-    private func column(_ label: String, _ value: String, _ detail: String?, color: Color) -> some View {
-        VStack(spacing: 2) {
-            Text(label).font(.caption).foregroundStyle(color == BrandColors.text ? BrandColors.dim : color).multilineTextAlignment(.center)
-            Text(value).font(BrandFonts.number(24)).foregroundStyle(color)
-            Text(detail ?? " ").font(.caption2).foregroundStyle(BrandColors.dim).multilineTextAlignment(.center)
+    @ViewBuilder
+    private func pair<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if sizeClass == .regular {
+            ProportionalHStack(weights: RacesConstants.pairWeights, spacing: TodayConstants.rowSpacing) { content() }
+        } else {
+            VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) { content() }
         }
-        .frame(maxWidth: .infinity)
     }
+
 }
 
 private struct ResultPickerSheet: View {

@@ -6,6 +6,7 @@ import WorkoutAnalysis
 struct PaceStrategyCard: View {
     let model: NextRaceModel
     @State private var editing: PaceEditTarget?
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -28,6 +29,9 @@ struct PaceStrategyCard: View {
                 notice(RacesConstants.strategyInfeasible)
                 clearButton(RacesConstants.clearManual)
             case .noGPX, .ok:
+                if !model.strategy.isEmpty {
+                    paceBars
+                }
                 if model.strategyState == .noGPX {
                     notice(RacesConstants.strategyNoGPX)
                 } else {
@@ -76,10 +80,54 @@ struct PaceStrategyCard: View {
         .frame(height: RacesConstants.altitudeChartHeight)
     }
 
+    private var paceBars: some View {
+        let average = model.strategy.map(\.pace).reduce(0, +) / Double(max(model.strategy.count, 1))
+        return Chart(model.strategy, id: \.index) { plan in
+            BarMark(
+                x: .value("Km", plan.index + 1),
+                yStart: .value("Média", average),
+                yEnd: .value("Pace", plan.pace)
+            )
+            .foregroundStyle(plan.pace > average ? BrandColors.attention : BrandColors.accentFill)
+            .opacity(plan.manual ? 1 : 0.85)
+            .cornerRadius(2)
+            RuleMark(y: .value("Média", average))
+                .foregroundStyle(BrandColors.marker)
+                .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
+        }
+        .chartYScale(domain: .automatic(includesZero: false, reversed: true))
+        .chartYAxis {
+            AxisMarks(position: .leading, values: .automatic(desiredCount: 3)) { value in
+                AxisValueLabel {
+                    if let pace = value.as(Double.self) { Text(WorkoutFormat.clock(pace)).font(.caption2).foregroundStyle(BrandColors.dim) }
+                }
+            }
+        }
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 6)) { _ in AxisValueLabel().foregroundStyle(BrandColors.dim) }
+        }
+        .frame(height: RacesConstants.strategyBarsHeight)
+    }
+
+    @ViewBuilder
     private var table: some View {
+        if sizeClass == .regular {
+            let size = Int((Double(model.strategy.count) / Double(RacesConstants.strategyColumns)).rounded(.up))
+            HStack(alignment: .top, spacing: 18) {
+                ForEach(0..<RacesConstants.strategyColumns, id: \.self) { column in
+                    let slice = Array(model.strategy.dropFirst(column * size).prefix(size))
+                    tableColumn(slice)
+                }
+            }
+        } else {
+            tableColumn(model.strategy)
+        }
+    }
+
+    private func tableColumn(_ plans: [KmPlan]) -> some View {
         VStack(spacing: 0) {
             row(RacesConstants.strategyHeaders, color: BrandColors.dim, font: .caption2, manual: false)
-            ForEach(model.strategy, id: \.index) { plan in
+            ForEach(plans, id: \.index) { plan in
                 Button {
                     editing = PaceEditTarget(plan: plan)
                 } label: {
@@ -100,7 +148,7 @@ struct PaceStrategyCard: View {
     private func row(_ cells: [String], color: Color, font: Font, manual: Bool, labelColor: Color? = nil) -> some View {
         HStack {
             Text(cells[0]).frame(width: 30, alignment: .leading)
-            Text(cells[1]).foregroundStyle(labelColor ?? color).frame(maxWidth: .infinity, alignment: .leading)
+            Text(cells[1]).foregroundStyle(labelColor ?? color).lineLimit(1).frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             Text(cells[2]).frame(width: 60, alignment: .trailing)
             Text(cells[3]).fontWeight(.bold).foregroundStyle(manual ? BrandColors.accent : color).frame(width: 52, alignment: .trailing)
             Text(cells[4]).foregroundStyle(BrandColors.dim).frame(width: 70, alignment: .trailing)

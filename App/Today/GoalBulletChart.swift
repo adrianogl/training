@@ -5,6 +5,8 @@ struct GoalBulletChart: View {
     let today: Double?
     let raceDay: Double?
     let goal: Double?
+    var todayLabel = TodayConstants.bulletToday
+    var raceDayLabel = TodayConstants.bulletRaceDay
 
     private typealias C = TodayConstants
 
@@ -37,12 +39,12 @@ struct GoalBulletChart: View {
                     }
                     if let today {
                         Circle().fill(BrandColors.text).frame(width: 12, height: 12).position(x: x(today), y: trackY)
-                        valueLabel(C.bulletToday, WorkoutFormat.clock(today), color: BrandColors.text)
+                        valueLabel(todayLabel, WorkoutFormat.clock(today), color: BrandColors.text)
                             .position(x: clamp(x(today), width), y: 60)
                     }
                     if let raceDay {
                         Circle().fill(BrandColors.race).frame(width: 14, height: 14).position(x: x(raceDay), y: trackY)
-                        valueLabel(C.bulletRaceDay, WorkoutFormat.clock(raceDay), color: BrandColors.race)
+                        valueLabel(raceDayLabel, WorkoutFormat.clock(raceDay), color: BrandColors.race)
                             .position(x: clamp(x(raceDay), width), y: 60)
                     }
                 }

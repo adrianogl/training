@@ -6,6 +6,17 @@ import os
 enum RacesConstants {
     static let logger = Logger(subsystem: "trAIning", category: "Races")
     static let title = "Provas"
+    static let goalTileTitle = "Meta vs. previsão"
+    static let daysLabel = "dias"
+    static let eveShort = "véspera"
+    static let resultShort = "resultado"
+    static let splitsDivergingTitle = "Parciais por km"
+    static let splitsChartHeight: Double = 150
+    static let splitsAverageFormat = "média %@/km"
+    static let selectRace = "Escolha uma prova na lista."
+    static let pairWeights: [Double] = [1, 1]
+    static let strategyBarsHeight: Double = 120
+    static let strategyColumns = 2
     static let upcomingTitle = "Próximas"
     static let completedTitle = "Concluídas"
     static let candidatesTitle = "Parece prova?"
@@ -62,7 +73,6 @@ enum RacesConstants {
     static let noPredictionForGoal = "Sem previsão para comparar com a meta."
 
     static let goalLabel = "meta"
-    static let todayLabel = "previsão hoje"
     static let raceDayLabel = "no dia da prova"
     static let noGoal = "Sem meta cadastrada. Edite a prova para definir uma."
 
@@ -116,9 +126,7 @@ enum RacesConstants {
     static let predictionChartTitle = "Previsão até a prova"
 
     static let resultLabel = "resultado"
-    static let eveLabel = "previsão da véspera"
     static let noEvePrediction = "sem previsão da véspera"
-    static let splitsTitle = "Parciais"
     static let lessonTitle = "O que a prova ensinou"
     static let suggestionNote = "Atividade sugerida: corrida do dia com distância compatível."
     static let useSuggestion = "Usar esta atividade"

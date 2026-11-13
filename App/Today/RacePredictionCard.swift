@@ -45,7 +45,15 @@ struct RacePredictionCard: View {
     }
 
     private var header: some View {
-        HStack(spacing: 6) {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 6) { headerParts }
+            VStack(alignment: .leading, spacing: 2) { headerParts }
+        }
+    }
+
+    @ViewBuilder
+    private var headerParts: some View {
+        Group {
             SectionLabel("\(TodayConstants.predictionTitle) · \(content.title)")
                 .padding(.top, 0)
                 .padding(.bottom, 0)

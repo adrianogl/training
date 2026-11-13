@@ -4,6 +4,7 @@ import WorkoutAnalysis
 
 struct NextRaceView: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.horizontalSizeClass) private var sizeClass
     let raceId: UUID
     @State private var model: NextRaceModel?
     @State private var showsEditor = false
@@ -14,12 +15,16 @@ struct NextRaceView: View {
             VStack(alignment: .leading, spacing: 12) {
                 if let model, model.isLoaded, let info = model.info {
                     header(model, info: info)
-                    goalCard(model)
+                    pair {
+                        goalTile(model, info: info)
+                        RaceChecklistCard(items: model.checklist)
+                    }
                     PaceStrategyCard(model: model)
-                    RacePredictionCard(content: model.predictionContent)
-                    RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading)
-                        .id(RacesConstants.blockAnchor)
-                    RaceChecklistCard(items: model.checklist)
+                    pair {
+                        RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading)
+                            .id(RacesConstants.blockAnchor)
+                        RacePredictionCard(content: model.predictionContent)
+                    }
                     Color.clear.frame(height: 1).id(RacesConstants.endAnchor)
                 } else if model?.isLoaded == true {
                     Text(RacesConstants.emptyList).foregroundStyle(BrandColors.dim)
@@ -85,51 +90,35 @@ struct NextRaceView: View {
         }
     }
 
-    @ViewBuilder
-    private func goalCard(_ model: NextRaceModel) -> some View {
-        if let summary = model.goalSummary {
-            VStack(spacing: 10) {
-                HStack(alignment: .top) {
-                    column(RacesConstants.goalLabel, WorkoutFormat.clock(summary.goalSeconds), summary.goalPaceText, color: BrandColors.text, detailColor: BrandColors.dim)
-                    column(
-                        RacesConstants.todayLabel,
-                        summary.todaySeconds.map(WorkoutFormat.clock) ?? "—",
-                        RacesText.signedClock(summary.todaySeconds, minus: summary.goalSeconds),
-                        color: BrandColors.text, detailColor: deltaColor(summary.todaySeconds, summary.goalSeconds)
-                    )
-                    column(
-                        RacesConstants.raceDayLabel,
-                        summary.raceDaySeconds.map(WorkoutFormat.clock) ?? "—",
-                        RacesText.signedClock(summary.raceDaySeconds, minus: summary.goalSeconds),
-                        color: BrandColors.accent, detailColor: deltaColor(summary.raceDaySeconds, summary.goalSeconds)
-                    )
+    private func goalTile(_ model: NextRaceModel, info: RaceInfo) -> some View {
+        let days = model.today.days(until: info.day)
+        return VStack(alignment: .leading, spacing: 12) {
+            SectionLabel(RacesConstants.goalTileTitle).padding(.top, 0).padding(.bottom, 0)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("\(max(days, 0))")
+                    .font(BrandFonts.number(TodayConstants.compactCountdownFontSize))
+                    .foregroundStyle(BrandColors.race)
+                Text(RacesConstants.daysLabel).foregroundStyle(BrandColors.dim)
+                if let pace = model.goalSummary?.goalPaceText {
+                    Text(pace).font(.subheadline).foregroundStyle(BrandColors.dim)
                 }
-                Text(summary.sentence ?? RacesConstants.noPredictionForGoal)
-                    .font(.footnote)
-                    .foregroundStyle(BrandColors.text.opacity(0.8))
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
             }
-            .brandCard()
+            GoalBulletChart(today: model.outlook.today, raceDay: model.outlook.raceDay?.mid, goal: info.goalSeconds)
+            Text(model.goalSummary?.sentence ?? (info.goalSeconds == nil ? RacesConstants.noGoal : RacesConstants.noPredictionForGoal))
+                .font(.footnote)
+                .foregroundStyle(BrandColors.text.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .brandCard(fillsHeight: true)
+    }
+
+    @ViewBuilder
+    private func pair<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        if sizeClass == .regular {
+            ProportionalHStack(weights: RacesConstants.pairWeights, spacing: TodayConstants.rowSpacing) { content() }
         } else {
-            Text(RacesConstants.noGoal)
-                .font(.subheadline)
-                .foregroundStyle(BrandColors.dim)
-                .brandCard()
+            VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) { content() }
         }
     }
 
-    private func column(_ label: String, _ value: String, _ detail: String?, color: Color, detailColor: Color) -> some View {
-        VStack(spacing: 2) {
-            Text(label).font(.caption).foregroundStyle(color == BrandColors.text ? BrandColors.dim : color)
-            Text(value).font(BrandFonts.number(24)).foregroundStyle(color)
-            Text(detail ?? " ").font(.caption).foregroundStyle(detailColor)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func deltaColor(_ value: Double?, _ goal: Double) -> Color {
-        guard let value else { return BrandColors.dim }
-        return value <= goal ? BrandColors.accent : BrandColors.form
-    }
 }

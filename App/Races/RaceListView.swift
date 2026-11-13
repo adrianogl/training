@@ -11,57 +11,39 @@ struct RaceListView: View {
     @State private var path: [RaceRoute] = []
     @State private var showsEditor = false
     @State private var openedDebugRace = false
+    @State private var selection: RaceRoute?
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     private var signature: [Date] {
         races.map(\.updatedAt).sorted()
     }
 
     var body: some View {
-        NavigationStack(path: $path) {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    CompactLogoHeader()
-                    HStack {
-                        Text(RacesConstants.title)
-                            .font(.largeTitle.weight(.bold))
-                            .foregroundStyle(BrandColors.text)
-                        Spacer()
-                        Button {
-                            showsEditor = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(BrandColors.onAccent)
-                                .frame(width: 40, height: 40)
-                                .background(BrandColors.accentFill, in: Circle())
+        Group {
+            if sizeClass == .regular {
+                HStack(spacing: 0) {
+                    listScroll
+                        .frame(width: WorkoutConstants.listWidth)
+                    Divider().overlay(BrandColors.line)
+                    NavigationStack {
+                        if let route = currentRoute {
+                            destination(route)
+                                .id(route)
+                                .navigationDestination(for: Int64.self) { activityId in WorkoutDetailView(activityId: activityId) }
+                        } else {
+                            Text(RacesConstants.selectRace)
+                                .foregroundStyle(BrandColors.dim)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .background(BrandBackground())
                         }
-                        .accessibilityLabel(RacesConstants.addRace)
-                    }
-                    .padding(.bottom, 8)
-                    if let model, model.isLoaded {
-                        content(model)
-                    } else {
-                        ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                     }
                 }
-                .padding(.horizontal, BrandConstants.screenPadding)
-                .padding(.top, 8)
-                .padding(.bottom, 24)
-            }
-            .background(BrandBackground())
-            .toolbarVisibility(.hidden, for: .navigationBar)
-            .navigationDestination(for: RaceRoute.self) { route in
-                switch route {
-                case .next(let id):
-                    NextRaceView(raceId: id)
-                case .completed(let id):
-                    if let model, let summary = model.summaries[id] {
-                        CompletedRaceView(summary: summary, model: model)
-                    }
+            } else {
+                NavigationStack(path: $path) {
+                    listScroll
+                        .navigationDestination(for: RaceRoute.self) { route in destination(route) }
+                        .navigationDestination(for: Int64.self) { activityId in WorkoutDetailView(activityId: activityId) }
                 }
-            }
-            .navigationDestination(for: Int64.self) { activityId in
-                WorkoutDetailView(activityId: activityId)
             }
         }
         .sheet(isPresented: $showsEditor) {
@@ -76,6 +58,78 @@ struct RaceListView: View {
         }
     }
 
+    private var listScroll: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                CompactLogoHeader()
+                HStack {
+                    Text(RacesConstants.title)
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(BrandColors.text)
+                    Spacer()
+                    Button {
+                        showsEditor = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(BrandColors.onAccent)
+                            .frame(width: 40, height: 40)
+                            .background(BrandColors.accentFill, in: Circle())
+                    }
+                    .accessibilityLabel(RacesConstants.addRace)
+                }
+                .padding(.bottom, 8)
+                if let model, model.isLoaded {
+                    content(model)
+                } else {
+                    ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+                }
+            }
+            .padding(.horizontal, BrandConstants.screenPadding)
+            .padding(.top, 8)
+            .padding(.bottom, 24)
+        }
+        .background(BrandBackground())
+        .toolbarVisibility(.hidden, for: .navigationBar)
+    }
+
+    private var currentRoute: RaceRoute? {
+        if let selection { return selection }
+        if let first = model?.upcoming.first { return .next(first.id) }
+        return model?.completed.first.map { .completed($0.id) }
+    }
+
+    @ViewBuilder
+    private func destination(_ route: RaceRoute) -> some View {
+        switch route {
+        case .next(let id):
+            NextRaceView(raceId: id)
+        case .completed(let id):
+            if let model, let summary = model.summaries[id] {
+                CompletedRaceView(summary: summary, model: model)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func link(_ route: RaceRoute, _ row: RaceRowData) -> some View {
+        if sizeClass == .regular {
+            Button { selection = route } label: {
+                RaceRow(row: row)
+                    .overlay {
+                        if currentRoute == route {
+                            RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
+                                .strokeBorder(BrandColors.accentFill, lineWidth: 2)
+                        }
+                    }
+            }
+            .buttonStyle(.plain)
+        } else {
+            NavigationLink(value: route) { RaceRow(row: row) }
+                .buttonStyle(.plain)
+        }
+    }
+
     @ViewBuilder
     private func content(_ model: RaceListModel) -> some View {
         if model.upcoming.isEmpty && model.completed.isEmpty && model.candidates.isEmpty {
@@ -87,8 +141,7 @@ struct RaceListView: View {
         if !model.upcoming.isEmpty {
             SectionLabel(RacesConstants.upcomingTitle)
             ForEach(model.upcoming) { row in
-                NavigationLink(value: RaceRoute.next(row.id)) { RaceRow(row: row) }
-                    .buttonStyle(.plain)
+                link(.next(row.id), row)
             }
         }
         if !model.candidates.isEmpty {
@@ -104,8 +157,7 @@ struct RaceListView: View {
         if !model.completed.isEmpty {
             SectionLabel(RacesConstants.completedTitle)
             ForEach(model.completed) { row in
-                NavigationLink(value: RaceRoute.completed(row.id)) { RaceRow(row: row) }
-                    .buttonStyle(.plain)
+                link(.completed(row.id), row)
             }
         }
     }
@@ -116,9 +168,9 @@ struct RaceListView: View {
         openedDebugRace = true
         switch target {
         case "proxima":
-            if let first = model.upcoming.first { path = [.next(first.id)] }
+            if let first = model.upcoming.first { path = [.next(first.id)]; selection = .next(first.id) }
         case "concluida":
-            if let first = model.completed.first { path = [.completed(first.id)] }
+            if let first = model.completed.first { path = [.completed(first.id)]; selection = .completed(first.id) }
         case "nova":
             showsEditor = true
         default:
