@@ -126,6 +126,10 @@ import WorkoutAnalysis
         setGPX(data)
     }
 
+    func importGPX(data: Data) {
+        setGPX(data)
+    }
+
     func removeGPX() {
         gpxData = nil
         gpxSummary = nil

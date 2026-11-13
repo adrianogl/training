@@ -9,6 +9,7 @@ struct RaceEditorSheet: View {
     let raceId: UUID?
     @State private var model: RaceEditorModel?
     @State private var importsGPX = false
+    @State private var picksCourse = false
     @State private var confirmsDelete = false
     @State private var saveError: String?
 
@@ -103,6 +104,9 @@ struct RaceEditorSheet: View {
                 .pickerStyle(.segmented)
             }
             Section {
+                if app.garminAccount.isSignedIn {
+                    Button(RacesConstants.courseImport) { picksCourse = true }
+                }
                 Button(model.gpxData == nil ? RacesConstants.gpxImport : RacesConstants.gpxReplace) { importsGPX = true }
                 if let summary = model.gpxSummary {
                     Text(summary).font(.footnote).foregroundStyle(BrandColors.dim)
@@ -124,6 +128,9 @@ struct RaceEditorSheet: View {
         .environment(\.locale, WorkoutConstants.locale)
         .fileImporter(isPresented: $importsGPX, allowedContentTypes: [UTType(filenameExtension: "gpx") ?? .xml, .xml]) { result in
             if case .success(let url) = result { model.importGPX(from: url) }
+        }
+        .sheet(isPresented: $picksCourse) {
+            CoursePickerSheet(client: app.garminAccount.client) { data in model.importGPX(data: data) }
         }
         .confirmationDialog(RacesConstants.deleteConfirm, isPresented: $confirmsDelete) {
             Button(RacesConstants.delete, role: .destructive) {
