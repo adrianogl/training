@@ -4,4 +4,5 @@
     <property id="RaceDate" type="string">2026-11-29</property>
     <property id="RaceGoal" type="string">1:39:00</property>
     <property id="RaceDistance" type="number">21</property>
+    <property id="watchToken" type="string"></property>
 </properties>

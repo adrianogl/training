@@ -8,13 +8,20 @@ Mostrador Connect IQ com o layout Prontidão: anel de segundos, data, temperatur
 | --- | --- |
 | Temperatura e umidade | `Weather.getCurrentConditions()` |
 | Bateria | `System.getSystemStats().battery` |
-| VO2max, km da semana, próxima reunião, previsão de prova, Body Battery, training status | complications do sistema (`Toybox.Complications`) |
+| VO2max, km da semana, próxima reunião, previsão de prova | complications do sistema (`Toybox.Complications`) |
 | Meta semanal, nome, data, distância e meta da prova | configurações do mostrador no app Connect IQ do celular |
-| Prontidão, veredito e HRV | `Application.Storage`, preenchido pela ponte com o app do iPhone (ainda não existe) |
+| Prontidão | servidor de sync do app trAIning, buscado em background a cada 15 min e guardado em `Application.Storage` |
 
-Sem a ponte, a linha da prontidão mostra o training status da Garmin e o terceiro número mostra a Body Battery no lugar do HRV. A previsão é a do relógio (race predictor da Garmin), por isso aparece sem o selo AI.
+A prontidão ocupa o terceiro número, com o selo AI. A previsão é a do relógio (race predictor da Garmin), por isso aparece sem o selo AI.
 
 A complication de calendário devolve só o horário do próximo evento, sem o nome.
+
+## Prontidão do app
+
+1. No app trAIning do iPhone, gerar o token em Ajustes › Sincronização › Relógio.
+2. No Garmin Connect do celular, abrir o mostrador e colar o token em Configurações › Token do relógio.
+
+O mostrador busca a nota em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
 
 ## Build
 
