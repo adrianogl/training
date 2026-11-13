@@ -65,6 +65,58 @@ import Testing
         #expect(result == RemotePushResult(cursor: 9, ignored: [RemoteRecordKey(kind: .race, id: "A")]))
     }
 
+    @Test func putWatchTokenSendsOnlyHash() async throws {
+        let transport = ScriptedTransport([.json(204, "")])
+
+        try await client(transport).putWatchToken(hash: "ab12")
+
+        let request = try #require(transport.requests.first)
+        #expect(request.httpMethod == "PUT")
+        #expect(request.url?.absoluteString == "https://sync.example.test/api/v1/watch/token")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer M9jNxgbJ9wEyyyGJTzrDGTbjcEa8kudkDe3tjwXqEco")
+        #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
+        let body = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
+        #expect(body == #"{"tokenHash":"ab12"}"#)
+    }
+
+    @Test func deleteWatchTokenExpectsNoContent() async throws {
+        let transport = ScriptedTransport([.json(204, "")])
+
+        try await client(transport).deleteWatchToken()
+
+        #expect(transport.requests.first?.httpMethod == "DELETE")
+        #expect(transport.requests.first?.url?.path == "/api/v1/watch/token")
+        #expect(transport.requests.first?.httpBody == nil)
+    }
+
+    @Test func putReadinessSendsDayScoreAndVerdict() async throws {
+        let transport = ScriptedTransport([.json(204, "")])
+
+        try await client(transport).putReadiness(WatchReadiness(day: "2026-11-12", score: 63, verdict: "Treino moderado"))
+
+        let request = try #require(transport.requests.first)
+        #expect(request.httpMethod == "PUT")
+        #expect(request.url?.path == "/api/v1/watch/readiness")
+        let body = try #require(request.httpBody.flatMap { String(data: $0, encoding: .utf8) })
+        #expect(body == #"{"day":"2026-11-12","score":63,"verdict":"Treino moderado"}"#)
+    }
+
+    @Test func watchTokenConflictIsDistinct() async {
+        let conflict = ScriptedTransport([.json(409, #"{"error":"token_conflict"}"#)])
+
+        await #expect(throws: RemoteSyncError.tokenConflict) { try await client(conflict).putWatchToken(hash: "ab") }
+    }
+
+    @Test func watchRoutesMapErrors() async {
+        let unauthorized = ScriptedTransport([.json(401, #"{"error":"unauthorized"}"#)])
+        let invalid = ScriptedTransport([.json(400, #"{"error":"invalid"}"#)])
+
+        await #expect(throws: RemoteSyncError.unauthorized) { try await client(unauthorized).putWatchToken(hash: "ab") }
+        await #expect(throws: RemoteSyncError.badRequest) {
+            try await client(invalid).putReadiness(WatchReadiness(day: "2026-11-12", score: 63, verdict: "x"))
+        }
+    }
+
     @Test func mapsErrorStatuses() async throws {
         let cases: [(Int, RemoteSyncError)] = [
             (401, .unauthorized), (429, .rateLimited), (400, .badRequest), (413, .payloadTooLarge),

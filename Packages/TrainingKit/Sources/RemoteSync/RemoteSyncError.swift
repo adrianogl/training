@@ -6,6 +6,7 @@ public enum RemoteSyncError: Error, Equatable {
     case badRequest
     case payloadTooLarge
     case quotaExceeded
+    case tokenConflict
     case server(status: Int)
     case unexpectedStatus(Int)
     case decoding

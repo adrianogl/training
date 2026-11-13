@@ -8,9 +8,14 @@ enum RemoteSyncConstants {
     static let derivedKeyByteCount = 32
     static let accountPath = "api/v1/account"
     static let changesPath = "api/v1/changes"
+    static let watchTokenPath = "api/v1/watch/token"
+    static let watchReadinessPath = "api/v1/watch/readiness"
+    static let watchVerdictMaxLength = 24
+    static let watchScoreRange = 0...100
     static let sinceQuery = "since"
     static let pushBatchSize = 100
     static let quotaExceededCode = "quota_exceeded"
+    static let tokenConflictCode = "token_conflict"
     static let maxBatchBodyBytes = 3_500_000
     static let maxPayloadCharacters = 950_000
     static let reducedGPXMaxPoints = 5_000

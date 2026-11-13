@@ -62,6 +62,23 @@ struct RemoteErrorBody: Decodable {
     var error: String
 }
 
+struct WatchTokenBody: Encodable {
+    var tokenHash: String
+}
+
+public struct WatchReadiness: Codable, Equatable, Sendable {
+    public var day: String
+    public var score: Int
+    public var verdict: String
+
+    public init(day: String, score: Int, verdict: String) {
+        let range = RemoteSyncConstants.watchScoreRange
+        self.day = day
+        self.score = min(max(score, range.lowerBound), range.upperBound)
+        self.verdict = String(String.UnicodeScalarView(verdict.unicodeScalars.prefix(RemoteSyncConstants.watchVerdictMaxLength)))
+    }
+}
+
 struct RemotePushBody: Encodable {
     var records: [RemoteRecord]
 }

@@ -31,6 +31,20 @@ public struct RemoteClient: Sendable {
         return try decode(try await send(method: "POST", path: C.changesPath, body: body))
     }
 
+    public func putWatchToken(hash: String) async throws {
+        let body = try RemoteJSON.encoder().encode(WatchTokenBody(tokenHash: hash))
+        _ = try await send(method: "PUT", path: C.watchTokenPath, body: body, accepted: [204])
+    }
+
+    public func deleteWatchToken() async throws {
+        _ = try await send(method: "DELETE", path: C.watchTokenPath, accepted: [204])
+    }
+
+    public func putReadiness(_ readiness: WatchReadiness) async throws {
+        let body = try RemoteJSON.encoder().encode(readiness)
+        _ = try await send(method: "PUT", path: C.watchReadinessPath, body: body, accepted: [204])
+    }
+
     private func send(method: String, path: String, query: [URLQueryItem] = [], body: Data? = nil, accepted: Set<Int> = [200]) async throws -> Data {
         var url = baseURL.appending(path: path)
         if !query.isEmpty { url.append(queryItems: query) }
@@ -58,6 +72,9 @@ public struct RemoteClient: Sendable {
     private static func error(for status: Int, body: Data) -> RemoteSyncError {
         if status == 413, (try? JSONDecoder().decode(RemoteErrorBody.self, from: body))?.error == C.quotaExceededCode {
             return .quotaExceeded
+        }
+        if status == 409, (try? JSONDecoder().decode(RemoteErrorBody.self, from: body))?.error == C.tokenConflictCode {
+            return .tokenConflict
         }
         return switch status {
         case 400: .badRequest
