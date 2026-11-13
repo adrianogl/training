@@ -22,7 +22,7 @@ struct CompletedRaceView: View {
                         .foregroundStyle(BrandColors.text.opacity(0.85))
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .glassCard()
+                .brandCard()
             }
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.bottom, 24)
@@ -55,7 +55,7 @@ struct CompletedRaceView: View {
                         .foregroundStyle(BrandColors.onAccent)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(BrandColors.accent, in: Capsule())
+                        .background(BrandColors.accentFill, in: Capsule())
                 }
             }
             Text(summary.info.name).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
@@ -82,7 +82,7 @@ struct CompletedRaceView: View {
             }
             activityLink
         }
-        .glassCard()
+        .brandCard()
     }
 
     @ViewBuilder
@@ -135,7 +135,7 @@ struct CompletedRaceView: View {
                 .font(.subheadline.monospacedDigit())
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func column(_ label: String, _ value: String, _ detail: String?, color: Color) -> some View {

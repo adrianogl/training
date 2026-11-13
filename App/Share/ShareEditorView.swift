@@ -90,7 +90,7 @@ struct ShareEditorView: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     @ViewBuilder
@@ -105,7 +105,7 @@ struct ShareEditorView: View {
                     .foregroundStyle(BrandColors.onAccent)
                     .frame(maxWidth: .infinity)
                     .padding(ShareConstants.buttonPadding)
-                    .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
+                    .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
             }
         }
     }

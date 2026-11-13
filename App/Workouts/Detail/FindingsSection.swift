@@ -16,7 +16,7 @@ struct FindingsSection: View {
                 OnDeviceCaption()
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func slice(_ start: Int, _ count: Int) -> [String] {

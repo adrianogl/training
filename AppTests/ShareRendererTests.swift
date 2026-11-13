@@ -44,6 +44,17 @@ import WorkoutAnalysis
         }
     }
 
+    @Test func launchIconHasTransparentCorners() throws {
+        let data = try #require(AppIconExport.launchIconPNG())
+        let image = try #require(UIImage(data: data))
+        let side = Int(BrandConstants.launchIconPoints * BrandConstants.launchIconScale)
+        #expect(try #require(image.cgImage).width == side)
+        #expect(try cornerAlpha(image) == 0)
+        if let target = ProcessInfo.processInfo.environment[ShareConstants.launchIconExportEnvironmentVariable] {
+            try data.write(to: URL(fileURLWithPath: target))
+        }
+    }
+
     private func cornerAlpha(_ image: UIImage) throws -> UInt8 {
         let cgImage = try #require(image.cgImage)
         var pixel = [UInt8](repeating: 0, count: 4)

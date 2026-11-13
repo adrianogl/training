@@ -24,7 +24,7 @@ struct SidebarRaceCard: View {
                     .font(.caption)
                     .foregroundStyle(BrandColors.dim)
             }
-            .glassCard()
+            .brandCard()
             .padding(10)
             .id(races.count)
         }

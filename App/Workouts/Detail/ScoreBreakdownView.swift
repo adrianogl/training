@@ -33,7 +33,7 @@ struct ScoreBreakdownView: View {
                         .background(BrandColors.track, in: Capsule())
                     }
                 }
-                .glassCard()
+                .brandCard()
             }
         }
     }

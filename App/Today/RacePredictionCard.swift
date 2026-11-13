@@ -34,7 +34,7 @@ struct RacePredictionCard: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private var header: some View {

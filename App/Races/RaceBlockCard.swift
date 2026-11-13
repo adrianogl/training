@@ -42,6 +42,6 @@ struct RaceBlockCard: View {
                 .foregroundStyle(BrandColors.text.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .glassCard()
+        .brandCard()
     }
 }

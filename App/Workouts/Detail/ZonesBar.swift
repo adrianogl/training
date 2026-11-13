@@ -39,7 +39,7 @@ struct ZonesBar: View {
                 .font(.caption2)
                 .foregroundStyle(BrandColors.dim)
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func minutes(_ item: ZoneShare) -> String {

@@ -22,6 +22,6 @@ struct PredictionsCard: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
     }
 }

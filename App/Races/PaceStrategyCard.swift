@@ -40,7 +40,7 @@ struct PaceStrategyCard: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
         .sheet(item: $editing) { target in
             PaceEditor(plan: target.plan, model: model)
                 .presentationDetents([.height(320)])

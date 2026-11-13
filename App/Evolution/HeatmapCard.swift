@@ -21,7 +21,7 @@ struct HeatmapCard: View {
             }
             Text(C.heatmapLegend).font(.caption2).foregroundStyle(BrandColors.dim)
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func color(_ cell: HeatmapCell) -> Color {

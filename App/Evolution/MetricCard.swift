@@ -29,7 +29,7 @@ struct MetricCard: View {
                     Color.clear.frame(height: EvolutionConstants.cardChartHeight)
                 }
             }
-            .glassCard()
+            .brandCard()
         }
         .buttonStyle(.plain)
     }

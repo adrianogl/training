@@ -20,7 +20,7 @@ struct ReadinessRuler: View {
                     }
                     if let score {
                         Capsule()
-                            .fill(.white)
+                            .fill(BrandColors.text)
                             .frame(width: 3, height: 14)
                             .offset(x: min(max(width * Double(score) / 100 - 1.5, 0), width - 3))
                     }

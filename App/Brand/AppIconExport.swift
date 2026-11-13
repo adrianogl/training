@@ -7,7 +7,7 @@ import UniformTypeIdentifiers
 enum AppIconExport {
     static func png() -> Data? {
         let side = ShareConstants.appIconPixels
-        let renderer = ImageRenderer(content: AppIconArt(side: side))
+        let renderer = ImageRenderer(content: AppIconArt(side: side).environment(\.colorScheme, .dark))
         renderer.scale = 1
         renderer.isOpaque = true
         guard let rendered = renderer.cgImage,
@@ -24,6 +24,17 @@ enum AppIconExport {
         guard CGImageDestinationFinalize(destination) else { return nil }
         return data as Data
     }
+
+    static func launchIconPNG() -> Data? {
+        let side = BrandConstants.launchIconPoints * BrandConstants.launchIconScale
+        let art = AIIcon(size: side * BrandConstants.launchIconArtRatio)
+            .frame(width: side, height: side)
+            .environment(\.colorScheme, .dark)
+        let renderer = ImageRenderer(content: art)
+        renderer.scale = 1
+        renderer.isOpaque = false
+        return renderer.uiImage?.pngData()
+    }
 }
 
 private struct AppIconArt: View {
@@ -31,15 +42,16 @@ private struct AppIconArt: View {
 
     var body: some View {
         ZStack {
-            BrandColors.background
+            BrandColors.iconBase
             RadialGradient(
-                colors: [BrandColors.accent.opacity(ShareConstants.appIconHaloOpacity), .clear],
-                center: .center,
+                colors: [BrandColors.iconAccent.opacity(BrandConstants.iconGlowOpacity), BrandColors.iconBase],
+                center: UnitPoint(x: 0.5, y: 0.4),
                 startRadius: 0,
-                endRadius: side * 0.6
+                endRadius: side * 0.7
             )
-            AIIcon(size: side * ShareConstants.appIconArtRatio)
-                .shadow(color: BrandColors.accent.opacity(BrandConstants.iconGlowOpacity), radius: side * ShareConstants.appIconGlowRatio)
+            Text(BrandConstants.logoHighlight)
+                .font(.system(size: side * BrandConstants.iconFontRatio, weight: .black))
+                .foregroundStyle(BrandColors.iconAccent)
         }
         .frame(width: side, height: side)
     }

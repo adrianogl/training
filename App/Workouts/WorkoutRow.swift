@@ -39,7 +39,7 @@ struct WorkoutRow: View {
                 .foregroundStyle(BrandColors.dim)
             }
         }
-        .glassCard()
+        .brandCard()
         .contentShape(Rectangle())
     }
 }

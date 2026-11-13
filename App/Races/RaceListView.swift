@@ -20,6 +20,7 @@ struct RaceListView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
+                    CompactLogoHeader()
                     HStack {
                         Text(RacesConstants.title)
                             .font(.largeTitle.weight(.bold))
@@ -32,7 +33,7 @@ struct RaceListView: View {
                                 .font(.title3.weight(.semibold))
                                 .foregroundStyle(BrandColors.onAccent)
                                 .frame(width: 40, height: 40)
-                                .background(BrandColors.accent, in: Circle())
+                                .background(BrandColors.accentFill, in: Circle())
                         }
                         .accessibilityLabel(RacesConstants.addRace)
                     }
@@ -81,7 +82,7 @@ struct RaceListView: View {
             Text(RacesConstants.emptyList)
                 .font(.subheadline)
                 .foregroundStyle(BrandColors.dim)
-                .glassCard()
+                .brandCard()
         }
         if !model.upcoming.isEmpty {
             SectionLabel(RacesConstants.upcomingTitle)
@@ -147,7 +148,7 @@ private struct RaceRow: View {
                             .foregroundStyle(BrandColors.onAccent)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(BrandColors.accent, in: Capsule())
+                            .background(BrandColors.accentFill, in: Capsule())
                     }
                 }
                 if let detail = row.detailText {
@@ -164,7 +165,7 @@ private struct RaceRow: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
         .contentShape(Rectangle())
     }
 }

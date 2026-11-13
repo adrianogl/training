@@ -42,6 +42,6 @@ struct RaceCandidateRow: View {
             .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glassCard()
+        .brandCard()
     }
 }

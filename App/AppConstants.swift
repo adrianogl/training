@@ -24,6 +24,10 @@ enum AppConstants {
     static let settingsScrollDefaultsKey = "settingsScroll"
     static let openShareDefaultsKey = "openShare"
     static let exportShareDefaultsKey = "exportShare"
+    static let appearanceDefaultsKey = "appearance"
+    static let introDuration = Duration.milliseconds(1700)
+    static let introReducedMotionDuration = Duration.milliseconds(500)
+    static let introFadeSeconds = 0.35
     static let remoteSyncKeychainAccount = "remote-sync-key"
     static let watchTokenKeychainAccount = "watch-token"
     static let watchReadinessDefaultsKey = "watchReadinessLastSent"

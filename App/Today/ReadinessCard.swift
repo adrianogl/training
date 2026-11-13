@@ -37,7 +37,7 @@ struct ReadinessCard: View {
                 }
                 .font(.footnote)
             }
-            .glassCard()
+            .brandCard()
         }
         .buttonStyle(.plain)
     }

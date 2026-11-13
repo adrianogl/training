@@ -18,7 +18,7 @@ struct MetricDetailView: View {
                     Text(EvolutionConstants.detailNoData)
                         .font(.subheadline)
                         .foregroundStyle(BrandColors.dim)
-                        .glassCard()
+                        .brandCard()
                 } else {
                     content
                 }
@@ -54,7 +54,7 @@ struct MetricDetailView: View {
                 SectionLabel(EvolutionConstants.detailReading).padding(.top, 0).padding(.bottom, 0)
                 Text(reading).font(.subheadline).foregroundStyle(BrandColors.text)
             }
-            .glassCard()
+            .brandCard()
         }
         if !model.monthly.isEmpty { monthlyCard }
         if let lastYear = model.lastYearText {
@@ -62,7 +62,7 @@ struct MetricDetailView: View {
                 SectionLabel(EvolutionConstants.detailLastYear).padding(.top, 0).padding(.bottom, 0)
                 Text(lastYear).font(.subheadline).foregroundStyle(BrandColors.text)
             }
-            .glassCard()
+            .brandCard()
         }
     }
 
@@ -95,7 +95,7 @@ struct MetricDetailView: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private var chartCard: some View {
@@ -105,7 +105,7 @@ struct MetricDetailView: View {
             }
             Text(EvolutionConstants.detailLegend).font(.caption2).foregroundStyle(BrandColors.dim)
         }
-        .glassCard()
+        .brandCard()
         .opacity(model.isLoading ? 0.5 : 1)
     }
 
@@ -130,6 +130,6 @@ struct MetricDetailView: View {
             }
             .frame(height: EvolutionConstants.monthlyChartHeight)
         }
-        .glassCard()
+        .brandCard()
     }
 }

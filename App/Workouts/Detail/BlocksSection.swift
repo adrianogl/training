@@ -27,7 +27,7 @@ struct BlocksSection: View {
                 legend.padding(.top, 10)
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func row(position: Int, block: WorkoutBlock) -> some View {

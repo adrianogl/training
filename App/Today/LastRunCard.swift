@@ -32,7 +32,7 @@ struct LastRunCard: View {
                     Text(TodayConstants.lastRunNoComparison)
                         .font(.footnote)
                         .foregroundStyle(BrandColors.dim)
-                        .glassCard()
+                        .brandCard()
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

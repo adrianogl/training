@@ -2,6 +2,8 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsIntro = !RootView.isTestHost
     @State private var section = AppSection.initial()
     @State private var sidebarSelection: AppSection? = AppSection.initial()
     @State private var todayPath: [TodayRoute] = RootView.initialTodayPath()
@@ -13,6 +15,16 @@ struct RootView: View {
             } else {
                 tabView
             }
+        }
+        .overlay {
+            if showsIntro {
+                IntroView().transition(.opacity)
+            }
+        }
+        .task {
+            guard showsIntro else { return }
+            try? await Task.sleep(for: reduceMotion ? AppConstants.introReducedMotionDuration : AppConstants.introDuration)
+            withAnimation(.easeOut(duration: AppConstants.introFadeSeconds)) { showsIntro = false }
         }
         .onOpenURL { url in
             guard let target = AppSection(url: url) else { return }
@@ -39,7 +51,13 @@ struct RootView: View {
             List(AppSection.allCases, selection: $sidebarSelection) { item in
                 Label(item.title, systemImage: item.systemImage).tag(item)
             }
-            .navigationTitle("trAIning")
+            .navigationTitle("")
+            .safeAreaInset(edge: .top) {
+                Logo(showsTagline: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, BrandConstants.sidebarLogoPadding)
+                    .padding(.vertical, 8)
+            }
             .safeAreaInset(edge: .bottom) { SidebarRaceCard() }
         } detail: {
             screen(for: sidebarSelection ?? .today)
@@ -58,6 +76,10 @@ struct RootView: View {
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }
+    }
+
+    private static var isTestHost: Bool {
+        ProcessInfo.processInfo.environment[AppConstants.testHostEnvironmentVariable] != nil
     }
 
     private static func initialTodayPath(defaults: UserDefaults = .standard) -> [TodayRoute] {

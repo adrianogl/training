@@ -28,6 +28,6 @@ struct Logo: View {
         return Text("\(BrandConstants.logoPrefix)\(highlight)\(BrandConstants.logoSuffix)")
             .font(.system(size: fontSize, weight: .heavy))
             .tracking(fontSize * BrandConstants.logoTracking / BrandConstants.logoFontSize)
-            .foregroundStyle(.white)
+            .foregroundStyle(BrandColors.text)
     }
 }

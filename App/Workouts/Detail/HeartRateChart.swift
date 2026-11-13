@@ -59,7 +59,7 @@ struct HeartRateChart: View {
                 legend(domain)
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private var yDomain: ClosedRange<Double> {

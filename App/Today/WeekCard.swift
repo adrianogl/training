@@ -39,6 +39,6 @@ struct WeekCard: View {
             .font(.caption)
             .foregroundStyle(BrandColors.dim)
         }
-        .glassCard()
+        .brandCard()
     }
 }

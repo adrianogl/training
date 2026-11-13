@@ -5,6 +5,7 @@ import UserNotifications
 struct TrainingApp: App {
     @State private var model: AppModel
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
 
     init() {
         let model = AppModel.live()
@@ -18,7 +19,7 @@ struct TrainingApp: App {
             RootView()
                 .environment(model)
                 .modelContainer(model.container)
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(AppearanceOption(rawValue: appearance)?.colorScheme)
                 .tint(BrandColors.accent)
         }
         .onChange(of: scenePhase, initial: true) { _, phase in

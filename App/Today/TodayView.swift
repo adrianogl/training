@@ -20,6 +20,7 @@ struct TodayView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
+                    CompactLogoHeader()
                     Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutConstants.locale)))
                         .font(.footnote)
                         .foregroundStyle(BrandColors.dim)

@@ -32,7 +32,7 @@ struct ComparisonSection: View {
                     .padding(.top, 6)
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func line(_ name: String, _ pace: String, _ heartRate: String, _ target: String?, header: Bool, current: Bool) -> some View {

@@ -13,8 +13,7 @@ struct WorkoutListView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 10) {
-                    Logo(showsTagline: true)
-                        .padding(.vertical, 8)
+                    CompactLogoHeader()
                     Picker("Filtro", selection: $filter) {
                         ForEach(WorkoutFilter.allCases, id: \.self) { item in
                             Text(item.title).tag(item)
@@ -32,7 +31,7 @@ struct WorkoutListView: View {
                     if rows.isEmpty {
                         Text("Nenhum treino neste filtro.")
                             .foregroundStyle(BrandColors.dim)
-                            .glassCard()
+                            .brandCard()
                     }
                     ForEach(rows) { row in
                         NavigationLink(value: row.activityId) {

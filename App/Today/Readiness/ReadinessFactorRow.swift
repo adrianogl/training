@@ -27,6 +27,6 @@ struct ReadinessFactorRow: View {
                 .background(BrandColors.track, in: Capsule())
             }
         }
-        .glassCard()
+        .brandCard()
     }
 }

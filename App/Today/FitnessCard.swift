@@ -29,7 +29,7 @@ struct FitnessCard: View {
                     .foregroundStyle(BrandColors.dim)
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private var chart: some View {

@@ -17,6 +17,7 @@ struct EvolutionView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
+                        CompactLogoHeader()
                         Text(EvolutionConstants.title)
                             .font(.largeTitle.weight(.bold))
                             .foregroundStyle(BrandColors.text)

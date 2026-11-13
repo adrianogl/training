@@ -110,12 +110,12 @@ struct NextRaceView: View {
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
-            .glassCard()
+            .brandCard()
         } else {
             Text(RacesConstants.noGoal)
                 .font(.subheadline)
                 .foregroundStyle(BrandColors.dim)
-                .glassCard()
+                .brandCard()
         }
     }
 

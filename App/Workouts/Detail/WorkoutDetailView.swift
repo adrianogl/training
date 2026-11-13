@@ -120,7 +120,7 @@ struct WorkoutDetailView: View {
                 .foregroundStyle(BrandColors.onAccent)
                 .frame(maxWidth: .infinity)
                 .padding(ShareConstants.buttonPadding)
-                .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
+                .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
         .padding(.top, 18)
@@ -135,7 +135,7 @@ struct WorkoutDetailView: View {
                 .font(.footnote)
                 .foregroundStyle(BrandColors.dim)
         }
-        .glassCard()
+        .brandCard()
         .padding(.top, 16)
     }
 

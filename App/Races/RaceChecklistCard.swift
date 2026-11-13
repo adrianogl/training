@@ -18,7 +18,7 @@ struct RaceChecklistCard: View {
                 }
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func symbol(_ status: ChecklistStatus) -> String {

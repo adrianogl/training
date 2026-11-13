@@ -43,7 +43,7 @@ struct OverallStateCard: View {
                 Text(C.windowedFootnote).font(.caption2).foregroundStyle(BrandColors.dim)
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func header(_ text: String) -> some View {

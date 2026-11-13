@@ -18,7 +18,7 @@ struct ZoneRuler: View {
                     .padding(.top, 8)
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private func bar(title: String, zones: ZoneBar, range: ClosedRange<Int>) -> some View {

@@ -11,17 +11,22 @@ struct SettingsView: View {
     @State private var deleteMessage: String?
     @AppStorage(BackgroundConstants.noticeEnabledDefaultsKey) private var noticeEnabled = BackgroundConstants.defaultNoticeEnabled
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
+    @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
 
     var body: some View {
         NavigationStack {
             ScrollViewReader { proxy in
             Form {
+                CompactLogoHeader()
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
                 keySection
                 connectionSection
                 syncSection
                 RemoteSyncSection(model: model.remoteSync)
                     .id(RemoteSyncSettingsConstants.sectionAnchor)
                 noticeSection
+                appearanceSection
                 dataSection
                 if let storeError = model.storeError {
                     Section("Banco local") {
@@ -114,6 +119,21 @@ struct SettingsView: View {
             Text("Aviso de manhã")
         } footer: {
             Text("Avisa a prontidão do dia quando o HRV e o sono da noite chegam, nunca antes do horário mínimo. O iOS decide quando o app acorda, então em alguns dias o aviso não sai.")
+        }
+    }
+
+    private var appearanceSection: some View {
+        Section {
+            Picker("Tema", selection: $appearance) {
+                ForEach(AppearanceOption.allCases) { option in
+                    Text(option.title).tag(option.rawValue)
+                }
+            }
+            .pickerStyle(.segmented)
+        } header: {
+            Text("Aparência")
+        } footer: {
+            Text("\"Sistema\" segue o modo claro ou escuro do aparelho.")
         }
     }
 

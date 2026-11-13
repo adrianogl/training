@@ -14,7 +14,7 @@ struct RouteMapView: View {
                 altitudeChart
             }
         }
-        .glassCard()
+        .brandCard()
     }
 
     private var coordinates: [CLLocationCoordinate2D] {
