@@ -15,6 +15,9 @@ import SwiftData
     private(set) var pasteError: String?
     private(set) var isWorking = false
     private(set) var keyMessage: String?
+    private(set) var hasWatchToken: Bool
+    private(set) var watchMessage: String?
+    private(set) var watchError: String?
 
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let keyStore: any APIKeyStore
@@ -23,6 +26,9 @@ import SwiftData
     @ObservationIgnored private let debounce: Duration
     @ObservationIgnored private let authenticator: any DeviceOwnerAuthenticating
     @ObservationIgnored private let clipboard: any KeyClipboard
+    @ObservationIgnored private let watchTokenStore: any APIKeyStore
+    @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored var readinessProvider: (@MainActor () -> WatchReadiness?)?
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
     @ObservationIgnored private var runningTask: Task<Void, Never>?
     @ObservationIgnored private var rerunRequested = false
@@ -34,9 +40,14 @@ import SwiftData
         baseURL: URL,
         debounce: Duration = AppConstants.remoteSyncDebounce,
         authenticator: any DeviceOwnerAuthenticating = DeviceOwnerAuthenticator(),
-        clipboard: any KeyClipboard = SystemKeyClipboard()
+        clipboard: any KeyClipboard = SystemKeyClipboard(),
+        watchTokenStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.watchTokenKeychainAccount),
+        defaults: UserDefaults = .standard
     ) {
         self.clipboard = clipboard
+        self.watchTokenStore = watchTokenStore
+        self.defaults = defaults
+        self.hasWatchToken = ((try? watchTokenStore.read()) ?? nil)?.isEmpty == false
         self.container = container
         self.keyStore = keyStore
         self.transport = transport
@@ -169,9 +180,21 @@ import SwiftData
     }
 
     func disable() async {
+        await disable(revokingWatchToken: true)
+    }
+
+    private func disable(revokingWatchToken: Bool) async {
         debounceTask?.cancel()
         rerunRequested = false
+        if revokingWatchToken, currentWatchToken() != nil, let key = currentKey(), let keys = try? RemoteKeys(syncKey: key) {
+            do {
+                try await client(keys).deleteWatchToken()
+            } catch {
+                C.logger.error("Falha ao revogar token do relógio ao desligar: \(String(describing: error), privacy: .public)")
+            }
+        }
         try? keyStore.delete()
+        forgetWatchToken()
         await runningTask?.value
         let context = container.mainContext
         for state in (try? context.fetch(FetchDescriptor<SyncState>())) ?? [] {
@@ -200,22 +223,18 @@ import SwiftData
             actionMessage = C.deleteServerFailed
             return false
         }
-        await disable()
+        await disable(revokingWatchToken: false)
         return true
     }
 
     func revealKey(reason: String) async -> String? {
         keyMessage = nil
         guard let key = currentKey() else { return nil }
-        switch await authenticator.authenticate(reason: reason) {
-        case .granted:
-            return key
-        case .denied:
-            return nil
-        case .unavailable:
+        guard let granted = await deviceOwnerAllows(reason: reason) else {
             keyMessage = C.noPasscode
             return nil
         }
+        return granted ? key : nil
     }
 
     @discardableResult
@@ -224,6 +243,115 @@ import SwiftData
         clipboard.copy(key)
         keyMessage = C.keyCopied
         return true
+    }
+
+    func generateWatchToken() async {
+        watchMessage = nil
+        watchError = nil
+        guard let key = currentKey(), let keys = try? RemoteKeys(syncKey: key) else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let token: String
+            do {
+                token = try await registerWatchToken(keys)
+            } catch RemoteSyncError.tokenConflict {
+                token = try await registerWatchToken(keys)
+            }
+            try watchTokenStore.save(token)
+        } catch {
+            C.logger.error("Falha ao gerar token do relógio: \(String(describing: error), privacy: .public)")
+            watchError = C.watchGenerateFailed
+            return
+        }
+        defaults.removeObject(forKey: AppConstants.watchReadinessDefaultsKey)
+        hasWatchToken = true
+        watchMessage = C.watchInstructions
+        if let readiness = readinessProvider?() { await publishReadiness(readiness) }
+    }
+
+    private func registerWatchToken(_ keys: RemoteKeys) async throws -> String {
+        let token = WatchToken.generate()
+        guard let hash = WatchToken.hash(token) else { throw RemoteSyncError.invalidSyncKey }
+        try await client(keys).putWatchToken(hash: hash)
+        return token
+    }
+
+    func revealWatchToken() async -> String? {
+        watchMessage = nil
+        guard let token = currentWatchToken() else { return nil }
+        guard let granted = await deviceOwnerAllows(reason: C.watchRevealReason) else {
+            watchMessage = C.watchNoPasscode
+            return nil
+        }
+        return granted ? token : nil
+    }
+
+    @discardableResult
+    func copyWatchToken() async -> Bool {
+        watchMessage = nil
+        guard let token = currentWatchToken() else { return false }
+        guard let granted = await deviceOwnerAllows(reason: C.watchCopyReason) else {
+            watchMessage = C.watchNoPasscode
+            return false
+        }
+        guard granted else { return false }
+        clipboard.copy(token)
+        watchMessage = C.watchTokenCopied
+        return true
+    }
+
+    func revokeWatchToken() async {
+        watchMessage = nil
+        watchError = nil
+        guard let key = currentKey(), let keys = try? RemoteKeys(syncKey: key) else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await client(keys).deleteWatchToken()
+        } catch {
+            C.logger.error("Falha ao revogar token do relógio: \(String(describing: error), privacy: .public)")
+            watchError = C.watchRevokeFailed
+            return
+        }
+        forgetWatchToken()
+        watchMessage = C.watchRevoked
+    }
+
+    func publishReadiness(_ readiness: WatchReadiness) async {
+        guard let key = currentKey(), let keys = try? RemoteKeys(syncKey: key), currentWatchToken() != nil else { return }
+        guard lastPublishedReadiness() != readiness else { return }
+        do {
+            try await client(keys).putReadiness(readiness)
+        } catch {
+            C.logger.error("Falha ao enviar prontidão ao relógio: \(String(describing: error), privacy: .public)")
+            return
+        }
+        guard currentKey() == key, currentWatchToken() != nil else { return }
+        defaults.set(try? JSONEncoder().encode(readiness), forKey: AppConstants.watchReadinessDefaultsKey)
+    }
+
+    private func lastPublishedReadiness() -> WatchReadiness? {
+        defaults.data(forKey: AppConstants.watchReadinessDefaultsKey).flatMap { try? JSONDecoder().decode(WatchReadiness.self, from: $0) }
+    }
+
+    private func forgetWatchToken() {
+        try? watchTokenStore.delete()
+        defaults.removeObject(forKey: AppConstants.watchReadinessDefaultsKey)
+        hasWatchToken = false
+    }
+
+    private func currentWatchToken() -> String? {
+        guard let token = (try? watchTokenStore.read()) ?? nil, !token.isEmpty else { return nil }
+        return token
+    }
+
+    private func deviceOwnerAllows(reason: String) async -> Bool? {
+        switch await authenticator.authenticate(reason: reason) {
+        case .granted: true
+        case .denied: false
+        case .unavailable: nil
+        }
     }
 
     private func runOnce() async {

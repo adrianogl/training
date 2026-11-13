@@ -53,6 +53,13 @@ final class FakeSyncServer: HTTPTransport {
 
     var maxInFlight: Int { state.withLock { $0.maxInFlight } }
 
+    func bodies(_ route: String) -> [String] {
+        state.withLock { state in
+            state.requests.filter { "\($0.httpMethod ?? "") \($0.url?.path ?? "")" == route }
+                .map { $0.httpBody.flatMap { String(data: $0, encoding: .utf8) } ?? "" }
+        }
+    }
+
     var pushedIds: [String] {
         state.withLock { state in
             state.requests.filter { $0.httpMethod == "POST" && $0.url?.path == "/api/v1/changes" }.flatMap { request -> [String] in
@@ -90,7 +97,7 @@ final class FakeSyncServer: HTTPTransport {
     private static func defaultReply(_ route: String) -> Reply {
         switch route {
         case "POST /api/v1/account": .status(201, "{}")
-        case "DELETE /api/v1/account": .status(204, "")
+        case "DELETE /api/v1/account", "PUT /api/v1/watch/token", "DELETE /api/v1/watch/token", "PUT /api/v1/watch/readiness": .status(204, "")
         case "POST /api/v1/changes": .status(200, #"{"cursor":1,"ignored":[]}"#)
         default: .status(200, #"{"records":[],"cursor":1,"hasMore":false}"#)
         }

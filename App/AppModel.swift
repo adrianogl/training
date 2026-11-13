@@ -3,6 +3,7 @@ import GarminAPI
 import Insights
 import Narrative
 import Observation
+import RemoteSync
 import Storage
 import Sync
 import SwiftData
@@ -31,6 +32,8 @@ import TrainingCore
     @ObservationIgnored private var runningTrigger: SyncTrigger?
     @ObservationIgnored private var narrativeTask: Task<Void, Never>?
     @ObservationIgnored private var narrativeFailures: Set<String> = []
+    @ObservationIgnored private var finishedSummary: (summary: TodaySummary, day: Day)?
+    @ObservationIgnored private var latestWatchReadiness: WatchReadiness?
 
     init(
         container: ModelContainer,
@@ -38,6 +41,8 @@ import TrainingCore
         keyStore: any APIKeyStore,
         transport: any HTTPTransport = URLSessionTransport(),
         remoteKeyStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.remoteSyncKeychainAccount),
+        watchTokenStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.watchTokenKeychainAccount),
+        remoteDefaults: UserDefaults = .standard,
         remoteBaseURL: URL = AppConstants.remoteSyncBaseURL,
         autoSyncEnabled: Bool = true,
         makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() },
@@ -58,7 +63,15 @@ import TrainingCore
         self.autoSyncEnabled = autoSyncEnabled
         self.makeNarrator = makeNarrator
         self.hasKey = ((try? keyStore.read()) ?? nil)?.isEmpty == false
-        self.remoteSync = RemoteSyncModel(container: container, keyStore: remoteKeyStore, transport: transport, baseURL: remoteBaseURL)
+        self.remoteSync = RemoteSyncModel(
+            container: container,
+            keyStore: remoteKeyStore,
+            transport: transport,
+            baseURL: remoteBaseURL,
+            watchTokenStore: watchTokenStore,
+            defaults: remoteDefaults
+        )
+        remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
     }
 
     static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppModel {
@@ -172,10 +185,12 @@ import TrainingCore
                 let report = try await engine.run { fraction in
                     Task { @MainActor in self?.updateProgress(fraction) }
                 }
+                let day = Day.today()
                 let summary = await Task.detached(priority: .utility) {
-                    Self.runPostSyncWork(container: container, today: Day.today())
+                    Self.runPostSyncWork(container: container, today: day)
                 }.value
                 self?.syncStatus = .finished(.now)
+                self?.finishedSummary = summary.map { ($0, day) }
                 processed = trigger == .background ? nil : report.processedActivityIds
                 if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
                 if trigger != .background { self?.scoreRefresher.refresh() }
@@ -189,7 +204,27 @@ import TrainingCore
         syncTask = task
         await task.value
         if syncStatus != .idle { await remoteSync.syncNow() }
+        if let finished = finishedSummary {
+            finishedSummary = nil
+            await publishWatchReadiness(summary: finished.summary, day: finished.day)
+        }
         return syncStatus.isFinished
+    }
+
+    nonisolated static func watchReadiness(summary: TodaySummary, day: Day) -> WatchReadiness? {
+        guard let score = summary.readiness?.score, let phrase = summary.verdict.flatMap({ TodayConstants.verdictPhrases[$0] }) else { return nil }
+        return WatchReadiness(day: day.iso, score: score, verdict: phrase)
+    }
+
+    func publishWatchReadiness(summary: TodaySummary?, day: Day) async {
+        guard let readiness = summary.flatMap({ Self.watchReadiness(summary: $0, day: day) }) else { return }
+        latestWatchReadiness = readiness
+        await remoteSync.publishReadiness(readiness)
+    }
+
+    private func todayWatchReadiness() -> WatchReadiness? {
+        guard let latestWatchReadiness, latestWatchReadiness.day == today().iso else { return nil }
+        return latestWatchReadiness
     }
 
     func cancelSync() {

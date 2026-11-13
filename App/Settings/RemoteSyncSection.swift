@@ -7,6 +7,9 @@ struct RemoteSyncSection: View {
     @State private var confirmsDisable = false
     @State private var confirmsDelete = false
     @State private var pastes = false
+    @State private var revealedWatchToken: String?
+    @State private var confirmsRegenerate = false
+    @State private var confirmsRevoke = false
 
     var body: some View {
         if model.isEnabled {
@@ -96,6 +99,7 @@ struct RemoteSyncSection: View {
         } footer: {
             Text(C.keyNote)
         }
+        watchSection
         Section {
             Button(C.disable, role: .destructive) { confirmsDisable = true }
                 .disabled(model.status == .syncing || model.isWorking)
@@ -118,6 +122,67 @@ struct RemoteSyncSection: View {
             if let message = model.actionMessage {
                 Text(message).font(.footnote).foregroundStyle(BrandColors.danger)
             }
+        }
+    }
+
+    private var watchSection: some View {
+        Section {
+            if model.hasWatchToken {
+                if let revealedWatchToken {
+                    Text(revealedWatchToken)
+                        .font(.system(.footnote, design: .monospaced))
+                        .textSelection(.enabled)
+                    Button(C.watchHide) { self.revealedWatchToken = nil }
+                } else {
+                    Button {
+                        Task { revealedWatchToken = await model.revealWatchToken() }
+                    } label: {
+                        LabeledContent(C.watchShow, value: C.showKeyHint)
+                    }
+                }
+                Button(C.watchCopy) {
+                    Task { await model.copyWatchToken() }
+                }
+                Button(C.watchRegenerate) { confirmsRegenerate = true }
+                    .disabled(model.isWorking)
+                    .confirmationDialog(C.watchRegenerateTitle, isPresented: $confirmsRegenerate, titleVisibility: .visible) {
+                        Button(C.watchRegenerate, role: .destructive) {
+                            revealedWatchToken = nil
+                            Task { await model.generateWatchToken() }
+                        }
+                        Button(C.cancel, role: .cancel) {}
+                    } message: {
+                        Text(C.watchRegenerateMessage)
+                    }
+                Button(C.watchRevoke, role: .destructive) { confirmsRevoke = true }
+                    .disabled(model.isWorking)
+                    .confirmationDialog(C.watchRevokeTitle, isPresented: $confirmsRevoke, titleVisibility: .visible) {
+                        Button(C.watchRevoke, role: .destructive) {
+                            revealedWatchToken = nil
+                            Task { await model.revokeWatchToken() }
+                        }
+                        Button(C.cancel, role: .cancel) {}
+                    } message: {
+                        Text(C.watchRevokeMessage)
+                    }
+            } else {
+                Text(C.watchOffDescription)
+                    .foregroundStyle(BrandColors.dim)
+                Button(model.isWorking ? C.watchGenerating : C.watchGenerate) {
+                    Task { await model.generateWatchToken() }
+                }
+                .disabled(model.isWorking)
+            }
+            if let message = model.watchMessage {
+                Text(message).font(.footnote).foregroundStyle(BrandColors.dim)
+            }
+            if let error = model.watchError {
+                Text(error).font(.footnote).foregroundStyle(BrandColors.danger)
+            }
+        } header: {
+            Text(C.watchSectionTitle)
+        } footer: {
+            Text(C.watchNote)
         }
     }
 
