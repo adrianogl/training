@@ -10,6 +10,9 @@ public enum PlannedWorkouts {
     static let paceTarget = "pace.zone"
     static let heartRateTarget = "heart.rate.zone"
     static let metersPerKilometer = 1_000.0
+    static let defaultPaces: [PlannedStepKind: Double] = [
+        .warmup: 360, .active: 300, .recovery: 390, .cooldown: 375, .rest: 0, .other: 345,
+    ]
     static let kinds: [String: PlannedStepKind] = [
         "warmup": .warmup, "interval": .active, "recovery": .recovery, "cooldown": .cooldown, "rest": .rest,
     ]
@@ -24,14 +27,20 @@ public enum PlannedWorkouts {
             let path = String(format: GarminAccountEndpoints.calendarPathFormat, year, month - 1)
             items += try JSONDecoder().decode(CalendarDTO.self, from: try await client.get(path)).calendarItems
         }
-        let runs = runItems(items, from: first, through: last)
-        var workouts: [PlannedWorkout] = []
-        for item in runs {
-            guard let id = item.workoutId, let day = item.date else { continue }
-            let data = try await client.get(GarminAccountEndpoints.workoutPathPrefix + String(id))
-            workouts.append(workout(try JSONDecoder().decode(WorkoutDTO.self, from: data), day: day, fallbackTitle: item.title))
+        let runs = runItems(items, from: first, through: last).compactMap { item in
+            item.workoutId.flatMap { id in item.date.map { (id: id, day: $0, title: item.title) } }
         }
-        return workouts
+        return try await withThrowingTaskGroup(of: (Int, PlannedWorkout).self) { group in
+            for (index, run) in runs.enumerated() {
+                group.addTask {
+                    let data = try await client.get(GarminAccountEndpoints.workoutPathPrefix + String(run.id))
+                    return (index, workout(try JSONDecoder().decode(WorkoutDTO.self, from: data), day: run.day, fallbackTitle: run.title))
+                }
+            }
+            var results: [(Int, PlannedWorkout)] = []
+            for try await result in group { results.append(result) }
+            return results.sorted { $0.0 < $1.0 }.map(\.1)
+        }
     }
 
     static func runItems(_ items: [CalendarDTO.Item], from first: Day, through last: Day) -> [CalendarDTO.Item] {
@@ -47,14 +56,37 @@ public enum PlannedWorkouts {
     }
 
     static func workout(_ dto: WorkoutDTO, day: String, fallbackTitle: String?) -> PlannedWorkout {
-        PlannedWorkout(
+        let steps = (dto.workoutSegments ?? []).flatMap { ($0.workoutSteps ?? []).map(step) }
+        let estimate = estimate(steps.flatMap(\.flattened))
+        return PlannedWorkout(
             id: dto.workoutId,
             day: day,
             title: dto.workoutName ?? fallbackTitle ?? "",
-            estimatedSeconds: dto.estimatedDurationInSecs,
-            estimatedMeters: dto.estimatedDistanceInMeters,
-            steps: (dto.workoutSegments ?? []).flatMap { ($0.workoutSteps ?? []).map(step) }
+            estimatedSeconds: dto.estimatedDurationInSecs ?? estimate?.seconds,
+            estimatedMeters: dto.estimatedDistanceInMeters ?? estimate?.meters,
+            steps: steps
         )
+    }
+
+    static func estimate(_ steps: [PlannedStep]) -> (meters: Double, seconds: Double)? {
+        var meters = 0.0
+        var seconds = 0.0
+        for step in steps {
+            let pace = pace(step)
+            if let distance = step.meters {
+                meters += distance
+                seconds += distance / metersPerKilometer * pace
+            } else if let time = step.seconds {
+                seconds += time
+                meters += pace > 0 ? time / pace * metersPerKilometer : 0
+            }
+        }
+        return meters > 0 ? (meters, seconds) : nil
+    }
+
+    static func pace(_ step: PlannedStep) -> Double {
+        if case .pace(let fastest, let slowest) = step.target { return (fastest + slowest) / 2 }
+        return defaultPaces[step.kind] ?? 0
     }
 
     static func step(_ dto: StepDTO) -> PlannedStep {

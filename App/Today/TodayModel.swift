@@ -62,6 +62,8 @@ import WorkoutAnalysis
         guard let client else { return }
         let starts = summary.week.recentWeeks.map(\.start)
         let current = today.weekStart
+        let currentPlanned = planned.values.flatMap { $0 }.compactMap(\.estimatedMeters).reduce(0, +) / WorkoutConstants.metersPerKilometer
+        if currentPlanned > 0 { plannedWeeks[current] = currentPlanned }
         var cache = (defaults.dictionary(forKey: AppConstants.plannedWeeksDefaultsKey) as? [String: Double]) ?? [:]
         let missing = starts.filter { $0 < current && cache[$0.iso] == nil }
         if let first = missing.min(), let last = missing.max(),
@@ -77,7 +79,6 @@ import WorkoutAnalysis
         guard !Task.isCancelled else { return }
         var weeks: [Day: Double] = [:]
         for start in starts where start < current { weeks[start] = cache[start.iso] }
-        let currentPlanned = planned.values.flatMap { $0 }.compactMap(\.estimatedMeters).reduce(0, +) / WorkoutConstants.metersPerKilometer
         if currentPlanned > 0 { weeks[current] = currentPlanned }
         plannedWeeks = weeks.filter { $0.value > 0 }
     }

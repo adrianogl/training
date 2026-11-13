@@ -57,4 +57,28 @@ private let workoutJSON = """
         #expect(workout.steps[2].target == .zone(2))
         #expect(workout.steps.flatMap(\.flattened).count == 12)
     }
+
+    @Test func estimatesDistanceWhenGarminSendsOnlySteps() throws {
+        let json = """
+        {"workoutId":30,"workoutName":"Rodagem 40 min","workoutSegments":[{"workoutSteps":[
+         {"type":"ExecutableStepDTO","stepType":{"stepTypeKey":"warmup"},"endCondition":{"conditionTypeKey":"time"},"endConditionValue":600},
+         {"type":"ExecutableStepDTO","stepType":{"stepTypeKey":"interval"},"endCondition":{"conditionTypeKey":"time"},"endConditionValue":1800,
+          "targetType":{"workoutTargetTypeKey":"pace.zone"},"targetValueOne":3.0303,"targetValueTwo":3.3333},
+         {"type":"ExecutableStepDTO","stepType":{"stepTypeKey":"cooldown"},"endCondition":{"conditionTypeKey":"distance"},"endConditionValue":1000}
+        ]}]}
+        """
+        let dto = try JSONDecoder().decode(WorkoutDTO.self, from: Data(json.utf8))
+
+        let workout = PlannedWorkouts.workout(dto, day: "2026-11-14", fallbackTitle: nil)
+
+        let meters = try #require(workout.estimatedMeters)
+        #expect(abs(meters - (600.0 / 360 * 1000 + 1800.0 / 315 * 1000 + 1000)) < 5)
+        let seconds = try #require(workout.estimatedSeconds)
+        #expect(abs(seconds - (600 + 1800 + 375)) < 2)
+    }
+
+    @Test func keepsGarminEstimateWhenPresent() throws {
+        let dto = try JSONDecoder().decode(WorkoutDTO.self, from: Data(workoutJSON.utf8))
+        #expect(PlannedWorkouts.workout(dto, day: "2026-11-13", fallbackTitle: nil).estimatedMeters == 9_800)
+    }
 }
