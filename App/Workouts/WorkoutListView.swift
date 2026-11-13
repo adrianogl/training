@@ -1,13 +1,16 @@
+import GarminAPI
 import Storage
 import SwiftData
 import SwiftUI
+import TrainingCore
 
 struct WorkoutListView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
-    @State private var path: [Int64] = WorkoutListView.initialPath()
-    @State private var selection: Int64? = WorkoutListView.initialPath().first
+    @State private var path = WorkoutListView.initialPath()
+    @State private var selection: WorkoutSelection? = WorkoutListView.initialPath().first
+    @State private var planned: [PlannedWorkout] = []
 
     var body: some View {
         let weeks = WorkoutListModel.weeks(records: records)
@@ -18,8 +21,8 @@ struct WorkoutListView: View {
                         .frame(width: WorkoutConstants.listWidth)
                     Divider().overlay(BrandColors.line)
                     NavigationStack {
-                        if let id = selection ?? weeks.first?.rows.first?.activityId {
-                            WorkoutDetailView(activityId: id).id(id)
+                        if let current = current(weeks) {
+                            destination(current).id(current)
                         } else {
                             Text(WorkoutConstants.selectWorkout)
                                 .foregroundStyle(BrandColors.dim)
@@ -31,19 +34,39 @@ struct WorkoutListView: View {
             } else {
                 NavigationStack(path: $path) {
                     list(weeks)
-                        .navigationDestination(for: Int64.self) { activityId in
-                            WorkoutDetailView(activityId: activityId)
-                        }
+                        .navigationDestination(for: WorkoutSelection.self) { item in destination(item) }
                 }
             }
         }
         .task {
             model.scoreRefresher.refresh()
         }
+        .task(id: model.garminAccount.isSignedIn) {
+            guard let client = model.garminAccount.client else { planned = []; return }
+            let today = Day.today()
+            planned = (try? await PlannedWorkouts.fetch(client: client, from: today, through: today.adding(days: WorkoutConstants.plannedDays))) ?? []
+        }
+    }
+
+    private func current(_ weeks: [WorkoutWeek]) -> WorkoutSelection? {
+        selection ?? weeks.first?.rows.first.map { .activity($0.activityId) }
+    }
+
+    @ViewBuilder
+    private func destination(_ item: WorkoutSelection) -> some View {
+        switch item {
+        case .activity(let id):
+            WorkoutDetailView(activityId: id)
+        case .planned(let id):
+            if let plan = planned.first(where: { $0.id == id }) {
+                PlannedWorkoutDetailView(plan: plan)
+            }
+        }
     }
 
     private func list(_ weeks: [WorkoutWeek]) -> some View {
-        let current = selection ?? weeks.first?.rows.first?.activityId
+        let selected = current(weeks)
+        let today = Day.today().iso
         return ScrollView {
             LazyVStack(alignment: .leading, spacing: 10) {
                 CompactLogoHeader()
@@ -55,6 +78,17 @@ struct WorkoutListView: View {
                         Text("Sincronizando com o Garmin")
                             .font(.caption)
                             .foregroundStyle(BrandColors.dim)
+                    }
+                }
+                if !planned.isEmpty {
+                    Text(WorkoutConstants.plannedTitle)
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.dim)
+                        .padding(.top, 8)
+                    ForEach(planned) { plan in
+                        link(.planned(plan.id)) {
+                            PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
+                        }
                     }
                 }
                 if weeks.isEmpty {
@@ -72,16 +106,8 @@ struct WorkoutListView: View {
                     .foregroundStyle(BrandColors.dim)
                     .padding(.top, 8)
                     ForEach(week.rows) { row in
-                        if sizeClass == .regular {
-                            Button { selection = row.activityId } label: {
-                                WorkoutRow(row: row, isSelected: row.activityId == current)
-                            }
-                            .buttonStyle(.plain)
-                        } else {
-                            NavigationLink(value: row.activityId) {
-                                WorkoutRow(row: row)
-                            }
-                            .buttonStyle(.plain)
+                        link(.activity(row.activityId)) {
+                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId))
                         }
                     }
                 }
@@ -94,10 +120,21 @@ struct WorkoutListView: View {
         .toolbarVisibility(.hidden, for: .navigationBar)
     }
 
-    private static func initialPath(defaults: UserDefaults = .standard) -> [Int64] {
+    @ViewBuilder
+    private func link<Label: View>(_ item: WorkoutSelection, @ViewBuilder label: () -> Label) -> some View {
+        if sizeClass == .regular {
+            Button { selection = item } label: { label() }
+                .buttonStyle(.plain)
+        } else {
+            NavigationLink(value: item) { label() }
+                .buttonStyle(.plain)
+        }
+    }
+
+    private static func initialPath(defaults: UserDefaults = .standard) -> [WorkoutSelection] {
         #if DEBUG
         let activityId = defaults.object(forKey: AppConstants.openActivityDefaultsKey).flatMap { "\($0)" }.flatMap(Int64.init)
-        return activityId.map { [$0] } ?? []
+        return activityId.map { [.activity($0)] } ?? []
         #else
         return []
         #endif

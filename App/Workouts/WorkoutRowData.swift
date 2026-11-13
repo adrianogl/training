@@ -24,3 +24,8 @@ struct WorkoutWeek: Identifiable, Hashable {
 
     var id: Day { start }
 }
+
+enum WorkoutSelection: Hashable {
+    case activity(Int64)
+    case planned(Int64)
+}
