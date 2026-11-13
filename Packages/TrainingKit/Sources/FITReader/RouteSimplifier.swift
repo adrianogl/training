@@ -1,5 +1,5 @@
-enum RouteSimplifier {
-    static func simplify(_ points: [Coordinate], maxPoints: Int = FITReaderConstants.maxRoutePoints) -> [Coordinate] {
+public enum RouteSimplifier {
+    public static func simplify(_ points: [Coordinate], maxPoints: Int) -> [Coordinate] {
         guard points.count > maxPoints else { return points }
         var tolerance = FITReaderConstants.initialSimplificationTolerance
         var result = douglasPeucker(points, tolerance: tolerance)

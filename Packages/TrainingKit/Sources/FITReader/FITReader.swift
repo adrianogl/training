@@ -34,7 +34,7 @@ public enum FITReader {
         }
         return FITSummary(
             samples: resample(collector.records),
-            route: RouteSimplifier.simplify(route(from: collector.records)),
+            route: RouteSimplifier.simplify(route(from: collector.records), maxPoints: FITReaderConstants.maxRoutePoints),
             physio: physio(from: collector.physioMessages),
             structure: WorkoutStructureReader.structure(
                 workouts: collector.workouts,

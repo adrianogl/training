@@ -1,3 +1,4 @@
+import FITReader
 import Foundation
 
 private final class GPXParserDelegate: NSObject, XMLParserDelegate {
@@ -63,4 +64,22 @@ public func gpxProfile(_ data: Data) throws -> [(distance: Double, altitude: Dou
         previous = coordinate
     }
     return profile
+}
+
+public func reducedGPX(_ data: Data, maxPoints: Int) throws -> Data {
+    let delegate = GPXParserDelegate()
+    let parser = XMLParser(data: data)
+    parser.delegate = delegate
+    guard parser.parse() else { throw GPXError.invalidFile }
+    guard !delegate.points.isEmpty else { throw GPXError.noElevation }
+    let kept = RouteSimplifier.simplify(delegate.points.map { Coordinate(lat: $0.latitude, lon: $0.longitude) }, maxPoints: maxPoints)
+    var remaining = kept[...]
+    var text = #"<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="trAIning"><trk><trkseg>"#
+    for point in delegate.points {
+        guard let next = remaining.first, next.lat == point.latitude, next.lon == point.longitude else { continue }
+        remaining = remaining.dropFirst()
+        text += #"<trkpt lat="\#(point.latitude)" lon="\#(point.longitude)"><ele>\#(point.altitude)</ele></trkpt>"#
+    }
+    text += "</trkseg></trk></gpx>"
+    return Data(text.utf8)
 }
