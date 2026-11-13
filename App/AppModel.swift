@@ -17,6 +17,7 @@ import TrainingCore
     private(set) var hasKey: Bool
     let autoSyncEnabled: Bool
     let remoteSync: RemoteSyncModel
+    let garminAccount: GarminAccountModel
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
@@ -42,6 +43,7 @@ import TrainingCore
         transport: any HTTPTransport = URLSessionTransport(),
         remoteKeyStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.remoteSyncKeychainAccount),
         watchTokenStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.watchTokenKeychainAccount),
+        garminSessionStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.garminSessionKeychainAccount),
         remoteDefaults: UserDefaults = .standard,
         remoteBaseURL: URL = AppConstants.remoteSyncBaseURL,
         autoSyncEnabled: Bool = true,
@@ -70,6 +72,10 @@ import TrainingCore
             baseURL: remoteBaseURL,
             watchTokenStore: watchTokenStore,
             defaults: remoteDefaults
+        )
+        self.garminAccount = GarminAccountModel(
+            store: KeychainGarminSessionStore(keychain: garminSessionStore),
+            makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
         )
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
     }

@@ -36,6 +36,7 @@ enum AppConstants {
     static let introFadeSeconds = 0.35
     static let remoteSyncKeychainAccount = "remote-sync-key"
     static let watchTokenKeychainAccount = "watch-token"
+    static let garminSessionKeychainAccount = "garmin-account-session"
     static let watchReadinessDefaultsKey = "watchReadinessLastSent"
     static let remoteSyncBaseURL = URL(string: "https://training-sync-ashy.vercel.app")!
     static let remoteSyncURLEnvironmentVariable = "TRAINING_SYNC_URL"

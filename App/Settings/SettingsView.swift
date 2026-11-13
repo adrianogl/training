@@ -73,7 +73,7 @@ struct SettingsView: View {
 
     private func status(_ group: SettingsGroup) -> String {
         switch group {
-        case .garmin: model.hasKey ? "Chave guardada · sync \(lastSyncText)" : "Sem chave da API"
+        case .garmin: [model.hasKey ? "sync \(lastSyncText)" : "sem chave da API", model.garminAccount.isSignedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut].joined(separator: " · ")
         case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
         case .notice: noticeEnabled ? "Ligado · a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Desligado"
@@ -88,6 +88,7 @@ struct SettingsView: View {
         Form {
             switch group {
             case .garmin:
+                GarminAccountSection(model: model.garminAccount)
                 keySection
                 connectionSection
                 syncSection
