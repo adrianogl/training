@@ -7,6 +7,7 @@ struct TodayView: View {
     @Environment(\.modelContext) private var context
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Binding var path: [TodayRoute]
+    var openSettings: () -> Void = {}
     @State private var model: TodayModel?
 
     private var syncToken: Date? {
@@ -22,6 +23,10 @@ struct TodayView: View {
                     Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutConstants.locale)))
                         .font(.footnote)
                         .foregroundStyle(BrandColors.dim)
+                    if let chip = app.remoteSync.chip {
+                        RemoteSyncChipView(chip: chip, action: openSettings)
+                            .padding(.top, 6)
+                    }
                     Text(TodayConstants.todayTitle)
                         .font(.largeTitle.weight(.bold))
                         .foregroundStyle(BrandColors.text)

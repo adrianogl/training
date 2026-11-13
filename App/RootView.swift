@@ -49,7 +49,10 @@ struct RootView: View {
     @ViewBuilder
     private func screen(for item: AppSection) -> some View {
         switch item {
-        case .today: TodayView(path: $todayPath)
+        case .today: TodayView(path: $todayPath) {
+            section = .settings
+            sidebarSelection = .settings
+        }
         case .evolution: EvolutionView()
         case .races: RaceListView()
         case .workouts: WorkoutListView()

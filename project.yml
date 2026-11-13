@@ -30,6 +30,7 @@ targets:
           - Narrative
           - Reports
           - Insights
+          - RemoteSync
     settings:
       base:
         PRODUCT_NAME: trAIning
@@ -39,6 +40,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: trAIning
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "O app pede o Face ID para mostrar ou copiar a chave de sincronização entre aparelhos."
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"

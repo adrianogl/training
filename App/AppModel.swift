@@ -15,6 +15,7 @@ import TrainingCore
     private(set) var connectionStatus: ConnectionStatus = .untested
     private(set) var hasKey: Bool
     let autoSyncEnabled: Bool
+    let remoteSync: RemoteSyncModel
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
@@ -36,6 +37,8 @@ import TrainingCore
         storeError: String? = nil,
         keyStore: any APIKeyStore,
         transport: any HTTPTransport = URLSessionTransport(),
+        remoteKeyStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.remoteSyncKeychainAccount),
+        remoteBaseURL: URL = AppConstants.remoteSyncBaseURL,
         autoSyncEnabled: Bool = true,
         makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() },
         notifier: MorningNotifier = MorningNotifier(),
@@ -55,6 +58,7 @@ import TrainingCore
         self.autoSyncEnabled = autoSyncEnabled
         self.makeNarrator = makeNarrator
         self.hasKey = ((try? keyStore.read()) ?? nil)?.isEmpty == false
+        self.remoteSync = RemoteSyncModel(container: container, keyStore: remoteKeyStore, transport: transport, baseURL: remoteBaseURL)
     }
 
     static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppModel {
@@ -66,13 +70,14 @@ import TrainingCore
             try? keyStore.save(injected)
         }
         #endif
+        let remoteBaseURL = RemoteSyncModel.baseURL(environment: environment)
         if isTestHost {
-            return AppModel(container: inMemoryContainer(), keyStore: keyStore, autoSyncEnabled: false)
+            return AppModel(container: inMemoryContainer(), keyStore: keyStore, remoteBaseURL: remoteBaseURL, autoSyncEnabled: false)
         }
         do {
-            return AppModel(container: try TrainingSchema.container(url: storeURL()), keyStore: keyStore)
+            return AppModel(container: try TrainingSchema.container(url: storeURL()), keyStore: keyStore, remoteBaseURL: remoteBaseURL)
         } catch {
-            return AppModel(container: inMemoryContainer(), storeError: String(describing: error), keyStore: keyStore)
+            return AppModel(container: inMemoryContainer(), storeError: String(describing: error), keyStore: keyStore, remoteBaseURL: remoteBaseURL)
         }
     }
 
@@ -148,6 +153,7 @@ import TrainingCore
         }
         guard let key = currentKey() else {
             syncStatus = .failed(.missingKey)
+            await remoteSync.syncNow()
             return false
         }
         runningTrigger = trigger
@@ -182,6 +188,7 @@ import TrainingCore
         }
         syncTask = task
         await task.value
+        if syncStatus != .idle { await remoteSync.syncNow() }
         return syncStatus.isFinished
     }
 

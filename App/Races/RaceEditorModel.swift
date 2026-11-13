@@ -14,6 +14,7 @@ import WorkoutAnalysis
     let today: Day
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private var efforts: [Effort] = []
+    @ObservationIgnored private let onChange: @MainActor () -> Void
     var name = ""
     var date = Date.now
     var hasStartTime = false
@@ -29,8 +30,9 @@ import WorkoutAnalysis
     private(set) var assessment: EditorAssessment?
     private(set) var isLoaded = false
 
-    init(container: ModelContainer, raceId: UUID?, today: Day) {
+    init(container: ModelContainer, raceId: UUID?, today: Day, onChange: @escaping @MainActor () -> Void = {}) {
         self.container = container
+        self.onChange = onChange
         self.raceId = raceId
         self.today = today
         self.date = today.adding(days: C.daysPerWeek * C.blockWeeks).chartDate
@@ -154,13 +156,16 @@ import WorkoutAnalysis
         race.gpxData = gpxData
         race.updatedAt = .now
         try context.save()
+        onChange()
     }
 
     func delete() throws {
         guard let race = fetchRace() else { return }
-        let context = container.mainContext
-        context.delete(race)
-        try context.save()
+        let now = Date.now
+        race.deletedAt = now
+        race.updatedAt = now
+        try container.mainContext.save()
+        onChange()
     }
 
     nonisolated static func parseClock(_ text: String) -> Double? {
@@ -193,7 +198,7 @@ import WorkoutAnalysis
 
     private func fetchRace() -> RaceRecord? {
         guard let raceId else { return nil }
-        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId && $0.deletedAt == nil })
         descriptor.fetchLimit = 1
         return try? container.mainContext.fetch(descriptor).first
     }

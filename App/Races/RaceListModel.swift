@@ -16,6 +16,7 @@ import WorkoutAnalysis
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let confirmAnswer: RaceAnswer
     @ObservationIgnored private let declineAnswer: RaceAnswer
+    @ObservationIgnored private let onChange: @MainActor () -> Void
     private(set) var candidates: [RaceCandidate] = []
     private(set) var upcoming: [RaceRowData] = []
     private(set) var completed: [RaceRowData] = []
@@ -27,8 +28,10 @@ import WorkoutAnalysis
         container: ModelContainer,
         today: Day,
         confirmAnswer: @escaping RaceAnswer = { try confirmRace(activityId: $0, in: $1) },
-        declineAnswer: @escaping RaceAnswer = { try declineRace(activityId: $0, in: $1) }
+        declineAnswer: @escaping RaceAnswer = { try declineRace(activityId: $0, in: $1) },
+        onChange: @escaping @MainActor () -> Void = {}
     ) {
+        self.onChange = onChange
         self.container = container
         self.today = today
         self.confirmAnswer = confirmAnswer
@@ -63,6 +66,7 @@ import WorkoutAnalysis
         do {
             try answer(activityId, container.mainContext)
             answerFailed = false
+            onChange()
         } catch {
             answerFailed = true
             C.logger.error("Falha ao \(action, privacy: .public) prova da atividade \(activityId, privacy: .private): \(String(describing: error), privacy: .private)")
@@ -71,24 +75,26 @@ import WorkoutAnalysis
 
     func linkResult(raceId: UUID, activityId: Int64) {
         let context = container.mainContext
-        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId && $0.deletedAt == nil })
         descriptor.fetchLimit = 1
         guard let race = try? context.fetch(descriptor).first else { return }
         race.resultActivityId = activityId
         race.manuallyUnlinked = false
         race.updatedAt = .now
-        try? context.save()
+        guard (try? context.save()) != nil else { return }
+        onChange()
     }
 
     func unlinkResult(raceId: UUID) {
         let context = container.mainContext
-        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId && $0.deletedAt == nil })
         descriptor.fetchLimit = 1
         guard let race = try? context.fetch(descriptor).first else { return }
         race.resultActivityId = nil
         race.manuallyUnlinked = true
         race.updatedAt = .now
-        try? context.save()
+        guard (try? context.save()) != nil else { return }
+        onChange()
     }
 
     func resultOptions(for raceId: UUID) async -> [ResultOption] {
@@ -100,7 +106,7 @@ import WorkoutAnalysis
 
     nonisolated private static func options(container: ModelContainer, raceId: UUID) -> [ResultOption] {
         let context = ModelContext(container)
-        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId && $0.deletedAt == nil })
         descriptor.fetchLimit = 1
         guard let race = (try? context.fetch(descriptor))?.first, let day = Day(iso: race.day) else { return [] }
         let lower = day.adding(days: -C.pickerWindowDays).chartDate
@@ -123,7 +129,7 @@ import WorkoutAnalysis
 
     nonisolated private static func compute(container: ModelContainer, today: Day) -> RaceListLoad {
         let context = ModelContext(container)
-        let races = ((try? context.fetch(FetchDescriptor<RaceRecord>())) ?? [])
+        let races = ((try? context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))) ?? [])
             .compactMap { race in Day(iso: race.day).map { (race, $0) } }
             .sorted { $0.1 < $1.1 }
         let upcomingRaces = races.filter { $0.1 >= today }

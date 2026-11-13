@@ -133,4 +133,21 @@ import TrainingCore
         let race = try #require(try container.mainContext.fetch(FetchDescriptor<RaceRecord>()).first)
         #expect(race.resultActivityId == Self.candidateId)
     }
+
+    @Test func answersAndLinksNotifyLocalChangeOnlyWhenSaved() async throws {
+        let container = try Self.store(registeredRace: true)
+        var changes = 0
+        let failing: RaceAnswer = { _, _ in throw CocoaError(.fileWriteUnknown) }
+        let broken = RaceListModel(container: container, today: Self.today, confirmAnswer: failing, declineAnswer: failing, onChange: { changes += 1 })
+        await broken.confirm(Self.candidateId)
+        #expect(changes == 0)
+
+        let model = RaceListModel(container: container, today: Self.today, onChange: { changes += 1 })
+        await model.decline(Self.candidateId)
+        let race = try #require(try container.mainContext.fetch(FetchDescriptor<RaceRecord>()).first)
+        model.linkResult(raceId: race.id, activityId: Self.candidateId)
+        model.unlinkResult(raceId: race.id)
+
+        #expect(changes == 3)
+    }
 }

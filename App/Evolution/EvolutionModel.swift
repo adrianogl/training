@@ -145,7 +145,7 @@ import TrainingCore
     }
 
     nonisolated static func raceMarkers(context: ModelContext) -> [RaceMarker] {
-        let races = (try? context.fetch(FetchDescriptor<RaceRecord>())) ?? []
+        let races = (try? context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))) ?? []
         return races.compactMap { race in Day(iso: race.day).map { RaceMarker(day: $0, name: race.name) } }
             .sorted { $0.day < $1.day }
     }

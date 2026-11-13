@@ -63,7 +63,7 @@ struct NextRaceView: View {
     }
 
     private func reload() async {
-        let loaded = NextRaceModel(container: app.container, raceId: raceId, today: Day.today())
+        let loaded = NextRaceModel(container: app.container, raceId: raceId, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
         await loaded.load()
         model = loaded
     }

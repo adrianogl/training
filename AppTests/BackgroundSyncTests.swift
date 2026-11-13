@@ -43,6 +43,7 @@ private struct EmptyKeyStore: APIKeyStore {
         AppModel(
             container: try TrainingSchema.container(inMemory: true),
             keyStore: EmptyKeyStore(),
+            remoteKeyStore: MemoryKeyStore(),
             autoSyncEnabled: false,
             readinessComplete: true,
             readinessDay: Day(year: 2026, month: 11, day: 9),

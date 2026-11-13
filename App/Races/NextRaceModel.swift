@@ -13,6 +13,7 @@ import TrainingCore
     let raceId: UUID
     let today: Day
     @ObservationIgnored private let container: ModelContainer
+    @ObservationIgnored private let onChange: @MainActor () -> Void
     private(set) var info: RaceInfo?
     private(set) var outlook = TodaySummary.empty.race
     private(set) var target: StrategyTarget?
@@ -25,8 +26,9 @@ import TrainingCore
     private(set) var blockReading = ""
     private(set) var isLoaded = false
 
-    init(container: ModelContainer, raceId: UUID, today: Day) {
+    init(container: ModelContainer, raceId: UUID, today: Day, onChange: @escaping @MainActor () -> Void = {}) {
         self.container = container
+        self.onChange = onChange
         self.raceId = raceId
         self.today = today
     }
@@ -118,12 +120,12 @@ import TrainingCore
     private func store(_ paces: [Int: Double]) {
         let context = container.mainContext
         let id = raceId
-        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id })
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id && $0.deletedAt == nil })
         descriptor.fetchLimit = 1
         if let race = try? context.fetch(descriptor).first {
             race.manualPaces = paces
             race.updatedAt = .now
-            try? context.save()
+            if (try? context.save()) != nil { onChange() }
         }
         manual = paces
         recalculate()
@@ -150,7 +152,7 @@ import TrainingCore
 
     nonisolated private static func compute(container: ModelContainer, raceId: UUID, today: Day) -> NextRaceLoad? {
         let context = ModelContext(container)
-        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId })
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == raceId && $0.deletedAt == nil })
         descriptor.fetchLimit = 1
         guard let race = (try? context.fetch(descriptor))?.first, let raceDay = Day(iso: race.day) else { return nil }
         let info = RaceInfo(

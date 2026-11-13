@@ -14,10 +14,13 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
+            ScrollViewReader { proxy in
             Form {
                 keySection
                 connectionSection
                 syncSection
+                RemoteSyncSection(model: model.remoteSync)
+                    .id(RemoteSyncSettingsConstants.sectionAnchor)
                 noticeSection
                 dataSection
                 if let storeError = model.storeError {
@@ -30,6 +33,12 @@ struct SettingsView: View {
             .scrollContentBackground(.hidden)
             .background(BrandBackground())
             .navigationTitle("Ajustes")
+            .task {
+                guard Self.debugScrollsToRemoteSync() else { return }
+                try? await Task.sleep(for: .milliseconds(600))
+                proxy.scrollTo(RemoteSyncSettingsConstants.sectionAnchor, anchor: .top)
+            }
+            }
         }
     }
 
@@ -133,6 +142,14 @@ struct SettingsView: View {
         } header: {
             Text("Dados locais")
         }
+    }
+
+    private static func debugScrollsToRemoteSync(defaults: UserDefaults = .standard) -> Bool {
+        #if DEBUG
+        return defaults.bool(forKey: AppConstants.settingsScrollDefaultsKey)
+        #else
+        return false
+        #endif
     }
 
     private var lastSyncText: String {

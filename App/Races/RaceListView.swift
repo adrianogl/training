@@ -6,7 +6,7 @@ import TrainingCore
 
 struct RaceListView: View {
     @Environment(AppModel.self) private var app
-    @Query private var races: [RaceRecord]
+    @Query(filter: #Predicate<RaceRecord> { $0.deletedAt == nil }) private var races: [RaceRecord]
     @State private var model: RaceListModel?
     @State private var path: [RaceRoute] = []
     @State private var showsEditor = false
@@ -68,7 +68,7 @@ struct RaceListView: View {
         }
         .task(id: signature) {
             await Task.yield()
-            let loaded = RaceListModel(container: app.container, today: Day.today())
+            let loaded = RaceListModel(container: app.container, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
             await loaded.load()
             model = loaded
             openDebugRaceIfNeeded(loaded)

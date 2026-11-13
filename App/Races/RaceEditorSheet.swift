@@ -36,7 +36,7 @@ struct RaceEditorSheet: View {
             }
         }
         .task {
-            let loaded = RaceEditorModel(container: app.container, raceId: raceId, today: Day.today())
+            let loaded = RaceEditorModel(container: app.container, raceId: raceId, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
             await loaded.load()
             model = loaded
         }

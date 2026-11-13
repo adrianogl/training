@@ -6,7 +6,7 @@ import TrainingCore
 
 struct SidebarRaceCard: View {
     @Environment(\.modelContext) private var context
-    @Query private var races: [RaceRecord]
+    @Query(filter: #Predicate<RaceRecord> { $0.deletedAt == nil }) private var races: [RaceRecord]
 
     var body: some View {
         let today = Day.today()

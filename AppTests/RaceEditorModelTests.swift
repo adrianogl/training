@@ -84,6 +84,49 @@ import TrainingCore
         #expect(race.frozenTargetDay == nil)
     }
 
+    @Test func deleteKeepsTombstoneAndHidesRaceEverywhere() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let old = Date(timeIntervalSince1970: 1_000)
+        let race = RaceRecord(name: "Apagar", day: Self.today.adding(days: 1).iso, distance: 10_000, goalSeconds: 3_000, priority: .a, updatedAt: old)
+        container.mainContext.insert(race)
+        try container.mainContext.save()
+        let editor = RaceEditorModel(container: container, raceId: race.id, today: Self.today)
+        await editor.load()
+
+        try editor.delete()
+
+        let stored = try #require(try container.mainContext.fetch(FetchDescriptor<RaceRecord>()).first)
+        #expect(stored.deletedAt != nil)
+        #expect(stored.updatedAt > old)
+        let list = RaceListModel(container: container, today: Self.today)
+        await list.load()
+        #expect(list.upcoming.isEmpty)
+        #expect(EvolutionModel.raceMarkers(context: container.mainContext).isEmpty)
+        let next = NextRaceModel(container: container, raceId: race.id, today: Self.today)
+        await next.load()
+        #expect(next.info == nil)
+        let reopened = RaceEditorModel(container: container, raceId: race.id, today: Self.today)
+        await reopened.load()
+        #expect(reopened.name.isEmpty)
+        #expect(stored.frozenTargetSeconds == nil)
+    }
+
+    @Test func saveAndDeleteNotifyLocalChange() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        var changes = 0
+        let editor = RaceEditorModel(container: container, raceId: nil, today: Self.today, onChange: { changes += 1 })
+        await editor.load()
+        editor.name = "Avisa"
+        try editor.save()
+        let race = try #require(try container.mainContext.fetch(FetchDescriptor<RaceRecord>()).first)
+        let again = RaceEditorModel(container: container, raceId: race.id, today: Self.today, onChange: { changes += 1 })
+        await again.load()
+
+        try again.delete()
+
+        #expect(changes == 2)
+    }
+
     @Test func parsesGoalText() {
         #expect(RaceEditorModel.parseClock("1:45:00") == 6_300)
         #expect(RaceEditorModel.parseClock("22:30") == 1_350)

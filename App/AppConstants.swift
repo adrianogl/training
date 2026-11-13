@@ -21,7 +21,12 @@ enum AppConstants {
     static let detailScrollDefaultsKey = "detailScroll"
     static let openRaceDefaultsKey = "openRace"
     static let raceScrollDefaultsKey = "raceScroll"
+    static let settingsScrollDefaultsKey = "settingsScroll"
     static let openShareDefaultsKey = "openShare"
     static let exportShareDefaultsKey = "exportShare"
+    static let remoteSyncKeychainAccount = "remote-sync-key"
+    static let remoteSyncBaseURL = URL(string: "https://training-sync.vercel.app")!
+    static let remoteSyncURLEnvironmentVariable = "TRAINING_SYNC_URL"
+    static let remoteSyncDebounce = Duration.seconds(2)
     static let createKeyURL = URL(string: "https://connect.garmin.com/app/settings/personalApiToken")!
 }
