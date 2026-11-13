@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { SqlStatement } from '../src/db.js'
 import { createAccountStatements } from '../src/account.js'
 import { pullStatement, pushStatements } from '../src/merge.js'
+import { replaceWatchTokenStatements } from '../src/watch.js'
 import { incomingRecord, migrationsDir } from './helpers.js'
 
 const image = process.env.SYNC_TEST_POSTGRES_IMAGE ?? 'postgres:17-alpine'
@@ -152,5 +153,21 @@ describe('push concorrente contra Postgres real', () => {
 
     const created = await reader.run("select id from accounts where id in ('nova-a', 'nova-b') order by id;")
     expect(created).toEqual(['nova-a'])
+  })
+
+  it('troca concorrente do token do relógio deixa um só token na conta', async () => {
+    const first = new PsqlSession(container)
+    const second = new PsqlSession(container)
+    const reader = new PsqlSession(container)
+    sessions.push(first, second, reader)
+
+    await first.run(`begin;\n${replaceWatchTokenStatements(account, 'a'.repeat(64)).map(bound).join('')}`)
+    const secondDone = second.run(`begin;\n${replaceWatchTokenStatements(account, 'b'.repeat(64)).map(bound).join('')}commit;`)
+    await waitForLockWait(reader, secondDone)
+    await first.run('commit;')
+    await secondDone
+
+    const tokens = await reader.run(`select token_hash from watch_tokens where account_id = ${quote(account)};`)
+    expect(tokens).toEqual(['b'.repeat(64)])
   })
 })

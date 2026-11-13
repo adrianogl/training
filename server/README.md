@@ -23,7 +23,7 @@ DATABASE_URL=... npm --prefix server run migrate
 
 ## Rotas
 
-Todas exigem `Authorization: Bearer <32 bytes em base64url sem padding>`. A conta é o `sha256` desses bytes.
+Todas exigem `Authorization: Bearer <32 bytes em base64url sem padding>`. A conta é o `sha256` desses bytes. As rotas de conta usam a chave de conta; só o `GET /api/v1/watch/readiness` usa o token do relógio.
 
 | Rota | Resposta |
 | --- | --- |
@@ -31,10 +31,16 @@ Todas exigem `Authorization: Bearer <32 bytes em base64url sem padding>`. A cont
 | `DELETE /api/v1/account` | 204; 401 se a conta não existe |
 | `GET /api/v1/changes?since=<seq>` | `{"records":[...],"cursor":n,"hasMore":bool}`, em ordem de `seq`, até 500 registros e 3 MB de payload por página (sempre pelo menos 1) |
 | `POST /api/v1/changes` | `{"cursor":n,"ignored":[{"kind","id"}]}`; até 100 registros, payload até 1 MB, corpo até 4 MB; 413 `quota_exceeded` acima de `MAX_ACCOUNT_BYTES` (push que não aumenta o uso, como tombstone, sempre passa) |
+| `PUT /api/v1/watch/token` | Corpo `{"tokenHash":"<sha256 hex minúsculo dos 32 bytes do token do relógio>"}`. 204; troca o token anterior da conta (um por conta). 400 `invalid_token_hash`, 409 `token_conflict` se o hash já é de outra conta |
+| `DELETE /api/v1/watch/token` | 204, com ou sem token cadastrado |
+| `PUT /api/v1/watch/readiness` | Corpo `{"day":"YYYY-MM-DD","score":63,"verdict":"Moderado"}`. 204; upsert da nota da conta. 400 `invalid_day`, `invalid_score` (inteiro 0–100) ou `invalid_verdict` (1 a 24 caracteres) |
+| `GET /api/v1/watch/readiness` | `Authorization: Bearer <token do relógio>`. 200 `{"day","score","verdict"}`, 404 `no_readiness` sem nota, 401 token desconhecido ou chave de conta. Sempre `Cache-Control: no-store` |
 
 Erros voltam como `{"error":"<código>"}`.
 
 A criação de conta roda numa transação com advisory lock global: o limite por IP e o `MAX_ACCOUNTS` são checados e gravados sem corrida.
+
+O token do relógio tem o mesmo formato da chave de conta e o servidor guarda só o `sha256` dele em `watch_tokens`. A troca roda numa transação com `pg_advisory_xact_lock(hashtext('watch_token:' || account_id))`, então duas trocas simultâneas deixam um token só. O `GET` do relógio, chamado a cada 15 minutos, resolve token, nota e `request_log` numa única query. Apagar a conta apaga token e nota em cascata.
 
 O push roda numa transação que começa com `pg_advisory_xact_lock(hashtext(account_id))`. Pushes da mesma conta ficam em série, então os `seq` de uma conta aparecem na ordem do commit e o pull nunca passa o cursor por cima de um `seq` menor ainda não commitado.
 

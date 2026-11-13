@@ -77,3 +77,13 @@ export interface Limits {
 }
 
 export type PushOutcome = { status: 'ok'; result: PushResult } | { status: 'quota_exceeded' }
+
+export interface Readiness {
+  day: string
+  score: number
+  verdict: string
+}
+
+export type BodyParseResult<T> = { ok: true; value: T } | { ok: false; error: string }
+
+export type WatchReadinessLookup = { status: 'unknown_token' } | { status: 'no_readiness' } | { status: 'ok'; readiness: Readiness }

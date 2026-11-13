@@ -1,13 +1,20 @@
 import { createAccount, deleteAccount } from './account.js'
 import { accountExists, accountIdFromAuthorization } from './auth.js'
-import { LOG_ACCOUNT_PREFIX_LENGTH, MAX_BODY_BYTES, UNLOGGED_STATUSES } from './constants.js'
+import {
+  LOG_ACCOUNT_PREFIX_LENGTH,
+  MAX_BODY_BYTES,
+  UNLOGGED_STATUSES,
+  WATCH_READINESS_ROUTE,
+  WATCH_TOKEN_ROUTE,
+} from './constants.js'
 import { limitsFromEnv } from './limits.js'
 import type { Sql } from './db.js'
 import { pullChanges, pushRecords } from './merge.js'
 import { clientIpHash } from './rateLimit.js'
 import { recordRequest } from './requestLog.js'
 import type { Limits } from './types.js'
-import { parsePushBody, parseSince } from './validate.js'
+import { parsePushBody, parseReadinessBody, parseSince, parseWatchTokenBody } from './validate.js'
+import { readinessForWatchToken, replaceWatchToken, revokeWatchToken, saveReadiness } from './watch.js'
 
 function json(status: number, body: unknown): Response {
   return Response.json(body, { status })
@@ -15,6 +22,14 @@ function json(status: number, body: unknown): Response {
 
 function failure(status: number, error: string): Response {
   return json(status, { error })
+}
+
+function noContent(): Response {
+  return new Response(null, { status: 204 })
+}
+
+function uncached(status: number, body: unknown): Response {
+  return Response.json(body, { status, headers: { 'cache-control': 'no-store' } })
 }
 
 function logFailure(route: string, accountId: string | undefined, error: unknown): void {
@@ -90,7 +105,7 @@ export function createAccountRoute(
 
 export function deleteAccountRoute(request: Request, sql: Sql): Promise<Response> {
   return handled('account', request, sql, async (accountId) => ({
-    response: (await deleteAccount(sql, accountId)) ? new Response(null, { status: 204 }) : failure(401, 'unauthorized'),
+    response: (await deleteAccount(sql, accountId)) ? noContent() : failure(401, 'unauthorized'),
   }))
 }
 
@@ -131,4 +146,67 @@ export function pushChangesRoute(
     }
     return { response: json(200, outcome.result), recordCount: parsed.records.length }
   })
+}
+
+export function putWatchTokenRoute(request: Request, sql: Sql): Promise<Response> {
+  return handled(WATCH_TOKEN_ROUTE, request, sql, async (accountId) => {
+    if (!(await accountExists(sql, accountId))) {
+      return { response: failure(401, 'unauthorized') }
+    }
+    const text = await readBody(request)
+    if (text === undefined) {
+      return { response: failure(413, 'body_too_large') }
+    }
+    const parsed = parseWatchTokenBody(text)
+    if (!parsed.ok) {
+      return { response: failure(400, parsed.error) }
+    }
+    const owned = await replaceWatchToken(sql, accountId, parsed.value)
+    return { response: owned ? noContent() : failure(409, 'token_conflict') }
+  })
+}
+
+export function deleteWatchTokenRoute(request: Request, sql: Sql): Promise<Response> {
+  return handled(WATCH_TOKEN_ROUTE, request, sql, async (accountId) => {
+    if (!(await accountExists(sql, accountId))) {
+      return { response: failure(401, 'unauthorized') }
+    }
+    await revokeWatchToken(sql, accountId)
+    return { response: noContent() }
+  })
+}
+
+export function putWatchReadinessRoute(request: Request, sql: Sql): Promise<Response> {
+  return handled(WATCH_READINESS_ROUTE, request, sql, async (accountId) => {
+    if (!(await accountExists(sql, accountId))) {
+      return { response: failure(401, 'unauthorized') }
+    }
+    const text = await readBody(request)
+    if (text === undefined) {
+      return { response: failure(413, 'body_too_large') }
+    }
+    const parsed = parseReadinessBody(text)
+    if (!parsed.ok) {
+      return { response: failure(400, parsed.error) }
+    }
+    await saveReadiness(sql, accountId, parsed.value)
+    return { response: noContent() }
+  })
+}
+
+export async function getWatchReadinessRoute(request: Request, sql: Sql): Promise<Response> {
+  const tokenHash = accountIdFromAuthorization(request.headers.get('authorization'))
+  if (tokenHash === undefined) {
+    return uncached(401, { error: 'unauthorized' })
+  }
+  try {
+    const lookup = await readinessForWatchToken(sql, tokenHash)
+    if (lookup.status === 'unknown_token') {
+      return uncached(401, { error: 'unauthorized' })
+    }
+    return lookup.status === 'ok' ? uncached(200, lookup.readiness) : uncached(404, { error: 'no_readiness' })
+  } catch (error) {
+    logFailure(`GET ${WATCH_READINESS_ROUTE}`, undefined, error)
+    return uncached(500, { error: 'internal_error' })
+  }
 }
