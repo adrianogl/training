@@ -8,3 +8,7 @@ DerivedData/
 .superpowers/
 *.xcodeproj/
 App/**/xcuserdata
+server/node_modules/
+server/.vercel/
+server/.env*
+server/.vitest/

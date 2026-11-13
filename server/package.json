@@ -1,0 +1,23 @@
+{
+  "name": "training-sync-server",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "test:concurrency": "SYNC_TEST_POSTGRES_IMAGE=postgres:17-alpine vitest run"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.2.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.12",
+    "@types/node": "22.20.4",
+    "typescript": "6.0.3",
+    "vitest": "5.0.5"
+  }
+}
