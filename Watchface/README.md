@@ -39,3 +39,7 @@ monkeydo bin/TrainingFace.prg fr965
 Para instalar no relógio, copiar `bin/TrainingFace.prg` para `GARMIN/APPS` com o relógio ligado no Mac por USB.
 
 No simulador, conferir o modo sempre ligado em Settings → Display Mode e o mapa de burn-in em View → Burn-in.
+
+### Token sem a loja
+
+Instalado pelo cabo, o mostrador não aparece nas configurações do Garmin Connect, então não há onde colar o token. Nesse caso, salve o token em `~/.config/training-sync/watch-token` e compile com `./build-local.sh`: ele copia o mostrador para uma pasta temporária, embute o token em `BuildToken.mc` e gera `bin/TrainingFace.prg`. No repositório, `BuildToken.WATCH_TOKEN` fica sempre vazio. Se a configuração do Garmin Connect tiver um token, ela tem prioridade.
