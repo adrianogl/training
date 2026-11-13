@@ -4,11 +4,42 @@ import TrainingCore
 import WorkoutAnalysis
 
 enum WorkoutListModel {
-    static func rows(filter: WorkoutFilter, records: [ActivityRecord]) -> [WorkoutRowData] {
+    static func rows(records: [ActivityRecord]) -> [WorkoutRowData] {
         records
-            .filter { filter.matches($0.typeKey) }
+            .filter { ActivityTypeKey.isRun($0.typeKey) }
             .sorted { $0.start > $1.start }
             .map(row)
+    }
+
+    static func weeks(records: [ActivityRecord]) -> [WorkoutWeek] {
+        var order: [Day] = []
+        var grouped: [Day: [WorkoutRowData]] = [:]
+        for row in rows(records: records) {
+            if grouped[row.weekStart] == nil { order.append(row.weekStart) }
+            grouped[row.weekStart, default: []].append(row)
+        }
+        return order.map { start in
+            let rows = grouped[start] ?? []
+            return WorkoutWeek(start: start, kilometers: rows.reduce(0) { $0 + ($1.kilometers ?? 0) }, rows: rows)
+        }
+    }
+
+    static func weekLabel(_ start: Day) -> String {
+        let end = start.adding(days: 6)
+        let formatter = DateFormatter()
+        formatter.locale = WorkoutConstants.locale
+        formatter.dateFormat = start.month == end.month ? WorkoutConstants.weekDayFormat : WorkoutConstants.weekMonthFormat
+        let first = formatter.string(from: start.chartDate)
+        formatter.dateFormat = WorkoutConstants.weekMonthFormat
+        let last = formatter.string(from: end.chartDate)
+        return String(format: WorkoutConstants.weekRangeFormat, first, last).replacingOccurrences(of: ".", with: "")
+    }
+
+    static func weekSummary(_ week: WorkoutWeek) -> String {
+        let km = TodayText.decimal(week.kilometers, fractionDigits: 1)
+        return week.rows.count == 1
+            ? String(format: WorkoutConstants.weekSummarySingular, km)
+            : String(format: WorkoutConstants.weekSummaryFormat, km, week.rows.count)
     }
 
     static func row(_ record: ActivityRecord) -> WorkoutRowData {
@@ -23,8 +54,16 @@ enum WorkoutListModel {
             durationText: duration.map(clockText),
             paceText: isRun ? pace(distance: distance, duration: duration).map { paceText(secondsPerKilometer: $0) } : nil,
             hasPrescription: record.workoutName != nil,
-            score: isRun ? record.scoreValue : nil
+            score: isRun ? record.scoreValue : nil,
+            kilometers: distance.map { $0 / WorkoutConstants.metersPerKilometer },
+            zoneShares: zoneShares(record.zoneSeconds),
+            weekStart: Day.today(now: record.start).weekStart
         )
+    }
+
+    private static func zoneShares(_ seconds: [Double]) -> [Double] {
+        let total = seconds.reduce(0, +)
+        return total > 0 ? seconds.map { $0 / total } : []
     }
 
     private static func pace(distance: Double?, duration: Double?) -> Double? {

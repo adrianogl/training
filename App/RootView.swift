@@ -7,6 +7,7 @@ struct RootView: View {
     @State private var section = AppSection.initial()
     @State private var sidebarSelection: AppSection? = AppSection.initial()
     @State private var todayPath: [TodayRoute] = RootView.initialTodayPath()
+    @State private var columnVisibility = RootView.visibility(for: AppSection.initial())
 
     var body: some View {
         Group {
@@ -47,7 +48,7 @@ struct RootView: View {
     }
 
     private var splitView: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             List(AppSection.allCases, selection: $sidebarSelection) { item in
                 Label(item.title, systemImage: item.systemImage).tag(item)
             }
@@ -61,6 +62,9 @@ struct RootView: View {
             .safeAreaInset(edge: .bottom) { SidebarRaceCard() }
         } detail: {
             screen(for: sidebarSelection ?? .today)
+        }
+        .onChange(of: sidebarSelection) { _, selection in
+            withAnimation { columnVisibility = Self.visibility(for: selection ?? .today) }
         }
     }
 
@@ -76,6 +80,10 @@ struct RootView: View {
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }
+    }
+
+    private static func visibility(for section: AppSection) -> NavigationSplitViewVisibility {
+        AppConstants.sidebarCollapsedSections.contains(section) ? .detailOnly : .all
     }
 
     private static var isTestHost: Bool {

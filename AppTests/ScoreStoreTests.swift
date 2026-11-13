@@ -64,7 +64,7 @@ import WorkoutAnalysis
         await ScoreStore.refresh(container: container, ids: nil)
 
         let records = try ModelContext(container).fetch(FetchDescriptor<ActivityRecord>())
-        let rows = WorkoutListModel.rows(filter: .all, records: records)
+        let rows = WorkoutListModel.rows(records: records)
         #expect(rows.first { $0.activityId == 1 }?.score == Self.sentinel)
         #expect(rows.first { $0.activityId == 9 }?.score == nil)
         #expect(computed != Self.sentinel)
