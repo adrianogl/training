@@ -26,6 +26,7 @@ enum AppConstants {
     static let exportShareDefaultsKey = "exportShare"
     static let appearanceDefaultsKey = "appearance"
     static let weeklyGoalDefaultsKey = "weeklyGoalKm"
+    static let plannedWeeksDefaultsKey = "plannedWeeklyKm"
     static let weeklyGoalRange = 0...200
     static let weeklyGoalStep = 5
     static let settingsListWidth: Double = 320

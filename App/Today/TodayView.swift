@@ -75,6 +75,7 @@ struct TodayView: View {
             await loaded.load()
             model = loaded
             await loaded.loadPlanned(client: app.garminAccount.client)
+            await loaded.loadPlannedHistory(client: app.garminAccount.client)
             await loaded.refreshSentence()
         }
     }
@@ -95,7 +96,7 @@ struct TodayView: View {
                 TodayPlanCard(plan: plan, verdict: model.summary.verdict)
             }
             WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal, planned: model.planned)
-            VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal)
+            VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal, planned: model.plannedWeeks)
             row(weights: [1, 1]) {
                 if let lastRun = model.lastRun {
                     LastRunCard(lastRun: lastRun)

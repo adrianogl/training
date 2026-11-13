@@ -21,6 +21,7 @@ import WorkoutAnalysis
     private(set) var raceName: String?
     private(set) var weekRuns: [Day: [WeekRun]] = [:]
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
+    private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var isLoaded = false
 
     init(container: ModelContainer, today: Day) {
@@ -55,6 +56,30 @@ import WorkoutAnalysis
               !Task.isCancelled
         else { return }
         planned = Dictionary(grouping: workouts) { Day(iso: $0.day) ?? today }
+    }
+
+    func loadPlannedHistory(client: GarminAccountClient?, defaults: UserDefaults = .standard) async {
+        guard let client else { return }
+        let starts = summary.week.recentWeeks.map(\.start)
+        let current = today.weekStart
+        var cache = (defaults.dictionary(forKey: AppConstants.plannedWeeksDefaultsKey) as? [String: Double]) ?? [:]
+        let missing = starts.filter { $0 < current && cache[$0.iso] == nil }
+        if let first = missing.min(), let last = missing.max(),
+           let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: last.adding(days: 6)) {
+            var totals = Dictionary(uniqueKeysWithValues: missing.map { ($0.iso, 0.0) })
+            for workout in workouts {
+                guard let start = Day(iso: workout.day)?.weekStart, totals[start.iso] != nil else { continue }
+                totals[start.iso, default: 0] += (workout.estimatedMeters ?? 0) / WorkoutConstants.metersPerKilometer
+            }
+            cache.merge(totals) { _, new in new }
+            defaults.set(cache, forKey: AppConstants.plannedWeeksDefaultsKey)
+        }
+        guard !Task.isCancelled else { return }
+        var weeks: [Day: Double] = [:]
+        for start in starts where start < current { weeks[start] = cache[start.iso] }
+        let currentPlanned = planned.values.flatMap { $0 }.compactMap(\.estimatedMeters).reduce(0, +) / WorkoutConstants.metersPerKilometer
+        if currentPlanned > 0 { weeks[current] = currentPlanned }
+        plannedWeeks = weeks.filter { $0.value > 0 }
     }
 
     func refreshSentence() async {

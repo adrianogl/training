@@ -58,4 +58,31 @@ private final class RouteTransport: HTTPTransport {
         #expect(model.planned.isEmpty)
         #expect(model.todayPlan == nil)
     }
+
+    @Test func plannedHistoryIsCachedForClosedWeeks() async throws {
+        let today = Day(year: 2026, month: 11, day: 13)
+        let defaults = try #require(UserDefaults(suiteName: "planned-history-test"))
+        defaults.removePersistentDomain(forName: "planned-history-test")
+        let calendar = #"{"calendarItems":[{"itemType":"workout","date":"2026-10-01","title":"Longão","workoutId":21,"sportTypeKey":"running"}]}"#
+        let transport = RouteTransport([
+            "/calendar-service/year/2026/month/8": calendar,
+            "/calendar-service/year/2026/month/10": #"{"calendarItems":[]}"#,
+            "/workout-service/workout/21": #"{"workoutId":21,"workoutName":"Longão","estimatedDistanceInMeters":12000,"workoutSegments":[]}"#,
+        ])
+        let store = KeychainGarminSessionStore(keychain: MemoryKeyStore())
+        try store.save(GarminAccountSession(accessToken: "t", refreshToken: "r", clientId: "C", expiresAt: .distantFuture))
+        let container = try TrainingSchema.container(inMemory: true)
+
+        let first = TodayModel(container: container, today: today)
+        await first.load()
+        await first.loadPlannedHistory(client: GarminAccountClient(transport: transport, store: store), defaults: defaults)
+        #expect(first.plannedWeeks[Day(year: 2026, month: 9, day: 28)] == 12)
+
+        let offline = RouteTransport([:])
+        let second = TodayModel(container: container, today: today)
+        await second.load()
+        await second.loadPlannedHistory(client: GarminAccountClient(transport: offline, store: store), defaults: defaults)
+        #expect(second.plannedWeeks[Day(year: 2026, month: 9, day: 28)] == 12)
+        #expect(offline.paths.withLock { $0 }.isEmpty)
+    }
 }

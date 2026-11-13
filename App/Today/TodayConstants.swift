@@ -141,6 +141,14 @@ enum TodayConstants {
     static let volumeCurrentOpacity = 0.45
     static let volumeAverageLabel = "média 4 sem."
     static let volumeGoalLabel = "meta"
+    static let volumeTitlePlanned = "Volume semanal · planejado × realizado"
+    static let volumePlannedOpacity = 0.18
+    static let volumePlannedWidth = 0.75
+    static let volumeDoneWidth = 0.5
+    static let adherenceGood = 0.95
+    static let adherenceFormat = "%d%%"
+    static let adherenceSummaryFormat = "aderência nas semanas fechadas: %d%%"
+    static let projectionFormat = "esta semana deve fechar em ~%@ km"
     static let calendarGoalFormat = " · meta %d km"
     static let volumeWeekFormat = "d MMM"
     static let predictionsDistance = "distância"
