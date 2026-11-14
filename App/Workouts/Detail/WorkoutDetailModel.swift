@@ -35,6 +35,7 @@ import WorkoutAnalysis
     private(set) var shareSource: ShareSource?
     private(set) var localDay: String?
     private(set) var completedCheck: CompletedCheck?
+    private(set) var chatContext: WorkoutChatContext?
     private(set) var score: WorkoutScore?
     private(set) var scoreRows: [ScoreRowData] = []
     private(set) var trainingEffect: TrainingEffectData?
@@ -95,6 +96,15 @@ import WorkoutAnalysis
                 paceSecondsPerKm: (hasPrescription ? shareInput?.activePaceSecondsPerKm : nil) ?? average,
                 averageHeartRate: record.averageHR,
                 fadeSecondsPerKm: PlannedBriefingLoader.fade(samples)
+            )
+        }
+        if let summary {
+            let iso = record.localDay ?? ""
+            var dailyDescriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == iso })
+            dailyDescriptor.fetchLimit = 1
+            chatContext = WorkoutChatContextBuilder.context(
+                summary: summary, score: analysis.score?.value, analysis: analysisSummary, blocks: blocks,
+                comparison: comparisonRows, daily: (try? context.fetch(dailyDescriptor))?.first, hasPrescription: hasPrescription
             )
         }
         shareSource = shareInput.map { input in

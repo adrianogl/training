@@ -10,6 +10,8 @@ struct WorkoutDetailView: View {
     @State private var model: WorkoutDetailModel?
     @State private var showsShare = false
     @State private var planCheck: PlannedBriefing?
+    @State private var showsChat = false
+    @State private var chatCount = 0
     @Environment(AppModel.self) private var app
 
     var body: some View {
@@ -28,6 +30,7 @@ struct WorkoutDetailView: View {
             .onChange(of: model == nil) { _, isLoading in
                 guard !isLoading else { return }
                 showsShare = model?.shareSource != nil && Self.debugOpensShare()
+                showsChat = model?.chatContext != nil && Self.debugChatQuestion() != nil
                 guard let anchor = Self.debugScrollAnchor() else { return }
                 proxy.scrollTo(anchor, anchor: .top)
             }
@@ -38,6 +41,13 @@ struct WorkoutDetailView: View {
             model = WorkoutDetailModel(activityId: activityId, context: context)
             planCheck = await loadPlanCheck()
         }
+        .sheet(isPresented: $showsChat, onDismiss: refreshChatCount) {
+            if let context = model?.chatContext {
+                WorkoutChatSheet(activityId: activityId, context: context, autoQuestion: Self.debugChatQuestion())
+                    .presentationSizing(.page)
+            }
+        }
+        .task(id: activityId) { refreshChatCount() }
         .sheet(isPresented: $showsShare) {
             if let source = model?.shareSource {
                 ShareStudioView(source: source)
@@ -79,6 +89,9 @@ struct WorkoutDetailView: View {
                 PlanComparisonCard(rows: planCheck.comparison, note: planCheck.comparisonNote)
             }
             WorkoutAnalysisCard(summary: model.analysisSummary)
+            if model.chatContext != nil {
+                chatButton
+            }
             if !model.blocks.isEmpty {
                 labelled(model.hasPrescription ? "Blocos × prescrito" : "Parciais") {
                     BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription)
@@ -153,6 +166,29 @@ struct WorkoutDetailView: View {
         ))
     }
 
+    @ViewBuilder
+    private var chatButton: some View {
+        if WorkoutChatEngine.isAvailable {
+            Button { showsChat = true } label: {
+                Label(chatCount > 0 ? String(format: WorkoutChatConstants.askFormat, chatCount) : WorkoutChatConstants.ask, systemImage: "sparkles")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(BrandColors.onAccent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        } else {
+            Label(WorkoutChatConstants.unavailable, systemImage: "sparkles")
+                .font(.caption)
+                .foregroundStyle(BrandColors.dim)
+        }
+    }
+
+    private func refreshChatCount() {
+        Task { chatCount = await WorkoutChatStore.shared.questionCounts()[activityId] ?? 0 }
+    }
+
     private var notice: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Estrutura do treino ainda não baixada")
@@ -164,6 +200,14 @@ struct WorkoutDetailView: View {
         }
         .brandCard()
         .padding(.top, 16)
+    }
+
+    private static func debugChatQuestion(defaults: UserDefaults = .standard) -> String? {
+        #if DEBUG
+        return defaults.string(forKey: AppConstants.openChatDefaultsKey)
+        #else
+        return nil
+        #endif
     }
 
     private static func debugOpensShare(defaults: UserDefaults = .standard) -> Bool {

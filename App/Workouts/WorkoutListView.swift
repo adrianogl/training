@@ -9,6 +9,7 @@ struct WorkoutListView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
     @State private var path = WorkoutListView.initialPath()
+    @State private var chatCounts: [Int64: Int] = [:]
     @State private var selection: WorkoutSelection? = WorkoutListView.initialPath().first
     @State private var planned: [PlannedWorkout] = []
 
@@ -40,6 +41,9 @@ struct WorkoutListView: View {
         }
         .task {
             model.scoreRefresher.refresh()
+        }
+        .task(id: selection) {
+            chatCounts = await WorkoutChatStore.shared.questionCounts()
         }
         .task(id: model.garminAccount.isSignedIn) {
             #if DEBUG
@@ -113,7 +117,7 @@ struct WorkoutListView: View {
                     .padding(.top, 8)
                     ForEach(week.rows) { row in
                         link(.activity(row.activityId)) {
-                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId))
+                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), chatCount: chatCounts[row.activityId] ?? 0)
                         }
                     }
                 }

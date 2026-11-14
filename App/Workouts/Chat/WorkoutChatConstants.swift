@@ -1,0 +1,30 @@
+enum WorkoutChatConstants {
+    static let folderName = "Conversations"
+    static let indexName = "index.json"
+    static let historyLimit = 12
+    static let askFormat = "Perguntar sobre o treino · %d"
+    static let ask = "Perguntar sobre o treino"
+    static let unavailable = "Ative a Apple Intelligence nos Ajustes do aparelho para conversar sobre o treino."
+    static let placeholder = "Pergunte sobre este treino"
+    static let onDevice = "Apple Intelligence · no aparelho"
+    static let thinking = "Pensando…"
+    static let failed = "Não consegui responder agora. Tente de novo."
+    static let unverified = "Confira: a resposta cita números que não estão nos dados do treino."
+    static let today = "hoje"
+    static let yesterday = "ontem"
+    static let welcome = "Pode perguntar sobre os blocos, as recuperações, a FC, as zonas ou comparar com treinos anteriores."
+    static let toolBlocks = "leu os blocos"
+    static let toolSimilar = "buscou os treinos parecidos"
+    static let toolDay = "leu os dados do dia"
+    static let suggestionsIntervals = ["Por que algum tiro saiu fora do alvo?", "Meu trote foi rápido demais?", "Foi melhor que o treino parecido anterior?", "Eu estava cansado antes do treino?", "O que mudo no próximo?"]
+    static let suggestionsContinuous = ["O ritmo caiu no fim?", "Minha FC subiu demais?", "Foi melhor que o treino parecido anterior?", "Eu estava cansado antes do treino?", "O que mudo no próximo?"]
+    static let instructions = """
+    Você é um treinador de corrida conversando com o seu atleta sobre um treino que ele já fez, em português do Brasil.
+    Responda em duas a quatro frases, de forma direta e calma, sem exclamação, sem emoji e sem listas.
+    Use só os dados recebidos e o que as ferramentas devolverem. Cite os números no mesmo formato em que vieram e não invente nenhum número.
+    Quando a pergunta precisar de detalhes dos blocos, de treinos anteriores ou dos dados do dia, chame a ferramenta certa antes de responder.
+    Se o dado não existir, diga que não tem esse dado e diga o que você pode responder.
+    """
+    static let factsHeader = "Dados do treino:"
+    static let historyHeader = "Conversa anterior sobre este treino:"
+}

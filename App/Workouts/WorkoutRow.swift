@@ -3,6 +3,7 @@ import SwiftUI
 struct WorkoutRow: View {
     let row: WorkoutRowData
     var isSelected = false
+    var chatCount = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -17,8 +18,15 @@ struct WorkoutRow: View {
                         .font(.headline)
                         .foregroundStyle(BrandColors.text)
                         .lineLimit(2)
-                    if row.hasPrescription {
-                        TreinusBadge()
+                    HStack(spacing: 6) {
+                        if row.hasPrescription {
+                            TreinusBadge()
+                        }
+                        if chatCount > 0 {
+                            Label("\(chatCount)", systemImage: "bubble.left.and.text.bubble.right")
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(BrandColors.fitness)
+                        }
                     }
                 }
                 Spacer(minLength: 8)

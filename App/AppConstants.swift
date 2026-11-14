@@ -25,6 +25,7 @@ enum AppConstants {
     static let openShareDefaultsKey = "openShare"
     static let samplePlannedDefaultsKey = "samplePlanned"
     static let openPlannedDefaultsKey = "openPlanned"
+    static let openChatDefaultsKey = "openChat"
     static let exportShareDefaultsKey = "exportShare"
     static let appearanceDefaultsKey = "appearance"
     static let weeklyGoalDefaultsKey = "weeklyGoalKm"
