@@ -8,6 +8,7 @@ struct CompletedRaceView: View {
     @State private var showsEditor = false
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var showsPicker = false
+    @State private var showsShare = false
 
     var body: some View {
         ScrollView {
@@ -44,6 +45,14 @@ struct CompletedRaceView: View {
             ToolbarItem(placement: .primaryAction) {
                 Button(RacesConstants.editRace) { showsEditor = true }
             }
+            if summary.resultSeconds != nil {
+                ToolbarItem(placement: .primaryAction) {
+                    Button { showsShare = true } label: { Label(ShareStudioConstants.raceShareTitle, systemImage: "square.and.arrow.up") }
+                }
+            }
+        }
+        .sheet(isPresented: $showsShare) {
+            RaceShareView(summary: summary)
         }
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: summary.info.id)

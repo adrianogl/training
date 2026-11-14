@@ -23,7 +23,7 @@ struct WorkoutDetailView: View {
             }
             .onChange(of: model == nil) { _, isLoading in
                 guard !isLoading else { return }
-                showsShare = model?.shareInput != nil && Self.debugOpensShare()
+                showsShare = model?.shareSource != nil && Self.debugOpensShare()
                 guard let anchor = Self.debugScrollAnchor() else { return }
                 proxy.scrollTo(anchor, anchor: .top)
             }
@@ -34,8 +34,9 @@ struct WorkoutDetailView: View {
             model = WorkoutDetailModel(activityId: activityId, context: context)
         }
         .sheet(isPresented: $showsShare) {
-            if let input = model?.shareInput {
-                ShareEditorView(input: input)
+            if let source = model?.shareSource {
+                ShareStudioView(source: source)
+                    .presentationSizing(.page)
             }
         }
     }
@@ -44,7 +45,7 @@ struct WorkoutDetailView: View {
     private func content(_ model: WorkoutDetailModel) -> some View {
         if let summary = model.summary {
             if model.isRun {
-                SummaryHeader(summary: summary, onShare: model.shareInput == nil ? nil : { showsShare = true })
+                SummaryHeader(summary: summary, onShare: model.shareSource == nil ? nil : { showsShare = true })
                 runSections(model)
             } else {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)

@@ -32,6 +32,7 @@ import WorkoutAnalysis
     private(set) var zoneShares: [ZoneShare] = []
     private(set) var ruler: ZoneRulerData?
     private(set) var shareInput: WorkoutShareInput?
+    private(set) var shareSource: ShareSource?
     private(set) var score: WorkoutScore?
     private(set) var scoreRows: [ScoreRowData] = []
     private(set) var trainingEffect: TrainingEffectData?
@@ -83,6 +84,12 @@ import WorkoutAnalysis
         reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: assessment, blocks: blocks, evolution: analysis.evolution)
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
+        shareSource = shareInput.map { input in
+            ShareSourceBuilder.source(
+                input: input, route: Self.route(record), samples: samples, zoneFloors: analysis.zones?.floors ?? [],
+                blocks: blocks, comparisonRows: comparisonRows, analysis: analysisSummary
+            )
+        }
     }
 
     var analysisSummary: WorkoutAnalysisSummary {
