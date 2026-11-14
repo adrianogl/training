@@ -24,6 +24,7 @@ struct NextRaceView: View {
                     }
                     PaceStrategyCard(model: model)
                     RaceStrategyUploadCard(info: info, strategy: model.strategy, client: app.garminAccount.client)
+                    RaceCoursePointsCard(raceId: info.id, distance: info.distance, profile: model.profile, targetSeconds: model.target?.seconds ?? info.goalSeconds)
                     pair {
                         RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading, longest: model.weeklyLongest)
                             .id(RacesConstants.blockAnchor)
