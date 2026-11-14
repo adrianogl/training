@@ -124,6 +124,7 @@ O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a
 | `GET`/`DELETE /api/v1/garmin/status` | `{"connected","connectedAt"}`; `DELETE` desconecta |
 | `GET /api/v1/garmin/evolution?days=` | Séries, previsões e recordes do período (42, 91, 182 ou 365 dias; padrão 91) |
 | `GET /api/v1/garmin/activity?id=` | Análise do treino a partir do FIT: blocos com status, km a km, zonas, avaliação em texto, nota e comparação com até 4 treinos parecidos. Baixa o FIT na primeira vez |
+| `GET /api/v1/garmin/activity/detailed?id=` | Análise detalhada de uma corrida, sem o texto do treinador: `kind` (`intervals`, `tempo`, `race`, `long`, `easy`), `kpis` (% da distância planejada, km da queda de pace, deriva da FC, cada um com a média dos parecidos), `splits` (pace e FC por km), `similar` (até 8 treinos do mesmo tipo nos últimos 90 dias), `findings` (3 a 5, só com dados), `recommendations` (até 3) e `sources`. O tipo vem do plano com repetição, do nome, da zona 4 ou mais e da distância, nessa ordem. Sem plano, a distância é comparada com a mediana dos parecidos. 400 `not_a_run`; 404 `activity_not_found` ou `fit_unavailable` |
 | `PUT /api/v1/garmin/activity?id=` | Corpo `{"name"}`. Renomeia o treino na Garmin e no cache |
 | `GET /api/v1/garmin/planned` | Treinos de corrida planejados no calendário da Garmin nos próximos 14 dias |
 | `GET /api/v1/garmin/session` | A sessão da Garmin para o app (`accessToken`, `refreshToken`, `clientId`, `expiresAt`); 404 `garmin_not_connected` |

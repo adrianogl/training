@@ -423,3 +423,42 @@ export interface GoalInput {
   paceSecondsPerKm?: number
   archived: boolean
 }
+
+export type DetailedKind = 'intervals' | 'tempo' | 'race' | 'long' | 'easy'
+
+export interface DetailedKpi {
+  value: number | null
+  similarAverage: number | null
+}
+
+export interface DetailedSimilar {
+  activityId: number
+  day: string
+  completion: number | null
+  fadeKm: number | null
+  complete: boolean | null
+  noPauses: boolean | null
+}
+
+export type DetailedFindingKey = 'completion' | 'fadeKm' | 'hrDrift' | 'startPace' | 'readiness' | 'weekLoad' | 'hrAtPace' | 'pauses' | 'repsConsistency' | 'goal'
+
+export interface DetailedFinding {
+  key: DetailedFindingKey
+  values: Record<string, number | string | boolean | null>
+}
+
+export interface DetailedRecommendation {
+  key: 'startPace' | 'gel' | 'swapDay' | 'easeWeek'
+  value: number
+}
+
+export interface DetailedAnalysisView {
+  kind: DetailedKind
+  kpis: { completion: DetailedKpi; fadeKm: DetailedKpi; hrDrift: DetailedKpi }
+  splits: { km: number; paceSeconds: number; heartRate: number | null }[]
+  fadeKm: number | null
+  similar: DetailedSimilar[]
+  findings: DetailedFinding[]
+  recommendations: DetailedRecommendation[]
+  sources: { key: 'fit' | 'plan' | 'similar' | 'readiness' | 'goal'; count: number }[]
+}

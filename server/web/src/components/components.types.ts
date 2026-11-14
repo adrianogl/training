@@ -83,6 +83,11 @@ export interface SplitChartProps {
   pace: number[]
   heartRate: number[]
   label: string
+  marker?: number
+}
+
+export interface DetailedAnalysisProps {
+  activityId: number
 }
 
 export interface WorkoutDetailProps {

@@ -24,7 +24,7 @@ class BlockLabeler {
   }
 }
 
-function unroll(steps: PrescribedStep[]): ExpectedStep[] {
+export function unroll(steps: PrescribedStep[]): ExpectedStep[] {
   const expanded: ExpectedStep[] = []
   const firstPosition = new Map<number, number>()
   for (const step of steps) {

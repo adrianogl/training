@@ -4,6 +4,7 @@ import { BLOCK_STATUS_TEXT, ERRORS, GARMIN_ACTIVITY_URL, SCORE_REASON_TEXT, SCOR
 import { dayMonth, duration, km, longDate, pace, paceClock } from '../format'
 import type { WorkoutAnalysisView } from '../types'
 import type { WorkoutDetailProps } from './components.types'
+import { DetailedAnalysis } from './DetailedAnalysis'
 import { Message } from './Message'
 import { SplitChart } from './SplitChart'
 
@@ -85,6 +86,8 @@ export function WorkoutDetail({ activity, onRenamed }: WorkoutDetailProps) {
 
       {analysis?.isRun && state === 'ready' && (
         <>
+          <DetailedAnalysis activityId={activity.id} />
+
           <div className="card reading">
             <span className="label">{WORKOUT_TEXT.reading}</span>
             {analysis.findings.length === 0 && <p className="muted">{WORKOUT_TEXT.nothingToSay}</p>}

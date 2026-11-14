@@ -1,3 +1,6 @@
+import { detailedAnalysis } from './analysis/detailedAnalysis.js'
+import { DETAILED } from './analysis/detailedConstants.js'
+import type { DetailedRun } from './analysis/detailedTypes.js'
 import { analyzeWorkout, comparisonCandidates } from './analysis/workoutAnalysis.js'
 import { ACTIVITY, GARMIN_API_BASE, GARMIN_NATIVE_HEADERS } from './constants.js'
 import type { Sql } from './db.js'
@@ -6,6 +9,7 @@ import { dailyLoad, isRun } from './domain/today.js'
 import { fetchFits, fitFor, readStoredFits } from './fit/fitStore.js'
 import { freshSession } from './garmin.js'
 import { GarminError } from './garminError.js'
+import { readGoals } from './goals.js'
 import { body, failure, garminEnvFromProcess, json, withAccount } from './garminRoutes.js'
 import { addDays, garminGet, localDay, readActivitiesSince, readDays, saveActivity } from './garminSync.js'
 import { monthsBetween, plannedWorkout, runItems } from './planned/planned.js'
@@ -58,6 +62,37 @@ export function activityRoute(request: Request, sql: Sql, env: GarminEnv = garmi
       shortDay,
     )
     return json(200, { activity, analysis, fitMissing: fit === null })
+  })
+}
+
+export function detailedActivityRoute(request: Request, sql: Sql, env: GarminEnv = garminEnvFromProcess()): Promise<Response> {
+  return withAccount(request, sql, env, 'activity', async (accountId, key) => {
+    const id = requestedId(request)
+    if (id === null) return failure(400, 'invalid_id')
+    const today = localDay(env.now())
+    const activities = await readActivitiesSince(sql, key, accountId, addDays(today, -ACTIVITY.historyDays))
+    const activity = activities.find((item) => item.id === id)
+    if (activity === undefined) return failure(404, 'activity_not_found')
+    if (!isRun(activity)) return failure(400, 'not_a_run')
+    const keyed = { ...env, dataKey: key }
+    const currentFit = await fitFor(sql, keyed, accountId, id)
+    if (currentFit === null) return failure(404, 'fit_unavailable')
+    const from = addDays(activity.day, -DETAILED.windowDays)
+    const others = activities.filter((item) => item.id !== id && isRun(item) && item.day >= from && item.day <= activity.day)
+    let fits = await readStoredFits(sql, key, accountId, others.map((item) => item.id))
+    const days = await readDays(sql, key, accountId, from, activity.day)
+    const goals = (await readGoals(sql, key, accountId)).flatMap((stored) => (stored.goal === null ? [] : [stored.goal]))
+    const analyze = () => {
+      const runs: DetailedRun[] = others.map((item) => ({ activity: item, fit: fits.get(item.id) ?? null }))
+      return detailedAnalysis({ current: { activity, fit: currentFit }, runs, days, goals })
+    }
+    let analysis = analyze()
+    const missing = analysis.similar.map((item) => item.activityId).filter((similarId) => !fits.has(similarId))
+    if (missing.length > 0 && (await fetchFits(sql, keyed, accountId, missing, ACTIVITY.comparisonFetchLimit)) > 0) {
+      fits = await readStoredFits(sql, key, accountId, others.map((item) => item.id))
+      analysis = analyze()
+    }
+    return json(200, { analysis })
   })
 }
 
