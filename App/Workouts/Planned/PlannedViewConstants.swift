@@ -25,7 +25,7 @@ enum PlannedViewConstants {
     static let phaseColumn: CGFloat = 76
     static let repLabelColumn: CGFloat = 70
     static let repValueColumn: CGFloat = 54
-    static let previousDateColumn: CGFloat = 56
+    static let previousDateColumn: CGFloat = 64
     static let previousValueColumn: CGFloat = 64
     static let previousPaceColumn: CGFloat = 44
     static let compareColumn: CGFloat = 86

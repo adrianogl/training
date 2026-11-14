@@ -83,24 +83,47 @@ struct PlannedWorkoutDetailView: View {
         statsRow(briefing.stats)
         summaryCard(briefing)
         if !briefing.comparison.isEmpty { comparisonCard(briefing) }
-        pair {
-            VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-                howCard(briefing)
-                if !briefing.reps.isEmpty { repsCard(briefing) }
-                if !briefing.expectations.isEmpty { expectCard(briefing) }
-                if !briefing.previous.isEmpty { previousCard(briefing) }
-            }
-            VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-                if !briefing.attention.isEmpty { listCard(C.attention, briefing.attention) }
-                listCard(C.planB, briefing.planB)
-                carryCard(briefing.carry)
-                if let race = briefing.raceNote { textCard(C.race, race) }
+        let cards = cards(briefing)
+        ForEach(Array(stride(from: 0, to: cards.count, by: 2)), id: \.self) { index in
+            pair {
+                card(cards[index], briefing)
+                if index + 1 < cards.count { card(cards[index + 1], briefing) }
             }
         }
         triple {
             if let course = briefing.course { courseCard(course) }
             if !briefing.bestHours.isEmpty { hoursCard(briefing) }
             if let tip = briefing.watchTip { watchCard(tip) }
+        }
+    }
+
+    private enum Card {
+        case how, reps, expect, previous, attention, planB, carry, race
+    }
+
+    private func cards(_ briefing: PlannedBriefing) -> [Card] {
+        var cards: [Card] = [.how]
+        if !briefing.attention.isEmpty { cards.append(.attention) }
+        if !briefing.reps.isEmpty { cards.append(.reps) }
+        if !briefing.expectations.isEmpty { cards.append(.expect) }
+        cards.append(.planB)
+        if !briefing.previous.isEmpty { cards.append(.previous) }
+        cards.append(.carry)
+        if briefing.raceNote != nil { cards.append(.race) }
+        return cards
+    }
+
+    @ViewBuilder
+    private func card(_ card: Card, _ briefing: PlannedBriefing) -> some View {
+        switch card {
+        case .how: howCard(briefing)
+        case .reps: repsCard(briefing)
+        case .expect: expectCard(briefing)
+        case .previous: previousCard(briefing)
+        case .attention: listCard(C.attention, briefing.attention)
+        case .planB: listCard(C.planB, briefing.planB)
+        case .carry: carryCard(briefing.carry)
+        case .race: textCard(C.race, briefing.raceNote ?? "")
         }
     }
 
@@ -113,6 +136,7 @@ struct PlannedWorkoutDetailView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -124,6 +148,7 @@ struct PlannedWorkoutDetailView: View {
                 FlowTags(tags: briefing.tags)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -140,7 +165,7 @@ struct PlannedWorkoutDetailView: View {
                     }
                     .frame(width: C.phaseColumn, alignment: .leading)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(phase.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                        Text(phase.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
                         if !phase.detail.isEmpty {
                             Text(phase.detail).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
                         }
@@ -148,6 +173,7 @@ struct PlannedWorkoutDetailView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -170,6 +196,7 @@ struct PlannedWorkoutDetailView: View {
                 Text(note).font(.caption).foregroundStyle(BrandColors.dim)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -191,6 +218,7 @@ struct PlannedWorkoutDetailView: View {
                 Text(note).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -201,7 +229,7 @@ struct PlannedWorkoutDetailView: View {
             ForEach(Array(briefing.previous.enumerated()), id: \.offset) { _, run in
                 HStack(spacing: 10) {
                     Text(run.day.chartDate.formatted(.dateTime.day().month(.abbreviated).locale(WorkoutConstants.locale)))
-                        .font(.subheadline).frame(width: C.previousDateColumn, alignment: .leading)
+                        .font(.subheadline).lineLimit(1).fixedSize().frame(width: C.previousDateColumn, alignment: .leading)
                     GeometryReader { proxy in
                         Capsule().fill(BrandColors.track)
                             .overlay(alignment: .leading) {
@@ -218,6 +246,7 @@ struct PlannedWorkoutDetailView: View {
                 Text(note).font(.caption).foregroundStyle(BrandColors.dim)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -234,7 +263,7 @@ struct PlannedWorkoutDetailView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -252,7 +281,7 @@ struct PlannedWorkoutDetailView: View {
                 .buttonStyle(.plain)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -261,7 +290,7 @@ struct PlannedWorkoutDetailView: View {
             SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
             Text(text).font(.subheadline).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -292,6 +321,7 @@ struct PlannedWorkoutDetailView: View {
                 Text(note).font(.caption).foregroundStyle(BrandColors.dim)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -303,7 +333,7 @@ struct PlannedWorkoutDetailView: View {
                 .font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
             Text(courseDetail(course)).font(.caption).foregroundStyle(BrandColors.dim)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -334,7 +364,7 @@ struct PlannedWorkoutDetailView: View {
                 Text(note).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -355,7 +385,7 @@ struct PlannedWorkoutDetailView: View {
             .environment(\.colorScheme, .dark)
             Text(C.watchFooter).font(.caption).foregroundStyle(BrandColors.dim)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
     }
 
@@ -363,6 +393,7 @@ struct PlannedWorkoutDetailView: View {
     private func pair<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         if sizeClass == .regular {
             HStack(alignment: .top, spacing: TodayConstants.rowSpacing) { content() }
+                .fixedSize(horizontal: false, vertical: true)
         } else {
             VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) { content() }
         }
@@ -372,6 +403,7 @@ struct PlannedWorkoutDetailView: View {
     private func triple<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         if sizeClass == .regular {
             HStack(alignment: .top, spacing: TodayConstants.rowSpacing) { content() }
+                .fixedSize(horizontal: false, vertical: true)
         } else {
             VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) { content() }
         }

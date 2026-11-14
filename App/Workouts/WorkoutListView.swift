@@ -42,6 +42,12 @@ struct WorkoutListView: View {
             model.scoreRefresher.refresh()
         }
         .task(id: model.garminAccount.isSignedIn) {
+            #if DEBUG
+            if UserDefaults.standard.bool(forKey: AppConstants.samplePlannedDefaultsKey) {
+                planned = PlannedSamples.week(from: Day.today())
+                return
+            }
+            #endif
             guard let client = model.garminAccount.client else { planned = []; return }
             let today = Day.today()
             planned = (try? await PlannedWorkouts.fetch(client: client, from: today, through: today.adding(days: WorkoutConstants.plannedDays))) ?? []
@@ -133,6 +139,9 @@ struct WorkoutListView: View {
 
     private static func initialPath(defaults: UserDefaults = .standard) -> [WorkoutSelection] {
         #if DEBUG
+        if let planId = defaults.object(forKey: AppConstants.openPlannedDefaultsKey).flatMap({ "\($0)" }).flatMap(Int64.init) {
+            return [.planned(planId)]
+        }
         let activityId = defaults.object(forKey: AppConstants.openActivityDefaultsKey).flatMap { "\($0)" }.flatMap(Int64.init)
         return activityId.map { [.activity($0)] } ?? []
         #else
