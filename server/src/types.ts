@@ -84,6 +84,7 @@ export interface WatchFace {
   weekGoalKm?: number
   workout?: string
   workoutShape?: number[][]
+  workoutTip?: string
   raceName?: string
   raceDay?: string
   raceGoal?: number

@@ -185,6 +185,7 @@ function parseFace(value: unknown): WatchFace | undefined {
     ['weekGoalKm', (field) => isNumberIn(field, 0, FACE_MAX_WEEK_KM)],
     ['workout', isText],
     ['workoutShape', isShape],
+    ['workoutTip', isText],
     ['raceName', isText],
     ['raceDay', isDay],
     ['raceGoal', (field) => isIntegerIn(field, 1, FACE_MAX_RACE_SECONDS)],
