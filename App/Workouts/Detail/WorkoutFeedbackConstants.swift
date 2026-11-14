@@ -21,6 +21,13 @@ enum WorkoutFeedbackConstants {
     static let steady = "com pace constante"
     static let inTargetFormat = "%d de %d %@ no alvo"
     static let allInTargetFormat = "Os %d %@ no alvo"
+    static let singleInTargetFormat = "O %@ no alvo"
+    static let stoppedFormat = "%@ parou no km %@"
+    static let longRunKeyword = "longão"
+    static let workoutNoun = "treino"
+    static let runSignalFacts = [
+        FindingFact.fadeKilometer, FindingFact.heartRateRise, FindingFact.pauseCount, FindingFact.readiness, FindingFact.ratio,
+    ]
 
     static let target = "alvo"
     static let versus = "vs."
@@ -35,20 +42,29 @@ enum WorkoutFeedbackConstants {
     static let whyNextBlockFormat = " O %@, logo depois, ficou abaixo do alvo."
 
     static let openingAllFormat = "Treino cumprido: os %d %@ saíram no alvo, com média de %@/km."
-    static let openingGoodFormat = "Bom treino: %d dos %d %@ saíram no alvo, com média de %@/km."
-    static let openingShortFormat = "Treino abaixo do planejado: %d dos %d %@ saíram no alvo, com média de %@/km."
+    static let openingSingleFormat = "Treino cumprido: o %@ saiu no alvo, com média de %@/km."
+    static let openingSingleShortFormat = "Treino abaixo do planejado: o %@ não saiu no alvo, com média de %@/km."
+    static let openingGoodFormat = "Bom treino: %d dos %d %@ %@ no alvo, com média de %@/km."
+    static let openingShortFormat = "Treino abaixo do planejado: %d dos %d %@ %@ no alvo, com média de %@/km."
+    static let openingIncompleteFormat = "Você fez %@ dos %@ do %@ (%d%%), a %@/km."
+    static let leftOne = "saiu"
+    static let leftMany = "saíram"
     static let openingFreeFormat = "Corrida de %@ km a %@/km."
     static let fixesLead = "Para ajustar: "
     static let goodsLead = "O que foi bem: "
 
     static let nextTips: [FindingKind: String] = [
         .zoneAboveTarget: "Trote mais leve nas recuperações, para a FC baixar antes do próximo bloco.",
-        .stepIncomplete: "Complete o volume prescrito ou ajuste o treino com o treinador antes de começar.",
         .cardiacDrift: "Hidrate antes e durante, e comece mais leve em dias quentes.",
         .paceFade: "Comece os blocos alguns segundos por km mais lento para segurar o ritmo até o fim.",
         .hardOnLowReadiness: "Em dia de prontidão baixa, troque o treino forte por um leve.",
         .highAcuteChronic: "Segure o volume dos próximos dias para a carga assentar.",
     ]
+    static let nextSlowStartFormat = "Comece os primeiros km %d s/km mais devagar."
+    static let nextHydrateFormat = "Beba água ou tome gel antes do km %d."
+    static let nextReadiness = "Tente de novo num dia de prontidão melhor."
+    static let nextCompleteDistance = "Complete a distância planejada."
+    static let nextCompleteBlocks = "Complete todos os blocos planejados."
     static let nextSlower = "Mire o meio da faixa de pace em todos os blocos, desde o primeiro."
     static let nextFaster = "Segure os blocos dentro da faixa, sem passar do limite rápido."
     static let nextHeartRateAbove = "Reduza o ritmo quando a FC passar do alvo."

@@ -13,18 +13,43 @@ enum WorkoutFeedback {
         var findings: [Finding]
     }
 
-    static func summary(assessment: WorkoutAssessment, blocks: [WorkoutBlock]) -> WorkoutAnalysisSummary {
+    private struct IncompleteRun {
+        let finding: Finding
+        let progress: IncompleteProgress
+        let noun: String
+
+        var position: Int { finding.blockOrdinal ?? 0 }
+        var hasSignal: Bool { C.runSignalFacts.contains { finding.facts[$0] != nil } }
+    }
+
+    static func summary(assessment: WorkoutAssessment, blocks: [WorkoutBlock], workoutName: String? = nil) -> WorkoutAnalysisSummary {
         let groups = grouped(assessment.positives + assessment.negatives + assessment.attention, blocks: blocks)
+        let run = incompleteRun(assessment, blocks: blocks, workoutName: workoutName)
         let entries = groups.enumerated().map { index, group in
             AnalysisEntry(
                 id: index,
                 tag: tag(group),
-                title: title(group, blocks: blocks),
+                title: title(group, blocks: blocks, run: run),
                 evidence: evidence(group, blocks: blocks),
                 why: why(group, blocks: blocks)
             )
         }
-        return WorkoutAnalysisSummary(feedback: feedback(entries, blocks: blocks), next: next(groups), entries: entries)
+        return WorkoutAnalysisSummary(feedback: feedback(entries, groups: groups, blocks: blocks, run: run), next: next(groups), entries: entries)
+    }
+
+    private static func incompleteRun(_ assessment: WorkoutAssessment, blocks: [WorkoutBlock], workoutName: String?) -> IncompleteRun? {
+        let actives = blocks.indices.filter { blocks[$0].kind == .active }
+        guard actives.count == 1, let position = actives.first, blocks[position].status == .incomplete,
+              let finding = assessment.negatives.first(where: { $0.kind == .stepIncomplete && $0.blockOrdinal == position }),
+              finding.facts[FindingFact.targetDistance] != nil,
+              let progress = TemplateNarrator.incompleteProgress(finding, blocks: blocks) else { return nil }
+        let isLongRun = workoutName?.range(of: C.longRunKeyword, options: [.caseInsensitive, .diacriticInsensitive]) != nil
+        return IncompleteRun(finding: finding, progress: progress, noun: isLongRun ? C.longRunKeyword : C.workoutNoun)
+    }
+
+    private static func isRun(_ group: Group, _ run: IncompleteRun?) -> Bool {
+        guard let run else { return false }
+        return group.kind == .stepIncomplete && group.findings.contains { $0.blockOrdinal == run.position }
     }
 
     private static func grouped(_ findings: [Finding], blocks: [WorkoutBlock]) -> [Group] {
@@ -56,8 +81,11 @@ enum WorkoutFeedback {
         group.findings.compactMap(\.blockOrdinal)
     }
 
-    private static func title(_ group: Group, blocks: [WorkoutBlock]) -> String {
+    private static func title(_ group: Group, blocks: [WorkoutBlock], run: IncompleteRun?) -> String {
         guard let first = group.findings.first else { return "" }
+        if let run, isRun(group, run) {
+            return capitalized(String(format: C.stoppedFormat, run.noun, WorkoutFormat.kilometers(first.facts[FindingFact.distance] ?? 0)))
+        }
         let name = BlockNaming.name(positions(group), blocks: blocks)
         let subject = name?.text ?? ""
         let text: String
@@ -82,9 +110,13 @@ enum WorkoutFeedback {
         case .blockInTarget:
             let inTarget = Int(first.facts[FindingFact.inTarget] ?? 0)
             let total = Int(first.facts[FindingFact.total] ?? 0)
-            text = inTarget == total
-                ? String(format: C.allInTargetFormat, total, targetedNoun(blocks))
-                : String(format: C.inTargetFormat, inTarget, total, targetedNoun(blocks))
+            if total == 1 {
+                text = String(format: C.singleInTargetFormat, targetedNoun(blocks, singular: true))
+            } else {
+                text = inTarget == total
+                    ? String(format: C.allInTargetFormat, total, targetedNoun(blocks))
+                    : String(format: C.inTargetFormat, inTarget, total, targetedNoun(blocks))
+            }
         case .hardOnLowReadiness, .highAcuteChronic:
             text = TemplateNarrator.text(first, blocks: blocks)
         }
@@ -151,11 +183,15 @@ enum WorkoutFeedback {
         }
     }
 
-    private static func feedback(_ entries: [AnalysisEntry], blocks: [WorkoutBlock]) -> [String] {
-        var paragraphs = [opening(blocks)].compactMap { $0 }
-        let fixes = entries.filter { $0.tag == .fix }.prefix(2)
-        if !fixes.isEmpty {
-            paragraphs.append(C.fixesLead + lowerFirst(sentences(Array(fixes))))
+    private static func feedback(_ entries: [AnalysisEntry], groups: [Group], blocks: [WorkoutBlock], run: IncompleteRun?) -> [String] {
+        var paragraphs = [opening(blocks, run: run)].compactMap { $0 }
+        let fixes = zip(groups, entries).filter { $0.1.tag == .fix }
+        if let run, run.hasSignal, let reason = fixes.first(where: { isRun($0.0, run) }) {
+            paragraphs.append(reason.1.why)
+        }
+        let others = fixes.filter { !isRun($0.0, run) }.map(\.1).prefix(2)
+        if !others.isEmpty {
+            paragraphs.append(C.fixesLead + lowerFirst(sentences(Array(others))))
         }
         let goods = entries.filter { $0.tag == .good }.prefix(2)
         if !goods.isEmpty {
@@ -164,7 +200,7 @@ enum WorkoutFeedback {
         return paragraphs
     }
 
-    private static func opening(_ blocks: [WorkoutBlock]) -> String? {
+    private static func opening(_ blocks: [WorkoutBlock], run: IncompleteRun?) -> String? {
         let actives = blocks.filter { $0.kind == .active }
         let targeted = actives.filter(hasTarget)
         let source = targeted.isEmpty ? blocks : actives
@@ -172,18 +208,26 @@ enum WorkoutFeedback {
         let seconds = source.reduce(0) { $0 + $1.seconds }
         guard distance > 0 else { return nil }
         let pace = WorkoutListModel.clockText(seconds / (distance / WorkoutConstants.metersPerKilometer))
+        if let run {
+            return String(format: C.openingIncompleteFormat, run.progress.done, run.progress.target, run.noun, run.progress.percent, pace)
+        }
         guard !targeted.isEmpty else {
             return String(format: C.openingFreeFormat, WorkoutListModel.distanceText(distance).replacingOccurrences(of: " km", with: ""), pace)
         }
         let inTarget = targeted.filter { $0.status == .inTarget }.count
+        if targeted.count == 1 {
+            let format = inTarget == 1 ? C.openingSingleFormat : C.openingSingleShortFormat
+            return String(format: format, targetedNoun(blocks, singular: true), pace)
+        }
         let noun = targetedNoun(blocks)
         if inTarget == targeted.count { return String(format: C.openingAllFormat, targeted.count, noun, pace) }
         let format = inTarget * 2 >= targeted.count ? C.openingGoodFormat : C.openingShortFormat
-        return String(format: format, inTarget, targeted.count, noun, pace)
+        return String(format: format, inTarget, targeted.count, noun, inTarget == 1 ? C.leftOne : C.leftMany, pace)
     }
 
     private static func next(_ groups: [Group]) -> String? {
         guard let fix = groups.first(where: { tag($0) == .fix }) else { return C.nextRepeat }
+        if fix.kind == .stepIncomplete { return nextAfterIncomplete(fix) }
         guard fix.kind == .blockOffTarget else { return C.nextTips[fix.kind] ?? C.nextRepeat }
         switch fix.status {
         case .faster: return C.nextFaster
@@ -193,11 +237,28 @@ enum WorkoutFeedback {
         }
     }
 
-    private static func targetedNoun(_ blocks: [WorkoutBlock]) -> String {
+    private static func nextAfterIncomplete(_ group: Group) -> String {
+        let facts = group.findings.first?.facts ?? [:]
+        guard group.status == .incomplete else { return C.nextCompleteBlocks }
+        var steps: [String] = []
+        if let slowdown = facts[FindingFact.slowdown] {
+            steps.append(String(format: C.nextSlowStartFormat, Int(slowdown.rounded())))
+        }
+        if let kilometer = facts[FindingFact.pauseKilometer] {
+            steps.append(String(format: C.nextHydrateFormat, max(1, Int(kilometer))))
+        }
+        if facts[FindingFact.readiness] != nil {
+            steps.append(C.nextReadiness)
+        }
+        guard !steps.isEmpty else { return facts[FindingFact.targetDistance] != nil ? C.nextCompleteDistance : C.nextCompleteBlocks }
+        return steps.prefix(2).joined(separator: " ")
+    }
+
+    private static func targetedNoun(_ blocks: [WorkoutBlock], singular: Bool = false) -> String {
         typealias N = BlockNamingConstants
         let targeted = blocks.filter { $0.kind == .active && hasTarget($0) }
         let repeats = !targeted.isEmpty && targeted.allSatisfy { $0.label.hasPrefix(WorkoutDetailConstants.repeatLabelPrefix) }
-        let noun = repeats ? N.repeatPlural : N.blockPlural
+        let noun = repeats ? (singular ? N.repeatNoun : N.repeatPlural) : (singular ? N.blockNoun : N.blockPlural)
         let sizes = Set(targeted.compactMap { $0.prescribed.flatMap { BlockNaming.durationText($0.duration) } })
         guard sizes.count == 1, let size = sizes.first else { return noun }
         return "\(noun) \(N.of) \(size)"

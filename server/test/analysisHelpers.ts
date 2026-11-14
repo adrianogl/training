@@ -57,4 +57,4 @@ export function paceLaps(paces: number[], heartRates?: number[], meters = 1000):
   })
 }
 
-export const emptyContext = (values: Partial<AssessmentContext> = {}): AssessmentContext => ({ readinessScore: null, acuteChronic: null, previous: [], kilometers: new Map(), ...values })
+export const emptyContext = (values: Partial<AssessmentContext> = {}): AssessmentContext => ({ readinessScore: null, acuteChronic: null, previous: [], kilometers: new Map(), continuity: null, ...values })

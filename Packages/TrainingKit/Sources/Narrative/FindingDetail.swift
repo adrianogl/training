@@ -24,7 +24,7 @@ public enum FindingDetail {
             parts = offTargetEvidence(finding, blocks: blocks)
         case .stepIncomplete:
             guard let progress = TemplateNarrator.incompleteProgress(finding, blocks: blocks) else { return nil }
-            return "\(C.done) \(progress.done) \(C.of) \(progress.target)"
+            return "\(progress.done) \(C.of) \(progress.target) · \(progress.percent)%"
         case .paceFade:
             guard let last = clock(facts[FindingFact.lastPace]), let middle = clock(facts[FindingFact.medianPace]) else { return nil }
             return "\(C.lastLap) \(last) · \(C.median) \(middle) \(NarrativeConstants.paceUnit)"
@@ -51,13 +51,46 @@ public enum FindingDetail {
         case .goodRecovery: return C.whyGoodRecovery
         case .blockOffTarget: return offTargetWhy(finding, blocks: blocks)
         case .stepIncomplete:
-            return NarrativeFormat.status(finding, blocks: blocks) == .notExecuted ? C.whyNotExecuted : C.whyIncomplete
+            return incompleteWhy(finding, blocks: blocks)
         case .paceFade: return C.whyPaceFade
         case .cardiacDrift: return C.whyCardiacDrift
         case .zoneAboveTarget: return C.whyZoneAbove
         case .hardOnLowReadiness: return C.whyLowReadiness
         case .highAcuteChronic: return C.whyAcuteChronic
         }
+    }
+
+    private static func incompleteWhy(_ finding: Finding, blocks: [WorkoutBlock]) -> String {
+        let facts = finding.facts
+        if Format.status(finding, blocks: blocks) == .notExecuted { return C.whyNotExecuted }
+        let signals = slowdownSentences(facts) + pauseSentences(facts) + dayContextSentences(facts)
+        if !signals.isEmpty { return signals.joined(separator: " ") }
+        guard let target = facts[FindingFact.targetDistance], let done = facts[FindingFact.distance], target > done else { return C.whyIncomplete }
+        return String(format: C.whyRemainingFormat, Format.distanceText(target - done))
+    }
+
+    private static func slowdownSentences(_ facts: [String: Double]) -> [String] {
+        let rise = facts[FindingFact.heartRateRise].map { Format.integer($0) }
+        guard let kilometer = facts[FindingFact.fadeKilometer].map({ Format.integer($0) }), let slowdown = facts[FindingFact.slowdown] else {
+            return rise.map { [String(format: C.heartRateRiseFormat, $0)] } ?? []
+        }
+        let held = String(format: C.slowdownFormat, kilometer - 1, Format.integer(slowdown), kilometer)
+        return [rise.map { held + String(format: C.slowdownHeartRateFormat, $0) + "." } ?? held + "."]
+    }
+
+    private static func pauseSentences(_ facts: [String: Double]) -> [String] {
+        guard let count = facts[FindingFact.pauseCount].map({ Format.integer($0) }), let kilometer = facts[FindingFact.pauseKilometer],
+              let seconds = facts[FindingFact.pauseSeconds] else { return [] }
+        let start = WorkoutFormat.kilometers(kilometer * NarrativeConstants.metersPerKilometer)
+        let total = Format.duration(seconds)
+        return [count == 1 ? String(format: C.pauseOneFormat, start, total) : String(format: C.pauseManyFormat, count, start, total)]
+    }
+
+    private static func dayContextSentences(_ facts: [String: Double]) -> [String] {
+        [
+            facts[FindingFact.readiness].map { String(format: C.dayReadinessFormat, Format.integer($0)) },
+            facts[FindingFact.ratio].map { String(format: C.dayRatioFormat, Format.decimal($0)) },
+        ].compactMap { $0 }
     }
 
     private static func clock(_ seconds: Double?) -> String? {

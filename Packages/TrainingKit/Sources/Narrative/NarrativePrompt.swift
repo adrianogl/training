@@ -22,7 +22,9 @@ enum NarrativePrompt {
         let facts = finding.facts
         switch finding.kind {
         case .blockInTarget:
-            return ["\(Format.integer(facts[FindingFact.inTarget])) de \(Format.integer(facts[FindingFact.total])) blocos ativos dentro do alvo prescrito"]
+            let total = Format.integer(facts[FindingFact.total])
+            guard total > 1 else { return ["o bloco ativo dentro do alvo prescrito"] }
+            return ["\(Format.integer(facts[FindingFact.inTarget])) de \(total) blocos ativos dentro do alvo prescrito"]
         case .steadyPace:
             return ["\(Format.integer(facts[FindingFact.spread])) s/km de diferença entre as voltas"]
         case .lowerHeartRateThanBefore:
@@ -34,7 +36,7 @@ enum NarrativePrompt {
         case .stepIncomplete:
             let state = TemplateNarrator.incompleteState(finding, blocks: blocks)
             guard let progress = TemplateNarrator.incompleteProgress(finding, blocks: blocks) else { return [state] }
-            return [state, "feito \(progress.done) de \(progress.target) prescritos"]
+            return [state, "feito \(progress.done) de \(progress.target) prescritos (\(progress.percent)%)"]
         case .paceFade:
             return ["última volta \(Format.integer(facts[FindingFact.fade])) s/km mais lenta que a mediana"]
         case .cardiacDrift:

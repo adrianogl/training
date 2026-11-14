@@ -91,4 +91,38 @@ describe('avaliação (paridade com AssessmentTests)', () => {
     expect(a).toEqual({ positives: [], negatives: [], attention: [] })
     expect(assess([], ctx())).toEqual({ positives: [], negatives: [], attention: [] })
   })
+
+  describe('treino incompleto', () => {
+    const longRun = block({ label: 'Bloco 1', prescribed: speedTarget, seconds: 3482, distance: 12_660, status: 'incomplete' })
+    const rows = (paces: number[], heartRates: number[]) => paceLaps(paces, heartRates).map((lap, index) => block({ label: `Km ${index + 1}`, laps: [lap] }))
+    const incompleteFacts = (context: ReturnType<typeof ctx>) => assess([longRun], context).negatives.find((f) => f.kind === 'stepIncomplete')?.facts
+
+    it('longão de 20 km parado em 12,66 km: km da queda, quanto caiu e quanto a FC subiu', () => {
+      const kilometers = new Map([[0, rows([275, 276, 274, 275, 276, 275, 274, 276, 275, 290, 291, 289], [150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161])]])
+      const facts = incompleteFacts(ctx({ kilometers }))
+      expect(facts?.fadeKilometer).toBe(10)
+      expect(facts?.slowdown).toBeCloseTo(14.8, 0)
+      expect(facts?.heartRateRise).toBe(9)
+      expect(facts?.pauseCount).toBeUndefined()
+    })
+
+    it('guarda pausas e contexto do dia', () => {
+      const continuity = { totalMeters: 12_660, movingSeconds: 3400, pauses: [{ startMeters: 8200, seconds: 60 }, { startMeters: 10_100, seconds: 40 }], longestContinuousMeters: 8200 }
+      const facts = incompleteFacts(ctx({ continuity, readinessScore: 42, acuteChronic: 1.62 }))
+      expect(facts).toMatchObject({ pauseCount: 2, pauseKilometer: 8.2, pauseSeconds: 100, readiness: 42, ratio: 1.62 })
+      expect(facts?.fadeKilometer).toBeUndefined()
+    })
+
+    it('pace estável e dia normal não geram causa', () => {
+      const kilometers = new Map([[0, rows([275, 276, 274, 275, 276, 275], [150, 150, 151, 151, 150, 151])]])
+      const facts = incompleteFacts(ctx({ kilometers, readinessScore: 70, acuteChronic: 1.1 })) ?? {}
+      for (const key of ['fadeKilometer', 'heartRateRise', 'readiness', 'ratio']) expect(facts[key]).toBeUndefined()
+    })
+
+    it('tiros não feitos não carregam sinais', () => {
+      const notDone = block({ label: 'Tiro 1', prescribed: speedTarget, seconds: 0, distance: 0, avgSpeed: null, avgHeartRate: null, status: 'notExecuted' })
+      const facts = assess([notDone], ctx({ readinessScore: 42 })).negatives.find((f) => f.kind === 'stepIncomplete')?.facts
+      expect(facts?.readiness).toBeUndefined()
+    })
+  })
 })

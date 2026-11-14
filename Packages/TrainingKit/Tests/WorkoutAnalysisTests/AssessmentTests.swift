@@ -121,6 +121,67 @@ private func kinds(_ findings: [Finding]) -> [FindingKind] {
     #expect(incomplete.first?.facts[FindingFact.targetDistance] == 5000)
 }
 
+private func kilometerRows(_ paces: [Double], heartRates: [Int]) -> [WorkoutBlock] {
+    paceLaps(paces, heartRates: heartRates).enumerated().map { index, lap in
+        block(label: "Km \(index + 1)", laps: [lap], seconds: lap.timerSeconds, distance: lap.distance, avgSpeed: lap.avgSpeed)
+    }
+}
+
+private let longRunBlock = block(label: "Bloco 1", prescribed: speedTarget, seconds: 3482, distance: 12_660, status: .incomplete)
+
+@Test func incompleteLongRunTellsWhereThePaceFellAndHowMuchTheHeartRateRose() {
+    let rows = kilometerRows(
+        [275, 276, 274, 275, 276, 275, 274, 276, 275, 290, 291, 289],
+        heartRates: [150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161]
+    )
+
+    let assessment = assess([longRunBlock], context: AssessmentContext(kilometers: [0: rows]))
+
+    let facts = assessment.negatives.first { $0.kind == .stepIncomplete }?.facts
+    #expect(facts?[FindingFact.fadeKilometer] == 10)
+    #expect(abs((facts?[FindingFact.slowdown] ?? 0) - 14.8) < 0.5)
+    #expect(facts?[FindingFact.heartRateRise] == 9)
+    #expect(facts?[FindingFact.pauseCount] == nil)
+}
+
+@Test func incompleteRunKeepsPausesAndDayContext() {
+    let continuity = RunContinuity(
+        totalMeters: 12_660, movingSeconds: 3_400,
+        pauses: [RunPause(startMeters: 8_200, seconds: 60), RunPause(startMeters: 10_100, seconds: 40)],
+        longestContinuousMeters: 8_200
+    )
+
+    let assessment = assess([longRunBlock], context: AssessmentContext(readinessScore: 42, acuteChronic: 1.62, continuity: continuity))
+
+    let facts = assessment.negatives.first { $0.kind == .stepIncomplete }?.facts
+    #expect(facts?[FindingFact.pauseCount] == 2)
+    #expect(facts?[FindingFact.pauseKilometer] == 8.2)
+    #expect(facts?[FindingFact.pauseSeconds] == 100)
+    #expect(facts?[FindingFact.readiness] == 42)
+    #expect(facts?[FindingFact.ratio] == 1.62)
+    #expect(facts?[FindingFact.fadeKilometer] == nil)
+}
+
+@Test func incompleteWithSteadyPaceAndNoDataGivesNoCauseFacts() {
+    let rows = kilometerRows([275, 276, 274, 275, 276, 275], heartRates: [150, 150, 151, 151, 150, 151])
+
+    let assessment = assess([longRunBlock], context: AssessmentContext(readinessScore: 70, acuteChronic: 1.1, kilometers: [0: rows]))
+
+    let facts = assessment.negatives.first { $0.kind == .stepIncomplete }?.facts ?? [:]
+    #expect(facts[FindingFact.fadeKilometer] == nil)
+    #expect(facts[FindingFact.heartRateRise] == nil)
+    #expect(facts[FindingFact.readiness] == nil)
+    #expect(facts[FindingFact.ratio] == nil)
+}
+
+@Test func notExecutedIntervalsCarryNoKilometerSignals() {
+    let blocks = [block(label: "Tiro 1", prescribed: speedTarget, laps: [], seconds: 0, distance: 0, avgSpeed: nil, avgHeartRate: nil, status: .notExecuted)]
+
+    let assessment = assess(blocks, context: AssessmentContext(readinessScore: 42))
+
+    #expect(assessment.negatives.first { $0.kind == .stepIncomplete }?.facts[FindingFact.readiness] == nil)
+}
+
 @Test func completeBlocksAreNotIncomplete() {
     let blocks = [block(prescribed: speedTarget, status: .inTarget)]
 

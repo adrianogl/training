@@ -1,6 +1,6 @@
 import type { LapSummary } from '../fit/fitTypes.js'
 import { ANALYSIS } from './analysisConstants.js'
-import type { AssessmentContext, BlockKilometers, BlockStatus, Finding, WorkoutAssessment, WorkoutBlock } from './analysisTypes.js'
+import type { AssessmentContext, BlockKilometers, BlockStatus, Finding, RunContinuity, WorkoutAssessment, WorkoutBlock } from './analysisTypes.js'
 
 const hasTarget = (block: WorkoutBlock) => block.prescribed !== null && block.prescribed.target.kind !== 'open'
 
@@ -128,13 +128,53 @@ function blockOffTarget(blocks: WorkoutBlock[]): Finding[] {
   })
 }
 
-function stepIncomplete(blocks: WorkoutBlock[]): Finding[] {
+function slowdownFacts(kilometers: WorkoutBlock[]): Record<string, number> {
+  const rows = kilometers.flatMap((row, index) => {
+    const lap = row.laps[0]
+    return lap !== undefined && lap.distance >= ANALYSIS.fullLapMinimumDistance && lapSpeed(lap) > 0 ? [{ kilometer: index + 1, lap }] : []
+  })
+  const baseline = ANALYSIS.baselineKilometers
+  if (rows.length <= baseline) return {}
+  const paces = rows.map((row) => pace(row.lap))
+  const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length
+  const reference = mean(paces.slice(0, baseline))
+  const facts: Record<string, number> = {}
+  for (let index = baseline; index < rows.length; index += 1) {
+    const slowdown = mean(paces.slice(index)) - reference
+    if ((paces[index] ?? 0) - reference < ANALYSIS.fadeThreshold || slowdown < ANALYSIS.fadeThreshold) continue
+    facts.fadeKilometer = rows[index]?.kilometer ?? 0
+    facts.slowdown = slowdown
+    break
+  }
+  if (rows.length < baseline * 2) return facts
+  const start = meanHeartRate(rows.slice(0, baseline).map((row) => row.lap))
+  const end = meanHeartRate(rows.slice(-baseline).map((row) => row.lap))
+  if (start !== null && end !== null && end - start >= ANALYSIS.heartRateRiseMinimum) facts.heartRateRise = end - start
+  return facts
+}
+
+function pauseFacts(continuity: RunContinuity | null): Record<string, number> {
+  const first = continuity?.pauses[0]
+  if (continuity === null || first === undefined) return {}
+  return {
+    pauseCount: continuity.pauses.length,
+    pauseKilometer: first.startMeters / ANALYSIS.metersPerKilometer,
+    pauseSeconds: continuity.pauses.reduce((sum, pause) => sum + pause.seconds, 0),
+  }
+}
+
+function stepIncomplete(blocks: WorkoutBlock[], context: AssessmentContext): Finding[] {
   return blocks.flatMap((block, position) => {
     if (block.status !== 'incomplete' && block.status !== 'notExecuted') return []
-    const facts: Record<string, number> = { distance: block.distance, seconds: block.seconds }
+    let facts: Record<string, number> = { distance: block.distance, seconds: block.seconds }
     const duration = block.prescribed?.duration
     if (duration?.kind === 'distance') facts.targetDistance = duration.meters
     if (duration?.kind === 'time') facts.targetSeconds = duration.seconds
+    if (block.status === 'incomplete' && block.kind === 'active') {
+      facts = { ...slowdownFacts(context.kilometers.get(position) ?? []), ...pauseFacts(context.continuity), ...facts }
+      if (context.readinessScore !== null && context.readinessScore < ANALYSIS.lowReadiness) facts.readiness = context.readinessScore
+      if (context.acuteChronic !== null && context.acuteChronic > ANALYSIS.highAcuteChronic) facts.ratio = context.acuteChronic
+    }
     return [{ group: 'negative' as const, kind: 'stepIncomplete' as const, blockOrdinal: position, facts }]
   })
 }
@@ -167,7 +207,7 @@ export function assess(blocks: WorkoutBlock[], context: AssessmentContext): Work
     ...lowerHeartRateThanBefore(blocks, context.previous),
     ...goodRecovery(blocks),
     ...blockOffTarget(blocks),
-    ...stepIncomplete(blocks),
+    ...stepIncomplete(blocks, context),
     ...paceFade(blocks, context.kilometers),
     ...cardiacDrift(blocks, context.kilometers),
     ...zoneAboveTarget(blocks),

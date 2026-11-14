@@ -14,6 +14,8 @@ export const ANALYSIS = {
   minimumFullLaps: 3,
   steadyPaceSpread: 6,
   fadeThreshold: 8,
+  baselineKilometers: 3,
+  heartRateRiseMinimum: 3,
   driftThreshold: 0.05,
   driftMaxSpeedChange: 0.02,
   goodRecoveryDrop: 25,

@@ -21,6 +21,20 @@ enum NarrativeFormat {
                 .formatted(.number.precision(.fractionLength(2)).locale(WorkoutFormat.locale)) + " \(NarrativeConstants.distanceUnit)"
     }
 
+    static func distanceText(_ meters: Double) -> String {
+        meters < NarrativeConstants.metersPerKilometer ? "\(Int(meters.rounded())) m" : "\(kilometers(meters)) \(NarrativeConstants.distanceUnit)"
+    }
+
+    static func kilometers(_ meters: Double) -> String {
+        (meters / NarrativeConstants.metersPerKilometer).formatted(.number.precision(.fractionLength(0 ... 2)).locale(WorkoutFormat.locale))
+    }
+
+    static func duration(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        guard total >= 60 else { return "\(total) s" }
+        return total % 60 == 0 ? "\(total / 60) min" : "\(total / 60) min \(total % 60) s"
+    }
+
     static func paceClock(metersPerSecond speed: Double?) -> String? {
         guard let speed, speed > 0 else { return nil }
         return WorkoutFormat.clock(NarrativeConstants.metersPerKilometer / speed)

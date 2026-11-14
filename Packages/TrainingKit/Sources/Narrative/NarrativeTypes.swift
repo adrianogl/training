@@ -39,3 +39,9 @@ struct EvolutionParts {
     var heartRate: String?
     var since: String
 }
+
+public struct IncompleteProgress: Sendable, Equatable {
+    public let done: String
+    public let target: String
+    public let percent: Int
+}
