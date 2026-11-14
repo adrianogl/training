@@ -89,7 +89,7 @@ struct WorkoutDetailView: View {
             if let planCheck, !planCheck.comparison.isEmpty {
                 PlanComparisonCard(rows: planCheck.comparison, note: planCheck.comparisonNote)
             }
-            WorkoutAnalysisCard(summary: model.analysisSummary)
+            WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries)
             if !goalEntries.isEmpty {
                 WorkoutGoalCard(entries: goalEntries)
             }

@@ -1,0 +1,63 @@
+enum DetailedAnalysisConstants {
+    static let windowDays = 90
+    static let maxSimilar = 8
+    static let fadeSeconds = 8.0
+    static let fadeMinimumKm = 3
+    static let startKm = 5
+    static let startMargin = 4.0
+    static let earlyFadeKm = 10
+    static let lowReadiness = 60
+    static let recentDays = 7
+    static let baselineWeeks = 4
+    static let heavyWeekPercent = 20.0
+    static let driftMinimumKm = 4
+    static let driftFixPercent = 5.0
+    static let heartRateStep = 2.0
+    static let completeRatio = 95.0
+    static let acceptableRatio = 80.0
+    static let metersPerKilometer = 1_000.0
+    static let maxFindings = 5
+    static let maxRecommendations = 3
+    static let fadeKinds: [RunKind] = [.long, .easy, .tempo, .race]
+    static let driftKinds: [RunKind] = [.long, .easy, .tempo, .race]
+    static let hrAtPaceKinds: [RunKind] = [.long, .easy]
+    static let hrAtPaceMinimumRuns = 3
+    static let minimumReps = 2
+}
+
+enum DetailedEvidenceKey {
+    static let percent = "percent"
+    static let doneKm = "doneKm"
+    static let plannedKm = "plannedKm"
+    static let average = "average"
+    static let fadeKm = "fadeKm"
+    static let baselinePace = "baselinePace"
+    static let slowdown = "slowdown"
+    static let similarFadeKm = "similarFadeKm"
+    static let drift = "drift"
+    static let driftAverage = "driftAverage"
+    static let startPace = "startPace"
+    static let fastFaded = "fastFaded"
+    static let fastTotal = "fastTotal"
+    static let slowFaded = "slowFaded"
+    static let slowTotal = "slowTotal"
+    static let slowStartPace = "slowStartPace"
+    static let lowMean = "lowMean"
+    static let highMean = "highMean"
+    static let lowCount = "lowCount"
+    static let highCount = "highCount"
+    static let readiness = "readiness"
+    static let weekKm = "weekKm"
+    static let weekAverageKm = "weekAverageKm"
+    static let hadIntervals = "hadIntervals"
+    static let referencePace = "referencePace"
+    static let firstBpm = "firstBpm"
+    static let lastBpm = "lastBpm"
+    static let deltaBpm = "deltaBpm"
+    static let spanDays = "spanDays"
+    static let pauses = "pauses"
+    static let longestKm = "longestKm"
+    static let repetitions = "repetitions"
+    static let spread = "spread"
+    static let recoveryDrop = "recoveryDrop"
+}
