@@ -168,18 +168,3 @@ describe('administração', () => {
     expect(await sql('select id from users where id = $1', [guestId])).toEqual([])
   })
 })
-
-describe('consulta à Garmin', () => {
-  it('só administrador e só caminhos de leitura conhecidos', async () => {
-    const { garminProbeRoute } = await import('../src/adminRoutes.js')
-    const garmin = { dataKey: Buffer.alloc(32, 1), fetcher: (async () => new Response('{}')) as typeof fetch, now: () => now }
-    const created = await invite({ name: 'Marina', channel: 'link' })
-    const guest = ((await (await guestSignup(tokenFrom(created.link))).json()) as { token: string }).token
-
-    const asGuest = await garminProbeRoute(req('GET', '/api/v1/admin/garmin-probe?path=/hrv-service/hrv/2026-11-14', undefined, guest), sql, env, garmin)
-    const badPath = await garminProbeRoute(req('GET', '/api/v1/admin/garmin-probe?path=/oauth-service/x', undefined, adminToken), sql, env, garmin)
-    const notConnected = await garminProbeRoute(req('GET', '/api/v1/admin/garmin-probe?path=/hrv-service/hrv/2026-11-14', undefined, adminToken), sql, env, garmin)
-
-    expect([asGuest.status, badPath.status, notConnected.status]).toEqual([403, 400, 404])
-  })
-})

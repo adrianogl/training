@@ -12,7 +12,7 @@ import {
   signupRoute,
   verifyEmailRoute,
 } from './authRoutes.js'
-import { adminCreateInviteRoute, adminDeleteUserRoute, adminInviteActionRoute, adminOverviewRoute, garminProbeRoute, invitePreviewRoute } from './adminRoutes.js'
+import { adminCreateInviteRoute, adminDeleteUserRoute, adminInviteActionRoute, adminOverviewRoute, invitePreviewRoute } from './adminRoutes.js'
 import { API_PATH_PREFIX, API_ROUTER_QUERY } from './constants.js'
 import type { Sql } from './db.js'
 import {
@@ -73,7 +73,6 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'admin/invites/action': { POST: (request, sql) => adminInviteActionRoute(request, sql) },
   'admin/users': { DELETE: (request, sql) => adminDeleteUserRoute(request, sql) },
   'invites/preview': { GET: (request, sql) => invitePreviewRoute(request, sql) },
-  'admin/garmin-probe': { GET: (request, sql) => garminProbeRoute(request, sql) },
 }
 
 export function routeKey(request: Request): string {
