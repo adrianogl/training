@@ -103,7 +103,7 @@ public func detailedAnalysis(
     }
     let readiness = Dictionary(daily.compactMap { row in row.readinessScore.map { (row.day, $0) } }, uniquingKeysWith: { _, last in last })
     let context = DetailedContext(
-        kind: kind, current: current, similar: similar, currentPercent: percent(current), similarPercents: similar.map(percent),
+        kind: kind, current: current, similar: similar, currentPercent: percent(current), similarPercents: similar.map { percent($0).map { min($0, C.completionCap) } },
         readiness: readiness, runs: runs, goals: goals, longGoalKm: longGoalKm, raceGoalKms: raceGoalKms
     )
     let findings = detailedFindings(context)

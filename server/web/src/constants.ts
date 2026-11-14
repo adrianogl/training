@@ -620,6 +620,7 @@ export const DETAILED_TEXT = {
     fadeNone: (faded: number, total: number) => ` ${faded} de ${total} parecidos tiveram queda.`,
     drift: (percent: string) => `Deriva da FC de ${percent}% na segunda metade, contra a primeira.`,
     driftAverage: (percent: string) => ` Média dos parecidos: ${percent}%.`,
+    driftNormal: (percent: number) => ` Até ${percent}% é o normal num treino longo.`,
     startPace: (pace: string, kilometers: number) => `Primeiros ${kilometers} km a ${pace}/km.`,
     startGroups: (limit: string, fastEarly: number, fastTotal: number, slowEarly: number, slowTotal: number, kilometer: number) =>
       ` Dos parecidos que começaram abaixo de ${limit}/km, ${fastEarly} de ${fastTotal} caíram antes do km ${kilometer}. Dos que começaram mais lento, ${slowEarly} de ${slowTotal}.`,
@@ -645,4 +646,5 @@ export const DETAILED_TEXT = {
     easeWeek: (percent: number) => `A semana anterior ficou ${percent}% acima da média: alivie a semana antes.`,
   },
   startKilometers: 5,
+  driftNormalPercent: 5,
 } as const

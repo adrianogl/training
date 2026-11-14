@@ -45,18 +45,18 @@ export function kilometerPoints(run: DetailedRun): KilometerPoint[] {
 }
 
 export function fadeKilometer(splits: KilometerPoint[]): number | null {
-  for (let index = DETAILED.fadeMinimumKm - 1; index < splits.length - 1; index += 1) {
+  for (let index = DETAILED.fadeMinimumKm - 1; index < splits.length; index += 1) {
     const baseline = median(splits.slice(0, index).map((point) => point.paceSeconds))
     const current = splits[index]
     const next = splits[index + 1]
-    if (baseline === null || current === undefined || next === undefined) continue
-    if (current.paceSeconds - baseline >= DETAILED.fadeSeconds && next.paceSeconds - baseline >= DETAILED.fadeSeconds) return current.km
+    if (baseline === null || current === undefined || current.paceSeconds - baseline < DETAILED.fadeSeconds) continue
+    if (next === undefined || next.paceSeconds - baseline >= DETAILED.fadeConfirmSeconds) return current.km
   }
   return null
 }
 
 export function heartRateDrift(splits: KilometerPoint[]): number | null {
-  const rows = splits.flatMap((point) => (point.heartRate === null || point.heartRate <= 0 ? [] : [{ pace: point.paceSeconds, heartRate: point.heartRate }]))
+  const rows = splits.slice(DETAILED.driftSkipKilometers).flatMap((point) => (point.heartRate === null || point.heartRate <= 0 ? [] : [{ pace: point.paceSeconds, heartRate: point.heartRate }]))
   if (rows.length < DETAILED.driftMinimumKilometers) return null
   const half = Math.floor(rows.length / 2)
   const efficiency = (part: typeof rows) => (mean(part.map((row) => DETAILED.metersPerKilometer / row.pace)) ?? 0) / (mean(part.map((row) => row.heartRate)) ?? 1)

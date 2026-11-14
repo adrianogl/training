@@ -2,6 +2,10 @@ enum DetailedAnalysisConstants {
     static let windowDays = 90
     static let maxSimilar = 8
     static let fadeSeconds = 8.0
+    static let fadeConfirmSeconds = 4.0
+    static let driftSkipKm = 1
+    static let driftNormalPercent = 5
+    static let completionCap = 100.0
     static let fadeMinimumKm = 3
     static let startKm = 5
     static let startMargin = 4.0

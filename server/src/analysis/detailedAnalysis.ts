@@ -47,7 +47,10 @@ export function detailedAnalysis(input: DetailedInput): DetailedAnalysis {
   const planned = current.plannedMeters
   const referenceMeters = planned ?? medianMeters
   const completions = new Map<number, number | null>(
-    [current, ...similar].map((item) => [item.run.activity.id, percentOf(item.run.activity.distanceMeters, item.plannedMeters ?? medianMeters)]),
+    [current, ...similar].map((item) => {
+      const value = percentOf(item.run.activity.distanceMeters, item.plannedMeters ?? medianMeters)
+      return [item.run.activity.id, value === null || item === current ? value : Math.min(value, DETAILED.completionCap)]
+    }),
   )
 
   const similarRuns: SimilarRun[] = [...similar]

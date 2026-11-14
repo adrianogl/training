@@ -131,7 +131,7 @@ private func driftFinding(_ context: DetailedContext) -> DetailedFinding? {
     return DetailedFinding(
         kind: .hrDrift, tone: drift >= C.driftFixPercent ? .fix : .info,
         title: String(format: T.driftTitle, DetailedFormat.whole(drift)),
-        text: String(format: T.driftText, DetailedFormat.whole(drift)) + suffix, evidence: evidence
+        text: String(format: T.driftText, DetailedFormat.whole(drift)) + suffix + String(format: T.driftNormal, C.driftNormalPercent), evidence: evidence
     )
 }
 

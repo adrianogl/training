@@ -21,9 +21,9 @@ describe('análise detalhada: longão de 20 km feito até 12,66 km', () => {
   })
 
   it('calcula os KPIs contra a média dos 8 parecidos', () => {
-    expect(result.kpis.completion).toEqual({ value: 63.3, similarAverage: 85.9 })
+    expect(result.kpis.completion).toEqual({ value: 63.3, similarAverage: 85.2 })
     expect(result.kpis.fadeKm).toEqual({ value: 10, similarAverage: 9.3 })
-    expect(result.kpis.hrDrift).toEqual({ value: 6.9, similarAverage: 5.8 })
+    expect(result.kpis.hrDrift).toEqual({ value: 7.5, similarAverage: 6 })
   })
 
   it('lista só os 8 parecidos dentro de 90 dias, em ordem de data, sem o próprio treino', () => {
@@ -35,7 +35,7 @@ describe('análise detalhada: longão de 20 km feito até 12,66 km', () => {
 
   it('gera de 3 a 5 achados na ordem da especificação, só com dados', () => {
     expect(result.findings.map((finding) => finding.key)).toEqual(['completion', 'fadeKm', 'hrDrift', 'startPace', 'readiness'])
-    expect(result.findings[0]?.values).toEqual({ doneKm: 12.66, referenceKm: 20, percent: 63.3, source: 'plan', similarAverage: 85.9 })
+    expect(result.findings[0]?.values).toEqual({ doneKm: 12.66, referenceKm: 20, percent: 63.3, source: 'plan', similarAverage: 85.2 })
     expect(result.findings[1]?.values).toEqual({ fadeKm: 10, similarMedian: 9, similarFaded: 3, similarTotal: 8 })
     expect(result.findings[3]?.values).toEqual({ todayStart: 271, limitPace: 275, fastTotal: 5, fastEarlyFade: 2, slowTotal: 3, slowEarlyFade: 0, earlyFadeKm: 10 })
     expect(result.findings[4]?.values).toEqual({ today: 55, limit: 60, lowAverage: 62.5, lowCount: 3, highAverage: 100, highCount: 3 })
@@ -106,18 +106,20 @@ describe('classificação do treino', () => {
 })
 
 describe('queda de pace e deriva da FC', () => {
-  it('exige 8 s/km acima da mediana anterior em dois km seguidos, a partir do km 3', () => {
+  it('exige 8 s/km acima da mediana anterior e o km seguinte ainda 4 s/km acima, a partir do km 3', () => {
     expect(fadeKilometer(points([270, 270, 270, 270, 279, 280, 290]))).toBe(5)
     expect(fadeKilometer(points([270, 270, 270, 270, 279, 270, 290, 270]))).toBeNull()
     expect(fadeKilometer(points([270, 290, 292, 270, 270]))).toBeNull()
-    expect(fadeKilometer(points([270, 270, 270, 270, 270, 290]))).toBeNull()
+    expect(fadeKilometer(points([270, 270, 270, 270, 270, 290]))).toBe(6)
+    expect(fadeKilometer(points([270, 270, 270, 270, 280, 275, 270]))).toBe(5)
+    expect(fadeKilometer(points([270, 270, 270, 270, 280, 273, 270]))).toBeNull()
   })
 
   it('compara a velocidade por batimento da segunda metade com a da primeira', () => {
-    expect(heartRateDrift(points([300, 300, 300, 300], 150))).toBe(0)
-    const drift = heartRateDrift([{ km: 1, paceSeconds: 300, heartRate: 150 }, { km: 2, paceSeconds: 300, heartRate: 150 }, { km: 3, paceSeconds: 300, heartRate: 165 }, { km: 4, paceSeconds: 300, heartRate: 165 }])
+    expect(heartRateDrift(points([300, 300, 300, 300, 300], 150))).toBe(0)
+    const drift = heartRateDrift([{ km: 1, paceSeconds: 300, heartRate: 130 }, { km: 2, paceSeconds: 300, heartRate: 150 }, { km: 3, paceSeconds: 300, heartRate: 150 }, { km: 4, paceSeconds: 300, heartRate: 165 }, { km: 5, paceSeconds: 300, heartRate: 165 }])
     expect(drift).toBe(9.1)
-    expect(heartRateDrift(points([300, 300, 300], 150))).toBeNull()
+    expect(heartRateDrift(points([300, 300, 300, 300], 150))).toBeNull()
   })
 })
 

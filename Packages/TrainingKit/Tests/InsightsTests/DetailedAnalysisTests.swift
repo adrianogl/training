@@ -32,7 +32,7 @@ import Testing
         #expect(completionAverage == 93.1)
         #expect(kpis.fadeKm == 10)
         #expect(fadeAverage == 9.8)
-        #expect(drift == 6.9)
+        #expect(drift == 7.5)
         #expect(abs(driftAverage) < 4)
     }
 
@@ -229,12 +229,15 @@ import Testing
 }
 
 @Suite struct DetailedAnalysisMathTests {
-    @Test func fadeNeedsTwoSlowKilometersInARow() {
+    @Test func fadeNeedsTheNextKilometerStillSlowerOrTheLastOne() {
         let spike = [270.0, 270, 270, 270, 285, 270, 270, 270]
         let fade = [270.0, 270, 270, 270, 285, 286, 270, 270]
+        let partialRecovery = [270.0, 270, 270, 270, 280, 275, 270]
 
         #expect(fadeKilometer(spike) == nil)
         #expect(fadeKilometer(fade) == 5)
+        #expect(fadeKilometer(partialRecovery) == 5)
+        #expect(fadeKilometer([270, 270, 270, 270, 270, 290]) == 6)
     }
 
     @Test func fadeIgnoresTheFirstTwoKilometers() {
@@ -249,13 +252,13 @@ import Testing
     }
 
     @Test func decouplingComparesSpeedPerBeatBetweenHalves() throws {
-        let splits = (1...4).map { DetailedSplit(km: $0, paceSeconds: $0 <= 2 ? 300 : 315, heartRate: $0 <= 2 ? 150 : 160) }
+        let splits = [DetailedSplit(km: 1, paceSeconds: 330, heartRate: 130)] + (2...5).map { DetailedSplit(km: $0, paceSeconds: $0 <= 3 ? 300 : 315, heartRate: $0 <= 3 ? 150 : 160) }
         let first = (1000.0 / 300) / 150
         let second = (1000.0 / 315) / 160
 
         let drift = try #require(decoupling(splits))
         #expect(abs(drift - (first - second) / first * 100) < 0.0001)
-        #expect(decoupling(Array(splits.prefix(3))) == nil)
+        #expect(decoupling(Array(splits.prefix(4))) == nil)
     }
 
     @Test func splitsIgnoreStoppedTimeAndTheLastPartialKilometer() {

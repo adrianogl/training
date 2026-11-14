@@ -51,6 +51,7 @@ struct DetailedKilometerChart: View {
                 }
             }
         }
+        .chartPlotStyle { $0.clipped() }
         .frame(height: C.chartHeight)
     }
 
@@ -77,6 +78,7 @@ struct DetailedKilometerChart: View {
                 AxisValueLabel().font(.caption2)
             }
         }
+        .chartPlotStyle { $0.clipped() }
         .frame(height: C.heartRateChartHeight)
     }
 
@@ -90,11 +92,16 @@ struct DetailedKilometerChart: View {
                     Text(String(format: C.fadeLabelFormat, fade)).font(.caption2).foregroundStyle(BrandColors.attention)
                 }
         }
-        ForEach(Array(analysis.pauseKilometers.enumerated()), id: \.offset) { _, km in
-            RuleMark(x: .value("km", km + 1))
+        ForEach(Array(visiblePauses.enumerated()), id: \.offset) { _, km in
+            RuleMark(x: .value("km", km))
                 .foregroundStyle(BrandColors.rest.opacity(C.ruleOpacity))
                 .lineStyle(StrokeStyle(lineWidth: 1, dash: C.ruleDash))
         }
+    }
+
+    private var visiblePauses: [Double] {
+        let last = Double(max(analysis.splits.count, 2))
+        return analysis.pauseKilometers.filter { $0 >= 1 && $0 <= last }
     }
 
     private func legend(_ text: String, color: Color) -> some View {

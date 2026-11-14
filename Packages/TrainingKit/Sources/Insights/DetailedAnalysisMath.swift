@@ -46,16 +46,17 @@ func detailedSplits(_ samples: [FITSample]) -> [DetailedSplit] {
 }
 
 func fadeKilometer(_ paces: [Double]) -> Int? {
-    guard paces.count > C.fadeMinimumKm else { return nil }
-    for km in C.fadeMinimumKm..<paces.count {
+    guard paces.count >= C.fadeMinimumKm else { return nil }
+    for km in C.fadeMinimumKm...paces.count {
         guard let baseline = median(Array(paces[0..<(km - 1)])) else { continue }
-        if paces[km - 1] - baseline >= C.fadeSeconds && paces[km] - baseline >= C.fadeSeconds { return km }
+        guard paces[km - 1] - baseline >= C.fadeSeconds else { continue }
+        if km == paces.count || paces[km] - baseline >= C.fadeConfirmSeconds { return km }
     }
     return nil
 }
 
 func decoupling(_ splits: [DetailedSplit]) -> Double? {
-    let rows = splits.compactMap { split in split.heartRate.map { (speed: C.metersPerKilometer / split.paceSeconds, heartRate: $0) } }
+    let rows = Array(splits.dropFirst(C.driftSkipKm).compactMap { split in split.heartRate.map { (speed: C.metersPerKilometer / split.paceSeconds, heartRate: $0) } })
     guard rows.count >= C.driftMinimumKm else { return nil }
     let half = rows.count / 2
     func efficiency(_ part: ArraySlice<(speed: Double, heartRate: Double)>) -> Double? {

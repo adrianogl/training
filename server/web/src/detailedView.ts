@@ -38,7 +38,7 @@ export function findingText(finding: DetailedFinding): string {
     }
     case 'hrDrift': {
       const average = number(values, 'similarAverage')
-      return t.drift(signedNumber(number(values, 'drift') ?? 0, 1)) + (average === null ? '' : t.driftAverage(signedNumber(average, 1)))
+      return t.drift(signedNumber(number(values, 'drift') ?? 0, 1)) + (average === null ? '' : t.driftAverage(signedNumber(average, 1))) + t.driftNormal(DETAILED_TEXT.driftNormalPercent)
     }
     case 'startPace': {
       const start = number(values, 'todayStart') ?? 0

@@ -23,7 +23,7 @@ enum DetailedScreenConstants {
     static let findingsTitle = "Padrões encontrados"
     static let recommendationsTitle = "Recomendações"
     static let coachTitle = "Texto do treinador"
-    static let paceLegend = "pace (para cima = mais lento)"
+    static let paceLegend = "pace (mais rápido em cima)"
     static let heartRateLegend = "FC (bpm)"
     static let fadeLabelFormat = "queda a partir do km %d"
     static let pauseLabel = "pausa"

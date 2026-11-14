@@ -16,6 +16,7 @@ enum DetailedAnalysisText {
     static let driftNoneTitle = "FC estável no mesmo pace"
     static let driftNoneText = "A velocidade por batimento da segunda metade ficou igual à da primeira."
     static let driftAverage = " Nos treinos parecidos, a média foi %d%%."
+    static let driftNormal = " Até %d%% é o normal num treino longo."
 
     static let startFastTitle = "Começo rápido pesa na segunda metade"
     static let startTitle = "Pace dos primeiros %d km"
