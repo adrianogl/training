@@ -3,8 +3,12 @@ import SwiftUI
 
 struct WorkoutAnalysisCard: View {
     let summary: WorkoutAnalysisSummary
+    let activityId: Int64
+    let goalEntries: [WorkoutGoalEntry]
     @State private var showsAll = false
     @State private var coach: String?
+    @State private var isGenerating = false
+    @State private var timedOut = false
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = WorkoutDetailConstants
@@ -33,11 +37,48 @@ struct WorkoutAnalysisCard: View {
                 .foregroundStyle(BrandColors.accent)
                 .buttonStyle(.plain)
             }
+            detailedLink
         }
         .brandCard()
-        .task(id: summary) {
-            coach = await CoachFeedbackCache.shared.text(for: summary.coachFacts)
+        .task(id: summary) { await generateCoach() }
+    }
+
+    private var showsSkeleton: Bool {
+        isGenerating && coach == nil && !timedOut
+    }
+
+    private func generateCoach() async {
+        coach = nil
+        timedOut = false
+        let facts = summary.coachFacts
+        guard CoachFeedback.isAvailable else { return }
+        if let cached = await CoachFeedbackCache.shared.cached(for: facts) {
+            coach = cached
+            return
         }
+        isGenerating = true
+        let timer = Task {
+            try? await Task.sleep(for: .seconds(DetailedScreenConstants.coachTimeoutSeconds))
+            if !Task.isCancelled { timedOut = true }
+        }
+        coach = await CoachFeedbackCache.shared.text(for: facts)
+        timer.cancel()
+        isGenerating = false
+    }
+
+    private var detailedLink: some View {
+        NavigationLink {
+            DetailedAnalysisView(activityId: activityId, goalEntries: goalEntries)
+        } label: {
+            Text(DetailedScreenConstants.buttonTitle + " ›")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.accent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .background(BrandColors.accentFill.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accentFill.opacity(0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 
     private var visibleEntries: [AnalysisEntry] {
@@ -56,6 +97,8 @@ struct WorkoutAnalysisCard: View {
                     .foregroundStyle(BrandColors.text)
                     .fixedSize(horizontal: false, vertical: true)
                 OnDeviceCaption()
+            } else if showsSkeleton {
+                GeneratingSkeleton()
             } else {
                 ForEach(Array(summary.feedback.enumerated()), id: \.offset) { _, paragraph in
                     Text(paragraph)
