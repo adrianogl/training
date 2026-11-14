@@ -149,7 +149,8 @@ import TrainingCore
         #expect(summary.resultIsSuggestion == false)
         #expect(summary.resultVsGoalText == "+0:30")
         #expect(summary.resultVsEveText == "\(TodayConstants.minusSign)0:50")
-        #expect(!summary.lesson.isEmpty)
+        #expect(!summary.lesson.negative.isEmpty)
+        #expect(!summary.lesson.expected.isEmpty)
 
         let suggested = try #require(model.summaries[unlinked.id])
         #expect(suggested.resultSeconds == 3_300)

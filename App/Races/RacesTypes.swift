@@ -93,7 +93,7 @@ struct CompletedRaceSummary: Equatable, Sendable {
     let eveSeconds: Double?
     let isPR: Bool
     let splits: [RaceSplit]
-    let lesson: String
+    let lesson: AnalysisColumns
 
     var goalSeconds: Double? { info.goalSeconds }
     var resultVsGoalText: String? { RacesText.signedClock(resultSeconds, minus: goalSeconds) }

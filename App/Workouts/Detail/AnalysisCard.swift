@@ -3,6 +3,8 @@ import SwiftUI
 struct AnalysisCard: View {
     let columns: AnalysisColumns
     let onDevice: Bool
+    var title = WorkoutDetailConstants.analysisTitle
+    var expectedTitle = WorkoutDetailConstants.analysisExpected
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = WorkoutDetailConstants
@@ -10,7 +12,7 @@ struct AnalysisCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                SectionLabel(C.analysisTitle).padding(.top, 0).padding(.bottom, 0)
+                SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
                 Spacer()
                 if onDevice { OnDeviceCaption() }
             }
@@ -20,13 +22,13 @@ struct AnalysisCard: View {
                     Divider().overlay(BrandColors.line)
                     column(C.analysisPositive, BrandColors.accentFill, columns.positive)
                     Divider().overlay(BrandColors.line)
-                    column(C.analysisExpected, BrandColors.dim, columns.expected)
+                    column(expectedTitle, BrandColors.dim, columns.expected)
                 }
             } else {
                 VStack(alignment: .leading, spacing: 14) {
                     column(C.analysisNegative, BrandColors.rest, columns.negative)
                     column(C.analysisPositive, BrandColors.accentFill, columns.positive)
-                    column(C.analysisExpected, BrandColors.dim, columns.expected)
+                    column(expectedTitle, BrandColors.dim, columns.expected)
                 }
             }
         }

@@ -129,6 +129,7 @@ enum RacesConstants {
     static let resultLabel = "resultado"
     static let noEvePrediction = "sem previsão da véspera"
     static let lessonTitle = "O que a prova ensinou"
+    static let lessonNextTitle = "Para a próxima"
     static let suggestionNote = "Atividade sugerida: corrida do dia com distância compatível."
     static let useSuggestion = "Usar esta atividade"
     static let openActivity = "Abrir treino"
@@ -139,16 +140,8 @@ enum RacesConstants {
     static let pickerEmpty = "Nenhuma corrida perto do dia da prova."
     static let pickerWindowDays = 3
     static let noActivity = "Nenhuma corrida no dia da prova com distância compatível."
-    static let lessonGoalFormat = "Você fechou em %@, %@ da meta"
-    static let lessonEveFormat = " e %@ da previsão da véspera"
-    static let lessonNoEve = ", sem previsão da véspera para comparar"
-    static let lessonSplitsFormat = " Primeira metade a %@/km e segunda a %@/km: %@."
-    static let negativeSplit = "split negativo, terminou mais forte"
-    static let positiveSplit = "split positivo, o ritmo caiu no fim"
-    static let evenSplit = "ritmo constante"
     static let evenSplitTolerance = 2.0
     static let lessonNoResult = "Sem atividade ligada ao resultado, não há o que comparar."
-    static let lessonNoGoalFormat = "Você fechou em %@"
 
     static let editorTitleNew = "Nova prova"
     static let editorTitleEdit = "Editar prova"

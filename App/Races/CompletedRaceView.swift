@@ -19,14 +19,22 @@ struct CompletedRaceView: View {
                         splitsCard
                     }
                 }
-                VStack(alignment: .leading, spacing: 6) {
-                    SectionLabel(RacesConstants.lessonTitle).padding(.top, 0).padding(.bottom, 0)
-                    Text(summary.lesson)
-                        .font(.footnote)
-                        .foregroundStyle(BrandColors.text.opacity(0.85))
-                        .fixedSize(horizontal: false, vertical: true)
+                if summary.resultSeconds == nil {
+                    VStack(alignment: .leading, spacing: 6) {
+                        SectionLabel(RacesConstants.lessonTitle).padding(.top, 0).padding(.bottom, 0)
+                        Text(RacesConstants.lessonNoResult)
+                            .font(.footnote)
+                            .foregroundStyle(BrandColors.dim)
+                    }
+                    .brandCard()
+                } else {
+                    AnalysisCard(
+                        columns: summary.lesson,
+                        onDevice: false,
+                        title: RacesConstants.lessonTitle,
+                        expectedTitle: RacesConstants.lessonNextTitle
+                    )
                 }
-                .brandCard()
             }
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.bottom, 24)

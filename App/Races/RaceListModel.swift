@@ -162,7 +162,7 @@ import WorkoutAnalysis
                 eveSeconds: race.frozenTargetSeconds,
                 isPR: isPR && linkedCandidate != nil,
                 splits: splits,
-                lesson: RacesText.lesson(resultSeconds: result?.seconds, goalSeconds: race.goalSeconds, eveSeconds: race.frozenTargetSeconds, splits: splits)
+                lesson: RaceLesson.columns(resultSeconds: result?.seconds, goalSeconds: race.goalSeconds, eveSeconds: race.frozenTargetSeconds, splits: splits)
             )
         }
 

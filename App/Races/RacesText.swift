@@ -70,32 +70,6 @@ enum RacesText {
         )
     }
 
-    static func lesson(resultSeconds: Double?, goalSeconds: Double?, eveSeconds: Double?, splits: [RaceSplit]) -> String {
-        guard let resultSeconds else { return C.lessonNoResult }
-        var text: String
-        if let goal = signedClock(resultSeconds, minus: goalSeconds) {
-            text = String(format: C.lessonGoalFormat, WorkoutFormat.clock(resultSeconds), goal)
-        } else {
-            text = String(format: C.lessonNoGoalFormat, WorkoutFormat.clock(resultSeconds))
-        }
-        if let eve = signedClock(resultSeconds, minus: eveSeconds) {
-            text += String(format: C.lessonEveFormat, eve)
-        } else {
-            text += C.lessonNoEve
-        }
-        text += "."
-        let full = splits.filter { $0.distance >= C.metersPerKm * 0.99 }
-        guard full.count >= 2 else { return text }
-        let half = full.count / 2
-        let firstPace = full.prefix(half).map(\.pace).reduce(0, +) / Double(half)
-        let secondPace = full.suffix(full.count - half).map(\.pace).reduce(0, +) / Double(full.count - half)
-        let verdict = abs(secondPace - firstPace) <= C.evenSplitTolerance
-            ? C.evenSplit
-            : (secondPace < firstPace ? C.negativeSplit : C.positiveSplit)
-        text += String(format: C.lessonSplitsFormat, WorkoutFormat.clock(firstPace), WorkoutFormat.clock(secondPace), verdict)
-        return text
-    }
-
     static func km(_ value: Double) -> String {
         TodayText.decimal(value, fractionDigits: value.rounded() == value || value >= 100 ? 0 : 1)
     }
