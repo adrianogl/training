@@ -2,543 +2,621 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>trAIning — Inteligência do pulso à linha de chegada</title>
-<meta name="description" content="App pessoal para iPhone, iPad e relógio Garmin: prontidão do dia, treinos planejados explicados, análise de cada corrida, evolução com projeção, estratégia de prova no relógio e compartilhamento com o percurso animado. Os dados ficam no aparelho.">
-<meta name="theme-color" content="#07080A">
-<meta name="color-scheme" content="dark">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>trAIning</title>
+<meta name="description" content="Prontidão, treinos, provas e evolução com os dados da sua Garmin, no iPhone, no iPad, no relógio e no site.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;800;900&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: cenas que prendem na tela enquanto a rolagem conduz a animação (--p de 0 a 1 por cena) */
+:root {
+  --bg: #07080a;
+  --ink: #f2f2f0;
+  --ink-2: #c9cdd1;
+  --dim: #8f959c;
+  --line: #22262a;
+  --card: #121517;
+  --card-2: #1a1e21;
+  --lime: #c8f05a;
+  --lime-deep: #1a2410;
+  --amber: #ffc24c;
+  --sky: #7fb2ff;
+  --ember: #ff8a4c;
+  --rose: #e5534b;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55; overflow-x: hidden; }
+a { color: var(--lime); text-decoration: none; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 8px; }
+.wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font-family: var(--display); font-stretch: 112%; font-weight: 700; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--lime); }
+.display { font-family: var(--display); font-stretch: 118%; font-weight: 800; line-height: 0.98; letter-spacing: -0.01em; text-wrap: balance; margin: 0; }
+.lede { color: var(--ink-2); font-size: clamp(17px, 1.5vw, 20px); max-width: 34ch; text-wrap: pretty; }
+.num { font-family: var(--display); font-stretch: 100%; font-variant-numeric: tabular-nums; }
+
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+.nav { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 800; letter-spacing: 0.14em; font-size: 15px; }
+.brand b { color: var(--lime); font-weight: 800; }
+.mark { width: 30px; height: 30px; border-radius: 9px; border: 1px solid #5e7a1e; background: var(--lime-deep); color: var(--lime); display: grid; place-items: center; font-size: 12px; letter-spacing: 0; }
+.nav-cta { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-weight: 700; font-size: 14px; }
+
+.scene { position: relative; }
+.scene.pin { height: var(--len, 280vh); }
+.stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: flex; align-items: center; }
+.scene { --p: 1; }
+.flow { padding-block: clamp(80px, 12vw, 160px); }
+
+/* 1 · Abertura */
+.hero .stage { align-items: stretch; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 40px; align-items: center; height: 100%; padding-top: 56px; }
+.hero h1 { font-size: clamp(44px, 7.4vw, 108px); transform: translateY(calc(var(--p) * -40px)) scale(calc(1 - var(--p) * 0.12)); transform-origin: left center; opacity: calc(1 - var(--p) * 0.65); }
+.hero h1 em { font-style: normal; color: var(--lime); }
+.hero .lede { margin-top: 24px; opacity: calc(1 - var(--p) * 1.4); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; opacity: calc(1 - var(--p) * 1.6); }
+.btn { display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border-radius: 999px; font-weight: 700; font-size: 15px; }
+.btn-lime { background: var(--lime); color: #0b0d0a; }
+.btn-ghost { border: 1px solid #3a3f46; color: var(--ink); }
+.phone-holder { display: flex; justify-content: center; transform: translateY(calc(18% - var(--p) * 18%)) rotate(calc(4deg - var(--p) * 4deg)); }
+.phone { width: min(320px, 78vw); aspect-ratio: 9 / 19.2; border-radius: 46px; background: #000; border: 1px solid #2c3136; box-shadow: 0 40px 120px -30px rgba(200, 240, 90, 0.18), inset 0 0 0 7px #0d0f11; padding: 18px 14px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+.phone .date { font-size: 11px; color: var(--dim); padding: 22px 6px 0; }
+.phone .ttl { font-family: var(--display); font-weight: 800; font-size: 26px; padding: 0 6px 4px; }
+.pcard { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 12px; font-size: 12px; }
+.pcard .k { font-size: 9px; letter-spacing: 0.14em; color: var(--dim); font-weight: 700; }
+.ready { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+.ring { width: 78px; height: 78px; flex: none; }
+.ring .fill { stroke-dasharray: 201; stroke-dashoffset: 201; animation: ring-in 1.4s cubic-bezier(.2,.7,.2,1) .3s forwards; }
+@keyframes ring-in { to { stroke-dashoffset: 76; } }
+.ready b { display: block; font-size: 14px; }
+.ready span { color: var(--ink-2); font-size: 11px; line-height: 1.4; }
+.recover { margin-top: 10px; padding: 7px 9px; border-radius: 10px; background: var(--card-2); font-size: 11px; display: flex; justify-content: space-between; }
+.slide-in { transform: translateY(calc(40px - var(--p) * 40px)); opacity: clamp(0.25, calc(0.25 + var(--p) * 1.4), 1); }
+.wbar { display: flex; gap: 2px; height: 12px; margin: 8px 0 6px; }
+.wbar i { border-radius: 3px; display: block; }
+.tip { margin-top: 6px; padding: 6px 8px; border-radius: 9px; background: #2a2414; color: var(--amber); font-size: 10.5px; }
+
+/* 2 · Do pulso ao número */
+.pulse-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; align-items: center; width: 100%; }
+.steps { position: relative; min-height: 260px; }
+.step { position: absolute; inset: 0 auto auto 0; transition: opacity .35s, transform .35s; }
+.step + .step { opacity: 0; }
+.step h2 { font-size: clamp(34px, 4.6vw, 64px); }
+.step p { margin-top: 18px; }
+.pulse-art { position: relative; aspect-ratio: 1.15; max-width: 100%; }
+.pulse-art svg { width: 100%; height: 100%; overflow: visible; }
+.hrv-line { stroke-dasharray: 1400; stroke-dashoffset: calc(1400 - 1400 * clamp(0, var(--p) / 0.34, 1)); }
+.factor { transform-box: fill-box; transform-origin: left center; transform: scaleX(clamp(0, (var(--p) - 0.34) / 0.3, 1)); }
+.converge { opacity: clamp(0, (var(--p) - 0.68) / 0.18, 1); transform: scale(calc(0.8 + clamp(0, (var(--p) - 0.68) / 0.3, 1) * 0.2)); transform-origin: center; transform-box: fill-box; }
+.fade-out-late { opacity: calc(1 - clamp(0, (var(--p) - 0.66) / 0.14, 1)); }
+
+/* 3 · Treino de hoje */
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.split h2 { font-size: clamp(34px, 4.6vw, 64px); margin-top: 14px; }
+.split .lede { margin-top: 18px; }
+.workout { background: var(--card); border: 1px solid var(--line); border-radius: 26px; padding: clamp(20px, 3vw, 32px); }
+.workout .t { font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: clamp(22px, 2.4vw, 30px); }
+.blocks { display: flex; gap: 4px; height: 44px; margin: 22px 0 16px; }
+.blocks i { display: block; border-radius: 7px; transform-origin: bottom; transform: scaleY(clamp(0, calc((var(--p) - var(--d)) * 5), 1)); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--dim); }
+.legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; background: var(--c); }
+.advice { margin-top: 20px; padding: 14px 16px; border-radius: 14px; background: #2a2414; color: var(--amber); font-size: 15px; opacity: clamp(0, (var(--p) - 0.7) / 0.2, 1); transform: translateY(calc(12px - clamp(0, (var(--p) - 0.7) / 0.2, 1) * 12px)); }
+
+/* 4 · Relógio */
+.watch-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; width: 100%; }
+.watch-grid h2 { font-size: clamp(34px, 4.6vw, 64px); margin-top: 14px; }
+.watch-wrap { perspective: 1200px; display: flex; justify-content: center; }
+.watch { width: min(420px, 82vw); aspect-ratio: 1; border-radius: 50%; position: relative; background: radial-gradient(circle at 50% 40%, #121416, #000 70%); border: 14px solid #1f2327; box-shadow: 0 0 0 2px #33393f, 0 50px 120px -40px rgba(0,0,0,.9); transform: rotateY(calc(-38deg + clamp(0, var(--p) / 0.3, 1) * 38deg)) rotateX(calc(14deg - clamp(0, var(--p) / 0.3, 1) * 14deg)); }
+.watch svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wf { opacity: clamp(0, calc((var(--p) - var(--d)) * 7), 1); }
+.field-list { margin: 26px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.field-list li { display: flex; gap: 12px; align-items: baseline; color: var(--dim); transition: color .3s; font-size: 16px; }
+.field-list li b { color: var(--ink); font-weight: 600; min-width: 9ch; }
+.field-list li.on { color: var(--ink-2); }
+.field-list li.on b { color: var(--lime); }
+
+/* 5 · Apple Intelligence */
+.chat { display: grid; gap: 12px; max-width: 520px; }
+.bubble { padding: 14px 16px; border-radius: 20px; font-size: 15px; line-height: 1.5; opacity: clamp(0, calc((var(--p) - var(--d)) * 6), 1); transform: translateY(calc(16px - clamp(0, calc((var(--p) - var(--d)) * 6), 1) * 16px)); }
+.bubble.me { justify-self: end; background: var(--lime); color: #0b0d0a; border-bottom-right-radius: 6px; max-width: 80%; }
+.bubble.ai { background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 6px; }
+.bubble mark { background: none; color: var(--lime); font-weight: 700; border-bottom: 1px dashed #5e7a1e; }
+.note-chip { display: inline-flex; gap: 6px; margin-top: 8px; font-size: 12px; color: var(--dim); }
+
+/* 6 · Provas */
+.race { background: var(--card); border: 1px solid var(--line); border-radius: 26px; padding: clamp(20px, 3vw, 32px); }
+.race-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.race-head .t { font-family: var(--display); font-stretch: 110%; font-weight: 800; font-size: 26px; }
+.countdown { font-size: clamp(56px, 7vw, 96px); font-weight: 900; color: var(--lime); line-height: 1; }
+.countdown small { font-size: 16px; color: var(--dim); font-family: var(--body); font-weight: 500; margin-left: 8px; }
+.race svg { width: 100%; height: auto; margin-top: 18px; overflow: visible; }
+.pred { stroke-dasharray: 700; stroke-dashoffset: calc(700 - 700 * clamp(0, var(--p) / 0.8, 1)); }
+.race-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; font-size: 13px; color: var(--dim); }
+.race-meta b { display: block; color: var(--ink); font-size: 20px; }
+
+/* 7 · Evolução */
+.charts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 48px; }
+.chart { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 20px; }
+.chart .k { font-size: 12px; letter-spacing: 0.14em; color: var(--dim); font-weight: 700; }
+.chart .v { font-size: 30px; font-weight: 800; margin-top: 6px; }
+.chart .v small { font-size: 14px; color: var(--lime); font-family: var(--body); margin-left: 6px; }
+.chart svg { width: 100%; height: 90px; margin-top: 12px; overflow: visible; }
+.draw { stroke-dasharray: 600; stroke-dashoffset: calc(600 - 600 * clamp(0, var(--p) / 0.7, 1)); }
+.grow { transform-box: fill-box; transform-origin: bottom; transform: scaleY(clamp(0, calc((var(--p) - var(--d)) * 4), 1)); }
+
+/* Análise do treino */
+.reps { display: grid; gap: 10px; }
+.rep { display: grid; grid-template-columns: 4.5ch minmax(0, 1fr) 7ch; gap: 12px; align-items: center; font-size: 14px; color: var(--dim); }
+.rep .track { position: relative; height: 26px; border-radius: 8px; background: var(--card-2); }
+.rep .band { position: absolute; top: 0; bottom: 0; left: 38%; width: 22%; background: rgba(200, 240, 90, 0.12); border-left: 1px dashed #5e7a1e; border-right: 1px dashed #5e7a1e; }
+.rep .dot { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; margin: -7px 0 0 -7px; left: calc(10% + (var(--x) - 10%) * clamp(0, calc((var(--p) - var(--d)) * 5), 1)); background: var(--c, var(--lime)); }
+.rep b { color: var(--ink); text-align: right; font-weight: 600; }
+.verdict { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+.verdict span { padding: 6px 10px; border-radius: 999px; background: var(--card-2); color: var(--ink-2); }
+
+/* Compartilhar */
+.share-card { position: relative; aspect-ratio: 4 / 5; max-width: 380px; border-radius: 26px; overflow: hidden; background: linear-gradient(160deg, #10141a, #07080a 70%); border: 1px solid var(--line); padding: 24px; display: flex; flex-direction: column; justify-content: space-between; margin-inline: auto; }
+.share-card svg { position: absolute; inset: 12% 8% 26%; width: 84%; height: 62%; }
+.route { stroke-dasharray: 1600; stroke-dashoffset: calc(1600 - 1600 * clamp(0, var(--p) / 0.85, 1)); }
+.share-stats { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.share-stats div { font-size: 11px; color: var(--dim); letter-spacing: .08em; }
+.share-stats b { display: block; font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--ink); letter-spacing: 0; }
+.formats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+.formats span { padding: 7px 12px; border-radius: 999px; border: 1px solid #3a3f46; color: var(--ink-2); font-size: 13px; }
+
+/* Grade de funcionalidades */
+.features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 44px; }
+.feature { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 8px; opacity: clamp(0, calc((var(--p) - var(--d)) * 5), 1); transform: translateY(calc(18px - clamp(0, calc((var(--p) - var(--d)) * 5), 1) * 18px)); }
+.feature svg { width: 26px; height: 26px; }
+.feature b { font-family: var(--display); font-stretch: 108%; font-size: 17px; }
+.feature span { color: var(--dim); font-size: 14px; line-height: 1.45; }
+
+/* 8 · Em todo lugar */
+.devices { position: relative; height: clamp(320px, 42vw, 520px); margin-top: 56px; }
+.dev { position: absolute; background: #000; border: 1px solid #2c3136; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); overflow: hidden; }
+.dev .scr { position: absolute; inset: 0; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.mac { left: 50%; top: 0; width: min(760px, 86%); aspect-ratio: 16 / 10; border-radius: 14px; transform: translateX(-50%) translateY(calc(30px - var(--p) * 30px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
+.ipad { left: 2%; bottom: 0; width: min(330px, 34%); aspect-ratio: 3 / 4; border-radius: 22px; border-width: 8px; border-color: #15181b; transform: translateX(calc(-60px + var(--p) * 60px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
+.iph { right: 4%; bottom: 0; width: min(170px, 20%); aspect-ratio: 9 / 19.2; border-radius: 26px; border-width: 6px; border-color: #15181b; transform: translateX(calc(60px - var(--p) * 60px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
+.mini { background: var(--card); border: 1px solid var(--line); border-radius: 10px; height: 100%; }
+.mac .bar { height: 26px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #0d0f11; position: absolute; inset: 0 0 auto; }
+.mac .bar i { width: 9px; height: 9px; border-radius: 50%; background: #3a3f46; }
+.mac .bar span { margin-left: 10px; font-size: 11px; color: var(--dim); }
+.macgrid { position: absolute; inset: 26px 0 0; display: grid; grid-template-columns: 22% 1fr; }
+.macnav { border-right: 1px solid var(--line); padding: 14px 10px; display: grid; align-content: start; gap: 6px; font-size: 11px; color: var(--dim); }
+.macnav b { color: var(--lime); background: #1c2116; padding: 5px 7px; border-radius: 6px; font-weight: 600; }
+.macnav span { padding: 5px 7px; }
+.macmain { padding: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 10px; }
+.macmain .mini:first-child { grid-column: span 2; }
+.everywhere-points { display: flex; flex-wrap: wrap; gap: 28px 48px; margin-top: 40px; color: var(--ink-2); }
+.everywhere-points div { max-width: 30ch; }
+.everywhere-points b { display: block; color: var(--ink); font-family: var(--display); font-stretch: 110%; font-size: 18px; margin-bottom: 4px; }
+
+/* 9 · Privacidade */
+.lock { width: 140px; height: 170px; }
+.shackle { transform-origin: 82px 70px; transform: translateY(calc(-26px + clamp(0, var(--p) / 0.6, 1) * 26px)); }
+.privacy-list { margin: 28px 0 0; padding: 0; list-style: none; display: grid; gap: 16px; }
+.privacy-list li { padding-left: 22px; position: relative; color: var(--ink-2); max-width: 52ch; }
+.privacy-list li::before { content: ""; position: absolute; left: 0; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+
+/* 10 · Final */
+.final { text-align: center; }
+.final h2 { font-size: clamp(42px, 6.4vw, 92px); }
+.final .lede { margin: 24px auto 0; }
+.final .hero-actions { justify-content: center; opacity: 1; }
+.soon { display: inline-flex; align-items: center; gap: 8px; margin-top: 36px; padding: 8px 14px; border-radius: 999px; border: 1px dashed #3a3f46; color: var(--dim); font-size: 14px; }
+.soon b { color: var(--ember); font-weight: 700; }
+footer { border-top: 1px solid var(--line); padding-block: 28px; color: var(--dim); font-size: 13px; }
+footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+@media (max-width: 860px) {
+  .scene.pin { height: auto; }
+  .stage { position: relative; height: auto; overflow: visible; padding-block: 96px 64px; }
+  .hero-grid, .pulse-grid, .split, .watch-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .hero-grid { padding-top: 40px; }
+  .hero h1 { transform: none; opacity: 1; }
+  .hero .lede, .hero-actions { opacity: 1; }
+  .steps { min-height: 0; display: grid; gap: 28px; }
+  .step { position: static; opacity: 1 !important; transform: none !important; }
+  .charts { grid-template-columns: minmax(0, 1fr); }
+  .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ipad { width: 40%; } .iph { width: 26%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .scene { --p: 1 !important; }
+  .scene.pin { height: auto; }
+  .stage { position: relative; height: auto; padding-block: 96px; }
+  .ring .fill { animation: none; stroke-dashoffset: 76; }
+  .step { position: static; opacity: 1 !important; transform: none !important; }
+  .steps { min-height: 0; display: grid; gap: 28px; }
+}
+</style>
+
 </head>
 <body>
-<div class="glow" aria-hidden="true"></div>
-
-<header class="top">
-  <a class="brand" href="#inicio" aria-label="trAIning, início">
-    <span class="tile" aria-hidden="true">AI</span>
-    <span class="word">TR<b>AI</b>NING</span>
-  </a>
-  <a class="gh" href="https://github.com/adrianogl/training">Código no GitHub</a>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#topo" aria-label="trAIning, início"><span class="mark">AI</span>TR<b>AI</b>NING</a>
+    <a class="nav-cta" href="/app/entrar">Entrar</a>
+  </div>
 </header>
 
-<main id="inicio">
-  <section class="hero">
-    <div class="hero-copy">
-      <h1 class="wordmark">TR<b>AI</b>NING</h1>
-      <p class="tagline">Inteligência do pulso à linha de chegada.</p>
-      <p class="lede">App de iPhone e iPad, com mostrador para o relógio Garmin, que lê os seus dados e responde o que importa: dá pra treinar forte hoje, como fazer o treino de hoje, como foi o treino de ontem, estou melhorando e em quanto tempo eu faço a prova.</p>
-      <ul class="chips" aria-label="Resumo">
-        <li>iOS e iPadOS 26 · Liquid Glass</li>
-        <li>Garmin: Personal API e conta</li>
-        <li>Mostrador para relógios Garmin</li>
-        <li>Treinos planejados do Garmin</li>
-        <li>✦ Apple Intelligence no aparelho</li>
-        <li class="soon-chip">Strava em breve</li>
-      </ul>
-    </div>
-
-    <div class="stage" role="img" aria-label="iPad com a tela Evolução, iPhone com a tela Hoje e o mostrador do relógio, com números de exemplo">
-      <div class="slot slot-ipad">
-        <div class="device ipad" aria-hidden="true">
-          <div class="screen">
-            <aside class="side">
-              <div class="side-brand"><span class="tile sm">AI</span><span class="word sm">TR<b>AI</b>NING</span></div>
-              <nav class="side-nav">
-                <span><i class="ico ico-sun"></i>Hoje</span>
-                <span class="on"><i class="ico ico-chart"></i>Evolução</span>
-                <span><i class="ico ico-run"></i>Treinos</span>
-                <span><i class="ico ico-flag"></i>Provas</span>
-                <span><i class="ico ico-gear"></i>Ajustes</span>
-              </nav>
-              <div class="side-race">
-                <div class="k race">Prova A · 38 dias</div>
-                <div class="t">Meia da Orla</div>
-                <div class="s">meta <span class="n">1:46:00</span></div>
+<main id="topo">
+  <section class="scene pin hero" data-scene style="--len: 200vh" aria-labelledby="hero-title">
+    <div class="stage">
+      <div class="wrap hero-grid">
+        <div>
+          <p class="eyebrow">Garmin · iPhone · iPad · relógio · web</p>
+          <h1 id="hero-title" class="display">Inteligência do pulso à <em>linha de chegada</em>.</h1>
+          <p class="lede">O trAIning lê o seu sono, o HRV e cada treino da Garmin e diz o que fazer hoje, como a prova vai sair e se você está evoluindo.</p>
+          <div class="hero-actions">
+            <a class="btn btn-lime" href="/app/entrar">Entrar no site</a>
+            <a class="btn btn-ghost" href="#pulso">Ver como funciona</a>
+          </div>
+        </div>
+        <div class="phone-holder" aria-hidden="true">
+          <div class="phone">
+            <div class="date">sábado, 14 de novembro</div>
+            <div class="ttl">Hoje</div>
+            <div class="pcard">
+              <div class="k">PRONTIDÃO</div>
+              <div class="ready">
+                <svg class="ring" viewBox="0 0 80 80"><circle cx="40" cy="40" r="32" fill="none" stroke="#33291a" stroke-width="9"></circle><circle class="fill" cx="40" cy="40" r="32" fill="none" stroke="#ffc24c" stroke-width="9" stroke-linecap="round" transform="rotate(-90 40 40)"></circle><text x="40" y="47" text-anchor="middle" fill="#f2f2f0" font-family="Archivo, sans-serif" font-weight="800" font-size="22">62</text></svg>
+                <div><b>Treino moderado</b><span>HRV na faixa e sono de 7h34. Dá para treinar sem forçar.</span></div>
               </div>
-            </aside>
-            <div class="pane">
-              <div class="pane-head">
-                <div class="h">Evolução</div>
-                <div class="seg"><span>6M</span><span class="on">1 ano</span><span>2 anos</span><span>Tudo</span></div>
-              </div>
-              <div class="pane-grid">
-                <div class="g-card state">
-                  <div class="k">Estado geral</div>
-                  <div class="t">Melhor que há 3 meses</div>
-                  <div class="tally"><span class="up-chip">5 melhoraram</span><span class="flat-chip">1 estável</span></div>
-                  <div class="dumb"><span>Previsão meia</span><i style="--a:20%;--b:62%"></i><b class="n up">−3:41</b></div>
-                  <div class="dumb"><span>VO2max</span><i style="--a:38%;--b:58%"></i><b class="n up">+1,2</b></div>
-                  <div class="dumb"><span>Pace na Z2</span><i style="--a:30%;--b:52%"></i><b class="n up">−0:09</b></div>
-                  <div class="dumb"><span>Pace de limiar</span><i style="--a:44%;--b:60%"></i><b class="n up">−0:05</b></div>
-                  <div class="dumb"><span>Volume mensal</span><i style="--a:40%;--b:66%"></i><b class="n up">+21</b></div>
-                </div>
-                <div class="g-card pred">
-                  <div class="k">Previsão · meia <span class="race">· prova em 38 dias</span></div>
-                  <div class="pred-nums">
-                    <div><div class="s">hoje</div><div class="n big">1:47:52</div></div>
-                    <div><div class="s lime">no dia da prova</div><div class="n big lime">1:45:40</div></div>
-                  </div>
-                  <svg class="chart" viewBox="0 0 400 130" preserveAspectRatio="none">
-                    <polygon class="band" points="290,78 372,82 372,112 290,90"/>
-                    <polyline class="hist draw" pathLength="1" points="0,22 30,28 60,26 90,38 120,42 150,48 180,56 210,60 240,70 270,76 290,84"/>
-                    <polyline class="proj" points="290,84 372,97"/>
-                    <line class="meta" x1="0" y1="92" x2="400" y2="92"/>
-                    <line class="raceline" x1="372" y1="0" x2="372" y2="130"/>
-                    <line class="today" x1="290" y1="0" x2="290" y2="130"/>
-                    <circle class="dot" cx="372" cy="97" r="4"/>
-                  </svg>
-                  <div class="legend"><span class="race">meta 1:46:00</span><span>tracejado: projeção</span></div>
-                </div>
-                <div class="g-card mini">
-                  <div class="k">Tempo por zona</div>
-                  <div class="zweeks"><i style="--z1:14;--z2:40;--z3:22;--z4:14;--z5:10"></i><i style="--z1:12;--z2:44;--z3:20;--z4:14;--z5:10"></i><i style="--z1:16;--z2:36;--z3:24;--z4:14;--z5:10"></i><i style="--z1:12;--z2:46;--z3:20;--z4:12;--z5:10"></i></div>
-                </div>
-                <div class="g-card mini">
-                  <div class="k">Recordes</div>
-                  <div class="rec"><span>1 km</span><b class="n">3:37</b></div>
-                  <div class="rec"><span>5 km</span><b class="n">19:38</b></div>
-                </div>
-                <div class="g-card mini">
-                  <div class="k">VO2max</div>
-                  <div class="n mid">52,4</div>
-                  <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><polyline class="s-hist" points="0,28 20,26 40,24 60,22 80,18"/><polyline class="s-proj" points="80,18 120,12"/></svg>
-                </div>
-              </div>
+              <div class="recover"><span>Pronto para forte sex, 11h</span><span style="color: var(--dim)">26 h</span></div>
             </div>
+            <div class="pcard slide-in">
+              <div class="k">TREINO DE HOJE</div>
+              <div style="font-weight: 700; margin-top: 4px">Intervalado 5 × 1000 m</div>
+              <div class="wbar"><i style="flex:3;background:#7fb2ff"></i><i style="flex:1.2;background:#ff8a4c"></i><i style="flex:.6;background:#7fb2ff"></i><i style="flex:1.2;background:#ff8a4c"></i><i style="flex:.6;background:#7fb2ff"></i><i style="flex:1.2;background:#ff8a4c"></i><i style="flex:2;background:#7fb2ff"></i></div>
+              <div class="tip">Faça 4 tiros em vez de 5.</div>
+            </div>
+            <div class="pcard slide-in" style="display:flex;justify-content:space-between;align-items:baseline"><span class="k">LIVE!21K</span><span><b class="num" style="font-size:22px;color:var(--lime)">15</b> <span style="color:var(--dim)">dias</span></span></div>
           </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="slot slot-iphone">
-        <div class="device iphone" aria-hidden="true">
-          <div class="screen">
-            <div class="island"></div>
-            <div class="status"><span>9:41</span><span class="bat"></span></div>
-            <div class="p-logo"><span class="tile sm">AI</span><div><span class="word sm">TR<b>AI</b>NING</span><small>Inteligência do pulso à linha de chegada.</small></div></div>
-            <div class="date">sexta-feira, 13 de novembro</div>
-            <div class="h">Hoje</div>
+  <section id="pulso" class="scene pin" data-scene data-steps="3" style="--len: 300vh" aria-labelledby="pulso-title">
+    <div class="stage">
+      <div class="wrap pulse-grid">
+        <div class="steps">
+          <div class="step" data-step="0">
+            <p class="eyebrow">Do pulso ao número</p>
+            <h2 id="pulso-title" class="display">O relógio mede a sua noite.</h2>
+            <p class="lede">HRV a cada 5 minutos, sono, Body Battery e a carga das últimas semanas chegam da Garmin sem você abrir nada.</p>
+          </div>
+          <div class="step" data-step="1">
+            <p class="eyebrow">Do pulso ao número</p>
+            <h2 class="display">O app pesa cada sinal.</h2>
+            <p class="lede">Cada fator é comparado com o seu normal, não com uma média de manual. HRV acima da faixa soma, noite curta tira.</p>
+          </div>
+          <div class="step" data-step="2">
+            <p class="eyebrow">Do pulso ao número</p>
+            <h2 class="display">E vira uma decisão.</h2>
+            <p class="lede">Uma nota de 0 a 100 e o que ela quer dizer para o treino de hoje: descansar, segurar ou pode ir forte.</p>
+          </div>
+        </div>
+        <div class="pulse-art" aria-hidden="true">
+          <svg viewBox="0 0 560 480">
+            <g class="fade-out-late">
+              <text x="0" y="24" fill="#8f959c" font-size="13" font-family="Inter, sans-serif" letter-spacing="2">HRV DA NOITE · ms</text>
+              <path class="hrv-line" d="M0 160 C 30 150, 40 180, 70 168 S 110 120, 140 140 S 190 190, 220 150 S 270 110, 300 132 S 350 175, 380 140 S 430 100, 460 128 S 520 150, 560 120" fill="none" stroke="#c8f05a" stroke-width="3" stroke-linecap="round"></path>
+              <line x1="0" y1="138" x2="560" y2="138" stroke="#2a3020" stroke-dasharray="4 6"></line>
+              <text x="0" y="270" fill="#8f959c" font-size="13" font-family="Inter, sans-serif" letter-spacing="2">FATORES · PONTOS SOBRE O SEU NORMAL</text>
+              <g font-family="Inter, sans-serif" font-size="14" fill="#c9cdd1">
+                <text x="0" y="306">HRV</text><rect class="factor" x="130" y="294" width="200" height="14" rx="7" fill="#c8f05a"></rect><text x="345" y="306" fill="#f2f2f0">+4</text>
+                <text x="0" y="346">Sono</text><rect class="factor" x="130" y="334" width="120" height="14" rx="7" fill="#e5534b"></rect><text x="265" y="346" fill="#f2f2f0">−3</text>
+                <text x="0" y="386">Body Battery</text><rect class="factor" x="130" y="374" width="70" height="14" rx="7" fill="#c8f05a"></rect><text x="215" y="386" fill="#f2f2f0">+1</text>
+                <text x="0" y="426">Carga</text><rect class="factor" x="130" y="414" width="140" height="14" rx="7" fill="#c8f05a"></rect><text x="285" y="426" fill="#f2f2f0">+2</text>
+              </g>
+            </g>
+            <g class="converge">
+              <circle cx="280" cy="220" r="150" fill="none" stroke="#33291a" stroke-width="22"></circle>
+              <circle cx="280" cy="220" r="150" fill="none" stroke="#ffc24c" stroke-width="22" stroke-linecap="round" stroke-dasharray="942" stroke-dashoffset="358" transform="rotate(-90 280 220)"></circle>
+              <text x="280" y="250" text-anchor="middle" fill="#f2f2f0" font-family="Archivo, sans-serif" font-weight="900" font-size="104">62</text>
+              <text x="280" y="420" text-anchor="middle" fill="#ffc24c" font-family="Archivo, sans-serif" font-weight="800" font-size="28" letter-spacing="1">TREINO MODERADO</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            <div class="p-card">
-              <div class="k">Prontidão</div>
-              <div class="gauge-row">
-                <svg class="gauge" viewBox="0 0 100 100" aria-hidden="true">
-                  <path d="M20,80 A42,42 0 1,1 80,80" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="9" stroke-linecap="round"/>
-                  <path d="M20,80 A42,42 0 1,1 87,45" fill="none" stroke="#C8F05A" stroke-width="9" stroke-linecap="round"/>
-                  <text x="50" y="58" text-anchor="middle" class="g-n">74</text>
-                  <text x="50" y="72" text-anchor="middle" class="g-s">de 100</text>
-                </svg>
-                <div><div class="verdict">Pode treinar forte</div><div class="s">VFC acima do seu normal e sono bom.</div></div>
-              </div>
-              <div class="driver"><span>VFC da noite</span><i class="pos" style="--w:70%"></i><b class="n up">+5</b></div>
-              <div class="driver"><span>Sono</span><i class="pos" style="--w:30%"></i><b class="n up">+2</b></div>
-              <div class="driver"><span>Body Battery</span><i class="neg" style="--w:30%"></i><b class="n down">−2</b></div>
-            </div>
+  <section class="scene flow" data-scene aria-labelledby="treino-title">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Treino de hoje</p>
+        <h2 id="treino-title" class="display">O planejado, ajustado ao seu dia.</h2>
+        <p class="lede">O treino do Garmin Connect chega com cada passo, alvo de pace e clima da manhã. Se a prontidão está baixa, o app diz o que mudar.</p>
+      </div>
+      <div class="workout">
+        <div class="t">Intervalado 5 × 1000 m</div>
+        <div style="color: var(--dim); font-size: 14px">9,8 km · 55 min · tiros em 4:00–4:10/km</div>
+        <div class="blocks" aria-hidden="true">
+          <i style="flex:15;background:#7fb2ff;--d:.0"></i><i style="flex:4;background:#ff8a4c;--d:.08"></i><i style="flex:2;background:#7fb2ff;--d:.14"></i><i style="flex:4;background:#ff8a4c;--d:.2"></i><i style="flex:2;background:#7fb2ff;--d:.26"></i><i style="flex:4;background:#ff8a4c;--d:.32"></i><i style="flex:2;background:#7fb2ff;--d:.38"></i><i style="flex:4;background:#ff8a4c;--d:.44"></i><i style="flex:2;background:#7fb2ff;--d:.5"></i><i style="flex:4;background:#ff8a4c;--d:.56"></i><i style="flex:10;background:#7fb2ff;--d:.62"></i>
+        </div>
+        <div class="legend"><span style="--c:#7fb2ff">Zona 1–2</span><span style="--c:#ff8a4c">Zona 4</span><span>Clima às 7h: 21 °C, orvalho 17 °C</span></div>
+        <div class="advice">Prontidão moderada: faça 4 tiros em vez de 5 e segure o primeiro em 4:10/km.</div>
+      </div>
+    </div>
+  </section>
 
-            <div class="p-card">
-              <div class="k">Treino de hoje <span class="dimr">20,0 km · ~1:30</span></div>
-              <div class="t">Corrida Longo sáb 14/11</div>
-              <div class="planbar" aria-hidden="true"><i class="z3" style="--w:1"></i></div>
-              <div class="step"><i></i><span>Passo</span><span class="dimr">20000 m · 4:24–4:40/km</span></div>
-            </div>
+  <section class="scene flow" data-scene aria-labelledby="analise-title">
+    <div class="wrap split">
+      <div class="workout">
+        <div class="t">Intervalado 5 × 1000 m</div>
+        <div style="color: var(--dim); font-size: 14px; margin-bottom: 18px">alvo 4:00–4:10/km · faixa verde</div>
+        <div class="reps" aria-hidden="true">
+          <div class="rep"><span>1º</span><div class="track"><div class="band"></div><i class="dot" style="--x:48%;--d:.05"></i></div><b class="num">4:05</b></div>
+          <div class="rep"><span>2º</span><div class="track"><div class="band"></div><i class="dot" style="--x:44%;--d:.15"></i></div><b class="num">4:03</b></div>
+          <div class="rep"><span>3º</span><div class="track"><div class="band"></div><i class="dot" style="--x:52%;--d:.25"></i></div><b class="num">4:07</b></div>
+          <div class="rep"><span>4º</span><div class="track"><div class="band"></div><i class="dot" style="--x:57%;--d:.35"></i></div><b class="num">4:09</b></div>
+          <div class="rep"><span>5º</span><div class="track"><div class="band"></div><i class="dot" style="--x:74%;--d:.45;--c:#ff8a4c"></i></div><b class="num">4:18</b></div>
+        </div>
+        <div class="verdict"><span>4 de 5 no alvo</span><span>FC média 168 bpm</span><span>Trote rápido nas recuperações 3 e 4</span></div>
+      </div>
+      <div>
+        <p class="eyebrow">Análise do treino</p>
+        <h2 id="analise-title" class="display">Cada tiro contra o alvo.</h2>
+        <p class="lede">O arquivo FIT de cada treino é aberto bloco a bloco: o que foi prescrito, o que saiu, a zona de FC e a comparação com treinos parecidos.</p>
+      </div>
+    </div>
+  </section>
 
-            <div class="p-card">
-              <div class="k">Recuperação estimada</div>
-              <div class="recbar"><i style="--w:52%"></i></div>
-              <div class="note">pronto em 26 h · dom. 1h</div>
-            </div>
-
-            <div class="tabbar">
-              <span class="on"><i class="ico ico-sun"></i>Hoje</span>
-              <span><i class="ico ico-chart"></i>Evolução</span>
-              <span><i class="ico ico-run"></i>Treinos</span>
-              <span><i class="ico ico-flag"></i>Provas</span>
-              <span><i class="ico ico-gear"></i>Ajustes</span>
-            </div>
+  <section class="scene pin" data-scene data-fields style="--len: 280vh" aria-labelledby="relogio-title">
+    <div class="stage">
+      <div class="wrap watch-grid">
+        <div>
+          <p class="eyebrow">No pulso</p>
+          <h2 id="relogio-title" class="display">O dia inteiro num olhar.</h2>
+          <p class="lede">Um mostrador para relógios Garmin que recebe o que o app calculou. Sem abrir o celular.</p>
+          <ul class="field-list">
+            <li data-at=".3"><b>Prontidão</b> nota e régua de descanso a forte</li>
+            <li data-at=".45"><b>Treino</b> a estrutura colorida por zona</li>
+            <li data-at=".6"><b>Semana</b> km feitos contra o planejado</li>
+            <li data-at=".75"><b>Prova</b> dias que faltam e a previsão</li>
+          </ul>
+        </div>
+        <div class="watch-wrap" aria-hidden="true">
+          <div class="watch">
+            <svg viewBox="0 0 400 400">
+              <circle cx="200" cy="200" r="186" fill="none" stroke="#1d2125" stroke-width="6"></circle>
+              <circle cx="200" cy="200" r="186" fill="none" stroke="#c8f05a" stroke-width="6" stroke-dasharray="1169" stroke-dashoffset="700" transform="rotate(-90 200 200)" stroke-linecap="round"></circle>
+              <text x="200" y="70" text-anchor="middle" fill="#8f959c" font-family="Archivo, sans-serif" font-weight="700" font-size="16" letter-spacing="2">SÁBADO 14 NOV</text>
+              <text x="200" y="150" text-anchor="middle" fill="#f2f2f0" font-family="Archivo, sans-serif" font-weight="800" font-size="76" font-stretch="88%">06:42</text>
+              <g class="wf" style="--d:.3">
+                <text x="104" y="196" fill="#ffc24c" font-family="Archivo, sans-serif" font-weight="800" font-size="34">62</text>
+                <text x="104" y="214" fill="#8f959c" font-family="Archivo, sans-serif" font-weight="700" font-size="11" letter-spacing="1.5">PRONTIDÃO</text>
+                <rect x="104" y="222" width="80" height="5" rx="2.5" fill="#33291a"></rect><rect x="104" y="222" width="50" height="5" rx="2.5" fill="#ffc24c"></rect>
+              </g>
+              <g class="wf" style="--d:.6">
+                <text x="296" y="196" text-anchor="end" fill="#f2f2f0" font-family="Archivo, sans-serif" font-weight="800" font-size="34">34</text>
+                <text x="296" y="214" text-anchor="end" fill="#8f959c" font-family="Archivo, sans-serif" font-weight="700" font-size="11" letter-spacing="1.5">KM SEMANA</text>
+                <rect x="216" y="222" width="80" height="5" rx="2.5" fill="#22262a"></rect><rect x="216" y="222" width="60" height="5" rx="2.5" fill="#c8f05a"></rect>
+              </g>
+              <g class="wf" style="--d:.45">
+                <rect x="104" y="252" width="56" height="12" rx="3" fill="#7fb2ff"></rect><rect x="162" y="252" width="20" height="12" rx="3" fill="#ff8a4c"></rect><rect x="184" y="252" width="10" height="12" rx="3" fill="#7fb2ff"></rect><rect x="196" y="252" width="20" height="12" rx="3" fill="#ff8a4c"></rect><rect x="218" y="252" width="10" height="12" rx="3" fill="#7fb2ff"></rect><rect x="230" y="252" width="20" height="12" rx="3" fill="#ff8a4c"></rect><rect x="252" y="252" width="44" height="12" rx="3" fill="#7fb2ff"></rect>
+                <text x="200" y="284" text-anchor="middle" fill="#c9cdd1" font-family="Inter, sans-serif" font-size="12">4 tiros, não 5</text>
+              </g>
+              <g class="wf" style="--d:.75">
+                <text x="200" y="322" text-anchor="middle" fill="#8f959c" font-family="Archivo, sans-serif" font-weight="700" font-size="12" letter-spacing="1.5">PROVA EM</text>
+                <text x="200" y="350" text-anchor="middle" fill="#c8f05a" font-family="Archivo, sans-serif" font-weight="800" font-size="26">15 DIAS · 1:41</text>
+              </g>
+            </svg>
           </div>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="slot slot-watch">
-        <div class="watch-device" aria-hidden="true">
-      <svg class="watchface" viewBox="0 0 454 454" role="img" aria-label="Mostrador de exemplo: 9:41, prontidão 74, VO2 52,4, 31 de 52 km na semana, longão de 20 km hoje e meia em 9 dias">
-        <circle cx="227" cy="227" r="226" fill="#000"/>
-        <g stroke-width="3" stroke-linecap="round"><line x1="227.0" y1="22.0" x2="227.0" y2="8.0" stroke="#E4FF1A" stroke-width="3"/><line x1="249.0" y1="18.2" x2="249.9" y2="9.2" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="21.6" x2="272.5" y2="12.8" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="27.3" x2="294.7" y2="18.7" stroke="#E4FF1A" stroke-width="2"/><line x1="312.4" y1="35.2" x2="316.1" y2="26.9" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="49.5" x2="336.5" y2="37.3" stroke="#E4FF1A" stroke-width="3"/><line x1="350.4" y1="57.1" x2="355.7" y2="49.8" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="70.9" x2="373.5" y2="64.3" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="86.5" x2="389.7" y2="80.5" stroke="#E4FF1A" stroke-width="2"/><line x1="396.9" y1="103.6" x2="404.2" y2="98.3" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="124.5" x2="416.7" y2="117.5" stroke="#E4FF1A" stroke-width="3"/><line x1="418.8" y1="141.6" x2="427.1" y2="137.9" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="162.1" x2="435.3" y2="159.3" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="183.3" x2="441.2" y2="181.5" stroke="#E4FF1A" stroke-width="2"/><line x1="435.8" y1="205.0" x2="444.8" y2="204.1" stroke="#E4FF1A" stroke-width="2"/><line x1="432.0" y1="227.0" x2="446.0" y2="227.0" stroke="#E4FF1A" stroke-width="3"/><line x1="435.8" y1="249.0" x2="444.8" y2="249.9" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="270.7" x2="441.2" y2="272.5" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="291.9" x2="435.3" y2="294.7" stroke="#E4FF1A" stroke-width="2"/><line x1="418.8" y1="312.4" x2="427.1" y2="316.1" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="329.5" x2="416.7" y2="336.5" stroke="#E4FF1A" stroke-width="3"/><line x1="396.9" y1="350.4" x2="404.2" y2="355.7" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="367.5" x2="389.7" y2="373.5" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="383.1" x2="373.5" y2="389.7" stroke="#E4FF1A" stroke-width="2"/><line x1="350.4" y1="396.9" x2="355.7" y2="404.2" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="404.5" x2="336.5" y2="416.7" stroke="#E4FF1A" stroke-width="3"/><line x1="312.4" y1="418.8" x2="316.1" y2="427.1" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="426.7" x2="294.7" y2="435.3" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="432.4" x2="272.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="249.0" y1="435.8" x2="249.9" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="227.0" y1="432.0" x2="227.0" y2="446.0" stroke="#3A3F46" stroke-width="3"/><line x1="205.0" y1="435.8" x2="204.1" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="432.4" x2="181.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="426.7" x2="159.3" y2="435.3" stroke="#3A3F46" stroke-width="2"/><line x1="141.6" y1="418.8" x2="137.9" y2="427.1" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="404.5" x2="117.5" y2="416.7" stroke="#3A3F46" stroke-width="3"/><line x1="103.6" y1="396.9" x2="98.3" y2="404.2" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="383.1" x2="80.5" y2="389.7" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="367.5" x2="64.3" y2="373.5" stroke="#3A3F46" stroke-width="2"/><line x1="57.1" y1="350.4" x2="49.8" y2="355.7" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="329.5" x2="37.3" y2="336.5" stroke="#3A3F46" stroke-width="3"/><line x1="35.2" y1="312.4" x2="26.9" y2="316.1" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="291.9" x2="18.7" y2="294.7" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="270.7" x2="12.8" y2="272.5" stroke="#3A3F46" stroke-width="2"/><line x1="18.2" y1="249.0" x2="9.2" y2="249.9" stroke="#3A3F46" stroke-width="2"/><line x1="22.0" y1="227.0" x2="8.0" y2="227.0" stroke="#3A3F46" stroke-width="3"/><line x1="18.2" y1="205.0" x2="9.2" y2="204.1" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="183.3" x2="12.8" y2="181.5" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="162.1" x2="18.7" y2="159.3" stroke="#3A3F46" stroke-width="2"/><line x1="35.2" y1="141.6" x2="26.9" y2="137.9" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="124.5" x2="37.3" y2="117.5" stroke="#3A3F46" stroke-width="3"/><line x1="57.1" y1="103.6" x2="49.8" y2="98.3" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="86.5" x2="64.3" y2="80.5" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="70.9" x2="80.5" y2="64.3" stroke="#3A3F46" stroke-width="2"/><line x1="103.6" y1="57.1" x2="98.3" y2="49.8" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="49.5" x2="117.5" y2="37.3" stroke="#3A3F46" stroke-width="3"/><line x1="141.6" y1="35.2" x2="137.9" y2="26.9" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="27.3" x2="159.3" y2="18.7" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="21.6" x2="181.5" y2="12.8" stroke="#3A3F46" stroke-width="2"/><line x1="205.0" y1="18.2" x2="204.1" y2="9.2" stroke="#3A3F46" stroke-width="2"/></g>
-        <text x="227" y="80" text-anchor="middle" class="wf-dim" font-size="22">SEXTA 13 NOV</text>
-        <text x="196" y="118" text-anchor="end" class="wf-ink" font-size="30">24°</text>
-        <path d="M208,114 a5,5 0 1,0 10,0 l-5,-11 z" fill="#5CB0FF"/>
-        <text x="222" y="118" class="wf-dim" font-size="24">68%</text>
-        <line x1="276" y1="96" x2="276" y2="120" stroke="#3A3F46" stroke-width="2"/>
-        <text x="290" y="118" class="wf-ink" font-size="24">82%</text>
-        <text x="215" y="214" text-anchor="middle" class="wf-ink" font-size="96">9:41</text>
-        <text x="322" y="214" class="wf-lime" font-size="32">27</text>
-        <text x="121" y="258" text-anchor="middle" fill="#C8F05A" font-size="38" font-weight="700">74</text>
-        <text x="121" y="282" text-anchor="middle" class="wf-dim" font-size="15">FORTE</text>
-        <rect x="86" y="293" width="27" height="5" rx="2.5" fill="#501D1A"/><rect x="115" y="293" width="20" height="5" rx="2.5" fill="#59441A"/><rect x="137" y="293" width="19" height="5" rx="2.5" fill="#46541F"/><circle cx="138" cy="295.5" r="5" fill="#fff" stroke="#000" stroke-width="2"/>
-        <line x1="174" y1="234" x2="174" y2="302" stroke="#3A3F46" stroke-width="2"/>
-        <text x="227" y="258" text-anchor="middle" class="wf-ink" font-size="38">52,4</text>
-        <text x="227" y="282" text-anchor="middle" class="wf-dim" font-size="15">VO2 MÁX.</text>
-        <text x="227" y="300" text-anchor="middle" fill="#C8F05A" font-size="14" font-weight="700">▲ 1,2 · 3M</text>
-        <line x1="280" y1="234" x2="280" y2="302" stroke="#3A3F46" stroke-width="2"/>
-        <text x="333" y="258" text-anchor="middle" font-size="38" font-weight="700"><tspan fill="#C8F05A">31,0</tspan><tspan font-size="22" fill="#B3BAC4">/52</tspan></text>
-        <text x="333" y="282" text-anchor="middle" class="wf-dim" font-size="15">KM SEMANA</text>
-        <rect x="298" y="293" width="70" height="5" rx="2.5" fill="#3A3F46"/><rect x="298" y="293" width="64" height="5" rx="2.5" fill="none" stroke="#7FB2FF" stroke-width="1.2"/><rect x="298" y="293" width="38" height="5" rx="2.5" fill="#C8F05A"/><line x1="353" y1="289" x2="353" y2="302" stroke="#fff" stroke-width="2"/>
-        <text x="227" y="330" text-anchor="middle" fill="#E4FF1A" font-size="21" font-weight="700">CORRIDA LONGO 20 KM</text>
-        <rect x="132" y="341" width="190" height="10" fill="#C8F05A"/>
-        <text x="227" y="370" text-anchor="middle" fill="#FFC24C" font-size="14" font-weight="700">FC até 159 · gel no km 9</text>
-        <text x="227" y="398" text-anchor="middle" fill="#FF8A1A" font-size="21" font-weight="700">MEIA · 22 NOV · 9 DIAS</text>
-        <text x="227" y="424" text-anchor="middle" font-size="24" font-weight="700"><tspan fill="#FF8A1A">1:31:24</tspan><tspan font-size="16" fill="#B3BAC4"> / META 1:32:00</tspan></text>
-      </svg>
-        </div>
+  <section class="scene flow" data-scene aria-labelledby="ia-title">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Apple Intelligence, no aparelho</p>
+        <h2 id="ia-title" class="display">Pergunte ao seu treino.</h2>
+        <p class="lede">Converse sobre cada treino, o planejado de amanhã, a prova e a evolução. O modelo roda no iPhone, e cada número da resposta é conferido contra os seus dados.</p>
+      </div>
+      <div class="chat">
+        <div class="bubble me" style="--d:.05">Meu trote entre os tiros foi rápido demais?</div>
+        <div class="bubble ai" style="--d:.25">Nas recuperações 3 e 4, sim: <mark>5:12/km</mark> com FC em <mark>151 bpm</mark>. A FC não caiu antes do tiro seguinte, e o 5º saiu <mark>9 s</mark> mais lento.<div class="note-chip">✦ leu os blocos do treino</div></div>
+        <div class="bubble me" style="--d:.5">E amanhã, o que faço?</div>
+        <div class="bubble ai" style="--d:.7">Rodagem de 8 km em zona 2, perto de <mark>5:40/km</mark>. Você recupera para o longão de domingo.</div>
       </div>
     </div>
   </section>
 
-  <p class="sample-note">Telas e mostrador recriados em HTML com números de exemplo.</p>
-
-  <section class="feature" id="dia">
-    <div class="copy">
-      <p class="eyebrow">O dia</p>
-      <h2>Dá pra treinar forte hoje?</h2>
-      <p>A prontidão vai de 0 a 100 e junta o HRV da noite, a nota do sono, o Body Battery ao acordar e a carga das últimas semanas. O detalhe mostra o que puxou a nota para cima e para baixo em relação ao seu normal dos últimos 30 dias.</p>
-      <p>Quando o sono e o HRV da noite chegam, sai um aviso de manhã com a nota e o veredito. Na mesma tela ficam a recuperação estimada do último treino, comparada com o próximo treino planejado, e um alerta quando FC de repouso, HRV e carga pioram juntos por alguns dias.</p>
-    </div>
-    <div class="card factors">
-      <div class="factors-head">
-        <span class="n huge lime">74</span>
-        <div><div class="t">Treino forte liberado</div><div class="s">+4 sobre o seu normal (70)</div></div>
+  <section class="scene flow" data-scene data-count aria-labelledby="prova-title">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Provas</p>
+        <h2 id="prova-title" class="display">Quanto falta para a meta.</h2>
+        <p class="lede">A previsão sai dos seus melhores esforços e é projetada até o dia da prova, com estratégia km a km, polimento e checklist.</p>
       </div>
-      <div class="ruler"><i style="left:74%"></i></div>
-      <div class="k">Puxando para cima</div>
-      <div class="row"><span>HRV da noite</span><span class="s">61 ms · normal 57</span><span class="n pts up">+5</span></div>
-      <div class="row"><span>Sono</span><span class="s">81 · 7h42</span><span class="n pts up">+2</span></div>
-      <div class="k">Puxando para baixo</div>
-      <div class="row"><span>Body Battery ao acordar</span><span class="s">76 · normal 82</span><span class="n pts down">−2</span></div>
-      <div class="row"><span>Carga da semana</span><span class="s">A:C 1,04 · ideal 0,8–1,3</span><span class="n pts">0</span></div>
+      <div class="race">
+        <div class="race-head"><span class="t">LIVE!21K</span><span class="countdown num"><span data-from="60" data-to="15">15</span><small>dias</small></span></div>
+        <svg viewBox="0 0 520 170" role="img" aria-label="Previsão caindo de 1:44:30 para 1:41:10 e projetada em 1:40:20 no dia da prova, perto da meta de 1:39:00">
+          <line x1="0" y1="136" x2="520" y2="136" stroke="#c8f05a" stroke-dasharray="5 6" opacity=".6"></line>
+          <text x="0" y="128" fill="#c8f05a" font-size="12" font-family="Inter, sans-serif">meta 1:39:00</text>
+          <path class="pred" d="M0 30 C 80 40, 140 52, 220 66 S 340 88, 400 96 L 520 112" fill="none" stroke="#f2f2f0" stroke-width="3" stroke-linecap="round"></path>
+          <line x1="400" y1="0" x2="400" y2="160" stroke="#3a3f46" stroke-dasharray="3 5"></line>
+          <text x="406" y="14" fill="#8f959c" font-size="11" font-family="Inter, sans-serif">hoje</text>
+        </svg>
+        <div class="race-meta"><div>Hoje<b class="num">1:41:10</b></div><div>No dia<b class="num" style="color: var(--amber)">1:40:20</b></div><div>Meta<b class="num">1:39:00</b></div></div>
+      </div>
     </div>
   </section>
 
-  <section class="feature flip" id="planejado">
-    <div class="copy">
-      <p class="eyebrow">Treino planejado</p>
-      <h2>O treino de amanhã, explicado</h2>
-      <p>Os treinos do seu plano chegam pelo calendário do Garmin Connect, venham do treinador, de um app de planilha ou do próprio Garmin. Cada um vira um briefing: como fazer cada trecho, com pace e limite de FC, o que esperar de FC e Training Effect, os pontos de atenção e uma versão reduzida para um dia ruim.</p>
-      <p>O app sugere um percurso salvo no Garmin com a distância certa, mostra o horário mais fresco da manhã pela previsão do tempo e, depois do treino, compara o planejado com o feito.</p>
-    </div>
-    <div class="card brief">
-      <div class="w-head">
-        <div><div class="k">Sábado · Planejado</div><div class="t">Corrida Longo · 20 km</div></div>
-        <span class="pill lime-pill">amanhã</span>
-      </div>
-      <div class="line"><span class="n">km 0–2</span><span>Entrar devagar: 4:50/km, FC abaixo de 150</span></div>
-      <div class="line"><span class="n">km 2–16</span><span>Mirar 4:32/km; se a FC passar de 159, segurar</span></div>
-      <div class="line"><span class="n">km 16–20</span><span>Fechar no mesmo ritmo, sem acelerar</span></div>
-      <div class="k">Pontos de atenção</div>
-      <div class="line"><span class="dotc amber"></span><span>O ritmo caiu 9 s/km no fim do último longão</span></div>
-      <div class="line"><span class="dotc blue"></span><span>A semana fecha em 51 km para 45 de meta</span></div>
-      <div class="hours" aria-label="Temperatura das 5h às 10h">
-        <span class="best">17°<small>5h</small></span><span class="best">18°<small>6h</small></span><span>20°<small>7h</small></span><span>22°<small>8h</small></span><span>23°<small>9h</small></span><span>25°<small>10h</small></span>
-      </div>
-      <p class="note">Percurso sugerido: Pampulha 10 km, 2 voltas, +33 m.</p>
-    </div>
-  </section>
-
-  <section class="feature" id="evolucao">
-    <div class="copy">
+  <section class="scene flow" data-scene aria-labelledby="evolucao-title">
+    <div class="wrap">
       <p class="eyebrow">Evolução</p>
-      <h2>Onde você chega no dia da prova</h2>
-      <p>Cada métrica tem histórico e projeção. A projeção é uma regressão sobre os últimos 90 dias, sempre tracejada e com faixa de incerteza. Se a meta cruza a projeção, o app diz em que data.</p>
-      <p>O topo da tela compara hoje com 3 meses atrás: previsão da prova, VO2max, fitness, pace na Z2, pace de limiar e volume mensal. Mais abaixo, o tempo em cada zona por semana e os recordes de 1, 5, 10 km e meia, achados nos treinos, não só nas provas.</p>
-    </div>
-    <div class="card bigchart">
-      <div class="k">Previsão · meia maratona</div>
-      <div class="pred-nums">
-        <div><div class="s">hoje</div><div class="n big">1:47:52</div></div>
-        <div><div class="s lime">no dia da prova</div><div class="n big lime">1:45:40</div></div>
-        <div class="ago"><div class="s">há 12 meses</div><div class="n mid dim">1:55:10</div></div>
-      </div>
-      <svg class="chart lg" viewBox="0 0 520 190" preserveAspectRatio="none" role="img" aria-label="Gráfico de exemplo: previsão caindo ao longo de um ano, com projeção tracejada que cruza a meta antes da prova">
-        <polygon class="band" points="380,108 480,112 480,160 380,124"/>
-        <polyline class="hist" points="0,20 40,26 80,24 120,40 160,52 200,58 240,70 280,82 320,92 350,104 380,116"/>
-        <polyline class="proj" points="380,116 480,136"/>
-        <line class="meta" x1="0" y1="128" x2="520" y2="128"/>
-        <line class="raceline" x1="480" y1="0" x2="480" y2="190"/>
-        <line class="today" x1="380" y1="0" x2="380" y2="190"/>
-        <circle class="dot" cx="440" cy="128" r="5"/>
-        <text x="6" y="122" class="lbl race">meta 1:46:00</text>
-        <text x="384" y="14" class="lbl">hoje</text>
-        <text x="476" y="14" class="lbl race" text-anchor="end">prova</text>
-      </svg>
-      <p class="note">Meta de 1:46 deve chegar em 6 de dezembro, 14 dias antes da prova.</p>
-    </div>
-  </section>
-
-  <section class="feature flip" id="treinos">
-    <div class="copy">
-      <p class="eyebrow">Treinos</p>
-      <h2>Cada corrida ganha uma nota e um feedback</h2>
-      <p>A nota de 0 a 100 junta execução e esforço adequado. A análise começa por um parágrafo de treinador, escrito no aparelho, e segue com os pontos por ordem de importância: o que corrigir, o que foi bem e o que saiu como esperado, cada um com os números e o porquê.</p>
-      <p>Os blocos aparecem por extenso ("segundo tiro de 1000 m"), separados em aquecimento, série e desaquecimento. O treino também traz zonas pelo limiar e pelo relógio, mapa, curva de FC, o planejado contra o feito e a evolução nos treinos parecidos.</p>
-    </div>
-    <div class="card workout">
-      <div class="w-head">
-        <div><div class="k">Ontem · corrida</div><div class="t">Tiros 6 × 800 m</div></div>
-        <div class="score"><span class="n">86</span><span class="s">nota</span></div>
-      </div>
-      <div class="part"><span>Execução</span><span class="meter"><i style="--w:94%"></i></span><span class="n">47/50</span></div>
-      <div class="part"><span>Intenção</span><span class="meter"><i style="--w:88%"></i></span><span class="n">22/25</span></div>
-      <div class="part"><span>Custo</span><span class="meter"><i style="--w:68%"></i></span><span class="n">17/25</span></div>
-      <div class="k zk">Análise</div>
-      <p class="feedback">Bom intervalado: 7 dos 9 tiros no alvo, com média de 3:45/km. O trote depois do terceiro e do quarto tiro ficou em Z3 e o quarto tiro saiu 1 s/km acima da faixa.</p>
-      <div class="line"><span class="pill red-pill">Corrigir</span><span>Recuperações depois do terceiro e do quarto tiro em Z3</span></div>
-      <div class="line"><span class="pill lime-pill">Bom</span><span>Recuperações do quinto ao nono tiro com a FC caindo rápido</span></div>
-      <div class="k zk">Zonas de FC</div>
-      <div class="zone-row">
-        <div class="zl">Relógio (Garmin)</div>
-        <div class="zbar"><i class="z1" style="--w:24.3%"></i><i class="z2" style="--w:15.7%"></i><i class="z3" style="--w:12.9%"></i><i class="z4" style="--w:12.9%"></i><i class="z5" style="--w:34.2%"></i></div>
-        <div class="zticks"><span style="--x:24.3%">137</span><span style="--x:40%">148</span><span style="--x:52.9%">157</span><span style="--x:65.7%">166</span></div>
-        <div class="ztimes">Z1 9:40 · Z2 12:05 · Z3 6:20 · Z4 8:10 · Z5 7:45</div>
-      </div>
-      <div class="zone-row">
-        <div class="zl">Pelo limiar (172 bpm)</div>
-        <div class="zbar"><i class="z1" style="--w:37.1%"></i><i class="z2" style="--w:11.4%"></i><i class="z3" style="--w:12.9%"></i><i class="z4" style="--w:12.9%"></i><i class="z5" style="--w:25.7%"></i></div>
-        <div class="zticks"><span style="--x:37.1%">146</span><span style="--x:48.6%">154</span><span style="--x:61.4%">163</span><span style="--x:74.3%">172</span></div>
-        <div class="ztimes">Z1 14:30 · Z2 10:10 · Z3 8:05 · Z4 6:15 · Z5 5:00</div>
-      </div>
-      <p class="note">Zonas do relógio 6 bpm abaixo do limiar.</p>
-    </div>
-  </section>
-
-  <section class="ai-spot" id="apple-intelligence">
-    <div class="spot-head">
-      <p class="eyebrow">✦ Apple Intelligence</p>
-      <h2>Converse com o seu treino</h2>
-      <p class="lead">O modelo da Apple Intelligence roda no próprio iPhone ou iPad. Ele ajuda a planejar o treino antes de sair, escreve o feedback de cada corrida e responde perguntas com os seus números, sem mandar nada para servidor.</p>
-    </div>
-    <div class="ai-grid">
-      <div class="card ai-chat" role="img" aria-label="Exemplo de conversa sobre um intervalado">
-        <div class="ai-top"><b>Intervalado de 12 nov</b><span>✦ no aparelho</span></div>
-        <div class="bub me">Por que o quarto tiro saiu mais lento?</div>
-        <div class="bub tool">↻ leu os blocos 3 a 4</div>
-        <div class="bub ai">O quarto tiro saiu a 3:45/km, 1 s/km acima da faixa. A recuperação antes dele teve FC média de 148 bpm, a mais alta do treino: você começou o tiro sem ter baixado a frequência.</div>
-        <div class="bub me">Foi melhor que o intervalado anterior?</div>
-        <div class="bub tool">↻ buscou os treinos parecidos</div>
-        <div class="bub ai">Foi. Os tiros saíram 4 s/km mais rápidos que no de 5 de novembro, com FC média 3 bpm menor.</div>
-        <div class="ai-input"><span>Pergunte sobre este treino</span><i>↑</i></div>
-      </div>
-      <ul class="ai-points">
-        <li><b>Planeje antes de correr</b><span>No treino planejado, pergunte que ritmo segurar, o que fazer se a FC subir ou se você está recuperado para ele. O modelo lê os passos, as corridas parecidas e a sua semana.</span></li>
-        <li><b>Conversa sobre o treino</b><span>Pergunte por que um tiro saiu lento, se o trote foi rápido demais ou se você está melhorando. O modelo busca os blocos, os treinos parecidos e o sono e a VFC da noite quando precisa.</span></li>
-        <li><b>Provas e Evolução</b><span>Converse sobre a meta, a estratégia e o bloco da próxima prova, sobre onde você perdeu tempo numa prova que já correu e sobre o que evoluiu nos últimos meses.</span></li>
-        <li><b>Histórico por treino</b><span>Cada conversa fica guardada no treino. Ao voltar, ela continua de onde parou, e um ✦ na lista mostra quais treinos têm conversa.</span></li>
-        <li><b>Feedback de treinador</b><span>A análise de cada corrida vira um parágrafo que liga causa e efeito: o que ajustar, o que foi bem e o que fazer no próximo.</span></li>
-        <li><b>Números conferidos</b><span>Toda resposta é checada contra os dados do treino. Se aparecer um número que não está lá, o app avisa.</span></li>
-        <li><b>Leituras da Hoje e da Evolução</b><span>A frase da prontidão e o resumo da evolução também são escritos no aparelho. Sem Apple Intelligence, o app usa textos prontos.</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="feature" id="provas">
-    <div class="copy">
-      <p class="eyebrow race">Provas</p>
-      <h2>Previsão contra a meta, km a km</h2>
-      <p>Você cadastra a prova com a meta e importa o percurso do Garmin. O app mostra a previsão de hoje e a do dia da prova, diz se a meta está tranquila, desafiadora ou agressiva e monta a estratégia de pace por km pela inclinação, com as subidas, os postos de água e a hora do gel.</p>
-      <p>A estratégia vai para o relógio como um treino agendado no dia da prova. O checklist de prontidão tem dez itens com números, o bloco mostra o longão de cada semana e, nas duas últimas semanas, aparece o polimento. Depois da prova, o app separa o que foi negativo, o que foi positivo e o que levar para a próxima.</p>
-    </div>
-    <div class="card race-card">
-      <div class="w-head">
-        <div><div class="k race">Prova A · 20 de dezembro</div><div class="t">Meia da Orla</div></div>
-        <div class="count"><span class="n">38</span><span class="s">dias</span></div>
-      </div>
-      <div class="three">
-        <div><div class="s">meta</div><div class="n mid">1:46:00</div><div class="s">5:01/km</div></div>
-        <div><div class="s">hoje</div><div class="n mid">1:47:52</div><div class="s">+1:52</div></div>
-        <div><div class="s lime">no dia</div><div class="n mid lime">1:45:40</div><div class="s lime">tranquila</div></div>
-      </div>
-      <div class="k">Estratégia de pace</div>
-      <svg class="pace" viewBox="0 0 420 110" preserveAspectRatio="none" role="img" aria-label="Exemplo de altimetria do percurso com paces por km mais lentos nas subidas">
-        <polygon class="alt" points="0,96 20,94 40,90 60,82 80,70 100,74 120,86 140,92 160,92 180,88 200,90 220,92 240,80 260,66 280,70 300,84 320,92 340,94 360,94 380,95 400,96 420,96 420,110 0,110"/>
-        <g class="kms">
-          <rect x="2" y="30" width="16" height="22"/><rect x="22" y="30" width="16" height="22"/>
-          <rect x="42" y="38" width="16" height="14"/><rect x="62" y="20" width="16" height="32" class="up"/>
-          <rect x="82" y="22" width="16" height="30" class="up"/><rect x="102" y="44" width="16" height="8" class="down"/>
-          <rect x="122" y="42" width="16" height="10" class="down"/><rect x="142" y="38" width="16" height="14"/>
-          <rect x="162" y="38" width="16" height="14"/><rect x="182" y="38" width="16" height="14"/>
-          <rect x="202" y="38" width="16" height="14"/><rect x="222" y="36" width="16" height="16"/>
-          <rect x="242" y="20" width="16" height="32" class="up"/><rect x="262" y="24" width="16" height="28" class="up"/>
-          <rect x="282" y="44" width="16" height="8" class="down"/><rect x="302" y="40" width="16" height="12"/>
-          <rect x="322" y="38" width="16" height="14"/><rect x="342" y="38" width="16" height="14"/>
-          <rect x="362" y="42" width="16" height="10" class="fin"/><rect x="382" y="42" width="16" height="10" class="fin"/>
-          <rect x="402" y="42" width="16" height="10" class="fin"/>
-        </g>
-      </svg>
-      <div class="legend"><span>barras: pace alvo por km</span><span>mais alto = mais lento</span></div>
-      <div class="ask">
-        <div><div class="t">Estratégia no relógio</div><div class="s">21 passos, um por km, agendados para 20 de dezembro</div></div>
-        <div class="btns"><span class="btn lime-btn">Enviar</span></div>
+      <h2 id="evolucao-title" class="display" style="font-size: clamp(34px, 4.6vw, 64px); max-width: 16ch">Se você está melhorando, dá para ver.</h2>
+      <div class="charts">
+        <div class="chart">
+          <div class="k">FORMA ATÉ A PROVA</div><div class="v num">em alta<small>+12%</small></div>
+          <svg viewBox="0 0 300 90"><path class="draw" d="M0 78 C 50 70, 90 62, 140 50 S 230 30, 300 22" fill="none" stroke="#c8f05a" stroke-width="3"></path><path class="draw" d="M0 60 C 40 40, 80 70, 120 46 S 200 64, 240 40 S 280 70, 300 76" fill="none" stroke="#ff8a4c" stroke-width="2" stroke-dasharray="600"></path></svg>
+        </div>
+        <div class="chart">
+          <div class="k">KM POR SEMANA</div><div class="v num">52 km<small>pico</small></div>
+          <svg viewBox="0 0 300 90"><g fill="#3a3f46"><rect class="grow" style="--d:.0" x="0" y="44" width="30" height="46" rx="4"></rect><rect class="grow" style="--d:.06" x="38" y="38" width="30" height="52" rx="4"></rect><rect class="grow" style="--d:.12" x="76" y="34" width="30" height="56" rx="4"></rect><rect class="grow" style="--d:.18" x="114" y="26" width="30" height="64" rx="4"></rect><rect class="grow" style="--d:.24" x="152" y="18" width="30" height="72" rx="4"></rect><rect class="grow" style="--d:.3" x="190" y="6" width="30" height="84" rx="4"></rect></g><rect class="grow" style="--d:.36" x="228" y="24" width="30" height="66" rx="4" fill="#c8f05a"></rect><rect class="grow" style="--d:.42" x="266" y="48" width="30" height="42" rx="4" fill="none" stroke="#7fb2ff" stroke-width="2" stroke-dasharray="4 3"></rect></svg>
+        </div>
+        <div class="chart">
+          <div class="k">PACE EM ZONA 2</div><div class="v num">5:38<small>−14 s</small></div>
+          <svg viewBox="0 0 300 90"><path class="draw" d="M0 20 L 50 26 L 100 30 L 150 42 L 200 50 L 250 62 L 300 70" fill="none" stroke="#7fb2ff" stroke-width="3"></path><circle cx="300" cy="70" r="5" fill="#7fb2ff"></circle></svg>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="watch-spot" id="relogio">
-    <div class="spot-head">
-      <p class="eyebrow">Relógio</p>
-      <h2>O essencial no pulso</h2>
-      <p class="lead">Um mostrador para relógios Garmin com o que o app sabe sobre o seu dia, a sua semana e a sua prova. Ele lê só esses números, a cada 15 minutos.</p>
-    </div>
-    <div class="spot-grid">
-      <ul class="callouts left">
-        <li><b>Prontidão</b><span>A nota do dia com a régua de descanso a forte.</span></li>
-        <li><b>VO2max</b><span>Com a variação dos últimos 3 meses.</span></li>
-        <li><b>Treino de hoje</b><span>Nome, estrutura colorida por zona e uma dica para ele.</span></li>
-      </ul>
-      <div class="watch-device big">
-      <svg class="watchface" viewBox="0 0 454 454" role="img" aria-label="Mostrador de exemplo: 9:41, prontidão 74, VO2 52,4, 31 de 52 km na semana, longão de 20 km hoje e meia em 9 dias">
-        <circle cx="227" cy="227" r="226" fill="#000"/>
-        <g stroke-width="3" stroke-linecap="round"><line x1="227.0" y1="22.0" x2="227.0" y2="8.0" stroke="#E4FF1A" stroke-width="3"/><line x1="249.0" y1="18.2" x2="249.9" y2="9.2" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="21.6" x2="272.5" y2="12.8" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="27.3" x2="294.7" y2="18.7" stroke="#E4FF1A" stroke-width="2"/><line x1="312.4" y1="35.2" x2="316.1" y2="26.9" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="49.5" x2="336.5" y2="37.3" stroke="#E4FF1A" stroke-width="3"/><line x1="350.4" y1="57.1" x2="355.7" y2="49.8" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="70.9" x2="373.5" y2="64.3" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="86.5" x2="389.7" y2="80.5" stroke="#E4FF1A" stroke-width="2"/><line x1="396.9" y1="103.6" x2="404.2" y2="98.3" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="124.5" x2="416.7" y2="117.5" stroke="#E4FF1A" stroke-width="3"/><line x1="418.8" y1="141.6" x2="427.1" y2="137.9" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="162.1" x2="435.3" y2="159.3" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="183.3" x2="441.2" y2="181.5" stroke="#E4FF1A" stroke-width="2"/><line x1="435.8" y1="205.0" x2="444.8" y2="204.1" stroke="#E4FF1A" stroke-width="2"/><line x1="432.0" y1="227.0" x2="446.0" y2="227.0" stroke="#E4FF1A" stroke-width="3"/><line x1="435.8" y1="249.0" x2="444.8" y2="249.9" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="270.7" x2="441.2" y2="272.5" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="291.9" x2="435.3" y2="294.7" stroke="#E4FF1A" stroke-width="2"/><line x1="418.8" y1="312.4" x2="427.1" y2="316.1" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="329.5" x2="416.7" y2="336.5" stroke="#E4FF1A" stroke-width="3"/><line x1="396.9" y1="350.4" x2="404.2" y2="355.7" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="367.5" x2="389.7" y2="373.5" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="383.1" x2="373.5" y2="389.7" stroke="#E4FF1A" stroke-width="2"/><line x1="350.4" y1="396.9" x2="355.7" y2="404.2" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="404.5" x2="336.5" y2="416.7" stroke="#E4FF1A" stroke-width="3"/><line x1="312.4" y1="418.8" x2="316.1" y2="427.1" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="426.7" x2="294.7" y2="435.3" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="432.4" x2="272.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="249.0" y1="435.8" x2="249.9" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="227.0" y1="432.0" x2="227.0" y2="446.0" stroke="#3A3F46" stroke-width="3"/><line x1="205.0" y1="435.8" x2="204.1" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="432.4" x2="181.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="426.7" x2="159.3" y2="435.3" stroke="#3A3F46" stroke-width="2"/><line x1="141.6" y1="418.8" x2="137.9" y2="427.1" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="404.5" x2="117.5" y2="416.7" stroke="#3A3F46" stroke-width="3"/><line x1="103.6" y1="396.9" x2="98.3" y2="404.2" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="383.1" x2="80.5" y2="389.7" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="367.5" x2="64.3" y2="373.5" stroke="#3A3F46" stroke-width="2"/><line x1="57.1" y1="350.4" x2="49.8" y2="355.7" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="329.5" x2="37.3" y2="336.5" stroke="#3A3F46" stroke-width="3"/><line x1="35.2" y1="312.4" x2="26.9" y2="316.1" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="291.9" x2="18.7" y2="294.7" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="270.7" x2="12.8" y2="272.5" stroke="#3A3F46" stroke-width="2"/><line x1="18.2" y1="249.0" x2="9.2" y2="249.9" stroke="#3A3F46" stroke-width="2"/><line x1="22.0" y1="227.0" x2="8.0" y2="227.0" stroke="#3A3F46" stroke-width="3"/><line x1="18.2" y1="205.0" x2="9.2" y2="204.1" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="183.3" x2="12.8" y2="181.5" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="162.1" x2="18.7" y2="159.3" stroke="#3A3F46" stroke-width="2"/><line x1="35.2" y1="141.6" x2="26.9" y2="137.9" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="124.5" x2="37.3" y2="117.5" stroke="#3A3F46" stroke-width="3"/><line x1="57.1" y1="103.6" x2="49.8" y2="98.3" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="86.5" x2="64.3" y2="80.5" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="70.9" x2="80.5" y2="64.3" stroke="#3A3F46" stroke-width="2"/><line x1="103.6" y1="57.1" x2="98.3" y2="49.8" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="49.5" x2="117.5" y2="37.3" stroke="#3A3F46" stroke-width="3"/><line x1="141.6" y1="35.2" x2="137.9" y2="26.9" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="27.3" x2="159.3" y2="18.7" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="21.6" x2="181.5" y2="12.8" stroke="#3A3F46" stroke-width="2"/><line x1="205.0" y1="18.2" x2="204.1" y2="9.2" stroke="#3A3F46" stroke-width="2"/></g>
-        <text x="227" y="80" text-anchor="middle" class="wf-dim" font-size="22">SEXTA 13 NOV</text>
-        <text x="196" y="118" text-anchor="end" class="wf-ink" font-size="30">24°</text>
-        <path d="M208,114 a5,5 0 1,0 10,0 l-5,-11 z" fill="#5CB0FF"/>
-        <text x="222" y="118" class="wf-dim" font-size="24">68%</text>
-        <line x1="276" y1="96" x2="276" y2="120" stroke="#3A3F46" stroke-width="2"/>
-        <text x="290" y="118" class="wf-ink" font-size="24">82%</text>
-        <text x="215" y="214" text-anchor="middle" class="wf-ink" font-size="96">9:41</text>
-        <text x="322" y="214" class="wf-lime" font-size="32">27</text>
-        <text x="121" y="258" text-anchor="middle" fill="#C8F05A" font-size="38" font-weight="700">74</text>
-        <text x="121" y="282" text-anchor="middle" class="wf-dim" font-size="15">FORTE</text>
-        <rect x="86" y="293" width="27" height="5" rx="2.5" fill="#501D1A"/><rect x="115" y="293" width="20" height="5" rx="2.5" fill="#59441A"/><rect x="137" y="293" width="19" height="5" rx="2.5" fill="#46541F"/><circle cx="138" cy="295.5" r="5" fill="#fff" stroke="#000" stroke-width="2"/>
-        <line x1="174" y1="234" x2="174" y2="302" stroke="#3A3F46" stroke-width="2"/>
-        <text x="227" y="258" text-anchor="middle" class="wf-ink" font-size="38">52,4</text>
-        <text x="227" y="282" text-anchor="middle" class="wf-dim" font-size="15">VO2 MÁX.</text>
-        <text x="227" y="300" text-anchor="middle" fill="#C8F05A" font-size="14" font-weight="700">▲ 1,2 · 3M</text>
-        <line x1="280" y1="234" x2="280" y2="302" stroke="#3A3F46" stroke-width="2"/>
-        <text x="333" y="258" text-anchor="middle" font-size="38" font-weight="700"><tspan fill="#C8F05A">31,0</tspan><tspan font-size="22" fill="#B3BAC4">/52</tspan></text>
-        <text x="333" y="282" text-anchor="middle" class="wf-dim" font-size="15">KM SEMANA</text>
-        <rect x="298" y="293" width="70" height="5" rx="2.5" fill="#3A3F46"/><rect x="298" y="293" width="64" height="5" rx="2.5" fill="none" stroke="#7FB2FF" stroke-width="1.2"/><rect x="298" y="293" width="38" height="5" rx="2.5" fill="#C8F05A"/><line x1="353" y1="289" x2="353" y2="302" stroke="#fff" stroke-width="2"/>
-        <text x="227" y="330" text-anchor="middle" fill="#E4FF1A" font-size="21" font-weight="700">CORRIDA LONGO 20 KM</text>
-        <rect x="132" y="341" width="190" height="10" fill="#C8F05A"/>
-        <text x="227" y="370" text-anchor="middle" fill="#FFC24C" font-size="14" font-weight="700">FC até 159 · gel no km 9</text>
-        <text x="227" y="398" text-anchor="middle" fill="#FF8A1A" font-size="21" font-weight="700">MEIA · 22 NOV · 9 DIAS</text>
-        <text x="227" y="424" text-anchor="middle" font-size="24" font-weight="700"><tspan fill="#FF8A1A">1:31:24</tspan><tspan font-size="16" fill="#B3BAC4"> / META 1:32:00</tspan></text>
-      </svg>
+  <section class="scene flow" data-scene aria-labelledby="share-title">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Compartilhar</p>
+        <h2 id="share-title" class="display">O treino pronto para o story.</h2>
+        <p class="lede">A rota se desenha colorida pelo pace ou pela FC, com a série de tiros, a evolução e uma foto sua de fundo. Sai em imagem, GIF ou vídeo.</p>
+        <div class="formats"><span>Rota animada</span><span>Série de tiros</span><span>Evolução</span><span>Cartão</span><span>GIF e MP4</span></div>
       </div>
-      <ul class="callouts right">
-        <li><b>Km da semana</b><span>Feito contra o planejado no calendário, com o traço da meta.</span></li>
-        <li><b>Prova</b><span>Dias que faltam, previsão no dia e meta.</span></li>
-        <li><b>Segundos e clima</b><span>Anel de segundos, temperatura, umidade colorida pelo ponto de orvalho e bateria.</span></li>
-      </ul>
-    </div>
-    <div class="spot-foot">
-      <div class="watch-device aod" aria-hidden="true">
-        <svg viewBox="0 0 454 454" class="watchface"><circle cx="227" cy="227" r="226" fill="#000"/><text x="240" y="150" text-anchor="middle" fill="#5C6168" font-size="24" font-weight="700">SEX 13 NOV</text><text x="240" y="250" text-anchor="middle" fill="#9AA0A8" font-size="104">9:41</text><text x="240" y="300" text-anchor="middle" fill="#8A6A2A" font-size="24" font-weight="700">PRONTIDÃO 74</text><text x="240" y="334" text-anchor="middle" fill="#A35A33" font-size="22" font-weight="700">PROVA EM 9 DIAS</text></svg>
+      <div class="share-card" aria-hidden="true">
+        <div class="brand" style="position: relative; font-size: 12px"><span class="mark" style="width: 24px; height: 24px; font-size: 10px">AI</span>TR<b>AI</b>NING</div>
+        <svg viewBox="0 0 300 300"><defs><linearGradient id="pace" x1="0" x2="1"><stop offset="0" stop-color="#7fb2ff"></stop><stop offset=".5" stop-color="#c8f05a"></stop><stop offset="1" stop-color="#ff8a4c"></stop></linearGradient></defs><path class="route" d="M40 250 C 20 200, 60 170, 50 130 S 70 50, 130 40 S 230 30, 250 80 S 230 160, 270 190 S 240 270, 170 260 S 90 280, 40 250" fill="none" stroke="url(#pace)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <div class="share-stats"><div>DISTÂNCIA<b>16,0 km</b></div><div>PACE<b>5:21</b></div><div>TEMPO<b>1:25:36</b></div></div>
       </div>
-      <p class="note">No modo sempre ligado: hora, data, prontidão e dias até a prova, em cinza e com deslocamento contra burn-in. A estratégia da prova chega ao relógio como um treino, com o pace alvo de cada km.</p>
     </div>
   </section>
 
-  <section class="feature" id="compartilhar">
-    <div class="copy">
-      <p class="eyebrow">Compartilhar</p>
-      <h2>O percurso animado, pronto pro Stories</h2>
-      <p>O mapa se desenha com o ponto andando e os números contando, e sai em vídeo, GIF ou imagem. Há também o mapa quadrado para o WhatsApp, a série de tiros contra o alvo, a evolução no mesmo treino, o adesivo transparente e o card do resultado da prova.</p>
-      <p>Dá para escolher a proporção, a cor do traço por pace ou por zona, uma foto de fundo e o que aparece. O começo e o fim do percurso são cortados por padrão, para não mostrar onde você mora.</p>
-    </div>
-    <div class="card share-card">
-      <svg class="share-route" viewBox="0 0 300 300" role="img" aria-label="Percurso de exemplo sendo desenhado">
-        <path class="route-base" d="M60,170 C60,90 130,60 180,70 C240,82 262,120 250,160 C238,206 190,224 150,214 C110,204 90,226 74,206 Z"/>
-        <path class="route-draw" pathLength="1" d="M60,170 C60,90 130,60 180,70 C240,82 262,120 250,160 C238,206 190,224 150,214 C110,204 90,226 74,206 Z"/>
-      </svg>
-      <div class="three">
-        <div><div class="n mid">13,2</div><div class="s">km</div></div>
-        <div><div class="n mid">59:41</div><div class="s">tempo</div></div>
-        <div><div class="n mid lime">3:45</div><div class="s">pace nos tiros</div></div>
+  <section class="scene flow" data-scene aria-labelledby="mais-title">
+    <div class="wrap">
+      <p class="eyebrow">E mais</p>
+      <h2 id="mais-title" class="display" style="font-size: clamp(34px, 4.6vw, 64px); max-width: 18ch">O que um treinador olharia, todo dia.</h2>
+      <div class="features">
+        <div class="feature" style="--d:.0"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"></path></svg><b>Aviso de manhã</b><span>A prontidão chega como notificação quando o sono e o HRV entram.</span></div>
+        <div class="feature" style="--d:.05"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><b>Recuperação</b><span>Quando você estará pronto para o próximo treino forte.</span></div>
+        <div class="feature" style="--d:.1"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg><b>Alerta de sobrecarga</b><span>Avisa quando a carga sobe rápido demais para o seu histórico.</span></div>
+        <div class="feature" style="--d:.15"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg><b>Semana planejada</b><span>Feito e planejado lado a lado, com a meta de km da semana.</span></div>
+        <div class="feature" style="--d:.2"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"></path></svg><b>Relatório da semana</b><span>Domingo, um resumo do que foi bem e do que ajustar.</span></div>
+        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><b>Zonas de FC</b><span>Tempo em cada zona por treino e por semana, perto do 80/20.</span></div>
+        <div class="feature" style="--d:.3"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"></path></svg><b>Parece prova?</b><span>Reconhece treinos que foram prova e pergunta antes de contar.</span></div>
+        <div class="feature" style="--d:.35"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><b>Percursos</b><span>Importa o percurso da prova do Garmin Connect para a estratégia.</span></div>
       </div>
-      <ul class="chips small" aria-label="Formatos">
-        <li>Vídeo</li><li>GIF</li><li>9:16 · 4:5 · 1:1</li><li>Foto de fundo</li>
-      </ul>
     </div>
   </section>
 
-  <section class="feature flip" id="semana">
-    <div class="copy">
-      <p class="eyebrow">A semana</p>
-      <h2>Domingo à noite, o resumo</h2>
-      <p>No domingo sai uma notificação e a Hoje mostra a semana fechada: volume contra o planejado, aderência, o melhor treino e quanto falta para a prova.</p>
-    </div>
-    <div class="card week-card">
-      <div class="k">Sua semana · 9 a 15 nov</div>
-      <div class="t">51 de 51 km planejados</div>
-      <div class="three">
-        <div><div class="n mid">100%</div><div class="s">aderência</div></div>
-        <div><div class="n mid">5</div><div class="s">corridas</div></div>
-        <div><div class="n mid lime">84</div><div class="s">melhor nota</div></div>
+  <section class="scene flow" data-scene aria-labelledby="todo-title">
+    <div class="wrap">
+      <p class="eyebrow">Em todo lugar</p>
+      <h2 id="todo-title" class="display" style="font-size: clamp(34px, 4.6vw, 64px); max-width: 18ch">Uma conta. A Garmin conectada uma vez.</h2>
+      <div class="devices" aria-hidden="true">
+        <div class="dev mac"><div class="bar"><i></i><i></i><i></i><span>training.aglv.dev/app</span></div><div class="macgrid"><div class="macnav"><b>Hoje</b><span>Treinos</span><span>Provas</span><span>Evolução</span><span>Ajustes</span></div><div class="macmain"><div class="mini"></div><div class="mini"></div><div class="mini" style="grid-column: span 2"></div><div class="mini"></div></div></div></div>
+        <div class="dev ipad"><div class="scr"><div class="mini" style="height:30%"></div><div class="mini" style="height:22%"></div><div class="mini" style="height:40%"></div></div></div>
+        <div class="dev iph"><div class="scr" style="padding:10px"><div class="mini" style="height:34%"></div><div class="mini" style="height:24%"></div><div class="mini" style="height:30%"></div></div></div>
       </div>
-      <p class="note">Semana completa. Melhor treino: Intervalado VO2 Máx. LIVE!21K em 7 dias.</p>
+      <div class="everywhere-points">
+        <div><b>iPhone e iPad</b>O app completo, com a conversa da Apple Intelligence.</div>
+        <div><b>No computador</b>O site em training.aglv.dev/app, com os mesmos números.</div>
+        <div><b>No relógio</b>O mostrador recebe a prontidão, a prova e o treino.</div>
+      </div>
     </div>
   </section>
 
-  <section class="data" id="dados">
-    <p class="eyebrow">Os dados</p>
-    <h2>O que vem do Garmin e o que o app calcula</h2>
-    <p class="lead">Os dados de saúde e atividades vêm da Personal API do Garmin, com uma chave pessoal e só leitura. O login na conta Garmin, feito no app, traz o calendário com os treinos planejados e os percursos salvos, e é usado para enviar a estratégia de prova ao relógio. Todo número calculado pelo app traz o rótulo trAIning.</p>
-    <div class="cols">
-      <div class="card list">
-        <div class="list-head"><span class="badge">Garmin</span><span class="s">lido como vem</span></div>
-        <ul>
-          <li>HRV da noite e faixa base</li>
-          <li>Sono: duração, fases e nota</li>
-          <li>Body Battery, stress, FC de repouso, respiração, SpO2</li>
-          <li>Zonas de FC e FC de limiar</li>
-          <li>Atividades: distância, tempo, FC, carga, efeito de treino, parciais, dinâmica de corrida</li>
-          <li>Arquivo .FIT de cada corrida, processado e descartado</li>
-          <li>Treinos planejados do calendário e percursos salvos (conta Garmin)</li>
-        </ul>
-      </div>
-      <div class="card list mine">
-        <div class="list-head"><span class="badge lime-badge">trAIning</span><span class="s">calculado no aparelho</span></div>
-        <ul>
-          <li>Prontidão de 0 a 100 e o detalhe por fator</li>
-          <li>Fitness, fadiga e forma; razão aguda:crônica</li>
-          <li>VO2max suavizado a partir do .FIT</li>
-          <li>Zonas pelo limiar, pace na Z2, pace de limiar</li>
-          <li>Previsão para 5, 10, 21,1 e 42,2 km</li>
-          <li>Projeção com faixa de incerteza e data estimada da meta</li>
-          <li>Nota do treino, durabilidade, força em subida</li>
-          <li>Estratégia de pace por km e bloco da prova</li>
-          <li>Análise do treino com feedback, planejado × feito</li>
-          <li>Briefing do treino planejado e recuperação estimada</li>
-          <li>Polimento, pontos do percurso e checklist da prova</li>
-          <li>Alerta de sobrecarga, relatório semanal e recordes</li>
-          <li>Leituras em texto, geradas no aparelho</li>
+  <section class="scene flow" data-scene aria-labelledby="priv-title">
+    <div class="wrap split">
+      <svg class="lock" viewBox="0 0 164 200" aria-hidden="true"><path class="shackle" d="M42 92 V62 a40 40 0 0 1 80 0 V92" fill="none" stroke="#c8f05a" stroke-width="14" stroke-linecap="round"></path><rect x="20" y="88" width="124" height="104" rx="22" fill="#1a2410" stroke="#5e7a1e" stroke-width="2"></rect><circle cx="82" cy="134" r="12" fill="#c8f05a"></circle><rect x="77" y="138" width="10" height="26" rx="5" fill="#c8f05a"></rect></svg>
+      <div>
+        <p class="eyebrow">Privacidade</p>
+        <h2 id="priv-title" class="display">Seus dados de saúde são seus.</h2>
+        <ul class="privacy-list">
+          <li>Sono, HRV, treinos e provas ficam cifrados no servidor.</li>
+          <li>A senha da Garmin não é guardada. Fica só a sessão, cifrada, e você desconecta quando quiser.</li>
+          <li>A conversa com a Apple Intelligence roda no aparelho. Nada da conversa sai do iPhone.</li>
         </ul>
       </div>
     </div>
-    <p class="soon"><span class="badge soon-badge">Em breve</span>Integração com o Strava, para quem também registra as corridas por lá.</p>
   </section>
 
-  <section class="privacy" id="privacidade">
-    <div class="card priv">
-      <p class="eyebrow">Privacidade</p>
-      <h2>Seus dados ficam com você</h2>
-      <div class="priv-grid">
-        <div><div class="t">Garmin direto no aparelho</div><p>Os dados do Garmin vão do Garmin para o aparelho, sem passar por servidor nosso. Sem telemetria.</p></div>
-        <div><div class="t">Sync cifrado e opcional</div><p>Para usar no iPhone e no iPad, as provas e respostas sobem cifradas no aparelho. O servidor não lê esses dados, e um botão em Ajustes apaga tudo dele.</p></div>
-        <div><div class="t">O que vai pro relógio</div><p>O mostrador só lê o que mostra: a nota do dia, o treino de hoje, os km da semana e o nome, a data, a meta e a previsão da prova. Esses campos ficam no servidor sem cifra, porque o relógio precisa lê-los.</p></div>
-        <div><div class="t">Chave e sessão no Keychain</div><p>A chave da Personal API e a sessão da conta Garmin ficam no Keychain do aparelho, sem sincronizar com o iCloud. A senha do Garmin nunca é guardada.</p></div>
-        <div><div class="t">Previsão do tempo sem endereço</div><p>Para o melhor horário, o app manda ao Open-Meteo só uma coordenada arredondada, com precisão de uns 10 km.</p></div>
-        <div><div class="t">Apple Intelligence local</div><p>O feedback, as leituras e as conversas sobre treinos, provas e evolução são gerados pelo modelo da Apple Intelligence no próprio aparelho. As conversas ficam só nele.</p></div>
-        <div><div class="t">Apagar quando quiser</div><p>Em Ajustes, um botão apaga do aparelho os treinos, os dados diários e as provas.</p></div>
+  <section class="scene flow final" aria-labelledby="final-title">
+    <div class="wrap">
+      <h2 id="final-title" class="display">Do pulso à linha de chegada.</h2>
+      <p class="lede">Entre com a sua conta e conecte a Garmin uma vez.</p>
+      <div class="hero-actions">
+        <a class="btn btn-lime" href="/app/entrar">Entrar no site</a>
       </div>
+      <p class="lede" style="font-size: 15px; color: var(--dim)">O acesso é por convite. Recebeu um? Abra o link e crie a sua conta.</p>
+      <div class="soon"><b>Em breve</b> integração com o Strava</div>
     </div>
   </section>
 </main>
 
-<footer class="foot">
-  <div class="brand"><span class="tile" aria-hidden="true">AI</span><span class="word">TR<b>AI</b>NING</span></div>
-  <p>Projeto pessoal, fora da App Store, instalado pelo Xcode. Sem vínculo com o Garmin; "Garmin" aparece aqui só como referência à origem dos dados.</p>
-  <p><a href="https://github.com/adrianogl/training">github.com/adrianogl/training</a></p>
+<footer>
+  <div class="wrap"><span>trAIning · projeto pessoal</span><span>Números de exemplo</span></div>
 </footer>
+
+<script>
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const narrow = window.matchMedia('(max-width: 860px)');
+  const scenes = [...document.querySelectorAll('[data-scene]')];
+  const clamp = (v) => Math.min(1, Math.max(0, v));
+  let ticking = false;
+
+  function progress(scene) {
+    const rect = scene.getBoundingClientRect();
+    const vh = window.innerHeight;
+    if (scene.classList.contains('pin') && !narrow.matches) {
+      const run = rect.height - vh;
+      return run > 0 ? clamp(-rect.top / run) : 1;
+    }
+    return clamp((vh * 0.9 - rect.top) / (vh * 0.7));
+  }
+
+  function update() {
+    ticking = false;
+    for (const scene of scenes) {
+      const p = progress(scene);
+      scene.style.setProperty('--p', p.toFixed(4));
+      if (scene.dataset.steps) {
+        const count = Number(scene.dataset.steps);
+        const active = Math.min(count - 1, Math.floor(p * count * 0.999));
+        scene.querySelectorAll('[data-step]').forEach((step) => {
+          const on = Number(step.dataset.step) === active;
+          step.style.opacity = on ? '1' : '0';
+          step.style.transform = on ? 'none' : 'translateY(14px)';
+        });
+      }
+      if (scene.hasAttribute('data-fields')) {
+        scene.querySelectorAll('[data-at]').forEach((item) => item.classList.toggle('on', p >= Number(item.dataset.at)));
+      }
+      scene.querySelectorAll('[data-from]').forEach((el) => {
+        const from = Number(el.dataset.from);
+        const to = Number(el.dataset.to);
+        el.textContent = String(Math.round(from + (to - from) * clamp(p / 0.8)));
+      });
+    }
+  }
+
+  function request() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  }
+
+  if (!reduce.matches) {
+    window.addEventListener('scroll', request, { passive: true });
+    window.addEventListener('resize', request);
+    narrow.addEventListener('change', request);
+    update();
+  }
+})();
+</script>
+
 </body>
 </html>

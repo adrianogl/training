@@ -81,6 +81,7 @@ public struct AuthClient: Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(C.clientValue, forHTTPHeaderField: C.clientHeader)
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         if let data {
             request.httpBody = data
@@ -111,6 +112,8 @@ public struct AuthClient: Sendable {
         case "invalid_token": return .invalidToken
         case "mail_unavailable": return .mailUnavailable
         case "rate_limited": return .rateLimited
+        case "web_only": return .webOnly
+        case "invite_required": return .inviteRequired
         default: break
         }
         return switch status {

@@ -26,6 +26,7 @@ import Testing
         _ = try await AuthClient(baseURL: Self.baseURL, token: "sessao", transport: transport).me()
 
         #expect(transport.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer sessao")
+        #expect(transport.requests.first?.value(forHTTPHeaderField: "X-Training-Client") == "app")
     }
 
     @Test func sessionsDecodeDates() async throws {
@@ -51,6 +52,8 @@ import Testing
         #expect(AuthClient.error(status: 401, body: Data(#"{"error":"invalid_credentials"}"#.utf8)) == .invalidCredentials)
         #expect(AuthClient.error(status: 409, body: Data(#"{"error":"email_taken"}"#.utf8)) == .emailTaken)
         #expect(AuthClient.error(status: 503, body: Data(#"{"error":"mail_unavailable"}"#.utf8)) == .mailUnavailable)
+        #expect(AuthClient.error(status: 403, body: Data(#"{"error":"web_only"}"#.utf8)) == .webOnly)
+        #expect(AuthClient.error(status: 403, body: Data(#"{"error":"invite_required"}"#.utf8)) == .inviteRequired)
         #expect(AuthClient.error(status: 401, body: Data()) == .unauthorized)
         #expect(AuthClient.error(status: 500, body: Data()) == .server(status: 500))
     }

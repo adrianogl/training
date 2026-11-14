@@ -8,7 +8,8 @@ API da sincronização entre aparelhos do trAIning: Vercel Functions (Node 22) c
 | --- | --- |
 | `DATABASE_URL` | Connection string do Neon. Usada pelas funções e pelo `npm run migrate`. |
 | `ADMIN_TOKEN` | Token do painel `/admin`, com 32 caracteres ou mais. Ausente ou mais curto, o painel responde 503. |
-| `MAX_ACCOUNTS` | Limite total de contas (padrão 3). Acima dele, `POST /api/v1/account` responde 429 `rate_limited`. |
+| `ADMIN_EMAILS` | E-mails das contas de administrador, separados por vírgula. Eles podem criar conta sem convite e acessam `/app/admin`. |
+| `MAX_ACCOUNTS` | Limite total de contas (padrão 3; em produção, 20). Acima dele, `POST /api/v1/account` responde 429 `rate_limited`. |
 | `RESEND_API_KEY` | Chave do Resend para os e-mails de confirmação e recuperação de senha. Sem ela, confirmar e recuperar respondem 503 `mail_unavailable`. |
 | `MAIL_FROM` | Remetente dos e-mails, de um domínio verificado no Resend. |
 | `APP_URL` | Base dos links dos e-mails (`/confirmar`, `/redefinir-senha`). |
@@ -92,3 +93,17 @@ O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a
 | `POST /api/v1/garmin/verify` | Corpo `{"code"}`. 200 `{"status":"connected"}`; 400 `garmin_invalid_code`; 409 `garmin_login_expired` |
 | `GET`/`DELETE /api/v1/garmin/status` | `{"connected","connectedAt"}`; `DELETE` desconecta |
 | `GET /api/v1/garmin/session` | A sessão da Garmin para o app (`accessToken`, `refreshToken`, `clientId`, `expiresAt`); 404 `garmin_not_connected` |
+
+## Convites e administração
+
+O cadastro é só por convite. Criam conta sem convite apenas os e-mails de `ADMIN_EMAILS` e quem envia a chave antiga de sync (`legacyKey`). Quem entra por convite vira `guest` e só usa o site: login ou cadastro com o header `X-Training-Client: app` responde 403 `web_only`.
+
+| Rota | Resposta |
+| --- | --- |
+| `GET /api/v1/admin/overview` | Métricas, contas e convites. Só administrador (403 `forbidden` para os outros) |
+| `POST /api/v1/admin/invites` | Corpo `{"name","channel":"email"|"whatsapp"|"link","email"?}`. 200 `{"invite","link","message","mailed"}`; o canal e-mail envia pelo Resend |
+| `POST /api/v1/admin/invites/action` | Corpo `{"id","action":"cancel"|"renew"}` |
+| `DELETE /api/v1/admin/users?id=` | Remove a conta de um convidado e os dados dela; 409 para administrador |
+| `GET /api/v1/invites/preview?c=` | Nome, e-mail e quem convidou, para a página `/app/convite`; 404 `invalid_invite` |
+
+O convite vale 7 dias e uma conta. `POST /api/v1/auth/signup` aceita `inviteToken`; sem ele, responde 403 `invite_required`.

@@ -431,3 +431,203 @@ h2 {
   letter-spacing: 12px;
   text-align: center;
 }
+
+.admin.page {
+  max-width: 1120px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.metric {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.metric span,
+.metric small {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.metric small.bad {
+  color: var(--danger);
+}
+
+.metric b {
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.metric b small {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.meter {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+}
+
+.meter i {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.segmented button {
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented button.on {
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.invite-result {
+  border-radius: 14px;
+  background: var(--card-2);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.invite-result strong {
+  color: var(--accent);
+  font-size: 14px;
+}
+
+.message-box {
+  margin: 0;
+  border-radius: 12px;
+  background: #0f1112;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--text-2);
+  white-space: pre-line;
+}
+
+.btn-whatsapp {
+  border: 0;
+  background: #25d366;
+  color: #0b0d0a;
+  font-weight: 700;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dim);
+  padding: 8px 8px 8px 0;
+}
+
+.table td {
+  border-top: 1px solid #22262a;
+  padding: 10px 8px 10px 0;
+  vertical-align: middle;
+}
+
+.table .right {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table .accent {
+  color: var(--accent);
+}
+
+.pill {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.pill-pending {
+  background: #2a2414;
+  color: #ffc24c;
+}
+
+.pill-accepted {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.pill-expired,
+.pill-canceled {
+  background: var(--line);
+  color: var(--dim);
+}
+
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 110px;
+}
+
+.bars i {
+  flex: 1;
+  min-height: 2px;
+  background: #3a3f46;
+  border-radius: 3px 3px 0 0;
+}
+
+.bars i:last-child {
+  background: var(--accent);
+}
+
+.route-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+.route-counts b {
+  color: var(--text);
+}

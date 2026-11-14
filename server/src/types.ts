@@ -111,6 +111,7 @@ export interface User {
   email: string
   name: string
   emailVerified: boolean
+  role: UserRole
 }
 
 export interface SessionInfo {
@@ -135,6 +136,7 @@ export interface AuthEnv {
   appUrl: string
   now: () => Date
   maxAccounts: number
+  adminEmails: string[]
 }
 
 export type EmailPurpose = 'verify' | 'reset'
@@ -145,6 +147,7 @@ export interface SignupInput {
   password: string
   device: string
   legacyKey: string | undefined
+  inviteToken: string | undefined
 }
 
 export interface LoginInput {
@@ -183,4 +186,52 @@ export interface GarminEnv {
   dataKey: Buffer | undefined
   fetcher: Fetcher
   now: () => Date
+}
+
+export type InviteChannel = 'email' | 'whatsapp' | 'link'
+
+export type UserRole = 'member' | 'guest'
+
+export type InviteStatus = 'pending' | 'accepted' | 'expired' | 'canceled'
+
+export interface InviteRow {
+  id: string
+  name: string
+  email: string | null
+  channel: InviteChannel
+  status: InviteStatus
+  createdAt: string
+  expiresAt: string
+  acceptedAt: string | null
+}
+
+export interface InviteInput {
+  name: string
+  email: string | undefined
+  channel: InviteChannel
+}
+
+export interface AdminUserRow {
+  id: string
+  name: string
+  email: string
+  role: UserRole
+  admin: boolean
+  garminConnected: boolean
+  lastSeenAt: string | null
+  dataBytes: number
+}
+
+export interface AdminOverview {
+  accounts: number
+  maxAccounts: number
+  pendingInvites: number
+  expiringInvites: number
+  activeAccounts: number
+  garminConnected: number
+  requests24h: number
+  errors24h: number
+  requestsByHour: { hour: string; count: number }[]
+  requestsByRoute: { route: string; count: number }[]
+  databaseBytes: number | null
 }

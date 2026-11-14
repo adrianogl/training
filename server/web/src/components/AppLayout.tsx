@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from '../constants'
+import { ADMIN_TEXT, NAV_ITEMS } from '../constants'
 import type { AppLayoutProps } from './components.types'
 import { Link } from './Link'
 import { Logo } from './Logo'
@@ -17,6 +17,14 @@ export function AppLayout({ route, user, children }: AppLayoutProps) {
               {item.label}
             </Link>
           ))}
+          {user?.admin === true && (
+            <Link to="admin" className="nav-link" current={route === 'admin'}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z" />
+              </svg>
+              {ADMIN_TEXT.nav}
+            </Link>
+          )}
         </div>
         {user !== null && (
           <div className="nav-user">

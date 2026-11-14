@@ -13,6 +13,7 @@ import UIKit
     private(set) var isWorking = false
     private(set) var errorMessage: String?
     private(set) var notice: String?
+    private(set) var webOnly = false
 
     @ObservationIgnored private let store: any APIKeyStore
     @ObservationIgnored private let transport: any HTTPTransport
@@ -44,6 +45,7 @@ import UIKit
     func clearMessages() {
         errorMessage = nil
         notice = nil
+        webOnly = false
     }
 
     func signup(name: String, email: String, password: String) async -> Bool {
@@ -154,6 +156,8 @@ import UIKit
         do {
             try await work()
             return true
+        } catch AuthError.webOnly {
+            webOnly = true
         } catch let error as AuthError {
             errorMessage = Self.message(for: error)
         } catch {
@@ -173,6 +177,8 @@ import UIKit
         case .invalidPassword: C.shortPassword
         case .rateLimited: C.rateLimited
         case .mailUnavailable: C.mailUnavailable
+        case .inviteRequired: C.inviteRequired
+        case .webOnly: C.webOnlyTitle
         case .invalidToken, .unauthorized, .server, .decoding: C.generic
         }
     }

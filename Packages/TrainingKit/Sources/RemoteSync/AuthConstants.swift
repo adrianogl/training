@@ -12,4 +12,6 @@ enum AuthConstants {
     static let accountPath = "api/v1/account"
     static let sessionIdQuery = "id"
     static let passwordMinLength = 10
+    static let clientHeader = "X-Training-Client"
+    static let clientValue = "app"
 }

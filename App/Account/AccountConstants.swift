@@ -66,4 +66,10 @@ enum AccountConstants {
     static let wrongCurrent = "A senha atual não confere."
     static let offline = "Não conectou ao servidor. Confira a internet."
     static let generic = "Não deu certo. Tente de novo."
+    static let inviteRequired = "O cadastro é só por convite. Peça um convite a quem te indicou o trAIning."
+    static let webOnlyTitle = "Sua conta é pelo site, por enquanto"
+    static let webOnlyText = "Quem entra por convite usa o trAIning no navegador. O app para iPhone e iPad abre para convidados depois."
+    static let siteURL = URL(string: "https://training.aglv.dev/app")!
+    static let siteLabel = "training.aglv.dev/app"
+    static let openSite = "Abrir o site no Safari"
 }

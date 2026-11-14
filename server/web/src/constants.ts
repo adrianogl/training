@@ -17,9 +17,11 @@ export const PATHS: Record<Route, string> = {
   evolution: '/evolucao',
   settings: '/ajustes',
   password: '/ajustes/senha',
+  admin: '/admin',
+  invite: '/convite',
 }
 
-export const PUBLIC_ROUTES: readonly Route[] = ['login', 'signup', 'forgot', 'reset', 'confirm']
+export const PUBLIC_ROUTES: readonly Route[] = ['login', 'signup', 'forgot', 'reset', 'confirm', 'invite']
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { route: 'today', label: 'Hoje', icon: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' },
@@ -120,7 +122,77 @@ export const GARMIN_TEXT = {
   cancel: 'Cancelar',
 } as const
 
+export const ADMIN_TEXT = {
+  nav: 'Administração',
+  title: 'Administração',
+  subtitle: 'Convites, contas e uso do servidor.',
+  accounts: 'Contas',
+  of: 'de',
+  pending: 'Convites pendentes',
+  expiring: 'vence em 24 h',
+  active: 'Ativas em 7 dias',
+  activeHint: 'com sessão usada',
+  garmin: 'Garmin conectada',
+  requests: 'Requisições 24 h',
+  errors: 'erros',
+  invite: 'CONVIDAR',
+  name: 'Nome',
+  email: 'E-mail',
+  phone: 'Celular com DDD (opcional)',
+  channels: { email: 'E-mail', whatsapp: 'WhatsApp', link: 'Só o link' },
+  actions: { email: 'Enviar convite por e-mail', whatsapp: 'Gerar mensagem para o WhatsApp', link: 'Gerar link' },
+  inviteHint: 'O link vale por 7 dias e serve para uma conta só. Convidados entram pelo site.',
+  mailed: 'Convite enviado para',
+  whatsappReady: 'Mensagem pronta. Abra o WhatsApp e envie.',
+  linkReady: 'Link criado. Copie e mande como quiser.',
+  copy: 'Copiar link',
+  copied: 'Link copiado.',
+  copyMessage: 'Copiar mensagem',
+  openWhatsapp: 'Abrir no WhatsApp',
+  invites: 'CONVITES',
+  noInvites: 'Nenhum convite ainda.',
+  statuses: { pending: 'pendente', accepted: 'aceito', expired: 'vencido', canceled: 'cancelado' },
+  cancel: 'Cancelar',
+  renew: 'Gerar de novo',
+  resend: 'Reenviar',
+  users: 'CONTAS',
+  role: { member: 'Membro', guest: 'Convidado' },
+  adminRole: 'Administrador',
+  access: { member: 'app e site', guest: 'só site' },
+  garminOn: 'Conectada',
+  garminOff: 'não conectou',
+  never: 'nunca',
+  remove: 'Remover',
+  removeConfirm: 'Remover a conta e todos os dados dela? Não dá para desfazer.',
+  usage: 'REQUISIÇÕES POR HORA · 24 H',
+  database: 'banco',
+  columns: { name: 'Nome', channel: 'Canal', status: 'Situação', role: 'Papel', access: 'Acesso', garmin: 'Garmin', lastSeen: 'Último uso', data: 'Dados' },
+} as const
+
+export const INVITE_TEXT = {
+  eyebrow: 'CONVITE',
+  title: (inviter: string) => `${inviter} te convidou para o trAIning.`,
+  fallbackInviter: 'Você foi convidado',
+  pitch: 'Conecte a sua Garmin e veja a prontidão do dia, a análise de cada treino, a previsão das suas provas e a sua evolução.',
+  validUntil: (date: string) => `Convite válido até ${date}, para uma conta.`,
+  formTitle: 'Criar sua conta',
+  formSubtitle: 'Depois você conecta a Garmin em Ajustes.',
+  webOnly: 'Por enquanto, quem entra por convite usa o trAIning pelo site, em qualquer navegador. O app para iPhone e iPad vem depois.',
+  invalidTitle: 'Este convite não vale mais',
+  invalidText: 'Ele venceu, foi cancelado ou já foi usado. Peça um novo a quem te convidou.',
+  loading: 'Abrindo o convite…',
+} as const
+
+export const WHATSAPP_URL = 'https://wa.me/'
+export const BRAZIL_PREFIX = '55'
+
 export const ERRORS: Record<string, string> = {
+  invite_required: 'O cadastro é só por convite. Peça um convite a quem te indicou o trAIning.',
+  invalid_invite: 'Este convite venceu, foi cancelado ou já foi usado.',
+  web_only: 'Contas de convidado entram só pelo site, por enquanto.',
+  forbidden: 'Só a conta de administrador acessa esta área.',
+  invalid_channel: 'Escolha como enviar o convite.',
+  cannot_remove_admin: 'A conta de administrador não pode ser removida.',
   garmin_invalid_credentials: 'E-mail ou senha da Garmin incorretos.',
   garmin_invalid_code: 'Código incorreto. Confira e tente de novo.',
   garmin_login_expired: 'O código venceu. Entre de novo para receber outro.',

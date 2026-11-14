@@ -1,6 +1,8 @@
 import { accountIdFromAuthorization } from './auth.js'
 import {
+  APP_CLIENT,
   AUTH_ROUTE,
+  CLIENT_HEADER,
   MAIL_RESET_SUBJECT,
   MAIL_RESET_TEXT,
   MAIL_VERIFY_SUBJECT,
@@ -14,6 +16,7 @@ import {
 import { parseEmailBody, parseLogin, parseNameBody, parsePasswordChange, parseSignup, parseTokenBody } from './authValidate.js'
 import type { Sql } from './db.js'
 import { limitsFromEnv } from './limits.js'
+import { acceptInvite, pendingInvite } from './invites.js'
 import { mailerFromEnv } from './mailer.js'
 import { hashPassword, verifyPassword } from './password.js'
 import { clientIpHash } from './rateLimit.js'
@@ -50,8 +53,23 @@ function noContent(): Response {
   return new Response(null, { status: 204, headers: { 'cache-control': 'no-store' } })
 }
 
-function publicUser(user: User): Omit<User, 'accountId' | 'id'> {
-  return { email: user.email, name: user.name, emailVerified: user.emailVerified }
+export function isAdmin(env: AuthEnv, email: string): boolean {
+  return env.adminEmails.includes(email.toLowerCase())
+}
+
+function publicUser(user: User, env: AuthEnv): Omit<User, 'accountId' | 'id'> & { admin: boolean } {
+  return { email: user.email, name: user.name, emailVerified: user.emailVerified, role: user.role, admin: isAdmin(env, user.email) }
+}
+
+function fromApp(request: Request): boolean {
+  return request.headers.get(CLIENT_HEADER) === APP_CLIENT
+}
+
+export function adminEmailsFromEnv(env: Record<string, string | undefined>): string[] {
+  return (env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter((email) => email !== '')
 }
 
 export function authEnvFromProcess(): AuthEnv {
@@ -60,6 +78,7 @@ export function authEnvFromProcess(): AuthEnv {
     appUrl: process.env.APP_URL ?? '',
     now: () => new Date(),
     maxAccounts: limitsFromEnv(process.env).maxAccounts,
+    adminEmails: adminEmailsFromEnv(process.env),
   }
 }
 
@@ -114,13 +133,29 @@ export function signupRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFr
     }
     const input = parsed.value
     const legacyAccountId = input.legacyKey === undefined ? undefined : tokenHash(input.legacyKey)
+    const invite = input.inviteToken === undefined ? undefined : await pendingInvite(sql, input.inviteToken, env.now())
+    if (input.inviteToken !== undefined && invite === undefined) {
+      return failure(400, 'invalid_invite')
+    }
+    const trusted = legacyAccountId !== undefined || isAdmin(env, input.email)
+    if (!trusted && invite === undefined) {
+      return failure(403, 'invite_required')
+    }
+    const role = trusted ? 'member' : 'guest'
+    if (role === 'guest' && fromApp(request)) {
+      return failure(403, 'web_only')
+    }
     const outcome = await createUser(
       sql,
-      { name: input.name, email: input.email, passwordHash: await hashPassword(input.password), legacyAccountId },
+      { name: input.name, email: input.email, passwordHash: await hashPassword(input.password), legacyAccountId, role },
       env.maxAccounts,
     )
     if (outcome.status !== 'created') {
       return outcome.status === 'limit' ? failure(429, 'rate_limited') : failure(409, outcome.status)
+    }
+    if (!trusted && invite !== undefined && !(await acceptInvite(sql, invite.id, outcome.user.id, env.now()))) {
+      await sql('delete from accounts where id = $1', [outcome.user.accountId])
+      return failure(400, 'invalid_invite')
     }
     const token = await createSession(sql, outcome.user.id, input.device, env.now())
     try {
@@ -128,7 +163,7 @@ export function signupRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFr
     } catch (error) {
       console.error(JSON.stringify({ route: `${AUTH_ROUTE}/signup`, mail: error instanceof Error ? error.message : 'unknown' }))
     }
-    return json(201, { token, user: publicUser(outcome.user) })
+    return json(201, { token, user: publicUser(outcome.user, env) })
   })
 }
 
@@ -153,8 +188,11 @@ export function loginRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFro
       await recordLoginAttempt(sql, ipHash, now)
       return failure(401, 'invalid_credentials')
     }
+    if (found.user.role === 'guest' && fromApp(request)) {
+      return failure(403, 'web_only')
+    }
     const token = await createSession(sql, found.user.id, parsed.value.device, now)
-    return json(200, { token, user: publicUser(found.user) })
+    return json(200, { token, user: publicUser(found.user, env) })
   })
 }
 
@@ -181,10 +219,10 @@ export function meRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFromPr
         return failure(400, 'invalid_name')
       }
       const user = await updateName(sql, session.userId, parsed.value)
-      return user === undefined ? failure(401, 'unauthorized') : json(200, { user: publicUser(user) })
+      return user === undefined ? failure(401, 'unauthorized') : json(200, { user: publicUser(user, env) })
     }
     const found = await userById(sql, session.userId)
-    return found === undefined ? failure(401, 'unauthorized') : json(200, { user: publicUser(found.user) })
+    return found === undefined ? failure(401, 'unauthorized') : json(200, { user: publicUser(found.user, env) })
   })
 }
 

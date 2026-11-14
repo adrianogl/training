@@ -51,7 +51,7 @@ beforeEach(async () => {
   sql = await migratedSql()
   sent = []
   now = new Date('2026-11-14T12:00:00.000Z')
-  env = { mailer: { send: async (mail) => void sent.push(mail) }, appUrl: 'https://site.test', now: () => now, maxAccounts: 3 }
+  env = { mailer: { send: async (mail) => void sent.push(mail) }, appUrl: 'https://site.test', now: () => now, maxAccounts: 3, adminEmails: ['atleta@exemplo.com'] }
 })
 
 describe('cadastro e login', () => {
@@ -62,7 +62,7 @@ describe('cadastro e login', () => {
     const pull = await pullChangesRoute(makeRequest('GET', '/api/v1/changes?since=0', { token: created.token }), sql)
 
     expect(response.status).toBe(201)
-    expect(created.user).toEqual({ email: 'atleta@exemplo.com', name: 'Atleta', emailVerified: false })
+    expect(created.user).toEqual({ email: 'atleta@exemplo.com', name: 'Atleta', emailVerified: false, role: 'member', admin: true })
     expect(pull.status).toBe(200)
     expect(sent.map((mail) => mail.to)).toEqual(['atleta@exemplo.com'])
     expect(sent[0]?.text).toContain('https://site.test/confirmar?token=')
@@ -119,6 +119,7 @@ describe('cadastro e login', () => {
 
   it('respeita o limite de contas', async () => {
     env.maxAccounts = 1
+    env.adminEmails = ['atleta@exemplo.com', 'segundo@exemplo.com']
     await signup()
 
     const response = await signup('segundo@exemplo.com')
@@ -180,7 +181,7 @@ describe('perfil e sessões', () => {
 
     const patched = await meRoute(makeRequest('PATCH', '/api/v1/auth/me', body({ name: 'Adriano' }, token)), sql, env)
 
-    expect(await patched.json()).toEqual({ user: { email: 'atleta@exemplo.com', name: 'Adriano', emailVerified: false } })
+    expect(await patched.json()).toEqual({ user: { email: 'atleta@exemplo.com', name: 'Adriano', emailVerified: false, role: 'member', admin: true } })
   })
 
   it('lista as sessões e encerra outra', async () => {

@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { LOGIN_ATTEMPT_LIMIT, LOGIN_ATTEMPT_WINDOW_MS, SESSION_IDLE_DAYS, TOKEN_BYTES } from './constants.js'
 import type { Sql } from './db.js'
-import type { EmailPurpose, SessionInfo, User } from './types.js'
+import type { EmailPurpose, SessionInfo, User, UserRole } from './types.js'
 
 interface UserRow {
   id: string
@@ -10,6 +10,7 @@ interface UserRow {
   name: string
   email_verified_at: string | null
   password_hash: string
+  role: UserRole
 }
 
 export interface SessionMatch {
@@ -35,6 +36,7 @@ function toUser(row: UserRow): User {
     email: row.email,
     name: row.name,
     emailVerified: row.email_verified_at !== null,
+    role: row.role,
   }
 }
 
@@ -44,7 +46,7 @@ function sessionExpiry(now: Date): string {
 
 export async function createUser(
   sql: Sql,
-  input: { name: string; email: string; passwordHash: string; legacyAccountId: string | undefined },
+  input: { name: string; email: string; passwordHash: string; legacyAccountId: string | undefined; role: UserRole },
   maxAccounts: number,
 ): Promise<CreateUserOutcome> {
   const taken = await sql('select 1 from users where lower(email) = lower($1)', [input.email])
@@ -72,9 +74,9 @@ export async function createUser(
   }
   try {
     const rows = await sql<UserRow>(
-      `insert into users (id, account_id, email, name, password_hash) values ($1, $2, $3, $4, $5)
-       returning id, account_id, email, name, email_verified_at, password_hash`,
-      [randomUUID(), accountId, input.email, input.name, input.passwordHash],
+      `insert into users (id, account_id, email, name, password_hash, role) values ($1, $2, $3, $4, $5, $6)
+       returning id, account_id, email, name, email_verified_at, password_hash, role`,
+      [randomUUID(), accountId, input.email, input.name, input.passwordHash, input.role],
     )
     return { status: 'created', user: toUser(rows[0] as UserRow) }
   } catch (error) {
@@ -90,7 +92,7 @@ export async function createUser(
 
 export async function userWithPassword(sql: Sql, email: string): Promise<{ user: User; passwordHash: string } | undefined> {
   const rows = await sql<UserRow>(
-    'select id, account_id, email, name, email_verified_at, password_hash from users where lower(email) = lower($1)',
+    'select id, account_id, email, name, email_verified_at, password_hash, role from users where lower(email) = lower($1)',
     [email],
   )
   const row = rows[0]
@@ -99,7 +101,7 @@ export async function userWithPassword(sql: Sql, email: string): Promise<{ user:
 
 export async function userById(sql: Sql, id: string): Promise<{ user: User; passwordHash: string } | undefined> {
   const rows = await sql<UserRow>(
-    'select id, account_id, email, name, email_verified_at, password_hash from users where id = $1',
+    'select id, account_id, email, name, email_verified_at, password_hash, role from users where id = $1',
     [id],
   )
   const row = rows[0]
@@ -182,7 +184,7 @@ export async function updatePassword(sql: Sql, userId: string, passwordHash: str
 export async function updateName(sql: Sql, userId: string, name: string): Promise<User | undefined> {
   const rows = await sql<UserRow>(
     `update users set name = $2 where id = $1
-     returning id, account_id, email, name, email_verified_at, password_hash`,
+     returning id, account_id, email, name, email_verified_at, password_hash, role`,
     [userId, name],
   )
   const row = rows[0]

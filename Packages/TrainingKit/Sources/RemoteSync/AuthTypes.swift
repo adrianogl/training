@@ -46,6 +46,8 @@ public enum AuthError: Error, Equatable {
     case invalidToken
     case mailUnavailable
     case rateLimited
+    case webOnly
+    case inviteRequired
     case unauthorized
     case server(status: Int)
     case decoding

@@ -117,3 +117,13 @@ export const GARMIN_MFA_STATUS = 'MFA_REQUIRED'
 export const GARMIN_INVALID_CREDENTIALS_STATUS = 'INVALID_USERNAME_PASSWORD'
 export const API_PATH_PREFIX = '/api/v1/'
 export const API_ROUTER_QUERY = 'route'
+export const INVITE_DAYS = 7
+export const INVITE_PATH = '/convite'
+export const INVITE_QUERY = 'c'
+export const INVITE_CHANNELS = ['email', 'whatsapp', 'link'] as const
+export const CLIENT_HEADER = 'x-training-client'
+export const APP_CLIENT = 'app'
+export const ACTIVE_WINDOW_DAYS = 7
+export const MAIL_INVITE_SUBJECT = 'Convite para o trAIning'
+export const INVITE_MESSAGE = (name: string, inviter: string, link: string) =>
+  `Oi, ${name}! ${inviter} te convidou para o trAIning, que lê os dados da sua Garmin e mostra a prontidão do dia, a análise dos treinos e a previsão das provas.\n\nCrie sua conta por este link (vale 7 dias):\n${link}`

@@ -64,7 +64,20 @@ export function parseSignup(body: string): BodyParseResult<SignupInput> {
   if (value.legacyKey !== undefined && !isToken(value.legacyKey)) {
     return { ok: false, error: 'invalid_legacy_key' }
   }
-  return { ok: true, value: { name, email: address, password: secret, device, legacyKey: value.legacyKey as string | undefined } }
+  if (value.inviteToken !== undefined && !isToken(value.inviteToken)) {
+    return { ok: false, error: 'invalid_invite' }
+  }
+  return {
+    ok: true,
+    value: {
+      name,
+      email: address,
+      password: secret,
+      device,
+      legacyKey: value.legacyKey as string | undefined,
+      inviteToken: value.inviteToken as string | undefined,
+    },
+  }
 }
 
 export function parseLogin(body: string): BodyParseResult<LoginInput> {

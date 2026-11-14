@@ -24,3 +24,12 @@ describe('rotas', () => {
     expect(resolve('forgot', true)).toBe('forgot')
   })
 })
+
+describe('convites e administração', () => {
+  it('o link do convite abre sem sessão e leva ao Hoje com sessão', () => {
+    expect(routeFromPath('/app/convite')).toBe('invite')
+    expect(resolve('invite', false)).toBe('invite')
+    expect(resolve('invite', true)).toBe('today')
+    expect(resolve('admin', false)).toBe('login')
+  })
+})

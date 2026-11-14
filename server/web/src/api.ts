@@ -1,6 +1,6 @@
 import { DEVICE_LABEL } from './constants'
 import { readToken } from './session'
-import type { ApiResult, AuthResult, GarminStatus, GarminStep, SessionInfo, User } from './types'
+import type { AdminData, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -28,8 +28,8 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<Ap
 }
 
 export const api = {
-  signup: (name: string, email: string, password: string) =>
-    call<AuthResult>('POST', 'auth/signup', { name, email, password, device: DEVICE_LABEL }),
+  signup: (name: string, email: string, password: string, inviteToken?: string) =>
+    call<AuthResult>('POST', 'auth/signup', { name, email, password, device: DEVICE_LABEL, ...(inviteToken === undefined ? {} : { inviteToken }) }),
   login: (email: string, password: string) => call<AuthResult>('POST', 'auth/login', { email, password, device: DEVICE_LABEL }),
   logout: () => call<void>('POST', 'auth/logout'),
   me: () => call<{ user: User }>('GET', 'auth/me'),
@@ -47,4 +47,10 @@ export const api = {
   garminConnect: (email: string, password: string) => call<GarminStep>('POST', 'garmin/connect', { email, password }),
   garminVerify: (code: string) => call<GarminStep>('POST', 'garmin/verify', { code }),
   garminDisconnect: () => call<void>('DELETE', 'garmin/status'),
+  invitePreview: (token: string) => call<InvitePreview>('GET', `invites/preview?c=${encodeURIComponent(token)}`),
+  adminOverview: () => call<AdminData>('GET', 'admin/overview'),
+  adminInvite: (name: string, channel: InviteChannel, email?: string) =>
+    call<InviteResult>('POST', 'admin/invites', { name, channel, ...(email === undefined || email === '' ? {} : { email }) }),
+  adminInviteAction: (id: string, action: 'cancel' | 'renew') => call<InviteResult | { invite: InviteRow }>('POST', 'admin/invites/action', { id, action }),
+  adminRemoveUser: (id: string) => call<void>('DELETE', `admin/users?id=${encodeURIComponent(id)}`),
 }

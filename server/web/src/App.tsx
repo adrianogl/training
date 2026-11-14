@@ -3,8 +3,10 @@ import { api } from './api'
 import { AppLayout } from './components/AppLayout'
 import { PAGE_TITLES, PUBLIC_ROUTES } from './constants'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { AdminPage } from './pages/AdminPage'
 import { ConfirmPage } from './pages/ConfirmPage'
 import { ForgotPage } from './pages/ForgotPage'
+import { InvitePage } from './pages/InvitePage'
 import { LoginPage } from './pages/LoginPage'
 import { PasswordPage } from './pages/PasswordPage'
 import { ResetPage } from './pages/ResetPage'
@@ -66,11 +68,14 @@ export function App() {
       return <ResetPage />
     case 'confirm':
       return <ConfirmPage signedIn={signedIn} />
+    case 'invite':
+      return <InvitePage onSignedIn={signIn} />
     default:
       return (
         <AppLayout route={target} user={user}>
           {target === 'settings' && user !== null && <SettingsPage user={user} onUserChange={setUser} onSignedOut={signOut} />}
           {target === 'password' && <PasswordPage />}
+          {target === 'admin' && user?.admin === true && <AdminPage />}
           {PAGE_TITLES[target] !== undefined && <ComingSoonPage title={PAGE_TITLES[target] ?? ''} />}
         </AppLayout>
       )
@@ -82,7 +87,7 @@ export function resolve(route: Route | undefined, signedIn: boolean): Route {
     return signedIn ? 'today' : 'login'
   }
   if (PUBLIC_ROUTES.includes(route)) {
-    return signedIn && (route === 'login' || route === 'signup') ? 'today' : route
+    return signedIn && (route === 'login' || route === 'signup' || route === 'invite') ? 'today' : route
   }
   return signedIn ? route : 'login'
 }

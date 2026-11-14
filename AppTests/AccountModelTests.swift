@@ -94,3 +94,19 @@ private final class AccountTransport: HTTPTransport {
         #expect(relaunched.user?.name == "Atleta")
     }
 }
+
+@MainActor
+@Suite struct AccountWebOnlyTests {
+    @Test func guestLoginFromTheAppShowsTheWebNotice() async {
+        let transport = AccountTransport([(403, #"{"error":"web_only"}"#)])
+        let defaults = UserDefaults(suiteName: "account-\(UUID().uuidString)")!
+        let account = AccountModel(store: MemoryKeyStore(), transport: transport, baseURL: URL(string: "https://sync.example.test")!, defaults: defaults, device: "iPhone")
+
+        let ok = await account.login(email: "marina@exemplo.com", password: "corrida-longa-42")
+
+        #expect(!ok)
+        #expect(account.webOnly)
+        #expect(!account.isSignedIn)
+        #expect(transport.requests.first?.value(forHTTPHeaderField: "X-Training-Client") == "app")
+    }
+}
