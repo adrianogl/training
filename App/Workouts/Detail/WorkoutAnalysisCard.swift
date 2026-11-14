@@ -1,8 +1,10 @@
+import Narrative
 import SwiftUI
 
 struct WorkoutAnalysisCard: View {
     let summary: WorkoutAnalysisSummary
     @State private var showsAll = false
+    @State private var coach: String?
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = WorkoutDetailConstants
@@ -33,6 +35,9 @@ struct WorkoutAnalysisCard: View {
             }
         }
         .brandCard()
+        .task(id: summary) {
+            coach = await CoachFeedbackCache.shared.text(for: summary.coachFacts)
+        }
     }
 
     private var visibleEntries: [AnalysisEntry] {
@@ -45,11 +50,19 @@ struct WorkoutAnalysisCard: View {
 
     private var feedback: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ForEach(Array(summary.feedback.enumerated()), id: \.offset) { _, paragraph in
-                Text(paragraph)
+            if let coach {
+                Text(coach)
                     .font(.body)
                     .foregroundStyle(BrandColors.text)
                     .fixedSize(horizontal: false, vertical: true)
+                OnDeviceCaption()
+            } else {
+                ForEach(Array(summary.feedback.enumerated()), id: \.offset) { _, paragraph in
+                    Text(paragraph)
+                        .font(.body)
+                        .foregroundStyle(BrandColors.text)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             if let next = summary.next {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {

@@ -79,7 +79,7 @@ enum NarrativeCheck {
         return [pace, heartRateDelta < 0 ? NarrativeConstants.lowerWord : NarrativeConstants.higherWord]
     }
 
-    private static func numbers(in text: String) -> [String] {
+    static func numbers(in text: String) -> [String] {
         text.matches(of: /\d+/).map { String($0.output) }.sorted()
     }
 }

@@ -93,6 +93,10 @@ struct WorkoutAnalysisSummary: Equatable {
     let feedback: [String]
     let next: String?
     let entries: [AnalysisEntry]
+
+    var coachFacts: [String] {
+        feedback + entries.map { entry in [entry.title, entry.evidence, entry.why].compactMap { $0 }.joined(separator: ". ") } + [next].compactMap { $0 }
+    }
 }
 
 struct AnalysisColumns: Equatable {
