@@ -95,7 +95,7 @@ Nenhum dado pessoal, chave, `.FIT` ou resposta da API faz parte deste repositór
 
 ## Landing page
 
-A página do projeto fica em [`docs/site/`](docs/site/): HTML e CSS estáticos, sem build, prontos para o GitHub Pages.
+A landing fica em [`server/landing/`](server/landing/): HTML e CSS estáticos, servidos pela Vercel na raiz do domínio e copiados para `public/` no build.
 
 ## Aviso
 

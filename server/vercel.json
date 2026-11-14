@@ -2,5 +2,19 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "outputDirectory": "public",
-  "rewrites": [{ "source": "/admin", "destination": "/api/admin" }]
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/api/admin"
+    },
+    {
+      "source": "/app",
+      "destination": "/app/index.html"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/app/index.html"
+    }
+  ],
+  "buildCommand": "npm run build"
 }

@@ -1,0 +1,114 @@
+import type { NavItem, Route } from './types'
+
+export const BASE_PATH = '/app'
+export const TOKEN_STORAGE_KEY = 'training.session'
+export const DEVICE_LABEL = 'Site'
+export const PASSWORD_MIN_LENGTH = 10
+
+export const PATHS: Record<Route, string> = {
+  login: '/entrar',
+  signup: '/criar-conta',
+  forgot: '/recuperar-senha',
+  reset: '/redefinir-senha',
+  confirm: '/confirmar',
+  today: '/hoje',
+  workouts: '/treinos',
+  races: '/provas',
+  evolution: '/evolucao',
+  settings: '/ajustes',
+  password: '/ajustes/senha',
+}
+
+export const PUBLIC_ROUTES: readonly Route[] = ['login', 'signup', 'forgot', 'reset', 'confirm']
+
+export const NAV_ITEMS: readonly NavItem[] = [
+  { route: 'today', label: 'Hoje', icon: 'M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' },
+  { route: 'workouts', label: 'Treinos', icon: 'M3 12h4l3-8 4 16 3-8h4' },
+  { route: 'races', label: 'Provas', icon: 'M5 21V4h11l-2 4 2 4H5' },
+  { route: 'evolution', label: 'Evolução', icon: 'M3 17l6-6 4 4 8-8M15 7h6v6' },
+  { route: 'settings', label: 'Ajustes', icon: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z' },
+]
+
+export const TEXT = {
+  tagline: 'Inteligência do pulso à linha de chegada.',
+  pitch: 'Prontidão, treinos, provas e evolução com os dados da sua Garmin, agora também no computador.',
+  privacy: 'Os dados de saúde ficam cifrados no servidor.',
+  loginTitle: 'Entrar',
+  loginSubtitle: 'Use o mesmo e-mail e senha do app.',
+  signupTitle: 'Criar conta',
+  signupSubtitle: 'A mesma conta vale no site e no app.',
+  forgotTitle: 'Recuperar senha',
+  forgotSubtitle: 'Informe o e-mail da conta. Enviamos um link que vale por 30 minutos.',
+  forgotSentTitle: 'Confira seu e-mail',
+  forgotSentText: 'Se o e-mail tiver conta confirmada, o link chega em instantes. Olhe também o spam.',
+  resetTitle: 'Nova senha',
+  resetSubtitle: 'Depois de salvar, as outras sessões são encerradas.',
+  resetDone: 'Senha alterada. Entre com a nova senha.',
+  confirmTitle: 'Confirmando o e-mail',
+  confirmDone: 'E-mail confirmado.',
+  confirmFailed: 'O link de confirmação venceu ou já foi usado. Peça outro em Ajustes.',
+  name: 'Nome',
+  email: 'E-mail',
+  password: 'Senha',
+  confirmPassword: 'Confirmar senha',
+  currentPassword: 'Senha atual',
+  newPassword: 'Nova senha',
+  confirmNewPassword: 'Confirmar nova senha',
+  passwordHint: 'Mínimo de 10 caracteres.',
+  newPasswordHint: 'Mínimo de 10 caracteres, diferente da atual.',
+  keepSignedIn: 'Manter conectado neste computador',
+  forgotLink: 'Esqueci a senha',
+  enter: 'Entrar',
+  create: 'Criar conta',
+  sendLink: 'Enviar link',
+  save: 'Salvar',
+  saveAndEnter: 'Salvar e entrar',
+  savePassword: 'Salvar nova senha',
+  cancel: 'Cancelar',
+  noAccount: 'Ainda não tem conta?',
+  haveAccount: 'Já tem conta?',
+  backToLogin: 'Voltar para o login',
+  backToSettings: '‹ Ajustes',
+  lostCurrent: 'Não lembra a senha atual?',
+  endOthers: 'Encerrar as sessões nos outros aparelhos',
+  settingsTitle: 'Ajustes',
+  account: 'CONTA',
+  sessions: 'Sessões ativas',
+  thisSession: 'esta sessão',
+  endSession: 'Encerrar',
+  changePassword: 'Alterar senha',
+  signOut: 'Sair',
+  deleteAccount: 'Apagar conta',
+  deleteNote: 'Apagar a conta remove do servidor as provas, o token do relógio e a conta. Não dá para desfazer.',
+  deleteConfirm: 'Apagar a conta? Não dá para desfazer.',
+  unverified: 'E-mail não confirmado.',
+  resend: 'Reenviar confirmação',
+  resent: 'Enviamos o link de novo.',
+  passwordChanged: 'Senha alterada.',
+  wrongCurrent: 'A senha atual não confere.',
+  goToday: 'Ir para o Hoje',
+  comingSoonTitle: 'Chega nos próximos módulos',
+  comingSoonText: 'Esta área depende da conexão com a Garmin no servidor. Por enquanto, use o app.',
+  mismatch: 'As senhas não são iguais.',
+  shortPassword: 'A senha precisa de pelo menos 10 caracteres.',
+} as const
+
+export const ERRORS: Record<string, string> = {
+  invalid_credentials: 'E-mail ou senha incorretos.',
+  email_taken: 'Já existe uma conta com esse e-mail. Entre com ela.',
+  invalid_email: 'Confira o e-mail.',
+  invalid_name: 'Informe seu nome.',
+  invalid_password: 'A senha precisa de pelo menos 10 caracteres.',
+  invalid_token: 'O link venceu ou já foi usado. Peça outro.',
+  rate_limited: 'Muitas tentativas. Espere alguns minutos.',
+  mail_unavailable: 'O envio de e-mail não está disponível agora.',
+  network: 'Não conectou ao servidor. Confira a internet.',
+  unknown: 'Não deu certo. Tente de novo.',
+}
+
+export const PAGE_TITLES: Partial<Record<Route, string>> = {
+  today: 'Hoje',
+  workouts: 'Treinos',
+  races: 'Provas',
+  evolution: 'Evolução',
+}

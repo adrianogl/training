@@ -17,3 +17,4 @@ Watchface/bin/
 *.prg
 *.iq
 *.pem
+server/web/node_modules/
