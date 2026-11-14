@@ -104,3 +104,57 @@ export type WatchReadinessLookup =
   | { status: 'unknown_token' }
   | { status: 'no_readiness' }
   | { status: 'ok'; readiness: Omit<Readiness, 'face'> & WatchFace }
+
+export interface User {
+  id: string
+  accountId: string
+  email: string
+  name: string
+  emailVerified: boolean
+}
+
+export interface SessionInfo {
+  id: string
+  device: string
+  lastSeenAt: string
+  current: boolean
+}
+
+export interface Mail {
+  to: string
+  subject: string
+  text: string
+}
+
+export interface Mailer {
+  send: (mail: Mail) => Promise<void>
+}
+
+export interface AuthEnv {
+  mailer: Mailer | undefined
+  appUrl: string
+  now: () => Date
+  maxAccounts: number
+}
+
+export type EmailPurpose = 'verify' | 'reset'
+
+export interface SignupInput {
+  name: string
+  email: string
+  password: string
+  device: string
+  legacyKey: string | undefined
+}
+
+export interface LoginInput {
+  email: string
+  password: string
+  device: string
+}
+
+export interface PasswordChangeInput {
+  current: string
+  next: string
+  endOtherSessions: boolean
+}

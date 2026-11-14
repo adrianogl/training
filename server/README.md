@@ -9,6 +9,9 @@ API da sincronização entre aparelhos do trAIning: Vercel Functions (Node 22) c
 | `DATABASE_URL` | Connection string do Neon. Usada pelas funções e pelo `npm run migrate`. |
 | `ADMIN_TOKEN` | Token do painel `/admin`, com 32 caracteres ou mais. Ausente ou mais curto, o painel responde 503. |
 | `MAX_ACCOUNTS` | Limite total de contas (padrão 3). Acima dele, `POST /api/v1/account` responde 429 `rate_limited`. |
+| `RESEND_API_KEY` | Chave do Resend para os e-mails de confirmação e recuperação de senha. Sem ela, confirmar e recuperar respondem 503 `mail_unavailable`. |
+| `MAIL_FROM` | Remetente dos e-mails, de um domínio verificado no Resend. |
+| `APP_URL` | Base dos links dos e-mails (`/confirmar`, `/redefinir-senha`). |
 | `MAX_ACCOUNT_BYTES` | Cota de payload por conta em bytes (padrão 52428800, 50 MB). Push que passa da cota responde 413 `quota_exceeded` e não grava nada. |
 
 ## Comandos
@@ -60,3 +63,20 @@ Depois de cada deploy de preview:
 curl -i https://<preview>/package.json    # esperado: 404
 curl -i https://<preview>/src/db.ts       # esperado: 404
 ```
+
+## Conta (e-mail e senha)
+
+Spec: `tasks/conta-spec.md`. O token de sessão tem o formato da chave de conta (32 bytes base64url) e vale em todas as rotas de conta, sync e relógio. A chave antiga continua aceita até o app migrar. Sessão expira após 90 dias sem uso.
+
+| Rota | Resposta |
+| --- | --- |
+| `POST /api/v1/auth/signup` | Corpo `{"name","email","password","device","legacyKey"?}`. 201 `{"token","user"}`; 409 `email_taken` ou `legacy_unavailable`; 400 `invalid_*`; 429 com `MAX_ACCOUNTS` atingido |
+| `POST /api/v1/auth/login` | Corpo `{"email","password","device"}`. 200 `{"token","user"}`; 401 `invalid_credentials`; 429 depois de 10 tentativas erradas por IP em 15 min |
+| `POST /api/v1/auth/logout` | 204 |
+| `GET`/`PATCH /api/v1/auth/me` | 200 `{"user"}`; o `PATCH` troca o `name` |
+| `POST /api/v1/auth/password` | Corpo `{"current","next","endOtherSessions"?}`. 204; 401 `invalid_credentials` |
+| `POST /api/v1/auth/forgot` | Corpo `{"email"}`. Sempre 204; só envia para conta confirmada |
+| `POST /api/v1/auth/reset` | Corpo `{"token","password"}`. 204 e encerra as sessões; 400 `invalid_token` |
+| `POST /api/v1/auth/verify` | Corpo `{"token"}`. 204; 400 `invalid_token` |
+| `POST /api/v1/auth/resend-verification` | 204; 503 `mail_unavailable` |
+| `GET`/`DELETE /api/v1/auth/sessions` | Lista as sessões; `DELETE ?id=` encerra uma |

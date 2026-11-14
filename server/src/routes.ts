@@ -1,5 +1,5 @@
 import { createAccount, deleteAccount } from './account.js'
-import { accountExists, accountIdFromAuthorization } from './auth.js'
+import { accountExists, accountIdFromAuthorization, resolveAccountId } from './auth.js'
 import {
   LOG_ACCOUNT_PREFIX_LENGTH,
   MAX_BODY_BYTES,
@@ -55,8 +55,14 @@ async function handled(
   sql: Sql,
   handle: (accountId: string) => Promise<Outcome>,
 ): Promise<Response> {
-  const accountId = accountIdFromAuthorization(request.headers.get('authorization'))
+  let accountId: string | undefined
   let outcome: Outcome
+  try {
+    accountId = await resolveAccountId(sql, request.headers.get('authorization'), new Date())
+  } catch (error) {
+    logFailure(`${request.method} ${route}`, undefined, error)
+    return failure(500, 'internal_error')
+  }
   if (accountId === undefined) {
     outcome = { response: failure(401, 'unauthorized') }
   } else {

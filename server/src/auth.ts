@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { TOKEN_BYTES, TOKEN_PATTERN } from './constants.js'
 import type { Sql } from './db.js'
+import { findSession } from './users.js'
 
 export function accountIdFromAuthorization(header: string | null): string | undefined {
   const token = header === null ? undefined : TOKEN_PATTERN.exec(header)?.[1]
@@ -17,4 +18,13 @@ export function accountIdFromAuthorization(header: string | null): string | unde
 export async function accountExists(sql: Sql, accountId: string): Promise<boolean> {
   const rows = await sql('select 1 from accounts where id = $1', [accountId])
   return rows.length > 0
+}
+
+export async function resolveAccountId(sql: Sql, header: string | null, now: Date): Promise<string | undefined> {
+  const hash = accountIdFromAuthorization(header)
+  if (hash === undefined) {
+    return undefined
+  }
+  const session = await findSession(sql, hash, now)
+  return session?.accountId ?? hash
 }

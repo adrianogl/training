@@ -97,7 +97,7 @@ export function parseSince(value: string | null): number | undefined {
   return SINCE_PATTERN.test(value) ? Number(value) : undefined
 }
 
-function parseObject(text: string): BodyParseResult<Record<string, unknown>> {
+export function parseObject(text: string): BodyParseResult<Record<string, unknown>> {
   let body: unknown
   try {
     body = JSON.parse(text)

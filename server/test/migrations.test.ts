@@ -15,10 +15,14 @@ describe('applyMigrations', () => {
     expect(tables.map((t) => t.table_name)).toEqual([
       'account_creations',
       'accounts',
+      'email_tokens',
+      'login_attempts',
       'readiness',
       'records',
       'request_log',
       'schema_migrations',
+      'sessions',
+      'users',
       'watch_tokens',
     ])
   })
@@ -29,7 +33,7 @@ describe('applyMigrations', () => {
     const first = await applyMigrations(sql, migrationsDir)
     const second = await applyMigrations(sql, migrationsDir)
 
-    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql'])
+    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql'])
     expect(second).toEqual([])
   })
 
