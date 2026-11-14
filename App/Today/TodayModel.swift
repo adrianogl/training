@@ -20,6 +20,7 @@ import WorkoutAnalysis
     private(set) var lastRun: LastRunSummary?
     private(set) var raceName: String?
     private(set) var weekRuns: [Day: [WeekRun]] = [:]
+    private(set) var recoveryRun: RecoveryRun?
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var isLoaded = false
@@ -41,6 +42,7 @@ import WorkoutAnalysis
         lastRun = result.lastRun
         raceName = result.raceName
         weekRuns = result.weekRuns
+        recoveryRun = result.recoveryRun
         if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
@@ -183,7 +185,22 @@ import WorkoutAnalysis
             readinessDay: readinessDay(context: context, today: today, summary: summary),
             lastRun: lastRun(context: context, id: summary.lastRunId),
             raceName: (try? targetRace(in: context, today: today))?.name,
-            weekRuns: weekRuns(context: context, today: today)
+            weekRuns: weekRuns(context: context, today: today),
+            recoveryRun: recoveryRun(context: context)
+        )
+    }
+
+    nonisolated private static func recoveryRun(context: ModelContext) -> RecoveryRun? {
+        var descriptor = FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)])
+        descriptor.fetchLimit = RecoveryConstants.recentRunsForHour * 3
+        let runs = ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) && $0.hasStart }
+        guard let last = runs.first else { return nil }
+        return RecoveryRun(
+            title: last.workoutName ?? last.name,
+            end: last.start.addingTimeInterval(last.duration ?? last.movingDuration ?? 0),
+            aerobicEffect: last.aerobicTrainingEffect,
+            anaerobicEffect: last.anaerobicTrainingEffect,
+            typicalHour: RecoveryEstimator.typicalHour(runs.prefix(RecoveryConstants.recentRunsForHour).map(\.start))
         )
     }
 

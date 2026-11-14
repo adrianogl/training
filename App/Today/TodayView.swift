@@ -100,6 +100,12 @@ struct TodayView: View {
             if let plan = model.todayPlan {
                 TodayPlanCard(plan: plan, verdict: model.summary.verdict)
             }
+            if let run = model.recoveryRun {
+                RecoveryCard(
+                    estimate: RecoveryEstimator.estimate(run: run, readiness: model.summary.readiness?.score, planned: model.planned.values.flatMap { $0 }, now: .now),
+                    now: .now
+                )
+            }
             WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal, planned: model.planned)
             VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal, planned: model.plannedWeeks)
             row(weights: [1, 1]) {
