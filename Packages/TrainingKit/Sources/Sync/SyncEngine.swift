@@ -12,6 +12,8 @@ public actor SyncEngine: ModelActor {
     let firstDay: Day
     let fitLimit: Int?
     let mode: SyncMode
+    let deferredFITOlderThanDays: Int?
+    private var deferredFITIds: Set<Int64> = []
     public private(set) var heartRateZones: HRZonesDTO?
     private var inFlight: InFlightOperation?
 
@@ -21,7 +23,8 @@ public actor SyncEngine: ModelActor {
         today: @escaping @Sendable () -> Day,
         firstDay: Day = Day(iso: "2024-01-01")!,
         fitLimit: Int? = nil,
-        mode: SyncMode = .foreground
+        mode: SyncMode = .foreground,
+        deferredFITOlderThanDays: Int? = nil
     ) {
         self.modelContainer = container
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(container))
@@ -30,10 +33,15 @@ public actor SyncEngine: ModelActor {
         self.firstDay = firstDay
         self.fitLimit = mode == .background ? SyncConstants.backgroundFitLimit : fitLimit
         self.mode = mode
+        self.deferredFITOlderThanDays = deferredFITOlderThanDays
     }
 
     public func run(progress: @escaping @Sendable (Double) -> Void = { _ in }) async throws -> SyncReport {
         try await singleFlight(.sync) { try await self.perform(progress: progress) }
+    }
+
+    public func runDeferredFIT() async throws -> SyncReport {
+        try await singleFlight(.deferredFIT) { try await self.performDeferredFIT() }
     }
 
     public func reprocess(limit: Int?) async throws -> SyncReport {
@@ -92,18 +100,39 @@ public actor SyncEngine: ModelActor {
         return report
     }
 
+    private func performDeferredFIT() async throws -> SyncReport {
+        var report = SyncReport()
+        let ids = deferredFITIds
+        deferredFITIds = []
+        guard !ids.isEmpty else { return report }
+        var timer = SyncStageTimer()
+        let queue = try fitQueue(includesNewRuns: true, limit: nil).filter { ids.contains($0.activityId) }
+        let result = try await processFITQueue(queue) { _ in }
+        timer.lap("fit antigos", items: result.processed + result.reprocessed)
+        report.fitProcessed = result.processed
+        report.reprocessed = result.reprocessed
+        report.processedActivityIds = result.activityIds
+        report.fitStoppedByRateLimit = result.stoppedByRateLimit
+        report.stoppedByRateLimit = result.stoppedByRateLimit
+        report.skippedFITs = result.skipped
+        return report
+    }
+
     private func perform(progress: @escaping @Sendable (Double) -> Void) async throws -> SyncReport {
         typealias C = SyncConstants
         var report = SyncReport()
         let today = today()
+        var timer = SyncStageTimer()
         progress(0)
 
         report.duplicatesRemoved = try removeDuplicates()
         try backfillLocalDays()
         let state = try syncState()
+        timer.lap("limpeza", items: report.duplicatesRemoved)
         progress(C.progressAfterCleanup)
 
         try await fetchHeartRateZones()
+        timer.lap("zonas")
         progress(C.progressAfterZones)
 
         let isFirstLoad = !state.firstLoadCompleted
@@ -119,6 +148,7 @@ public actor SyncEngine: ModelActor {
                 progress(C.progressAfterZones + fraction * (C.progressAfterDaily - C.progressAfterZones))
             }
             report.dailyUpserted = touchedDays.count
+            timer.lap("dias", items: touchedDays.count)
             progress(C.progressAfterDaily)
 
             let incrementalCutoff = isFirstLoad
@@ -132,6 +162,7 @@ public actor SyncEngine: ModelActor {
                 tracksResume: isFirstLoad
             )
             report.activitiesUpserted = upsertedActivities.count
+            timer.lap("atividades", items: upsertedActivities.count)
             progress(C.progressAfterActivities)
         } catch GarminAPIError.rateLimited(_) where mode == .background {
             try modelContext.save()
@@ -139,9 +170,16 @@ public actor SyncEngine: ModelActor {
             return report
         }
 
-        let fit = try await processFITQueue(try fitQueue(includesNewRuns: true, limit: fitLimit)) { fraction in
+        let fitSplit = FITQueueSplit(
+            queue: try fitQueue(includesNewRuns: true, limit: fitLimit),
+            deferringOlderThanDays: deferredFITOlderThanDays,
+            now: .now
+        )
+        let fit = try await processFITQueue(fitSplit.immediate) { fraction in
             progress(C.progressAfterActivities + fraction * (C.progressAfterFIT - C.progressAfterActivities))
         }
+        deferredFITIds = fit.stoppedByRateLimit ? [] : Set(fitSplit.deferred.map(\.activityId))
+        timer.lap("fit", items: fit.processed + fit.reprocessed)
         report.fitProcessed = fit.processed
         report.reprocessed = fit.reprocessed
         report.processedActivityIds = fit.activityIds
@@ -154,6 +192,7 @@ public actor SyncEngine: ModelActor {
         try updateReadiness(days: recomputesAll ? try storedDays() : touchedDays.union(try loadAffectedDays(upsertedActivities)))
         state.readinessVersion = C.readinessVersion
         try refreshThresholdZoneSeconds(in: modelContext, limit: mode == .background ? C.backgroundThresholdRefreshLimit : nil)
+        timer.lap("derivados")
         progress(C.progressAfterDerived)
 
         try Task.checkCancellation()

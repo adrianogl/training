@@ -62,6 +62,7 @@ struct RaceListView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 CompactLogoHeader()
+                SyncStatusPill()
                 HStack {
                     Text(RacesConstants.title)
                         .font(.largeTitle.weight(.bold))
@@ -79,10 +80,10 @@ struct RaceListView: View {
                     .accessibilityLabel(RacesConstants.addRace)
                 }
                 .padding(.bottom, 8)
-                if let model, model.isLoaded {
+                if app.showsSkeleton {
+                    SkeletonCards(heights: SkeletonConstants.racesHeights)
+                } else if let model, model.isLoaded {
                     content(model)
-                } else {
-                    ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                 }
             }
             .padding(.horizontal, BrandConstants.screenPadding)

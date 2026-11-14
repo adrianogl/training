@@ -5,6 +5,7 @@ struct WorkoutRow: View {
     var isSelected = false
     var hasChat = false
     var isFromPlan = false
+    var isNew = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -20,6 +21,9 @@ struct WorkoutRow: View {
                         .foregroundStyle(BrandColors.text)
                         .lineLimit(2)
                     HStack(spacing: 6) {
+                        if isNew {
+                            NewBadge()
+                        }
                         if row.hasPrescription {
                             PlannedBadge()
                         }

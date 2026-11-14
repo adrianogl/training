@@ -86,13 +86,7 @@ struct WorkoutListView: View {
                 Text(WorkoutConstants.listTitle)
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(BrandColors.text)
-                if case .running(let progress) = model.syncStatus {
-                    ProgressView(value: progress) {
-                        Text("Sincronizando com o Garmin")
-                            .font(.caption)
-                            .foregroundStyle(BrandColors.dim)
-                    }
-                }
+                SyncStatusPill()
                 if !visibility.visible.isEmpty {
                     Text(WorkoutConstants.plannedTitle)
                         .font(.caption)
@@ -104,7 +98,9 @@ struct WorkoutListView: View {
                         }
                     }
                 }
-                if weeks.isEmpty {
+                if weeks.isEmpty && model.showsSkeleton {
+                    SkeletonCards(heights: SkeletonConstants.workoutHeights)
+                } else if weeks.isEmpty {
                     Text(WorkoutConstants.emptyList)
                         .foregroundStyle(BrandColors.dim)
                         .brandCard()
@@ -129,7 +125,7 @@ struct WorkoutListView: View {
                     .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
                     ForEach(week.rows) { row in
                         link(.activity(row.activityId)) {
-                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId))
+                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
                         }
                     }
                 }

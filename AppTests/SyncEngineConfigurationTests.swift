@@ -20,6 +20,14 @@ import Testing
         #expect(SyncEngineConfiguration(trigger: .settings).fitLimit == nil)
     }
 
+    @Test func onlyLaunchDefersOldFITDownloads() {
+        #expect(SyncEngineConfiguration(trigger: .launch).deferredFITOlderThanDays == 7)
+        #expect(SyncEngineConfiguration(trigger: .pull).deferredFITOlderThanDays == nil)
+        #expect(SyncEngineConfiguration(trigger: .settings).deferredFITOlderThanDays == nil)
+        #expect(SyncEngineConfiguration(trigger: .background).deferredFITOlderThanDays == nil)
+        #expect(SyncEngineConfiguration(trigger: .workoutFinished).deferredFITOlderThanDays == nil)
+    }
+
     @Test func pullSyncDropsFITLimitOnlyWhileRunsAreOutdated() {
         #expect(SyncEngineConfiguration(trigger: .pull).fitLimit == AppConstants.launchFITLimit)
         #expect(SyncEngineConfiguration(trigger: .pull, hasOutdatedRuns: true).fitLimit == nil)
