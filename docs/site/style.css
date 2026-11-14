@@ -841,3 +841,6 @@ h2 {
     .ai-chat .bub { animation-timeline: view(); animation-range: entry 0% entry 60%; }
   }
 }
+.soon-chip { border: 1px dashed rgba(255, 122, 61, 0.55) !important; color: #FF7A3D !important; }
+.soon { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 20px 0 0; color: var(--soft); font-size: 15px; }
+.soon-badge { background: rgba(252, 76, 2, 0.16); color: #FF7A3D; }

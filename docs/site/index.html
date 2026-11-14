@@ -33,9 +33,10 @@
       <ul class="chips" aria-label="Resumo">
         <li>iOS e iPadOS 26 · Liquid Glass</li>
         <li>Garmin: Personal API e conta</li>
-        <li>Mostrador Forerunner 965</li>
+        <li>Mostrador para relógios Garmin</li>
         <li>Treinos planejados do Garmin</li>
         <li>✦ Apple Intelligence no aparelho</li>
+        <li class="soon-chip">Strava em breve</li>
       </ul>
     </div>
 
@@ -314,7 +315,7 @@
     <div class="spot-head">
       <p class="eyebrow">✦ Apple Intelligence</p>
       <h2>Converse com o seu treino</h2>
-      <p class="lead">O modelo da Apple Intelligence roda no próprio iPhone ou iPad. Ele escreve o feedback de cada corrida e responde perguntas sobre o treino com os seus números, sem mandar nada para servidor.</p>
+      <p class="lead">O modelo da Apple Intelligence roda no próprio iPhone ou iPad. Ele ajuda a planejar o treino antes de sair, escreve o feedback de cada corrida e responde perguntas com os seus números, sem mandar nada para servidor.</p>
     </div>
     <div class="ai-grid">
       <div class="card ai-chat" role="img" aria-label="Exemplo de conversa sobre um intervalado">
@@ -328,6 +329,7 @@
         <div class="ai-input"><span>Pergunte sobre este treino</span><i>↑</i></div>
       </div>
       <ul class="ai-points">
+        <li><b>Planeje antes de correr</b><span>No treino planejado, pergunte que ritmo segurar, o que fazer se a FC subir ou se você está recuperado para ele. O modelo lê os passos, as corridas parecidas e a sua semana.</span></li>
         <li><b>Conversa sobre o treino</b><span>Pergunte por que um tiro saiu lento, se o trote foi rápido demais ou se você está melhorando. O modelo busca os blocos, os treinos parecidos e o sono e a VFC da noite quando precisa.</span></li>
         <li><b>Histórico por treino</b><span>Cada conversa fica guardada no treino. Ao voltar, ela continua de onde parou, e a lista mostra quais treinos têm conversa.</span></li>
         <li><b>Feedback de treinador</b><span>A análise de cada corrida vira um parágrafo que liga causa e efeito: o que ajustar, o que foi bem e o que fazer no próximo.</span></li>
@@ -383,7 +385,7 @@
     <div class="spot-head">
       <p class="eyebrow">Relógio</p>
       <h2>O essencial no pulso</h2>
-      <p class="lead">Um mostrador feito para o Forerunner 965 com o que o app sabe sobre o seu dia, a sua semana e a sua prova. Ele lê só esses números, a cada 15 minutos.</p>
+      <p class="lead">Um mostrador para relógios Garmin com o que o app sabe sobre o seu dia, a sua semana e a sua prova. Ele lê só esses números, a cada 15 minutos.</p>
     </div>
     <div class="spot-grid">
       <ul class="callouts left">
@@ -512,6 +514,7 @@
         </ul>
       </div>
     </div>
+    <p class="soon"><span class="badge soon-badge">Em breve</span>Integração com o Strava, para quem também registra as corridas por lá.</p>
   </section>
 
   <section class="privacy" id="privacidade">
@@ -524,7 +527,7 @@
         <div><div class="t">O que vai pro relógio</div><p>O mostrador só lê o que mostra: a nota do dia, o treino de hoje, os km da semana e o nome, a data, a meta e a previsão da prova. Esses campos ficam no servidor sem cifra, porque o relógio precisa lê-los.</p></div>
         <div><div class="t">Chave e sessão no Keychain</div><p>A chave da Personal API e a sessão da conta Garmin ficam no Keychain do aparelho, sem sincronizar com o iCloud. A senha do Garmin nunca é guardada.</p></div>
         <div><div class="t">Previsão do tempo sem endereço</div><p>Para o melhor horário, o app manda ao Open-Meteo só uma coordenada arredondada, com precisão de uns 10 km.</p></div>
-        <div><div class="t">Apple Intelligence local</div><p>O feedback, as leituras e a conversa sobre o treino são gerados pelo modelo da Apple Intelligence no próprio aparelho. As conversas ficam só nele.</p></div>
+        <div><div class="t">Apple Intelligence local</div><p>O feedback, as leituras e as conversas antes e depois do treino são gerados pelo modelo da Apple Intelligence no próprio aparelho. As conversas ficam só nele.</p></div>
         <div><div class="t">Apagar quando quiser</div><p>Em Ajustes, um botão apaga do aparelho os treinos, os dados diários e as provas.</p></div>
       </div>
     </div>
