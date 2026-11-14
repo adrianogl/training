@@ -20,6 +20,8 @@ enum PlannedViewConstants {
     static let courseGainFormat = ", +%d m"
     static let courseFooter = ". Percurso salvo no Garmin."
     static let hours = "Melhor horário"
+    static let hoursPerRow = 6
+    static let hoursPerRowLong = 5
     static let watch = "No relógio de manhã"
     static let watchFooter = "Na manhã do treino, o mostrador mostra o treino e esta dica."
     static let tomorrow = "amanhã"

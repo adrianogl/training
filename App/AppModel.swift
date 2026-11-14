@@ -155,11 +155,20 @@ import TrainingCore
             defaults.set(true, forKey: BackgroundConstants.permissionRequestedDefaultsKey)
             Task { await UserNotificationScheduler.requestAuthorization() }
         }
+        let workouts = WorkoutFinishNotifier.shared
+        if workouts.enabled, !defaults.bool(forKey: WorkoutNoticeConstants.permissionRequestedKey) {
+            defaults.set(true, forKey: WorkoutNoticeConstants.permissionRequestedKey)
+            Task {
+                await UserNotificationScheduler.requestAuthorization()
+                await workouts.requestAccess()
+                workouts.start(model: self)
+            }
+        }
         await syncNow(.launch)
     }
 
     func enteredBackground() {
-        if runningTrigger != .background { cancelSync() }
+        if runningTrigger?.runsInBackground != true { cancelSync() }
         BackgroundSync.schedule(readinessComplete: todayReadinessComplete)
     }
 
@@ -206,9 +215,9 @@ import TrainingCore
                 }.value
                 self?.syncStatus = .finished(.now)
                 self?.finishedSummary = summary.map { ($0, day) }
-                processed = trigger == .background ? nil : report.processedActivityIds
+                processed = trigger.runsInBackground ? nil : report.processedActivityIds
                 if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
-                if trigger != .background { self?.scoreRefresher.refresh() }
+                if !trigger.runsInBackground { self?.scoreRefresher.refresh() }
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
@@ -245,7 +254,7 @@ import TrainingCore
         let weeklyGoal = UserDefaults.standard.integer(forKey: AppConstants.weeklyGoalDefaultsKey)
         var weather: [HourlyWeather] = []
         if planned.contains(where: { $0.day == day.iso }), let coordinate = PlannedWeather.lastRunStart(context: container.mainContext) {
-            weather = await PlannedWeather.morning(day: day, coordinate: coordinate)
+            weather = await PlannedWeather.forecast(day: day, coordinate: coordinate)
         }
         let forecast = weather
         readiness.face = await Task.detached(priority: .utility) {
@@ -313,6 +322,7 @@ import TrainingCore
     private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {
         readinessComplete = MorningNotifier.hasNightData(summary)
         readinessDay = today()
+        guard trigger != .workoutFinished else { return }
         guard trigger == .background else {
             await notifier.foregroundSyncFinished(summary: summary, now: .now)
             return

@@ -13,10 +13,15 @@ struct UserNotificationScheduler: NotificationScheduling {
     }
 
     func schedule(id: String, text: String, at date: Date?) async {
+        await schedule(id: id, title: nil, text: text, link: C.readinessDeepLink, at: date)
+    }
+
+    func schedule(id: String, title: String?, text: String, link: String, at date: Date?) async {
         let content = UNMutableNotificationContent()
+        if let title { content.title = title }
         content.body = text
         content.sound = .default
-        content.userInfo = [C.deepLinkUserInfoKey: C.readinessDeepLink]
+        content.userInfo = [C.deepLinkUserInfoKey: link]
         let trigger = date.map {
             UNCalendarNotificationTrigger(
                 dateMatching: Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: $0),

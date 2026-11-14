@@ -132,7 +132,44 @@ import TrainingCore
         #expect(abs((fade ?? 0) - 10) < 0.5)
     }
 
-    @Test func weatherRequestUsesRoundedCoordinateAndParsesMorning() throws {
+    @Test func todayAfterMorningSuggestsOnlyHoursAhead() {
+        let temperatures: [Int: Double] = [5: 18, 6: 17, 7: 17, 8: 19, 9: 21, 10: 23, 11: 25, 12: 26, 13: 27, 14: 28, 15: 28, 16: 27, 17: 25, 18: 23, 19: 21, 20: 20, 21: 19]
+        let weather = temperatures.keys.sorted().map { HourlyWeather(hour: $0, temperature: temperatures[$0]!, dewPoint: 16) }
+        var input = Self.input(Self.long, weather: weather)
+        input.startHour = 12
+
+        let briefing = PlannedBriefingBuilder.briefing(input)
+
+        #expect(briefing.bestHours.map(\.hour) == Array(12...21))
+        #expect(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour) == [20, 21])
+        #expect(briefing.bestHoursNote == "Daqui pra frente, o mais fresco é sair às 20h, com 20 °C. Às 12h, conte com 5 a 10 s/km a mais na mesma FC.")
+        #expect(briefing.tags.contains { $0.text == "26 °C às 12h" })
+    }
+
+    @Test func todayAfterLastHourHasNoSuggestion() {
+        let weather = (5...21).map { HourlyWeather(hour: $0, temperature: 22, dewPoint: 16) }
+        var input = Self.input(Self.long, weather: weather)
+        input.startHour = 22
+
+        let briefing = PlannedBriefingBuilder.briefing(input)
+
+        #expect(briefing.bestHours.isEmpty)
+        #expect(briefing.bestHoursNote == nil)
+    }
+
+    @Test func startHourOnlyAppliesToTodayAfterFive() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "America/Sao_Paulo")!
+        let day = Day(iso: "2026-11-14")!
+        let late = calendar.date(from: DateComponents(year: 2026, month: 11, day: 14, hour: 11, minute: 20))!
+        let early = calendar.date(from: DateComponents(year: 2026, month: 11, day: 14, hour: 4, minute: 10))!
+
+        #expect(PlannedBriefingLoader.startHour(planDay: day, today: day, now: late, calendar: calendar) == 12)
+        #expect(PlannedBriefingLoader.startHour(planDay: day, today: day, now: early, calendar: calendar) == nil)
+        #expect(PlannedBriefingLoader.startHour(planDay: Day(iso: "2026-11-15")!, today: day, now: late, calendar: calendar) == nil)
+    }
+
+    @Test func weatherRequestUsesRoundedCoordinateAndParsesDayHours() throws {
         let url = try #require(PlannedWeather.url(day: Day(iso: "2026-11-14")!, coordinate: Coordinate(lat: -19.8573, lon: -43.9712)))
         let query = url.query ?? ""
         #expect(query.contains("latitude=-19.9"))
@@ -144,7 +181,7 @@ import TrainingCore
         "temperature_2m":[18.2,19.1,null,30.5],"dew_point_2m":[15.0,15.4,15.8,16.0]}}
         """
         let hours = PlannedWeather.parse(Data(json.utf8))
-        #expect(hours == [HourlyWeather(hour: 5, temperature: 19.1, dewPoint: 15.4)])
+        #expect(hours == [HourlyWeather(hour: 5, temperature: 19.1, dewPoint: 15.4), HourlyWeather(hour: 11, temperature: 30.5, dewPoint: 16.0)])
     }
 
     @Test func plannedChatContextCarriesStepsPreviousRunsAndWeek() {

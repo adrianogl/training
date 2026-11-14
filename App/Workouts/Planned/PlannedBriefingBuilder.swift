@@ -29,12 +29,12 @@ enum PlannedBriefingBuilder {
             previousNote: previousNote(input.similar),
             carry: carry(kind, plan: plan),
             raceNote: raceNote(kind, kilometers: kilometers, race: input.race),
-            bestHours: bestHours(input.weather),
-            bestHoursNote: bestHoursNote(input.weather),
+            bestHours: bestHours(input.weather, startHour: input.startHour),
+            bestHoursNote: bestHoursNote(input.weather, startHour: input.startHour),
             course: input.course,
             comparison: comparison(input.completed, plan: plan, target: target, heart: heart),
             comparisonNote: comparisonNote(input.completed, plan: plan, target: target, heart: heart),
-            watchTip: watchTip(kind, plan: plan, target: target, heart: heart, weather: input.weather)
+            watchTip: watchTip(kind, plan: plan, target: target, heart: heart, weather: input.weather, startHour: input.startHour)
         )
     }
 
@@ -116,7 +116,7 @@ enum PlannedBriefingBuilder {
         if let race = input.race {
             tags.append(BriefingTag(text: String(format: C.tagRaceFormat, race.name, race.days), tone: .info))
         }
-        if let hot = hotHour(input.weather) {
+        if let hot = hotHour(input.weather, startHour: input.startHour) {
             tags.append(BriefingTag(text: String(format: C.tagHeatFormat, Int(hot.temperature.rounded()), hot.hour), tone: .warn))
         }
         return tags
@@ -198,7 +198,7 @@ enum PlannedBriefingBuilder {
 
     private static func attention(_ kind: PlannedKind, input: BriefingInput, kilometers: Double) -> [BriefingItem] {
         var items: [BriefingItem] = []
-        if let hot = hotHour(input.weather) {
+        if let hot = hotHour(input.weather, startHour: input.startHour) {
             items.append(BriefingItem(title: C.attentionHeatTitle, detail: String(format: C.attentionHeatFormat, Int(hot.temperature.rounded()), hot.hour, C.heatSlowdown), tone: .warn))
         }
         if let fade = input.similar.first?.fadeSecondsPerKm, fade >= C.fadeSignificant {
@@ -267,26 +267,36 @@ enum PlannedBriefingBuilder {
         return String(format: C.raceLongProgressFormat, race.name, km(race.longTargetKilometers))
     }
 
-    private static func bestHours(_ weather: [HourlyWeather]) -> [HourlyWeather] {
-        weather.filter { C.morningHours.contains($0.hour) }.sorted { $0.hour < $1.hour }
+    static func bestHours(_ weather: [HourlyWeather], startHour: Int? = nil) -> [HourlyWeather] {
+        let first = startHour ?? C.morningHours.lowerBound
+        let last = startHour == nil ? C.morningHours.upperBound : C.lastStartHour
+        return weather.filter { $0.hour >= first && $0.hour <= last }.sorted { $0.hour < $1.hour }
     }
 
-    static func coolest(_ weather: [HourlyWeather]) -> [HourlyWeather] {
-        let morning = bestHours(weather)
-        guard morning.count >= C.bestHoursCount else { return morning }
-        let windows = (0...(morning.count - C.bestHoursCount)).map { Array(morning[$0..<($0 + C.bestHoursCount)]) }
+    static func coolest(_ hours: [HourlyWeather]) -> [HourlyWeather] {
+        let sorted = hours.sorted { $0.hour < $1.hour }
+        guard sorted.count >= C.bestHoursCount else { return sorted }
+        let windows = (0...(sorted.count - C.bestHoursCount)).map { Array(sorted[$0..<($0 + C.bestHoursCount)]) }
         return windows.min { $0.map(\.temperature).reduce(0, +) < $1.map(\.temperature).reduce(0, +) } ?? []
     }
 
-    private static func bestHoursNote(_ weather: [HourlyWeather]) -> String? {
-        let best = coolest(weather)
-        guard let first = best.first else { return nil }
-        guard let hot = hotHour(weather) else { return C.bestHoursCool }
-        return String(format: C.bestHoursFormat, first.hour, Int(first.temperature.rounded()), hot.hour, C.heatSlowdown)
+    private static func bestHoursNote(_ weather: [HourlyWeather], startHour: Int?) -> String? {
+        guard let first = coolest(bestHours(weather, startHour: startHour)).first else { return nil }
+        let hot = hotHour(weather, startHour: startHour)
+        guard startHour != nil else {
+            guard let hot else { return C.bestHoursCool }
+            return String(format: C.bestHoursFormat, first.hour, Int(first.temperature.rounded()), hot.hour, C.heatSlowdown)
+        }
+        guard let hot else { return C.bestHoursAheadCool }
+        let best = String(format: C.bestHoursAheadFormat, first.hour, Int(first.temperature.rounded()))
+        return hot.hour == first.hour ? best : best + String(format: C.bestHoursAheadHeatFormat, hot.hour, C.heatSlowdown)
     }
 
-    private static func hotHour(_ weather: [HourlyWeather]) -> HourlyWeather? {
-        weather.first { $0.hour == C.plannedHour + 1 && $0.temperature >= C.hotTemperature }
+    private static func hotHour(_ weather: [HourlyWeather], startHour: Int?) -> HourlyWeather? {
+        if let startHour {
+            return weather.first { $0.hour == startHour && $0.temperature >= C.hotTemperature }
+        }
+        return weather.first { $0.hour == C.plannedHour + 1 && $0.temperature >= C.hotTemperature }
             ?? weather.first { $0.hour == C.plannedHour && $0.temperature >= C.hotTemperature }
     }
 
@@ -315,9 +325,9 @@ enum PlannedBriefingBuilder {
         return rows.allSatisfy(\.ok) ? C.compareDoneNote : C.comparePartialNote
     }
 
-    private static func watchTip(_ kind: PlannedKind, plan: PlannedWorkout, target: (fast: Double, slow: Double)?, heart: (low: Double, high: Double)?, weather: [HourlyWeather]) -> String? {
+    private static func watchTip(_ kind: PlannedKind, plan: PlannedWorkout, target: (fast: Double, slow: Double)?, heart: (low: Double, high: Double)?, weather: [HourlyWeather], startHour: Int?) -> String? {
         let text: String?
-        if let hot = hotHour(weather) {
+        if let hot = hotHour(weather, startHour: startHour) {
             text = String(format: C.watchHeatFormat, Int(hot.temperature.rounded()), hot.hour)
         } else if let heart, let target {
             let minutes = (plan.estimatedSeconds ?? 0) / 60

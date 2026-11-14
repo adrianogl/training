@@ -2,8 +2,8 @@ enum PlannedExtrasConstants {
     static let maxLaps = 4
     static let courseTolerance = 0.12
     static let profilePoints = 80
-    static let morningStartHour = 5
-    static let morningEndHour = 11
+    static let forecastStartHour = 5
+    static let forecastEndHour = 22
     static let locationSearchLimit = 30
     static let forecastDaysAhead = 9
     static let forecastURL = "https://api.open-meteo.com/v1/forecast"

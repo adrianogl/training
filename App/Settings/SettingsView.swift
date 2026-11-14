@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var confirmsDelete = false
     @State private var deleteMessage: String?
     @AppStorage(BackgroundConstants.noticeEnabledDefaultsKey) private var noticeEnabled = BackgroundConstants.defaultNoticeEnabled
+    @AppStorage(WorkoutNoticeConstants.enabledKey) private var workoutNoticeEnabled = WorkoutNoticeConstants.defaultEnabled
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
     @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
     @AppStorage(AppConstants.weeklyGoalDefaultsKey) private var weeklyGoal = 0
@@ -77,7 +78,7 @@ struct SettingsView: View {
         case .garmin: [model.hasKey ? "sync \(lastSyncText)" : "sem chave da API", model.garminAccount.isSignedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut].joined(separator: " · ")
         case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
-        case .notice: noticeEnabled ? "Ligado · a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Desligado"
+        case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
         case .goals: weeklyGoal > 0 ? "\(weeklyGoal) km por semana" : "Sem meta semanal"
         case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
         case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
@@ -101,6 +102,7 @@ struct SettingsView: View {
                 RemoteSyncSection(model: model.remoteSync, part: .watch)
             case .notice:
                 noticeSection
+                workoutNoticeSection
             case .goals:
                 goalsSection
             case .appearance:
@@ -208,6 +210,27 @@ struct SettingsView: View {
             Text("Aviso de manhã")
         } footer: {
             Text("Avisa a prontidão do dia quando o HRV e o sono da noite chegam, nunca antes do horário mínimo. O iOS decide quando o app acorda, então em alguns dias o aviso não sai.")
+        }
+    }
+
+    private var workoutNoticeSection: some View {
+        Section {
+            Toggle("Avisar ao terminar um treino", isOn: $workoutNoticeEnabled)
+                .onChange(of: workoutNoticeEnabled) { _, enabled in
+                    guard enabled else {
+                        WorkoutFinishNotifier.shared.stop()
+                        return
+                    }
+                    Task {
+                        await UserNotificationScheduler.requestAuthorization()
+                        await WorkoutFinishNotifier.shared.requestAccess()
+                        WorkoutFinishNotifier.shared.start(model: model)
+                    }
+                }
+        } header: {
+            Text("Aviso de treino")
+        } footer: {
+            Text("Quando o relógio sincroniza, o Garmin Connect grava o treino no Apple Health e o app avisa com a nota e o ponto principal da análise. Precisa da integração do Garmin Connect com o Apple Health ligada.")
         }
     }
 

@@ -17,7 +17,9 @@ enum PlannedBriefingLoader {
         today: Day,
         weeklyGoalKm: Int,
         weather: [HourlyWeather],
-        course: CourseSuggestion?
+        course: CourseSuggestion?,
+        now: Date = .now,
+        calendar: Calendar = .current
     ) -> BriefingInput {
         let planDay = Day(iso: plan.day) ?? today
         let runs = ((try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? [])
@@ -35,8 +37,15 @@ enum PlannedBriefingLoader {
             race: race(context: context, today: today, runs: runs),
             weather: weather,
             course: course,
-            completed: completed(runs.first { $0.localDay == plan.day })
+            completed: completed(runs.first { $0.localDay == plan.day }),
+            startHour: startHour(planDay: planDay, today: today, now: now, calendar: calendar)
         )
+    }
+
+    static func startHour(planDay: Day, today: Day, now: Date, calendar: Calendar) -> Int? {
+        guard planDay == today else { return nil }
+        let hour = calendar.component(.hour, from: now)
+        return hour >= PlannedBriefingConstants.morningHours.lowerBound ? hour + 1 : nil
     }
 
     static func similar(_ plan: PlannedWorkout, runs: [ActivityRecord]) -> [SimilarRun] {

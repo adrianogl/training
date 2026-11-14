@@ -11,7 +11,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable {
         case .garmin: "Garmin"
         case .devices: "Entre aparelhos"
         case .watch: "Relógio"
-        case .notice: "Aviso de manhã"
+        case .notice: "Avisos"
         case .goals: "Metas"
         case .appearance: "Aparência"
         case .data: "Dados locais"

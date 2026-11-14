@@ -20,7 +20,7 @@ struct SyncEngineConfiguration: Equatable {
         case .settings:
             fitLimit = nil
             mode = .foreground
-        case .background:
+        case .background, .workoutFinished:
             fitLimit = nil
             mode = .background
         }
