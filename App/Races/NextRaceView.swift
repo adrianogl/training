@@ -19,6 +19,9 @@ struct NextRaceView: View {
                         goalTile(model, info: info)
                         RaceChecklistCard(items: model.checklist)
                     }
+                    if let taper = model.taper {
+                        RaceTaperCard(plan: taper)
+                    }
                     PaceStrategyCard(model: model)
                     RaceStrategyUploadCard(info: info, strategy: model.strategy, client: app.garminAccount.client)
                     pair {

@@ -25,6 +25,7 @@ import TrainingCore
     private(set) var checklist: [ChecklistItem] = []
     private(set) var blockReading = ""
     private(set) var weeklyLongest: [Day: Double] = [:]
+    private(set) var taper: TaperPlan?
     private(set) var isLoaded = false
 
     init(container: ModelContainer, raceId: UUID, today: Day, onChange: @escaping @MainActor () -> Void = {}) {
@@ -52,6 +53,7 @@ import TrainingCore
             checklist = result.checklist
             blockReading = result.blockReading
             weeklyLongest = result.weeklyLongest
+            taper = result.taper
             recalculate()
         }
         isLoaded = true
@@ -187,7 +189,8 @@ import TrainingCore
                 runs: blockStart <= today ? runs(context: context, since: blockStart, today: today) : []
             )),
             blockReading: RacesText.blockReading(block: block, today: today, longestRun: longest, longRunTarget: longTarget),
-            weeklyLongest: weeklyLongest(context: context, since: blockStart, today: today)
+            weeklyLongest: weeklyLongest(context: context, since: blockStart, today: today),
+            taper: taper(context: context, raceDay: raceDay, today: today, weekly: weekly, longest: longest)
         )
     }
 
@@ -200,6 +203,14 @@ import TrainingCore
 
     nonisolated private static func runs(context: ModelContext, since day: Day, today: Day) -> [ActivityRecord] {
         activities(context: context, since: day, today: today).filter { ActivityTypeKey.isRun($0.typeKey) }
+    }
+
+    nonisolated private static func taper(context: ModelContext, raceDay: Day, today: Day, weekly: [Day: Double], longest: Double?) -> TaperPlan? {
+        guard today.days(until: raceDay) <= RaceTaperConstants.windowDays else { return nil }
+        let races = (try? context.fetch(FetchDescriptor<RaceRecord>())) ?? []
+        let runs = ((try? context.fetch(FetchDescriptor<ActivityRecord>())) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) }
+        let best = RaceTaper.best(RaceTaper.history(races: races, runs: runs))
+        return RaceTaper.plan(raceDay: raceDay, today: today, weeklyKm: weekly, longestKm: (longest ?? 0) / C.metersPerKm, best: best)
     }
 
     nonisolated private static func weeklyKm(context: ModelContext, raceDay: Day, today: Day) -> [Day: Double] {
