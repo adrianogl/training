@@ -30,12 +30,18 @@ enum PlannedBriefingConstants {
     static let hardAnaerobicEffect = 2.0
     static let recoveryHours: [(effect: Double, hours: String)] = [(2, "12–24 h"), (3, "24 h"), (3.5, "24–36 h"), (4, "36–48 h"), (4.5, "48–60 h"), (5, "60–72 h")]
     static let watchTipLength = 40
+    static let goalTimeDistances = [5.0, 10.0]
+    static let goalPaceTolerance = 1.0
 
     static let statDistance = "distância"
     static let statPace = "pace alvo"
     static let statTime = "tempo esperado"
     static let statLoad = "carga estimada"
     static let freePace = "livre"
+    static let statGoalPaceFormat = "pace da meta de %@ km"
+    static let tagGoalFasterFormat = "Alvo %d s/km mais lento que a meta"
+    static let tagGoalSlowerFormat = "Alvo %d s/km mais rápido que a meta"
+    static let tagGoalOnPace = "Alvo no pace da meta"
 
     static let summaryLong = "Longão no pace alvo do começo ao fim, sem acelerar nos últimos quilômetros."
     static let summaryLongestFormat = " É o mais longo do bloco até agora: %@ km."
@@ -91,6 +97,11 @@ enum PlannedBriefingConstants {
     static let attentionRecoveryShortFormat = "Só %d dia(s) desde o último treino forte. Se as pernas estiverem pesadas, reduza."
     static let attentionReadinessTitle = "Prontidão baixa"
     static let attentionReadinessFormat = "Prontidão %d. Veja a versão reduzida abaixo."
+
+    static let attentionGoalLongTitle = "Meta sem pausas"
+    static let attentionGoalLongPauseFormat = "No longão de %@ você parou no km %@ por %d s. Tome água ou gel antes desse km para não parar."
+    static let attentionGoalLongCleanFormat = "O último longão (%@) foi sem pausas. Repita o ritmo e a hidratação."
+    static let attentionGoalLongNoDataFormat = "A meta é %@ km sem pausas a %@/km. Ainda não há longão com dado de pausas."
 
     static let planBLowTitleFormat = "Prontidão abaixo de %d ou noite ruim"
     static let planBLongFormat = "Faça %@ km em Z2, a %@/km."

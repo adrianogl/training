@@ -38,7 +38,8 @@ enum PlannedBriefingLoader {
             weather: weather,
             course: course,
             completed: completed(runs.first { $0.localDay == plan.day }),
-            startHour: startHour(planDay: planDay, today: today, now: now, calendar: calendar)
+            startHour: startHour(planDay: planDay, today: today, now: now, calendar: calendar),
+            goals: (try? goalSnapshots(context: context, today: today)) ?? []
         )
     }
 

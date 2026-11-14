@@ -166,7 +166,7 @@ struct WorkoutDetailView: View {
         return PlannedBriefingBuilder.briefing(BriefingInput(
             plan: input.plan, today: input.today, similar: input.similar, readiness: input.readiness,
             weekDoneKm: input.weekDoneKm, weekPlannedKm: input.weekPlannedKm, weekGoalKm: input.weekGoalKm,
-            daysSinceHard: input.daysSinceHard, race: input.race, weather: [], course: nil, completed: done
+            daysSinceHard: input.daysSinceHard, race: input.race, weather: [], course: nil, completed: done, goals: input.goals
         ))
     }
 

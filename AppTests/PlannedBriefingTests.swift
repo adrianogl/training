@@ -1,8 +1,11 @@
 import FITReader
 import Foundation
 import GarminAPI
+import Insights
+import Storage
 import Testing
 import TrainingCore
+import WorkoutAnalysis
 @testable import trAIning
 
 @Suite struct PlannedBriefingTests {
@@ -34,14 +37,81 @@ import TrainingCore
         _ plan: PlannedWorkout,
         readiness: Int? = 74,
         weather: [HourlyWeather] = [],
-        completed: CompletedCheck? = nil
+        completed: CompletedCheck? = nil,
+        goals: [GoalSnapshot] = []
     ) -> BriefingInput {
         BriefingInput(
             plan: plan, today: today, similar: similar, readiness: readiness,
             weekDoneKm: 31, weekPlannedKm: 51, weekGoalKm: 45, daysSinceHard: 4,
             race: PlannedRaceContext(name: "Meia", days: 45, longestKilometers: 18, longTargetKilometers: 19),
-            weather: weather, course: nil, completed: completed
+            weather: weather, course: nil, completed: completed, goals: goals
         )
+    }
+
+    private static func longGoal(runs: [LongRunCheck]) -> GoalSnapshot {
+        GoalSnapshot(
+            id: UUID(), kind: .continuousLong, distanceKm: 18, targetSeconds: nil, deadline: nil, paceSecondsPerKm: 300,
+            progress: .continuousLong(LongGoalProgress(runs: runs, metCount: 0, bestContinuousKm: nil, achievedOn: nil))
+        )
+    }
+
+    private static func timeGoal(distanceKm: Double, seconds: Double) -> GoalSnapshot {
+        GoalSnapshot(
+            id: UUID(), kind: .time, distanceKm: distanceKm, targetSeconds: seconds, deadline: nil, paceSecondsPerKm: nil,
+            progress: .time(TimeGoalProgress(todaySeconds: nil, gapSeconds: nil, crossing: .noGoal, achievedOn: nil))
+        )
+    }
+
+    private static func check(_ iso: String, pauses: [RunPause]?) -> LongRunCheck {
+        LongRunCheck(activityId: 1, day: Day(iso: iso)!, distanceKm: 18, longestContinuousKm: nil, pauses: pauses, paceSecondsPerKm: 290, met: nil)
+    }
+
+    @Test func longGoalPointsToLastPauseOfLatestRun() {
+        let goal = Self.longGoal(runs: [
+            Self.check("2026-11-01", pauses: [RunPause(startMeters: 4_000, seconds: 20)]),
+            Self.check("2026-11-08", pauses: [RunPause(startMeters: 6_000, seconds: 10), RunPause(startMeters: 12_300, seconds: 35)]),
+        ])
+        let item = PlannedBriefingBuilder.briefing(Self.input(Self.long, goals: [goal])).attention.first { $0.title == "Meta sem pausas" }
+
+        #expect(item?.detail == "No longão de 8 de nov. você parou no km 12,3 por 35 s. Tome água ou gel antes desse km para não parar.")
+        #expect(item?.tone == .warn)
+    }
+
+    @Test func longGoalSaysWhenLastRunHadNoPauses() {
+        let goal = Self.longGoal(runs: [Self.check("2026-11-08", pauses: [])])
+        let item = PlannedBriefingBuilder.briefing(Self.input(Self.long, goals: [goal])).attention.first { $0.title == "Meta sem pausas" }
+
+        #expect(item?.detail == "O último longão (8 de nov.) foi sem pausas. Repita o ritmo e a hidratação.")
+        #expect(item?.tone == .good)
+    }
+
+    @Test func longGoalWithoutHistoryStatesTarget() {
+        let goal = Self.longGoal(runs: [Self.check("2026-11-08", pauses: nil)])
+        let item = PlannedBriefingBuilder.briefing(Self.input(Self.long, goals: [goal])).attention.first { $0.title == "Meta sem pausas" }
+
+        #expect(item?.detail == "A meta é 18 km sem pausas a 5:00/km. Ainda não há longão com dado de pausas.")
+    }
+
+    @Test func longGoalIsIgnoredOutsideLongRuns() {
+        let goal = Self.longGoal(runs: [])
+        let briefing = PlannedBriefingBuilder.briefing(Self.input(Self.intervals, goals: [goal]))
+
+        #expect(!briefing.attention.contains { $0.title == "Meta sem pausas" })
+    }
+
+    @Test func timeGoalShowsPaceNextToTarget() {
+        let goal = Self.timeGoal(distanceKm: 5, seconds: 1_050)
+        let briefing = PlannedBriefingBuilder.briefing(Self.input(Self.intervals, goals: [goal]))
+
+        #expect(briefing.stats.contains(BriefingStat(value: "3:30", label: "pace da meta de 5 km")))
+        #expect(briefing.tags.contains(BriefingTag(text: "Alvo 8 s/km mais lento que a meta", tone: .info)))
+    }
+
+    @Test func timeGoalOnlyForFiveAndTenKilometers() {
+        let goal = Self.timeGoal(distanceKm: 21.1, seconds: 6_000)
+        let briefing = PlannedBriefingBuilder.briefing(Self.input(Self.intervals, goals: [goal]))
+
+        #expect(!briefing.stats.contains { $0.label.hasPrefix("pace da meta") })
     }
 
     @Test func classifiesPlans() {
