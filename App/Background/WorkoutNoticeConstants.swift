@@ -15,4 +15,11 @@ enum WorkoutNoticeConstants {
     static let fallbackName = "Corrida"
     static let statsFormat = "%@ km · %@/km"
     static let heartRateFormat = " · FC média %d"
+    static let metTitleFormat = "Meta cumprida · %@ · %@"
+    static let pauseOne = "Teve 1 pausa."
+    static let pausesFormat = "Teve %d pausas."
+    static let pauseNoteFormat = "%@ Maior trecho contínuo: %@ km. A meta é %@ km sem pausas."
+    static let longNearShare = 0.7
+    static let timeMatchLow = 0.99
+    static let timeMatchHigh = 1.05
 }

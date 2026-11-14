@@ -14,7 +14,8 @@ enum EvolutionChatContextBuilder {
         countdownDays: Int?,
         cards: [MetricCardData],
         records: [PersonalRecord],
-        zoneWeeks: [ZoneWeek]
+        zoneWeeks: [ZoneWeek],
+        goals: [GoalSnapshot] = []
     ) -> WorkoutChatContext {
         var facts = [verdictTitle + ".", sentence]
         facts += indicators.map { indicator in
@@ -26,6 +27,7 @@ enum EvolutionChatContextBuilder {
         if let raceDay = outlook.raceDay { facts.append(String(format: C.raceDayFormat, WorkoutFormat.clock(raceDay.mid))) }
         if let goal = outlook.goalSeconds { facts.append(String(format: C.raceGoalFormat, WorkoutFormat.clock(goal))) }
         if let days = countdownDays { facts.append(String(format: C.countdownFormat, days)) }
+        facts += GoalsChatFacts.lines(goals)
         let order = EvolutionConstants.cardKinds
         return WorkoutChatContext(
             copy: WorkoutChatConstants.evolutionCopy,

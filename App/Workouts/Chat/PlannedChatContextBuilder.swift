@@ -1,10 +1,11 @@
 import Foundation
+import Insights
 import WorkoutAnalysis
 
 enum PlannedChatContextBuilder {
     private typealias C = PlannedChatContextConstants
 
-    static func context(title: String, dateText: String, input: BriefingInput, briefing: PlannedBriefing) -> WorkoutChatContext {
+    static func context(title: String, dateText: String, input: BriefingInput, briefing: PlannedBriefing, goals: [GoalSnapshot] = []) -> WorkoutChatContext {
         var facts = ["\(title), \(dateText).", briefing.summary]
         facts += briefing.stats.map { "\($0.label): \($0.value)." }
         if !briefing.tags.isEmpty { facts.append(C.tagsPrefix + briefing.tags.map(\.text).joined(separator: ", ") + ".") }
@@ -27,6 +28,7 @@ enum PlannedChatContextBuilder {
             facts.append(String(format: C.courseFormat, course.name, TodayText.decimal(course.lapKilometers, fractionDigits: 1), course.laps))
         }
         if !briefing.carry.isEmpty { facts.append(C.carryPrefix + briefing.carry.joined(separator: ", ") + ".") }
+        facts += GoalsChatFacts.lines(goals)
         return WorkoutChatContext(
             copy: WorkoutChatConstants.plannedCopy,
             title: title,

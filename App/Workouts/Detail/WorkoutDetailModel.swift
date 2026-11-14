@@ -1,10 +1,12 @@
 import FITReader
 import Foundation
+import Insights
 import Metrics
 import Narrative
 import Observation
 import Storage
 import SwiftData
+import TrainingCore
 import WorkoutAnalysis
 
 @MainActor @Observable final class WorkoutDetailModel {
@@ -104,7 +106,8 @@ import WorkoutAnalysis
             dailyDescriptor.fetchLimit = 1
             chatContext = WorkoutChatContextBuilder.context(
                 summary: summary, score: analysis.score?.value, analysis: analysisSummary, blocks: blocks,
-                comparison: comparisonRows, daily: (try? context.fetch(dailyDescriptor))?.first, hasPrescription: hasPrescription
+                comparison: comparisonRows, daily: (try? context.fetch(dailyDescriptor))?.first, hasPrescription: hasPrescription,
+                goals: (try? goalSnapshots(context: context, today: Day.today())) ?? []
             )
         }
         shareSource = shareInput.map { input in

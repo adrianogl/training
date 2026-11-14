@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import Storage
 import WorkoutAnalysis
 
@@ -12,7 +13,8 @@ enum WorkoutChatContextBuilder {
         blocks: [WorkoutBlock],
         comparison: [ComparisonRow],
         daily: DailyRecord?,
-        hasPrescription: Bool
+        hasPrescription: Bool,
+        goals: [GoalSnapshot] = []
     ) -> WorkoutChatContext {
         var facts = [
             "\(summary.title), \(summary.dateText).",
@@ -21,6 +23,7 @@ enum WorkoutChatContextBuilder {
         ]
         if let score { facts.append(String(format: C.scoreFormat, score)) }
         facts += analysis.coachFacts
+        facts += GoalsChatFacts.lines(goals)
         return WorkoutChatContext(
             title: summary.title,
             facts: facts.joined(separator: "\n"),

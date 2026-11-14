@@ -1,4 +1,5 @@
 import GarminAPI
+import Insights
 import Storage
 import SwiftData
 import SwiftUI
@@ -59,7 +60,7 @@ struct PlannedWorkoutDetailView: View {
         )
         let built = PlannedBriefingBuilder.briefing(input)
         briefing = built
-        chatContext = PlannedChatContextBuilder.context(title: plan.title, dateText: dateText, input: input, briefing: built)
+        chatContext = PlannedChatContextBuilder.context(title: plan.title, dateText: dateText, input: input, briefing: built, goals: (try? goalSnapshots(context: context, today: Day.today())) ?? [])
     }
 
     private func loadExtras() async {

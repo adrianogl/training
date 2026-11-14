@@ -11,6 +11,7 @@ enum WatchFaceBuilder {
 
     static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int, weather: [HourlyWeather] = []) -> WatchFace? {
         let race = try? targetRace(in: context, today: today)
+        let goal = race == nil ? goalLine(goalSnapshots: (try? goalSnapshots(context: context, today: today)) ?? [], today: today) : nil
         let todayPlan = planned.first { $0.day == today.iso }
         let face = WatchFace(
             vo2Delta: vo2Delta(context: context, today: today),
@@ -24,12 +25,33 @@ enum WatchFaceBuilder {
                     weeklyGoalKm: weeklyGoalKm, weather: weather, course: nil
                 )).watchTip
             },
-            raceName: race?.name,
-            raceDay: race?.day,
-            raceGoal: race?.goalSeconds.map { Int($0.rounded()) },
-            racePrediction: race == nil ? nil : summary.race.raceDay.map { Int($0.mid.rounded()) }
+            raceName: race?.name ?? goal?.name,
+            raceDay: race?.day ?? goal?.day,
+            raceGoal: race?.goalSeconds.map { Int($0.rounded()) } ?? goal?.goalSeconds,
+            racePrediction: race == nil ? goal?.predictionSeconds : summary.race.raceDay.map { Int($0.mid.rounded()) }
         )
         return face == WatchFace() ? nil : face
+    }
+
+    static func goalLine(goalSnapshots: [GoalSnapshot], today: Day) -> WatchGoalLine? {
+        let candidates = goalSnapshots.compactMap { snapshot -> (GoalSnapshot, Day, TimeGoalProgress)? in
+            guard snapshot.kind == .time, let deadline = snapshot.deadline, deadline >= today,
+                  case .time(let progress) = snapshot.progress else { return nil }
+            return (snapshot, deadline, progress)
+        }
+        guard let (snapshot, deadline, progress) = candidates.min(by: { $0.1 < $1.1 }) else { return nil }
+        return WatchGoalLine(
+            name: String(String(format: C.goalNameFormat, kilometersText(snapshot.distanceKm)).prefix(C.goalNameMaxLength)),
+            day: deadline.iso,
+            goalSeconds: snapshot.targetSeconds.map { Int($0.rounded()) },
+            predictionSeconds: progress.todaySeconds.map { Int($0.rounded()) }
+        )
+    }
+
+    private static func kilometersText(_ kilometers: Double) -> String {
+        let whole = kilometers.rounded()
+        if abs(kilometers - whole) < C.goalWholeTolerance || kilometers >= C.goalWholeFrom { return String(Int(whole)) }
+        return TodayText.decimal(kilometers, fractionDigits: 1)
     }
 
     static func vo2Delta(context: ModelContext, today: Day) -> Double? {

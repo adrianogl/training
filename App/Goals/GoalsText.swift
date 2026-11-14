@@ -10,6 +10,10 @@ enum GoalsText {
         C.distances.first { abs($0.km - km) < 0.01 }?.label ?? "\(TodayText.decimal(km, fractionDigits: 1)) km"
     }
 
+    static func kilometers(_ km: Double) -> String {
+        TodayText.decimal(km, fractionDigits: abs(km - km.rounded()) < 0.05 ? 0 : 1)
+    }
+
     static func title(kind: GoalKind, distanceKm: Double, targetSeconds: Double?) -> String {
         switch kind {
         case .time: String(format: C.timeTitleFormat, distanceLabel(distanceKm), WorkoutFormat.clock(targetSeconds ?? 0))
