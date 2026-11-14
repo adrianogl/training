@@ -31,6 +31,8 @@ struct EvolutionOverview: Sendable {
     let outlook: RaceOutlook
     let race: RaceContext
     let markers: [RaceMarker]
+    let zoneWeeks: [ZoneWeek]
+    let records: [PersonalRecord]
 }
 
 struct MetricCardData: Sendable, Identifiable {

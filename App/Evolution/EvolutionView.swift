@@ -84,6 +84,10 @@ struct EvolutionView: View {
             IndicatorsCard(indicators: model.indicators)
             SectionLabel(EvolutionConstants.metricsTitle)
             groups(model)
+            row(weights: [1, 1]) {
+                ZoneWeeksCard(weeks: model.zoneWeeks)
+                RecordsCard(records: model.records, now: .now)
+            }
             HeatmapCard(columns: model.heatmapColumns)
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }

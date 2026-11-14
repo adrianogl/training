@@ -20,6 +20,8 @@ import TrainingCore
     private(set) var cardData: [MetricKind: MetricCardData] = [:]
     private(set) var period: MetricPeriod
     private(set) var heatmap: [Day: Double] = [:]
+    private(set) var zoneWeeks: [ZoneWeek] = []
+    private(set) var records: [PersonalRecord] = []
     private(set) var isLoaded = false
     private(set) var isLoadingCards = false
     var horizon = ProjectionHorizon.untilRace
@@ -40,6 +42,8 @@ import TrainingCore
         guard !Task.isCancelled else { return }
         overall = overview.overall
         heatmap = overview.heatmap
+        zoneWeeks = overview.zoneWeeks
+        records = overview.records
         outlook = overview.outlook
         raceContext = overview.race
         overallSentence = TemplateInsightNarrator.overallSentence(overview.overall.facts)
@@ -123,7 +127,12 @@ import TrainingCore
             priority: target?.priorityLevel.rawValue
         )
         let heatmap = (try? activityHeatmap(context: context, today: today, weeks: C.heatmapWeeks)) ?? [:]
-        return EvolutionOverview(overall: overall, heatmap: heatmap, outlook: outlook, race: race, markers: raceMarkers(context: context))
+        let runs = ((try? context.fetch(FetchDescriptor<ActivityRecord>())) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) && $0.hasStart }
+        return EvolutionOverview(
+            overall: overall, heatmap: heatmap, outlook: outlook, race: race, markers: raceMarkers(context: context),
+            zoneWeeks: EvolutionExtras.zoneWeeks(runs, today: today),
+            records: EvolutionExtras.records(runs)
+        )
     }
 
     nonisolated private static func computeCards(
