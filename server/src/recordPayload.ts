@@ -1,5 +1,5 @@
 import { open, seal } from './cipher.js'
-import { BASE64_PATTERN, DAY_PATTERN, PLAIN_LIMITS, RECORD_CONTEXT_PREFIX } from './constants.js'
+import { BASE64_PATTERN, DAY_PATTERN, GOALS, PLAIN_LIMITS, RECORD_CONTEXT_PREFIX } from './constants.js'
 import type { IncomingRecord, RecordKind, StoredRecord } from './types.js'
 
 type Check = (value: unknown) => boolean
@@ -33,6 +33,19 @@ const RACE_FIELDS: Record<string, Check> = {
   updatedAt: isString,
 }
 
+const GOAL_FIELDS: Record<string, Check> = {
+  id: isText(64),
+  kind: (value) => GOALS.kinds.some((kind) => kind === value),
+  distanceKm: isPositive(GOALS.maxDistanceKm),
+  targetSeconds: optional(isPositive(GOALS.maxTargetSeconds)),
+  deadline: optional(isDay),
+  paceSecondsPerKm: optional(isPositive(GOALS.maxPaceSecondsPerKm)),
+  archived: isBoolean,
+  achievedAt: optional(isDay),
+  createdAt: isString,
+  updatedAt: isString,
+}
+
 const DECISION_FIELDS: Record<string, Check> = {
   activityId: isInteger,
   decision: isText(PLAIN_LIMITS.decision),
@@ -52,11 +65,11 @@ export function plainPayloadError(kind: RecordKind, id: string, payload: string)
   if (value === undefined) {
     return 'invalid_plain_payload'
   }
-  const fields = kind === 'race' ? RACE_FIELDS : DECISION_FIELDS
+  const fields = kind === 'race' ? RACE_FIELDS : kind === 'goal' ? GOAL_FIELDS : DECISION_FIELDS
   if (!Object.entries(fields).every(([name, check]) => check(value[name]))) {
     return 'invalid_plain_payload'
   }
-  const ownId = kind === 'race' ? String(value.id).toLowerCase() : String(value.activityId)
+  const ownId = kind === 'decision' ? String(value.activityId) : String(value.id).toLowerCase()
   return ownId === id.toLowerCase() ? null : 'invalid_plain_payload'
 }
 

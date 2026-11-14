@@ -1,4 +1,4 @@
-export const RECORD_KINDS = ['race', 'decision'] as const
+export const RECORD_KINDS = ['race', 'decision', 'goal'] as const
 export const RECORD_FORMATS = ['sealed', 'plain'] as const
 export const RECORD_CONTEXT_PREFIX = 'record'
 export const PLAIN_LIMITS = { name: 200, priority: 16, city: 200, decision: 32, maxDistance: 1_000_000, maxSeconds: 7 * 24 * 3600 } as const
@@ -148,6 +148,16 @@ export const WEATHER = {
   defaultStartHour: 7,
   coordinateScale: 10,
   timeoutMs: 5000,
+} as const
+
+export const GOALS = {
+  kinds: ['time', 'continuousLong'],
+  maxDistanceKm: 100,
+  minTargetSeconds: 60,
+  maxTargetSeconds: 86_400,
+  minPaceSecondsPerKm: 150,
+  maxPaceSecondsPerKm: 900,
+  maxActive: 20,
 } as const
 
 export const RACES = {

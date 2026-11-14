@@ -143,6 +143,7 @@ public actor RemoteSyncEngine {
         let after = lastPush.map { $0.addingTimeInterval(-C.pushOverlap) } ?? .distantPast
         let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.updatedAt > after }))
         let decisions = try context.fetch(FetchDescriptor<RaceDecisionRecord>(predicate: #Predicate { $0.updatedAt > after }))
+        let goals = try context.fetch(FetchDescriptor<GoalRecord>(predicate: #Predicate { $0.updatedAt > after }))
         var records: [RemoteRecord] = []
         var tooLarge: [RemoteRecordKey] = []
         for race in races {
@@ -164,6 +165,13 @@ public actor RemoteSyncEngine {
                 payload: deleted ? nil : try RemotePayload.plain(decision: decision), format: .plain
             ))
         }
+        for goal in goals {
+            let deleted = goal.deletedAt != nil
+            records.append(RemoteRecord(
+                kind: .goal, id: goal.id.uuidString, updatedAt: goal.updatedAt, deleted: deleted,
+                payload: deleted ? nil : try RemotePayload.plain(goal: GoalTransferItem(goal)), format: .plain
+            ))
+        }
         return (records, tooLarge)
     }
 
@@ -181,7 +189,39 @@ public actor RemoteSyncEngine {
         switch record.kind {
         case .race: try applyRace(record, in: context)
         case .decision: try applyDecision(record, in: context)
+        case .goal: try applyGoal(record, in: context)
         }
+    }
+
+    private func applyGoal(_ record: RemoteRecord, in context: ModelContext) throws -> Bool {
+        guard let id = UUID(uuidString: record.id) else { throw RemoteSyncError.decoding }
+        let local = try Self.goal(id, in: context)
+        if record.deleted, let local, local.deletedAt != nil {
+            context.delete(local)
+            return false
+        }
+        switch RemoteMerge.action(remoteUpdatedAt: record.updatedAt, remoteDeleted: record.deleted, localUpdatedAt: local?.updatedAt) {
+        case .insert:
+            var item = try openGoal(record)
+            item.id = id
+            context.insert(item.makeRecord())
+        case .replace:
+            guard let local else { return false }
+            try openGoal(record).apply(to: local)
+        case .delete:
+            guard let local else { return false }
+            context.delete(local)
+        case .keepLocal, .ignore:
+            return false
+        }
+        return true
+    }
+
+    private func openGoal(_ record: RemoteRecord) throws -> GoalTransferItem {
+        guard let payload = record.payload else { throw RemoteSyncError.decoding }
+        var item = record.format == .plain ? try RemotePayload.decodeGoal(payload) : try RemotePayload.openGoal(payload, id: record.id, key: key)
+        item.updatedAt = record.updatedAt
+        return item
     }
 
     private func applyRace(_ record: RemoteRecord, in context: ModelContext) throws -> Bool {
@@ -254,11 +294,20 @@ public actor RemoteSyncEngine {
         case .decision:
             guard let activityId = Int64(key.id), let local = try Self.decision(activityId, in: context), local.deletedAt != nil else { return }
             context.delete(local)
+        case .goal:
+            guard let id = UUID(uuidString: key.id), let local = try Self.goal(id, in: context), local.deletedAt != nil else { return }
+            context.delete(local)
         }
     }
 
     private static func race(_ id: UUID, in context: ModelContext) throws -> RaceRecord? {
         var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id })
+        descriptor.fetchLimit = 1
+        return try context.fetch(descriptor).first
+    }
+
+    private static func goal(_ id: UUID, in context: ModelContext) throws -> GoalRecord? {
+        var descriptor = FetchDescriptor<GoalRecord>(predicate: #Predicate { $0.id == id })
         descriptor.fetchLimit = 1
         return try context.fetch(descriptor).first
     }

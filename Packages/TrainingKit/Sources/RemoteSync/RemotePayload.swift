@@ -27,6 +27,18 @@ public enum RemotePayload {
         try plain(RemoteDecisionPayload(activityId: decision.activityId, decision: decision.decision))
     }
 
+    public static func plain(goal item: GoalTransferItem) throws -> String {
+        try plain(item)
+    }
+
+    public static func decodeGoal(_ text: String) throws -> GoalTransferItem {
+        try decode(text)
+    }
+
+    public static func openGoal(_ text: String, id: String, key: SymmetricKey) throws -> GoalTransferItem {
+        try open(text, context: context(.goal, id), key: key)
+    }
+
     public static func decodeRace(_ text: String) throws -> RaceTransferItem {
         try decode(text)
     }

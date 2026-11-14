@@ -17,6 +17,7 @@ private struct Harness {
 
     func races() throws -> [RaceRecord] { try context.fetch(FetchDescriptor<RaceRecord>()) }
     func decisions() throws -> [RaceDecisionRecord] { try context.fetch(FetchDescriptor<RaceDecisionRecord>()) }
+    func goals() throws -> [GoalRecord] { try context.fetch(FetchDescriptor<GoalRecord>()) }
     func state() throws -> SyncState? { try context.fetch(FetchDescriptor<SyncState>()).first }
 }
 
@@ -301,5 +302,45 @@ private func remoteTombstone(_ kind: RemoteRecordKind, id: String, updatedAt: Da
         #expect(race.name == "Meia editada no site")
         #expect(race.goalSeconds == 5_940)
         #expect(try h.decisions().map(\.activityId) == [31])
+    }
+
+    @Test func pushesGoalsAsPlainJSON() async throws {
+        let time = GoalRecord(kind: .time, distanceKm: 10, targetSeconds: 2_400, deadline: "2027-03-15", createdAt: base, updatedAt: base.addingTimeInterval(10))
+        let archived = GoalRecord(kind: .continuousLong, distanceKm: 16, paceSecondsPerKm: 290, archived: true, createdAt: base, updatedAt: base.addingTimeInterval(20), deletedAt: base.addingTimeInterval(20))
+        let h = try harness([pushed(cursor: 3), page([], cursor: 3)]) { context in
+            context.insert(SyncState(remoteCursor: 1, remoteLastPush: base))
+            context.insert(time)
+            context.insert(archived)
+        }
+
+        _ = try await h.engine.sync()
+
+        let records = try #require(h.transport.pushBodies.first)
+        let live = try #require(records.first { $0["id"] as? String == time.id.uuidString })
+        #expect(live["kind"] as? String == "goal")
+        let item = try RemotePayload.decodeGoal(try #require(live["payload"] as? String))
+        #expect(item.kind == .time)
+        #expect(item.targetSeconds == 2_400)
+        #expect(item.deadline == "2027-03-15")
+        let tombstone = try #require(records.first { $0["id"] as? String == archived.id.uuidString })
+        #expect(tombstone["deleted"] as? Bool == true)
+    }
+
+    @Test func appliesGoalCreatedOnTheSite() async throws {
+        let id = UUID()
+        let payload = #"{"achievedAt":null,"archived":false,"createdAt":"2026-11-14T15:00:00.000Z","deadline":null,"distanceKm":16,"id":"\#(id.uuidString)","kind":"continuousLong","paceSecondsPerKm":290,"targetSeconds":null,"updatedAt":"2026-11-14T15:00:00.000Z"}"#
+        let remote = RemoteRecord(kind: .goal, id: id.uuidString, updatedAt: base, deleted: false, payload: payload, seq: 7, format: .plain)
+        let h = try harness([page([remote], cursor: 7)]) { context in
+            context.insert(SyncState(remoteCursor: 6, remoteLastPush: syncTime))
+        }
+
+        let report = try await h.engine.sync()
+
+        #expect(report.applied == 1)
+        let goal = try #require(try h.goals().first)
+        #expect(goal.id == id)
+        #expect(goal.goalKind == .continuousLong)
+        #expect(goal.paceSecondsPerKm == 290)
+        #expect(goal.targetSeconds == nil)
     }
 }

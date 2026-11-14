@@ -97,6 +97,10 @@ As provas e as decisões de resultado continuam na tabela `records`, no mesmo pr
 | `POST /api/v1/races` | Corpo `{"name","day","distance","goalSeconds","priority","startTime","city"}`. 201 `{"id"}` |
 | `PUT /api/v1/races?id=` | Mesmo corpo; mantém GPX, resultado e alvo congelado. 409 `race_locked` para prova no formato antigo |
 | `DELETE /api/v1/races?id=` | 204; grava tombstone que o app recebe no pull |
+| `GET /api/v1/goals` | `{"today","goals":[...]}`: metas ativas primeiro (por criação), depois as arquivadas |
+| `POST /api/v1/goals` | Tempo: `{"kind":"time","distanceKm","targetSeconds","deadline"}` (prazo opcional). Longão sem pausas: `{"kind":"continuousLong","distanceKm","paceSecondsPerKm"}`. `archived` opcional. 201 `{"id"}`; 409 `too_many_goals` acima de 20 ativas |
+| `PUT /api/v1/goals?id=` | Mesmo corpo. Mudar o alvo limpa `achievedAt`. 409 `goal_locked` para meta cifrada no formato antigo |
+| `DELETE /api/v1/goals?id=` | 204; grava tombstone que o app recebe no pull |
 
 As voltas das corridas do bloco vêm de `/activity-service/activity/{id}/splits`, 15 por chamada, e ficam cifradas em `activity_laps`. A previsão do tempo vem do Open-Meteo, só a 16 dias da prova, pelo primeiro ponto do GPX ou pela cidade.
 

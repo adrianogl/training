@@ -302,6 +302,26 @@ export interface RaceItem {
   updatedAt: string
 }
 
+export type GoalKind = 'time' | 'continuousLong'
+
+export interface GoalItem {
+  id: string
+  kind: GoalKind
+  distanceKm: number
+  targetSeconds: number | null
+  deadline: string | null
+  paceSecondsPerKm: number | null
+  archived: boolean
+  achievedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface StoredGoal {
+  id: string
+  goal: GoalItem | null
+}
+
 export interface StoredRace {
   id: string
   race: RaceItem | null

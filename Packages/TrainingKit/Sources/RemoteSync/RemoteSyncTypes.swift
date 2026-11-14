@@ -3,6 +3,7 @@ import Foundation
 public enum RemoteRecordKind: String, Codable, Sendable {
     case race
     case decision
+    case goal
 }
 
 public struct RemoteRecord: Codable, Equatable, Sendable {
