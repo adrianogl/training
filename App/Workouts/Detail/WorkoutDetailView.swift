@@ -10,6 +10,7 @@ struct WorkoutDetailView: View {
     @State private var model: WorkoutDetailModel?
     @State private var showsShare = false
     @State private var planCheck: PlannedBriefing?
+    @State private var goalEntries: [WorkoutGoalEntry] = []
     @State private var showsChat = false
     @Environment(AppModel.self) private var app
 
@@ -37,7 +38,9 @@ struct WorkoutDetailView: View {
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .task(id: activityId) {
-            model = WorkoutDetailModel(activityId: activityId, context: context)
+            let loaded = WorkoutDetailModel(activityId: activityId, context: context)
+            model = loaded
+            goalEntries = WorkoutGoalCheck.entries(activityId: activityId, blocks: loaded.blocks, context: context)
             planCheck = await loadPlanCheck()
         }
         .sheet(isPresented: $showsChat) {
@@ -87,6 +90,9 @@ struct WorkoutDetailView: View {
                 PlanComparisonCard(rows: planCheck.comparison, note: planCheck.comparisonNote)
             }
             WorkoutAnalysisCard(summary: model.analysisSummary)
+            if !goalEntries.isEmpty {
+                WorkoutGoalCard(entries: goalEntries)
+            }
             if model.chatContext != nil {
                 chatButton
             }
