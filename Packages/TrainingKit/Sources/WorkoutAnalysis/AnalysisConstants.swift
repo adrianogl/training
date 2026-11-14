@@ -28,8 +28,8 @@ public enum AnalysisConstants {
     static let sameSpeedTolerance = 0.02
     static let easyBlockZoneLimit = 3
     static let hardZone = 4
-    static let lowReadiness = 50
-    static let highAcuteChronic = 1.5
+    public static let lowReadiness = 50
+    public static let highAcuteChronic = 1.5
     static let maxComparisons = 4
     static let metersPerKilometer = 1_000.0
 }

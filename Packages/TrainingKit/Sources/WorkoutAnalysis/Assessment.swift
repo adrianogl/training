@@ -35,7 +35,11 @@ private func steadyPace(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -
         guard let fastest = paces.min(), let slowest = paces.max() else { return nil }
         let spread = slowest - fastest
         guard spread <= AnalysisConstants.steadyPaceSpread else { return nil }
-        return Finding(group: .positive, kind: .steadyPace, blockOrdinal: position, facts: [FindingFact.spread: spread])
+        return Finding(group: .positive, kind: .steadyPace, blockOrdinal: position, facts: [
+            FindingFact.spread: spread,
+            FindingFact.fastestPace: fastest,
+            FindingFact.slowestPace: slowest,
+        ])
     }
 }
 
@@ -43,9 +47,14 @@ private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> 
     eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let paces = laps.map(pace)
         guard let last = paces.last else { return nil }
-        let fade = last - median(paces)
+        let middle = median(paces)
+        let fade = last - middle
         guard fade >= AnalysisConstants.fadeThreshold else { return nil }
-        return Finding(group: .negative, kind: .paceFade, blockOrdinal: position, facts: [FindingFact.fade: fade])
+        return Finding(group: .negative, kind: .paceFade, blockOrdinal: position, facts: [
+            FindingFact.fade: fade,
+            FindingFact.lastPace: last,
+            FindingFact.medianPace: middle,
+        ])
     }
 }
 
@@ -74,7 +83,11 @@ private func goodRecovery(_ blocks: [WorkoutBlock]) -> [Finding] {
               let peak = active.maxHeartRate, let recovered = recovery.avgHeartRate else { return nil }
         let drop = peak - recovered
         guard drop >= AnalysisConstants.goodRecoveryDrop else { return nil }
-        return Finding(group: .positive, kind: .goodRecovery, blockOrdinal: position, facts: [FindingFact.drop: Double(drop)])
+        return Finding(group: .positive, kind: .goodRecovery, blockOrdinal: position, facts: [
+            FindingFact.drop: Double(drop),
+            FindingFact.peak: Double(peak),
+            FindingFact.recovered: Double(recovered),
+        ])
     }
 }
 
@@ -86,17 +99,27 @@ private func lowerHeartRateThanBefore(_ blocks: [WorkoutBlock], previous: [[Work
         let delta = beforeHeartRate - heartRate
         guard delta >= AnalysisConstants.lowerHeartRateMargin,
               abs(speed / beforeSpeed - 1) <= AnalysisConstants.sameSpeedTolerance else { return nil }
-        return Finding(group: .positive, kind: .lowerHeartRateThanBefore, blockOrdinal: position, facts: [FindingFact.delta: Double(delta)])
+        return Finding(group: .positive, kind: .lowerHeartRateThanBefore, blockOrdinal: position, facts: [
+            FindingFact.delta: Double(delta),
+            FindingFact.heartRate: Double(heartRate),
+            FindingFact.beforeHeartRate: Double(beforeHeartRate),
+            FindingFact.speed: speed,
+        ])
     }
 }
 
 private func blockOffTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
     let offTarget: Set<BlockStatus> = [.faster, .slower, .aboveTarget, .belowTarget]
+    let highestRecovery = blocks.filter { $0.kind == .recovery }.compactMap(\.avgHeartRate).max()
     return blocks.enumerated().compactMap { position, block in
         guard offTarget.contains(block.status) else { return nil }
         var facts: [String: Double] = [:]
         facts[FindingFact.speed] = block.avgSpeed
         facts[FindingFact.heartRate] = block.avgHeartRate.map(Double.init)
+        if position > 0, blocks[position - 1].kind == .recovery, let recovery = blocks[position - 1].avgHeartRate {
+            facts[FindingFact.recoveryHeartRate] = Double(recovery)
+            facts[FindingFact.recoveryHighest] = recovery == highestRecovery ? 1 : 0
+        }
         switch block.prescribed?.target {
         case let .speed(low, high):
             facts[FindingFact.targetLow] = low > 0 ? low : nil
@@ -127,7 +150,10 @@ private func stepIncomplete(_ blocks: [WorkoutBlock]) -> [Finding] {
 private func zoneAboveTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
     blocks.enumerated().compactMap { position, block in
         guard block.kind != .active, let zone = block.dominantZone, zone >= AnalysisConstants.easyBlockZoneLimit else { return nil }
-        return Finding(group: .attention, kind: .zoneAboveTarget, blockOrdinal: position, facts: [FindingFact.zone: Double(zone)])
+        var facts = [FindingFact.zone: Double(zone)]
+        facts[FindingFact.speed] = block.avgSpeed
+        facts[FindingFact.heartRate] = block.avgHeartRate.map(Double.init)
+        return Finding(group: .attention, kind: .zoneAboveTarget, blockOrdinal: position, facts: facts)
     }
 }
 

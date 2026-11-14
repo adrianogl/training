@@ -72,6 +72,8 @@ struct TrainingEffectData: Equatable {
 struct AnalysisItem: Identifiable, Equatable {
     let id: Int
     let text: String
+    let evidence: String?
+    let why: String
     let blockOrdinal: Int?
 }
 

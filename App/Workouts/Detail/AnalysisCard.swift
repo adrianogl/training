@@ -50,8 +50,21 @@ struct AnalysisCard: View {
                             .foregroundStyle(BrandColors.dim)
                     }
                     Text(item.text)
-                        .font(.subheadline)
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(BrandColors.text)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let evidence = item.evidence {
+                        Text(evidence)
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(BrandColors.text)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    }
+                    Text(item.why)
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.dim)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

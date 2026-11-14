@@ -29,6 +29,15 @@ public enum FindingFact {
     public static let seconds = "seconds"
     public static let targetDistance = "targetDistance"
     public static let targetSeconds = "targetSeconds"
+    public static let fastestPace = "fastestPace"
+    public static let slowestPace = "slowestPace"
+    public static let lastPace = "lastPace"
+    public static let medianPace = "medianPace"
+    public static let beforeHeartRate = "beforeHeartRate"
+    public static let peak = "peak"
+    public static let recovered = "recovered"
+    public static let recoveryHeartRate = "recoveryHeartRate"
+    public static let recoveryHighest = "recoveryHighest"
 }
 
 public struct Finding: Codable, Sendable, Equatable {

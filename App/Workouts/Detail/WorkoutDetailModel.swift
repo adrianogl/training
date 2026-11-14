@@ -1,6 +1,7 @@
 import FITReader
 import Foundation
 import Metrics
+import Narrative
 import Observation
 import Storage
 import SwiftData
@@ -88,7 +89,14 @@ import WorkoutAnalysis
         let findings = assessment.positives + assessment.negatives + assessment.attention
         let items = findings.enumerated().compactMap { index, finding -> (Finding, AnalysisItem)? in
             guard index < reading.findings.count else { return nil }
-            return (finding, AnalysisItem(id: index, text: reading.findings[index], blockOrdinal: finding.blockOrdinal))
+            let item = AnalysisItem(
+                id: index,
+                text: reading.findings[index],
+                evidence: FindingDetail.evidence(finding, blocks: blocks),
+                why: FindingDetail.why(finding, blocks: blocks),
+                blockOrdinal: finding.blockOrdinal
+            )
+            return (finding, item)
         }
         let expectedKinds = WorkoutDetailConstants.expectedKinds
         let expected = items.filter { item in item.0.group == .positive && expectedKinds.contains(item.0.kind) }.map { $0.1 }
