@@ -3,7 +3,7 @@ import SwiftUI
 struct WorkoutRow: View {
     let row: WorkoutRowData
     var isSelected = false
-    var chatCount = 0
+    var hasChat = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -22,10 +22,11 @@ struct WorkoutRow: View {
                         if row.hasPrescription {
                             PlannedBadge()
                         }
-                        if chatCount > 0 {
-                            Label("\(chatCount)", systemImage: "bubble.left.and.text.bubble.right")
-                                .font(.caption2.weight(.bold))
+                        if hasChat {
+                            Image(systemName: "sparkles")
+                                .font(.caption.weight(.bold))
                                 .foregroundStyle(BrandColors.fitness)
+                                .accessibilityLabel(WorkoutChatConstants.hasChat)
                         }
                     }
                 }

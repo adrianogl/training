@@ -2,6 +2,8 @@ import Foundation
 
 actor WorkoutChatStore {
     static let shared = WorkoutChatStore()
+    static let races = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.raceFolderName))
+    static let evolution = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.evolutionFolderName))
     static let planned = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.plannedFolderName))
 
     private let folder: URL

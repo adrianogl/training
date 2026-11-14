@@ -176,3 +176,9 @@ struct ResultOption: Identifiable, Equatable, Sendable {
 
     var id: Int64 { activityId }
 }
+
+struct RaceOutlookFacts {
+    let today: Double?
+    let raceDay: Double?
+    let sentence: String?
+}

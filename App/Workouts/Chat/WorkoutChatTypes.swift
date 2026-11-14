@@ -33,6 +33,10 @@ struct WorkoutChatCopy: Sendable {
     let dayDescription: String
     let blocksNote: String
     let dayNote: String
+    var blocksName = "blocos_do_treino"
+    var similarName = "treinos_parecidos"
+    var dayName = "dados_do_dia"
+    var similarNote = WorkoutChatConstants.toolSimilar
 }
 
 struct WorkoutChatContext: Sendable {

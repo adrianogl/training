@@ -117,7 +117,7 @@ struct WorkoutListView: View {
                     .padding(.top, 8)
                     ForEach(week.rows) { row in
                         link(.activity(row.activityId)) {
-                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), chatCount: chatCounts[row.activityId] ?? 0)
+                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0)
                         }
                     }
                 }

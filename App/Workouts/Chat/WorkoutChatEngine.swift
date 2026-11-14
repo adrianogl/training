@@ -17,7 +17,7 @@ actor ChatToolLog {
 }
 
 struct BlocksTool: Tool {
-    let name = "blocos_do_treino"
+    let name: String
     let description: String
     let note: String
     let lines: [String]
@@ -41,8 +41,9 @@ struct BlocksTool: Tool {
 }
 
 struct SimilarRunsTool: Tool {
-    let name = "treinos_parecidos"
+    let name: String
     let description: String
+    let note: String
     let lines: [String]
     let log: ChatToolLog
 
@@ -55,13 +56,13 @@ struct SimilarRunsTool: Tool {
     func call(arguments: Arguments) async throws -> String {
         let text = lines.prefix(max(arguments.count, 1)).joined(separator: "\n")
         let output = text.isEmpty ? "Sem treinos parecidos." : text
-        await log.record(WorkoutChatConstants.toolSimilar, output: output)
+        await log.record(note, output: output)
         return output
     }
 }
 
 struct DayTool: Tool {
-    let name = "dados_do_dia"
+    let name: String
     let description: String
     let note: String
     let line: String?
@@ -99,9 +100,9 @@ actor WorkoutChatEngine {
         if !previous.isEmpty { instructions += "\n\n" + copy.historyHeader + "\n" + previous }
         session = LanguageModelSession(
             tools: [
-                BlocksTool(description: copy.blocksDescription, note: copy.blocksNote, lines: context.blockLines, log: log),
-                SimilarRunsTool(description: copy.similarDescription, lines: context.similarLines, log: log),
-                DayTool(description: copy.dayDescription, note: copy.dayNote, line: context.dayLine, log: log),
+                BlocksTool(name: copy.blocksName, description: copy.blocksDescription, note: copy.blocksNote, lines: context.blockLines, log: log),
+                SimilarRunsTool(name: copy.similarName, description: copy.similarDescription, note: copy.similarNote, lines: context.similarLines, log: log),
+                DayTool(name: copy.dayName, description: copy.dayDescription, note: copy.dayNote, line: context.dayLine, log: log),
             ],
             instructions: instructions
         )

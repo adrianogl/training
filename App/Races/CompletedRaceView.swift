@@ -9,11 +9,15 @@ struct CompletedRaceView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var showsPicker = false
     @State private var showsShare = false
+    @State private var showsChat = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 header
+                if summary.resultSeconds != nil {
+                    AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
+                }
                 pair {
                     resultCard
                     if !summary.splits.isEmpty {
@@ -50,6 +54,10 @@ struct CompletedRaceView: View {
                     Button { showsShare = true } label: { Label(ShareStudioConstants.raceShareTitle, systemImage: "square.and.arrow.up") }
                 }
             }
+        }
+        .sheet(isPresented: $showsChat) {
+            WorkoutChatSheet(activityId: RaceChatContextBuilder.key(summary.info.id), context: RaceChatContextBuilder.completed(summary), store: .races)
+                .presentationSizing(.page)
         }
         .sheet(isPresented: $showsShare) {
             RaceShareView(summary: summary)

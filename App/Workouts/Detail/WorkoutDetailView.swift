@@ -11,7 +11,6 @@ struct WorkoutDetailView: View {
     @State private var showsShare = false
     @State private var planCheck: PlannedBriefing?
     @State private var showsChat = false
-    @State private var chatCount = 0
     @Environment(AppModel.self) private var app
 
     var body: some View {
@@ -41,13 +40,12 @@ struct WorkoutDetailView: View {
             model = WorkoutDetailModel(activityId: activityId, context: context)
             planCheck = await loadPlanCheck()
         }
-        .sheet(isPresented: $showsChat, onDismiss: refreshChatCount) {
+        .sheet(isPresented: $showsChat) {
             if let context = model?.chatContext {
                 WorkoutChatSheet(activityId: activityId, context: context, autoQuestion: Self.debugChatQuestion())
                     .presentationSizing(.page)
             }
         }
-        .task(id: activityId) { refreshChatCount() }
         .sheet(isPresented: $showsShare) {
             if let source = model?.shareSource {
                 ShareStudioView(source: source)
@@ -166,27 +164,8 @@ struct WorkoutDetailView: View {
         ))
     }
 
-    @ViewBuilder
     private var chatButton: some View {
-        if WorkoutChatEngine.isAvailable {
-            Button { showsChat = true } label: {
-                Label(chatCount > 0 ? String(format: WorkoutChatConstants.askFormat, chatCount) : WorkoutChatConstants.ask, systemImage: "sparkles")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(BrandColors.onAccent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-            .buttonStyle(.plain)
-        } else {
-            Label(WorkoutChatConstants.unavailable, systemImage: "sparkles")
-                .font(.caption)
-                .foregroundStyle(BrandColors.dim)
-        }
-    }
-
-    private func refreshChatCount() {
-        Task { chatCount = await WorkoutChatStore.shared.questionCounts()[activityId] ?? 0 }
+        AskIntelligenceButton(title: WorkoutChatConstants.ask) { showsChat = true }
     }
 
     private var notice: some View {

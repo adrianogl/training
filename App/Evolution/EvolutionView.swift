@@ -7,6 +7,7 @@ struct EvolutionView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var model: EvolutionModel?
     @State private var path: [MetricKind] = EvolutionView.initialPath()
+    @State private var showsChat = false
 
     private var syncToken: Date? {
         if case .finished(let date) = app.syncStatus { return date }
@@ -56,6 +57,12 @@ struct EvolutionView: View {
                 }
             }
         }
+        .sheet(isPresented: $showsChat) {
+            if let model {
+                WorkoutChatSheet(activityId: WorkoutChatConstants.evolutionKey, context: chatContext(model), store: .evolution)
+                    .presentationSizing(.page)
+            }
+        }
         .task(id: syncToken) {
             await Task.yield()
             let loaded = EvolutionModel(
@@ -73,6 +80,7 @@ struct EvolutionView: View {
     @ViewBuilder
     private func content(_ model: EvolutionModel) -> some View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
+            AskIntelligenceButton(title: WorkoutChatConstants.askEvolution) { showsChat = true }
             if sizeClass != .regular {
                 periodPicker(model)
             }
@@ -91,6 +99,14 @@ struct EvolutionView: View {
             HeatmapCard(columns: model.heatmapColumns)
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }
+    }
+
+    private func chatContext(_ model: EvolutionModel) -> WorkoutChatContext {
+        EvolutionChatContextBuilder.context(
+            verdictTitle: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators,
+            outlook: model.outlook, countdownDays: model.raceContext.countdownDays,
+            cards: Array(model.cardData.values), records: model.records, zoneWeeks: model.zoneWeeks
+        )
     }
 
     private func periodPicker(_ model: EvolutionModel) -> some View {

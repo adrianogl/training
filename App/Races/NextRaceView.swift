@@ -8,6 +8,7 @@ struct NextRaceView: View {
     let raceId: UUID
     @State private var model: NextRaceModel?
     @State private var showsEditor = false
+    @State private var showsChat = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -15,6 +16,7 @@ struct NextRaceView: View {
             VStack(alignment: .leading, spacing: 12) {
                 if let model, model.isLoaded, let info = model.info {
                     header(model, info: info)
+                    AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
                     pair {
                         goalTile(model, info: info)
                         RaceChecklistCard(items: model.checklist)
@@ -57,6 +59,12 @@ struct NextRaceView: View {
         .sheet(isPresented: $showsEditor, onDismiss: { Task { await reload() } }) {
             RaceEditorSheet(raceId: raceId)
         }
+        .sheet(isPresented: $showsChat) {
+            if let model, let info = model.info {
+                WorkoutChatSheet(activityId: RaceChatContextBuilder.key(raceId), context: chatContext(model, info: info), store: .races)
+                    .presentationSizing(.page)
+            }
+        }
         .task { await reload() }
     }
 
@@ -76,6 +84,15 @@ struct NextRaceView: View {
         let loaded = NextRaceModel(container: app.container, raceId: raceId, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
         await loaded.load()
         model = loaded
+    }
+
+    private func chatContext(_ model: NextRaceModel, info: RaceInfo) -> WorkoutChatContext {
+        RaceChatContextBuilder.next(
+            info: info, today: model.today,
+            outlook: RaceOutlookFacts(today: model.outlook.today, raceDay: model.outlook.raceDay?.mid, sentence: model.goalSummary?.sentence),
+            checklist: model.checklist, blockReading: model.blockReading, strategy: model.strategy,
+            block: model.block, taper: model.taper, targetText: model.targetText
+        )
     }
 
     private func header(_ model: NextRaceModel, info: RaceInfo) -> some View {

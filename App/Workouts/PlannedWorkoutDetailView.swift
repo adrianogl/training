@@ -18,7 +18,6 @@ struct PlannedWorkoutDetailView: View {
     @State private var packed: Set<String> = []
     @State private var chatContext: WorkoutChatContext?
     @State private var showsChat = false
-    @State private var chatCount = 0
 
     private typealias C = PlannedViewConstants
 
@@ -39,10 +38,9 @@ struct PlannedWorkoutDetailView: View {
         .background(BrandBackground())
         .task(id: plan.id) {
             rebuild()
-            refreshChatCount()
             await loadExtras()
         }
-        .sheet(isPresented: $showsChat, onDismiss: refreshChatCount) {
+        .sheet(isPresented: $showsChat) {
             if let chatContext {
                 WorkoutChatSheet(activityId: plan.id, context: chatContext, store: .planned)
                     .presentationSizing(.page)
@@ -50,27 +48,8 @@ struct PlannedWorkoutDetailView: View {
         }
     }
 
-    @ViewBuilder
     private var chatButton: some View {
-        if WorkoutChatEngine.isAvailable {
-            Button { showsChat = true } label: {
-                Label(chatCount > 0 ? String(format: WorkoutChatConstants.askPlannedFormat, chatCount) : WorkoutChatConstants.askPlanned, systemImage: "sparkles")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(BrandColors.onAccent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-            .buttonStyle(.plain)
-        } else {
-            Label(WorkoutChatConstants.unavailable, systemImage: "sparkles")
-                .font(.caption)
-                .foregroundStyle(BrandColors.dim)
-        }
-    }
-
-    private func refreshChatCount() {
-        Task { chatCount = await WorkoutChatStore.planned.questionCounts()[plan.id] ?? 0 }
+        AskIntelligenceButton(title: WorkoutChatConstants.askPlanned) { showsChat = true }
     }
 
     private func rebuild() {
