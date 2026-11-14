@@ -236,6 +236,27 @@ export const DATA_TEXT = {
   analysisSoon: 'A análise bloco a bloco, com o arquivo FIT, chega no módulo de análise de treino.',
 } as const
 
+export const VERDICTS = { hard: 'Pode treinar forte', moderate: 'Treino moderado', rest: 'Dia de descanso' } as const
+
+export const FACTOR_NAMES = { hrv: 'HRV', sleep: 'Sono', bodyBattery: 'Body Battery', load: 'Carga' } as const
+
+export const TODAY_TEXT = {
+  normal: (value: number) => `Seu normal: ${value}`,
+  noHistory: 'O normal aparece com 14 dias de histórico.',
+  garmin: (value: number) => `Garmin: ${value}`,
+  missing: 'sem dado',
+  below: 'abaixo do normal',
+  above: 'acima do normal',
+  load: 'Carga 7 d / 28 d',
+  form: 'Forma',
+  fitness: 'Condicionamento',
+  fatigue: 'Fadiga',
+  focus: 'FOCO DA CARGA · 28 DIAS',
+  focusParts: { lowAerobic: 'Aeróbico leve', highAerobic: 'Aeróbico forte', anaerobic: 'Anaeróbico' },
+  lastWeek: (value: string) => `semana passada ${value}`,
+  average: (value: string) => `média de 4 semanas ${value}`,
+} as const
+
 export const WHATSAPP_URL = 'https://wa.me/'
 export const BRAZIL_PREFIX = '55'
 

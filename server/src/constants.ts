@@ -145,3 +145,4 @@ export const SYNC_BUDGET_MS = 40_000
 export const SYNC_ACTIVITY_PAGE = 50
 export const SYNC_TIME_ZONE = 'America/Sao_Paulo'
 export const CRON_ROUTE = 'cron/garmin-sync'
+export const SYNC_VERSION = 2

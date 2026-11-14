@@ -4,7 +4,8 @@ import { GARMIN_CODE_PATTERN, GARMIN_ROUTE, MAX_BODY_BYTES, SYNC_BUDGET_MS } fro
 import type { Sql } from './db.js'
 import { connectionStatus, deleteConnection, freshSession, saveConnection, savePending, takePending } from './garmin.js'
 import { garminSignIn, garminVerify } from './garminAuth.js'
-import { addDays, localDay, readActivities, readDays, syncAccount } from './garminSync.js'
+import { buildToday, LOAD_HISTORY_DAYS } from './domain/today.js'
+import { addDays, localDay, readActivities, readActivitiesSince, readDays, syncAccount } from './garminSync.js'
 import { GarminError } from './garminError.js'
 import type { GarminEnv } from './types.js'
 import { parseObject } from './validate.js'
@@ -174,4 +175,13 @@ export async function garminCronRoute(request: Request, sql: Sql, env: GarminEnv
     }
   }
   return json(200, { accounts: accounts.length, synced })
+}
+
+export function garminTodayRoute(request: Request, sql: Sql, env: GarminEnv = garminEnvFromProcess()): Promise<Response> {
+  return withAccount(request, sql, env, 'today', async (accountId, key) => {
+    const today = localDay(env.now())
+    const days = await readDays(sql, key, accountId, addDays(today, -35), today)
+    const activities = await readActivitiesSince(sql, key, accountId, addDays(today, -LOAD_HISTORY_DAYS))
+    return json(200, buildToday(days, activities, today))
+  })
 }

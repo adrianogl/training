@@ -1,3 +1,4 @@
+import { bodyBatteryMorningMax } from './domain/readiness.js'
 import type { ActivitySummary, HealthDay } from './types.js'
 
 type Json = Record<string, unknown>
@@ -19,7 +20,22 @@ function isoFromMillis(value: unknown): string | null {
   return millis === null ? null : new Date(millis).toISOString()
 }
 
-export function parseHealthDay(day: string, summaryRaw: unknown, hrvRaw: unknown, sleepRaw: unknown, readinessRaw: unknown): HealthDay {
+export function batterySamples(raw: unknown): [number, number][] {
+  const days = Array.isArray(raw) ? raw.map(obj) : []
+  return days.flatMap((entry) => {
+    const values = Array.isArray(entry.bodyBatteryValuesArray) ? entry.bodyBatteryValuesArray : []
+    return values.flatMap((pair) => {
+      if (!Array.isArray(pair)) {
+        return []
+      }
+      const time = num(pair[0])
+      const value = num(pair[1])
+      return time === null || value === null ? [] : [[time, Math.round(value)] as [number, number]]
+    })
+  })
+}
+
+export function parseHealthDay(day: string, summaryRaw: unknown, hrvRaw: unknown, sleepRaw: unknown, readinessRaw: unknown, batteryRaw: unknown = null): HealthDay {
   const summary = obj(summaryRaw)
   const hrvSummary = obj(obj(hrvRaw).hrvSummary)
   const baseline = obj(hrvSummary.baseline)
@@ -30,6 +46,7 @@ export function parseHealthDay(day: string, summaryRaw: unknown, hrvRaw: unknown
     .filter((entry) => entry.calendarDate === day && num(entry.score) !== null)
     .sort((a, b) => String(b.timestamp ?? '').localeCompare(String(a.timestamp ?? '')))[0]
   const sleepSeconds = num(sleep.sleepTimeSeconds)
+  const sleepEnd = num(sleep.sleepEndTimestampGMT)
   return {
     day,
     restingHeartRate: num(summary.restingHeartRate),
@@ -41,6 +58,7 @@ export function parseHealthDay(day: string, summaryRaw: unknown, hrvRaw: unknown
       atWake: num(summary.bodyBatteryAtWakeTime),
       charged: num(summary.bodyBatteryChargedValue),
       drained: num(summary.bodyBatteryDrainedValue),
+      morningMax: sleepEnd === null ? null : bodyBatteryMorningMax(batterySamples(batteryRaw), sleepEnd),
     },
     sleep:
       sleepSeconds === null || sleepSeconds === 0

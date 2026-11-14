@@ -39,7 +39,7 @@ describe('applyMigrations', () => {
     const first = await applyMigrations(sql, migrationsDir)
     const second = await applyMigrations(sql, migrationsDir)
 
-    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql', '007_garmin.sql', '008_invites.sql', '009_garmin_data.sql'])
+    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql', '007_garmin.sql', '008_invites.sql', '009_garmin_data.sql', '010_sync_version.sql'])
     expect(second).toEqual([])
   })
 

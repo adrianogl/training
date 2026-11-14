@@ -813,3 +813,62 @@ h2 {
 .zone span:last-child {
   text-align: right;
 }
+
+.drivers {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.driver {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) 56px;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.driver > div:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.driver-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--track);
+}
+
+.driver-bar::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  bottom: -4px;
+  width: 1px;
+  background: var(--line-2);
+}
+
+.driver-bar i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 5px;
+}
+
+.driver-points {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--track);
+}

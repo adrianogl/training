@@ -21,6 +21,7 @@ import {
   garminSessionRoute,
   garminStatusRoute,
   garminSyncRoute,
+  garminTodayRoute,
   garminVerifyRoute,
 } from './garminRoutes.js'
 import {
@@ -56,6 +57,7 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/status': { GET: (request, sql) => garminStatusRoute(request, sql), DELETE: (request, sql) => garminStatusRoute(request, sql) },
   'garmin/session': { GET: (request, sql) => garminSessionRoute(request, sql) },
   'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
+  'garmin/today': { GET: (request, sql) => garminTodayRoute(request, sql) },
   'garmin/days': { GET: (request, sql) => garminDaysRoute(request, sql) },
   'garmin/activities': { GET: (request, sql) => garminActivitiesRoute(request, sql) },
   'cron/garmin-sync': { GET: (request, sql) => garminCronRoute(request, sql) },

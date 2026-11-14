@@ -155,3 +155,32 @@ export interface SyncProgress {
 }
 
 export type SyncState = { kind: 'idle' } | { kind: 'running'; days: number } | { kind: 'done'; at: Date } | { kind: 'error'; message: string } | { kind: 'disconnected' }
+
+export interface ReadinessFactor {
+  component: 'hrv' | 'sleep' | 'bodyBattery' | 'load'
+  todayScore: number | null
+  normalScore: number | null
+  points: number | null
+  weight: number
+}
+
+export interface TodaySummary {
+  day: string
+  readiness: { score: number; normal: number | null; verdict: 'rest' | 'moderate' | 'hard'; factors: ReadinessFactor[] } | null
+  raw: {
+    hrvLastNight: number | null
+    hrvBalancedLow: number | null
+    hrvBalancedUpper: number | null
+    sleepScore: number | null
+    sleepSeconds: number | null
+    bodyBatteryMorningMax: number | null
+    acuteChronic: number | null
+    restingHeartRate: number | null
+    stress: number | null
+  }
+  recoveryMinutes: number | null
+  garminReadiness: number | null
+  fitness: { fitness: number; fatigue: number; form: number } | null
+  week: { perDay: Record<string, number>; total: number; lastWeek: number; average4Weeks: number; recentWeeks: { start: string; kilometers: number }[] }
+  focus: { lowAerobic: number; highAerobic: number; anaerobic: number } | null
+}
