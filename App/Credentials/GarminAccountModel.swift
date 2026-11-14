@@ -1,6 +1,7 @@
 import Foundation
 import GarminAPI
 import Observation
+import RemoteSync
 
 @MainActor @Observable final class GarminAccountModel {
     private typealias C = GarminAccountConstants
@@ -11,6 +12,7 @@ import Observation
     @ObservationIgnored private let store: KeychainGarminSessionStore
     @ObservationIgnored private let makeTransport: @Sendable () -> any HTTPTransport
     @ObservationIgnored private var pending: GarminAccountAuth?
+    @ObservationIgnored var link: (@MainActor () -> GarminLinkClient?)?
 
     init(store: KeychainGarminSessionStore, makeTransport: @escaping @Sendable () -> any HTTPTransport) {
         self.store = store
@@ -19,10 +21,22 @@ import Observation
     }
 
     var client: GarminAccountClient? {
-        isSignedIn ? GarminAccountClient(transport: makeTransport(), store: store) : nil
+        guard isSignedIn else { return nil }
+        guard let link = link?() else { return GarminAccountClient(transport: makeTransport(), store: store) }
+        return GarminAccountClient(transport: makeTransport(), store: store, refresher: { _ in try await link.session() })
+    }
+
+    func adoptAccountSession() async {
+        guard !isSignedIn, let link = link?() else { return }
+        guard let session = try? await link.session() else { return }
+        finish(session)
     }
 
     func signIn(email: String, password: String) async {
+        if let link = link?() {
+            await signInThroughAccount(link, email: email, password: password)
+            return
+        }
         let auth = GarminAccountAuth(transport: makeTransport())
         pending = auth
         phase = .working
@@ -41,7 +55,19 @@ import Observation
     }
 
     func verify(code: String) async {
-        guard case .needsCode(let challenge) = phase, let pending else { return }
+        guard case .needsCode(let challenge) = phase else { return }
+        if let link = link?() {
+            phase = .working
+            do {
+                _ = try await link.verify(code: code.trimmingCharacters(in: .whitespacesAndNewlines))
+                finish(try await link.session())
+            } catch {
+                phase = error as? GarminLinkError == .loginExpired ? .idle : .needsCode(challenge)
+                message = Self.text(for: error)
+            }
+            return
+        }
+        guard let pending else { return }
         phase = .working
         do {
             finish(try await pending.verify(code: code.trimmingCharacters(in: .whitespacesAndNewlines), challenge: challenge))
@@ -52,10 +78,33 @@ import Observation
     }
 
     func signOut() {
+        if let link = link?() {
+            Task { try? await link.disconnect() }
+        }
+        forgetLocal()
+    }
+
+    func forgetLocal() {
         try? store.delete()
         isSignedIn = false
         phase = .idle
         message = nil
+    }
+
+    private func signInThroughAccount(_ link: GarminLinkClient, email: String, password: String) async {
+        phase = .working
+        message = nil
+        do {
+            switch try await link.connect(email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password) {
+            case .connected:
+                finish(try await link.session())
+            case .needsCode(let method):
+                phase = .needsCode(GarminMFAChallenge(method: method))
+                message = String(format: C.codeSentFormat, C.methodNames[method] ?? method)
+            }
+        } catch {
+            fail(error)
+        }
     }
 
     private func finish(_ session: GarminAccountSession) {
@@ -77,7 +126,16 @@ import Observation
     }
 
     private static func text(for error: Error) -> String {
-        switch error as? GarminAccountError {
+        if let linkError = error as? GarminLinkError {
+            return switch linkError {
+            case .invalidCredentials: C.invalidCredentials
+            case .invalidCode: C.invalidCode
+            case .rateLimited: C.rateLimited
+            case .loginExpired: C.loginExpired
+            default: C.failed
+            }
+        }
+        return switch error as? GarminAccountError {
         case .invalidCredentials: C.invalidCredentials
         case .invalidCode: C.invalidCode
         case .rateLimited: C.rateLimited

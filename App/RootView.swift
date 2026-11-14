@@ -25,6 +25,9 @@ struct RootView: View {
                 IntroView().transition(.opacity)
             }
         }
+        .task(id: model.account.token) {
+            await model.garminAccount.adoptAccountSession()
+        }
         .task {
             guard showsIntro else { return }
             try? await Task.sleep(for: reduceMotion ? AppConstants.introReducedMotionDuration : AppConstants.introDuration)

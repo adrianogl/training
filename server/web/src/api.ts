@@ -1,6 +1,6 @@
 import { DEVICE_LABEL } from './constants'
 import { readToken } from './session'
-import type { ApiResult, AuthResult, SessionInfo, User } from './types'
+import type { ApiResult, AuthResult, GarminStatus, GarminStep, SessionInfo, User } from './types'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -43,4 +43,8 @@ export const api = {
   sessions: () => call<{ sessions: SessionInfo[] }>('GET', 'auth/sessions'),
   endSession: (id: string) => call<void>('DELETE', `auth/sessions?id=${encodeURIComponent(id)}`),
   deleteAccount: () => call<void>('DELETE', 'account'),
+  garminStatus: () => call<GarminStatus>('GET', 'garmin/status'),
+  garminConnect: (email: string, password: string) => call<GarminStep>('POST', 'garmin/connect', { email, password }),
+  garminVerify: (code: string) => call<GarminStep>('POST', 'garmin/verify', { code }),
+  garminDisconnect: () => call<void>('DELETE', 'garmin/status'),
 }

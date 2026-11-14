@@ -2,7 +2,8 @@ import Foundation
 
 enum GarminAccountConstants {
     static let sectionTitle = "Conta Garmin"
-    static let footer = "Dá acesso aos treinos planejados e aos percursos que você cria no Garmin Connect. O app guarda só a sessão no Keychain, nunca a senha."
+    static let footer = "A senha vai para o servidor do trAIning, que entra na Garmin por você e não guarda a senha, só a sessão cifrada. Conectada uma vez, vale no app e no site."
+    static let loginExpired = "O código venceu. Entre de novo para receber outro."
     static let emailPlaceholder = "E-mail da conta Garmin"
     static let passwordPlaceholder = "Senha"
     static let codePlaceholder = "Código de verificação"

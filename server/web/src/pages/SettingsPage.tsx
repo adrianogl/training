@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import { GarminCard } from '../components/GarminCard'
 import { Link } from '../components/Link'
 import { Message } from '../components/Message'
 import { TEXT } from '../constants'
@@ -125,6 +126,7 @@ export function SettingsPage({ user, onUserChange, onSignedOut }: SettingsProps)
           </button>
         </div>
       </div>
+      <GarminCard />
     </section>
   )
 }

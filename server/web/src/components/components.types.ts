@@ -30,3 +30,7 @@ export interface AppLayoutProps {
   user: User | null
   children: ReactNode
 }
+
+export interface GarminModalProps {
+  onClose: (connected: boolean) => void
+}

@@ -12,12 +12,24 @@ public actor GarminAccountClient {
     private let store: GarminSessionStore
     private let auth: GarminAccountAuth
     private let now: @Sendable () -> Date
+    private let refresher: (@Sendable (GarminAccountSession) async throws -> GarminAccountSession)?
 
-    public init(transport: HTTPTransport, store: GarminSessionStore, now: @escaping @Sendable () -> Date = { .now }) {
+    public init(
+        transport: HTTPTransport,
+        store: GarminSessionStore,
+        now: @escaping @Sendable () -> Date = { .now },
+        refresher: (@Sendable (GarminAccountSession) async throws -> GarminAccountSession)? = nil
+    ) {
         self.transport = transport
         self.store = store
         self.auth = GarminAccountAuth(transport: transport)
         self.now = now
+        self.refresher = refresher
+    }
+
+    private func renew(_ session: GarminAccountSession) async throws -> GarminAccountSession {
+        if let refresher { return try await refresher(session) }
+        return try await auth.refresh(session)
     }
 
     public func get(_ pathAndQuery: String) async throws -> Data {
@@ -31,12 +43,12 @@ public actor GarminAccountClient {
     private func send(_ pathAndQuery: String, method: String, body: Data?) async throws -> Data {
         var session = try currentSession()
         if session.expiresAt.timeIntervalSince(now()) < E.refreshMargin {
-            session = try await auth.refresh(session)
+            session = try await renew(session)
             try store.save(session)
         }
         let (data, response) = try await transport.send(request(pathAndQuery, token: session.accessToken, method: method, body: body))
         if response.statusCode == 401 {
-            let renewed = try await auth.refresh(session)
+            let renewed = try await renew(session)
             try store.save(renewed)
             let (retryData, retry) = try await transport.send(request(pathAndQuery, token: renewed.accessToken, method: method, body: body))
             guard (200..<300).contains(retry.statusCode) else { throw GarminAccountError.unexpectedResponse(status: retry.statusCode) }

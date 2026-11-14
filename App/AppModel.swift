@@ -82,6 +82,11 @@ import TrainingCore
         self.account = AccountModel(transport: transport, baseURL: remoteBaseURL)
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
         account.legacyKey = { [weak self] in self?.remoteSync.legacyBearer() }
+        garminAccount.link = { [weak self] in
+            guard let self, let token = self.account.token else { return nil }
+            return GarminLinkClient(baseURL: remoteBaseURL, token: token, transport: transport)
+        }
+        account.onSignedOut = { [weak self] in self?.garminAccount.forgetLocal() }
     }
 
     static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppModel {

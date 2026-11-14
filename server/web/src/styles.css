@@ -374,3 +374,60 @@ h2 {
     font-size: 28px;
   }
 }
+
+.modal {
+  width: min(480px, calc(100vw - 32px));
+  padding: 28px 32px 32px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: #121517;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal:not([open]) {
+  display: none;
+}
+
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal .form {
+  max-width: none;
+}
+
+.modal .field input {
+  background: var(--card-2);
+}
+
+.pill {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  background: var(--card-2);
+  font-weight: 700;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--card-2);
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.modal .field .code-input {
+  height: 58px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 12px;
+  text-align: center;
+}

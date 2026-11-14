@@ -36,3 +36,15 @@ export interface NavItem {
   label: string
   icon: string
 }
+
+export interface GarminStatus {
+  connected: boolean
+  connectedAt: string | null
+}
+
+export interface GarminStep {
+  status: 'connected' | 'needs_code'
+  method?: string
+}
+
+export type GarminModalStep = 'credentials' | 'code' | 'done'
