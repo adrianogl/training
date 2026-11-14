@@ -138,6 +138,10 @@ import SwiftData
         return false
     }
 
+    func legacyBearer() -> String? {
+        currentKey().flatMap { try? RemoteKeys(syncKey: $0).bearer }
+    }
+
     func clearPasteError() {
         pasteError = nil
     }

@@ -19,6 +19,7 @@ import TrainingCore
     let autoSyncEnabled: Bool
     let remoteSync: RemoteSyncModel
     let garminAccount: GarminAccountModel
+    let account: AccountModel
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
@@ -78,7 +79,9 @@ import TrainingCore
             store: KeychainGarminSessionStore(keychain: garminSessionStore),
             makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
         )
+        self.account = AccountModel(transport: transport, baseURL: remoteBaseURL)
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
+        account.legacyKey = { [weak self] in self?.remoteSync.legacyBearer() }
     }
 
     static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppModel {

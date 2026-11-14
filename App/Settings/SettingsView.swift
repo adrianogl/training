@@ -73,6 +73,7 @@ struct SettingsView: View {
 
     private func status(_ group: SettingsGroup) -> String {
         switch group {
+        case .account: model.account.user.map { "\($0.name) · \($0.email)" } ?? AccountConstants.accountTitle
         case .garmin: [model.hasKey ? "sync \(lastSyncText)" : "sem chave da API", model.garminAccount.isSignedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut].joined(separator: " · ")
         case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
@@ -87,6 +88,8 @@ struct SettingsView: View {
     private func form(for group: SettingsGroup) -> some View {
         Form {
             switch group {
+            case .account:
+                AccountSettingsView(model: model.account)
             case .garmin:
                 GarminAccountSection(model: model.garminAccount)
                 keySection

@@ -1,12 +1,13 @@
 import SwiftUI
 
 enum SettingsGroup: String, CaseIterable, Identifiable, Hashable {
-    case garmin, devices, watch, notice, goals, appearance, data
+    case account, garmin, devices, watch, notice, goals, appearance, data
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
+        case .account: "Conta"
         case .garmin: "Garmin"
         case .devices: "Entre aparelhos"
         case .watch: "Relógio"
@@ -19,6 +20,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable {
 
     var systemImage: String {
         switch self {
+        case .account: "person.crop.circle.fill"
         case .garmin: "triangle.fill"
         case .devices: "ipad.and.iphone"
         case .watch: "applewatch"
@@ -31,6 +33,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable {
 
     var tint: Color {
         switch self {
+        case .account: Color(hex: 0x4E6A00)
         case .garmin: Color(hex: 0x1F7AE0)
         case .devices: Color(hex: 0x6E5BD6)
         case .watch: Color(hex: 0x2C2F36)

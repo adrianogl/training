@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RootView: View {
+    @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsIntro = !RootView.isTestHost
@@ -11,7 +12,9 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if sizeClass == .regular {
+            if !model.account.isSignedIn && !Self.isTestHost {
+                AccountGateView(model: model.account)
+            } else if sizeClass == .regular {
                 splitView
             } else {
                 tabView
