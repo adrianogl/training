@@ -29,11 +29,7 @@ class ReadinessServiceDelegate extends System.ServiceDelegate {
 
     function onResponse(responseCode as Number, data as Dictionary or String or Null) as Void {
         if (responseCode == 200 && data instanceof Dictionary) {
-            Background.exit({
-                ReadinessBridge.DAY => data[ReadinessBridge.DAY],
-                ReadinessBridge.SCORE => data[ReadinessBridge.SCORE],
-                ReadinessBridge.VERDICT => data[ReadinessBridge.VERDICT]
-            });
+            Background.exit(data);
             return;
         }
         Background.exit(responseCode);

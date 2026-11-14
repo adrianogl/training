@@ -1,6 +1,6 @@
 # Mostrador trAIning (Forerunner 965)
 
-Mostrador Connect IQ com o layout Prontidão: anel de segundos, data, temperatura e umidade, bateria, hora com segundos, VO2max, km da semana com barra de progresso, próxima prova com meta e previsão, e horário da próxima reunião.
+Mostrador Connect IQ com o layout Prontidão: anel de segundos, data, temperatura e umidade, bateria, hora com segundos, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta, treino de hoje com a estrutura colorida por zona e próxima prova com previsão e meta.
 
 ## De onde vem cada dado
 
@@ -8,20 +8,18 @@ Mostrador Connect IQ com o layout Prontidão: anel de segundos, data, temperatur
 | --- | --- |
 | Temperatura e umidade | `Weather.getCurrentConditions()` |
 | Bateria | `System.getSystemStats().battery` |
-| VO2max, km da semana, próxima reunião, previsão de prova | complications do sistema (`Toybox.Complications`) |
-| Meta semanal, nome, data, distância e meta da prova | configurações do mostrador no app Connect IQ do celular |
-| Prontidão | servidor de sync do app trAIning, buscado em background a cada 15 min e guardado em `Application.Storage` |
+| VO2max e km feitos na semana | complications do sistema (`Toybox.Complications`) |
+| Prontidão, variação do VO2 em 3 meses, km planejados e meta da semana, treino de hoje, prova com meta e previsão | servidor de sync do app trAIning, buscado em background a cada 15 min e guardado em `Application.Storage` |
+| Prova, meta semanal e previsão sem o app | configurações do mostrador no Garmin Connect e race predictor do relógio |
 
-A prontidão ocupa o terceiro número, com o selo AI. A previsão é a do relógio (race predictor da Garmin), por isso aparece sem o selo AI.
-
-A complication de calendário devolve só o horário do próximo evento, sem o nome.
+A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: abaixo de 40 descanso, de 40 a 69 moderado, a partir de 70 forte. O treino de hoje e os km planejados só aparecem se a nota for do dia. A prova e a previsão vêm do app quando ele manda; sem isso, o mostrador usa as configurações e o race predictor da Garmin.
 
 ## Prontidão do app
 
 1. No app trAIning do iPhone, gerar o token em Ajustes › Sincronização › Relógio.
 2. No Garmin Connect do celular, abrir o mostrador e colar o token em Configurações › Token do relógio.
 
-O mostrador busca a nota em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
+O mostrador busca a nota e os dados do mostrador em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
 
 ## Build
 

@@ -56,12 +56,14 @@ class TrainingFaceApp extends Application.AppBase {
         Application.Storage.setValue(StorageKeys.READINESS, score);
         Application.Storage.setValue(StorageKeys.READINESS_DAY, day);
         Application.Storage.setValue(StorageKeys.READINESS_VERDICT, data[ReadinessBridge.VERDICT]);
+        Application.Storage.setValue(StorageKeys.FACE, data);
     }
 
     private function clearReadiness() {
         Application.Storage.deleteValue(StorageKeys.READINESS);
         Application.Storage.deleteValue(StorageKeys.READINESS_DAY);
         Application.Storage.deleteValue(StorageKeys.READINESS_VERDICT);
+        Application.Storage.deleteValue(StorageKeys.FACE);
     }
 
     private function refreshView() {

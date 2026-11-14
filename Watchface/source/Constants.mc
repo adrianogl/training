@@ -17,6 +17,15 @@ module Theme {
     const AOD_TIME = 0x9AA0A8;
     const AOD_DIM = 0x5C6168;
     const AOD_ORANGE = 0xA35A33;
+    const AOD_READINESS = 0x8A6A2A;
+    const REST = 0xE5534B;
+    const MODERATE = 0xFFC24C;
+    const HARD = 0xC8F05A;
+    const REST_TRACK = 0x501D1A;
+    const MODERATE_TRACK = 0x59441A;
+    const HARD_TRACK = 0x46541F;
+    const PLAN = 0x7FB2FF;
+    const ZONES = [0x7FB2FF, 0xC8F05A, 0xE8C547, 0xFF8A4C, 0xE5534B];
 }
 
 module Texts {
@@ -25,11 +34,14 @@ module Texts {
     const DAYS = "DIAS";
     const DAY = "DIA";
     const RACE_TODAY = "É HOJE";
-    const VO2 = "VO2";
+    const VO2 = "VO2 MÁX.";
+    const THREE_MONTHS = "3M";
+    const VERDICT_REST = "DESCANSO";
+    const VERDICT_MODERATE = "MODERADO";
+    const VERDICT_HARD = "FORTE";
     const WEEK_KM = "KM SEMANA";
     const READINESS = "PRONTIDÃO";
     const GOAL = "META";
-    const PREDICTION = "PREVISÃO";
     const RACE_IN = "PROVA EM";
     const NO_VALUE = "--";
 }
@@ -39,6 +51,7 @@ module StorageKeys {
     const READINESS = "readiness";
     const READINESS_DAY = "readinessDay";
     const READINESS_VERDICT = "readinessVerdict";
+    const FACE = "face";
 }
 
 (:background)
@@ -48,6 +61,15 @@ module ReadinessBridge {
     const DAY = "day";
     const SCORE = "score";
     const VERDICT = "verdict";
+    const VO2_DELTA = "vo2Delta";
+    const WEEK_PLANNED_KM = "weekPlannedKm";
+    const WEEK_GOAL_KM = "weekGoalKm";
+    const WORKOUT = "workout";
+    const WORKOUT_SHAPE = "workoutShape";
+    const RACE_NAME = "raceName";
+    const RACE_DAY = "raceDay";
+    const RACE_GOAL = "raceGoal";
+    const RACE_PREDICTION = "racePrediction";
     const UNAUTHORIZED = 401;
     const NOT_FOUND = 404;
 }
@@ -69,29 +91,36 @@ module DewPointBands {
     const MAGNUS_C = 243.12;
 }
 
+module ReadinessBands {
+    const MODERATE_FROM = 40;
+    const HARD_FROM = 70;
+}
+
 module Defaults {
     const WEEKLY_GOAL_KM = 45;
     const RACE_DISTANCE_KM = 21;
+    const RACE_NAME_MAX = 14;
+    const KM_SCALE_MARGIN = 1.1;
 }
 
 module FontSpecs {
     const BOLD = "RobotoCondensedBold";
     const REGULAR = "RobotoCondensedRegular";
     const ALL = {
-        :time => [BOLD, 90, Graphics.FONT_NUMBER_HOT],
+        :time => [BOLD, 100, Graphics.FONT_NUMBER_HOT],
         :seconds => [BOLD, 34, Graphics.FONT_NUMBER_MILD],
         :aodTime => [REGULAR, 96, Graphics.FONT_NUMBER_MEDIUM],
-        :date => [BOLD, 24, Graphics.FONT_XTINY],
+        :date => [BOLD, 22, Graphics.FONT_XTINY],
         :temperature => [BOLD, 36, Graphics.FONT_SMALL],
         :humidity => [REGULAR, 28, Graphics.FONT_XTINY],
         :battery => [BOLD, 28, Graphics.FONT_XTINY],
-        :status => [BOLD, 24, Graphics.FONT_XTINY],
-        :statValue => [BOLD, 42, Graphics.FONT_SMALL],
-        :statGoal => [REGULAR, 26, Graphics.FONT_XTINY],
-        :label => [BOLD, 20, Graphics.FONT_XTINY],
-        :race => [BOLD, 22, Graphics.FONT_XTINY],
-        :raceValue => [BOLD, 36, Graphics.FONT_SMALL],
-        :meeting => [BOLD, 28, Graphics.FONT_XTINY],
+        :statValue => [BOLD, 38, Graphics.FONT_SMALL],
+        :statGoal => [REGULAR, 22, Graphics.FONT_XTINY],
+        :label => [BOLD, 15, Graphics.FONT_XTINY],
+        :delta => [BOLD, 14, Graphics.FONT_XTINY],
+        :race => [BOLD, 21, Graphics.FONT_XTINY],
+        :raceValue => [BOLD, 24, Graphics.FONT_XTINY],
+        :raceGoal => [BOLD, 16, Graphics.FONT_XTINY],
         :tag => [BOLD, 16, Graphics.FONT_XTINY]
     };
 }

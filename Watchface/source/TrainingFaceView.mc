@@ -95,12 +95,15 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (showSeconds) {
             drawSecondsRing(dc, clock.sec);
         }
-        drawCentered(dc, 84, font(:date), Format.dateLine(today), Theme.DIM);
-        drawWeatherAndBattery(dc, 124);
-        drawClock(dc, s(212), clock, showSeconds, Theme.TXT, 0, font(:time));
-        drawStats(dc, 266, 296);
+        drawCentered(dc, 76, font(:date), Format.dateLine(today), Theme.DIM);
+        drawWeatherAndBattery(dc, 114);
+        drawClock(dc, s(214), clock, showSeconds, Theme.TXT, 0, font(:time));
+        drawDividers(dc);
+        drawReadiness(dc);
+        drawVo2(dc);
+        drawWeeklyVolume(dc);
+        drawWorkout(dc);
         drawRace(dc, today);
-        drawNextEvent(dc, 426);
     }
 
     private function drawAlwaysOn(dc, clock) {
@@ -108,12 +111,16 @@ class TrainingFaceView extends WatchUi.WatchFace {
         var dx = s(shift[0]);
         var dy = s(shift[1]);
         var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        drawPx(dc, _cx + dx, s(140) + dy, font(:date), Format.dateLine(today), Theme.AOD_DIM, Graphics.TEXT_JUSTIFY_CENTER);
-        drawClock(dc, s(240) + dy, clock, false, Theme.AOD_TIME, dx, font(:aodTime));
+        drawPx(dc, _cx + dx, s(150) + dy, font(:date), Format.dateLine(today), Theme.AOD_DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawClock(dc, s(250) + dy, clock, false, Theme.AOD_TIME, dx, font(:aodTime));
+        if (_data.readiness != null) {
+            var readiness = Texts.READINESS + " " + _data.readiness;
+            drawPx(dc, _cx + dx, s(300) + dy, font(:race), readiness, Theme.AOD_READINESS, Graphics.TEXT_JUSTIFY_CENTER);
+        }
         var days = raceDaysLeft(today);
         if (days != null) {
             var line = Texts.RACE_IN + " " + Format.daysCountdown(days);
-            drawPx(dc, _cx + dx, s(292) + dy, font(:race), line, Theme.AOD_ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
+            drawPx(dc, _cx + dx, s(334) + dy, font(:race), line, Theme.AOD_ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
         }
     }
 
@@ -205,100 +212,246 @@ class TrainingFaceView extends WatchUi.WatchFace {
         }
     }
 
-    private function drawStats(dc, valueBaseline, labelBaseline) {
-        var vo2 = Texts.NO_VALUE;
-        if (_data.vo2max != null) {
-            vo2 = _data.vo2max.toString();
-        }
-        drawAt(dc, 124, valueBaseline, font(:statValue), vo2, Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
-        drawAt(dc, 124, labelBaseline, font(:label), Texts.VO2, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
-
-        drawWeeklyVolume(dc, valueBaseline);
-        drawAt(dc, 227, labelBaseline, font(:label), Texts.WEEK_KM, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
-
-        var scoreFont = font(:statValue);
-        var score = Texts.NO_VALUE;
-        var scoreColor = Theme.DIM;
-        if (_data.readiness != null) {
-            score = _data.readiness.toString();
-            scoreColor = Theme.GREEN;
-        }
-        var scoreWidth = dc.getTextWidthInPixels(score, scoreFont);
-        var tagGap = s(5);
-        var scoreLeft = s(330) - (scoreWidth + tagGap + aiTagWidth(dc)) / 2;
-        drawPx(dc, scoreLeft, s(valueBaseline), scoreFont, score, scoreColor, Graphics.TEXT_JUSTIFY_LEFT);
-        drawAiTag(dc, scoreLeft + scoreWidth + tagGap, s(valueBaseline));
-        drawAt(dc, 330, labelBaseline, font(:label), Texts.READINESS, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+    private function drawDividers(dc) {
+        dc.setColor(Theme.FAINT, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(max(1, s(2)));
+        dc.drawLine(s(174), s(234), s(174), s(302));
+        dc.drawLine(s(280), s(234), s(280), s(302));
     }
 
-    private function drawWeeklyVolume(dc, baseline) {
-        var goalKm = Settings.weeklyGoalKm();
-        var meters = 0.0;
+    private function drawReadiness(dc) {
+        var score = _data.readiness;
+        var color = Theme.DIM;
+        var verdict = Texts.READINESS;
+        if (score != null) {
+            color = bandColor(score);
+            verdict = bandVerdict(score);
+        }
+        var text = Texts.NO_VALUE;
+        if (score != null) {
+            text = score.toString();
+        }
+        var valueFont = font(:statValue);
+        var tagGap = s(4);
+        var width = dc.getTextWidthInPixels(text, valueFont);
+        var left = s(121) - (width + tagGap + aiTagWidth(dc)) / 2;
+        drawPx(dc, left, s(258), valueFont, text, color, Graphics.TEXT_JUSTIFY_LEFT);
+        drawAiTag(dc, left + width + tagGap, s(258));
+        drawAt(dc, 121, 282, font(:label), verdict, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        drawReadinessRuler(dc, score);
+    }
+
+    private function drawReadinessRuler(dc, score) {
+        var left = 86;
+        var width = 70.0;
+        var y = s(294);
+        var height = max(2, s(5));
+        var bands = [
+            [0, ReadinessBands.MODERATE_FROM, Theme.REST_TRACK],
+            [ReadinessBands.MODERATE_FROM, ReadinessBands.HARD_FROM, Theme.MODERATE_TRACK],
+            [ReadinessBands.HARD_FROM, 100, Theme.HARD_TRACK]
+        ];
+        for (var i = 0; i < bands.size(); i++) {
+            var band = bands[i];
+            var x0 = s(left + width * band[0] / 100.0) + 1;
+            var x1 = s(left + width * band[1] / 100.0) - 1;
+            dc.setColor(band[2], Graphics.COLOR_TRANSPARENT);
+            dc.fillRoundedRectangle(x0, y, max(2, x1 - x0), height, height / 2);
+        }
+        if (score == null) {
+            return;
+        }
+        var markerX = s(left + width * score / 100.0);
+        dc.setColor(Theme.BG, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(markerX, y + height / 2, max(3, s(7)));
+        dc.setColor(Theme.TXT, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(markerX, y + height / 2, max(2, s(5)));
+    }
+
+    private function bandColor(score) {
+        if (score >= ReadinessBands.HARD_FROM) {
+            return Theme.HARD;
+        }
+        if (score >= ReadinessBands.MODERATE_FROM) {
+            return Theme.MODERATE;
+        }
+        return Theme.REST;
+    }
+
+    private function bandVerdict(score) {
+        if (score >= ReadinessBands.HARD_FROM) {
+            return Texts.VERDICT_HARD;
+        }
+        if (score >= ReadinessBands.MODERATE_FROM) {
+            return Texts.VERDICT_MODERATE;
+        }
+        return Texts.VERDICT_REST;
+    }
+
+    private function drawVo2(dc) {
+        var vo2 = Texts.NO_VALUE;
+        if (_data.vo2max != null) {
+            vo2 = Format.decimalComma(_data.vo2max.toFloat(), "%.1f");
+        }
+        drawCentered(dc, 258, font(:statValue), vo2, Theme.TXT);
+        drawCentered(dc, 282, font(:label), Texts.VO2, Theme.DIM);
+        var delta = _data.vo2Delta;
+        if (delta == null) {
+            return;
+        }
+        var color = Theme.HARD;
+        var up = delta >= 0;
+        if (!up) {
+            color = Theme.REST;
+            delta = -delta;
+        }
+        var text = Format.decimalComma(delta.toFloat(), "%.1f") + " · " + Texts.THREE_MONTHS;
+        var deltaFont = font(:delta);
+        var arrow = s(9);
+        var gap = s(4);
+        var total = arrow + gap + dc.getTextWidthInPixels(text, deltaFont);
+        var left = _cx - total / 2;
+        var baseline = s(300);
+        var top = baseline - s(10);
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        if (up) {
+            dc.fillPolygon([[left, baseline - s(1)], [left + arrow, baseline - s(1)], [left + arrow / 2, top]]);
+        } else {
+            dc.fillPolygon([[left, top], [left + arrow, top], [left + arrow / 2, baseline - s(1)]]);
+        }
+        drawPx(dc, left + arrow + gap, baseline, deltaFont, text, color, Graphics.TEXT_JUSTIFY_LEFT);
+    }
+
+    private function drawWeeklyVolume(dc) {
+        var doneKm = 0.0;
         if (_data.weeklyRunMeters != null) {
-            meters = _data.weeklyRunMeters.toFloat();
+            doneKm = _data.weeklyRunMeters.toFloat() / 1000.0;
+        }
+        var goalKm = _data.weekGoalKm.toFloat();
+        var planKm = _data.weekPlannedKm;
+        var reference = goalKm;
+        if (planKm != null) {
+            planKm = planKm.toFloat();
+            reference = planKm;
         }
         var doneFont = font(:statValue);
-        var done = Format.kilometers(meters);
-        var goalFont = font(:statGoal);
-        var goal = "/" + goalKm;
+        var done = Format.decimalComma(doneKm, "%.1f");
+        var refFont = font(:statGoal);
+        var ref = "/" + Math.round(reference).toNumber();
         var doneWidth = dc.getTextWidthInPixels(done, doneFont);
-        var total = doneWidth + dc.getTextWidthInPixels(goal, goalFont);
-        var left = _cx - total / 2;
-        drawPx(dc, left, s(baseline), doneFont, done, Theme.LIME, Graphics.TEXT_JUSTIFY_LEFT);
-        drawPx(dc, left + doneWidth, s(baseline), goalFont, goal, Theme.DIM, Graphics.TEXT_JUSTIFY_LEFT);
+        var total = doneWidth + dc.getTextWidthInPixels(ref, refFont);
+        var left = s(333) - total / 2;
+        drawPx(dc, left, s(258), doneFont, done, Theme.HARD, Graphics.TEXT_JUSTIFY_LEFT);
+        drawPx(dc, left + doneWidth, s(258), refFont, ref, Theme.DIM, Graphics.TEXT_JUSTIFY_LEFT);
+        drawAt(dc, 333, 282, font(:label), Texts.WEEK_KM, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
 
-        var barWidth = s(92);
-        var barX = _cx - barWidth / 2;
-        var barY = s(baseline + 7);
-        var barHeight = max(2, s(4));
+        var scale = goalKm;
+        if (planKm != null && planKm > scale) {
+            scale = planKm;
+        }
+        if (doneKm > scale) {
+            scale = doneKm;
+        }
+        scale = scale * Defaults.KM_SCALE_MARGIN;
+        if (scale <= 0) {
+            return;
+        }
+        var barLeft = s(298);
+        var barWidth = s(70);
+        var y = s(294);
+        var height = max(2, s(5));
         dc.setColor(Theme.FAINT, Graphics.COLOR_TRANSPARENT);
-        dc.fillRoundedRectangle(barX, barY, barWidth, barHeight, barHeight / 2);
-        var ratio = 0.0;
-        if (goalKm > 0) {
-            ratio = meters / (goalKm * 1000.0);
+        dc.fillRoundedRectangle(barLeft, y, barWidth, height, height / 2);
+        if (planKm != null && planKm > 0) {
+            dc.setColor(Theme.PLAN, Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(1);
+            dc.drawRoundedRectangle(barLeft, y, max(height, (barWidth * planKm / scale).toNumber()), height, height / 2);
         }
-        if (ratio > 1.0) {
-            ratio = 1.0;
-        }
-        var filled = (barWidth * ratio).toNumber();
+        var filled = (barWidth * doneKm / scale).toNumber();
         if (filled > 0) {
-            dc.setColor(Theme.LIME, Graphics.COLOR_TRANSPARENT);
-            dc.fillRoundedRectangle(barX, barY, max(filled, barHeight), barHeight, barHeight / 2);
+            dc.setColor(Theme.HARD, Graphics.COLOR_TRANSPARENT);
+            dc.fillRoundedRectangle(barLeft, y, max(filled, height), height, height / 2);
+        }
+        if (goalKm > 0) {
+            var goalX = barLeft + (barWidth * goalKm / scale).toNumber();
+            dc.setColor(Theme.TXT, Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(max(1, s(2)));
+            dc.drawLine(goalX, s(290), goalX, s(303));
+        }
+    }
+
+    private function drawWorkout(dc) {
+        if (_data.workout == null) {
+            return;
+        }
+        drawCentered(dc, 330, font(:race), _data.workout.toUpper(), Theme.LIME);
+        var shape = _data.workoutShape;
+        if (shape == null || shape.size() == 0) {
+            return;
+        }
+        var total = 0;
+        for (var i = 0; i < shape.size(); i++) {
+            total += shape[i][0];
+        }
+        if (total <= 0) {
+            return;
+        }
+        var x = 132.0;
+        var width = 190.0;
+        for (var i = 0; i < shape.size(); i++) {
+            var step = shape[i];
+            var zone = step[1];
+            if (zone < 1) {
+                zone = 1;
+            }
+            if (zone > Theme.ZONES.size()) {
+                zone = Theme.ZONES.size();
+            }
+            var stepWidth = width * step[0] / total;
+            var height = s(zone * 3.4);
+            dc.setColor(Theme.ZONES[zone - 1], Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(s(x), s(354) - height, max(1, s(stepWidth - 1.5)), height);
+            x += stepWidth;
         }
     }
 
     private function drawRace(dc, today) {
-        var date = CivilDate.parseIsoDate(Settings.raceDate());
-        var name = Settings.raceName();
         var days = raceDaysLeft(today);
-        if (days == null || date == null) {
+        if (days == null) {
             return;
         }
+        var date = _data.raceDate;
         dc.setColor(Theme.FAINT, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(max(1, s(2)));
-        dc.drawLine(s(140), s(312), s(314), s(312));
+        dc.drawLine(s(150), s(366), s(304), s(366));
 
-        var line = name.toUpper() + " · " + Format.shortDate(date[:day], date[:month]) + " · " + Format.daysCountdown(days);
-        drawCentered(dc, 337, font(:race), line, Theme.ORANGE);
-
-        var goal = Settings.raceGoal();
-        if (goal.length() == 0) {
-            goal = Texts.NO_VALUE;
+        var name = _data.raceName.toUpper();
+        if (name.length() > Defaults.RACE_NAME_MAX) {
+            name = name.substring(0, Defaults.RACE_NAME_MAX);
         }
-        drawAt(dc, 150, 374, font(:raceValue), goal, Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
-        drawAt(dc, 150, 395, font(:label), Texts.GOAL, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        var line = name + " · " + Format.shortDate(date[:day], date[:month]) + " · " + Format.daysCountdown(days);
+        drawCentered(dc, 392, font(:race), line, Theme.ORANGE);
 
         var prediction = Texts.NO_VALUE;
         if (_data.racePredictionSeconds != null) {
             prediction = Format.duration(_data.racePredictionSeconds);
         }
-        drawAt(dc, 304, 374, font(:raceValue), prediction, Theme.ORANGE, Graphics.TEXT_JUSTIFY_CENTER);
-        drawAt(dc, 304, 395, font(:label), Texts.PREDICTION, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
+        var goal = "";
+        if (_data.raceGoal != null) {
+            goal = " / " + Texts.GOAL + " " + _data.raceGoal;
+        }
+        var predictionFont = font(:raceValue);
+        var goalFont = font(:raceGoal);
+        var predictionWidth = dc.getTextWidthInPixels(prediction, predictionFont);
+        var total = predictionWidth + dc.getTextWidthInPixels(goal, goalFont);
+        var left = _cx - total / 2;
+        drawPx(dc, left, s(418), predictionFont, prediction, Theme.ORANGE, Graphics.TEXT_JUSTIFY_LEFT);
+        drawPx(dc, left + predictionWidth, s(418), goalFont, goal, Theme.DIM, Graphics.TEXT_JUSTIFY_LEFT);
     }
 
     private function raceDaysLeft(today) {
-        var name = Settings.raceName();
-        var date = CivilDate.parseIsoDate(Settings.raceDate());
+        var name = _data.raceName;
+        var date = _data.raceDate;
         if (name == null || name.length() == 0 || date == null) {
             return null;
         }
@@ -307,24 +460,6 @@ class TrainingFaceView extends WatchUi.WatchFace {
             return null;
         }
         return days;
-    }
-
-    private function drawNextEvent(dc, baseline) {
-        if (_data.nextEventTime == null) {
-            return;
-        }
-        var eventFont = font(:meeting);
-        var text = _data.nextEventTime.toString();
-        var iconWidth = s(14);
-        var gap = s(8);
-        var total = iconWidth + gap + dc.getTextWidthInPixels(text, eventFont);
-        var left = _cx - total / 2;
-        var bottom = s(baseline);
-        dc.setColor(Theme.DIM, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(max(1, s(2)));
-        dc.drawRoundedRectangle(left, bottom - s(13), iconWidth, s(13), s(2));
-        dc.drawLine(left, bottom - s(9), left + iconWidth, bottom - s(9));
-        drawPx(dc, left + iconWidth + gap, bottom, eventFont, text, Theme.TXT, Graphics.TEXT_JUSTIFY_LEFT);
     }
 
     private function aiTagWidth(dc) {
