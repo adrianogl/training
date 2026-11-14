@@ -103,6 +103,9 @@ struct TodayView: View {
             if let plan = model.todayPlan {
                 TodayPlanCard(plan: plan, verdict: model.summary.verdict)
             }
+            if let overload = model.overload {
+                OverloadCard(alert: overload)
+            }
             if let report = model.weeklyReport {
                 WeeklyReportCard(report: report)
             }

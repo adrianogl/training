@@ -23,6 +23,7 @@ import WorkoutAnalysis
     private(set) var recoveryRun: RecoveryRun?
     private(set) var reportRuns: [ReportRun] = []
     private(set) var currentRuns: [ReportRun] = []
+    private(set) var signals: [DailySignal] = []
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var isLoaded = false
@@ -47,6 +48,7 @@ import WorkoutAnalysis
         recoveryRun = result.recoveryRun
         reportRuns = result.reportRuns
         currentRuns = result.currentRuns
+        signals = result.signals
         if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
@@ -192,8 +194,22 @@ import WorkoutAnalysis
             weekRuns: weekRuns(context: context, today: today),
             recoveryRun: recoveryRun(context: context),
             reportRuns: WeeklyReportBuilder.reportWeek(today: today).map { reportRuns(context: context, start: $0.start) } ?? [],
-            currentRuns: reportRuns(context: context, start: today.weekStart)
+            currentRuns: reportRuns(context: context, start: today.weekStart),
+            signals: signals(context: context, today: today)
         )
+    }
+
+    var overload: OverloadAlert? {
+        OverloadDetector.alert(signals, today: today, ratio: summary.supporting.acuteChronic)
+    }
+
+    nonisolated private static func signals(context: ModelContext, today: Day) -> [DailySignal] {
+        let first = today.adding(days: -(OverloadConstants.recentDays + OverloadConstants.baselineDays)).iso
+        let last = today.iso
+        let descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day >= first && $0.day <= last })
+        return ((try? context.fetch(descriptor)) ?? []).compactMap { record in
+            Day(iso: record.day).map { DailySignal(day: $0, restingHeartRate: record.restingHR, hrv: record.hrvLastNight) }
+        }
     }
 
     var weeklyReport: WeeklyReport? {
