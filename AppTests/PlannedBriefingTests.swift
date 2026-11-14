@@ -146,4 +146,18 @@ import TrainingCore
         let hours = PlannedWeather.parse(Data(json.utf8))
         #expect(hours == [HourlyWeather(hour: 5, temperature: 19.1, dewPoint: 15.4)])
     }
+
+    @Test func plannedChatContextCarriesStepsPreviousRunsAndWeek() {
+        let input = Self.input(Self.intervals)
+        let briefing = PlannedBriefingBuilder.briefing(input)
+
+        let context = PlannedChatContextBuilder.context(title: Self.intervals.title, dateText: "terça, 17 de novembro", input: input, briefing: briefing)
+
+        #expect(context.copy.factsHeader == WorkoutChatConstants.plannedCopy.factsHeader)
+        #expect(context.facts.hasPrefix("Intervalado ter 17/11, terça, 17 de novembro."))
+        #expect(context.blockLines.count == briefing.phases.count)
+        #expect(context.similarLines.first == "8 de nov.: 18,0 km, pace 4:38/km, FC média 162 bpm, ritmo caiu 9 s/km no fim")
+        #expect(context.dayLine == "prontidão de hoje 74; semana com 31,0 km feitos de 51,0 km planejados, meta de 45 km; 4 dias desde o último treino forte; prova Meia em 45 dias.")
+        #expect(context.suggestions == WorkoutChatConstants.suggestionsPlannedIntervals)
+    }
 }

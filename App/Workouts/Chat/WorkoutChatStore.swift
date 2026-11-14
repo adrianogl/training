@@ -2,6 +2,7 @@ import Foundation
 
 actor WorkoutChatStore {
     static let shared = WorkoutChatStore()
+    static let planned = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.plannedFolderName))
 
     private let folder: URL
     private var counts: [Int64: Int]?

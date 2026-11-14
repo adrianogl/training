@@ -22,7 +22,21 @@ struct ChatMessage: Codable, Equatable, Identifiable, Sendable {
     }
 }
 
+struct WorkoutChatCopy: Sendable {
+    let instructions: String
+    let factsHeader: String
+    let historyHeader: String
+    let welcome: String
+    let placeholder: String
+    let blocksDescription: String
+    let similarDescription: String
+    let dayDescription: String
+    let blocksNote: String
+    let dayNote: String
+}
+
 struct WorkoutChatContext: Sendable {
+    var copy = WorkoutChatConstants.doneCopy
     let title: String
     let facts: String
     let blockLines: [String]

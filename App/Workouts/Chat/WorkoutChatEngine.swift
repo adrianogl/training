@@ -18,7 +18,8 @@ actor ChatToolLog {
 
 struct BlocksTool: Tool {
     let name = "blocos_do_treino"
-    let description = "Devolve pace, FC e situação de cada bloco do treino (aquecimento, tiros, recuperações, desaquecimento)."
+    let description: String
+    let note: String
     let lines: [String]
     let log: ChatToolLog
 
@@ -34,14 +35,14 @@ struct BlocksTool: Tool {
         let lower = max(arguments.first, 1) - 1
         let upper = arguments.last <= 0 ? lines.count : min(arguments.last, lines.count)
         let text = lower < upper ? lines[lower..<upper].joined(separator: "\n") : lines.joined(separator: "\n")
-        await log.record(WorkoutChatConstants.toolBlocks, output: text)
+        await log.record(note, output: text)
         return text
     }
 }
 
 struct SimilarRunsTool: Tool {
     let name = "treinos_parecidos"
-    let description = "Devolve data, pace médio e FC média dos treinos parecidos com este, incluindo este."
+    let description: String
     let lines: [String]
     let log: ChatToolLog
 
@@ -61,7 +62,8 @@ struct SimilarRunsTool: Tool {
 
 struct DayTool: Tool {
     let name = "dados_do_dia"
-    let description = "Devolve a prontidão, o sono e a VFC da noite antes do treino."
+    let description: String
+    let note: String
     let line: String?
     let log: ChatToolLog
 
@@ -73,7 +75,7 @@ struct DayTool: Tool {
 
     func call(arguments: Arguments) async throws -> String {
         let output = line ?? "Sem dados de recuperação para esse dia."
-        await log.record(WorkoutChatConstants.toolDay, output: output)
+        await log.record(note, output: output)
         return output
     }
 }
@@ -92,13 +94,14 @@ actor WorkoutChatEngine {
     init(context: WorkoutChatContext, history: [ChatMessage]) {
         self.context = context
         let previous = history.suffix(C.historyLimit).map { "\($0.role == .user ? "Atleta" : "Treinador"): \($0.text)" }.joined(separator: "\n")
-        var instructions = C.instructions + "\n\n" + C.factsHeader + "\n" + context.facts
-        if !previous.isEmpty { instructions += "\n\n" + C.historyHeader + "\n" + previous }
+        let copy = context.copy
+        var instructions = copy.instructions + "\n\n" + copy.factsHeader + "\n" + context.facts
+        if !previous.isEmpty { instructions += "\n\n" + copy.historyHeader + "\n" + previous }
         session = LanguageModelSession(
             tools: [
-                BlocksTool(lines: context.blockLines, log: log),
-                SimilarRunsTool(lines: context.similarLines, log: log),
-                DayTool(line: context.dayLine, log: log),
+                BlocksTool(description: copy.blocksDescription, note: copy.blocksNote, lines: context.blockLines, log: log),
+                SimilarRunsTool(description: copy.similarDescription, lines: context.similarLines, log: log),
+                DayTool(description: copy.dayDescription, note: copy.dayNote, line: context.dayLine, log: log),
             ],
             instructions: instructions
         )

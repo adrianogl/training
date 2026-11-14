@@ -1,0 +1,15 @@
+enum PlannedChatContextConstants {
+    static let tagsPrefix = "Características: "
+    static let expectPrefix = "O que esperar: "
+    static let attentionPrefix = "Ponto de atenção: "
+    static let planBPrefix = "Plano B: "
+    static let hoursPrefix = "Temperatura de manhã: "
+    static let carryPrefix = "Levar: "
+    static let courseFormat = "Percurso sugerido: %@, volta de %@ km, %d voltas."
+    static let fadeFormat = "ritmo caiu %d s/km no fim"
+    static let readinessFormat = "prontidão de hoje %d"
+    static let weekFormat = "semana com %@ km feitos de %@ km planejados"
+    static let goalFormat = ", meta de %@ km"
+    static let hardFormat = "%d dias desde o último treino forte"
+    static let raceFormat = "prova %@ em %d dias"
+}

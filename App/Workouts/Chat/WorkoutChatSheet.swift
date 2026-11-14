@@ -3,6 +3,7 @@ import SwiftUI
 struct WorkoutChatSheet: View {
     let activityId: Int64
     let context: WorkoutChatContext
+    var store = WorkoutChatStore.shared
     var autoQuestion: String?
     @Environment(\.dismiss) private var dismiss
     @State private var messages: [ChatMessage] = []
@@ -19,7 +20,7 @@ struct WorkoutChatSheet: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 10) {
-                            bubble(ChatMessage(role: .assistant, text: C.welcome))
+                            bubble(ChatMessage(role: .assistant, text: context.copy.welcome))
                             ForEach(Array(messages.enumerated()), id: \.element.id) { index, message in
                                 if index == 0 || !Calendar.current.isDate(messages[index - 1].date, inSameDayAs: message.date) {
                                     dayDivider(message.date)
@@ -56,7 +57,7 @@ struct WorkoutChatSheet: View {
             }
         }
         .task {
-            messages = await WorkoutChatStore.shared.messages(for: activityId)
+            messages = await store.messages(for: activityId)
             engine = WorkoutChatEngine(context: context, history: messages)
             if let autoQuestion { send(autoQuestion) }
         }
@@ -77,7 +78,7 @@ struct WorkoutChatSheet: View {
                 }
             }
             HStack(spacing: 8) {
-                TextField(C.placeholder, text: $question, axis: .vertical)
+                TextField(context.copy.placeholder, text: $question, axis: .vertical)
                     .lineLimit(1...4)
                     .focused($focused)
                     .padding(.horizontal, 12).padding(.vertical, 9)
@@ -106,7 +107,7 @@ struct WorkoutChatSheet: View {
             let reply = await engine.answer(trimmed)
             messages.append(reply)
             thinking = false
-            await WorkoutChatStore.shared.save(messages, for: activityId)
+            await store.save(messages, for: activityId)
         }
     }
 

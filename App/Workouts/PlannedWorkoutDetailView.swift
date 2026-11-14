@@ -16,6 +16,9 @@ struct PlannedWorkoutDetailView: View {
     @State private var weather: [HourlyWeather] = []
     @State private var course: CourseSuggestion?
     @State private var packed: Set<String> = []
+    @State private var chatContext: WorkoutChatContext?
+    @State private var showsChat = false
+    @State private var chatCount = 0
 
     private typealias C = PlannedViewConstants
 
@@ -23,6 +26,7 @@ struct PlannedWorkoutDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
                 header
+                if chatContext != nil { chatButton }
                 if let briefing {
                     content(briefing)
                 } else {
@@ -35,8 +39,38 @@ struct PlannedWorkoutDetailView: View {
         .background(BrandBackground())
         .task(id: plan.id) {
             rebuild()
+            refreshChatCount()
             await loadExtras()
         }
+        .sheet(isPresented: $showsChat, onDismiss: refreshChatCount) {
+            if let chatContext {
+                WorkoutChatSheet(activityId: plan.id, context: chatContext, store: .planned)
+                    .presentationSizing(.page)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var chatButton: some View {
+        if WorkoutChatEngine.isAvailable {
+            Button { showsChat = true } label: {
+                Label(chatCount > 0 ? String(format: WorkoutChatConstants.askPlannedFormat, chatCount) : WorkoutChatConstants.askPlanned, systemImage: "sparkles")
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(BrandColors.onAccent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        } else {
+            Label(WorkoutChatConstants.unavailable, systemImage: "sparkles")
+                .font(.caption)
+                .foregroundStyle(BrandColors.dim)
+        }
+    }
+
+    private func refreshChatCount() {
+        Task { chatCount = await WorkoutChatStore.planned.questionCounts()[plan.id] ?? 0 }
     }
 
     private func rebuild() {
@@ -44,7 +78,9 @@ struct PlannedWorkoutDetailView: View {
             plan: plan, week: week, context: context, today: Day.today(),
             weeklyGoalKm: weeklyGoal, weather: weather, course: course
         )
-        briefing = PlannedBriefingBuilder.briefing(input)
+        let built = PlannedBriefingBuilder.briefing(input)
+        briefing = built
+        chatContext = PlannedChatContextBuilder.context(title: plan.title, dateText: dateText, input: input, briefing: built)
     }
 
     private func loadExtras() async {
