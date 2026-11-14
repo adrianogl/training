@@ -794,3 +794,25 @@ h2 {
   .slot-watch .watch-device { width: 130px; }
   .spot-foot { flex-direction: column; text-align: center; }
 }
+/* iPhone igual ao app */
+.p-logo { display: flex; gap: 8px; align-items: center; margin-top: 18px; }
+.p-logo small { display: block; font-size: 9px; color: var(--dim); }
+.p-logo .word.sm { font-size: 15px; }
+.iphone .p-logo + .date { margin-top: 6px; }
+.gauge-row { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: center; margin: 4px 0 6px; }
+.gauge { width: 74px; height: 74px; }
+.gauge .g-n { fill: var(--ink); font-family: var(--cond); font-weight: 700; font-size: 26px; }
+.gauge .g-s { fill: var(--dim); font-size: 9px; }
+.gauge-row .verdict { font-weight: 700; font-size: 15px; }
+.gauge-row .s { font-size: 11px; color: var(--soft); margin-top: 2px; }
+.driver { display: grid; grid-template-columns: 74px 1fr 26px; gap: 8px; align-items: center; font-size: 11px; color: var(--dim); padding: 2px 0; }
+.driver i { height: 6px; border-radius: 3px; width: var(--w); }
+.driver i.pos { background: var(--lime); }
+.driver i.neg { background: var(--red); justify-self: end; }
+.driver b { text-align: right; font-size: 12px; }
+.dimr { float: right; color: var(--dim); font-weight: 500; letter-spacing: 0; text-transform: none; }
+.iphone .p-card .t { font-weight: 700; font-size: 15px; margin-top: 4px; }
+.planbar .z3 { background: var(--z3); height: 100%; }
+.step { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+.step i { width: 9px; height: 9px; border-radius: 2px; background: var(--z3); }
+.step .dimr { margin-left: auto; float: none; }
