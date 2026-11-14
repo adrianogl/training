@@ -713,3 +713,35 @@ h2 {
   .part { grid-template-columns: 70px 1fr 44px; }
   .huge { font-size: 54px; }
 }
+
+/* Componentes das seções novas */
+.line { display: grid; grid-template-columns: 84px 1fr; gap: 12px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.line .n { font-family: var(--cond); font-weight: 600; font-size: 16px; }
+.line .pill { justify-self: start; }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--glass-hi); color: var(--soft); }
+.lime-pill { background: rgba(200, 240, 90, 0.16); color: var(--lime); }
+.red-pill { background: rgba(255, 90, 90, 0.14); color: var(--red); }
+.dotc { width: 9px; height: 9px; border-radius: 50%; justify-self: start; align-self: center; }
+.dotc.amber { background: var(--amber); }
+.dotc.blue { background: var(--blue); }
+.hours { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
+.hours span { display: grid; gap: 2px; text-align: center; padding: 8px 2px; border-radius: 10px; background: var(--glass); font-family: var(--cond); font-weight: 600; font-size: 17px; }
+.hours small { font-family: var(--sans); font-weight: 500; font-size: 11px; color: var(--dim); }
+.hours .best { background: rgba(200, 240, 90, 0.14); outline: 1.5px solid var(--lime); }
+.feedback { margin: 6px 0 4px; line-height: 1.5; color: var(--ink); }
+.planbar { display: flex; gap: 2px; height: 12px; margin: 8px 0 6px; align-items: flex-end; }
+.planbar i { flex: var(--w); border-radius: 2px; }
+.planbar .z1 { background: var(--z1); height: 30%; } .planbar .z2 { background: var(--z2); height: 50%; } .planbar .z5 { background: var(--z5); height: 100%; }
+.bars i.plan { background: transparent; border: 1.5px dashed rgba(127, 178, 255, 0.7); }
+.watch-card { display: grid; place-items: center; }
+.watchface { width: min(100%, 360px); height: auto; border-radius: 50%; box-shadow: 0 0 0 10px #1C1F24, 0 20px 60px rgba(0, 0, 0, 0.5); font-family: var(--cond); }
+.wf-ink { fill: #fff; font-weight: 700; } .wf-dim { fill: #B3BAC4; font-weight: 700; } .wf-lime { fill: #E4FF1A; font-weight: 700; }
+.share-route { width: min(100%, 300px); height: auto; display: block; margin: 0 auto 8px; }
+.route-base { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 9; stroke-linejoin: round; }
+.route-draw { fill: none; stroke: var(--lime); stroke-width: 9; stroke-linejoin: round; stroke-linecap: round; }
+.chips.small li { font-size: 12px; }
+.week-card .t, .brief .t { font-size: 22px; font-weight: 700; }
+@media (prefers-reduced-motion: no-preference) {
+  .route-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: route 4s ease-out infinite; }
+  @keyframes route { 0% { stroke-dashoffset: 1; } 75%, 100% { stroke-dashoffset: 0; } }
+}

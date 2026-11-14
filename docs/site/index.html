@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>trAIning — Inteligência do pulso à linha de chegada</title>
-<meta name="description" content="App pessoal para iPhone e iPad que lê os dados do Garmin pela Personal API e calcula prontidão, evolução com projeção, nota dos treinos e previsão de prova. Os dados ficam no aparelho; o sync entre aparelhos é opcional e cifrado.">
+<meta name="description" content="App pessoal para iPhone, iPad e relógio Garmin: prontidão do dia, treinos planejados explicados, análise de cada corrida, evolução com projeção, estratégia de prova no relógio e compartilhamento com o percurso animado. Os dados ficam no aparelho.">
 <meta name="theme-color" content="#07080A">
 <meta name="color-scheme" content="dark">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -29,11 +29,12 @@
     <div class="hero-copy">
       <h1 class="wordmark">TR<b>AI</b>NING</h1>
       <p class="tagline">Inteligência do pulso à linha de chegada.</p>
-      <p class="lede">App de iPhone e iPad que lê os seus dados do Garmin e responde três perguntas: dá pra treinar forte hoje, estou melhorando, e em quanto tempo eu faço a prova.</p>
+      <p class="lede">App de iPhone e iPad, com mostrador para o relógio Garmin, que lê os seus dados e responde o que importa: dá pra treinar forte hoje, como fazer o treino de hoje, como foi o treino de ontem, estou melhorando e em quanto tempo eu faço a prova.</p>
       <ul class="chips" aria-label="Resumo">
-        <li>iOS e iPadOS 26</li>
-        <li>Personal API do Garmin</li>
-        <li>Sync cifrado e opcional</li>
+        <li>iOS e iPadOS 26 · Liquid Glass</li>
+        <li>Garmin: Personal API e conta</li>
+        <li>Mostrador Forerunner 965</li>
+        <li>Treinos do Treinus</li>
       </ul>
     </div>
 
@@ -150,9 +151,16 @@
             </div>
 
             <div class="p-card">
-              <div class="k">Semana · 34 km</div>
+              <div class="k">Treino de hoje · Treinus</div>
+              <div class="t">Intervalado 9 × 1000 m</div>
+              <div class="planbar" aria-hidden="true"><i class="z2" style="--w:16"></i><i class="z5" style="--w:5"></i><i class="z1" style="--w:3"></i><i class="z5" style="--w:5"></i><i class="z1" style="--w:3"></i><i class="z5" style="--w:5"></i><i class="z1" style="--w:3"></i><i class="z5" style="--w:5"></i><i class="z2" style="--w:11"></i></div>
+              <div class="note">Mire 3:40/km e trote abaixo de 135 bpm.</div>
+            </div>
+
+            <div class="p-card">
+              <div class="k">Semana · 31 de 51 km planejados</div>
               <div class="bars">
-                <i style="--h:62%"></i><i class="off"></i><i style="--h:100%"></i><i style="--h:50%" class="now"></i><i class="off"></i><i class="off"></i><i class="off"></i>
+                <i style="--h:62%"></i><i class="off"></i><i style="--h:100%"></i><i style="--h:50%" class="now"></i><i class="plan" style="--h:80%"></i><i class="off"></i><i class="plan" style="--h:95%"></i>
               </div>
               <div class="days"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
             </div>
@@ -185,7 +193,7 @@
       <p class="eyebrow">O dia</p>
       <h2>Dá pra treinar forte hoje?</h2>
       <p>A prontidão vai de 0 a 100 e junta o HRV da noite, a nota do sono, o Body Battery ao acordar e a carga das últimas semanas. O detalhe mostra o que puxou a nota para cima e para baixo em relação ao seu normal dos últimos 30 dias.</p>
-      <p>Quando o sono e o HRV da noite chegam, sai um aviso de manhã com a nota e o veredito.</p>
+      <p>Quando o sono e o HRV da noite chegam, sai um aviso de manhã com a nota e o veredito. Na mesma tela ficam a recuperação estimada do último treino, comparada com o próximo treino planejado, e um alerta quando FC de repouso, HRV e carga pioram juntos por alguns dias.</p>
     </div>
     <div class="card factors">
       <div class="factors-head">
@@ -202,12 +210,37 @@
     </div>
   </section>
 
-  <section class="feature flip" id="evolucao">
+  <section class="feature flip" id="planejado">
+    <div class="copy">
+      <p class="eyebrow">Treino planejado</p>
+      <h2>O treino de amanhã, explicado</h2>
+      <p>Os treinos que o treinador prescreve no Treinus chegam pelo calendário do Garmin. Cada um vira um briefing: como fazer cada trecho, com pace e limite de FC, o que esperar de FC e Training Effect, os pontos de atenção e uma versão reduzida para um dia ruim.</p>
+      <p>O app sugere um percurso salvo no Garmin com a distância certa, mostra o horário mais fresco da manhã pela previsão do tempo e, depois do treino, compara o planejado com o feito.</p>
+    </div>
+    <div class="card brief">
+      <div class="w-head">
+        <div><div class="k">Sábado · Treinus</div><div class="t">Corrida Longo · 20 km</div></div>
+        <span class="pill lime-pill">amanhã</span>
+      </div>
+      <div class="line"><span class="n">km 0–2</span><span>Entrar devagar: 4:50/km, FC abaixo de 150</span></div>
+      <div class="line"><span class="n">km 2–16</span><span>Mirar 4:32/km; se a FC passar de 159, segurar</span></div>
+      <div class="line"><span class="n">km 16–20</span><span>Fechar no mesmo ritmo, sem acelerar</span></div>
+      <div class="k">Pontos de atenção</div>
+      <div class="line"><span class="dotc amber"></span><span>O ritmo caiu 9 s/km no fim do último longão</span></div>
+      <div class="line"><span class="dotc blue"></span><span>A semana fecha em 51 km para 45 de meta</span></div>
+      <div class="hours" aria-label="Temperatura das 5h às 10h">
+        <span class="best">17°<small>5h</small></span><span class="best">18°<small>6h</small></span><span>20°<small>7h</small></span><span>22°<small>8h</small></span><span>23°<small>9h</small></span><span>25°<small>10h</small></span>
+      </div>
+      <p class="note">Percurso sugerido: Pampulha 10 km, 2 voltas, +33 m.</p>
+    </div>
+  </section>
+
+  <section class="feature" id="evolucao">
     <div class="copy">
       <p class="eyebrow">Evolução</p>
       <h2>Onde você chega no dia da prova</h2>
       <p>Cada métrica tem histórico e projeção. A projeção é uma regressão sobre os últimos 90 dias, sempre tracejada e com faixa de incerteza. Se a meta cruza a projeção, o app diz em que data.</p>
-      <p>O topo da tela compara hoje com 3 meses atrás: previsão da prova, VO2max, fitness, pace na Z2, pace de limiar e volume mensal.</p>
+      <p>O topo da tela compara hoje com 3 meses atrás: previsão da prova, VO2max, fitness, pace na Z2, pace de limiar e volume mensal. Mais abaixo, o tempo em cada zona por semana e os recordes de 1, 5, 10 km e meia, achados nos treinos, não só nas provas.</p>
     </div>
     <div class="card bigchart">
       <div class="k">Previsão · meia maratona</div>
@@ -232,12 +265,12 @@
     </div>
   </section>
 
-  <section class="feature" id="treinos">
+  <section class="feature flip" id="treinos">
     <div class="copy">
       <p class="eyebrow">Treinos</p>
-      <h2>Cada corrida ganha uma nota</h2>
-      <p>A nota de 0 a 100 junta execução e esforço adequado. Cumprir o prescrito com esforço exagerado não é treino bom, e a decomposição mostra onde os pontos foram perdidos.</p>
-      <p>As zonas são calculadas a partir da sua FC de limiar e aparecem ao lado das zonas do relógio. O treino também traz parciais, mapa, curva de FC e comparação com corridas parecidas.</p>
+      <h2>Cada corrida ganha uma nota e um feedback</h2>
+      <p>A nota de 0 a 100 junta execução e esforço adequado. A análise começa por um parágrafo de treinador, escrito no aparelho, e segue com os pontos por ordem de importância: o que corrigir, o que foi bem e o que saiu como esperado, cada um com os números e o porquê.</p>
+      <p>Os blocos aparecem por extenso ("segundo tiro de 1000 m"), separados em aquecimento, série e desaquecimento. O treino também traz zonas pelo limiar e pelo relógio, mapa, curva de FC, o planejado contra o feito e a evolução nos treinos parecidos.</p>
     </div>
     <div class="card workout">
       <div class="w-head">
@@ -247,6 +280,10 @@
       <div class="part"><span>Execução</span><span class="meter"><i style="--w:94%"></i></span><span class="n">47/50</span></div>
       <div class="part"><span>Intenção</span><span class="meter"><i style="--w:88%"></i></span><span class="n">22/25</span></div>
       <div class="part"><span>Custo</span><span class="meter"><i style="--w:68%"></i></span><span class="n">17/25</span></div>
+      <div class="k zk">Análise</div>
+      <p class="feedback">Bom intervalado: 7 dos 9 tiros no alvo, com média de 3:45/km. O trote depois do terceiro e do quarto tiro ficou em Z3 e o quarto tiro saiu 1 s/km acima da faixa.</p>
+      <div class="line"><span class="pill red-pill">Corrigir</span><span>Recuperações depois do terceiro e do quarto tiro em Z3</span></div>
+      <div class="line"><span class="pill lime-pill">Bom</span><span>Recuperações do quinto ao nono tiro com a FC caindo rápido</span></div>
       <div class="k zk">Zonas de FC</div>
       <div class="zone-row">
         <div class="zl">Relógio (Garmin)</div>
@@ -264,12 +301,12 @@
     </div>
   </section>
 
-  <section class="feature flip" id="provas">
+  <section class="feature" id="provas">
     <div class="copy">
       <p class="eyebrow race">Provas</p>
       <h2>Previsão contra a meta, km a km</h2>
-      <p>Você cadastra a prova com a meta e o GPX do percurso. O app mostra a previsão de hoje e a do dia da prova, diz se a meta está tranquila, desafiadora ou agressiva e monta a estratégia de pace por km pela inclinação. Na véspera, o alvo congela.</p>
-      <p>Corridas com cara de prova no histórico aparecem com a pergunta "foi prova?". Confirmadas, entram na previsão com peso de prova.</p>
+      <p>Você cadastra a prova com a meta e importa o percurso do Garmin. O app mostra a previsão de hoje e a do dia da prova, diz se a meta está tranquila, desafiadora ou agressiva e monta a estratégia de pace por km pela inclinação, com as subidas, os postos de água e a hora do gel.</p>
+      <p>A estratégia vai para o relógio como um treino agendado no dia da prova. O checklist de prontidão tem dez itens com números, o bloco mostra o longão de cada semana e, nas duas últimas semanas, aparece o polimento. Depois da prova, o app separa o que foi negativo, o que foi positivo e o que levar para a próxima.</p>
     </div>
     <div class="card race-card">
       <div class="w-head">
@@ -300,16 +337,92 @@
       </svg>
       <div class="legend"><span>barras: pace alvo por km</span><span>mais alto = mais lento</span></div>
       <div class="ask">
-        <div><div class="t">Parece prova?</div><div class="s">10,04 km · 46:12 · FC 168</div></div>
-        <div class="btns"><span class="btn lime-btn">Foi prova</span><span class="btn">Não foi</span></div>
+        <div><div class="t">Estratégia no relógio</div><div class="s">21 passos, um por km, agendados para 20 de dezembro</div></div>
+        <div class="btns"><span class="btn lime-btn">Enviar</span></div>
       </div>
+    </div>
+  </section>
+
+  <section class="feature flip" id="relogio">
+    <div class="copy">
+      <p class="eyebrow">Relógio</p>
+      <h2>O essencial no pulso</h2>
+      <p>O mostrador para o Forerunner 965 traz a prontidão com a régua de descanso a forte, o VO2max com a variação de 3 meses, os km da semana contra o planejado e a meta, o treino de hoje com a estrutura colorida por zona e uma dica para ele, e a prova com a previsão e a meta.</p>
+      <p>No modo sempre ligado, ficam a hora, a data, a prontidão e os dias até a prova, em cinza e com deslocamento contra burn-in.</p>
+    </div>
+    <div class="card watch-card">
+      <svg class="watchface" viewBox="0 0 454 454" role="img" aria-label="Mostrador de exemplo: 9:41, prontidão 74, VO2 52,4, 31 de 52 km na semana, longão de 20 km hoje e meia em 9 dias">
+        <circle cx="227" cy="227" r="226" fill="#000"/>
+        <g stroke-width="3">
+          <line x1="227" y1="8" x2="227" y2="22" stroke="#E4FF1A"/><line x1="337" y1="37" x2="330" y2="49" stroke="#E4FF1A"/><line x1="417" y1="117" x2="405" y2="124" stroke="#E4FF1A"/><line x1="446" y1="227" x2="432" y2="227" stroke="#3A3F46"/><line x1="417" y1="337" x2="405" y2="330" stroke="#3A3F46"/><line x1="117" y1="37" x2="124" y2="49" stroke="#3A3F46"/>
+        </g>
+        <text x="227" y="80" text-anchor="middle" class="wf-dim" font-size="22">SEXTA 13 NOV</text>
+        <text x="200" y="118" text-anchor="end" class="wf-ink" font-size="30">24°</text>
+        <text x="216" y="118" class="wf-dim" font-size="24">68%</text>
+        <text x="300" y="118" class="wf-ink" font-size="24">82%</text>
+        <text x="215" y="214" text-anchor="middle" class="wf-ink" font-size="96">9:41</text>
+        <text x="322" y="214" class="wf-lime" font-size="32">27</text>
+        <text x="121" y="258" text-anchor="middle" fill="#C8F05A" font-size="38" font-weight="700">74</text>
+        <text x="121" y="282" text-anchor="middle" class="wf-dim" font-size="15">FORTE</text>
+        <text x="227" y="258" text-anchor="middle" class="wf-ink" font-size="38">52,4</text>
+        <text x="227" y="282" text-anchor="middle" class="wf-dim" font-size="15">VO2 MÁX.</text>
+        <text x="227" y="300" text-anchor="middle" fill="#C8F05A" font-size="14" font-weight="700">▲ 1,2 · 3M</text>
+        <text x="333" y="258" text-anchor="middle" font-size="38" font-weight="700"><tspan fill="#C8F05A">31,0</tspan><tspan font-size="22" fill="#B3BAC4">/52</tspan></text>
+        <text x="333" y="282" text-anchor="middle" class="wf-dim" font-size="15">KM SEMANA</text>
+        <text x="227" y="330" text-anchor="middle" fill="#E4FF1A" font-size="21" font-weight="700">CORRIDA LONGO 20 KM</text>
+        <rect x="132" y="341" width="190" height="10" fill="#C8F05A"/>
+        <text x="227" y="370" text-anchor="middle" fill="#FFC24C" font-size="14" font-weight="700">FC até 159 · gel no km 9</text>
+        <text x="227" y="398" text-anchor="middle" fill="#FF8A1A" font-size="21" font-weight="700">MEIA · 22 NOV · 9 DIAS</text>
+        <text x="227" y="424" text-anchor="middle" font-size="24" font-weight="700"><tspan fill="#FF8A1A">1:31:24</tspan><tspan font-size="16" fill="#B3BAC4"> / META 1:32:00</tspan></text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="feature" id="compartilhar">
+    <div class="copy">
+      <p class="eyebrow">Compartilhar</p>
+      <h2>O percurso animado, pronto pro Stories</h2>
+      <p>O mapa se desenha com o ponto andando e os números contando, e sai em vídeo, GIF ou imagem. Há também o mapa quadrado para o WhatsApp, a série de tiros contra o alvo, a evolução no mesmo treino, o adesivo transparente e o card do resultado da prova.</p>
+      <p>Dá para escolher a proporção, a cor do traço por pace ou por zona, uma foto de fundo e o que aparece. O começo e o fim do percurso são cortados por padrão, para não mostrar onde você mora.</p>
+    </div>
+    <div class="card share-card">
+      <svg class="share-route" viewBox="0 0 300 300" role="img" aria-label="Percurso de exemplo sendo desenhado">
+        <path class="route-base" d="M60,170 C60,90 130,60 180,70 C240,82 262,120 250,160 C238,206 190,224 150,214 C110,204 90,226 74,206 Z"/>
+        <path class="route-draw" pathLength="1" d="M60,170 C60,90 130,60 180,70 C240,82 262,120 250,160 C238,206 190,224 150,214 C110,204 90,226 74,206 Z"/>
+      </svg>
+      <div class="three">
+        <div><div class="n mid">13,2</div><div class="s">km</div></div>
+        <div><div class="n mid">59:41</div><div class="s">tempo</div></div>
+        <div><div class="n mid lime">3:45</div><div class="s">pace nos tiros</div></div>
+      </div>
+      <ul class="chips small" aria-label="Formatos">
+        <li>Vídeo</li><li>GIF</li><li>9:16 · 4:5 · 1:1</li><li>Foto de fundo</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="feature flip" id="semana">
+    <div class="copy">
+      <p class="eyebrow">A semana</p>
+      <h2>Domingo à noite, o resumo</h2>
+      <p>No domingo sai uma notificação e a Hoje mostra a semana fechada: volume contra o planejado, aderência, o melhor treino e quanto falta para a prova.</p>
+    </div>
+    <div class="card week-card">
+      <div class="k">Sua semana · 9 a 15 nov</div>
+      <div class="t">51 de 51 km planejados</div>
+      <div class="three">
+        <div><div class="n mid">100%</div><div class="s">aderência</div></div>
+        <div><div class="n mid">5</div><div class="s">corridas</div></div>
+        <div><div class="n mid lime">84</div><div class="s">melhor nota</div></div>
+      </div>
+      <p class="note">Semana completa. Melhor treino: Intervalado VO2 Máx. LIVE!21K em 7 dias.</p>
     </div>
   </section>
 
   <section class="data" id="dados">
     <p class="eyebrow">Os dados</p>
     <h2>O que vem do Garmin e o que o app calcula</h2>
-    <p class="lead">Os dados vêm da Personal API do Garmin, com uma chave pessoal e só leitura que você cria no Garmin Connect. Todo número calculado pelo app traz o rótulo trAIning, para não ser confundido com um número do Garmin.</p>
+    <p class="lead">Os dados de saúde e atividades vêm da Personal API do Garmin, com uma chave pessoal e só leitura. O login na conta Garmin, feito no app, traz o calendário com os treinos do Treinus e os percursos salvos, e é usado para enviar a estratégia de prova ao relógio. Todo número calculado pelo app traz o rótulo trAIning.</p>
     <div class="cols">
       <div class="card list">
         <div class="list-head"><span class="badge">Garmin</span><span class="s">lido como vem</span></div>
@@ -320,6 +433,7 @@
           <li>Zonas de FC e FC de limiar</li>
           <li>Atividades: distância, tempo, FC, carga, efeito de treino, parciais, dinâmica de corrida</li>
           <li>Arquivo .FIT de cada corrida, processado e descartado</li>
+          <li>Treinos planejados do calendário e percursos salvos (conta Garmin)</li>
         </ul>
       </div>
       <div class="card list mine">
@@ -333,6 +447,10 @@
           <li>Projeção com faixa de incerteza e data estimada da meta</li>
           <li>Nota do treino, durabilidade, força em subida</li>
           <li>Estratégia de pace por km e bloco da prova</li>
+          <li>Análise do treino com feedback, planejado × feito</li>
+          <li>Briefing do treino planejado e recuperação estimada</li>
+          <li>Polimento, pontos do percurso e checklist da prova</li>
+          <li>Alerta de sobrecarga, relatório semanal e recordes</li>
           <li>Leituras em texto, geradas no aparelho</li>
         </ul>
       </div>
@@ -345,8 +463,10 @@
       <h2>Seus dados ficam com você</h2>
       <div class="priv-grid">
         <div><div class="t">Garmin direto no aparelho</div><p>Os dados do Garmin vão do Garmin para o aparelho, sem passar por servidor nosso. Sem telemetria.</p></div>
-        <div><div class="t">Sync cifrado e opcional</div><p>Para usar no iPhone e no iPad, as provas e respostas sobem cifradas no aparelho. O servidor não lê nome de prova, meta nem rota, e um botão em Ajustes apaga tudo dele.</p></div>
-        <div><div class="t">Chave no Keychain</div><p>A chave da Personal API fica no Keychain do aparelho, sem sincronizar com o iCloud.</p></div>
+        <div><div class="t">Sync cifrado e opcional</div><p>Para usar no iPhone e no iPad, as provas e respostas sobem cifradas no aparelho. O servidor não lê esses dados, e um botão em Ajustes apaga tudo dele.</p></div>
+        <div><div class="t">O que vai pro relógio</div><p>O mostrador só lê o que mostra: a nota do dia, o treino de hoje, os km da semana e o nome, a data, a meta e a previsão da prova. Esses campos ficam no servidor sem cifra, porque o relógio precisa lê-los.</p></div>
+        <div><div class="t">Chave e sessão no Keychain</div><p>A chave da Personal API e a sessão da conta Garmin ficam no Keychain do aparelho, sem sincronizar com o iCloud. A senha do Garmin nunca é guardada.</p></div>
+        <div><div class="t">Previsão do tempo sem endereço</div><p>Para o melhor horário, o app manda ao Open-Meteo só uma coordenada arredondada, com precisão de uns 10 km.</p></div>
         <div><div class="t">Textos locais</div><p>As leituras em texto são geradas pelo Foundation Models da Apple, no próprio aparelho. Sem ele, o app usa templates.</p></div>
         <div><div class="t">Apagar quando quiser</div><p>Em Ajustes, um botão apaga do aparelho os treinos, os dados diários e as provas.</p></div>
       </div>
