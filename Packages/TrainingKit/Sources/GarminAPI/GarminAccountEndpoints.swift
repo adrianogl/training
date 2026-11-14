@@ -36,4 +36,6 @@ public enum GarminAccountEndpoints {
     public static let calendarPathFormat = "/calendar-service/year/%d/month/%d"
     public static let coursesPath = "/course-service/course"
     public static let workoutPathPrefix = "/workout-service/workout/"
+    public static let createWorkoutPath = "/workout-service/workout"
+    public static let schedulePathPrefix = "/workout-service/schedule/"
 }

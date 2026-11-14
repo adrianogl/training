@@ -20,6 +20,7 @@ struct NextRaceView: View {
                         RaceChecklistCard(items: model.checklist)
                     }
                     PaceStrategyCard(model: model)
+                    RaceStrategyUploadCard(info: info, strategy: model.strategy, client: app.garminAccount.client)
                     pair {
                         RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading, longest: model.weeklyLongest)
                             .id(RacesConstants.blockAnchor)
