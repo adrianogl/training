@@ -534,6 +534,7 @@ export const GOALS_TEXT = {
     time: 'Ex.: 10 km em 40 min, com prazo opcional.',
     continuousLong: 'Distância e pace-alvo, sem nenhuma parada.',
   },
+  scopes: { time: 'Vale para tiros, ritmo e provas', continuousLong: 'Vale para longões' },
   timeTitle: (distance: string, time: string) => `${distance} em ${time}`,
   longTitle: (distance: string) => `${distance} sem pausas`,
   timeLine: (pace: string, deadline: string | null) => `${pace}/km${deadline === null ? '' : ` · até ${deadline}`}`,

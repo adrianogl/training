@@ -1,6 +1,5 @@
 enum WorkoutGoalConstants {
     static let cardTitle = "Meta"
-    static let longShare = 0.7
     static let timeMatchLow = 0.99
     static let timeMatchHigh = 1.05
     static let paceGoalDistances: Set<Double> = [5, 10]

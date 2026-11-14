@@ -63,6 +63,7 @@ export function GoalDetail({ goal, onSaved, onDeleted }: GoalDetailProps) {
           <span className="label">{GOALS_TEXT.kinds[goal.kind].toUpperCase()}</span>
           <h2>{goalTitle(goal)}</h2>
           <span className="muted">{goalLine(goal)}</span>
+          <span className="muted small">{GOALS_TEXT.scopes[goal.kind]}</span>
         </div>
         {status !== null && <span className={`pill ${status.tone === 'ok' ? 'pill-ok' : 'pill-warn'}`}>{status.text}</span>}
       </div>

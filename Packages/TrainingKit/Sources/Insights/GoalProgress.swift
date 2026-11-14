@@ -52,8 +52,8 @@ public func timeGoalProgress(_ goal: GoalRecord, efforts: [Effort], runs: [Activ
 }
 
 public func longGoalCandidates(_ goal: GoalRecord, runs: [ActivityRecord]) -> [ActivityRecord] {
-    let minimum = goal.distanceKm * C.metersPerKilometer * C.longShare
-    return Array(runs.filter { ($0.distance ?? 0) >= minimum }.sorted { $0.start > $1.start }.prefix(C.longRuns))
+    let longRuns = runs.filter { isLongRun(name: $0.workoutName ?? $0.name, distanceMeters: $0.distance ?? 0, goalKm: goal.distanceKm) }
+    return Array(longRuns.sorted { $0.start > $1.start }.prefix(C.longRuns))
 }
 
 public func longGoalProgress(_ goal: GoalRecord, runs: [ActivityRecord], createdOn: Day) -> LongGoalProgress {

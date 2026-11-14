@@ -108,6 +108,7 @@ export function GoalEditor({ goal, onSaved, onDeleted }: GoalEditorProps) {
           <label className="field">{GOALS_TEXT.fields.pace}<input id="goal-pace" inputMode="numeric" placeholder={GOALS_TEXT.paceHint} value={form.pace} onChange={set('pace')} /></label>
         </div>
       )}
+      <p className="muted small">{GOALS_TEXT.scopes[form.kind]}</p>
       <Message error={error} notice={notice} />
       <div className="actions">
         {goal !== null && !confirming && (

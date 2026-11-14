@@ -19,9 +19,9 @@ import WorkoutAnalysis
         return [FITSample(t: 0, distance: 0)] + first + stopped + steady(from: stopAt + Double(seconds), meters: total - stopMeters, startMeters: stopMeters)
     }
 
-    private func run(_ id: Int64, day: String, meters: Double, seconds: Double, samples: [FITSample]? = nil) -> ActivityRecord {
+    private func run(_ id: Int64, day: String, meters: Double, seconds: Double, name: String = "Corrida", samples: [FITSample]? = nil) -> ActivityRecord {
         ActivityRecord(
-            activityId: id, typeKey: "running", name: "Corrida", start: ISO8601DateFormatter().date(from: "\(day)T10:00:00Z")!, distance: meters, duration: seconds,
+            activityId: id, typeKey: "running", name: name, start: ISO8601DateFormatter().date(from: "\(day)T10:00:00Z")!, distance: meters, duration: seconds,
             samplesData: samples.map { try! JSONEncoder().encode($0) }, localDay: day
         )
     }
@@ -56,7 +56,7 @@ import WorkoutAnalysis
 
     @Test func intervalsCompareActiveBlocksWithTheGoalPace() {
         let goal = GoalRecord(kind: .time, distanceKm: 10, targetSeconds: 2_400)
-        let current = run(4, day: "2026-11-10", meters: 9_800, seconds: 3_300)
+        let current = run(4, day: "2026-11-10", meters: 9_800, seconds: 3_300, name: "Tiros 6x1000")
         let blocks = [block(.warmup, meters: 2_500, seconds: 840), block(.active, meters: 1_000, seconds: 238), block(.recovery, meters: 300, seconds: 120), block(.active, meters: 1_000, seconds: 238)]
 
         let entry = WorkoutGoalCheck.entries(record: current, runs: [current], blocks: blocks, goals: [goal]).first
@@ -73,5 +73,35 @@ import WorkoutAnalysis
 
         #expect(entry?.status == "ainda não")
         #expect(entry?.lines.first?.hasPrefix("10 km em 40:38") == true)
+    }
+
+    @Test func easyRunNearTheLongDistanceShowsNoGoal() {
+        let goals = [GoalRecord(kind: .continuousLong, distanceKm: 16, paceSecondsPerKm: 290), GoalRecord(kind: .time, distanceKm: 10, targetSeconds: 2_400)]
+        let current = run(6, day: "2026-11-13", meters: 12_660, seconds: 3_700, name: "Rodagem", samples: [FITSample(t: 0, distance: 0)] + steady(from: 0, meters: 12_660, startMeters: 0))
+        let blocks = [block(.active, meters: 12_660, seconds: 3_700)]
+
+        #expect(WorkoutGoalCheck.entries(record: current, runs: [current], blocks: blocks, goals: goals).isEmpty)
+    }
+
+    @Test func longRunShowsOnlyTheLongGoal() {
+        let long = GoalRecord(kind: .continuousLong, distanceKm: 16, paceSecondsPerKm: 290)
+        let time = GoalRecord(kind: .time, distanceKm: 10, targetSeconds: 2_400)
+        let current = run(7, day: "2026-11-14", meters: 16_200, seconds: 4_620, name: "Longão", samples: [FITSample(t: 0, distance: 0)] + steady(from: 0, meters: 16_200, startMeters: 0))
+        let blocks = [block(.active, meters: 16_200, seconds: 4_620)]
+
+        let entries = WorkoutGoalCheck.entries(record: current, runs: [current], blocks: blocks, goals: [long, time])
+
+        #expect(entries.map(\.id) == [long.id.uuidString])
+    }
+
+    @Test func intervalsShowOnlyTheTimeGoal() {
+        let long = GoalRecord(kind: .continuousLong, distanceKm: 16, paceSecondsPerKm: 290)
+        let time = GoalRecord(kind: .time, distanceKm: 10, targetSeconds: 2_400)
+        let current = run(8, day: "2026-11-10", meters: 9_800, seconds: 3_300, name: "Tiros 6x1000")
+        let blocks = [block(.active, meters: 1_000, seconds: 238), block(.active, meters: 1_000, seconds: 238)]
+
+        let entries = WorkoutGoalCheck.entries(record: current, runs: [current], blocks: blocks, goals: [long, time])
+
+        #expect(entries.map(\.id) == [time.id.uuidString])
     }
 }
