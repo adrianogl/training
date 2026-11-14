@@ -120,12 +120,12 @@ import TrainingCore
         #expect(PlannedCourseFinder.best(courses, plannedMeters: 50_000) == nil)
     }
 
-    @Test func fadeComparesLastFifthWithMiddle() {
-        let samples = (0...200).map { index -> FITSample in
+    @Test func fadeComparesLastFifthWithMiddleIgnoringStops() {
+        var samples = (0...200).map { index -> FITSample in
             let meters = Double(index) * 50
-            let seconds = meters <= 8_000 ? meters / 1_000 * 300 : 2_400 + (meters - 8_000) / 1_000 * 310
-            return FITSample(t: seconds, distance: meters)
+            return FITSample(t: Double(index) * 15, speed: meters <= 8_000 ? 1_000.0 / 300 : 1_000.0 / 310, distance: meters)
         }
+        samples += (0..<60).map { FITSample(t: 3_100 + Double($0) * 5, speed: 0.3, distance: 10_000 + Double($0)) }
 
         let fade = PlannedBriefingLoader.fade(samples)
 

@@ -64,12 +64,15 @@ enum PlannedBriefingLoader {
     }
 
     static func fade(_ samples: [FITSample]) -> Double? {
-        let points = samples.compactMap { sample in sample.distance.map { (distance: $0, t: sample.t) } }
-        guard let total = points.last?.distance, total > C.fadeMinimumMeters else { return nil }
+        let moving = samples.compactMap { sample -> (distance: Double, speed: Double)? in
+            guard let distance = sample.distance, let speed = sample.speed, speed >= C.runningMinimumSpeed else { return nil }
+            return (distance, speed)
+        }
+        guard let total = moving.last?.distance, total > C.fadeMinimumMeters else { return nil }
         let pace = { (from: Double, to: Double) -> Double? in
-            guard let start = points.first(where: { $0.distance >= from }), let end = points.last(where: { $0.distance <= to }),
-                  end.distance - start.distance > 0 else { return nil }
-            return (end.t - start.t) / ((end.distance - start.distance) / WorkoutConstants.metersPerKilometer)
+            let speeds = moving.filter { $0.distance >= from && $0.distance <= to }.map(\.speed)
+            guard speeds.count >= C.fadeMinimumSamples else { return nil }
+            return WorkoutConstants.metersPerKilometer / (speeds.reduce(0, +) / Double(speeds.count))
         }
         guard let middle = pace(total * C.fadeMiddleStart, total * C.fadeMiddleEnd), let last = pace(total * C.fadeMiddleEnd, total) else { return nil }
         return last - middle

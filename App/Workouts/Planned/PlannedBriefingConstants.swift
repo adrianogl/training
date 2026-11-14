@@ -134,5 +134,7 @@ enum PlannedBriefingLoaderConstants {
     static let fadeMinimumMeters = 5_000.0
     static let fadeMiddleStart = 0.2
     static let fadeMiddleEnd = 0.8
+    static let runningMinimumSpeed = 2.2
+    static let fadeMinimumSamples = 5
     static let blockDays = 84
 }
