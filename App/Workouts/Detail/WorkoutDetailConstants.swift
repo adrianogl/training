@@ -16,6 +16,8 @@ enum WorkoutDetailConstants {
         "Desaquecimento": "Desaq.",
         "Recuperação": "Recup.",
     ]
+    static let repeatLabelPrefix = "Tiro"
+    static let blockLabelPrefix = "Bloco"
     static let labelColumnWidth: CGFloat = 76
     static let kilometerIndent: CGFloat = 14
     static let valueColumnWidth: CGFloat = 52
@@ -82,14 +84,20 @@ enum WorkoutDetailConstants {
     static let similarChartMinimumRuns = 2
     static let similarChartHeight: CGFloat = 130
     static let similarChartAccessibility = "Pace médio dos treinos parecidos, do mais antigo ao atual, com a FC média embaixo"
-    static let negativeMarker = "N"
-    static let positiveMarker = "P"
     static let heartRateColumnWidth: CGFloat = 60
-    static let markerColumnWidth: CGFloat = 30
+    static let dotColumnWidth: CGFloat = 14
+    static let visibleAnalysisEntries = 4
+    static let tagColumnWidth: CGFloat = 96
+    static let feedbackMaxWidth: CGFloat = 640
+    static let tagFix = "Corrigir"
+    static let tagGood = "Bom"
+    static let tagExpected = "No esperado"
+    static let nextTag = "Para o próximo"
+    static let showMoreFormat = "Mostrar mais %d"
+    static let showLess = "Mostrar menos"
     static let blocksHeaderPace = "pace no alvo · mais rápido →"
     static let blocksHeaderValue = "pace"
     static let blocksHeaderHeartRate = "FC"
-    static let blocksMarkerNote = "As marcas N e P apontam para os itens da análise."
     static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace]
     static let scoreGaugeSize: Double = 120
     static let compactScoreGaugeSize: Double = 104

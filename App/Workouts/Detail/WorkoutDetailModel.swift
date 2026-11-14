@@ -85,36 +85,8 @@ import WorkoutAnalysis
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
     }
 
-    var analysisColumns: AnalysisColumns {
-        let findings = assessment.positives + assessment.negatives + assessment.attention
-        let items = findings.enumerated().compactMap { index, finding -> (Finding, AnalysisItem)? in
-            guard index < reading.findings.count else { return nil }
-            let item = AnalysisItem(
-                id: index,
-                text: reading.findings[index],
-                evidence: FindingDetail.evidence(finding, blocks: blocks),
-                why: FindingDetail.why(finding, blocks: blocks),
-                blockOrdinal: finding.blockOrdinal
-            )
-            return (finding, item)
-        }
-        let expectedKinds = WorkoutDetailConstants.expectedKinds
-        let expected = items.filter { item in item.0.group == .positive && expectedKinds.contains(item.0.kind) }.map { $0.1 }
-        let positive = items.filter { item in item.0.group == .positive && !expectedKinds.contains(item.0.kind) }.map { $0.1 }
-        let negative = items.filter { item in item.0.group != .positive }.map { $0.1 }
-        return AnalysisColumns(
-            negative: Self.marked(negative, prefix: WorkoutDetailConstants.negativeMarker),
-            positive: Self.marked(positive, prefix: WorkoutDetailConstants.positiveMarker),
-            expected: expected
-        )
-    }
-
-    private static func marked(_ items: [AnalysisItem], prefix: String) -> [AnalysisItem] {
-        items.enumerated().map { index, item in
-            var item = item
-            item.marker = "\(prefix)\(index + 1)"
-            return item
-        }
+    var analysisSummary: WorkoutAnalysisSummary {
+        WorkoutFeedback.summary(assessment: assessment, blocks: blocks)
     }
 
     private static func shareInput(

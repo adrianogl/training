@@ -75,22 +75,30 @@ struct AnalysisItem: Identifiable, Equatable {
     let evidence: String?
     let why: String
     let blockOrdinal: Int?
-    var marker: String? = nil
+}
+
+enum AnalysisTag: Equatable {
+    case fix, good, expected
+}
+
+struct AnalysisEntry: Identifiable, Equatable {
+    let id: Int
+    let tag: AnalysisTag
+    let title: String
+    let evidence: String?
+    let why: String
+}
+
+struct WorkoutAnalysisSummary: Equatable {
+    let feedback: [String]
+    let next: String?
+    let entries: [AnalysisEntry]
 }
 
 struct AnalysisColumns: Equatable {
     let negative: [AnalysisItem]
     let positive: [AnalysisItem]
     let expected: [AnalysisItem]
-
-    var blockMarkers: [Int: [String]] {
-        var markers: [Int: [String]] = [:]
-        for item in negative + positive {
-            guard let ordinal = item.blockOrdinal, let marker = item.marker else { continue }
-            markers[ordinal, default: []].append(marker)
-        }
-        return markers
-    }
 }
 
 struct WorkoutReading: Equatable {

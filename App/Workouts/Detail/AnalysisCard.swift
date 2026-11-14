@@ -46,17 +46,10 @@ struct AnalysisCard: View {
             }
             ForEach(items) { item in
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        if let marker = item.marker {
-                            Text(marker)
-                                .font(.caption2.weight(.bold))
-                                .foregroundStyle(BrandColors.dim)
-                        }
-                        Text(item.text)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(BrandColors.text)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    Text(item.text)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(BrandColors.text)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let evidence = item.evidence {
                         Text(evidence)
                             .font(.caption.monospacedDigit())

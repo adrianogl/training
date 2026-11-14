@@ -8,7 +8,6 @@ struct BlocksSection: View {
     let kilometers: [Int: [WorkoutBlock]]
     let kilometerBars: [Int: [BlockBar]]
     let showsTarget: Bool
-    var markers: [Int: [String]] = [:]
     @State private var expanded: Set<Int> = []
 
     var body: some View {
@@ -28,12 +27,6 @@ struct BlocksSection: View {
             if showsTarget {
                 legend.padding(.top, 10)
             }
-            if !markers.isEmpty {
-                Text(WorkoutDetailConstants.blocksMarkerNote)
-                    .font(.caption2)
-                    .foregroundStyle(BrandColors.dim)
-                    .padding(.top, 6)
-            }
         }
         .brandCard()
     }
@@ -42,7 +35,7 @@ struct BlocksSection: View {
         let bar = bars.indices.contains(position) ? bars[position] : nil
         let canExpand = block.laps.count > 1 || (showsTarget && block.prescribed != nil)
         return VStack(alignment: .leading, spacing: 6) {
-            line(block, bar: bar, indent: 0, marker: markers[position]?.first)
+            line(block, bar: bar, indent: 0)
             if expanded.contains(position) {
                 details(block)
             }
@@ -69,57 +62,62 @@ struct BlocksSection: View {
                 .frame(width: WorkoutDetailConstants.valueColumnWidth, alignment: .trailing)
             Text(WorkoutDetailConstants.blocksHeaderHeartRate)
                 .frame(width: WorkoutDetailConstants.heartRateColumnWidth, alignment: .trailing)
-            if showsTarget || !markers.isEmpty {
-                Color.clear.frame(width: WorkoutDetailConstants.markerColumnWidth, height: 1)
+            if showsTarget {
+                Color.clear.frame(width: WorkoutDetailConstants.dotColumnWidth, height: 1)
             }
         }
         .font(.caption2)
         .foregroundStyle(BrandColors.dim)
     }
 
-    @ViewBuilder
-    private func markerView(_ marker: String?, status: BlockStatus) -> some View {
-        if let marker {
-            let negative = marker.hasPrefix(WorkoutDetailConstants.negativeMarker)
-            Text(marker)
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(negative ? BrandColors.rest : BrandColors.onAccent)
-                .frame(width: WorkoutDetailConstants.markerColumnWidth)
-                .padding(.vertical, 1)
-                .background(
-                    negative ? BrandColors.rest.opacity(0.18) : BrandColors.accentFill,
-                    in: RoundedRectangle(cornerRadius: 6, style: .continuous)
-                )
-        } else if showsTarget {
-            Circle()
-                .fill(statusColor(status))
-                .frame(width: 8, height: 8)
-                .frame(width: WorkoutDetailConstants.markerColumnWidth)
-        } else if !markers.isEmpty {
-            Color.clear.frame(width: WorkoutDetailConstants.markerColumnWidth, height: 1)
-        }
-    }
-
-    private func line(_ block: WorkoutBlock, bar: BlockBar?, indent: CGFloat, marker: String? = nil) -> some View {
-        HStack(spacing: 8) {
-            Text(shortLabel(block.label))
-                .font(indent > 0 ? .caption : .footnote)
-                .foregroundStyle(BrandColors.dim)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+    private func line(_ block: WorkoutBlock, bar: BlockBar?, indent: CGFloat) -> some View {
+        let isRecovery = indent == 0 && block.kind == .recovery
+        return HStack(spacing: 8) {
+            label(block, indent: indent)
                 .padding(.leading, indent)
                 .frame(width: WorkoutDetailConstants.labelColumnWidth, alignment: .leading)
             BlockBarView(bar: bar, color: BrandColors.zone(block.dominantZone))
-            Text(bar?.valueText ?? "—")
-                .font(BrandFonts.number(indent > 0 ? 14 : 15))
-                .foregroundStyle(indent > 0 ? BrandColors.dim : BrandColors.text)
+            Text(isRecovery ? WorkoutListModel.clockText(block.seconds) : bar?.valueText ?? "—")
+                .font(BrandFonts.number(indent > 0 || isRecovery ? 14 : 15))
+                .foregroundStyle(indent > 0 || isRecovery ? BrandColors.dim : BrandColors.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
                 .frame(width: WorkoutDetailConstants.valueColumnWidth, alignment: .trailing)
             Text(block.avgHeartRate.map { "\($0) bpm" } ?? "—")
                 .font(BrandFonts.number(indent > 0 ? 12 : 13))
                 .foregroundStyle(BrandColors.dim)
                 .lineLimit(1)
                 .frame(width: WorkoutDetailConstants.heartRateColumnWidth, alignment: .trailing)
-            markerView(indent > 0 ? nil : marker, status: block.status)
+            if showsTarget {
+                Circle()
+                    .fill(statusColor(block.status))
+                    .frame(width: 8, height: 8)
+                    .frame(width: WorkoutDetailConstants.dotColumnWidth)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func label(_ block: WorkoutBlock, indent: CGFloat) -> some View {
+        if indent > 0 {
+            Text(shortLabel(block.label))
+                .font(.caption)
+                .foregroundStyle(BrandColors.dim)
+                .lineLimit(1)
+        } else {
+            let name = BlockNaming.tableLabel(block)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name.title)
+                    .font(.footnote)
+                    .foregroundStyle(BrandColors.text.opacity(0.85))
+                if let detail = name.detail {
+                    Text(detail)
+                        .font(.caption2.monospacedDigit())
+                        .foregroundStyle(BrandColors.dim)
+                }
+            }
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
         }
     }
 

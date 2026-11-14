@@ -69,10 +69,10 @@ struct WorkoutDetailView: View {
                     TrainingEffectCard(effect: effect)
                 }
             }
-            AnalysisCard(columns: model.analysisColumns, onDevice: model.reading.findingsOnDevice)
+            WorkoutAnalysisCard(summary: model.analysisSummary)
             if !model.blocks.isEmpty {
                 labelled(model.hasPrescription ? "Blocos × prescrito" : "Parciais") {
-                    BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription, markers: model.analysisColumns.blockMarkers)
+                    BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription)
                 }
                 .id(WorkoutDetailSection.blocks)
             }

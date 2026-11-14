@@ -67,7 +67,7 @@ import WorkoutAnalysis
         #expect(model.assessment.positives.contains { $0.kind == .steadyPace && $0.blockOrdinal == 1 })
     }
 
-    @Test func analysisSplitsExpectedFromPositiveAndNegative() throws {
+    @Test func analysisSummaryListsEveryFindingGroupWithFeedback() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         context.insert(F.run(
@@ -78,18 +78,13 @@ import WorkoutAnalysis
         try context.save()
 
         let model = WorkoutDetailModel(activityId: 1, context: context)
-        let columns = model.analysisColumns
-        let total = model.assessment.positives.count + model.assessment.negatives.count + model.assessment.attention.count
+        let summary = model.analysisSummary
 
-        #expect(columns.expected.contains { $0.blockOrdinal == 1 })
-        #expect(columns.negative.count == model.assessment.negatives.count + model.assessment.attention.count)
-        #expect(columns.expected.count + columns.positive.count == model.assessment.positives.count)
-        #expect(Set((columns.negative + columns.positive + columns.expected).map(\.id)) == Set(0..<total))
-        #expect(columns.negative.map(\.marker) == columns.negative.indices.map { "N\($0 + 1)" })
-        #expect(columns.positive.map(\.marker) == columns.positive.indices.map { "P\($0 + 1)" })
-        #expect(columns.expected.allSatisfy { $0.marker == nil })
-        let marked = (columns.negative + columns.positive).filter { $0.blockOrdinal != nil }
-        #expect(columns.blockMarkers.values.map(\.count).reduce(0, +) == marked.count)
+        #expect(!summary.entries.isEmpty)
+        #expect(summary.entries.contains { $0.tag == .expected })
+        #expect(Set(summary.entries.map(\.id)).count == summary.entries.count)
+        #expect(summary.feedback.first?.isEmpty == false)
+        #expect(summary.next != nil)
     }
 
     @Test func comparisonUsesSameWorkoutName() throws {
