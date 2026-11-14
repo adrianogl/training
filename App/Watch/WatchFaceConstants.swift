@@ -6,4 +6,8 @@ enum WatchFaceConstants {
     static let shapeMaxSteps = 24
     static let daysPerWeek = 7
     static let metersPerKm = 1_000.0
+    static let goalNameFormat = "META %@K"
+    static let goalNameMaxLength = 14
+    static let goalWholeTolerance = 0.05
+    static let goalWholeFrom = 20.0
 }

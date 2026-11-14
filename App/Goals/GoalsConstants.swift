@@ -66,3 +66,17 @@ enum GoalsConstants {
     static let runsHeight: Double = 64
     static let noDataHeightShare = 0.08
 }
+
+enum GoalsChatConstants {
+    static let prefix = "Meta: "
+    static let timeTodayFormat = ", previsão de hoje %@"
+    static let timeRemainingFormat = ", faltam %@"
+    static let timeAhead = ", previsão de hoje já abaixo da meta"
+    static let achievedFormat = ", cumprida em %@"
+    static let deadlineFormat = ", prazo %@"
+    static let longFormat = "longão de %@ km a %@/km sem pausas"
+    static let longRunsFormat = "; %d de %d longões recentes cumpriram"
+    static let longEmpty = "; ainda sem longões recentes"
+    static let longBestFormat = "; melhor trecho contínuo %@ km"
+    static let longAchievedFormat = "; cumprida em %@"
+}

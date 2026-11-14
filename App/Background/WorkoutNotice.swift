@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import Storage
 import SwiftData
 import TrainingCore
@@ -18,13 +19,19 @@ enum WorkoutNotice {
         guard let record = records.first(where: { ActivityTypeKey.isRun($0.typeKey) && abs($0.start.timeIntervalSince(start)) <= C.matchTolerance }) else { return nil }
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
         let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks).feedback.first
-        return content(record: record, score: analysis.score?.value, opening: opening)
+        let goals = (try? goalSnapshots(context: context, today: Day.today())) ?? []
+        return content(record: record, score: analysis.score?.value, opening: opening, goals: goals)
     }
 
-    static func content(record: ActivityRecord, score: Int?, opening: String?) -> WorkoutNoticeContent {
+    static func content(record: ActivityRecord, score: Int?, opening: String?, goals: [GoalSnapshot] = []) -> WorkoutNoticeContent {
         let name = record.workoutName ?? (record.name.isEmpty ? C.fallbackName : record.name)
-        let title = score.map { String(format: C.titleScoreFormat, name, $0) } ?? name
-        return WorkoutNoticeContent(activityId: record.activityId, title: title, body: opening ?? stats(record))
+        var title = score.map { String(format: C.titleScoreFormat, name, $0) } ?? name
+        var body = opening ?? stats(record)
+        if let goal = WorkoutNoticeGoals.evaluate(record: record, goals: goals) {
+            if let met = goal.metGoal { title = String(format: C.metTitleFormat, met, title) }
+            if let note = goal.note { body = body.isEmpty ? note : note + "\n" + body }
+        }
+        return WorkoutNoticeContent(activityId: record.activityId, title: title, body: body)
     }
 
     static func stats(_ record: ActivityRecord) -> String {

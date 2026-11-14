@@ -26,7 +26,10 @@ public struct LongRunCheck: Sendable, Equatable {
     public var paceSecondsPerKm: Double?
     public var met: Bool?
 
-    public init(activityId: Int64, day: Day, distanceKm: Double, longestContinuousKm: Double?, pauses: [RunPause]?, paceSecondsPerKm: Double?, met: Bool?) {
+    public init(
+        activityId: Int64, day: Day, distanceKm: Double, longestContinuousKm: Double? = nil,
+        pauses: [RunPause]? = nil, paceSecondsPerKm: Double? = nil, met: Bool? = nil
+    ) {
         self.activityId = activityId
         self.day = day
         self.distanceKm = distanceKm
@@ -65,7 +68,10 @@ public struct GoalSnapshot: Sendable, Equatable {
     public var paceSecondsPerKm: Double?
     public var progress: GoalProgress
 
-    public init(id: UUID, kind: GoalKind, distanceKm: Double, targetSeconds: Double?, deadline: Day?, paceSecondsPerKm: Double?, progress: GoalProgress) {
+    public init(
+        id: UUID, kind: GoalKind, distanceKm: Double, targetSeconds: Double?, deadline: Day?,
+        paceSecondsPerKm: Double?, progress: GoalProgress
+    ) {
         self.id = id
         self.kind = kind
         self.distanceKm = distanceKm

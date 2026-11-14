@@ -10,3 +10,8 @@ struct MorningNoticeSettings: Equatable, Sendable {
     var enabled: Bool
     var minimumMinutes: Int
 }
+
+struct WorkoutGoalNotice: Equatable {
+    var metGoal: String?
+    var note: String?
+}

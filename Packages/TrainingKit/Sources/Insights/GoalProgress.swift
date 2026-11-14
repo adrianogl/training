@@ -82,9 +82,3 @@ public func longGoalProgress(_ goal: GoalRecord, runs: [ActivityRecord], created
         achievedOn: checks.filter { $0.met == true && $0.day >= createdOn }.map(\.day).min()
     )
 }
-
-extension LongRunCheck {
-    init(activityId: Int64, day: Day, distanceKm: Double) {
-        self.init(activityId: activityId, day: day, distanceKm: distanceKm, longestContinuousKm: nil, pauses: nil, paceSecondsPerKm: nil, met: nil)
-    }
-}

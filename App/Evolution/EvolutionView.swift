@@ -1,4 +1,5 @@
 import Insights
+import SwiftData
 import SwiftUI
 import TrainingCore
 
@@ -105,7 +106,8 @@ struct EvolutionView: View {
         EvolutionChatContextBuilder.context(
             verdictTitle: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators,
             outlook: model.outlook, countdownDays: model.raceContext.countdownDays,
-            cards: Array(model.cardData.values), records: model.records, zoneWeeks: model.zoneWeeks
+            cards: Array(model.cardData.values), records: model.records, zoneWeeks: model.zoneWeeks,
+            goals: (try? goalSnapshots(context: ModelContext(app.container), today: Day.today())) ?? []
         )
     }
 
