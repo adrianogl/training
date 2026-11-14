@@ -93,8 +93,8 @@ export interface WatchFace {
 
 export interface Readiness {
   day: string
-  score: number
-  verdict: string
+  score?: number
+  verdict?: string
   face?: WatchFace
 }
 

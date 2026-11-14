@@ -1,6 +1,7 @@
 import Foundation
 import GarminAPI
 import Insights
+import Metrics
 import Narrative
 import Observation
 import RemoteSync
@@ -217,13 +218,20 @@ import TrainingCore
         return syncStatus.isFinished
     }
 
-    nonisolated static func watchReadiness(summary: TodaySummary, day: Day) -> WatchReadiness? {
-        guard let score = summary.readiness?.score, let phrase = summary.verdict.flatMap({ TodayConstants.verdictPhrases[$0] }) else { return nil }
-        return WatchReadiness(day: day.iso, score: score, verdict: phrase)
+    nonisolated static func watchReadiness(summary: TodaySummary, day: Day, garmin: GarminReadinessScore? = nil) -> WatchReadiness {
+        if let score = summary.readiness?.score, let phrase = summary.verdict.flatMap({ TodayConstants.verdictPhrases[$0] }) {
+            return WatchReadiness(day: day.iso, score: score, verdict: phrase)
+        }
+        if let garmin, garmin.day == day.iso, let phrase = TodayConstants.verdictPhrases[readinessVerdict(score: garmin.score)] {
+            return WatchReadiness(day: day.iso, score: garmin.score, verdict: phrase)
+        }
+        return WatchReadiness(day: day.iso, score: nil, verdict: nil)
     }
 
     func publishWatchReadiness(summary: TodaySummary?, day: Day) async {
-        guard let summary, var readiness = Self.watchReadiness(summary: summary, day: day) else { return }
+        guard let summary else { return }
+        let garmin = summary.readiness == nil ? await GarminReadinessCache.refresh(client: garminAccount.client, day: day) : nil
+        var readiness = Self.watchReadiness(summary: summary, day: day, garmin: garmin)
         let planned = await plannedForWatch(week: day.weekStart)
         let container = container
         let weeklyGoal = UserDefaults.standard.integer(forKey: AppConstants.weeklyGoalDefaultsKey)
@@ -235,6 +243,7 @@ import TrainingCore
         readiness.face = await Task.detached(priority: .utility) {
             WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal, weather: forecast)
         }.value
+        guard readiness.score != nil || readiness.face != nil else { return }
         latestWatchReadiness = readiness
         await remoteSync.publishReadiness(readiness)
     }

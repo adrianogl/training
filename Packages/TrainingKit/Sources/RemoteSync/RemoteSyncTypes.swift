@@ -68,15 +68,17 @@ struct WatchTokenBody: Encodable {
 
 public struct WatchReadiness: Codable, Equatable, Sendable {
     public var day: String
-    public var score: Int
-    public var verdict: String
+    public var score: Int?
+    public var verdict: String?
     public var face: WatchFace?
 
-    public init(day: String, score: Int, verdict: String, face: WatchFace? = nil) {
+    public init(day: String, score: Int?, verdict: String?, face: WatchFace? = nil) {
         let range = RemoteSyncConstants.watchScoreRange
         self.day = day
-        self.score = min(max(score, range.lowerBound), range.upperBound)
-        self.verdict = String(String.UnicodeScalarView(verdict.unicodeScalars.prefix(RemoteSyncConstants.watchVerdictMaxLength)))
+        if let score, let verdict {
+            self.score = min(max(score, range.lowerBound), range.upperBound)
+            self.verdict = String(String.UnicodeScalarView(verdict.unicodeScalars.prefix(RemoteSyncConstants.watchVerdictMaxLength)))
+        }
         self.face = face
     }
 }

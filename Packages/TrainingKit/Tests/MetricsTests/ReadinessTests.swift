@@ -85,3 +85,10 @@ private func input(hrv: Double? = 47, baseline: HRVBaseline? = b, sleep: Double?
     #expect(bodyBatteryMorningMax(values: [(end.addingTimeInterval(-1), 80)], sleepEnd: end) == nil)
     #expect(bodyBatteryMorningMax(values: [], sleepEnd: end) == nil)
 }
+
+@Test func verdictFollowsScoreBands() {
+    #expect(readinessVerdict(score: 39) == .rest)
+    #expect(readinessVerdict(score: 40) == .moderate)
+    #expect(readinessVerdict(score: 69) == .moderate)
+    #expect(readinessVerdict(score: 70) == .hard)
+}

@@ -1,4 +1,5 @@
 import Foundation
+import GarminAPI
 import Insights
 import Metrics
 import RemoteSync
@@ -297,9 +298,21 @@ import TrainingCore
         #expect(readiness == WatchReadiness(day: "2026-11-12", score: 63, verdict: TodayConstants.verdictPhrases[.moderate]!))
     }
 
-    @Test func noReadinessForTodayMeansNothingToSend() {
-        #expect(AppModel.watchReadiness(summary: Self.summary(score: nil, verdict: nil), day: Self.day) == nil)
-        #expect(AppModel.watchReadiness(summary: Self.summary(score: 63, verdict: nil), day: Self.day) == nil)
+    @Test func noReadinessForTodaySendsOnlyTheDay() {
+        let empty = WatchReadiness(day: "2026-11-12", score: nil, verdict: nil)
+
+        #expect(AppModel.watchReadiness(summary: Self.summary(score: nil, verdict: nil), day: Self.day) == empty)
+        #expect(AppModel.watchReadiness(summary: Self.summary(score: 63, verdict: nil), day: Self.day) == empty)
+    }
+
+    @Test func garminScoreFillsInWhenTheAppHasNone() {
+        let garmin = GarminReadinessScore(day: "2026-11-12", score: 50)
+        let yesterday = GarminReadinessScore(day: "2026-11-11", score: 80)
+
+        #expect(AppModel.watchReadiness(summary: Self.summary(score: nil, verdict: nil), day: Self.day, garmin: garmin)
+            == WatchReadiness(day: "2026-11-12", score: 50, verdict: TodayConstants.verdictPhrases[.moderate]!))
+        #expect(AppModel.watchReadiness(summary: Self.summary(score: nil, verdict: nil), day: Self.day, garmin: yesterday).score == nil)
+        #expect(AppModel.watchReadiness(summary: Self.summary(score: 81, verdict: .hard), day: Self.day, garmin: garmin).score == 81)
     }
 
     @Test func finishedGarminSyncPublishesReadiness() async throws {

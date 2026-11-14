@@ -49,13 +49,18 @@ class TrainingFaceApp extends Application.AppBase {
 
     private function storeReadiness(data) {
         var day = data[ReadinessBridge.DAY];
-        var score = data[ReadinessBridge.SCORE];
-        if (!(day instanceof String) || !(score instanceof Number)) {
+        if (!(day instanceof String)) {
             return;
         }
-        Application.Storage.setValue(StorageKeys.READINESS, score);
+        var score = data[ReadinessBridge.SCORE];
+        if (score instanceof Number) {
+            Application.Storage.setValue(StorageKeys.READINESS, score);
+            Application.Storage.setValue(StorageKeys.READINESS_VERDICT, data[ReadinessBridge.VERDICT]);
+        } else {
+            Application.Storage.deleteValue(StorageKeys.READINESS);
+            Application.Storage.deleteValue(StorageKeys.READINESS_VERDICT);
+        }
         Application.Storage.setValue(StorageKeys.READINESS_DAY, day);
-        Application.Storage.setValue(StorageKeys.READINESS_VERDICT, data[ReadinessBridge.VERDICT]);
         Application.Storage.setValue(StorageKeys.FACE, data);
     }
 

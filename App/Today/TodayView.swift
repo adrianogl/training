@@ -74,6 +74,7 @@ struct TodayView: View {
             let loaded = TodayModel(container: app.container, today: Day.today())
             await loaded.load()
             model = loaded
+            await loaded.loadGarminReadiness(client: app.garminAccount.client)
             await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
             if let sunday = WeeklyReportBuilder.nextSunday(after: .now) {
@@ -83,6 +84,7 @@ struct TodayView: View {
         }
         .task(id: app.garminAccount.isSignedIn) {
             guard let model, app.garminAccount.isSignedIn else { return }
+            await model.loadGarminReadiness(client: app.garminAccount.client)
             await model.loadPlanned(client: app.garminAccount.client)
             await model.loadPlannedHistory(client: app.garminAccount.client)
         }

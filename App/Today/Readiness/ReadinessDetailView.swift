@@ -1,3 +1,4 @@
+import Metrics
 import SwiftUI
 
 struct ReadinessDetailView: View {
@@ -52,6 +53,19 @@ struct ReadinessDetailView: View {
                     .foregroundStyle(BrandColors.text)
             }
             ReadinessRuler(score: breakdown.score, showsLabels: true)
+        } else if let score = model.fallbackScore {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text("\(score)")
+                    .font(BrandFonts.number(64))
+                    .foregroundStyle(ReadinessRuler.color(for: score))
+                Text(TodayConstants.verdictPhrases[readinessVerdict(score: score)] ?? "")
+                    .font(.headline)
+                    .foregroundStyle(BrandColors.text)
+            }
+            ReadinessRuler(score: score, showsLabels: true)
+            Text(TodayConstants.garminReadinessNote)
+                .font(.footnote)
+                .foregroundStyle(BrandColors.dim)
         } else {
             Text(TodayConstants.readinessEmpty)
                 .foregroundStyle(BrandColors.dim)

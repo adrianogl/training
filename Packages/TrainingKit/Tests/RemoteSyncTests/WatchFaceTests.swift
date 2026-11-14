@@ -29,4 +29,13 @@ import Testing
 
         #expect(!body.contains("face"))
     }
+
+    @Test func faceWithoutScoreOmitsScoreAndVerdict() throws {
+        let readiness = WatchReadiness(day: "2026-11-14", score: nil, verdict: nil, face: WatchFace(raceName: "LIVE!21K"))
+        let body = try String(decoding: JSONEncoder().encode(readiness), as: UTF8.self)
+
+        #expect(!body.contains("score"))
+        #expect(!body.contains("verdict"))
+        #expect(body.contains("LIVE!21K"))
+    }
 }

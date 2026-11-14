@@ -136,21 +136,23 @@ export function parseReadinessBody(text: string): BodyParseResult<Readiness> {
   if (!isDay(day)) {
     return { ok: false, error: 'invalid_day' }
   }
-  if (typeof score !== 'number' || !Number.isInteger(score) || score < READINESS_MIN_SCORE || score > READINESS_MAX_SCORE) {
+  const scored = score !== undefined || verdict !== undefined
+  if (scored && (typeof score !== 'number' || !Number.isInteger(score) || score < READINESS_MIN_SCORE || score > READINESS_MAX_SCORE)) {
     return { ok: false, error: 'invalid_score' }
   }
   const verdictLength = typeof verdict === 'string' ? [...verdict].length : 0
-  if (typeof verdict !== 'string' || verdictLength === 0 || verdictLength > READINESS_MAX_VERDICT_LENGTH) {
+  if (scored && (typeof verdict !== 'string' || verdictLength === 0 || verdictLength > READINESS_MAX_VERDICT_LENGTH)) {
     return { ok: false, error: 'invalid_verdict' }
   }
+  const note = scored ? { score: score as number, verdict: verdict as string } : {}
   if (face === undefined) {
-    return { ok: true, value: { day, score, verdict } }
+    return scored ? { ok: true, value: { day, ...note } } : { ok: false, error: 'invalid_score' }
   }
   const parsedFace = parseFace(face)
   if (parsedFace === undefined) {
     return { ok: false, error: 'invalid_face' }
   }
-  return { ok: true, value: { day, score, verdict, face: parsedFace } }
+  return { ok: true, value: { day, ...note, face: parsedFace } }
 }
 
 function isText(value: unknown): value is string {

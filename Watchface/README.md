@@ -19,7 +19,7 @@ A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: aba
 1. No app trAIning do iPhone, gerar o token em Ajustes › Sincronização › Relógio.
 2. No Garmin Connect do celular, abrir o mostrador e colar o token em Configurações › Token do relógio.
 
-O mostrador busca a nota e os dados do mostrador em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
+O mostrador busca a nota e os dados do mostrador em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Quando a Garmin não registra o sono, o app manda a prontidão da própria Garmin; se nem ela existir, manda só prova, semana e treino, e a nota fica "--". Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
 
 ## Build
 

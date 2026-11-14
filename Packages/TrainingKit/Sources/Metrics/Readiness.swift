@@ -44,7 +44,6 @@ public func readinessComponents(_ input: ReadinessInput) -> [ReadinessComponent:
 }
 
 public func readiness(_ input: ReadinessInput) -> Readiness? {
-    typealias C = ReadinessConstants
     let scores = readinessComponents(input)
     guard scores[.hrv] != nil || scores[.sleep] != nil else { return nil }
 
@@ -52,15 +51,14 @@ public func readiness(_ input: ReadinessInput) -> Readiness? {
     let weighted = scores.reduce(0) { $0 + $1.value * $1.key.weight }
     let score = Int((weighted / totalWeight).rounded(.toNearestOrAwayFromZero))
 
-    let verdict: ReadinessVerdict
-    if score >= C.hardThreshold {
-        verdict = .hard
-    } else if score >= C.moderateThreshold {
-        verdict = .moderate
-    } else {
-        verdict = .rest
-    }
-    return Readiness(score: score, partial: scores.count < ReadinessComponent.allCases.count, verdict: verdict)
+    return Readiness(score: score, partial: scores.count < ReadinessComponent.allCases.count, verdict: readinessVerdict(score: score))
+}
+
+public func readinessVerdict(score: Int) -> ReadinessVerdict {
+    typealias C = ReadinessConstants
+    if score >= C.hardThreshold { return .hard }
+    if score >= C.moderateThreshold { return .moderate }
+    return .rest
 }
 
 public func bodyBatteryMorningMax(values: [(Date, Int)], sleepEnd: Date) -> Int? {

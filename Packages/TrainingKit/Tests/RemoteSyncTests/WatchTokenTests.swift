@@ -31,10 +31,10 @@ import Testing
     @Test func readinessTruncatesVerdictAndClampsScore() {
         let readiness = WatchReadiness(day: "2026-11-12", score: 130, verdict: String(repeating: "a", count: 30))
 
-        #expect(readiness.verdict.count == 24)
+        #expect(readiness.verdict?.count == 24)
         #expect(readiness.score == 100)
         #expect(WatchReadiness(day: "2026-11-12", score: -4, verdict: "x").score == 0)
         let decomposed = String(repeating: "e\u{301}", count: 13)
-        #expect(WatchReadiness(day: "2026-11-12", score: 50, verdict: decomposed).verdict.unicodeScalars.count == 24)
+        #expect(WatchReadiness(day: "2026-11-12", score: 50, verdict: decomposed).verdict?.unicodeScalars.count == 24)
     }
 }

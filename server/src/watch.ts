@@ -38,7 +38,7 @@ export async function saveReadiness(sql: Sql, accountId: string, readiness: Read
     `insert into readiness (account_id, day, score, verdict, face) values ($1, $2::date, $3, $4, $5::jsonb)
      on conflict (account_id) do update
      set day = excluded.day, score = excluded.score, verdict = excluded.verdict, face = excluded.face, updated_at = now()`,
-    [accountId, readiness.day, readiness.score, readiness.verdict, readiness.face === undefined ? null : JSON.stringify(readiness.face)],
+    [accountId, readiness.day, readiness.score ?? null, readiness.verdict ?? null, readiness.face === undefined ? null : JSON.stringify(readiness.face)],
   )
 }
 
@@ -65,8 +65,9 @@ export async function readinessForWatchToken(sql: Sql, tokenHash: string): Promi
   if (row === undefined) {
     return { status: 'unknown_token' }
   }
-  if (row.day === null || row.score === null || row.verdict === null) {
+  if (row.day === null) {
     return { status: 'no_readiness' }
   }
-  return { status: 'ok', readiness: { day: row.day, score: row.score, verdict: row.verdict, ...(row.face ?? {}) } }
+  const note = row.score === null || row.verdict === null ? {} : { score: row.score, verdict: row.verdict }
+  return { status: 'ok', readiness: { day: row.day, ...note, ...(row.face ?? {}) } }
 }

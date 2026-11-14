@@ -26,6 +26,7 @@ import WorkoutAnalysis
     private(set) var signals: [DailySignal] = []
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
+    private(set) var garminReadiness: GarminReadinessScore?
     private(set) var isLoaded = false
 
     init(container: ModelContainer, today: Day) {
@@ -56,6 +57,18 @@ import WorkoutAnalysis
     }
 
     var todayPlan: PlannedWorkout? { planned[today]?.first }
+
+    var fallbackScore: Int? {
+        summary.readiness == nil ? garminReadiness?.score : nil
+    }
+
+    func loadGarminReadiness(client: GarminAccountClient?) async {
+        garminReadiness = GarminReadinessCache.cached(day: today)
+        guard summary.readiness == nil else { return }
+        let score = await GarminReadinessCache.refresh(client: client, day: today)
+        guard !Task.isCancelled else { return }
+        garminReadiness = score
+    }
 
     func loadPlanned(client: GarminAccountClient?) async {
         guard let client else { return }

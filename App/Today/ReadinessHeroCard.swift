@@ -1,3 +1,4 @@
+import Metrics
 import SwiftUI
 
 struct ReadinessHeroCard: View {
@@ -26,6 +27,19 @@ struct ReadinessHeroCard: View {
                         }
                     }
                     ReadinessDrivers(rows: model.factorRows)
+                } else if let score = model.fallbackScore {
+                    HStack(alignment: .center, spacing: 18) {
+                        ScoreGauge(score: score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(C.verdictPhrases[readinessVerdict(score: score)] ?? "")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(BrandColors.text)
+                            Text(C.garminReadinessNote)
+                                .font(.subheadline)
+                                .foregroundStyle(BrandColors.dim)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 } else {
                     Text(C.readinessEmpty)
                         .font(.subheadline)

@@ -172,6 +172,16 @@ describe('PUT /api/v1/watch/readiness', () => {
     expect(rows).toEqual([{ day: '2026-11-13', score: 80, verdict: 'Pronto' }])
   })
 
+  it('aceita os dados do mostrador sem nota e apaga a nota anterior', async () => {
+    await putReadiness(readiness)
+    const response = await putReadiness({ day: '2026-11-14', face })
+
+    expect(response.status).toBe(204)
+    expect(await sql("select to_char(day, 'YYYY-MM-DD') as day, score, verdict, face from readiness")).toEqual([
+      { day: '2026-11-14', score: null, verdict: null, face },
+    ])
+  })
+
   it.each([0, 100])('aceita nota %i', async (score) => {
     expect((await putReadiness({ ...readiness, score })).status).toBe(204)
   })
@@ -192,6 +202,9 @@ describe('PUT /api/v1/watch/readiness', () => {
     ['veredito vazio', { ...readiness, verdict: '' }, 'invalid_verdict'],
     ['veredito com 25', { ...readiness, verdict: 'a'.repeat(25) }, 'invalid_verdict'],
     ['veredito número', { ...readiness, verdict: 1 }, 'invalid_verdict'],
+    ['nota sem veredito', { day: '2026-11-12', score: 63, face: {} }, 'invalid_verdict'],
+    ['veredito sem nota', { day: '2026-11-12', verdict: 'Moderado', face: {} }, 'invalid_score'],
+    ['sem nota e sem mostrador', { day: '2026-11-12' }, 'invalid_score'],
     ['corpo array', [], 'invalid_body'],
   ])('400: %s', async (_name, body, error) => {
     const response = await putReadiness(body)
@@ -273,6 +286,15 @@ describe('GET /api/v1/watch/readiness', () => {
     const response = await getReadiness(watchToken)
 
     expect(await response.json()).toEqual({ ...readiness, ...face })
+  })
+
+  it('200 só com os dados do mostrador quando não há nota', async () => {
+    await putReadiness({ day: '2026-11-14', face })
+
+    const response = await getReadiness(watchToken)
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ day: '2026-11-14', ...face })
   })
 
   it('404 no_readiness sem nota', async () => {
