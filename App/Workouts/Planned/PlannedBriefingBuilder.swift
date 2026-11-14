@@ -1,5 +1,7 @@
 import Foundation
 import GarminAPI
+import Insights
+import Storage
 import TrainingCore
 import WorkoutAnalysis
 
@@ -15,9 +17,9 @@ enum PlannedBriefingBuilder {
         let maxHeart = average(input.similar.compactMap(\.maxHeartRate))
         return PlannedBriefing(
             kind: kind,
-            stats: stats(plan, target: target, kilometers: kilometers, similar: input.similar),
+            stats: stats(plan, target: target, kilometers: kilometers, similar: input.similar, goal: timeGoal(kind, goals: input.goals)),
             summary: summary(kind, plan: plan, target: target, kilometers: kilometers, input: input),
-            tags: tags(input),
+            tags: tags(input, kind: kind, target: target),
             phases: phases(kind, plan: plan, target: target, kilometers: kilometers, heart: heart),
             reps: kind == .intervals ? reps(plan, target: target, maxHeart: maxHeart) : [],
             repsNote: kind == .intervals && target != nil ? C.repsNote : nil,
@@ -68,7 +70,7 @@ enum PlannedBriefingBuilder {
         return nil
     }
 
-    private static func stats(_ plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, similar: [SimilarRun]) -> [BriefingStat] {
+    private static func stats(_ plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, similar: [SimilarRun], goal: GoalSnapshot?) -> [BriefingStat] {
         var stats: [BriefingStat] = []
         if kilometers > 0 { stats.append(BriefingStat(value: "\(km(kilometers)) km", label: C.statDistance)) }
         stats.append(BriefingStat(value: target.map { "\(clock($0.fast))–\(clock($0.slow))" } ?? C.freePace, label: C.statPace))
@@ -79,6 +81,9 @@ enum PlannedBriefingBuilder {
         }
         if let load = average(similar.compactMap(\.load)) {
             stats.append(BriefingStat(value: "~\(Int(load.rounded()))", label: C.statLoad))
+        }
+        if let goal, let pace = goal.targetPaceSecondsPerKm {
+            stats.append(BriefingStat(value: clock(pace), label: String(format: C.statGoalPaceFormat, km(goal.distanceKm))))
         }
         return stats
     }
@@ -107,7 +112,7 @@ enum PlannedBriefingBuilder {
         return text
     }
 
-    private static func tags(_ input: BriefingInput) -> [BriefingTag] {
+    private static func tags(_ input: BriefingInput, kind: PlannedKind, target: (fast: Double, slow: Double)?) -> [BriefingTag] {
         var tags: [BriefingTag] = []
         if let readiness = input.readiness {
             let tone: BriefingTone = readiness >= C.readinessGood ? .good : readiness >= C.readinessLow ? .warn : .bad
@@ -119,7 +124,36 @@ enum PlannedBriefingBuilder {
         if let hot = hotHour(input.weather, startHour: input.startHour) {
             tags.append(BriefingTag(text: String(format: C.tagHeatFormat, Int(hot.temperature.rounded()), hot.hour), tone: .warn))
         }
+        if let target, let pace = timeGoal(kind, goals: input.goals)?.targetPaceSecondsPerKm {
+            let gap = Int((mid(target) - pace).rounded())
+            if gap >= Int(C.goalPaceTolerance) {
+                tags.append(BriefingTag(text: String(format: C.tagGoalFasterFormat, gap), tone: .info))
+            } else if gap <= -Int(C.goalPaceTolerance) {
+                tags.append(BriefingTag(text: String(format: C.tagGoalSlowerFormat, -gap), tone: .info))
+            } else {
+                tags.append(BriefingTag(text: C.tagGoalOnPace, tone: .good))
+            }
+        }
         return tags
+    }
+
+    private static func timeGoal(_ kind: PlannedKind, goals: [GoalSnapshot]) -> GoalSnapshot? {
+        guard kind == .intervals || kind == .tempo else { return nil }
+        return goals.first { $0.kind == .time && C.goalTimeDistances.contains($0.distanceKm) && $0.targetPaceSecondsPerKm != nil }
+    }
+
+    private static func longGoalItem(_ goals: [GoalSnapshot]) -> BriefingItem? {
+        guard let goal = goals.first(where: { $0.kind == .continuousLong }), case .continuousLong(let progress) = goal.progress else { return nil }
+        let latest = progress.runs.filter { $0.pauses != nil }.max { $0.day < $1.day }
+        guard let latest, let pauses = latest.pauses else {
+            let pace = goal.targetPaceSecondsPerKm.map(clock) ?? C.freePace
+            return BriefingItem(title: C.attentionGoalLongTitle, detail: String(format: C.attentionGoalLongNoDataFormat, km(goal.distanceKm), pace), tone: .info)
+        }
+        guard let last = pauses.max(by: { $0.startMeters < $1.startMeters }) else {
+            return BriefingItem(title: C.attentionGoalLongTitle, detail: String(format: C.attentionGoalLongCleanFormat, shortDate(latest.day)), tone: .good)
+        }
+        let detail = String(format: C.attentionGoalLongPauseFormat, shortDate(latest.day), km(last.startMeters / WorkoutConstants.metersPerKilometer), Int(last.seconds.rounded()))
+        return BriefingItem(title: C.attentionGoalLongTitle, detail: detail, tone: .warn)
     }
 
     private static func phases(_ kind: PlannedKind, plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, heart: (low: Double, high: Double)?) -> [BriefingPhase] {
@@ -216,6 +250,9 @@ enum PlannedBriefingBuilder {
                 detail: String(format: short ? C.attentionRecoveryShortFormat : C.attentionRecoveryGoodFormat, days),
                 tone: short ? .warn : .good
             ))
+        }
+        if kind == .long, let item = longGoalItem(input.goals) {
+            items.append(item)
         }
         if let readiness = input.readiness, readiness < C.readinessLow {
             items.insert(BriefingItem(title: C.attentionReadinessTitle, detail: String(format: C.attentionReadinessFormat, readiness), tone: .bad), at: 0)

@@ -1,5 +1,6 @@
 import Foundation
 import GarminAPI
+import Insights
 import TrainingCore
 
 enum PlannedKind: Equatable {
@@ -63,6 +64,7 @@ struct BriefingInput {
     let course: CourseSuggestion?
     let completed: CompletedCheck?
     var startHour: Int? = nil
+    var goals: [GoalSnapshot] = []
 }
 
 struct BriefingStat: Equatable {
