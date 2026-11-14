@@ -179,7 +179,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .feature span { color: var(--dim); font-size: 14px; line-height: 1.45; }
 
 /* 8 · Em todo lugar */
-.devices { position: relative; height: clamp(320px, 42vw, 520px); margin-top: 56px; }
+.devices { position: relative; height: clamp(320px, 42vw, 520px); margin-top: 56px; overflow-x: clip; overflow-y: visible; }
 .dev { position: absolute; background: #000; border: 1px solid #2c3136; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); overflow: hidden; }
 .dev .scr { position: absolute; inset: 0; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
 .mac { left: 50%; top: 0; width: min(760px, 86%); aspect-ratio: 16 / 10; border-radius: 14px; transform: translateX(-50%) translateY(calc(30px - var(--p) * 30px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
@@ -211,8 +211,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .final h2 { font-size: clamp(42px, 6.4vw, 92px); }
 .final .lede { margin: 24px auto 0; }
 .final .hero-actions { justify-content: center; opacity: 1; }
-.soon { display: inline-flex; align-items: center; gap: 8px; margin-top: 36px; padding: 8px 14px; border-radius: 999px; border: 1px dashed #3a3f46; color: var(--dim); font-size: 14px; }
-.soon b { color: var(--ember); font-weight: 700; }
 footer { border-top: 1px solid var(--line); padding-block: 28px; color: var(--dim); font-size: 13px; }
 footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 
@@ -369,7 +367,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <div>
         <p class="eyebrow">Análise do treino</p>
         <h2 id="analise-title" class="display">Cada tiro contra o alvo.</h2>
-        <p class="lede">O arquivo FIT de cada treino é aberto bloco a bloco: o que foi prescrito, o que saiu, a zona de FC e a comparação com treinos parecidos.</p>
+        <p class="lede">O arquivo FIT de cada treino é aberto bloco a bloco: o que foi prescrito, o que saiu, a zona de FC, uma nota de 0 a 100 e a comparação com treinos parecidos.</p>
       </div>
     </div>
   </section>
@@ -441,7 +439,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <div>
         <p class="eyebrow">Provas</p>
         <h2 id="prova-title" class="display">Quanto falta para a meta.</h2>
-        <p class="lede">A previsão sai dos seus melhores esforços e é projetada até o dia da prova, com estratégia km a km, polimento e checklist.</p>
+        <p class="lede">A previsão sai dos seus melhores esforços e é projetada até o dia da prova, com estratégia km a km ajustada pelo calor da largada, polimento e checklist.</p>
       </div>
       <div class="race">
         <div class="race-head"><span class="t">LIVE!21K</span><span class="countdown num"><span data-from="60" data-to="15">15</span><small>dias</small></span></div>
@@ -551,7 +549,6 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <a class="btn btn-lime" href="/app/entrar">Entrar no site</a>
       </div>
       <p class="lede" style="font-size: 15px; color: var(--dim)">O acesso é por convite. Recebeu um? Abra o link e crie a sua conta.</p>
-      <div class="soon"><b>Em breve</b> integração com o Strava</div>
     </div>
   </section>
 </main>
