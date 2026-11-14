@@ -1,5 +1,7 @@
+import GarminAPI
 import SwiftData
 import SwiftUI
+import TrainingCore
 
 struct WorkoutDetailView: View {
     let activityId: Int64
@@ -7,6 +9,8 @@ struct WorkoutDetailView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var model: WorkoutDetailModel?
     @State private var showsShare = false
+    @State private var planCheck: PlannedBriefing?
+    @Environment(AppModel.self) private var app
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -32,6 +36,7 @@ struct WorkoutDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .task(id: activityId) {
             model = WorkoutDetailModel(activityId: activityId, context: context)
+            planCheck = await loadPlanCheck()
         }
         .sheet(isPresented: $showsShare) {
             if let source = model?.shareSource {
@@ -69,6 +74,9 @@ struct WorkoutDetailView: View {
                 if let effect = model.trainingEffect {
                     TrainingEffectCard(effect: effect)
                 }
+            }
+            if let planCheck, !planCheck.comparison.isEmpty {
+                PlanComparisonCard(rows: planCheck.comparison, note: planCheck.comparisonNote)
             }
             WorkoutAnalysisCard(summary: model.analysisSummary)
             if !model.blocks.isEmpty {
@@ -131,6 +139,18 @@ struct WorkoutDetailView: View {
             SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
             content()
         }
+    }
+
+    private func loadPlanCheck() async -> PlannedBriefing? {
+        guard let model, model.hasPrescription, let iso = model.localDay, let day = Day(iso: iso),
+              let done = model.completedCheck, let client = app.garminAccount.client,
+              let plan = (try? await PlannedWorkouts.fetch(client: client, from: day, through: day))?.first else { return nil }
+        let input = PlannedBriefingLoader.input(plan: plan, week: [plan], context: context, today: day, weeklyGoalKm: 0, weather: [], course: nil)
+        return PlannedBriefingBuilder.briefing(BriefingInput(
+            plan: input.plan, today: input.today, similar: input.similar, readiness: input.readiness,
+            weekDoneKm: input.weekDoneKm, weekPlannedKm: input.weekPlannedKm, weekGoalKm: input.weekGoalKm,
+            daysSinceHard: input.daysSinceHard, race: input.race, weather: [], course: nil, completed: done
+        ))
     }
 
     private var notice: some View {

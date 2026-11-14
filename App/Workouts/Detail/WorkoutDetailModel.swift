@@ -33,6 +33,8 @@ import WorkoutAnalysis
     private(set) var ruler: ZoneRulerData?
     private(set) var shareInput: WorkoutShareInput?
     private(set) var shareSource: ShareSource?
+    private(set) var localDay: String?
+    private(set) var completedCheck: CompletedCheck?
     private(set) var score: WorkoutScore?
     private(set) var scoreRows: [ScoreRowData] = []
     private(set) var trainingEffect: TrainingEffectData?
@@ -84,6 +86,17 @@ import WorkoutAnalysis
         reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: assessment, blocks: blocks, evolution: analysis.evolution)
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
+        localDay = record.localDay
+        if let meters = record.distance, meters > 0 {
+            let kilometers = meters / WorkoutConstants.metersPerKilometer
+            let average = (record.movingDuration ?? record.duration).map { $0 / kilometers }
+            completedCheck = CompletedCheck(
+                kilometers: kilometers,
+                paceSecondsPerKm: (hasPrescription ? shareInput?.activePaceSecondsPerKm : nil) ?? average,
+                averageHeartRate: record.averageHR,
+                fadeSecondsPerKm: PlannedBriefingLoader.fade(samples)
+            )
+        }
         shareSource = shareInput.map { input in
             ShareSourceBuilder.source(
                 input: input, route: Self.route(record), samples: samples, zoneFloors: analysis.zones?.floors ?? [],

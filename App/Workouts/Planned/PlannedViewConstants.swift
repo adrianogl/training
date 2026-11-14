@@ -11,6 +11,7 @@ enum PlannedViewConstants {
     static let carry = "Para levar"
     static let race = "Para a prova"
     static let comparison = "Planejado × feito"
+    static let compareScoreFormat = "%d de %d"
     static let planned = "plano"
     static let done = "feito"
     static let course = "Percurso sugerido"
