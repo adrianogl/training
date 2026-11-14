@@ -12,18 +12,20 @@ public struct RemoteRecord: Codable, Equatable, Sendable {
     public var deleted: Bool
     public var payload: String?
     public var seq: Int64?
+    public var format: RemotePayloadFormat?
 
-    public init(kind: RemoteRecordKind, id: String, updatedAt: Date, deleted: Bool, payload: String?, seq: Int64? = nil) {
+    public init(kind: RemoteRecordKind, id: String, updatedAt: Date, deleted: Bool, payload: String?, seq: Int64? = nil, format: RemotePayloadFormat? = nil) {
         self.kind = kind
         self.id = id
         self.updatedAt = updatedAt
         self.deleted = deleted
         self.payload = payload
         self.seq = seq
+        self.format = format
     }
 
     enum CodingKeys: String, CodingKey {
-        case kind, id, updatedAt, deleted, payload, seq
+        case kind, id, updatedAt, deleted, payload, seq, format
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -34,7 +36,12 @@ public struct RemoteRecord: Codable, Equatable, Sendable {
         try container.encode(deleted, forKey: .deleted)
         try container.encode(payload, forKey: .payload)
         try container.encodeIfPresent(seq, forKey: .seq)
+        try container.encodeIfPresent(format, forKey: .format)
     }
+}
+
+public enum RemotePayloadFormat: String, Codable, Sendable {
+    case sealed, plain
 }
 
 public struct RemoteRecordKey: Codable, Hashable, Sendable {

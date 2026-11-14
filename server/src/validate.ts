@@ -13,12 +13,14 @@ import {
   READINESS_MAX_SCORE,
   READINESS_MAX_VERDICT_LENGTH,
   READINESS_MIN_SCORE,
+  RECORD_FORMATS,
   RECORD_KINDS,
   SINCE_PATTERN,
   UPDATED_AT_PATTERN,
   WATCH_TOKEN_HASH_PATTERN,
 } from './constants.js'
-import type { BodyParseResult, IncomingRecord, ParseResult, Readiness, RecordKind, WatchFace } from './types.js'
+import { plainPayloadError } from './recordPayload.js'
+import type { BodyParseResult, IncomingRecord, ParseResult, Readiness, RecordFormat, RecordKind, WatchFace } from './types.js'
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -40,7 +42,7 @@ function validateRecord(value: unknown): IncomingRecord | string {
   if (!isObject(value)) {
     return 'invalid_record'
   }
-  const { kind, id, updatedAt, deleted, payload } = value
+  const { kind, id, updatedAt, deleted, payload, format } = value
   if (!isKind(kind)) {
     return 'invalid_kind'
   }
@@ -62,6 +64,13 @@ function validateRecord(value: unknown): IncomingRecord | string {
   }
   if (storedPayload !== null && storedPayload.length > MAX_PAYLOAD_CHARS) {
     return 'payload_too_large'
+  }
+  if (format !== undefined && !RECORD_FORMATS.some((item) => item === format)) {
+    return 'invalid_format'
+  }
+  if (format === 'plain') {
+    const error = deleted ? null : plainPayloadError(kind, id, storedPayload ?? '')
+    return error ?? { kind, id, updatedAt, deleted, payload: storedPayload, format: 'plain' as RecordFormat }
   }
   return { kind, id, updatedAt, deleted, payload: storedPayload }
 }

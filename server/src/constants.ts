@@ -1,4 +1,9 @@
 export const RECORD_KINDS = ['race', 'decision'] as const
+export const RECORD_FORMATS = ['sealed', 'plain'] as const
+export const RECORD_CONTEXT_PREFIX = 'record'
+export const PLAIN_LIMITS = { name: 200, priority: 16, city: 200, decision: 32, maxDistance: 1_000_000, maxSeconds: 7 * 24 * 3600 } as const
+export const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+export const BASE64_PATTERN = /^[A-Za-z0-9+/]*={0,2}$/
 export const TOKEN_BYTES = 32
 export const MAX_ID_LENGTH = 128
 export const MAX_PAYLOAD_CHARS = 1024 * 1024
@@ -146,3 +151,20 @@ export const SYNC_ACTIVITY_PAGE = 50
 export const SYNC_TIME_ZONE = 'America/Sao_Paulo'
 export const CRON_ROUTE = 'cron/garmin-sync'
 export const SYNC_VERSION = 4
+
+export const WEATHER = {
+  forecastUrl: 'https://api.open-meteo.com/v1/forecast',
+  geocodingUrl: 'https://geocoding-api.open-meteo.com/v1/search',
+  fields: 'temperature_2m,dew_point_2m',
+  forecastDaysAhead: 16,
+  defaultStartHour: 7,
+  coordinateScale: 10,
+  timeoutMs: 5000,
+} as const
+
+export const RACES = {
+  lapsPerRequest: 15,
+  activityHistoryDays: 365,
+  priorities: ['A', 'B', 'C'],
+  startTimePattern: /^([01]\d|2[0-3]):[0-5]\d$/,
+} as const

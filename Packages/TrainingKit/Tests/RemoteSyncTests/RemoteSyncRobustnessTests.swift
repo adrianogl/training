@@ -12,7 +12,7 @@ private let accepted = ScriptedTransport.Response.json(200, #"{"cursor":1,"ignor
 
 private func engine(_ container: ModelContainer, _ transport: ScriptedTransport) -> RemoteSyncEngine {
     let client = RemoteClient(baseURL: URL(string: "https://sync.example.test")!, keys: keys, transport: transport)
-    return RemoteSyncEngine(container: container, client: client, keys: keys, now: { base.addingTimeInterval(3_600) })
+    return RemoteSyncEngine(container: container, client: client, keys: keys, defaultsSuite: migratedSuite(), now: { base.addingTimeInterval(3_600) })
 }
 
 private func randomBytes(_ count: Int) -> Data {
@@ -45,7 +45,7 @@ private func page(_ records: [RemoteRecord], cursor: Int64) -> ScriptedTransport
         let container = try TrainingSchema.container(inMemory: true)
         let context = ModelContext(container)
         for index in 0..<5 {
-            context.insert(RaceRecord(name: "Prova \(index)", day: "2026-12-01", distance: 10_000, gpxData: randomBytes(500_000), updatedAt: base))
+            context.insert(RaceRecord(name: "Prova \(index)", day: "2026-12-01", distance: 10_000, gpxData: randomBytes(650_000), updatedAt: base))
         }
         try context.save()
         let transport = ScriptedTransport([accepted, accepted, emptyPage])
@@ -73,7 +73,7 @@ private func page(_ records: [RemoteRecord], cursor: Int64) -> ScriptedTransport
         let record = try #require(transport.pushBodies.first?.first)
         let payload = try #require(record["payload"] as? String)
         #expect(payload.utf8.count <= RemoteSyncConstants.maxPayloadCharacters)
-        let item = try RemotePayload.openRace(payload, id: race.id.uuidString, key: keys.payload)
+        let item = try RemotePayload.decodeRace(payload)
         let reduced = try #require(item.gpxData)
         #expect(reduced.count < gpx.count)
         let profile = try gpxProfile(reduced)

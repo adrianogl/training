@@ -1,3 +1,4 @@
+import { deleteRaceRoute, racesRoute, saveRaceRoute } from './raceRoutes.js'
 import {
   changePasswordRoute,
   forgotPasswordRoute,
@@ -58,6 +59,7 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/status': { GET: (request, sql) => garminStatusRoute(request, sql), DELETE: (request, sql) => garminStatusRoute(request, sql) },
   'garmin/session': { GET: (request, sql) => garminSessionRoute(request, sql) },
   'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
+  races: { GET: (request, sql) => racesRoute(request, sql), POST: (request, sql) => saveRaceRoute(request, sql), PUT: (request, sql) => saveRaceRoute(request, sql), DELETE: (request, sql) => deleteRaceRoute(request, sql) },
   'garmin/evolution': { GET: (request, sql) => garminEvolutionRoute(request, sql) },
   'garmin/today': { GET: (request, sql) => garminTodayRoute(request, sql) },
   'garmin/days': { GET: (request, sql) => garminDaysRoute(request, sql) },

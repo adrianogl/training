@@ -81,3 +81,21 @@ export function signedNumber(value: number, digits = 0): string {
   const rounded = Math.abs(value).toFixed(digits).replace('.', ',')
   return `${value < 0 ? '−' : '+'}${rounded}`
 }
+
+export function parseClock(text: string): number | null {
+  const parts = text.trim().split(':')
+  if (parts.length < 2 || parts.length > 3 || parts.some((part) => !/^\d+$/.test(part))) return null
+  const numbers = parts.map(Number)
+  if (numbers.slice(1).some((value) => value >= 60)) return null
+  const seconds = numbers.reduce((total, value) => total * 60 + value, 0)
+  return seconds > 0 ? seconds : null
+}
+
+export function paceClock(secondsPerKm: number): string {
+  const total = Math.round(secondsPerKm)
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}
+
+export function kmNumber(km: number, digits = 1): string {
+  return String(Number(km.toFixed(digits))).replace('.', ',')
+}

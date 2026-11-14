@@ -20,14 +20,20 @@ private struct Harness {
     func state() throws -> SyncState? { try context.fetch(FetchDescriptor<SyncState>()).first }
 }
 
-private func harness(_ responses: [ScriptedTransport.Response], setup: (ModelContext) -> Void = { _ in }) throws -> Harness {
+func migratedSuite(_ done: Bool = true) -> String {
+    let suite = "remote-sync-\(UUID().uuidString)"
+    UserDefaults(suiteName: suite)?.set(done, forKey: RemoteSyncConstants.plainMigrationKey)
+    return suite
+}
+
+private func harness(_ responses: [ScriptedTransport.Response], defaults: String = migratedSuite(), setup: (ModelContext) -> Void = { _ in }) throws -> Harness {
     let container = try TrainingSchema.container(inMemory: true)
     let context = ModelContext(container)
     setup(context)
     try context.save()
     let transport = ScriptedTransport(responses)
     let client = RemoteClient(baseURL: URL(string: "https://sync.example.test")!, keys: keys, transport: transport)
-    let engine = RemoteSyncEngine(container: container, client: client, keys: keys, now: { syncTime })
+    let engine = RemoteSyncEngine(container: container, client: client, keys: keys, defaultsSuite: defaults, now: { syncTime })
     return Harness(container: container, transport: transport, engine: engine)
 }
 
@@ -71,11 +77,12 @@ private func remoteTombstone(_ kind: RemoteRecordKind, id: String, updatedAt: Da
         #expect(tombstone["deleted"] as? Bool == true)
         #expect(tombstone["payload"] is NSNull)
         let live = try #require(records.first { $0["id"] as? String == edited.id.uuidString })
-        let item = try RemotePayload.openRace(try #require(live["payload"] as? String), id: edited.id.uuidString, key: keys.payload)
+        #expect(live["format"] as? String == "plain")
+        let item = try RemotePayload.decodeRace(try #require(live["payload"] as? String))
         #expect(item.name == "Editada")
         #expect(live["updatedAt"] as? String == RemoteTimestamp.string(from: edited.updatedAt))
         let decision = try #require(records.first { $0["id"] as? String == "55" })
-        #expect(try RemotePayload.openDecision(try #require(decision["payload"] as? String), id: "55", key: keys.payload) == RemoteDecisionPayload(activityId: 55, decision: "notRace"))
+        #expect(try RemotePayload.decodeDecision(try #require(decision["payload"] as? String)) == RemoteDecisionPayload(activityId: 55, decision: "notRace"))
         #expect(h.transport.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == "Bearer \(keys.bearer)" })
         #expect(h.transport.requests.last?.url?.query == "since=1")
         #expect(report == RemoteSyncReport(pushed: 3, pulled: 0, applied: 0))
@@ -253,5 +260,46 @@ private func remoteTombstone(_ kind: RemoteRecordKind, id: String, updatedAt: Da
 
         #expect(try h.races().map(\.name) == ["Minha"])
         #expect(report.applied == 0)
+    }
+
+    @Test func firstSyncAfterUpdateRepushesEverythingInPlainOnce() async throws {
+        let old = RaceRecord(name: "Antiga", day: "2026-10-01", distance: 10_000, updatedAt: base.addingTimeInterval(-10_000))
+        let defaults = migratedSuite(false)
+        let h = try harness([pushed(cursor: 3), page([], cursor: 3), page([], cursor: 3)], defaults: defaults) { context in
+            context.insert(SyncState(remoteCursor: 1, remoteLastPush: base))
+            context.insert(old)
+            context.insert(RaceDecisionRecord(activityId: 9, decision: .race, updatedAt: base.addingTimeInterval(-10_000)))
+        }
+
+        try await h.engine.sync()
+        try await h.engine.sync()
+
+        #expect(h.transport.pushBodies.count == 1)
+        let records = try #require(h.transport.pushBodies.first)
+        #expect(Set(records.compactMap { $0["id"] as? String }) == [old.id.uuidString, "9"])
+        #expect(records.allSatisfy { $0["format"] as? String == "plain" })
+        #expect(UserDefaults(suiteName: defaults)?.bool(forKey: RemoteSyncConstants.plainMigrationKey) == true)
+    }
+
+    @Test func appliesPlainRaceEditedOnTheSite() async throws {
+        let local = RaceRecord(name: "Meia", day: "2026-11-29", distance: 21_097.5, updatedAt: base)
+        var item = RaceTransferItem(local)
+        item.name = "Meia editada no site"
+        item.goalSeconds = 5_940
+        item.updatedAt = base.addingTimeInterval(60)
+        let remote = RemoteRecord(kind: .race, id: local.id.uuidString, updatedAt: item.updatedAt, deleted: false, payload: try RemotePayload.plain(race: item), seq: 5, format: .plain)
+        let decision = RemoteRecord(kind: .decision, id: "31", updatedAt: base, deleted: false, payload: #"{"activityId":31,"decision":"race"}"#, seq: 6, format: .plain)
+        let h = try harness([page([remote, decision], cursor: 6)]) { context in
+            context.insert(SyncState(remoteCursor: 4, remoteLastPush: syncTime))
+            context.insert(local)
+        }
+
+        let report = try await h.engine.sync()
+
+        #expect(report.applied == 2)
+        let race = try #require(try h.races().first)
+        #expect(race.name == "Meia editada no site")
+        #expect(race.goalSeconds == 5_940)
+        #expect(try h.decisions().map(\.activityId) == [31])
     }
 }

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { api } from './api'
 import { AppLayout } from './components/AppLayout'
-import { PAGE_TITLES, PUBLIC_ROUTES } from './constants'
-import { ComingSoonPage } from './pages/ComingSoonPage'
+import { PUBLIC_ROUTES } from './constants'
 import { AdminPage } from './pages/AdminPage'
 import { ConfirmPage } from './pages/ConfirmPage'
 import { EvolutionPage } from './pages/EvolutionPage'
+import { RacesPage } from './pages/RacesPage'
 import { ForgotPage } from './pages/ForgotPage'
 import { InvitePage } from './pages/InvitePage'
 import { LoginPage } from './pages/LoginPage'
@@ -84,7 +84,7 @@ export function App() {
           {target === 'today' && <TodayPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'workouts' && <WorkoutsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'evolution' && <EvolutionPage version={sync.version} syncing={sync.state.kind === 'running'} />}
-          {target === 'races' && <ComingSoonPage title={PAGE_TITLES[target] ?? ''} />}
+          {target === 'races' && <RacesPage version={sync.version} syncing={sync.state.kind === 'running'} />}
         </AppLayout>
       )
   }

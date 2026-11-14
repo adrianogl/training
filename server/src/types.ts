@@ -1,6 +1,8 @@
-import type { RECORD_KINDS } from './constants.js'
+import type { RECORD_FORMATS, RECORD_KINDS } from './constants.js'
 
 export type RecordKind = (typeof RECORD_KINDS)[number]
+
+export type RecordFormat = (typeof RECORD_FORMATS)[number]
 
 export interface IncomingRecord {
   kind: RecordKind
@@ -8,6 +10,7 @@ export interface IncomingRecord {
   updatedAt: string
   deleted: boolean
   payload: string | null
+  format?: RecordFormat
 }
 
 export interface StoredRecord extends IncomingRecord {
@@ -278,4 +281,28 @@ export interface SyncProgress {
   days: number
   activities: number
   oldestDay: string | null
+}
+
+export interface RaceItem {
+  id: string
+  name: string
+  day: string
+  startTime?: string | null
+  distance: number
+  goalSeconds?: number | null
+  priority: string
+  city?: string | null
+  gpxData?: string | null
+  manualPacesData?: string | null
+  customLabelsData?: string | null
+  resultActivityId?: number | null
+  frozenTargetSeconds?: number | null
+  frozenTargetDay?: string | null
+  manuallyUnlinked?: boolean | null
+  updatedAt: string
+}
+
+export interface StoredRace {
+  id: string
+  race: RaceItem | null
 }

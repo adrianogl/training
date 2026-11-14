@@ -122,6 +122,16 @@ describe('evolução', () => {
     const evolution = buildEvolution([], [], today, 91)
     expect(evolution.series.every((item) => item.points.length === 0 && item.band === null)).toBe(true)
     expect(evolution.predictions.every((item) => item.seconds === null)).toBe(true)
-    expect(evolution.records).toEqual({ fastestKm: null, fastest5k: null, longestRun: null, biggestWeek: null })
+    expect(evolution.records).toEqual({ fastestKm: null, fastest5k: null, longestRun: null, biggestWeek: null, races: [] })
+  })
+
+  it('prova feita vira recorde da distância e esforço de prova na previsão', () => {
+    const runs = Array.from({ length: 20 }, (_, index) => run(at(-60 + index * 3), 8))
+    const race = run(at(-10), 10.02, { id: 777, durationSeconds: 2640, fastest5kSeconds: 1310 })
+    const without = buildEvolution([], [...runs, race], today, 91)
+    const withRace = buildEvolution([], [...runs, race], today, 91, [{ name: 'Volta da lagoa', activityId: 777 }, { name: 'sumiu', activityId: 1 }])
+    expect(withRace.records.races).toEqual([{ key: 'prediction10k', seconds: 2640, day: at(-10), name: 'Volta da lagoa' }])
+    const ten = (evolution: typeof without) => evolution.predictions.find((item) => item.key === 'prediction10k')?.seconds ?? 0
+    expect(ten(withRace)).not.toBeCloseTo(ten(without), 0)
   })
 })

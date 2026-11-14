@@ -18,7 +18,7 @@ export function addDays(day: string, delta: number): string {
   return date.toISOString().slice(0, 10)
 }
 
-async function garminGet(env: Env, session: GarminSession, path: string): Promise<unknown> {
+export async function garminGet(env: Env, session: GarminSession, path: string): Promise<unknown> {
   const response = await env.fetcher(`${GARMIN_API_BASE}${path}`, {
     headers: { ...GARMIN_NATIVE_HEADERS, authorization: `Bearer ${session.accessToken}`, accept: 'application/json' },
   })

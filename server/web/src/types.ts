@@ -213,5 +213,76 @@ export interface Evolution {
     fastest5k: { seconds: number; day: string; name: string } | null
     longestRun: { meters: number; day: string; name: string } | null
     biggestWeek: { kilometers: number; start: string } | null
+    races: { key: string; seconds: number; day: string; name: string }[]
   }
+}
+
+export interface ProjectionPoint {
+  day: string
+  mid: number
+  low: number
+  high: number
+}
+
+export interface KmPlan {
+  index: number
+  pace: number
+  grade: number
+  label: string
+  manual: boolean
+}
+
+export type ChecklistStatus = 'ok' | 'attention' | 'missing'
+
+export type ChecklistItem =
+  | { kind: 'weeklyVolume'; status: ChecklistStatus; targetKm: number; averageKm: number | null }
+  | { kind: 'racePace'; status: ChecklistStatus; targetKm: number; doneKm: number; pace: number | null }
+  | { kind: 'tuneUp'; status: ChecklistStatus; distanceKm: number; best: { day: string; km: number; pace: number } | null }
+  | { kind: 'course'; status: ChecklistStatus; km: number | null; gain: number | null }
+  | { kind: 'goal'; status: ChecklistStatus; goalSeconds: number | null; priority: string }
+
+export interface RaceView {
+  id: string
+  locked: boolean
+  name: string | null
+  day: string | null
+  startTime: string | null
+  distance: number | null
+  goalSeconds: number | null
+  priority: string | null
+  city: string | null
+  hasCourse: boolean
+  manualPaces: [number, number][]
+  status: 'upcoming' | 'done' | 'locked'
+  daysUntil: number | null
+  result: { activityId: number; seconds: number; distance: number; day: string } | null
+  outlook: {
+    distance: number
+    label: string
+    today: number | null
+    raceDay: ProjectionPoint | null
+    series: SeriesPoint[]
+    projection: ProjectionPoint[]
+    goalSeconds: number | null
+    goalCrossing: { kind: 'on'; day: string } | { kind: 'alreadyBeaten' } | { kind: 'unreachable' } | { kind: 'noGoal' }
+    assessment: 'easy' | 'challenging' | 'aggressive' | null
+  } | null
+  strategy: {
+    target: { seconds: number; source: 'raceDayProjection' | 'todayPrediction' | 'goal' | 'frozen'; frozenOn: string | null } | null
+    heat: { weather: { hour: number; temperature: number; dewPoint: number }; sumFahrenheit: number; fraction: number; tooHot: boolean; adjustedSeconds: number } | null
+    weatherNote: 'tooFar' | 'noLocation' | 'unavailable' | null
+    kms: KmPlan[]
+  } | null
+  block: { start: string; km: number; projected: boolean }[]
+  checklist: ChecklistItem[]
+}
+
+export interface RaceInput {
+  name: string
+  day: string
+  distance: number
+  goalSeconds: number | null
+  priority: string
+  startTime: string | null
+  city: string | null
 }

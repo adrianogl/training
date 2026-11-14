@@ -4,6 +4,7 @@ import { EVOLUTION, PREDICTION } from './domainConstants.js'
 import type { Effort, Evolution, MetricSeries, MetricStats, Records, SeriesPoint, WeekTotals } from './domainTypes.js'
 import { fitnessFatigueForm, loadFocus } from './load.js'
 import { predict, predictionSeries, smoothedVo2max } from './prediction.js'
+import { raceEfforts } from './race.js'
 import { dailyLoad, isRun, weekStartOf } from './today.js'
 
 function mean(values: number[]): number | null {
@@ -82,7 +83,26 @@ function series(key: string, all: SeriesPoint[], from: string, band: [number, nu
   return { key, points, movingAverage: average, stats: metricStats(points), band: points.length === 0 ? null : band }
 }
 
-function records(activities: ActivitySummary[]): Records {
+export interface RaceResult {
+  name: string
+  activityId: number
+}
+
+function raceRecords(activities: ActivitySummary[], results: RaceResult[]): Records['races'] {
+  const byId = new Map(activities.map((activity) => [activity.id, activity]))
+  return PREDICTION.distances.flatMap((distance) => {
+    const matches = results.flatMap((result) => {
+      const activity = byId.get(result.activityId)
+      const meters = activity?.distanceMeters ?? 0
+      const seconds = activity?.durationSeconds ?? 0
+      return activity && seconds > 0 && Math.abs(meters - distance.meters) / distance.meters <= EVOLUTION.raceDistanceTolerance ? [{ key: distance.key, seconds, day: activity.day, name: result.name }] : []
+    })
+    const best = matches.sort((a, b) => a.seconds - b.seconds)[0]
+    return best === undefined ? [] : [best]
+  })
+}
+
+function records(activities: ActivitySummary[], results: RaceResult[]): Records {
   const runs = activities.filter(isRun)
   const minBy = (pick: (run: ActivitySummary) => number | null | undefined) =>
     runs.reduce<ActivitySummary | undefined>((best, run) => {
@@ -105,6 +125,7 @@ function records(activities: ActivitySummary[]): Records {
     fastest5k: fastest5k ? { seconds: fastest5k.fastest5kSeconds ?? 0, day: fastest5k.day, name: fastest5k.name } : null,
     longestRun: longest ? { meters: longest.distanceMeters ?? 0, day: longest.day, name: longest.name } : null,
     biggestWeek: biggest ? { kilometers: biggest[1], start: biggest[0] } : null,
+    races: raceRecords(activities, results),
   }
 }
 
@@ -124,7 +145,7 @@ export function weekTotals(activities: ActivitySummary[], from: string, today: s
   return weeks
 }
 
-export function buildEvolution(days: HealthDay[], activities: ActivitySummary[], today: string, periodDays: number): Evolution {
+export function buildEvolution(days: HealthDay[], activities: ActivitySummary[], today: string, periodDays: number, results: RaceResult[] = []): Evolution {
   const from = addDays(today, 1 - periodDays)
   const runs = activities.filter(isRun)
   const daily = (pick: (day: HealthDay) => number | null | undefined): SeriesPoint[] =>
@@ -154,7 +175,7 @@ export function buildEvolution(days: HealthDay[], activities: ActivitySummary[],
     }
   }
   const latestBand = [...days].reverse().find((day) => day.hrv?.balancedLow != null && day.hrv?.balancedUpper != null)?.hrv
-  const allEfforts = efforts(activities)
+  const allEfforts = [...efforts(activities), ...raceEfforts(activities, results)]
   const predictionFrom = addDays(from, -1)
   const predictionList = PREDICTION.distances.map((distance) => {
     const current = predict(distance.meters, allEfforts, today)
@@ -187,6 +208,6 @@ export function buildEvolution(days: HealthDay[], activities: ActivitySummary[],
     ],
     weeks: weekTotals(activities, from, today),
     predictions: predictionList,
-    records: records(activities),
+    records: records(activities, results),
   }
 }

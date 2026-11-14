@@ -89,8 +89,6 @@ export const TEXT = {
   passwordChanged: 'Senha alterada.',
   wrongCurrent: 'A senha atual não confere.',
   goToday: 'Ir para o Hoje',
-  comingSoonTitle: 'Chega nos próximos módulos',
-  comingSoonText: 'Esta área depende da conexão com a Garmin no servidor. Por enquanto, use o app.',
   mismatch: 'As senhas não são iguais.',
   shortPassword: 'A senha precisa de pelo menos 10 caracteres.',
 } as const
@@ -264,6 +262,14 @@ export const ERRORS: Record<string, string> = {
   invite_required: 'O cadastro é só por convite. Peça um convite a quem te indicou o trAIning.',
   invalid_invite: 'Este convite venceu, foi cancelado ou já foi usado.',
   web_only: 'Contas de convidado entram só pelo site, por enquanto.',
+  invalid_race_name: 'Dê um nome para a prova.',
+  invalid_day: 'Confira a data da prova.',
+  invalid_distance: 'Confira a distância.',
+  invalid_goal: 'A meta precisa estar no formato 1:39:00 ou 45:00.',
+  invalid_priority: 'Escolha a prioridade.',
+  invalid_start_time: 'A largada precisa estar no formato 07:00.',
+  race_locked: 'Esta prova ainda está no formato antigo. Abra o app atualizado para liberar a edição.',
+  race_not_found: 'Esta prova não existe mais.',
   forbidden: 'Só a conta de administrador acessa esta área.',
   invalid_channel: 'Escolha como enviar o convite.',
   cannot_remove_admin: 'A conta de administrador não pode ser removida.',
@@ -285,12 +291,6 @@ export const ERRORS: Record<string, string> = {
   unknown: 'Não deu certo. Tente de novo.',
 }
 
-export const PAGE_TITLES: Partial<Record<Route, string>> = {
-  today: 'Hoje',
-  workouts: 'Treinos',
-  races: 'Provas',
-  evolution: 'Evolução',
-}
 
 export const EVOLUTION_PERIODS = [
   { days: 42, label: '6 semanas', span: 'em 6 semanas' },
@@ -350,4 +350,87 @@ export const EVOLUTION_TEXT = {
   biggestWeek: 'Maior semana',
   weekOf: (day: string) => `semana de ${day}`,
   noData: 'Sem dados no período.',
+} as const
+
+export const KNOWN_DISTANCES: Record<string, number> = { '5': 5000, '10': 10000, '21,1': 21097.5, '21': 21097.5, '42,2': 42195, '42': 42195 }
+
+export const RACE_PRIORITIES = [
+  { value: 'A', label: 'A · principal' },
+  { value: 'B', label: 'B' },
+  { value: 'C', label: 'C' },
+] as const
+
+export const STRETCH_LABELS: Record<string, string> = { aquece: 'aquecimento', final: 'final', subida: 'subida', descida: 'descida', plano: '' }
+
+export const RACES_TEXT = {
+  title: 'Provas',
+  newRace: 'Nova prova',
+  upcoming: 'PRÓXIMAS',
+  done: 'FEITAS',
+  locked: 'NO FORMATO ANTIGO',
+  lockedNote: 'Abra o app atualizado no iPhone ou iPad para liberar estas provas no site.',
+  empty: 'Nenhuma prova cadastrada. Comece por Nova prova.',
+  loading: 'Carregando as provas…',
+  error: 'Não deu para carregar as provas agora.',
+  inDays: (days: number) => (days === 0 ? 'hoje' : days === 1 ? 'amanhã' : `em ${days} dias`),
+  days: 'dias',
+  noGoal: 'sem meta',
+  goalShort: (value: string) => `meta ${value}`,
+  beaten: 'batida',
+  raceLine: (date: string, priority: string) => `${date} · prova ${priority}`,
+  form: 'DADOS DA PROVA',
+  fields: { name: 'Nome', day: 'Data', distance: 'Distância (km)', goal: 'Meta', priority: 'Prioridade', startTime: 'Largada', city: 'Cidade' },
+  goalHint: '1:39:00 ou 45:00',
+  save: 'Salvar',
+  saved: 'Prova salva.',
+  create: 'Criar prova',
+  remove: 'Apagar',
+  confirmRemove: 'Apagar de vez',
+  cancel: 'Cancelar',
+  removeQuestion: 'Apagar esta prova no site e no app?',
+  prediction: 'PREVISÃO ATÉ O DIA DA PROVA',
+  todayLabel: 'Hoje',
+  raceDayLabel: 'No dia',
+  goalLabel: 'Meta',
+  goalLine: (value: string) => `meta ${value}`,
+  crossing: {
+    on: (date: string) => `No ritmo atual, a meta chega em ${date}.`,
+    alreadyBeaten: 'A previsão já está abaixo da meta.',
+    unreachable: 'No ritmo atual, a meta não chega no horizonte de um ano.',
+    noGoal: 'Cadastre uma meta para comparar com a previsão.',
+  },
+  assessment: { easy: 'Meta confortável.', challenging: 'Meta desafiadora.', aggressive: 'Meta agressiva.' },
+  noPrediction: 'Sem corridas suficientes para prever esta prova.',
+  strategy: 'ESTRATÉGIA KM A KM',
+  stretchColumns: ['Trecho', 'Pace', 'Passagem'],
+  stretch: (from: number, to: number, label: string) => `${from === to ? `km ${from}` : `km ${from}–${to}`}${label === '' ? '' : ` (${label})`}`,
+  targetSource: {
+    raceDayProjection: 'Alvo: projeção para o dia da prova.',
+    todayPrediction: 'Alvo: previsão de hoje.',
+    goal: 'Alvo: a meta cadastrada.',
+    frozen: (date: string) => `Alvo congelado na véspera (${date}).`,
+  },
+  heatToggle: 'Ajustar pelo calor e ponto de orvalho',
+  heatLine: (hour: number, temperature: number, dew: number, percent: string) => `Às ${hour}h: ${temperature}° e orvalho ${dew}°. Ajuste de +${percent}%.`,
+  tooHot: 'Calor e umidade altos demais para buscar tempo. Corra pela sensação.',
+  weatherNote: {
+    tooFar: 'A previsão do tempo aparece a 16 dias da prova.',
+    noLocation: 'Cadastre a cidade ou o percurso para ajustar pelo calor.',
+    unavailable: 'Previsão do tempo indisponível agora.',
+  },
+  noStrategy: 'Sem meta nem previsão para montar a estratégia.',
+  block: 'BLOCO E POLIMENTO (KM POR SEMANA)',
+  blockLine: (peak: string, last: string) => `Pico de ${peak} no bloco. Semana da prova: ${last}.`,
+  projected: 'projetado',
+  checklist: 'CHECKLIST',
+  result: (time: string) => `Feita em ${time}`,
+  resultMissing: 'Resultado ainda não ligado a uma corrida.',
+} as const
+
+export const CHECKLIST_TEXT = {
+  weeklyVolume: { title: (km: string) => `Volume médio de ${km} km/semana`, detail: (km: string) => `Média das últimas 4 semanas: ${km} km.`, missing: 'Sem corridas nas últimas 4 semanas.' },
+  racePace: { title: 'Treino no pace de prova', detail: (done: string, pace: string, target: string) => `${done} km a ${pace} no bloco. Alvo: ${target} km.`, missing: 'Sem meta nem projeção para definir o pace de prova.' },
+  tuneUp: { title: (km: string) => `Simulado de ${km} km`, detail: (date: string, km: string, pace: string) => `${date}, ${km} km a ${pace}.`, missing: (km: string) => `Nenhum treino de ${km} km forte no bloco.` },
+  course: { title: 'Percurso da prova', detail: (km: string, gain: number) => `${km} km · +${gain} m de subida acumulada.`, missing: 'Sem percurso: importe do Garmin no app.' },
+  goal: { title: 'Meta cadastrada', detail: (goal: string, priority: string) => `${goal} · prioridade ${priority}.`, missing: 'Sem meta: a estratégia usa a projeção.' },
 } as const

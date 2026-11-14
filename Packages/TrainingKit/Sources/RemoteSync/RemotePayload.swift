@@ -19,6 +19,35 @@ public enum RemotePayload {
         )
     }
 
+    public static func plain(race item: RaceTransferItem) throws -> String {
+        try plain(item)
+    }
+
+    public static func plain(decision: RaceDecisionRecord) throws -> String {
+        try plain(RemoteDecisionPayload(activityId: decision.activityId, decision: decision.decision))
+    }
+
+    public static func decodeRace(_ text: String) throws -> RaceTransferItem {
+        try decode(text)
+    }
+
+    public static func decodeDecision(_ text: String) throws -> RemoteDecisionPayload {
+        try decode(text)
+    }
+
+    private static func plain(_ value: some Encodable) throws -> String {
+        guard let text = String(data: try RemoteJSON.encoder().encode(value), encoding: .utf8) else { throw RemoteSyncError.decoding }
+        return text
+    }
+
+    private static func decode<Value: Decodable>(_ text: String) throws -> Value {
+        do {
+            return try RemoteJSON.decoder().decode(Value.self, from: Data(text.utf8))
+        } catch {
+            throw RemoteSyncError.decoding
+        }
+    }
+
     public static func openRace(_ text: String, id: String, key: SymmetricKey) throws -> RaceTransferItem {
         try open(text, context: context(.race, id), key: key)
     }

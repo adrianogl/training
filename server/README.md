@@ -83,6 +83,19 @@ Spec: `tasks/conta-spec.md`. O token de sessão tem o formato da chave de conta 
 | `POST /api/v1/auth/resend-verification` | 204; 503 `mail_unavailable` |
 | `GET`/`DELETE /api/v1/auth/sessions` | Lista as sessões; `DELETE ?id=` encerra uma |
 
+## Provas
+
+As provas e as decisões de resultado continuam na tabela `records`, no mesmo protocolo de sync. Registros com `"format":"plain"` chegam em JSON e o servidor cifra com `DATA_KEY` antes de gravar; no pull eles voltam decifrados com `format`. Registros sem `format` são os antigos, cifrados no aparelho, e passam intactos. Com o mesmo `updatedAt`, `plain` substitui o antigo, para o reenvio do app atualizado valer.
+
+| Rota | Resposta |
+| --- | --- |
+| `GET /api/v1/races` | `{"today","races":[...]}`: próximas (com previsão, projeção, estratégia km a km ajustada pelo calor, bloco de 12 semanas e checklist), feitas e as ainda no formato antigo (`locked`) |
+| `POST /api/v1/races` | Corpo `{"name","day","distance","goalSeconds","priority","startTime","city"}`. 201 `{"id"}` |
+| `PUT /api/v1/races?id=` | Mesmo corpo; mantém GPX, resultado e alvo congelado. 409 `race_locked` para prova no formato antigo |
+| `DELETE /api/v1/races?id=` | 204; grava tombstone que o app recebe no pull |
+
+As voltas das corridas do bloco vêm de `/activity-service/activity/{id}/splits`, 15 por chamada, e ficam cifradas em `activity_laps`. A previsão do tempo vem do Open-Meteo, só a 16 dias da prova, pelo primeiro ponto do GPX ou pela cidade.
+
 ## Garmin
 
 O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a conta pede). Entre o login e o código, os cookies do SSO ficam cifrados em `garmin_pending_logins` por 10 minutos. A sessão fica cifrada (AES-256-GCM com `DATA_KEY`) em `garmin_connections` e é renovada quando faltam menos de 15 minutos para vencer. A senha da Garmin não é guardada.
@@ -92,6 +105,7 @@ O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a
 | `POST /api/v1/garmin/connect` | Corpo `{"email","password"}`. 200 `{"status":"connected"}` ou `{"status":"needs_code","method"}`; 400 `garmin_invalid_credentials`; 429 `garmin_rate_limited`; 502 `garmin_unavailable` |
 | `POST /api/v1/garmin/verify` | Corpo `{"code"}`. 200 `{"status":"connected"}`; 400 `garmin_invalid_code`; 409 `garmin_login_expired` |
 | `GET`/`DELETE /api/v1/garmin/status` | `{"connected","connectedAt"}`; `DELETE` desconecta |
+| `GET /api/v1/garmin/evolution?days=` | Séries, previsões e recordes do período (42, 91, 182 ou 365 dias; padrão 91) |
 | `GET /api/v1/garmin/session` | A sessão da Garmin para o app (`accessToken`, `refreshToken`, `clientId`, `expiresAt`); 404 `garmin_not_connected` |
 
 ## Convites e administração

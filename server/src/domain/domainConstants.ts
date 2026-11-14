@@ -47,6 +47,71 @@ export const EVOLUTION = {
   focusWindowDays: 28,
   movingAverageDays: 7,
   lowZoneCount: 2,
+  raceDistanceTolerance: 0.02,
   periods: [42, 91, 182, 365],
   defaultPeriod: 91,
+} as const
+
+export const PROJECTION = {
+  windowDays: 90,
+  minimumPoints: 10,
+  bandZ: 1.96,
+  ceilingFactor: 0.5,
+  targetTolerance: 1e-9,
+} as const
+
+export const RACE = {
+  aggressiveGap: 0.06,
+  challengingGap: 0.01,
+  shortRaceLimit: 10_000,
+  halfRaceLimit: 21_100,
+  halfLongRunShare: 0.9,
+  fullLongRunShare: 0.75,
+  warmupKms: 2,
+  warmupOffset: 5,
+  finishKms: 3,
+  finishOffset: -3,
+  climbLabelGrade: 0.02,
+  minettiGradeRange: [-0.45, 0.45],
+  labels: { warmup: 'aquece', finish: 'final', climb: 'subida', descent: 'descida', flat: 'plano' },
+  blockWeeks: 12,
+  projectionWeeks: 4,
+  earthRadiusMeters: 6_371_000,
+  defaultRaceDistance: 21_097.5,
+  yearDays: 365,
+  goalHorizonDays: 365,
+  raceProjectionFallbackDays: 60,
+  distanceLabels: { 5000: '5 km', 10000: '10 km', 21097.5: '21,1 km', 42195: '42,2 km' } as Record<number, string>,
+  kmSuffix: ' km',
+} as const
+
+export const HEAT = {
+  bands: [
+    [100, 0],
+    [110, 0.005],
+    [120, 0.01],
+    [130, 0.02],
+    [140, 0.03],
+    [150, 0.045],
+    [160, 0.06],
+    [170, 0.08],
+    [180, 0.1],
+  ],
+  maxSum: 180,
+} as const
+
+export const CHECKLIST = {
+  weeklyVolumeTargets: [
+    [5_500, 25],
+    [11_000, 30],
+    [22_000, 40],
+    [Number.POSITIVE_INFINITY, 55],
+  ],
+  racePaceVolumeRatio: 0.7,
+  racePaceFaster: 10,
+  racePaceSlower: 5,
+  fullSplitRatio: 0.99,
+  tuneUpDistanceRatio: 0.95,
+  tuneUpPaceMargin: 10,
+  recentWeeks: 4,
 } as const

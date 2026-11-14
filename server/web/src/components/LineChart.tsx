@@ -7,7 +7,7 @@ function dayIndex(first: string, day: string): number {
   return Math.round((new Date(`${day}T12:00:00Z`).getTime() - new Date(`${first}T12:00:00Z`).getTime()) / 86_400_000)
 }
 
-export function LineChart({ lines, label, height = 170, marker }: LineChartProps) {
+export function LineChart({ lines, label, height = 170, marker, guide }: LineChartProps) {
   const all = lines.flatMap((line) => line.points)
   const days = all.map(([day]) => day).sort()
   const first = days[0]
@@ -16,7 +16,7 @@ export function LineChart({ lines, label, height = 170, marker }: LineChartProps
     return null
   }
   const span = Math.max(1, dayIndex(first, last))
-  const values = all.map(([, value]) => value)
+  const values = [...all.map(([, value]) => value), ...(guide ? [guide.value] : [])]
   const minimum = Math.min(...values)
   const maximum = Math.max(...values)
   const range = maximum - minimum || 1
@@ -30,6 +30,11 @@ export function LineChart({ lines, label, height = 170, marker }: LineChartProps
           <text x={WIDTH - 6} y="14" fill="var(--dim)" fontSize="11" textAnchor="end">{marker}</text>
         </>
       )}
+      {guide !== undefined && (
+        <line x1="0" y1={y(guide.value)} x2={WIDTH} y2={y(guide.value)} stroke={guide.color} strokeDasharray="4 4" opacity="0.7" vectorEffect="non-scaling-stroke">
+          <title>{guide.label}</title>
+        </line>
+      )}
       {lines.map((line, index) => (
         <polyline
           key={index}
@@ -38,6 +43,7 @@ export function LineChart({ lines, label, height = 170, marker }: LineChartProps
           strokeWidth={line.width ?? 2}
           vectorEffect="non-scaling-stroke"
           strokeLinejoin="round"
+          strokeDasharray={line.dashed ? '6 5' : undefined}
           points={line.points.map(([day, value]) => `${x(day).toFixed(1)},${y(value).toFixed(1)}`).join(' ')}
         />
       ))}

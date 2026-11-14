@@ -10,12 +10,14 @@ public actor RemoteSyncEngine {
     private let client: RemoteClient
     private let key: SymmetricKey
     private let now: @Sendable () -> Date
+    private let defaultsSuite: String?
     private var current: Task<RemoteSyncReport, any Error>?
 
-    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, now: @escaping @Sendable () -> Date = { .now }) {
+    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, defaultsSuite: String? = nil, now: @escaping @Sendable () -> Date = { .now }) {
         self.container = container
         self.client = client
         self.key = keys.payload
+        self.defaultsSuite = defaultsSuite
         self.now = now
     }
 
@@ -33,7 +35,9 @@ public actor RemoteSyncEngine {
     private func run() async throws -> RemoteSyncReport {
         let startedAt = now()
         let snapshot = ModelContext(container)
-        let lastPush = Self.syncState(in: snapshot)?.remoteLastPush
+        let defaults = defaultsSuite.flatMap(UserDefaults.init(suiteName:)) ?? .standard
+        let migrated = defaults.bool(forKey: C.plainMigrationKey)
+        let lastPush = migrated ? Self.syncState(in: snapshot)?.remoteLastPush : nil
         let cursor = Self.syncState(in: snapshot)?.remoteCursor ?? 0
         let outgoing = try pendingRecords(since: lastPush, in: snapshot)
         let push = try await pushAll(outgoing.records)
@@ -55,6 +59,7 @@ public actor RemoteSyncEngine {
         state.remoteCursor = pages.cursor
         if !push.quotaExceeded { state.remoteLastPush = startedAt }
         try context.save()
+        if !push.quotaExceeded { defaults.set(true, forKey: C.plainMigrationKey) }
         return RemoteSyncReport(
             pushed: push.accepted,
             pulled: pages.records.count,
@@ -143,20 +148,20 @@ public actor RemoteSyncEngine {
         for race in races {
             let id = race.id.uuidString
             guard race.deletedAt == nil else {
-                records.append(RemoteRecord(kind: .race, id: id, updatedAt: race.updatedAt, deleted: true, payload: nil))
+                records.append(RemoteRecord(kind: .race, id: id, updatedAt: race.updatedAt, deleted: true, payload: nil, format: .plain))
                 continue
             }
             guard let payload = try racePayload(race) else {
                 tooLarge.append(RemoteRecordKey(kind: .race, id: id))
                 continue
             }
-            records.append(RemoteRecord(kind: .race, id: id, updatedAt: race.updatedAt, deleted: false, payload: payload))
+            records.append(RemoteRecord(kind: .race, id: id, updatedAt: race.updatedAt, deleted: false, payload: payload, format: .plain))
         }
         for decision in decisions {
             let deleted = decision.deletedAt != nil
             records.append(RemoteRecord(
                 kind: .decision, id: String(decision.activityId), updatedAt: decision.updatedAt, deleted: deleted,
-                payload: deleted ? nil : try RemotePayload.seal(decision: decision, key: key)
+                payload: deleted ? nil : try RemotePayload.plain(decision: decision), format: .plain
             ))
         }
         return (records, tooLarge)
@@ -164,11 +169,11 @@ public actor RemoteSyncEngine {
 
     private func racePayload(_ race: RaceRecord) throws -> String? {
         var item = RaceTransferItem(race)
-        let payload = try RemotePayload.seal(race: item, key: key)
+        let payload = try RemotePayload.plain(race: item)
         if payload.utf8.count <= C.maxPayloadCharacters { return payload }
         guard let gpx = item.gpxData, let reduced = try? reducedGPX(gpx, maxPoints: C.reducedGPXMaxPoints) else { return nil }
         item.gpxData = reduced
-        let smaller = try RemotePayload.seal(race: item, key: key)
+        let smaller = try RemotePayload.plain(race: item)
         return smaller.utf8.count <= C.maxPayloadCharacters ? smaller : nil
     }
 
@@ -229,14 +234,14 @@ public actor RemoteSyncEngine {
 
     private func openRace(_ record: RemoteRecord) throws -> RaceTransferItem {
         guard let payload = record.payload else { throw RemoteSyncError.decoding }
-        var item = try RemotePayload.openRace(payload, id: record.id, key: key)
+        var item = record.format == .plain ? try RemotePayload.decodeRace(payload) : try RemotePayload.openRace(payload, id: record.id, key: key)
         item.updatedAt = record.updatedAt
         return item
     }
 
     private func openDecision(_ record: RemoteRecord) throws -> RaceDecision {
         guard let payload = record.payload,
-              let decision = RaceDecision(rawValue: try RemotePayload.openDecision(payload, id: record.id, key: key).decision)
+              let decision = RaceDecision(rawValue: try (record.format == .plain ? RemotePayload.decodeDecision(payload) : RemotePayload.openDecision(payload, id: record.id, key: key)).decision)
         else { throw RemoteSyncError.decoding }
         return decision
     }

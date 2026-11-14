@@ -27,7 +27,7 @@ export function newestPerKey(records: IncomingRecord[]): { winners: IncomingReco
 const INCOMING_AND_USAGE = `
   incoming as (
     select * from jsonb_to_recordset($2::jsonb)
-      as r(kind text, id text, "updatedAt" timestamptz, deleted boolean, payload text)
+      as r(kind text, id text, "updatedAt" timestamptz, deleted boolean, payload text, format text)
   ),
   current_usage as (
     select coalesce(sum(octet_length(payload)), 0)::bigint as bytes from records where account_id = $1
@@ -38,6 +38,7 @@ const INCOMING_AND_USAGE = `
     from incoming i
     left join records r on r.account_id = $1 and r.kind = i.kind and r.id = i.id
     where r.id is null or r.updated_at < i."updatedAt"
+       or (r.updated_at = i."updatedAt" and r.format = 'sealed' and coalesce(i.format, 'sealed') = 'plain')
   ),
   allowed as (
     select p.bytes <= $3::bigint or p.bytes <= c.bytes as ok from projected p, current_usage c
@@ -56,17 +57,19 @@ export function pushStatements(accountId: string, winners: IncomingRecord[], max
     },
     {
       text: `with ${INCOMING_AND_USAGE}
-             insert into records (account_id, kind, id, updated_at, deleted, payload)
-             select $1, i.kind, i.id, i."updatedAt", i.deleted, i.payload
+             insert into records (account_id, kind, id, updated_at, deleted, payload, format)
+             select $1, i.kind, i.id, i."updatedAt", i.deleted, i.payload, coalesce(i.format, 'sealed')
              from incoming i
              where (select ok from allowed)
              on conflict (account_id, kind, id) do update
              set updated_at = excluded.updated_at,
                  deleted = excluded.deleted,
                  payload = excluded.payload,
+                 format = excluded.format,
                  written_at = now(),
                  seq = nextval(pg_get_serial_sequence('records', 'seq'))
              where records.updated_at < excluded.updated_at
+                or (records.updated_at = excluded.updated_at and records.format = 'sealed' and excluded.format = 'plain')
              returning kind, id`,
       params,
     },
@@ -103,7 +106,7 @@ export function pullStatement(accountId: string, since: number): SqlStatement {
                     row_number() over (order by seq) as rn,
                     sum(coalesce(octet_length(payload), 0)) over (order by seq) as running
              from (
-               select kind, id, updated_at, deleted, payload, seq
+               select kind, id, updated_at, deleted, payload, format, seq
                from records
                where account_id = $1 and seq > $2::bigint
                order by seq
@@ -112,7 +115,7 @@ export function pullStatement(accountId: string, since: number): SqlStatement {
            )
            select kind, id,
                   to_char(updated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as "updatedAt",
-                  deleted, payload, seq::text as seq,
+                  deleted, payload, format, seq::text as seq,
                   (select count(*) from page)::int as candidates
            from page
            where rn <= $4 and (rn = 1 or running <= $5)

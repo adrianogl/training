@@ -53,7 +53,7 @@ export function makeRequest(
 }
 
 export function record(
-  overrides: Partial<{ kind: string; id: string; updatedAt: string; deleted: boolean; payload: string | null }> = {},
+  overrides: Partial<{ kind: string; id: string; updatedAt: string; deleted: boolean; payload: string | null; format: string }> = {},
 ) {
   return {
     kind: 'race',

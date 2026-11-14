@@ -9,14 +9,15 @@ import { buildEvolution } from './domain/evolution.js'
 import { buildToday, LOAD_HISTORY_DAYS } from './domain/today.js'
 import { addDays, localDay, readActivities, readActivitiesSince, readDays, syncAccount } from './garminSync.js'
 import { GarminError } from './garminError.js'
+import { readRaces } from './races.js'
 import type { GarminEnv } from './types.js'
 import { parseObject } from './validate.js'
 
-function json(status: number, body: unknown): Response {
+export function json(status: number, body: unknown): Response {
   return Response.json(body, { status, headers: { 'cache-control': 'no-store' } })
 }
 
-function failure(status: number, error: string): Response {
+export function failure(status: number, error: string): Response {
   return json(status, { error })
 }
 
@@ -39,7 +40,7 @@ function garminFailure(error: GarminError): Response {
   }
 }
 
-async function withAccount(
+export async function withAccount(
   request: Request,
   sql: Sql,
   env: GarminEnv,
@@ -65,7 +66,7 @@ async function withAccount(
   }
 }
 
-async function body(request: Request): Promise<Record<string, unknown> | undefined> {
+export async function body(request: Request): Promise<Record<string, unknown> | undefined> {
   const text = await request.text()
   if (Buffer.byteLength(text) > MAX_BODY_BYTES) {
     return undefined
@@ -195,6 +196,7 @@ export function garminEvolutionRoute(request: Request, sql: Sql, env: GarminEnv 
     const today = localDay(env.now())
     const days = await readDays(sql, key, accountId, addDays(today, 1 - periodDays), today)
     const activities = await readActivitiesSince(sql, key, accountId, addDays(today, -365))
-    return json(200, buildEvolution(days, activities, today, periodDays))
+    const results = (await readRaces(sql, key, accountId)).flatMap(({ race }) => (race?.resultActivityId ? [{ name: race.name, activityId: race.resultActivityId }] : []))
+    return json(200, buildEvolution(days, activities, today, periodDays, results))
   })
 }

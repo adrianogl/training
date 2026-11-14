@@ -80,7 +80,10 @@ export function EvolutionPage({ version, syncing }: DataPageProps) {
   const fitnessNow = fitness?.stats.current ?? null
   const fatigueNow = fatigue?.stats.current ?? null
   const records = evolution?.records
-  const recordFor: Record<string, { seconds: number; day: string } | null | undefined> = { prediction5k: records?.fastest5k }
+  const recordFor = (key: string): { seconds: number; day: string } | null => {
+    const candidates = [...(records?.races.filter((item) => item.key === key) ?? []), ...(key === 'prediction5k' && records?.fastest5k ? [records.fastest5k] : [])]
+    return candidates.sort((a, b) => a.seconds - b.seconds)[0] ?? null
+  }
 
   return (
     <section className="page wide evolution">
@@ -194,7 +197,7 @@ export function EvolutionPage({ version, syncing }: DataPageProps) {
                       <td className="muted">—</td>
                     </tr>
                     {evolution.predictions.map((prediction) => {
-                      const record = recordFor[prediction.key]
+                      const record = recordFor(prediction.key)
                       const direction = trend(prediction.key, prediction.change, prediction.seconds)
                       return (
                         <tr key={prediction.key}>

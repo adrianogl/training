@@ -28,4 +28,5 @@ enum RemoteSyncConstants {
     static let reducedGPXMaxPoints = 5_000
     static let pushOverlap: TimeInterval = 5
     static let batchEnvelopeBytes = 32
+    static let plainMigrationKey = "remoteSync.plainPayloadsPushed"
 }

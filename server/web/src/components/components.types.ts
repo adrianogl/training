@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Route, SyncState, User } from '../types'
+import type { RaceView, Route, SyncState, User } from '../types'
 
 export interface FieldProps {
   label: string
@@ -40,6 +40,13 @@ export interface ChartLine {
   points: [string, number][]
   color: string
   width?: number
+  dashed?: boolean
+}
+
+export interface ChartGuide {
+  value: number
+  label: string
+  color: string
 }
 
 export interface LineChartProps {
@@ -47,4 +54,27 @@ export interface LineChartProps {
   label: string
   height?: number
   marker?: string
+  guide?: ChartGuide
+}
+
+export interface RaceEditorProps {
+  race: RaceView | null
+  onSaved: (id: string) => void
+  onDeleted: () => void
+}
+
+export interface RaceDetailProps {
+  race: RaceView
+  onSaved: (id: string) => void
+  onDeleted: () => void
+}
+
+export interface RaceFormState {
+  name: string
+  day: string
+  distance: string
+  goal: string
+  priority: string
+  startTime: string
+  city: string
 }

@@ -7,10 +7,12 @@ import {
   WATCH_READINESS_ROUTE,
   WATCH_TOKEN_ROUTE,
 } from './constants.js'
+import { dataKeyFromEnv } from './cipher.js'
 import { limitsFromEnv } from './limits.js'
 import type { Sql } from './db.js'
 import { pullChanges, pushRecords } from './merge.js'
 import { clientIpHash } from './rateLimit.js'
+import { hasPlain, openPlainRecords, sealPlainRecords } from './recordPayload.js'
 import { recordRequest } from './requestLog.js'
 import type { Limits } from './types.js'
 import { parsePushBody, parseReadinessBody, parseSince, parseWatchTokenBody } from './validate.js'
@@ -115,7 +117,7 @@ export function deleteAccountRoute(request: Request, sql: Sql): Promise<Response
   }))
 }
 
-export function pullChangesRoute(request: Request, sql: Sql): Promise<Response> {
+export function pullChangesRoute(request: Request, sql: Sql, dataKey: Buffer | undefined = dataKeyFromEnv(process.env)): Promise<Response> {
   return handled('changes', request, sql, async (accountId) => {
     if (!(await accountExists(sql, accountId))) {
       return { response: failure(401, 'unauthorized') }
@@ -125,7 +127,11 @@ export function pullChangesRoute(request: Request, sql: Sql): Promise<Response> 
       return { response: failure(400, 'invalid_since') }
     }
     const result = await pullChanges(sql, accountId, since)
-    return { response: json(200, result), recordCount: result.records.length }
+    if (dataKey === undefined && result.records.some((item) => item.format === 'plain')) {
+      return { response: failure(503, 'storage_unavailable') }
+    }
+    const records = openPlainRecords(result.records, dataKey, accountId)
+    return { response: json(200, { ...result, records }), recordCount: records.length }
   })
 }
 
@@ -133,6 +139,7 @@ export function pushChangesRoute(
   request: Request,
   sql: Sql,
   limits: Limits = limitsFromEnv(process.env),
+  dataKey: Buffer | undefined = dataKeyFromEnv(process.env),
 ): Promise<Response> {
   return handled('changes', request, sql, async (accountId) => {
     if (!(await accountExists(sql, accountId))) {
@@ -146,7 +153,11 @@ export function pushChangesRoute(
     if (!parsed.ok) {
       return { response: failure(400, parsed.error) }
     }
-    const outcome = await pushRecords(sql, accountId, parsed.records, limits.maxAccountBytes)
+    if (dataKey === undefined && hasPlain(parsed.records)) {
+      return { response: failure(503, 'storage_unavailable') }
+    }
+    const records = dataKey === undefined ? parsed.records : sealPlainRecords(parsed.records, dataKey, accountId)
+    const outcome = await pushRecords(sql, accountId, records, limits.maxAccountBytes)
     if (outcome.status === 'quota_exceeded') {
       return { response: failure(413, 'quota_exceeded') }
     }

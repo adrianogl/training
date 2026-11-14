@@ -11,10 +11,6 @@ export interface SettingsProps {
   onSignedOut: () => void
 }
 
-export interface ComingSoonProps {
-  title: string
-}
-
 export interface ConfirmProps {
   signedIn: boolean
 }
