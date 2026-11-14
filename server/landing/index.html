@@ -50,6 +50,31 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .nav-cta { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-weight: 700; font-size: 14px; }
 .nav-actions { display: flex; align-items: center; gap: 8px; }
 .nav-ask { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3a3f46; color: var(--ink); font-weight: 600; font-size: 14px; }
+.tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
+.tags .tag { margin-bottom: 0; }
+.free-pill { display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
+.free-scene { padding-block: 24px; }
+.free-band { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; align-items: center; padding: 40px; border-radius: 28px; background: var(--lime-deep); border: 1px solid #3c5214; }
+.free-word { font-size: clamp(56px, 8.5vw, 124px); color: var(--lime); margin: 0; }
+.free-points { display: grid; gap: 14px; color: var(--ink-2); font-size: 17px; }
+.free-points b { color: var(--ink); }
+.social { display: flex; align-items: center; gap: 2px; margin-right: 6px; padding-right: 10px; border-right: 1px solid var(--line); }
+.social a { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: var(--dim); }
+.social a:hover { color: var(--lime); background: var(--card); }
+.social svg { width: 18px; height: 18px; }
+.contact-head { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+.contact-head h2 { font-size: clamp(32px, 4vw, 54px); max-width: 20ch; }
+.contact-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.contact-card { display: flex; flex-direction: column; gap: 4px; padding: 22px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); color: var(--ink); transition: border-color .2s, transform .2s; }
+.contact-card:hover { border-color: var(--lime); transform: translateY(-2px); }
+.contact-card svg { width: 30px; height: 30px; color: var(--lime); margin-bottom: 14px; }
+.contact-card b { font-family: var(--display); font-stretch: 112%; font-size: 20px; }
+.contact-card span { color: var(--ink); font-size: 15px; overflow-wrap: anywhere; }
+.contact-card em { font-style: normal; color: var(--dim); font-size: 13px; margin-top: 6px; }
+.contact-card.whatsapp { background: var(--lime-deep); border-color: #3c5214; }
+footer .footer-links { display: flex; flex-wrap: wrap; gap: 16px; }
+footer .footer-links a { color: var(--ink-2); }
+footer .footer-note { flex-basis: 100%; font-size: 12px; }
 .tag { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); font-size: 13px; }
 .tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
 .about { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
@@ -261,9 +286,16 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .about, .ask, .ask-form .pair { grid-template-columns: minmax(0, 1fr); }
   .nav-ask { display: none; }
+  .free-band { grid-template-columns: minmax(0, 1fr); padding: 24px; }
+  .contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .social { margin-right: 2px; padding-right: 6px; }
+  .social a { width: 30px; height: 30px; }
+  .social svg { width: 16px; height: 16px; }
   .ipad { width: 40%; } .iph { width: 26%; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .contact-card { transition: none; }
+  .contact-card:hover { transform: none; }
   html { scroll-behavior: auto; }
   .scene { --p: 1 !important; }
   .scene.pin { height: auto; }
@@ -279,7 +311,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#topo" aria-label="trAIning, início"><span class="mark">AI</span><span class="word">TR<b>AI</b>NING</span></a>
-    <div class="nav-actions"><a class="nav-ask" href="#pedir">Pedir convite</a><a class="nav-cta" href="/app/entrar">Entrar</a></div>
+    <div class="nav-actions"><nav class="social" aria-label="Contato"><a href="https://wa.me/5531994950997?text=Oi%2C%20Adriano!%20Vi%20o%20trAIning%20e%20queria%20saber%20mais." target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"></path><path d="M9.5 9.5c0 2.5 2.5 5 5 5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"></path></svg></a><a href="https://instagram.com/adriano_gl" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="12" cy="12" r="3.5"></circle><circle cx="17" cy="7" r="0.6" fill="currentColor"></circle></svg></a><a href="https://www.linkedin.com/in/adrianogl" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 11v5M8 8v.01M12 16v-5M12 13c0-1.5 1-2 2-2s2 .5 2 2v3"></path></svg></a><a href="https://github.com/adrianogl" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"></path></svg></a></nav><a class="nav-ask" href="#pedir">Pedir convite</a><a class="nav-cta" href="/app/entrar">Entrar</a></div>
   </div>
 </header>
 
@@ -288,7 +320,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <div class="stage">
       <div class="wrap hero-grid">
         <div>
-          <span class="tag"><i></i>Projeto pessoal · 100% gratuito · acesso por convite</span>
+          <div class="tags"><span class="free-pill">100% gratuito</span><span class="tag"><i></i>Projeto pessoal · acesso por convite</span></div>
           <p class="eyebrow">Garmin · iPhone · iPad · relógio · web</p>
           <h1 id="hero-title" class="display">Inteligência do pulso à <em>linha de chegada</em>.</h1>
           <p class="lede">O trAIning lê o seu sono, o HRV e cada treino da Garmin e diz o que fazer hoje, como a prova vai sair e se você está evoluindo.</p>
@@ -322,6 +354,19 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     </div>
   </section>
 
+  <section class="scene flow free-scene" aria-labelledby="free-title">
+    <div class="wrap">
+      <div class="free-band">
+        <p class="free-word display" id="free-title">Grátis.</p>
+        <div class="free-points">
+          <span><b>Sem plano pago.</b> Tudo o que esta página mostra está liberado para quem tem convite.</span>
+          <span><b>Sem anúncio.</b> Nada de propaganda no app, no site ou no relógio.</span>
+          <span><b>Sem cartão.</b> O convite e o cadastro não pedem forma de pagamento.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="pulso" class="scene pin" data-scene data-steps="3" style="--len: 300vh" aria-labelledby="pulso-title">
     <div class="stage">
       <div class="wrap pulse-grid">
@@ -334,12 +379,12 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
           <div class="step" data-step="1">
             <p class="eyebrow">Do pulso ao número</p>
             <h2 class="display">O app pesa cada sinal.</h2>
-            <p class="lede">Cada fator é comparado com o seu normal, não com uma média de manual. HRV acima da faixa soma, noite curta tira.</p>
+            <p class="lede">Cada fator é comparado com o seu normal dos últimos 30 dias. HRV acima da faixa soma, noite curta tira.</p>
           </div>
           <div class="step" data-step="2">
             <p class="eyebrow">Do pulso ao número</p>
             <h2 class="display">E vira uma decisão.</h2>
-            <p class="lede">Uma nota de 0 a 100 e o que ela quer dizer para o treino de hoje: descansar, segurar ou pode ir forte.</p>
+            <p class="lede">Uma nota de 0 a 100 diz como treinar hoje: descansar, segurar ou ir forte.</p>
           </div>
         </div>
         <div class="pulse-art" aria-hidden="true">
@@ -415,7 +460,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div>
           <p class="eyebrow">No pulso</p>
           <h2 id="relogio-title" class="display">O dia inteiro num olhar.</h2>
-          <p class="lede">Um mostrador para relógios Garmin que recebe o que o app calculou. Sem abrir o celular.</p>
+          <p class="lede">Um mostrador para relógios Garmin mostra o que o app calculou, sem você abrir o celular.</p>
           <ul class="field-list">
             <li data-at=".3"><b>Prontidão</b> nota e régua de descanso a forte</li>
             <li data-at=".45"><b>Treino</b> a estrutura colorida por zona</li>
@@ -460,7 +505,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <div>
         <p class="eyebrow">Apple Intelligence, no aparelho</p>
         <h2 id="ia-title" class="display">Pergunte ao seu treino.</h2>
-        <p class="lede">Converse sobre cada treino, o planejado de amanhã, a prova e a evolução. O modelo roda no iPhone, e cada número da resposta é conferido contra os seus dados.</p>
+        <p class="lede">Converse sobre cada treino, o planejado de amanhã, a prova e a evolução. O modelo roda no iPhone, e cada número da resposta é conferido com os seus dados.</p>
       </div>
       <div class="chat">
         <div class="bubble me" style="--d:.05">Meu trote entre os tiros foi rápido demais?</div>
@@ -534,12 +579,12 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <p class="eyebrow">E mais</p>
       <h2 id="mais-title" class="display" style="font-size: clamp(34px, 4.6vw, 64px); max-width: 18ch">O que um treinador olharia, todo dia.</h2>
       <div class="features">
-        <div class="feature" style="--d:.0"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"></path></svg><b>Aviso de manhã</b><span>A prontidão chega como notificação quando o sono e o HRV entram.</span></div>
+        <div class="feature" style="--d:.0"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"></path></svg><b>Aviso de manhã</b><span>A prontidão chega como notificação quando o sono e o HRV chegam da Garmin.</span></div>
         <div class="feature" style="--d:.05"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><b>Recuperação</b><span>Quando você estará pronto para o próximo treino forte.</span></div>
         <div class="feature" style="--d:.1"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg><b>Alerta de sobrecarga</b><span>Avisa quando a carga sobe rápido demais para o seu histórico.</span></div>
         <div class="feature" style="--d:.15"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg><b>Semana planejada</b><span>Feito e planejado lado a lado, com a meta de km da semana.</span></div>
         <div class="feature" style="--d:.2"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"></path></svg><b>Relatório da semana</b><span>Domingo, um resumo do que foi bem e do que ajustar.</span></div>
-        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><b>Zonas de FC</b><span>Tempo em cada zona por treino e por semana, perto do 80/20.</span></div>
+        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><b>Zonas de FC</b><span>Tempo em cada zona, por treino e por semana, comparado com a regra 80/20.</span></div>
         <div class="feature" style="--d:.3"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 21V4h11l-2 4 2 4H5"></path></svg><b>Parece prova?</b><span>Reconhece treinos que foram prova e pergunta antes de contar.</span></div>
         <div class="feature" style="--d:.35"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><b>Percursos</b><span>Importa o percurso da prova do Garmin Connect para a estratégia.</span></div>
       </div>
@@ -583,15 +628,30 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <div>
         <p class="eyebrow">Sobre o projeto</p>
         <h2 id="about-title" class="display">Feito para o meu treino. Aberto a alguns amigos.</h2>
-        <p class="lede">O trAIning começou como a ferramenta que eu queria para correr com a Garmin. Hoje uso todo dia, e abro para poucas pessoas por convite.</p>
+        <p class="lede">O trAIning começou como a ferramenta que eu queria para correr com a Garmin. Hoje uso todo dia e abro para poucas pessoas, por convite.</p>
       </div>
       <ul class="facts">
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>100% gratuito.</b> Sem plano pago, sem anúncio e sem cobrança. Não é um produto comercial.</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Vagas limitadas.</b> O servidor comporta poucas contas, então o acesso é por convite.</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Precisa de relógio Garmin.</b> Os dados vêm da sua conta Garmin Connect.</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Pode mudar.</b> É um projeto em evolução: telas mudam e algo pode ficar fora do ar por um tempo.</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Não é orientação médica.</b> Os números ajudam a decidir o treino, não substituem um treinador ou médico.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Pode mudar.</b> As telas mudam com frequência, e o site pode ficar fora do ar por um tempo.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Não é orientação médica.</b> Os números ajudam a decidir o treino e não substituem treinador nem médico.</span></li>
       </ul>
+    </div>
+  </section>
+
+  <section class="scene flow" aria-labelledby="contact-title">
+    <div class="wrap">
+      <div class="contact-head">
+        <p class="eyebrow">Fale comigo</p>
+        <h2 id="contact-title" class="display">Dúvida, ideia ou só quer trocar sobre corrida?</h2>
+      </div>
+      <div class="contact-grid">
+        <a class="contact-card whatsapp" href="https://wa.me/5531994950997?text=Oi%2C%20Adriano!%20Vi%20o%20trAIning%20e%20queria%20saber%20mais." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"></path><path d="M9.5 9.5c0 2.5 2.5 5 5 5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"></path></svg><b>WhatsApp</b><span>(31) 99495-0997</span><em>Respondo por mensagem</em></a>
+        <a class="contact-card" href="https://instagram.com/adriano_gl" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="12" cy="12" r="3.5"></circle><circle cx="17" cy="7" r="0.6" fill="currentColor"></circle></svg><b>Instagram</b><span>@adriano_gl</span><em>Treinos e provas</em></a>
+        <a class="contact-card" href="https://www.linkedin.com/in/adrianogl" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 11v5M8 8v.01M12 16v-5M12 13c0-1.5 1-2 2-2s2 .5 2 2v3"></path></svg><b>LinkedIn</b><span>/in/adrianogl</span><em>Trabalho e projetos</em></a>
+        <a class="contact-card" href="https://github.com/adrianogl" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"></path></svg><b>GitHub</b><span>adrianogl</span><em>Código e outros projetos</em></a>
+      </div>
     </div>
   </section>
 
@@ -617,7 +677,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
               <option value="none">Não uso relógio</option>
             </select>
           </label>
-          <div class="ask-warn" id="ask-warn" hidden><b>Por enquanto só com Garmin.</b> Pode pedir mesmo assim: fica na lista para quando houver outras integrações.</div>
+          <div class="ask-warn" id="ask-warn" hidden><b>Por enquanto só funciona com Garmin.</b> Pode pedir mesmo assim, e o pedido fica guardado para quando houver outros relógios.</div>
           <label>Como você corre hoje? (opcional)<textarea id="ask-message" name="message" maxlength="500" placeholder="Ex.: treino para a primeira meia, 4 vezes por semana"></textarea></label>
           <label class="trap" aria-hidden="true">Site<input id="ask-website" name="website" tabindex="-1" autocomplete="off"></label>
           <p class="ask-error" id="ask-error" role="alert" hidden></p>
@@ -635,7 +695,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 </main>
 
 <footer>
-  <div class="wrap"><span>trAIning · projeto pessoal e gratuito de Adriano Gonçalves</span><span>Números de exemplo</span></div>
+  <div class="wrap"><span>trAIning · projeto pessoal e gratuito de Adriano Gonçalves</span><span class="footer-links"><a href="https://wa.me/5531994950997?text=Oi%2C%20Adriano!%20Vi%20o%20trAIning%20e%20queria%20saber%20mais." target="_blank" rel="noopener">WhatsApp</a><a href="https://instagram.com/adriano_gl" target="_blank" rel="noopener">Instagram</a><a href="https://www.linkedin.com/in/adrianogl" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/adrianogl" target="_blank" rel="noopener">GitHub</a></span><span class="footer-note">As telas desta página mostram números ilustrativos, não dados reais de ninguém.</span></div>
 </footer>
 
 <script>
