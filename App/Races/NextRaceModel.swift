@@ -24,6 +24,7 @@ import TrainingCore
     private(set) var block: [BlockWeek] = []
     private(set) var checklist: [ChecklistItem] = []
     private(set) var blockReading = ""
+    private(set) var weeklyLongest: [Day: Double] = [:]
     private(set) var isLoaded = false
 
     init(container: ModelContainer, raceId: UUID, today: Day, onChange: @escaping @MainActor () -> Void = {}) {
@@ -50,6 +51,7 @@ import TrainingCore
             block = result.block
             checklist = result.checklist
             blockReading = result.blockReading
+            weeklyLongest = result.weeklyLongest
             recalculate()
         }
         isLoaded = true
@@ -179,7 +181,8 @@ import TrainingCore
                 context: context, today: today, raceDay: raceDay, blockStart: blockStart,
                 longest: longest, longTarget: longTarget, targetPace: pace
             ),
-            blockReading: RacesText.blockReading(block: block, today: today, longestRun: longest, longRunTarget: longTarget)
+            blockReading: RacesText.blockReading(block: block, today: today, longestRun: longest, longRunTarget: longTarget),
+            weeklyLongest: weeklyLongest(context: context, since: blockStart, today: today)
         )
     }
 
@@ -200,6 +203,16 @@ import TrainingCore
         var weeks: [Day: Double] = [:]
         for run in runs(context: context, since: since, today: today) {
             weeks[Day.today(now: run.start).weekStart, default: 0] += (run.distance ?? 0) / C.metersPerKm
+        }
+        return weeks
+    }
+
+    nonisolated private static func weeklyLongest(context: ModelContext, since day: Day, today: Day) -> [Day: Double] {
+        guard day <= today else { return [:] }
+        var weeks: [Day: Double] = [:]
+        for run in runs(context: context, since: day, today: today) {
+            let week = Day.today(now: run.start).weekStart
+            weeks[week] = max(weeks[week] ?? 0, (run.distance ?? 0) / C.metersPerKm)
         }
         return weeks
     }

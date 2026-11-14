@@ -7,6 +7,7 @@ struct RaceBlockCard: View {
     let block: [BlockWeek]
     let today: Day
     let reading: String
+    var longest: [Day: Double] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -22,6 +23,14 @@ struct RaceBlockCard: View {
                             }
                         }
                 }
+                ForEach(block.filter { longest[$0.start] != nil }, id: \.start) { week in
+                    LineMark(x: .value("Semana", week.start.chartDate, unit: .weekOfYear), y: .value("Longão", longest[week.start] ?? 0))
+                        .foregroundStyle(BrandColors.race)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                    PointMark(x: .value("Semana", week.start.chartDate, unit: .weekOfYear), y: .value("Longão", longest[week.start] ?? 0))
+                        .foregroundStyle(BrandColors.race)
+                        .symbolSize(30)
+                }
                 RuleMark(x: .value("Hoje", today.weekStart.chartDate, unit: .weekOfYear))
                     .foregroundStyle(BrandColors.marker)
             }
@@ -32,7 +41,7 @@ struct RaceBlockCard: View {
                 }
             }
             .frame(height: RacesConstants.blockChartHeight)
-            Text(RacesConstants.blockLegend).font(.caption2).foregroundStyle(BrandColors.dim)
+            Text(longest.isEmpty ? RacesConstants.blockLegend : RacesConstants.blockLegendWithLong).font(.caption2).foregroundStyle(BrandColors.dim)
             Text(RacesConstants.readingTitle)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(BrandColors.text)

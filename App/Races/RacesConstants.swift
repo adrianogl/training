@@ -102,6 +102,7 @@ enum RacesConstants {
 
     static let blockTitle = "Bloco semana a semana"
     static let blockLegend = "sólido: feito · tracejado: projeção pela média das últimas 4 semanas"
+    static let blockLegendWithLong = "barras: km da semana (tracejado = projeção pela média de 4 semanas) · linha laranja: longão da semana"
     static let blockChartHeight: Double = 90
     static let blockReadingFormat = "Semana %d de %d do bloco. Média de %@ km nas últimas 4 semanas; maior semana do bloco com %@ km. Longão mais longo de %@ km para um alvo de %@ km. As semanas que faltam são projeção, não plano."
     static let blockReadingBeforeFormat = "O bloco de 12 semanas começa em %d semanas. Média de %@ km nas últimas 4 semanas."

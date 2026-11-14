@@ -21,7 +21,7 @@ struct NextRaceView: View {
                     }
                     PaceStrategyCard(model: model)
                     pair {
-                        RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading)
+                        RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading, longest: model.weeklyLongest)
                             .id(RacesConstants.blockAnchor)
                         RacePredictionCard(content: model.predictionContent)
                     }

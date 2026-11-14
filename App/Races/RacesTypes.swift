@@ -131,6 +131,7 @@ struct NextRaceLoad: Sendable {
     let block: [BlockWeek]
     let checklist: [ChecklistItem]
     let blockReading: String
+    let weeklyLongest: [Day: Double]
 }
 
 struct GPXPoint: Equatable, Sendable {

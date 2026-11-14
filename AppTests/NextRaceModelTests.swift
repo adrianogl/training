@@ -102,6 +102,25 @@ import TrainingCore
         #expect(!model.blockReading.isEmpty)
     }
 
+    @Test func weeklyLongestKeepsLongestRunPerWeek() async throws {
+        let runs = [
+            F.run(id: 910, daysAgo: 7, meters: 8_000),
+            F.run(id: 911, daysAgo: 7, meters: 18_000),
+            F.run(id: 912, daysAgo: 21, meters: 12_000),
+        ]
+        let race = RaceRecord(name: "Meia", day: Self.today.adding(days: 20).iso, distance: 21_097.5, goalSeconds: 6_300, priority: .a)
+        let container = try Self.emptyStore(race)
+        runs.forEach(container.mainContext.insert)
+        try container.mainContext.save()
+
+        let model = NextRaceModel(container: container, raceId: race.id, today: Self.today)
+        await model.load()
+
+        let recentWeek = Day.today(now: runs[0].start).weekStart
+        let olderWeek = Day.today(now: runs[2].start).weekStart
+        #expect(model.weeklyLongest == [recentWeek: 18, olderWeek: 12])
+    }
+
     @Test func completedRaceShowsResultVsGoalVsEve() async throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
