@@ -90,7 +90,7 @@ struct RaceListView: View {
             .padding(.bottom, 24)
         }
         .background(BrandBackground())
-        .toolbarVisibility(.hidden, for: .navigationBar)
+        .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
     }
 
     private var currentRoute: RaceRoute? {

@@ -117,7 +117,7 @@ struct WorkoutListView: View {
         }
         .background(BrandBackground())
         .refreshable { await model.syncNow(.pull) }
-        .toolbarVisibility(.hidden, for: .navigationBar)
+        .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
     }
 
     @ViewBuilder
