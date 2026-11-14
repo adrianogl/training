@@ -60,6 +60,7 @@ export function GoalsPage({ version }: DataPageProps) {
                     <span className="muted">{GOALS_TEXT.kinds[goal.kind]}</span>
                     <b>{goalTitle(goal)}</b>
                     <span className="muted">{goalLine(goal)}{status === null ? '' : ` · ${status.text}`}</span>
+                    <span className="muted small">{GOALS_TEXT.scopes[goal.kind]}</span>
                   </button>
                 )
               })}

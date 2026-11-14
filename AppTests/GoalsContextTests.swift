@@ -47,8 +47,8 @@ import TrainingCore
         return try! JSONEncoder().encode(result)
     }
 
-    private static func run(meters: Double, seconds: Double, samples: Data? = nil) -> ActivityRecord {
-        let record = ActivityRecord(activityId: 1, typeKey: "running", name: "Longão", start: .now, distance: meters, duration: seconds, movingDuration: seconds)
+    private static func run(meters: Double, seconds: Double, name: String = "Longão", samples: Data? = nil) -> ActivityRecord {
+        let record = ActivityRecord(activityId: 1, typeKey: "running", name: name, start: .now, distance: meters, duration: seconds, movingDuration: seconds)
         record.samplesData = samples
         return record
     }
@@ -94,11 +94,11 @@ import TrainingCore
     }
 
     @Test func noticeAnnouncesMetTimeGoal() {
-        let record = Self.run(meters: 10_020, seconds: 2_390)
+        let record = Self.run(meters: 10_020, seconds: 2_390, name: "Corrida")
 
         let content = WorkoutNotice.content(record: record, score: 80, opening: nil, goals: [Self.timeGoal()])
 
-        #expect(content.title == "Meta cumprida · 10 km em 40:00 · Longão · nota 80")
+        #expect(content.title == "Meta cumprida · 10 km em 40:00 · Corrida · nota 80")
     }
 
     @Test func noticeKeepsDefaultWithoutGoalOrWhenSlower() {

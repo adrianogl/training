@@ -119,6 +119,9 @@ export const CHECKLIST = {
 
 export const GOAL_PROGRESS = {
   longShare: 0.7,
+  longMinimumMeters: 14_000,
+  longWords: ['longao', 'longo', 'long run'],
+  nonLongWords: ['tiro', 'intervalad', 'regenerativ', 'rodagem', 'leve'],
   longRuns: 6,
   historyDays: 365,
   timeMatchLow: 0.99,

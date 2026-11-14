@@ -39,6 +39,7 @@ struct GoalsSection: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(GoalsText.title(goal)).font(.body.weight(.semibold)).foregroundStyle(BrandColors.text)
                 Text(GoalsText.line(goal)).font(.caption).foregroundStyle(BrandColors.dim)
+                Text(C.kindScopes[goal.goalKind ?? .time] ?? "").font(.caption).foregroundStyle(BrandColors.dim)
             }
         }
     }

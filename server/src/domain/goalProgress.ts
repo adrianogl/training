@@ -24,9 +24,20 @@ export function timeGoalProgress(goal: GoalItem, efforts: Effort[], activities: 
   }
 }
 
+function mentions(text: string, words: readonly string[]): boolean {
+  return words.some((word) => text.includes(word))
+}
+
+function isLongRun(run: ActivitySummary, goalKm: number): boolean {
+  const name = run.name.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase()
+  if (mentions(name, GOAL_PROGRESS.longWords)) return true
+  if (mentions(name, GOAL_PROGRESS.nonLongWords)) return false
+  return (run.distanceMeters ?? 0) >= Math.max(goalKm * 1000 * GOAL_PROGRESS.longShare, GOAL_PROGRESS.longMinimumMeters)
+}
+
 export function longCandidates(goal: GoalItem, activities: ActivitySummary[]): ActivitySummary[] {
   return activities
-    .filter((run) => isRun(run) && (run.distanceMeters ?? 0) >= goal.distanceKm * 1000 * GOAL_PROGRESS.longShare)
+    .filter((run) => isRun(run) && isLongRun(run, goal.distanceKm))
     .sort((a, b) => b.day.localeCompare(a.day) || b.id - a.id)
     .slice(0, GOAL_PROGRESS.longRuns)
 }

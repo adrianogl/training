@@ -1,5 +1,6 @@
 import FITReader
 import Foundation
+import Insights
 import Storage
 import SwiftData
 import TrainingCore
@@ -18,10 +19,15 @@ enum WorkoutGoalCheck {
     }
 
     static func entries(record: ActivityRecord, runs: [ActivityRecord], blocks: [WorkoutBlock], goals: [GoalRecord]) -> [WorkoutGoalEntry] {
-        goals.compactMap { goal in
+        let kind = classifyRun(
+            record,
+            longGoalKm: goals.filter { $0.goalKind == .continuousLong }.map(\.distanceKm).min(),
+            raceGoalKms: goals.filter { $0.goalKind == .time }.map(\.distanceKm)
+        )
+        return goals.compactMap { goal in
             switch goal.goalKind {
-            case .continuousLong: longEntry(record: record, runs: runs, goal: goal)
-            case .time: timeEntry(record: record, blocks: blocks, goal: goal)
+            case .continuousLong: kind == .long ? longEntry(record: record, runs: runs, goal: goal) : nil
+            case .time: timeEntry(kind: kind, record: record, blocks: blocks, goal: goal)
             case nil: nil
             }
         }
@@ -32,8 +38,6 @@ enum WorkoutGoalCheck {
     }
 
     private static func longEntry(record: ActivityRecord, runs: [ActivityRecord], goal: GoalRecord) -> WorkoutGoalEntry? {
-        let minimum = goal.distanceKm * 1_000 * C.longShare
-        guard (record.distance ?? 0) >= minimum else { return nil }
         let title = GoalsText.title(goal)
         guard let continuity = runContinuity(samples(record)) else {
             return WorkoutGoalEntry(id: goal.id.uuidString, title: title, status: C.notYet, good: false, lines: [C.noFit])
@@ -44,7 +48,7 @@ enum WorkoutGoalCheck {
         let longest = continuity.longestContinuousMeters / 1_000
         if continuity.pauses.isEmpty {
             lines.append(String(format: C.fullDistanceFormat, km(continuity.totalMeters / 1_000)))
-        } else if let previous = previousLongest(before: record, runs: runs, minimum: minimum) {
+        } else if let previous = previousLongest(before: record, runs: runs, goal: goal) {
             lines.append(String(format: C.longestComparedFormat, km(longest), km(previous)))
         } else {
             lines.append(String(format: C.longestFormat, km(longest)))
@@ -61,18 +65,18 @@ enum WorkoutGoalCheck {
         return WorkoutGoalEntry(id: goal.id.uuidString, title: title, status: status, good: met, lines: lines)
     }
 
-    private static func previousLongest(before record: ActivityRecord, runs: [ActivityRecord], minimum: Double) -> Double? {
-        runs.first { $0.start < record.start && ($0.distance ?? 0) >= minimum && runContinuity(samples($0)) != nil }
+    private static func previousLongest(before record: ActivityRecord, runs: [ActivityRecord], goal: GoalRecord) -> Double? {
+        runs.first { $0.start < record.start && isLongRun(name: $0.workoutName ?? $0.name, distanceMeters: $0.distance ?? 0, goalKm: goal.distanceKm) && runContinuity(samples($0)) != nil }
             .flatMap { runContinuity(samples($0)) }
             .map { $0.longestContinuousMeters / 1_000 }
     }
 
-    private static func timeEntry(record: ActivityRecord, blocks: [WorkoutBlock], goal: GoalRecord) -> WorkoutGoalEntry? {
+    private static func timeEntry(kind: RunKind, record: ActivityRecord, blocks: [WorkoutBlock], goal: GoalRecord) -> WorkoutGoalEntry? {
         guard let target = goal.targetSeconds, goal.distanceKm > 0 else { return nil }
         let meters = goal.distanceKm * 1_000
         let goalPace = target / goal.distanceKm
         let title = GoalsText.title(goal)
-        if let distance = record.distance, let seconds = record.duration, distance >= meters * C.timeMatchLow, distance <= meters * C.timeMatchHigh {
+        if kind == .race, let distance = record.distance, let seconds = record.duration, distance >= meters * C.timeMatchLow, distance <= meters * C.timeMatchHigh {
             let projected = seconds * meters / distance
             let beaten = projected <= target
             let verdict = beaten ? C.raceBeaten : String(format: C.raceMissFormat, WorkoutFormat.clock(projected - target))
@@ -81,7 +85,7 @@ enum WorkoutGoalCheck {
                 lines: [String(format: C.raceTimeFormat, GoalsText.distanceLabel(goal.distanceKm), WorkoutFormat.clock(projected), verdict)]
             )
         }
-        guard C.paceGoalDistances.contains(goal.distanceKm) else { return nil }
+        guard kind == .intervals || kind == .tempo, C.paceGoalDistances.contains(goal.distanceKm) else { return nil }
         let active = blocks.filter { $0.kind == .active }
         let activeMeters = active.map(\.distance).reduce(0, +)
         let activeSeconds = active.map(\.seconds).reduce(0, +)

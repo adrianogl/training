@@ -11,6 +11,7 @@ enum GoalsConstants {
         .time: "Ex.: 10 km em 40 min, com prazo opcional.",
         .continuousLong: "Distância e pace-alvo, sem nenhuma parada.",
     ]
+    static let kindScopes: [GoalKind: String] = [.time: "Vale para tiros, ritmo e provas", .continuousLong: "Vale para longões"]
     static let distances: [(km: Double, label: String)] = [(5, "5 km"), (10, "10 km"), (21.0975, "21,1 km"), (42.195, "42,2 km")]
     static let timeTitleFormat = "%@ em %@"
     static let longTitleFormat = "%@ km sem pausas"

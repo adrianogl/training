@@ -9,7 +9,12 @@ enum WorkoutNoticeGoals {
 
     static func evaluate(record: ActivityRecord, goals: [GoalSnapshot]) -> WorkoutGoalNotice? {
         guard !goals.isEmpty else { return nil }
-        let continuity = goals.contains { $0.kind == .continuousLong } ? self.continuity(record) : nil
+        let kind = classifyRun(
+            record,
+            longGoalKm: goals.filter { $0.kind == .continuousLong }.map(\.distanceKm).min(),
+            raceGoalKms: goals.filter { $0.kind == .time }.map(\.distanceKm)
+        )
+        let continuity = kind == .long && goals.contains { $0.kind == .continuousLong } ? self.continuity(record) : nil
         var note: String?
         for goal in goals {
             switch goal.kind {
@@ -20,7 +25,7 @@ enum WorkoutNoticeGoals {
                 }
                 if note == nil { note = nearMiss(continuity, goal: goal) }
             case .time:
-                if meetsTime(record, goal: goal) { return WorkoutGoalNotice(metGoal: title(goal)) }
+                if kind == .race, meetsTime(record, goal: goal) { return WorkoutGoalNotice(metGoal: title(goal)) }
             }
         }
         return note.map { WorkoutGoalNotice(note: $0) }

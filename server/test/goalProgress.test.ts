@@ -65,6 +65,19 @@ describe('progresso das metas', () => {
     expect(progress.achievedOn).toBe('2026-11-12')
   })
 
+  it('longão: só entram treinos classificados como longão', () => {
+    const named = (id: number, name: string, meters: number): ActivitySummary => ({ ...run(id, '2026-11-05', meters, 4000), name })
+    const runs = [
+      named(1, 'Rodagem', 12660),
+      named(2, 'Longão de domingo', 9000),
+      named(3, 'Tiros 6x1000', 15500),
+      named(4, 'Corrida matinal', 14200),
+      named(5, 'Rodagem leve', 16000),
+      named(6, 'Corrida matinal', 13900),
+    ]
+    expect(longCandidates(longGoal, runs).map((item) => item.id).sort()).toEqual([2, 4])
+  })
+
   it('tempo: previsão de hoje, distância até a meta e prova que já cumpriu', () => {
     const efforts = Array.from({ length: 20 }, (_, index) => ({ distance: 5000, seconds: 1260 - index * 2, day: addDays(today, -index * 4), kind: 'split5k' as const }))
     const progress = timeGoalProgress(timeGoal, efforts, [], today)

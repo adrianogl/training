@@ -30,6 +30,13 @@ struct GoalsCard: View {
     }
 
     private func header(_ snapshot: GoalSnapshot, status: (text: String, good: Bool)?) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            titleRow(snapshot, status: status)
+            Text(C.kindScopes[snapshot.kind] ?? "").font(.caption).foregroundStyle(BrandColors.dim)
+        }
+    }
+
+    private func titleRow(_ snapshot: GoalSnapshot, status: (text: String, good: Bool)?) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(GoalsText.title(kind: snapshot.kind, distanceKm: snapshot.distanceKm, targetSeconds: snapshot.targetSeconds))
                 .font(.headline).foregroundStyle(BrandColors.text)

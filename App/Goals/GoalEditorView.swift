@@ -57,7 +57,10 @@ struct GoalEditorView: View {
                     }
                 }
             } footer: {
-                if let error { Text(error).foregroundStyle(BrandColors.danger) }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(C.kindScopes[draft.kind] ?? "")
+                    if let error { Text(error).foregroundStyle(BrandColors.danger) }
+                }
             }
             Section {
                 Button(C.save) { save() }.fontWeight(.semibold)
