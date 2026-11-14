@@ -44,6 +44,7 @@ enum DetailedCoachConstants {
 enum DetailedCoachText {
     static let paceAverage = "O pace médio foi de %@/km em %d km."
     static let stableRange = "Do km 1 ao km %d o pace ficou entre %@ e %@/km."
+    static let stableSingle = "Do km 1 ao km %d o pace ficou em %@/km."
     static let afterFade = "Do km %d em diante o pace médio foi de %@/km."
     static let heartRateRange = "A FC foi de %d para %d bpm do primeiro ao último km."
     static let comparedWith = "Comparado com %d treinos parecidos dos últimos %d dias."

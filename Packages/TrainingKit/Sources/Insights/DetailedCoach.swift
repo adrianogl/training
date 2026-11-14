@@ -36,7 +36,9 @@ public enum DetailedCoach {
         }
         if let fade = analysis.fadeKm, fade > 1, let low = paces.prefix(fade - 1).min(), let high = paces.prefix(fade - 1).max(),
            let after = average(Array(paces.dropFirst(fade - 1))) {
-            facts.append(String(format: T.stableRange, fade - 1, DetailedFormat.pace(low), DetailedFormat.pace(high)))
+            let lowText = DetailedFormat.pace(low)
+            let highText = DetailedFormat.pace(high)
+            facts.append(lowText == highText ? String(format: T.stableSingle, fade - 1, lowText) : String(format: T.stableRange, fade - 1, lowText, highText))
             facts.append(String(format: T.afterFade, fade, DetailedFormat.pace(after)))
         }
         let heartRates = analysis.splits.compactMap(\.heartRate)

@@ -15,7 +15,7 @@ import Testing
         #expect(sections.map(\.part) == [.workout, .context, .history, .next])
         #expect(parts[.workout]?.facts.contains { $0.contains("12,7 de 20,0 km planejados (63%)") } == true)
         #expect(parts[.workout]?.facts.contains("A FC foi de 159 para 170 bpm do primeiro ao último km.") == true)
-        #expect(parts[.workout]?.facts.contains("Do km 1 ao km 9 o pace ficou entre 4:31 e 4:31/km.") == true)
+        #expect(parts[.workout]?.facts.contains("Do km 1 ao km 9 o pace ficou em 4:31/km.") == true)
         #expect(parts[.context]?.facts.first == "Comparado com 8 treinos parecidos dos últimos 90 dias.")
         #expect(parts[.context]?.facts.contains("O pace começou a cair no km 10; nos parecidos, a média foi o km 10.") == true)
         #expect(parts[.history]?.facts.count == 2)
