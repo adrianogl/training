@@ -1,3 +1,4 @@
+import { inviteRequestActionRoute, inviteRequestRoute } from './inviteRequestRoutes.js'
 import { activityRoute, plannedRoute, renameActivityRoute } from './activityRoutes.js'
 import { deleteRaceRoute, racesRoute, saveRaceRoute } from './raceRoutes.js'
 import {
@@ -71,6 +72,8 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'admin/overview': { GET: (request, sql) => adminOverviewRoute(request, sql) },
   'admin/invites': { POST: (request, sql) => adminCreateInviteRoute(request, sql) },
   'admin/invites/action': { POST: (request, sql) => adminInviteActionRoute(request, sql) },
+  'invite-requests': { POST: (request, sql) => inviteRequestRoute(request, sql) },
+  'admin/invite-requests/action': { POST: (request, sql) => inviteRequestActionRoute(request, sql) },
   'admin/users': { DELETE: (request, sql) => adminDeleteUserRoute(request, sql) },
   'invites/preview': { GET: (request, sql) => invitePreviewRoute(request, sql) },
 }

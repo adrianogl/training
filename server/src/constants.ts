@@ -162,3 +162,16 @@ export const ACTIVITY = {
   historyDays: 365,
   comparisonFetchLimit: 4,
 } as const
+
+export const INVITE_REQUEST = {
+  watches: ['garmin', 'other', 'none'],
+  messageMaxLength: 500,
+  maxPerIpPerHour: 3,
+  maxPending: 100,
+  honeypotField: 'website',
+  mailSubject: 'Novo pedido de convite no trAIning',
+  watchNames: { garmin: 'Garmin', other: 'Outro relógio', none: 'Não usa relógio' } as Record<string, string>,
+  mailText: (name: string, email: string, watch: string, message: string, link: string) =>
+    `${name} (${email}) pediu um convite.\nRelógio: ${watch}\n${message === '' ? 'Sem mensagem.' : `Mensagem: ${message}`}\n\nVer os pedidos: ${link}`,
+  adminPath: '/administracao',
+} as const

@@ -120,6 +120,16 @@ export const GARMIN_TEXT = {
   cancel: 'Cancelar',
 } as const
 
+export const INVITE_REQUEST_TEXT = {
+  title: 'PEDIDOS DE CONVITE',
+  empty: 'Nenhum pedido novo.',
+  invite: 'Convidar',
+  decline: 'Recusar',
+  noMessage: 'Sem mensagem.',
+  count: (total: number) => (total === 1 ? '1 novo' : `${total} novos`),
+  watches: { garmin: 'Garmin', other: 'Outro relógio', none: 'Sem relógio' } as Record<string, string>,
+} as const
+
 export const ADMIN_TEXT = {
   nav: 'Administração',
   title: 'Administração',

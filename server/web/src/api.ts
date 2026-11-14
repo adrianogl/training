@@ -65,5 +65,6 @@ export const api = {
   adminInvite: (name: string, channel: InviteChannel, email?: string) =>
     call<InviteResult>('POST', 'admin/invites', { name, channel, ...(email === undefined || email === '' ? {} : { email }) }),
   adminInviteAction: (id: string, action: 'cancel' | 'renew') => call<InviteResult | { invite: InviteRow }>('POST', 'admin/invites/action', { id, action }),
+  adminRequestAction: (id: string, action: 'invite' | 'decline') => call<InviteResult | { id: string; status: string }>('POST', 'admin/invite-requests/action', { id, action }),
   adminRemoveUser: (id: string) => call<void>('DELETE', `admin/users?id=${encodeURIComponent(id)}`),
 }

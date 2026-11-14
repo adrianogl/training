@@ -3,8 +3,9 @@ import { api } from '../api'
 import { Message } from '../components/Message'
 import { ADMIN_TEXT } from '../constants'
 import { errorText } from '../errors'
-import type { AdminData, InviteChannel, InviteResult, InviteRow } from '../types'
+import type { AdminData, InviteChannel, InviteRequest, InviteResult, InviteRow } from '../types'
 import { formatBytes, whatsappUrl } from '../whatsapp'
+import { InviteRequests } from '../components/InviteRequests'
 
 const CHANNELS: InviteChannel[] = ['email', 'whatsapp', 'link']
 
@@ -65,6 +66,20 @@ export function AdminPage() {
     void load()
   }
 
+  async function answer(request: InviteRequest, action: 'invite' | 'decline') {
+    const response = await api.adminRequestAction(request.id, action)
+    if (!response.ok) {
+      setError(errorText(response.error))
+      return
+    }
+    if ('link' in response.value) {
+      setChannel(response.value.invite.channel)
+      setName(request.name)
+      setResult(response.value)
+    }
+    void load()
+  }
+
   async function remove(id: string) {
     if (!window.confirm(ADMIN_TEXT.removeConfirm)) {
       return
@@ -104,6 +119,7 @@ export function AdminPage() {
           <div className="metric"><span>{ADMIN_TEXT.requests}</span><b>{overview.requests24h.toLocaleString('pt-BR')}</b><small className={overview.errors24h > 0 ? 'bad' : ''}>{overview.errors24h} {ADMIN_TEXT.errors}</small></div>
         </div>
       )}
+      {data && <InviteRequests requests={data.requests} onAct={(request, action) => void answer(request, action)} />}
       <div className="admin-grid">
         <form className="card" onSubmit={submit}>
           <span className="label">{ADMIN_TEXT.invite}</span>

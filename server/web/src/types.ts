@@ -105,10 +105,20 @@ export interface AdminOverview {
   databaseBytes: number | null
 }
 
+export interface InviteRequest {
+  id: string
+  name: string
+  email: string
+  watch: 'garmin' | 'other' | 'none'
+  message: string
+  createdAt: string
+}
+
 export interface AdminData {
   overview: AdminOverview
   users: AdminUser[]
   invites: InviteRow[]
+  requests: InviteRequest[]
 }
 
 export interface HealthDay {

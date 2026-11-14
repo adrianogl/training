@@ -48,6 +48,40 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .brand b { color: var(--lime); font-weight: 800; }
 .mark { width: 30px; height: 30px; border-radius: 9px; border: 1px solid #5e7a1e; background: var(--lime-deep); color: var(--lime); display: grid; place-items: center; font-size: 12px; letter-spacing: 0; }
 .nav-cta { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-weight: 700; font-size: 14px; }
+.nav-actions { display: flex; align-items: center; gap: 8px; }
+.nav-ask { display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #3a3f46; color: var(--ink); font-weight: 600; font-size: 14px; }
+.tag { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 18px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--ink-2); font-size: 13px; }
+.tag i { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); }
+.about { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.about h2 { font-size: clamp(34px, 4.4vw, 60px); margin-top: 14px; }
+.about .lede { margin-top: 22px; }
+.facts { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.facts li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; color: var(--ink-2); }
+.facts svg { width: 22px; height: 22px; color: var(--lime); margin-top: 2px; }
+.facts b { color: var(--ink); font-weight: 600; }
+.ask { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; text-align: left; }
+.ask .lede { margin: 22px 0 0; }
+.have { margin-top: 28px; padding: 18px; border-radius: 16px; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; max-width: 420px; }
+.have b { font-weight: 600; }
+.have span { color: var(--dim); font-size: 14px; }
+.have .btn { align-self: flex-start; height: 42px; }
+.ask-form { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+.ask-form h3 { margin: 0; font-family: var(--display); font-stretch: 112%; font-size: 24px; }
+.ask-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.ask-form input, .ask-form select, .ask-form textarea { height: 46px; border-radius: 12px; border: 1px solid #2e3338; background: #0d1012; color: var(--ink); padding: 0 14px; font: inherit; font-size: 15px; }
+.ask-form textarea { height: 84px; padding: 12px 14px; resize: vertical; }
+.ask-form .pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.ask-form .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.ask-form button { height: 48px; border: 0; border-radius: 999px; background: var(--lime); color: #0b0d0a; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
+.ask-form button:disabled { opacity: .6; cursor: wait; }
+[hidden] { display: none !important; }
+.ask-body { display: flex; flex-direction: column; gap: 14px; }
+.ask-hint { font-size: 12px; color: var(--dim); }
+.ask-warn { font-size: 13px; color: var(--ink-2); padding: 10px 12px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); }
+.ask-warn b { color: var(--ember); }
+.ask-error { font-size: 14px; color: var(--rose); }
+.ask-done { display: flex; flex-direction: column; gap: 10px; }
+.ask-done .check { width: 48px; height: 48px; border-radius: 50%; background: var(--lime-deep); border: 1px solid #5e7a1e; display: grid; place-items: center; color: var(--lime); }
 
 .scene { position: relative; }
 .scene.pin { height: var(--len, 280vh); }
@@ -225,6 +259,8 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   .step { position: static; opacity: 1 !important; transform: none !important; }
   .charts { grid-template-columns: minmax(0, 1fr); }
   .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .about, .ask, .ask-form .pair { grid-template-columns: minmax(0, 1fr); }
+  .nav-ask { display: none; }
   .ipad { width: 40%; } .iph { width: 26%; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -243,7 +279,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#topo" aria-label="trAIning, início"><span class="mark">AI</span><span class="word">TR<b>AI</b>NING</span></a>
-    <a class="nav-cta" href="/app/entrar">Entrar</a>
+    <div class="nav-actions"><a class="nav-ask" href="#pedir">Pedir convite</a><a class="nav-cta" href="/app/entrar">Entrar</a></div>
   </div>
 </header>
 
@@ -252,12 +288,13 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <div class="stage">
       <div class="wrap hero-grid">
         <div>
+          <span class="tag"><i></i>Projeto pessoal · 100% gratuito · acesso por convite</span>
           <p class="eyebrow">Garmin · iPhone · iPad · relógio · web</p>
           <h1 id="hero-title" class="display">Inteligência do pulso à <em>linha de chegada</em>.</h1>
           <p class="lede">O trAIning lê o seu sono, o HRV e cada treino da Garmin e diz o que fazer hoje, como a prova vai sair e se você está evoluindo.</p>
           <div class="hero-actions">
-            <a class="btn btn-lime" href="/app/entrar">Entrar no site</a>
-            <a class="btn btn-ghost" href="#pulso">Ver como funciona</a>
+            <a class="btn btn-lime" href="#pedir">Pedir convite</a>
+            <a class="btn btn-ghost" href="/app/entrar">Já tenho conta</a>
           </div>
         </div>
         <div class="phone-holder" aria-hidden="true">
@@ -541,20 +578,64 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     </div>
   </section>
 
-  <section class="scene flow final" aria-labelledby="final-title">
-    <div class="wrap">
-      <h2 id="final-title" class="display">Do pulso à linha de chegada.</h2>
-      <p class="lede">Entre com a sua conta e conecte a Garmin uma vez.</p>
-      <div class="hero-actions">
-        <a class="btn btn-lime" href="/app/entrar">Entrar no site</a>
+  <section class="scene flow" aria-labelledby="about-title">
+    <div class="wrap about">
+      <div>
+        <p class="eyebrow">Sobre o projeto</p>
+        <h2 id="about-title" class="display">Feito para o meu treino. Aberto a alguns amigos.</h2>
+        <p class="lede">O trAIning começou como a ferramenta que eu queria para correr com a Garmin. Hoje uso todo dia, e abro para poucas pessoas por convite.</p>
       </div>
-      <p class="lede" style="font-size: 15px; color: var(--dim)">O acesso é por convite. Recebeu um? Abra o link e crie a sua conta.</p>
+      <ul class="facts">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>100% gratuito.</b> Sem plano pago, sem anúncio e sem cobrança. Não é um produto comercial.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Vagas limitadas.</b> O servidor comporta poucas contas, então o acesso é por convite.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Precisa de relógio Garmin.</b> Os dados vêm da sua conta Garmin Connect.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Pode mudar.</b> É um projeto em evolução: telas mudam e algo pode ficar fora do ar por um tempo.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Não é orientação médica.</b> Os números ajudam a decidir o treino, não substituem um treinador ou médico.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="scene flow" id="pedir" aria-labelledby="final-title">
+    <div class="wrap ask">
+      <div>
+        <p class="eyebrow">Acesso por convite</p>
+        <h2 id="final-title" class="display" style="font-size: clamp(38px, 5vw, 68px); margin-top: 14px">Quer testar? Peça um convite.</h2>
+        <p class="lede">Eu leio cada pedido. Se houver vaga, o convite chega no seu e-mail com o link para criar a conta.</p>
+        <div class="have"><b>Já tem conta ou recebeu um convite?</b><span>Abra o link do convite ou entre com o seu e-mail.</span><a class="btn btn-ghost" href="/app/entrar">Entrar no site</a></div>
+      </div>
+      <form class="ask-form" id="ask-form" novalidate>
+        <div id="ask-body" class="ask-body">
+          <h3>Pedir convite</h3>
+          <div class="pair">
+            <label>Nome<input id="ask-name" name="name" autocomplete="name" maxlength="80" required></label>
+            <label>E-mail<input id="ask-email" name="email" type="email" autocomplete="email" maxlength="254" placeholder="voce@exemplo.com" required></label>
+          </div>
+          <label>Relógio
+            <select id="ask-watch" name="watch">
+              <option value="garmin">Garmin</option>
+              <option value="other">Outro relógio</option>
+              <option value="none">Não uso relógio</option>
+            </select>
+          </label>
+          <div class="ask-warn" id="ask-warn" hidden><b>Por enquanto só com Garmin.</b> Pode pedir mesmo assim: fica na lista para quando houver outras integrações.</div>
+          <label>Como você corre hoje? (opcional)<textarea id="ask-message" name="message" maxlength="500" placeholder="Ex.: treino para a primeira meia, 4 vezes por semana"></textarea></label>
+          <label class="trap" aria-hidden="true">Site<input id="ask-website" name="website" tabindex="-1" autocomplete="off"></label>
+          <p class="ask-error" id="ask-error" role="alert" hidden></p>
+          <button type="submit" id="ask-submit">Enviar pedido</button>
+          <span class="ask-hint">O e-mail é usado só para responder a este pedido.</span>
+        </div>
+        <div class="ask-done" id="ask-done" hidden>
+          <div class="check"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg></div>
+          <h3>Pedido enviado.</h3>
+          <p class="lede" style="font-size: 15px; margin: 0">Se houver vaga, o convite chega no seu e-mail. Não precisa pedir de novo.</p>
+        </div>
+      </form>
     </div>
   </section>
 </main>
 
 <footer>
-  <div class="wrap"><span>trAIning · projeto pessoal</span><span>Números de exemplo</span></div>
+  <div class="wrap"><span>trAIning · projeto pessoal e gratuito de Adriano Gonçalves</span><span>Números de exemplo</span></div>
 </footer>
 
 <script>
@@ -614,6 +695,48 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     update();
   }
 })();
+
+(() => {
+  const form = document.getElementById('ask-form')
+  if (!form) return
+  const watch = document.getElementById('ask-watch')
+  const warn = document.getElementById('ask-warn')
+  const error = document.getElementById('ask-error')
+  const submit = document.getElementById('ask-submit')
+  const messages = {
+    invalid_name: 'Escreva o seu nome.',
+    invalid_email: 'Confira o e-mail.',
+    invalid_message: 'A mensagem passou de 500 caracteres.',
+    rate_limited: 'Muitos pedidos agora. Tente de novo mais tarde.',
+  }
+  watch.addEventListener('change', () => { warn.hidden = watch.value === 'garmin' })
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault()
+    error.hidden = true
+    submit.disabled = true
+    const value = (id) => document.getElementById(id).value
+    try {
+      const response = await fetch('/api/v1/invite-requests', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: value('ask-name'), email: value('ask-email'), watch: value('ask-watch'), message: value('ask-message'), website: value('ask-website') }),
+      })
+      if (response.ok) {
+        document.getElementById('ask-body').hidden = true
+        document.getElementById('ask-done').hidden = false
+        return
+      }
+      const body = await response.json().catch(() => ({}))
+      error.textContent = messages[body.error] || 'Não deu para enviar agora. Tente de novo em alguns minutos.'
+      error.hidden = false
+    } catch {
+      error.textContent = 'Sem conexão. Confira a internet e tente de novo.'
+      error.hidden = false
+    } finally {
+      submit.disabled = false
+    }
+  })
+})()
 </script>
 
 </body>

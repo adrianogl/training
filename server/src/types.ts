@@ -306,3 +306,15 @@ export interface StoredRace {
   id: string
   race: RaceItem | null
 }
+
+export interface InviteRequestInput {
+  name: string
+  email: string
+  watch: string
+  message: string
+}
+
+export interface InviteRequestRow extends InviteRequestInput {
+  id: string
+  createdAt: string
+}

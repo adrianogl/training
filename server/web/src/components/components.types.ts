@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Activity, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
+import type { Activity, InviteRequest, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
 
 export interface FieldProps {
   label: string
@@ -96,4 +96,9 @@ export interface PlannedDetailProps {
 
 export interface PlannedStepListProps {
   steps: PlannedStep[]
+}
+
+export interface InviteRequestsProps {
+  requests: InviteRequest[]
+  onAct: (request: InviteRequest, action: 'invite' | 'decline') => void
 }

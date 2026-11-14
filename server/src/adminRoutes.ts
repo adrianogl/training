@@ -2,7 +2,9 @@ import { adminOverview, adminUsers } from './adminStats.js'
 import { accountIdFromAuthorization } from './auth.js'
 import { authEnvFromProcess, isAdmin } from './authRoutes.js'
 import { EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_CHANNELS, INVITE_MESSAGE, INVITE_PATH, INVITE_QUERY, MAIL_INVITE_SUBJECT, NAME_MAX_LENGTH } from './constants.js'
+import { dataKeyFromEnv } from './cipher.js'
 import type { Sql } from './db.js'
+import { pendingRequests } from './inviteRequests.js'
 import { cancelInvite, createInvite, inviteById, listInvites, pendingInvite, renewInvite } from './invites.js'
 import type { AuthEnv, InviteChannel, InviteRow, User } from './types.js'
 import { findSession, userById } from './users.js'
@@ -43,7 +45,7 @@ function inviteLink(env: AuthEnv, token: string): string {
   return `${env.appUrl}${INVITE_PATH}?${INVITE_QUERY}=${token}`
 }
 
-async function deliver(env: AuthEnv, admin: User, invite: InviteRow, token: string): Promise<Response> {
+export async function deliver(env: AuthEnv, admin: User, invite: InviteRow, token: string): Promise<Response> {
   const link = inviteLink(env, token)
   const message = INVITE_MESSAGE(invite.name, admin.name, link)
   if (invite.channel === 'email' && invite.email !== null) {
@@ -56,13 +58,14 @@ async function deliver(env: AuthEnv, admin: User, invite: InviteRow, token: stri
   return json(200, { invite, link, message, mailed: false })
 }
 
-export function adminOverviewRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFromProcess()): Promise<Response> {
+export function adminOverviewRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFromProcess(), dataKey: Buffer | undefined = dataKeyFromEnv(process.env)): Promise<Response> {
   return withAdmin(request, sql, env, async () => {
     const now = env.now()
     return json(200, {
       overview: await adminOverview(sql, now, env.maxAccounts),
       users: await adminUsers(sql, env.adminEmails),
       invites: await listInvites(sql, now),
+      requests: dataKey === undefined ? [] : await pendingRequests(sql, dataKey),
     })
   })
 }

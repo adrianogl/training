@@ -100,6 +100,15 @@ As provas e as decisões de resultado continuam na tabela `records`, no mesmo pr
 
 As voltas das corridas do bloco vêm de `/activity-service/activity/{id}/splits`, 15 por chamada, e ficam cifradas em `activity_laps`. A previsão do tempo vem do Open-Meteo, só a 16 dias da prova, pelo primeiro ponto do GPX ou pela cidade.
 
+## Pedido de convite
+
+| Rota | Resposta |
+| --- | --- |
+| `POST /api/v1/invite-requests` | Pública. Corpo `{"name","email","watch":"garmin"|"other"|"none","message"}`. 202; cifra e guarda o pedido e avisa os `ADMIN_EMAILS` por e-mail. 400 `invalid_name`, `invalid_email`, `invalid_watch`, `invalid_message`; 429 com mais de 3 pedidos por hora do mesmo IP ou 100 pendentes. O campo `website` é isca para robô: preenchido, responde 202 sem guardar |
+| `POST /api/v1/admin/invite-requests/action` | Administrador. `{"id","action":"invite"|"decline"}`. Convidar cria o convite com nome e e-mail do pedido e envia como os outros convites |
+
+Os pedidos pendentes aparecem em `GET /api/v1/admin/overview`, no campo `requests`.
+
 ## Garmin
 
 O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a conta pede). Entre o login e o código, os cookies do SSO ficam cifrados em `garmin_pending_logins` por 10 minutos. A sessão fica cifrada (AES-256-GCM com `DATA_KEY`) em `garmin_connections` e é renovada quando faltam menos de 15 minutos para vencer. A senha da Garmin não é guardada.
