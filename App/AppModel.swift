@@ -186,6 +186,7 @@ import TrainingCore
             }
         }
         await syncNow(.launch)
+        await workouts.refresh(model: self)
     }
 
     func enteredBackground() {
@@ -231,8 +232,13 @@ import TrainingCore
             var processed: Set<Int64>?
             var deferringEngine: SyncEngine?
             do {
-                let report = try await engine.run { fraction in
-                    Task { @MainActor in self?.updateProgress(fraction) }
+                let report: SyncReport
+                if trigger == .workoutFinished {
+                    report = try await engine.runLight()
+                } else {
+                    report = try await engine.run { fraction in
+                        Task { @MainActor in self?.updateProgress(fraction) }
+                    }
                 }
                 let day = Day.today()
                 let summary = await Task.detached(priority: .utility) {

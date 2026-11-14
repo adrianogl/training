@@ -44,6 +44,10 @@ public actor SyncEngine: ModelActor {
         try await singleFlight(.deferredFIT) { try await self.performDeferredFIT() }
     }
 
+    public func runLight() async throws -> SyncReport {
+        try await singleFlight(.light) { try await self.performLight() }
+    }
+
     public func reprocess(limit: Int?) async throws -> SyncReport {
         try await singleFlight(.reprocess) { try await self.performReprocess(limit: limit) }
     }

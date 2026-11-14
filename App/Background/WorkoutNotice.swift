@@ -16,11 +16,13 @@ enum WorkoutNotice {
 
     static func content(start: Date, in context: ModelContext) -> WorkoutNoticeContent? {
         let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
-        guard let record = records.first(where: { ActivityTypeKey.isRun($0.typeKey) && abs($0.start.timeIntervalSince(start)) <= C.matchTolerance }) else { return nil }
+        guard let record = records.first(where: { ActivityTypeKey.isRun($0.typeKey) && abs($0.start.timeIntervalSince(start)) <= C.matchTolerance }),
+              record.fitProcessed else { return nil }
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
+        guard let score = analysis.score?.value else { return nil }
         let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks).feedback.first
         let goals = (try? goalSnapshots(context: context, today: Day.today())) ?? []
-        return content(record: record, score: analysis.score?.value, opening: opening, goals: goals)
+        return content(record: record, score: score, opening: opening, goals: goals)
     }
 
     static func content(record: ActivityRecord, score: Int?, opening: String?, goals: [GoalSnapshot] = []) -> WorkoutNoticeContent {

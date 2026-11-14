@@ -13,7 +13,15 @@ enum BackgroundSync {
 
     static func schedule(now: Date = .now, calendar: Calendar = .current, readinessComplete: Bool) {
         let request = BGAppRefreshTaskRequest(identifier: C.refreshTaskId)
-        request.earliestBeginDate = nextBeginDate(after: now, calendar: calendar, readinessComplete: readinessComplete)
+        let begin = nextBeginDate(after: now, calendar: calendar, readinessComplete: readinessComplete)
+        let workoutRetry = now.addingTimeInterval(WorkoutNoticeConstants.retryDelay)
+        request.earliestBeginDate = PendingWorkoutQueue.load().items.isEmpty ? begin : min(begin, workoutRetry)
+        try? BGTaskScheduler.shared.submit(request)
+    }
+
+    static func scheduleWorkoutRetry(now: Date = .now) {
+        let request = BGAppRefreshTaskRequest(identifier: C.refreshTaskId)
+        request.earliestBeginDate = now.addingTimeInterval(WorkoutNoticeConstants.retryDelay)
         try? BGTaskScheduler.shared.submit(request)
     }
 
@@ -35,6 +43,7 @@ enum BackgroundSync {
             Task { @MainActor in model.cancelSync() }
         }
         Task {
+            await WorkoutFinishNotifier.shared.refresh(model: model)
             let succeeded = await model.syncNow(.background)
             schedule(readinessComplete: model.todayReadinessComplete)
             task.setTaskCompleted(success: succeeded)
