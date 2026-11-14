@@ -36,6 +36,11 @@ enum ChecklistKind: Equatable, Sendable {
     case thresholdPace
     case hrv
     case raceDayForm
+    case weeklyVolume
+    case racePace
+    case tuneUp
+    case course
+    case goal
 }
 
 enum ChecklistStatus: Equatable, Sendable {

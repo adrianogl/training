@@ -123,6 +123,30 @@ enum RacesConstants {
         .raceDayForm: "sem carga suficiente para projetar",
     ]
 
+    static let checklistCountFormat = "%d de %d"
+    static let weeklyVolumeTargets: [(upTo: Double, km: Double)] = [(5_500, 25), (11_000, 30), (22_000, 40), (.infinity, 55)]
+    static let racePaceVolumeRatio = 0.7
+    static let racePaceFaster = 10.0
+    static let racePaceSlower = 5.0
+    static let fullSplitRatio = 0.99
+    static let tuneUpDistanceRatio = 0.95
+    static let tuneUpPaceMargin = 10.0
+    static let weeklyVolumeTitle = "Volume médio de %@ km/semana"
+    static let weeklyVolumeDetail = "Média das últimas 4 semanas: %@ km."
+    static let weeklyVolumeMissing = "sem corridas nas últimas 4 semanas"
+    static let racePaceTitle = "Treino no pace de prova"
+    static let racePaceDetail = "%@ km a %@ no bloco. Alvo: %@ km."
+    static let racePaceMissing = "sem meta nem projeção para definir o pace de prova"
+    static let tuneUpTitle = "Simulado de %@ km"
+    static let tuneUpDetail = "%@, %@ km a %@."
+    static let tuneUpMissing = "Nenhum treino de %@ km forte no bloco."
+    static let courseChecklistTitle = "Percurso da prova"
+    static let courseDetail = "%@ km · +%d m de subida acumulada."
+    static let courseMissing = "sem percurso: importe do Garmin em Editar"
+    static let goalTitle = "Meta cadastrada"
+    static let goalDetail = "%@ · prioridade %@."
+    static let goalMissing = "sem meta: a estratégia usa a projeção"
+
     static let readingTitle = "Leitura do bloco"
     static let predictionChartTitle = "Previsão até a prova"
 

@@ -98,7 +98,9 @@ import TrainingCore
         #expect(model.target == StrategyTarget(seconds: raceDay.mid, source: .raceDayProjection, frozenOn: nil))
         #expect(model.block.count == 12)
         #expect(model.block.contains { $0.projected })
-        #expect(model.checklist.map(\.kind) == [.vo2max, .longRun, .thresholdPace, .hrv, .raceDayForm])
+        #expect(model.checklist.map(\.kind) == [
+            .vo2max, .longRun, .thresholdPace, .hrv, .raceDayForm, .weeklyVolume, .racePace, .tuneUp, .course, .goal,
+        ])
         #expect(!model.blockReading.isEmpty)
     }
 

@@ -165,7 +165,8 @@ import TrainingCore
         let outlook = raceOutlook(distance: race.distance, raceDay: raceDay, goalSeconds: race.goalSeconds, efforts: efforts, today: today)
         let target = (try? strategyTarget(race: race, outlook: outlook, today: today, context: context)) ?? nil
         let profile = race.gpxData.flatMap { try? gpxProfile($0) }.map { $0.map { GPXPoint(distance: $0.distance, altitude: $0.altitude) } }
-        let block = raceBlock(raceDay: raceDay, today: today, weeklyKm: weeklyKm(context: context, raceDay: raceDay, today: today))
+        let weekly = weeklyKm(context: context, raceDay: raceDay, today: today)
+        let block = raceBlock(raceDay: raceDay, today: today, weeklyKm: weekly)
         let blockStart = block.first?.start ?? raceDay
         let longest = longestRun(context: context, since: blockStart, today: today)
         let longTarget = longRunTarget(raceDistance: race.distance)
@@ -180,7 +181,11 @@ import TrainingCore
             checklist: checklist(
                 context: context, today: today, raceDay: raceDay, blockStart: blockStart,
                 longest: longest, longTarget: longTarget, targetPace: pace
-            ),
+            ) + RaceChecklistExtras.items(RaceChecklistExtras.Input(
+                today: today, blockStart: blockStart, distance: race.distance, goalSeconds: race.goalSeconds,
+                priority: race.priorityLevel, profile: profile, targetPace: pace, weeklyKm: weekly,
+                runs: blockStart <= today ? runs(context: context, since: blockStart, today: today) : []
+            )),
             blockReading: RacesText.blockReading(block: block, today: today, longestRun: longest, longRunTarget: longTarget),
             weeklyLongest: weeklyLongest(context: context, since: blockStart, today: today)
         )

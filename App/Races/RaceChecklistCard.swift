@@ -5,7 +5,13 @@ struct RaceChecklistCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(RacesConstants.checklistTitle).padding(.top, 0).padding(.bottom, 0)
+            HStack {
+                SectionLabel(RacesConstants.checklistTitle).padding(.top, 0).padding(.bottom, 0)
+                Spacer()
+                Text(String(format: RacesConstants.checklistCountFormat, items.filter { $0.status == .ok }.count, items.count))
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .foregroundStyle(BrandColors.dim)
+            }
             ForEach(items) { item in
                 HStack(alignment: .top, spacing: 10) {
                     Image(systemName: symbol(item.status))
