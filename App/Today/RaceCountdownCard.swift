@@ -62,7 +62,7 @@ struct RaceCountdownCard: View {
                         .frame(height: C.weekStripHeight)
                 }
             }
-            Text(String(format: C.weeksLeftFormat, days / Int(C.daysPerWeek), days % Int(C.daysPerWeek)))
+            Text(TodayText.weeksLeft(days: days))
                 .font(.caption)
                 .foregroundStyle(BrandColors.dim)
         }

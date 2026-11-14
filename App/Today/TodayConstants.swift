@@ -113,7 +113,12 @@ enum TodayConstants {
     static let compactCountdownFontSize: Double = 60
     static let daysLabel = "dias"
     static let weekStripHeight: Double = 6
-    static let weeksLeftFormat = "%d semanas e %d dias de treino"
+    static let weeksLeftJoin = " e "
+    static let weeksLeftSuffix = " de treino"
+    static let weekSingular = "semana"
+    static let weekPlural = "semanas"
+    static let daySingular = "dia"
+    static let dayPlural = "dias"
     static let raceDayFormLabel = "forma prevista no dia"
     static let bulletHeight: Double = 76
     static let bulletTrackHeight: Double = 10
@@ -122,6 +127,9 @@ enum TodayConstants {
     static let bulletToday = "hoje"
     static let bulletRaceDay = "no dia"
     static let bulletGoal = "meta"
+    static let bulletAnd = "e"
+    static let bulletLabelInset = 32.0
+    static let bulletLabelGap = 64.0
     static let bulletFaster = "mais rápido →"
     static let calendarTitle = "Semana de treino"
     static let calendarRest = "Descanso"

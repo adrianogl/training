@@ -39,13 +39,23 @@ struct GoalBulletChart: View {
                     }
                     if let today {
                         Circle().fill(BrandColors.text).frame(width: 12, height: 12).position(x: x(today), y: trackY)
-                        valueLabel(todayLabel, WorkoutFormat.clock(today), color: BrandColors.text)
-                            .position(x: clamp(x(today), width), y: 60)
                     }
                     if let raceDay {
                         Circle().fill(BrandColors.race).frame(width: 14, height: 14).position(x: x(raceDay), y: trackY)
-                        valueLabel(raceDayLabel, WorkoutFormat.clock(raceDay), color: BrandColors.race)
+                    }
+                    let labels = Self.labelPositions(today: today.map(x), raceDay: raceDay.map(x), width: width)
+                    if let today, let raceDay, WorkoutFormat.clock(today) == WorkoutFormat.clock(raceDay) {
+                        valueLabel("\(todayLabel) \(C.bulletAnd) \(raceDayLabel)", WorkoutFormat.clock(raceDay), color: BrandColors.race)
                             .position(x: clamp(x(raceDay), width), y: 60)
+                    } else {
+                        if let today, let position = labels.today {
+                            valueLabel(todayLabel, WorkoutFormat.clock(today), color: BrandColors.text)
+                                .position(x: position, y: 60)
+                        }
+                        if let raceDay, let position = labels.raceDay {
+                            valueLabel(raceDayLabel, WorkoutFormat.clock(raceDay), color: BrandColors.race)
+                                .position(x: position, y: 60)
+                        }
                     }
                 }
             }
@@ -68,7 +78,25 @@ struct GoalBulletChart: View {
     }
 
     private func clamp(_ x: Double, _ width: Double) -> Double {
-        min(max(x, 32), width - 32)
+        Self.clamp(x, width)
+    }
+
+    private static func clamp(_ x: Double, _ width: Double) -> Double {
+        min(max(x, C.bulletLabelInset), width - C.bulletLabelInset)
+    }
+
+    static func labelPositions(today: Double?, raceDay: Double?, width: Double) -> (today: Double?, raceDay: Double?) {
+        guard let today, let raceDay else {
+            return (today.map { clamp($0, width) }, raceDay.map { clamp($0, width) })
+        }
+        let first = clamp(today, width)
+        let second = clamp(raceDay, width)
+        guard abs(first - second) < C.bulletLabelGap else { return (first, second) }
+        let todayIsLeft = today <= raceDay
+        let middle = min(max((first + second) / 2, C.bulletLabelInset + C.bulletLabelGap / 2), width - C.bulletLabelInset - C.bulletLabelGap / 2)
+        let left = middle - C.bulletLabelGap / 2
+        let right = middle + C.bulletLabelGap / 2
+        return todayIsLeft ? (left, right) : (right, left)
     }
 
     private var accessibilityText: String {

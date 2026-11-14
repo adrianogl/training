@@ -10,6 +10,18 @@ extension Day {
 }
 
 enum TodayText {
+    static func weeksLeft(days: Int) -> String {
+        typealias C = TodayConstants
+        let perWeek = Int(C.daysPerWeek)
+        let weeks = days / perWeek
+        let rest = days % perWeek
+        let parts = [
+            weeks > 0 ? "\(weeks) \(weeks == 1 ? C.weekSingular : C.weekPlural)" : nil,
+            rest > 0 || weeks == 0 ? "\(rest) \(rest == 1 ? C.daySingular : C.dayPlural)" : nil,
+        ].compactMap { $0 }
+        return parts.joined(separator: C.weeksLeftJoin) + C.weeksLeftSuffix
+    }
+
     typealias C = TodayConstants
 
     static func goalClock(_ seconds: Double) -> String {
