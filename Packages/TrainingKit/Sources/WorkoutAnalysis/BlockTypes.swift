@@ -68,4 +68,5 @@ struct ExpectedStep {
 struct LapGroup {
     var stepIndex: Int?
     var laps: [LapSummary]
+    var extra = false
 }

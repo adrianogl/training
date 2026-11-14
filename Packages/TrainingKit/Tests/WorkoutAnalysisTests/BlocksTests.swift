@@ -287,3 +287,39 @@ private func singleStepRepeat(lastRepMeters: Double) -> WorkoutStructure {
     #expect(status(.heartRateBpm(low: 145, high: 0), heartRate: 170) == .inTarget)
     #expect(status(.heartRatePercentMax(low: 0, high: 80)) == .inTarget)
 }
+
+@Test func lapAfterLastStepBecomesExtraLap() {
+    let prescription = WorkoutPrescription(steps: [
+        PrescribedStep(index: 0, intensity: .warmup, duration: .distance(meters: 3000), target: .open),
+        PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 6000), target: .speed(low: 3.9, high: 4.2)),
+        PrescribedStep(index: 2, intensity: .recovery, duration: .time(seconds: 240), target: .open),
+        PrescribedStep(index: 3, intensity: .active, duration: .distance(meters: 3000), target: .speed(low: 4.2, high: 4.3)),
+    ])
+    var executed = laps([(0, .warmup, 3, 310, 1000), (1, .active, 6, 245, 1000), (2, .recovery, 1, 240, 100), (3, .active, 3, 233, 1000)])
+    executed.append(LapSummary(trigger: "manual", startOffset: 3000, timerSeconds: 631, distance: 1000, avgSpeed: 1000 / 631, avgHeartRate: 98))
+    executed.append(LapSummary(trigger: "manual", startOffset: 3631, timerSeconds: 300, distance: 500, avgSpeed: 500 / 300, avgHeartRate: 95))
+
+    let blocks = buildBlocks(WorkoutStructure(prescription: prescription, laps: executed), zones: nil)
+
+    #expect(blocks.map(\.label) == ["Aquecimento", "Bloco 1", "Recuperação 1", "Bloco 2", "Volta extra 1", "Volta extra 2"])
+    #expect(blocks[3].distance == 3000 && blocks[3].status == .inTarget)
+    #expect(blocks[4].kind == .cooldown && blocks[4].status == .noTarget && blocks[4].distance == 1000)
+}
+
+@Test func lapWithoutStepMidWorkoutStaysInBlock() {
+    let prescription = WorkoutPrescription(steps: [
+        PrescribedStep(index: 0, intensity: .active, duration: .distance(meters: 1000), target: .speed(low: 4.0, high: 4.4)),
+        PrescribedStep(index: 1, intensity: .recovery, duration: .time(seconds: 120), target: .open),
+        PrescribedStep(index: 2, intensity: .active, duration: .repeatSteps(fromIndex: 0, count: 3), target: .open),
+    ])
+    var middle = laps([(0, .active, 1, 240, 1000), (1, .recovery, 1, 100, 250)])
+    middle.append(LapSummary(trigger: "manual", startOffset: 340, timerSeconds: 20, distance: 50))
+    middle += laps([(0, .active, 1, 240, 1000), (1, .recovery, 1, 120, 300), (0, .active, 1, 240, 1000), (1, .recovery, 1, 120, 300)])
+    let ending = middle + [LapSummary(trigger: "manual", startOffset: 2000, timerSeconds: 400, distance: 900)]
+
+    let blocks = buildBlocks(WorkoutStructure(prescription: prescription, laps: middle), zones: nil)
+
+    #expect(blocks.map(\.label) == ["Tiro 1", "Recuperação 1", "Tiro 2", "Recuperação 2", "Tiro 3", "Recuperação 3"])
+    #expect(blocks[1].seconds == 120 && blocks[1].distance == 300)
+    #expect(buildBlocks(WorkoutStructure(prescription: prescription, laps: ending), zones: nil).last?.label == "Volta extra 1")
+}

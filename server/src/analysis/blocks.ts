@@ -86,8 +86,9 @@ function groupByStep(laps: LapSummary[]): LapGroup[] {
   const groups: LapGroup[] = []
   for (const lap of laps) {
     const last = groups.at(-1)
-    if (last !== undefined && (lap.stepIndex === null || last.stepIndex === lap.stepIndex)) last.laps.push(lap)
-    else groups.push({ stepIndex: lap.stepIndex, laps: [lap] })
+    const orphan = lap.stepIndex === null
+    if (last !== undefined && last.extra === orphan && (orphan || last.stepIndex === lap.stepIndex)) last.laps.push(lap)
+    else groups.push({ stepIndex: lap.stepIndex, laps: [lap], extra: orphan && last !== undefined })
   }
   return groups
 }
@@ -192,7 +193,20 @@ export function buildBlocks(structure: WorkoutStructure, zones: HeartRateZones |
   const labeler = new BlockLabeler()
   const blocks: WorkoutBlock[] = []
   let cursor = 0
+  let extras = 0
   for (const group of groups) {
+    if (group.extra) {
+      const previous = blocks.at(-1)
+      if (cursor >= expected.length || previous === undefined) {
+        for (const extraLap of group.laps) {
+          extras += 1
+          blocks.push(makeBlock('cooldown', extras, `${ANALYSIS.labels.extra} ${extras}`, null, [extraLap], zones))
+        }
+      } else {
+        blocks[blocks.length - 1] = makeBlock(previous.kind, previous.ordinal, previous.label, previous.prescribed, [...previous.laps, ...group.laps], zones)
+      }
+      continue
+    }
     let match = -1
     for (let position = cursor; position < expected.length; position += 1) {
       if (expected[position]?.step.index === group.stepIndex) {

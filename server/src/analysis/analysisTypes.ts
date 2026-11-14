@@ -40,6 +40,7 @@ export interface ExpectedStep {
 export interface LapGroup {
   stepIndex: number | null
   laps: LapSummary[]
+  extra: boolean
 }
 
 export type FindingGroup = 'positive' | 'negative' | 'attention'

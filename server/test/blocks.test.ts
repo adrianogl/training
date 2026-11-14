@@ -116,4 +116,33 @@ describe('blocos (paridade com BlocksTests)', () => {
     expect([status(speed(3.3, 0)), status(speed(3.3, 0), 750), status(speed(0, 4.5)), status(speed(0, 3.5)), status(bpm(0, 160)), status(bpm(0, 140)), status(bpm(145, 0), 1000, 170), status(percentMax(0, 80))])
       .toEqual(['inTarget', 'slower', 'inTarget', 'faster', 'inTarget', 'aboveTarget', 'inTarget', 'inTarget'])
   })
+
+  it('volta sem passo depois do último passo vira volta extra', () => {
+    const steps = [step(0, 'warmup', distance(3000)), step(1, 'active', distance(6000), speed(3.9, 4.2)), step(2, 'recovery', time(240)), step(3, 'active', distance(3000), speed(4.2, 4.3))]
+    const executed = [
+      ...laps([[0, 'warmup', 3, 310, 1000], [1, 'active', 6, 245, 1000], [2, 'recovery', 1, 240, 100], [3, 'active', 3, 233, 1000]]),
+      lap({ trigger: 'manual', startOffset: 3000, timerSeconds: 631, distance: 1000, avgSpeed: 1000 / 631, avgHeartRate: 98 }),
+      lap({ trigger: 'manual', startOffset: 3631, timerSeconds: 300, distance: 500, avgSpeed: 500 / 300, avgHeartRate: 95 }),
+    ]
+    const blocks = buildBlocks(structure(steps, executed), null)
+    expect(blocks.map((b) => b.label)).toEqual(['Aquecimento', 'Bloco 1', 'Recuperação 1', 'Bloco 2', 'Volta extra 1', 'Volta extra 2'])
+    expect(blocks[3]).toMatchObject({ distance: 3000, status: 'inTarget' })
+    expect(blocks[4]).toMatchObject({ kind: 'cooldown', status: 'noTarget', distance: 1000 })
+  })
+
+  it('volta sem passo no meio do treino continua no bloco anterior', () => {
+    const steps = [step(0, 'active', distance(2000)), step(1, 'recovery', time(120))]
+    const executed = [...laps([[0, 'active', 1, 250, 1000]]), lap({ trigger: 'manual', startOffset: 250, timerSeconds: 250, distance: 1000 }), ...laps([[1, 'recovery', 1, 120, 300]])]
+    const blocks = buildBlocks(structure(steps, executed), null)
+    expect(blocks.map((b) => [b.label, b.distance])).toEqual([['Bloco 1', 2000], ['Recuperação 1', 300]])
+  })
+
+  it('treino que termina em repetição: volta sem passo no meio fica no bloco, no fim vira extra', () => {
+    const steps = [step(0, 'active', distance(1000), speed(4, 4.4)), step(1, 'recovery', time(120)), step(2, 'active', repeat(0, 3))]
+    const middle = [...laps([[0, 'active', 1, 240, 1000], [1, 'recovery', 1, 100, 250]]), lap({ trigger: 'manual', startOffset: 340, timerSeconds: 20, distance: 50 }), ...laps([[0, 'active', 1, 240, 1000], [1, 'recovery', 1, 120, 300], [0, 'active', 1, 240, 1000], [1, 'recovery', 1, 120, 300]])]
+    const ending = [...middle, lap({ trigger: 'manual', startOffset: 2000, timerSeconds: 400, distance: 900 })]
+    expect(buildBlocks(structure(steps, middle), null).map((b) => b.label)).toEqual(['Tiro 1', 'Recuperação 1', 'Tiro 2', 'Recuperação 2', 'Tiro 3', 'Recuperação 3'])
+    expect(buildBlocks(structure(steps, middle), null)[1]).toMatchObject({ seconds: 120, distance: 300 })
+    expect(buildBlocks(structure(steps, ending), null).map((b) => b.label).at(-1)).toBe('Volta extra 1')
+  })
 })

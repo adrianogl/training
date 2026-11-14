@@ -3,7 +3,7 @@ export const ANALYSIS = {
   completionRatio: 0.95,
   minimumStraySeconds: 10,
   sessionEndTrigger: 'session_end',
-  labels: { warmup: 'Aquecimento', cooldown: 'Desaquecimento', repeatActive: 'Tiro', active: 'Bloco', recovery: 'Recuperação', freeRun: 'Volta', kilometer: 'Km' },
+  labels: { warmup: 'Aquecimento', cooldown: 'Desaquecimento', repeatActive: 'Tiro', active: 'Bloco', recovery: 'Recuperação', freeRun: 'Volta', kilometer: 'Km', extra: 'Volta extra' },
   kilometerSplitDistance: 1000,
   minimumPartialSplit: 100,
   pauseGapSeconds: 10,

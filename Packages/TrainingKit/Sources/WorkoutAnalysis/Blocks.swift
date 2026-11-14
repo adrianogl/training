@@ -15,8 +15,21 @@ public func buildBlocks(_ structure: WorkoutStructure, zones: HeartRateZones?) -
     var labeler = BlockLabeler()
     var blocks: [WorkoutBlock] = []
     var cursor = 0
+    var extras = 0
 
     for group in groups {
+        if group.extra {
+            if cursor >= expected.count || blocks.isEmpty {
+                for lap in group.laps {
+                    extras += 1
+                    blocks.append(makeBlock(kind: .cooldown, ordinal: extras, label: "\(AnalysisConstants.extraLabel) \(extras)", prescribed: nil, laps: [lap], zones: zones))
+                }
+            } else {
+                let previous = blocks.removeLast()
+                blocks.append(makeBlock(kind: previous.kind, ordinal: previous.ordinal, label: previous.label, prescribed: previous.prescribed, laps: previous.laps + group.laps, zones: zones))
+            }
+            continue
+        }
         guard let match = expected[cursor...].firstIndex(where: { $0.step.index == group.stepIndex }) else {
             let kind = blockKind(group.laps.first?.intensity ?? .active)
             let (ordinal, label) = labeler.next(kind: kind, insideRepeat: false)
@@ -123,10 +136,11 @@ private func isStray(_ lap: LapSummary) -> Bool {
 private func groupByStep(_ laps: [LapSummary]) -> [LapGroup] {
     var groups: [LapGroup] = []
     for lap in laps {
-        if let last = groups.indices.last, lap.stepIndex == nil || groups[last].stepIndex == lap.stepIndex {
+        let orphan = lap.stepIndex == nil
+        if let last = groups.indices.last, groups[last].extra == orphan, orphan || groups[last].stepIndex == lap.stepIndex {
             groups[last].laps.append(lap)
         } else {
-            groups.append(LapGroup(stepIndex: lap.stepIndex, laps: [lap]))
+            groups.append(LapGroup(stepIndex: lap.stepIndex, laps: [lap], extra: orphan && !groups.isEmpty))
         }
     }
     return groups

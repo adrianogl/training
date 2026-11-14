@@ -9,6 +9,7 @@ public enum AnalysisConstants {
     static let activeLabel = "Bloco"
     static let recoveryLabel = "Recuperação"
     static let freeRunLabel = "Volta"
+    static let extraLabel = "Volta extra"
     static let kilometerLabel = "Km"
     static let kilometerSplitDistance = 1_000.0
     static let minimumPartialSplit = 100.0
