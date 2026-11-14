@@ -78,6 +78,10 @@ enum WorkoutDetailConstants {
     static let analysisNone = "Nenhum"
     static let shareTitle = "Compartilhar"
     static let shareSymbol = "square.and.arrow.up"
+    static let similarChartPadding = 4.0
+    static let similarChartMinimumRuns = 2
+    static let similarChartHeight: CGFloat = 130
+    static let similarChartAccessibility = "Pace médio dos treinos parecidos, do mais antigo ao atual, com a FC média embaixo"
     static let negativeMarker = "N"
     static let positiveMarker = "P"
     static let heartRateColumnWidth: CGFloat = 60

@@ -10,6 +10,10 @@ struct ComparisonSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if rows.filter({ $0.secondsPerKilometer != nil }).count >= WorkoutDetailConstants.similarChartMinimumRuns {
+                SimilarRunsChart(rows: rows)
+                    .padding(.bottom, 12)
+            }
             line(title, "pace", "FC", showsTarget ? "no alvo" : nil, header: true, current: false)
             ForEach(rows) { row in
                 Divider().overlay(BrandColors.line)
