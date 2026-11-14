@@ -94,4 +94,95 @@ import WorkoutAnalysis
         #expect(sections.map(\.title) == ["Aquecimento", "Série · 5 × 1000 m", "Desaquecimento"])
         #expect(sections[1].positions == Array(1...9))
     }
+
+    private static let longRun = [
+        WorkoutBlock(
+            kind: .active, ordinal: 1, label: "Bloco 1",
+            prescribed: PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 20_000), target: .speed(low: 1_000.0 / 300, high: 1_000.0 / 270)),
+            laps: [], seconds: 3_482, distance: 12_660, avgSpeed: 12_660 / 3_482, avgHeartRate: 155,
+            maxHeartRate: 170, dominantZone: 3, status: .incomplete
+        ),
+    ]
+
+    private static func incompleteAssessment(_ extra: [String: Double]) -> WorkoutAssessment {
+        let facts = [FindingFact.distance: 12_660, FindingFact.seconds: 3_482, FindingFact.targetDistance: 20_000].merging(extra) { $1 }
+        return WorkoutAssessment(
+            positives: [],
+            negatives: [Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: 0, facts: facts)],
+            attention: []
+        )
+    }
+
+    @Test func longRunStoppedEarlyExplainsWhereAndWhy() {
+        let assessment = Self.incompleteAssessment([
+            FindingFact.fadeKilometer: 10, FindingFact.slowdown: 14.6, FindingFact.heartRateRise: 9,
+        ])
+
+        let summary = WorkoutFeedback.summary(assessment: assessment, blocks: Self.longRun, workoutName: "Longão")
+
+        #expect(summary.feedback == [
+            "Você fez 12,66 dos 20 km do longão (63%), a 4:35/km.",
+            "O pace se manteve até o km 9 e caiu 15 s/km a partir do km 10, e a FC subiu 9 bpm.",
+        ])
+        #expect(summary.entries.map(\.title) == ["Longão parou no km 12,7"])
+        #expect(summary.entries[0].evidence == "12,66 de 20 km · 63%")
+        #expect(summary.entries[0].why == "O pace se manteve até o km 9 e caiu 15 s/km a partir do km 10, e a FC subiu 9 bpm.")
+        #expect(summary.entries[0].tag == .fix)
+        #expect(summary.next == "Comece os primeiros km 15 s/km mais devagar.")
+        #expect(!summary.coachFacts.joined().contains("0 dos 1"))
+    }
+
+    @Test func longRunWithPauseAdvisesHydrationBeforeThePauseKilometer() {
+        let assessment = Self.incompleteAssessment([
+            FindingFact.pauseCount: 2, FindingFact.pauseKilometer: 8.2, FindingFact.pauseSeconds: 100, FindingFact.readiness: 42,
+        ])
+
+        let summary = WorkoutFeedback.summary(assessment: assessment, blocks: Self.longRun, workoutName: "Longão 20 km")
+
+        #expect(summary.entries[0].why == "Você parou 2 vezes, a primeira no km 8,2, e ficou 1 min 40 s parado no total. A prontidão do dia era 42 de 100.")
+        #expect(summary.next == "Beba água ou tome gel antes do km 8. Tente de novo num dia de prontidão melhor.")
+    }
+
+    @Test func longRunWithoutSignalsAsksForThePlannedDistanceAndKeepsCauseOut() {
+        let summary = WorkoutFeedback.summary(assessment: Self.incompleteAssessment([:]), blocks: Self.longRun, workoutName: nil)
+
+        #expect(summary.feedback == ["Você fez 12,66 dos 20 km do treino (63%), a 4:35/km."])
+        #expect(summary.entries[0].title == "Treino parou no km 12,7")
+        #expect(summary.entries[0].why == "Faltaram 7,34 km para fechar a distância planejada.")
+        #expect(summary.next == "Complete a distância planejada.")
+    }
+
+    @Test func intervalsNotDoneAgreeInNumberAndAskForAllBlocks() {
+        let notDone = (2 ... 4).map { ordinal in
+            var block = Self.repeatBlock(ordinal, seconds: 0, heartRate: 0, status: .notExecuted)
+            block.distance = 0
+            return block
+        }
+        let blocks = [Self.repeatBlock(1, seconds: 214, heartRate: 150, status: .inTarget)] + notDone
+        let assessment = WorkoutAssessment(
+            positives: [Finding(group: .positive, kind: .blockInTarget, blockOrdinal: nil, facts: [FindingFact.inTarget: 1, FindingFact.total: 4])],
+            negatives: (1 ... 3).map {
+                Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: $0, facts: [FindingFact.distance: 0, FindingFact.targetDistance: 1_000])
+            },
+            attention: []
+        )
+
+        let summary = WorkoutFeedback.summary(assessment: assessment, blocks: blocks)
+
+        #expect(summary.feedback.first == "Treino abaixo do planejado: 1 dos 4 tiros de 1000 m saiu no alvo, com média de 3:34/km.")
+        #expect(summary.next == WorkoutFeedbackConstants.nextCompleteBlocks)
+    }
+
+    @Test func singleBlockInTargetNeverReadsAsPlural() {
+        let blocks = [Self.repeatBlock(1, seconds: 214, heartRate: 150, status: .inTarget)]
+        let assessment = WorkoutAssessment(
+            positives: [Finding(group: .positive, kind: .blockInTarget, blockOrdinal: nil, facts: [FindingFact.inTarget: 1, FindingFact.total: 1])],
+            negatives: [], attention: []
+        )
+
+        let summary = WorkoutFeedback.summary(assessment: assessment, blocks: blocks)
+
+        #expect(summary.feedback.first == "Treino cumprido: o tiro de 1000 m saiu no alvo, com média de 3:34/km.")
+        #expect(summary.entries.first?.title == "O tiro de 1000 m no alvo")
+    }
 }

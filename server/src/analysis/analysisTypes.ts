@@ -68,6 +68,7 @@ export interface AssessmentContext {
   acuteChronic: number | null
   previous: WorkoutBlock[][]
   kilometers: BlockKilometers
+  continuity: RunContinuity | null
 }
 
 export interface WorkoutOccurrence {

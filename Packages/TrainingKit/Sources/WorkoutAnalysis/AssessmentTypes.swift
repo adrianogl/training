@@ -38,6 +38,12 @@ public enum FindingFact {
     public static let recovered = "recovered"
     public static let recoveryHeartRate = "recoveryHeartRate"
     public static let recoveryHighest = "recoveryHighest"
+    public static let fadeKilometer = "fadeKilometer"
+    public static let slowdown = "slowdown"
+    public static let heartRateRise = "heartRateRise"
+    public static let pauseCount = "pauseCount"
+    public static let pauseKilometer = "pauseKilometer"
+    public static let pauseSeconds = "pauseSeconds"
 }
 
 public struct Finding: Codable, Sendable, Equatable {
@@ -71,11 +77,19 @@ public struct AssessmentContext: Sendable {
     public var acuteChronic: Double?
     public var previous: [[WorkoutBlock]]
     public var kilometers: BlockKilometers
+    public var continuity: RunContinuity?
 
-    public init(readinessScore: Int? = nil, acuteChronic: Double? = nil, previous: [[WorkoutBlock]] = [], kilometers: BlockKilometers = [:]) {
+    public init(
+        readinessScore: Int? = nil,
+        acuteChronic: Double? = nil,
+        previous: [[WorkoutBlock]] = [],
+        kilometers: BlockKilometers = [:],
+        continuity: RunContinuity? = nil
+    ) {
         self.readinessScore = readinessScore
         self.acuteChronic = acuteChronic
         self.previous = previous
         self.kilometers = kilometers
+        self.continuity = continuity
     }
 }

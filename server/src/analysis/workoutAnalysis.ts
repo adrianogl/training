@@ -4,6 +4,7 @@ import type { AnalysisInput, ComparisonRow, EvolutionFacts, HeartRateZones, Work
 import { assess } from './assessment.js'
 import { buildBlocks, hasPrescription } from './blocks.js'
 import { compare } from './comparison.js'
+import { runContinuity } from './continuity.js'
 import { blockKilometers, kilometerSplits } from './kilometers.js'
 import { evolutionText, narrate } from './narrative.js'
 import { scoreWorkout } from './workoutScore.js'
@@ -111,7 +112,7 @@ export function analyzeWorkout(input: AnalysisInput, formatDay: (day: string) =>
     const itemBlocks = blocksOf(item.fit, zonesFor(item.fit))
     return itemBlocks.length === 0 ? [] : [{ activityId: item.activityId, day: item.day, blocks: itemBlocks }]
   })
-  const assessment = assess(blocks, { readinessScore: input.readinessScore, acuteChronic: input.acuteChronic, previous: previous.map((item) => item.blocks), kilometers })
+  const assessment = assess(blocks, { readinessScore: input.readinessScore, acuteChronic: input.acuteChronic, previous: previous.map((item) => item.blocks), kilometers, continuity: runContinuity(fit.samples) })
   const current: WorkoutOccurrence = { activityId: input.activityId, day: input.day, blocks }
   const comparison = compare(current, previous)
   let comparisonView: WorkoutAnalysis['comparison'] = null

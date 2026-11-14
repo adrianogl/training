@@ -16,11 +16,17 @@ export function clock(seconds: number): string {
 const integer = (value: number | undefined) => Math.round(value ?? 0)
 const decimal = (value: number | undefined) => (value ?? 0).toFixed(2).replace('.', ',')
 const percent = (value: number | undefined) => `${Math.round((value ?? 0) * 100)}%`
-const distance = (meters: number) => (meters < ANALYSIS.metersPerKilometer ? `${Math.round(meters)} m` : `${(meters / ANALYSIS.metersPerKilometer).toFixed(2).replace('.', ',')} ${NARRATIVE.distanceUnit}`)
 const paceClock = (speed: number | undefined) => (speed === undefined || speed <= 0 ? null : clock(ANALYSIS.metersPerKilometer / speed))
 const pace = (speed: number | undefined) => {
   const value = paceClock(speed)
   return value === null ? null : `${value} ${NARRATIVE.paceUnit}`
+}
+const distanceText = (meters: number) => (meters < ANALYSIS.metersPerKilometer ? `${Math.round(meters)} m` : `${kilometers(meters)} ${NARRATIVE.distanceUnit}`)
+const kilometers = (meters: number) => String(Number((meters / ANALYSIS.metersPerKilometer).toFixed(2))).replace('.', ',')
+const durationText = (seconds: number) => {
+  const total = Math.round(seconds)
+  if (total < 60) return `${total} s`
+  return total % 60 === 0 ? `${total / 60} min` : `${Math.trunc(total / 60)} min ${total % 60} s`
 }
 const labelOf = (finding: Finding, blocks: WorkoutBlock[]) => (finding.blockOrdinal === null ? null : (blocks[finding.blockOrdinal]?.label ?? null))
 const statusOf = (finding: Finding, blocks: WorkoutBlock[]): BlockStatus | null => (finding.blockOrdinal === null ? null : (blocks[finding.blockOrdinal]?.status ?? null))
@@ -55,12 +61,48 @@ function paceRange(facts: Record<string, number>): string | null {
   return fast === null || slow === null ? null : `${fast}–${slow} ${NARRATIVE.paceUnit}`
 }
 
-function incompleteProgress(finding: Finding, blocks: WorkoutBlock[]): { done: string; target: string } | null {
+function incompleteProgress(finding: Finding, blocks: WorkoutBlock[]): { done: string; target: string; percent: number } | null {
   const facts = finding.facts
   const notExecuted = statusOf(finding, blocks) === 'notExecuted'
-  if (facts.targetDistance !== undefined) return { done: distance(notExecuted ? 0 : (facts.distance ?? 0)), target: distance(facts.targetDistance) }
-  if (facts.targetSeconds !== undefined) return { done: clock(notExecuted ? 0 : (facts.seconds ?? 0)), target: clock(facts.targetSeconds) }
+  if (facts.targetDistance !== undefined && facts.targetDistance > 0) {
+    const done = notExecuted ? 0 : (facts.distance ?? 0)
+    const shared = facts.targetDistance >= ANALYSIS.metersPerKilometer && done >= ANALYSIS.metersPerKilometer
+    return { done: shared ? kilometers(done) : distanceText(done), target: distanceText(facts.targetDistance), percent: Math.round((done / facts.targetDistance) * 100) }
+  }
+  if (facts.targetSeconds !== undefined && facts.targetSeconds > 0) {
+    const done = notExecuted ? 0 : (facts.seconds ?? 0)
+    return { done: clock(done), target: clock(facts.targetSeconds), percent: Math.round((done / facts.targetSeconds) * 100) }
+  }
   return null
+}
+
+function slowdownSentences(facts: Record<string, number>): string[] {
+  const rise = facts.heartRateRise === undefined ? null : integer(facts.heartRateRise)
+  if (facts.fadeKilometer === undefined || facts.slowdown === undefined) return rise === null ? [] : [D.heartRateRise(rise)]
+  const kilometer = integer(facts.fadeKilometer)
+  const held = D.slowdown(kilometer - 1, integer(facts.slowdown), kilometer)
+  return [rise === null ? `${held}.` : `${held}${D.slowdownHeartRate(rise)}.`]
+}
+
+function pauseSentences(facts: Record<string, number>): string[] {
+  if (facts.pauseCount === undefined || facts.pauseKilometer === undefined || facts.pauseSeconds === undefined) return []
+  const start = (facts.pauseKilometer).toFixed(1).replace('.', ',')
+  const total = durationText(facts.pauseSeconds)
+  const count = integer(facts.pauseCount)
+  return [count === 1 ? D.pauseOne(start, total) : D.pauseMany(count, start, total)]
+}
+
+function dayContextSentences(facts: Record<string, number>): string[] {
+  return [facts.readiness === undefined ? null : D.dayReadiness(integer(facts.readiness)), facts.ratio === undefined ? null : D.dayRatio(decimal(facts.ratio))].filter((item): item is string => item !== null)
+}
+
+function incompleteWhy(finding: Finding, blocks: WorkoutBlock[]): string {
+  const facts = finding.facts
+  if (statusOf(finding, blocks) === 'notExecuted') return NARRATIVE.why.notExecuted
+  const signals = [...slowdownSentences(facts), ...pauseSentences(facts), ...dayContextSentences(facts)]
+  if (signals.length > 0) return signals.join(' ')
+  if (facts.targetDistance === undefined || facts.distance === undefined || facts.targetDistance <= facts.distance) return NARRATIVE.why.incomplete
+  return D.remaining(distanceText(facts.targetDistance - facts.distance))
 }
 
 function offTarget(finding: Finding, label: string, blocks: WorkoutBlock[]): string {
@@ -80,7 +122,7 @@ function offTarget(finding: Finding, label: string, blocks: WorkoutBlock[]): str
 function incomplete(finding: Finding, label: string, blocks: WorkoutBlock[]): string {
   const state = statusOf(finding, blocks) === 'notExecuted' ? 'não executado' : 'não completado'
   const progress = incompleteProgress(finding, blocks)
-  return progress === null ? `${label} ${state}.` : `${label} ${state}: ${progress.done} de ${progress.target}.`
+  return progress === null ? `${label} ${state}.` : `${label} ${state}: ${progress.done} de ${progress.target} (${progress.percent}%).`
 }
 
 export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
@@ -90,6 +132,7 @@ export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
     case 'blockInTarget': {
       const inTarget = integer(facts.inTarget)
       const total = integer(facts.total)
+      if (total === 1) return 'O bloco ativo ficou dentro do alvo prescrito.'
       return inTarget === total ? `Todos os blocos ativos dentro do alvo prescrito: ${inTarget} de ${total}.` : `${inTarget} de ${total} blocos ativos dentro do alvo prescrito.`
     }
     case 'steadyPace':
@@ -163,7 +206,7 @@ export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): strin
     }
     case 'stepIncomplete': {
       const progress = incompleteProgress(finding, blocks)
-      return progress === null ? null : `${D.done} ${progress.done} ${D.of} ${progress.target}`
+      return progress === null ? null : `${progress.done} ${D.of} ${progress.target} · ${progress.percent}%`
     }
     case 'paceFade': {
       const last = clockOf(facts.lastPace)
@@ -203,7 +246,7 @@ export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
       return facts.recoveryHighest === 1 ? W.slowerHighestRecovery(bpm) : W.slowerAfterRecovery(bpm)
     }
     case 'stepIncomplete':
-      return statusOf(finding, blocks) === 'notExecuted' ? W.notExecuted : W.incomplete
+      return incompleteWhy(finding, blocks)
     case 'paceFade':
       return W.paceFade
     case 'cardiacDrift':

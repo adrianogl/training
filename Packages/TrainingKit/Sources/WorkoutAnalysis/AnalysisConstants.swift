@@ -22,6 +22,8 @@ public enum AnalysisConstants {
     static let minimumFullLaps = 3
     static let steadyPaceSpread = 6.0
     static let fadeThreshold = 8.0
+    static let baselineKilometers = 3
+    static let heartRateRiseMinimum = 3.0
     static let driftThreshold = 0.05
     static let driftMaxSpeedChange = 0.02
     static let goodRecoveryDrop = 25

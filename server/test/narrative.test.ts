@@ -70,7 +70,7 @@ describe('evidência e porquê (paridade com FindingDetailTests)', () => {
       [f('positive', 'steadyPace', 0, { spread: 4, fastestPace: 298, slowestPace: 302 }), 'voltas de 4:58 a 5:02 /km'],
       [f('positive', 'lowerHeartRateThanBefore', 0, { delta: 4, heartRate: 171, beforeHeartRate: 175, speed: 1000 / 241 }), '171 bpm vs. 175 bpm · 4:01 /km'],
       [f('positive', 'goodRecovery', 1, { drop: 38, peak: 178, recovered: 140 }), 'pico 178 bpm → média 140 bpm'],
-      [f('negative', 'stepIncomplete', 4, { distance: 800, seconds: 200, targetDistance: 1000 }), 'feito 800 m de 1,00 km'],
+      [f('negative', 'stepIncomplete', 4, { distance: 800, seconds: 200, targetDistance: 1000 }), '800 m de 1 km · 80%'],
       [f('negative', 'paceFade', 0, { fade: 9, lastPace: 317, medianPace: 308 }), 'última volta 5:17 · mediana 5:08 /km'],
       [f('attention', 'cardiacDrift', 0, { rise: 0.06, fromHR: 150, toHR: 159 }), 'FC 150 → 159 bpm · +6%'],
       [f('attention', 'zoneAboveTarget', 1, { zone: 3, speed: 2.5, heartRate: 146 }), '6:40 /km · FC 146 bpm'],
@@ -82,5 +82,36 @@ describe('evidência e porquê (paridade com FindingDetailTests)', () => {
       expect(findingWhy(finding, blocks)).not.toBe('')
     }
     expect(findingEvidence(f('positive', 'steadyPace', 0, { spread: 4 }), blocks)).toBeNull()
+  })
+
+  describe('treino que saiu do plano', () => {
+    const longRun = [block({ label: 'Bloco 1', seconds: 3482, distance: 12_660, avgSpeed: 12_660 / 3482, status: 'incomplete', prescribed: step(1, 'active', distance(20_000), speed(1000 / 300, 1000 / 270)) })]
+    const incompleteFinding = (facts: Record<string, number>) => f('negative', 'stepIncomplete', 0, { distance: 12_660, seconds: 3482, targetDistance: 20_000, ...facts })
+
+    it('longão de 20 km feito até 12,66 km mostra o progresso e onde o pace caiu', () => {
+      const finding = incompleteFinding({ fadeKilometer: 10, slowdown: 14.6, heartRateRise: 9, pauseCount: 1, pauseKilometer: 8.2, pauseSeconds: 100, readiness: 42, ratio: 1.62 })
+      expect(findingText(finding, longRun)).toBe('Bloco 1 não completado: 12,66 de 20 km (63%).')
+      expect(findingEvidence(finding, longRun)).toBe('12,66 de 20 km · 63%')
+      expect(findingWhy(finding, longRun)).toBe('O pace se manteve até o km 9 e caiu 15 s/km a partir do km 10, e a FC subiu 9 bpm. Você parou no km 8,2, por 1 min 40 s. A prontidão do dia era 42 de 100. A carga aguda:crônica do dia era 1,62.')
+    })
+
+    it('várias pausas são contadas com o km da primeira e o total parado', () => {
+      const finding = incompleteFinding({ pauseCount: 3, pauseKilometer: 6.5, pauseSeconds: 240 })
+      expect(findingWhy(finding, longRun)).toBe('Você parou 3 vezes, a primeira no km 6,5, e ficou 4 min parado no total.')
+    })
+
+    it('sem dado de km, FC ou pausa não inventa causa', () => {
+      expect(findingWhy(incompleteFinding({}), longRun)).toBe('Faltaram 7,34 km para fechar a distância planejada.')
+    })
+
+    it('tiros não feitos não ganham sinal de cansaço', () => {
+      const tiros = [block({ label: 'Tiro 1', status: 'notExecuted', prescribed: step(1, 'active', distance(1000), speed(3.9, 4.1)) })]
+      expect(findingWhy(f('negative', 'stepIncomplete', 0, { distance: 0, targetDistance: 1000 }), tiros)).toBe(NARRATIVE.why.notExecuted)
+      expect(findingEvidence(f('negative', 'stepIncomplete', 0, { distance: 0, targetDistance: 1000 }), tiros)).toBe('0 m de 1 km · 0%')
+    })
+
+    it('um bloco só no alvo não vira "1 de 1 blocos"', () => {
+      expect(findingText(f('positive', 'blockInTarget', null, { inTarget: 1, total: 1 }), longRun)).toBe('O bloco ativo ficou dentro do alvo prescrito.')
+    })
   })
 })

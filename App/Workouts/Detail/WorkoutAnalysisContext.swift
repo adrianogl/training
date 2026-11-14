@@ -51,8 +51,9 @@ struct WorkoutAnalysisContext {
         analysis.thresholdHeartRate = inputs.thresholdByDay[day(record)]
         let blocks = blocks(record, structure: structure, zones: zones)
         analysis.blocks = blocks
+        let recordSamples = samples(record)
         if analysis.hasPrescription {
-            analysis.kilometers = kilometerSplits(of: blocks, samples: samples(record), zones: zones)
+            analysis.kilometers = kilometerSplits(of: blocks, samples: recordSamples, zones: zones)
         }
 
         let previous = previousOccurrences(of: record, in: records, inputs: inputs)
@@ -61,7 +62,8 @@ struct WorkoutAnalysisContext {
             readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
             acuteChronic: record.localDay.flatMap(Day.init(iso:)).flatMap { acuteChronicRatio(dailyLoad: inputs.dailyLoad, on: $0) },
             previous: previous.map(\.blocks),
-            kilometers: analysis.kilometers
+            kilometers: analysis.kilometers,
+            continuity: runContinuity(recordSamples)
         ))
         let current = WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
         guard let comparison = compare(current: current, previous: previous) else { return analysis }

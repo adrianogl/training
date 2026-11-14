@@ -20,7 +20,7 @@ enum WorkoutNotice {
               record.fitProcessed else { return nil }
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
         guard let score = analysis.score?.value else { return nil }
-        let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks).feedback.first
+        let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks, workoutName: record.workoutName).feedback.first
         let goals = (try? goalSnapshots(context: context, today: Day.today())) ?? []
         return content(record: record, score: score, opening: opening, goals: goals)
     }

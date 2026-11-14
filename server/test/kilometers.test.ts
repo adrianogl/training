@@ -8,7 +8,7 @@ import { distance, hrZone, open, openDuration, repeat, speed, step, structure, t
 interface Segment { seconds: number; meters: number; heartRate: number }
 const seg = (seconds: number, meters: number, heartRate = 150): Segment => ({ seconds, meters, heartRate })
 const kms = (paces: number[], heartRates?: number[]) => paces.map((pace, i) => seg(pace, 1000, heartRates?.[i] ?? 150))
-const context = (kilometers = new Map()) => ({ readinessScore: null, acuteChronic: null, previous: [], kilometers })
+const context = (kilometers = new Map()) => ({ readinessScore: null, acuteChronic: null, previous: [], kilometers, continuity: null })
 
 function track(segments: Segment[], stepSeconds = 5): FitSample[] {
   const samples: FitSample[] = []

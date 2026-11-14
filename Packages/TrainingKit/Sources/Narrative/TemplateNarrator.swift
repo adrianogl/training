@@ -51,6 +51,7 @@ public struct TemplateNarrator: Narrator {
         case .blockInTarget:
             let inTarget = Format.integer(facts[FindingFact.inTarget])
             let total = Format.integer(facts[FindingFact.total])
+            if total == 1 { return "O bloco ativo ficou dentro do alvo prescrito." }
             return inTarget == total
                 ? "Todos os blocos ativos dentro do alvo prescrito: \(inTarget) de \(total)."
                 : "\(inTarget) de \(total) blocos ativos dentro do alvo prescrito."
@@ -122,14 +123,21 @@ public struct TemplateNarrator: Narrator {
         NarrativeFormat.status(finding, blocks: blocks) == .notExecuted ? "não executado" : "não completado"
     }
 
-    static func incompleteProgress(_ finding: Finding, blocks: [WorkoutBlock]) -> (done: String, target: String)? {
+    public static func incompleteProgress(_ finding: Finding, blocks: [WorkoutBlock]) -> IncompleteProgress? {
         let facts = finding.facts
         let notExecuted = NarrativeFormat.status(finding, blocks: blocks) == .notExecuted
-        if let target = facts[FindingFact.targetDistance] {
-            return (NarrativeFormat.distance(notExecuted ? 0 : facts[FindingFact.distance] ?? 0), NarrativeFormat.distance(target))
+        if let target = facts[FindingFact.targetDistance], target > 0 {
+            let done = notExecuted ? 0 : facts[FindingFact.distance] ?? 0
+            let shared = target >= NarrativeConstants.metersPerKilometer && done >= NarrativeConstants.metersPerKilometer
+            return IncompleteProgress(
+                done: shared ? NarrativeFormat.kilometers(done) : NarrativeFormat.distanceText(done),
+                target: NarrativeFormat.distanceText(target),
+                percent: Int((done / target * 100).rounded())
+            )
         }
-        if let target = facts[FindingFact.targetSeconds] {
-            return (WorkoutFormat.clock(notExecuted ? 0 : facts[FindingFact.seconds] ?? 0), WorkoutFormat.clock(target))
+        if let target = facts[FindingFact.targetSeconds], target > 0 {
+            let done = notExecuted ? 0 : facts[FindingFact.seconds] ?? 0
+            return IncompleteProgress(done: WorkoutFormat.clock(done), target: WorkoutFormat.clock(target), percent: Int((done / target * 100).rounded()))
         }
         return nil
     }
@@ -137,6 +145,6 @@ public struct TemplateNarrator: Narrator {
     private static func incomplete(_ finding: Finding, label: String, blocks: [WorkoutBlock]) -> String {
         let state = incompleteState(finding, blocks: blocks)
         guard let progress = incompleteProgress(finding, blocks: blocks) else { return "\(label) \(state)." }
-        return "\(label) \(state): \(progress.done) de \(progress.target)."
+        return "\(label) \(state): \(progress.done) de \(progress.target) (\(progress.percent)%)."
     }
 }

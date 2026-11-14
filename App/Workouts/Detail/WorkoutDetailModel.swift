@@ -36,6 +36,7 @@ import WorkoutAnalysis
     private(set) var shareInput: WorkoutShareInput?
     private(set) var shareSource: ShareSource?
     private(set) var localDay: String?
+    private(set) var workoutName: String?
     private(set) var completedCheck: CompletedCheck?
     private(set) var chatContext: WorkoutChatContext?
     private(set) var score: WorkoutScore?
@@ -90,6 +91,7 @@ import WorkoutAnalysis
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
         localDay = record.localDay
+        workoutName = record.workoutName
         if let meters = record.distance, meters > 0 {
             let kilometers = meters / WorkoutConstants.metersPerKilometer
             let average = (record.movingDuration ?? record.duration).map { $0 / kilometers }
@@ -119,7 +121,7 @@ import WorkoutAnalysis
     }
 
     var analysisSummary: WorkoutAnalysisSummary {
-        WorkoutFeedback.summary(assessment: assessment, blocks: blocks)
+        WorkoutFeedback.summary(assessment: assessment, blocks: blocks, workoutName: workoutName)
     }
 
     private static func shareInput(

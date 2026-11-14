@@ -62,7 +62,7 @@ private let blocks = [
             ]), "pico 178 bpm → média 140 bpm"),
             (Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: 4, facts: [
                 FindingFact.distance: 800, FindingFact.seconds: 200, FindingFact.targetDistance: 1_000,
-            ]), "feito 800 m de 1,00 km"),
+            ]), "800 m de 1 km · 80%"),
             (Finding(group: .negative, kind: .paceFade, blockOrdinal: 0, facts: [
                 FindingFact.fade: 9, FindingFact.lastPace: 317, FindingFact.medianPace: 308,
             ]), "última volta 5:17 · mediana 5:08 /km"),
@@ -85,5 +85,50 @@ private let blocks = [
         let finding = Finding(group: .positive, kind: .steadyPace, blockOrdinal: 0, facts: [FindingFact.spread: 4])
 
         #expect(FindingDetail.evidence(finding, blocks: blocks) == nil)
+    }
+
+    private static let longRun = [
+        WorkoutBlock(
+            kind: .active, ordinal: 1, label: "Bloco 1",
+            prescribed: PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 20_000), target: .open),
+            laps: [], seconds: 3_482, distance: 12_660, avgSpeed: 12_660 / 3_482, avgHeartRate: 155,
+            maxHeartRate: 170, dominantZone: 3, status: .incomplete
+        ),
+    ]
+
+    @Test func incompleteLongRunShowsProgressAndWhere() {
+        let finding = Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: 0, facts: [
+            FindingFact.distance: 12_660, FindingFact.seconds: 3_482, FindingFact.targetDistance: 20_000,
+            FindingFact.fadeKilometer: 10, FindingFact.slowdown: 14.6, FindingFact.heartRateRise: 9,
+            FindingFact.pauseCount: 1, FindingFact.pauseKilometer: 8.2, FindingFact.pauseSeconds: 100,
+            FindingFact.readiness: 42, FindingFact.ratio: 1.62,
+        ])
+
+        #expect(FindingDetail.evidence(finding, blocks: Self.longRun) == "12,66 de 20 km · 63%")
+        #expect(FindingDetail.why(finding, blocks: Self.longRun) == "O pace se manteve até o km 9 e caiu 15 s/km a partir do km 10, e a FC subiu 9 bpm. Você parou no km 8,2, por 1 min 40 s. A prontidão do dia era 42 de 100. A carga aguda:crônica do dia era 1,62.")
+        #expect(TemplateNarrator.text(finding, blocks: Self.longRun) == "Bloco 1 não completado: 12,66 de 20 km (63%).")
+    }
+
+    @Test func incompleteWithPausesCountsThem() {
+        let finding = Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: 0, facts: [
+            FindingFact.distance: 12_660, FindingFact.targetDistance: 20_000,
+            FindingFact.pauseCount: 3, FindingFact.pauseKilometer: 6.5, FindingFact.pauseSeconds: 240,
+        ])
+
+        #expect(FindingDetail.why(finding, blocks: Self.longRun) == "Você parou 3 vezes, a primeira no km 6,5, e ficou 4 min parado no total.")
+    }
+
+    @Test func incompleteWithoutKilometerSignalDoesNotInventCause() {
+        let finding = Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: 0, facts: [
+            FindingFact.distance: 12_660, FindingFact.targetDistance: 20_000,
+        ])
+
+        #expect(FindingDetail.why(finding, blocks: Self.longRun) == "Faltaram 7,34 km para fechar a distância planejada.")
+    }
+
+    @Test func singleBlockInTargetUsesSingular() {
+        let finding = Finding(group: .positive, kind: .blockInTarget, blockOrdinal: nil, facts: [FindingFact.inTarget: 1, FindingFact.total: 1])
+
+        #expect(TemplateNarrator.text(finding, blocks: Self.longRun) == "O bloco ativo ficou dentro do alvo prescrito.")
     }
 }

@@ -6,7 +6,7 @@ public func assess(_ blocks: [WorkoutBlock], context: AssessmentContext) -> Work
         + lowerHeartRateThanBefore(blocks, previous: context.previous)
         + goodRecovery(blocks)
         + blockOffTarget(blocks)
-        + stepIncomplete(blocks)
+        + stepIncomplete(blocks, context: context)
         + paceFade(blocks, kilometers: context.kilometers)
         + cardiacDrift(blocks, kilometers: context.kilometers)
         + zoneAboveTarget(blocks)
@@ -134,7 +134,7 @@ private func blockOffTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
     }
 }
 
-private func stepIncomplete(_ blocks: [WorkoutBlock]) -> [Finding] {
+private func stepIncomplete(_ blocks: [WorkoutBlock], context: AssessmentContext) -> [Finding] {
     blocks.enumerated().compactMap { position, block in
         guard block.status == .incomplete || block.status == .notExecuted else { return nil }
         var facts = [FindingFact.distance: block.distance, FindingFact.seconds: block.seconds]
@@ -143,8 +143,53 @@ private func stepIncomplete(_ blocks: [WorkoutBlock]) -> [Finding] {
         case let .time(seconds): facts[FindingFact.targetSeconds] = seconds
         default: break
         }
+        if block.status == .incomplete, block.kind == .active {
+            facts.merge(slowdownFacts(context.kilometers[position] ?? [])) { current, _ in current }
+            facts.merge(pauseFacts(context.continuity)) { current, _ in current }
+            if let readiness = context.readinessScore, readiness < AnalysisConstants.lowReadiness {
+                facts[FindingFact.readiness] = Double(readiness)
+            }
+            if let ratio = context.acuteChronic, ratio > AnalysisConstants.highAcuteChronic {
+                facts[FindingFact.ratio] = ratio
+            }
+        }
         return Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: position, facts: facts)
     }
+}
+
+private func slowdownFacts(_ kilometers: [WorkoutBlock]) -> [String: Double] {
+    let rows = kilometers.enumerated().compactMap { index, row -> (kilometer: Int, lap: LapSummary)? in
+        guard let lap = row.laps.first, lap.distance >= AnalysisConstants.fullLapMinimumDistance, lapSpeed(lap) > 0 else { return nil }
+        return (index + 1, lap)
+    }
+    let baseline = AnalysisConstants.baselineKilometers
+    guard rows.count > baseline else { return [:] }
+    let paces = rows.map { pace($0.lap) }
+    let reference = paces.prefix(baseline).reduce(0, +) / Double(baseline)
+    var facts: [String: Double] = [:]
+    for index in baseline ..< rows.count {
+        let tail = paces[index...]
+        let slowdown = tail.reduce(0, +) / Double(tail.count) - reference
+        guard paces[index] - reference >= AnalysisConstants.fadeThreshold, slowdown >= AnalysisConstants.fadeThreshold else { continue }
+        facts[FindingFact.fadeKilometer] = Double(rows[index].kilometer)
+        facts[FindingFact.slowdown] = slowdown
+        break
+    }
+    guard rows.count >= baseline * 2,
+          let start = meanHeartRate(rows.prefix(baseline).map(\.lap)),
+          let end = meanHeartRate(rows.suffix(baseline).map(\.lap)),
+          end - start >= AnalysisConstants.heartRateRiseMinimum else { return facts }
+    facts[FindingFact.heartRateRise] = end - start
+    return facts
+}
+
+private func pauseFacts(_ continuity: RunContinuity?) -> [String: Double] {
+    guard let continuity, let first = continuity.pauses.first else { return [:] }
+    return [
+        FindingFact.pauseCount: Double(continuity.pauses.count),
+        FindingFact.pauseKilometer: first.startMeters / AnalysisConstants.metersPerKilometer,
+        FindingFact.pauseSeconds: continuity.pauses.reduce(0) { $0 + $1.seconds },
+    ]
 }
 
 private func zoneAboveTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
