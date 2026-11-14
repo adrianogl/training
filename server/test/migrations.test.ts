@@ -29,7 +29,7 @@ describe('applyMigrations', () => {
     const first = await applyMigrations(sql, migrationsDir)
     const second = await applyMigrations(sql, migrationsDir)
 
-    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql'])
+    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql'])
     expect(second).toEqual([])
   })
 

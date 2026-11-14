@@ -1,6 +1,6 @@
 import { LOG_ACCOUNT_PREFIX_LENGTH, REQUEST_LOG_RETENTION_DAYS, WATCH_READINESS_ROUTE } from './constants.js'
 import type { Sql, SqlStatement } from './db.js'
-import type { Readiness, WatchReadinessLookup } from './types.js'
+import type { Readiness, WatchFace, WatchReadinessLookup } from './types.js'
 
 export function replaceWatchTokenStatements(accountId: string, tokenHash: string): SqlStatement[] {
   return [
@@ -35,17 +35,17 @@ export async function revokeWatchToken(sql: Sql, accountId: string): Promise<voi
 
 export async function saveReadiness(sql: Sql, accountId: string, readiness: Readiness): Promise<void> {
   await sql(
-    `insert into readiness (account_id, day, score, verdict) values ($1, $2::date, $3, $4)
+    `insert into readiness (account_id, day, score, verdict, face) values ($1, $2::date, $3, $4, $5::jsonb)
      on conflict (account_id) do update
-     set day = excluded.day, score = excluded.score, verdict = excluded.verdict, updated_at = now()`,
-    [accountId, readiness.day, readiness.score, readiness.verdict],
+     set day = excluded.day, score = excluded.score, verdict = excluded.verdict, face = excluded.face, updated_at = now()`,
+    [accountId, readiness.day, readiness.score, readiness.verdict, readiness.face === undefined ? null : JSON.stringify(readiness.face)],
   )
 }
 
 export async function readinessForWatchToken(sql: Sql, tokenHash: string): Promise<WatchReadinessLookup> {
-  const rows = await sql<{ day: string | null; score: number | null; verdict: string | null }>(
+  const rows = await sql<{ day: string | null; score: number | null; verdict: string | null; face: WatchFace | null }>(
     `with hit as (
-       select w.account_id, r.day, r.score, r.verdict
+       select w.account_id, r.day, r.score, r.verdict, r.face
        from watch_tokens w
        left join readiness r on r.account_id = w.account_id
        where w.token_hash = $1
@@ -58,7 +58,7 @@ export async function readinessForWatchToken(sql: Sql, tokenHash: string): Promi
        insert into request_log (method, route, status, account_prefix)
        select 'GET', $4, case when day is null then 404 else 200 end, left(account_id, $2::int) from hit
      )
-     select to_char(day, 'YYYY-MM-DD') as day, score, verdict from hit`,
+     select to_char(day, 'YYYY-MM-DD') as day, score, verdict, face from hit`,
     [tokenHash, LOG_ACCOUNT_PREFIX_LENGTH, REQUEST_LOG_RETENTION_DAYS, WATCH_READINESS_ROUTE],
   )
   const row = rows[0]
@@ -68,5 +68,5 @@ export async function readinessForWatchToken(sql: Sql, tokenHash: string): Promi
   if (row.day === null || row.score === null || row.verdict === null) {
     return { status: 'no_readiness' }
   }
-  return { status: 'ok', readiness: { day: row.day, score: row.score, verdict: row.verdict } }
+  return { status: 'ok', readiness: { day: row.day, score: row.score, verdict: row.verdict, ...(row.face ?? {}) } }
 }

@@ -15,6 +15,17 @@ import { makeRequest, makeToken, migratedSql } from './helpers.js'
 const accountKey = makeToken(1)
 const watchToken = makeToken(101)
 const readiness = { day: '2026-11-12', score: 63, verdict: 'Moderado' }
+const face = {
+  vo2Delta: 1.2,
+  weekPlannedKm: 51.8,
+  weekGoalKm: 45,
+  workout: 'Intervalado 5×1000 m',
+  workoutShape: [[30, 2], [9, 4], [5, 1], [20, 2]],
+  raceName: 'Meia de exemplo',
+  raceDay: '2026-12-28',
+  raceGoal: 5880,
+  racePrediction: 5970,
+}
 
 function tokenHash(token: string): string {
   return createHash('sha256').update(Buffer.from(token, 'base64url')).digest('hex')
@@ -189,6 +200,37 @@ describe('PUT /api/v1/watch/readiness', () => {
     expect(await sql('select * from readiness')).toEqual([])
   })
 
+  it('grava os dados do mostrador e troca por null quando não vêm', async () => {
+    await putReadiness({ ...readiness, face: { ...face, extra: 'ignorado' } })
+    const withFace = await sql<{ face: unknown }>('select face from readiness')
+    await putReadiness(readiness)
+    const withoutFace = await sql<{ face: unknown }>('select face from readiness')
+
+    expect(withFace).toEqual([{ face }])
+    expect(withoutFace).toEqual([{ face: null }])
+  })
+
+  it.each([
+    ['face array', []],
+    ['vo2Delta texto', { vo2Delta: '1' }],
+    ['vo2Delta fora da faixa', { vo2Delta: 25 }],
+    ['km negativo', { weekPlannedKm: -1 }],
+    ['meta acima do limite', { weekGoalKm: 1001 }],
+    ['treino vazio', { workout: '' }],
+    ['treino com 41', { workout: 'a'.repeat(41) }],
+    ['shape vazio', { workoutShape: [] }],
+    ['shape com zona 6', { workoutShape: [[10, 6]] }],
+    ['shape com peso 0', { workoutShape: [[0, 2]] }],
+    ['shape com 25 passos', { workoutShape: Array.from({ length: 25 }, () => [1, 1]) }],
+    ['dia da prova inválido', { raceDay: '2026-02-30' }],
+    ['meta fracionária', { raceGoal: 5880.5 }],
+  ])('400 invalid_face: %s', async (_name, invalid) => {
+    const response = await putReadiness({ ...readiness, face: invalid })
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: 'invalid_face' })
+  })
+
   it('401 com conta inexistente', async () => {
     const response = await putReadiness(readiness, makeToken(9))
 
@@ -221,6 +263,14 @@ describe('GET /api/v1/watch/readiness', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('cache-control')).toBe('no-store')
     expect(await response.json()).toEqual(readiness)
+  })
+
+  it('200 com os dados do mostrador junto da nota', async () => {
+    await putReadiness({ ...readiness, face })
+
+    const response = await getReadiness(watchToken)
+
+    expect(await response.json()).toEqual({ ...readiness, ...face })
   })
 
   it('404 no_readiness sem nota', async () => {

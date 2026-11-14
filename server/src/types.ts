@@ -78,12 +78,28 @@ export interface Limits {
 
 export type PushOutcome = { status: 'ok'; result: PushResult } | { status: 'quota_exceeded' }
 
+export interface WatchFace {
+  vo2Delta?: number
+  weekPlannedKm?: number
+  weekGoalKm?: number
+  workout?: string
+  workoutShape?: number[][]
+  raceName?: string
+  raceDay?: string
+  raceGoal?: number
+  racePrediction?: number
+}
+
 export interface Readiness {
   day: string
   score: number
   verdict: string
+  face?: WatchFace
 }
 
 export type BodyParseResult<T> = { ok: true; value: T } | { ok: false; error: string }
 
-export type WatchReadinessLookup = { status: 'unknown_token' } | { status: 'no_readiness' } | { status: 'ok'; readiness: Readiness }
+export type WatchReadinessLookup =
+  | { status: 'unknown_token' }
+  | { status: 'no_readiness' }
+  | { status: 'ok'; readiness: Omit<Readiness, 'face'> & WatchFace }
