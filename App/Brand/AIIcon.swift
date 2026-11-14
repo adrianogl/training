@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AIIcon: View {
     var size: CGFloat
+    var bordered = true
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: size * BrandConstants.iconCornerRatio, style: .continuous)
@@ -14,6 +15,11 @@ struct AIIcon: View {
                     endRadius: size * 0.7
                 )
             )
+            .overlay {
+                if bordered {
+                    shape.strokeBorder(BrandColors.iconAccent.opacity(BrandConstants.iconGlowOpacity), lineWidth: 1)
+                }
+            }
             .overlay(
                 Text(BrandConstants.logoHighlight)
                     .font(.system(size: size * BrandConstants.iconFontRatio, weight: .black))

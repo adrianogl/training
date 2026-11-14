@@ -27,7 +27,7 @@ enum AppIconExport {
 
     static func launchIconPNG() -> Data? {
         let side = BrandConstants.launchIconPoints * BrandConstants.launchIconScale
-        let art = AIIcon(size: side * BrandConstants.launchIconArtRatio)
+        let art = AIIcon(size: side * BrandConstants.launchIconArtRatio, bordered: false)
             .frame(width: side, height: side)
             .environment(\.colorScheme, .dark)
         let renderer = ImageRenderer(content: art)
