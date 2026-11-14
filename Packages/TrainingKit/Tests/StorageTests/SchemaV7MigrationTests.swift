@@ -4,6 +4,13 @@ import Testing
 @testable import Storage
 
 @Suite struct SchemaV7MigrationTests {
+    @Test func currentSchemaIsV7() {
+        let names = Set(Schema(versionedSchema: SchemaV7.self).entities.map(\.name))
+        #expect(names == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState", "HeartRateZonesRecord", "ThresholdHistoryRecord", "RaceDecisionRecord", "GoalRecord"])
+        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV7.self))
+        #expect(TrainingSchema.models.count == 8)
+    }
+
     @Test func v6StoreOpensAsV7AndAcceptsGoals() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

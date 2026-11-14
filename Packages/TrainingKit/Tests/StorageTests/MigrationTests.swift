@@ -123,6 +123,6 @@ import Testing
         #expect(v3 == v2)
         #expect(v4 == v3.union(["ThresholdHistoryRecord", "RaceDecisionRecord"]))
         #expect(v5 == v4)
-        #expect(Set(Schema(TrainingSchema.models).entities.map(\.name)) == v5)
+        #expect(Set(Schema(TrainingSchema.models).entities.map(\.name)) == v5.union(["GoalRecord"]))
     }
 }

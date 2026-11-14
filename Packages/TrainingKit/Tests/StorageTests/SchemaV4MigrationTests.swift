@@ -49,7 +49,7 @@ import Testing
         let names = Set(Schema(versionedSchema: SchemaV4.self).entities.map(\.name))
         #expect(names == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState", "HeartRateZonesRecord", "ThresholdHistoryRecord", "RaceDecisionRecord"])
         #expect(SchemaV4.models.count == 7)
-        #expect(TrainingSchema.models.count == 7)
+        #expect(TrainingSchema.models.count == 8)
     }
 
     @Test func newRecordsRoundTrip() throws {

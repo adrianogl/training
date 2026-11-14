@@ -90,8 +90,6 @@ import Testing
         let names = Set(Schema(versionedSchema: SchemaV6.self).entities.map(\.name))
         #expect(names == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState", "HeartRateZonesRecord", "ThresholdHistoryRecord", "RaceDecisionRecord"])
         #expect(SchemaV6.versionIdentifier == Schema.Version(6, 0, 0))
-        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV6.self))
-        #expect(TrainingSchema.models.count == 7)
     }
 
     @Test func raceTransferExportSkipsTombstones() throws {
