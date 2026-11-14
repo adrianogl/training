@@ -12,6 +12,7 @@ struct WorkoutListView: View {
     @State private var chatCounts: [Int64: Int] = [:]
     @State private var selection: WorkoutSelection? = WorkoutListView.initialPath().first
     @State private var planned: [PlannedWorkout] = []
+    @State private var userScrolled = false
 
     var body: some View {
         let weeks = WorkoutListModel.weeks(records: records)
@@ -77,7 +78,9 @@ struct WorkoutListView: View {
     private func list(_ weeks: [WorkoutWeek]) -> some View {
         let selected = current(weeks)
         let today = Day.today().iso
-        return ScrollView {
+        let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: weeks.flatMap(\.rows))
+        return ScrollViewReader { proxy in
+        ScrollView {
             LazyVStack(alignment: .leading, spacing: 10) {
                 CompactLogoHeader()
                 Text(WorkoutConstants.listTitle)
@@ -90,12 +93,12 @@ struct WorkoutListView: View {
                             .foregroundStyle(BrandColors.dim)
                     }
                 }
-                if !planned.isEmpty {
+                if !visibility.visible.isEmpty {
                     Text(WorkoutConstants.plannedTitle)
                         .font(.caption)
                         .foregroundStyle(BrandColors.dim)
                         .padding(.top, 8)
-                    ForEach(planned) { plan in
+                    ForEach(visibility.visible) { plan in
                         link(.planned(plan.id)) {
                             PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
                         }
@@ -107,17 +110,26 @@ struct WorkoutListView: View {
                         .brandCard()
                 }
                 ForEach(weeks) { week in
-                    HStack {
-                        Text(WorkoutListModel.weekLabel(week.start))
-                        Spacer()
-                        Text(WorkoutListModel.weekSummary(week))
+                    VStack(alignment: .leading, spacing: 10) {
+                        if week.id == weeks.first?.id && !visibility.visible.isEmpty {
+                            Text(WorkoutConstants.upcomingMarker)
+                                .font(.caption2)
+                                .foregroundStyle(BrandColors.dim)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        }
+                        HStack {
+                            Text(WorkoutListModel.weekLabel(week.start))
+                            Spacer()
+                            Text(WorkoutListModel.weekSummary(week))
+                        }
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.dim)
                     }
-                    .font(.caption)
-                    .foregroundStyle(BrandColors.dim)
                     .padding(.top, 8)
+                    .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
                     ForEach(week.rows) { row in
                         link(.activity(row.activityId)) {
-                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0)
+                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId))
                         }
                     }
                 }
@@ -126,8 +138,24 @@ struct WorkoutListView: View {
             .padding(.bottom, 24)
         }
         .background(BrandBackground())
+        .onScrollPhaseChange { _, phase in
+            if phase == .interacting { userScrolled = true }
+        }
+        .onAppear { scrollToLatest(proxy) }
+        .onChange(of: weeks.first?.id) { scrollToLatest(proxy) }
+        .onChange(of: visibility.visible.map(\.id)) { scrollToLatest(proxy) }
         .refreshable { await model.syncNow(.pull) }
         .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
+        }
+    }
+
+    private func scrollToLatest(_ proxy: ScrollViewProxy) {
+        guard !userScrolled else { return }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            proxy.scrollTo(WorkoutConstants.listTopAnchor, anchor: .top)
+        }
     }
 
     @ViewBuilder

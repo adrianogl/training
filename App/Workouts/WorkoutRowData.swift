@@ -1,9 +1,12 @@
 import Foundation
+import GarminAPI
 import TrainingCore
 
 struct WorkoutRowData: Identifiable, Hashable {
     let activityId: Int64
     let title: String
+    let names: [String]
+    let dayIso: String
     let dateText: String
     let distanceText: String?
     let durationText: String?
@@ -28,4 +31,9 @@ struct WorkoutWeek: Identifiable, Hashable {
 enum WorkoutSelection: Hashable {
     case activity(Int64)
     case planned(Int64)
+}
+
+struct PlannedVisibility: Equatable {
+    let visible: [PlannedWorkout]
+    let fromPlanIds: Set<Int64>
 }

@@ -1,5 +1,7 @@
 import Foundation
+import GarminAPI
 import Storage
+import TrainingCore
 import SwiftData
 import Testing
 @testable import trAIning
@@ -77,5 +79,55 @@ import Testing
 
         #expect(rows.first { $0.activityId == 1 }?.score != nil)
         #expect(!rows.contains { $0.activityId == 2 })
+    }
+}
+
+@Suite struct VisiblePlannedTests {
+    private func plan(_ id: Int64, _ day: String, _ title: String) -> PlannedWorkout {
+        PlannedWorkout(id: id, day: day, title: title, estimatedSeconds: nil, estimatedMeters: nil, steps: [])
+    }
+
+    private func row(_ id: Int64, _ day: String, names: [String]) -> WorkoutRowData {
+        WorkoutRowData(
+            activityId: id, title: names[0], names: names, dayIso: day, dateText: "", distanceText: nil,
+            durationText: nil, paceText: nil, hasPrescription: false, score: nil, kilometers: nil,
+            zoneShares: [], weekStart: Day(iso: day) ?? Day.today()
+        )
+    }
+
+    @Test func hidesPlanMatchedByNameIgnoringCase() {
+        let result = WorkoutListModel.visiblePlanned(
+            planned: [plan(1, "2026-11-10", "Limiar 6 x 800 m")],
+            rows: [row(10, "2026-11-10", names: ["limiar 6 x 800 M", "Corrida"]), row(11, "2026-11-10", names: ["Outra"])]
+        )
+        #expect(result.visible.isEmpty)
+        #expect(result.fromPlanIds == [10])
+    }
+
+    @Test func hidesPlanWhenItIsTheOnlyRunOfTheDay() {
+        let result = WorkoutListModel.visiblePlanned(
+            planned: [plan(1, "2026-11-10", "Tiro")],
+            rows: [row(10, "2026-11-10", names: ["Corrida livre"])]
+        )
+        #expect(result.visible.isEmpty)
+        #expect(result.fromPlanIds == [10])
+    }
+
+    @Test func keepsPlanWhenSeveralRunsAndNoNameMatch() {
+        let result = WorkoutListModel.visiblePlanned(
+            planned: [plan(1, "2026-11-10", "Tiro")],
+            rows: [row(10, "2026-11-10", names: ["A"]), row(11, "2026-11-10", names: ["B"])]
+        )
+        #expect(result.visible.map(\.id) == [1])
+        #expect(result.fromPlanIds.isEmpty)
+    }
+
+    @Test func keepsPlanOnDayWithoutRunsAndSortsDescending() {
+        let result = WorkoutListModel.visiblePlanned(
+            planned: [plan(1, "2026-11-15", "A"), plan(2, "2026-11-17", "B"), plan(3, "2026-11-10", "C")],
+            rows: [row(10, "2026-11-10", names: ["Z"])]
+        )
+        #expect(result.visible.map(\.id) == [2, 1])
+        #expect(result.fromPlanIds == [10])
     }
 }

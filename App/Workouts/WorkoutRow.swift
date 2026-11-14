@@ -4,6 +4,7 @@ struct WorkoutRow: View {
     let row: WorkoutRowData
     var isSelected = false
     var hasChat = false
+    var isFromPlan = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -21,6 +22,11 @@ struct WorkoutRow: View {
                     HStack(spacing: 6) {
                         if row.hasPrescription {
                             PlannedBadge()
+                        }
+                        if isFromPlan {
+                            Text(WorkoutConstants.fromPlan)
+                                .font(.caption2.weight(.bold))
+                                .foregroundStyle(BrandColors.dim)
                         }
                         if hasChat {
                             Image(systemName: "sparkles")

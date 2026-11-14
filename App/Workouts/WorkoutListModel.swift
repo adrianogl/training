@@ -1,4 +1,5 @@
 import Foundation
+import GarminAPI
 import Storage
 import TrainingCore
 import WorkoutAnalysis
@@ -22,6 +23,23 @@ enum WorkoutListModel {
             let rows = grouped[start] ?? []
             return WorkoutWeek(start: start, kilometers: rows.reduce(0) { $0 + ($1.kilometers ?? 0) }, rows: rows)
         }
+    }
+
+    static func visiblePlanned(planned: [PlannedWorkout], rows: [WorkoutRowData]) -> PlannedVisibility {
+        let byDay = Dictionary(grouping: rows, by: \.dayIso)
+        var fromPlan: Set<Int64> = []
+        var visible: [PlannedWorkout] = []
+        for plan in planned {
+            let sameDay = byDay[plan.day] ?? []
+            let match = sameDay.first { row in row.names.contains { $0.caseInsensitiveCompare(plan.title) == .orderedSame } }
+                ?? (sameDay.count == 1 ? sameDay.first : nil)
+            if let match {
+                fromPlan.insert(match.activityId)
+            } else {
+                visible.append(plan)
+            }
+        }
+        return PlannedVisibility(visible: visible.sorted { $0.day > $1.day }, fromPlanIds: fromPlan)
     }
 
     static func weekLabel(_ start: Day) -> String {
@@ -49,6 +67,8 @@ enum WorkoutListModel {
         return WorkoutRowData(
             activityId: record.activityId,
             title: record.workoutName ?? record.name,
+            names: [record.workoutName, record.name].compactMap { $0 },
+            dayIso: Day.today(now: record.start).iso,
             dateText: dateText(record.start),
             distanceText: distance.map(distanceText),
             durationText: duration.map(clockText),
