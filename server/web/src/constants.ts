@@ -291,3 +291,63 @@ export const PAGE_TITLES: Partial<Record<Route, string>> = {
   races: 'Provas',
   evolution: 'Evolução',
 }
+
+export const EVOLUTION_PERIODS = [
+  { days: 42, label: '6 semanas', span: 'em 6 semanas' },
+  { days: 91, label: '3 meses', span: 'em 3 meses' },
+  { days: 182, label: '6 meses', span: 'em 6 meses' },
+  { days: 365, label: '1 ano', span: 'em 1 ano' },
+] as const
+
+export const DEFAULT_EVOLUTION_PERIOD = 91
+
+export const STABLE_FRACTION = 0.01
+
+export const BETTER_WHEN_LOWER = ['restingHeartRate', 'predictionHalf', 'prediction5k', 'prediction10k', 'predictionFull']
+
+export const ZONE_COLORS = ['#7fb2ff', '#c8f05a', '#e8c547', '#ff8a4c', '#e5534b']
+
+export const LOW_ZONE_COUNT = 2
+
+export const ZONE_WEEKS = 6
+
+export const EVOLUTION_TEXT = {
+  title: 'Evolução',
+  period: 'Período',
+  improving: 'Em evolução',
+  declining: 'Perdendo ritmo',
+  steady: 'Estável',
+  rose: 'subiu',
+  fell: 'caiu',
+  kept: 'ficou estável',
+  halfPrediction: 'previsão da meia',
+  better: (names: string) => `, com ${names} melhores`,
+  and: ' e ',
+  noReading: 'A leitura aparece quando houver corridas suficientes para prever a meia.',
+  loading: 'Carregando a evolução…',
+  error: 'Não deu para carregar a evolução agora.',
+  tiles: {
+    predictionHalf: 'Previsão 21 km',
+    vo2max: 'VO2 máx.',
+    fitness: 'Condicionamento',
+    monthlyVolume: 'Volume em 30 dias',
+    hrv: 'HRV da noite',
+  },
+  readingNames: { vo2max: 'VO2', fitness: 'condicionamento', hrv: 'HRV', restingHeartRate: 'FC de repouso' },
+  form: 'FORMA E FADIGA · MÉDIA 7 DIAS',
+  fitnessLegend: 'condicionamento',
+  fatigueLegend: 'fadiga',
+  today: 'hoje',
+  formToday: (fitness: number, fatigue: number, form: number) => `Hoje: condicionamento ${fitness}, fadiga ${fatigue}, forma ${form}.`,
+  formReading: (form: number) => (form >= 0 ? 'Forma positiva: o corpo absorveu a carga recente.' : 'Forma negativa: a carga recente ainda pesa.'),
+  weekly: 'KM POR SEMANA',
+  thisWeek: 'esta semana',
+  zones: (weeks: number) => `TEMPO EM CADA ZONA · ${weeks} SEMANAS`,
+  zoneSplit: (easy: number) => `${easy}% fácil, ${100 - easy}% forte`,
+  records: 'RECORDES E PREVISÕES',
+  recordsColumns: ['Distância', 'Melhor em 12 meses', 'Quando', 'Previsão hoje'],
+  longestRun: 'Corrida mais longa',
+  biggestWeek: 'Maior semana',
+  weekOf: (day: string) => `semana de ${day}`,
+  noData: 'Sem dados no período.',
+} as const

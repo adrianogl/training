@@ -1,6 +1,6 @@
 import { DEVICE_LABEL } from './constants'
 import { readToken } from './session'
-import type { Activity, AdminData, HealthDay, SyncProgress, TodaySummary, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
+import type { Activity, AdminData, Evolution, HealthDay, SyncProgress, TodaySummary, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -49,6 +49,7 @@ export const api = {
   garminDisconnect: () => call<void>('DELETE', 'garmin/status'),
   garminSync: () => call<SyncProgress>('POST', 'garmin/sync'),
   garminToday: () => call<TodaySummary>('GET', 'garmin/today'),
+  garminEvolution: (days: number) => call<Evolution>('GET', `garmin/evolution?days=${days}`),
   garminDays: (from: string, to: string) => call<{ days: HealthDay[] }>('GET', `garmin/days?from=${from}&to=${to}`),
   garminActivities: (limit: number, before?: string) =>
     call<{ activities: Activity[] }>('GET', `garmin/activities?limit=${limit}${before === undefined ? '' : `&before=${before}`}`),

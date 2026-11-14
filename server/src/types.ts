@@ -268,6 +268,7 @@ export interface ActivitySummary {
   vo2max: number | null
   zoneSeconds: number[]
   fastestKmSeconds: number | null
+  fastest5kSeconds?: number | null
   laps: number | null
   workoutId: number | null
 }

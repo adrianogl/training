@@ -80,3 +80,52 @@ export interface TodaySummary {
   week: WeekVolume
   focus: LoadFocus | null
 }
+
+export type EffortKind = 'race' | 'split5k' | 'split1k'
+
+export interface Effort {
+  distance: number
+  seconds: number
+  day: string
+  kind: EffortKind
+}
+
+export type SeriesPoint = [string, number]
+
+export interface MetricStats {
+  current: number | null
+  average: number | null
+  minimum: number | null
+  maximum: number | null
+  change: number | null
+}
+
+export interface MetricSeries {
+  key: string
+  points: SeriesPoint[]
+  movingAverage: SeriesPoint[]
+  stats: MetricStats
+  band: [number, number] | null
+}
+
+export interface Records {
+  fastestKm: { seconds: number; day: string; name: string } | null
+  fastest5k: { seconds: number; day: string; name: string } | null
+  longestRun: { meters: number; day: string; name: string } | null
+  biggestWeek: { kilometers: number; start: string } | null
+}
+
+export interface WeekTotals {
+  start: string
+  kilometers: number
+  zoneSeconds: number[]
+}
+
+export interface Evolution {
+  day: string
+  periodDays: number
+  series: MetricSeries[]
+  weeks: WeekTotals[]
+  predictions: { key: string; label: string; seconds: number | null; change: number | null }[]
+  records: Records
+}

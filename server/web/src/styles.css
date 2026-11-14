@@ -872,3 +872,104 @@ h2 {
   overflow: hidden;
   background: var(--track);
 }
+
+.evolution-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.evolution-head > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.evolution-head .lead {
+  font-size: 16px;
+  color: var(--text-2);
+}
+
+.period {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--card);
+  gap: 4px;
+}
+
+.period button {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.period button[aria-pressed='true'] {
+  background: #2a3020;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.metric small.good {
+  color: var(--accent);
+}
+
+.evolution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 20px;
+}
+
+.evolution-grid .card {
+  gap: 12px;
+}
+
+.evolution-grid .legend {
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.week-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 150px;
+  border-bottom: 1px solid var(--line);
+}
+
+.week-bars i {
+  flex: 1;
+  min-height: 2px;
+  background: #3a3f46;
+  border-radius: 4px 4px 0 0;
+}
+
+.week-bars i.current {
+  background: var(--accent);
+}
+
+.zone-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zone-weeks div {
+  display: flex;
+  height: 18px;
+  border-radius: 5px;
+  overflow: hidden;
+}

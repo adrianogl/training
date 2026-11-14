@@ -35,3 +35,16 @@ export interface AppLayoutProps {
 export interface GarminModalProps {
   onClose: (connected: boolean) => void
 }
+
+export interface ChartLine {
+  points: [string, number][]
+  color: string
+  width?: number
+}
+
+export interface LineChartProps {
+  lines: ChartLine[]
+  label: string
+  height?: number
+  marker?: string
+}

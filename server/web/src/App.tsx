@@ -5,6 +5,7 @@ import { PAGE_TITLES, PUBLIC_ROUTES } from './constants'
 import { ComingSoonPage } from './pages/ComingSoonPage'
 import { AdminPage } from './pages/AdminPage'
 import { ConfirmPage } from './pages/ConfirmPage'
+import { EvolutionPage } from './pages/EvolutionPage'
 import { ForgotPage } from './pages/ForgotPage'
 import { InvitePage } from './pages/InvitePage'
 import { LoginPage } from './pages/LoginPage'
@@ -82,7 +83,8 @@ export function App() {
           {target === 'admin' && user?.admin === true && <AdminPage />}
           {target === 'today' && <TodayPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'workouts' && <WorkoutsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
-          {(target === 'races' || target === 'evolution') && <ComingSoonPage title={PAGE_TITLES[target] ?? ''} />}
+          {target === 'evolution' && <EvolutionPage version={sync.version} syncing={sync.state.kind === 'running'} />}
+          {target === 'races' && <ComingSoonPage title={PAGE_TITLES[target] ?? ''} />}
         </AppLayout>
       )
   }

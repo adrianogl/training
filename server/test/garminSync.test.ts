@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import type { Sql } from '../src/db.js'
 import { saveConnection } from '../src/garmin.js'
 import { parseActivity, parseHealthDay } from '../src/garminParse.js'
-import { garminActivitiesRoute, garminCronRoute, garminDaysRoute, garminSyncRoute } from '../src/garminRoutes.js'
+import { garminActivitiesRoute, garminCronRoute, garminEvolutionRoute, garminDaysRoute, garminSyncRoute } from '../src/garminRoutes.js'
 import { addDays, localDay } from '../src/garminSync.js'
 import { createAccountRoute } from '../src/routes.js'
 import type { GarminEnv } from '../src/types.js'
@@ -130,6 +130,19 @@ describe('sync', () => {
     expect(days.days.map((day) => [day.day, day.readiness.score])).toEqual([['2026-11-12', 72], ['2026-11-13', 72], ['2026-11-14', 72]])
     expect(activities.activities.map((item) => [item.id, item.name])).toEqual([[3, 'Rodagem']])
     expect(bad.status).toBe(400)
+  })
+
+  it('a evolução usa o período pedido e cai no padrão quando ele não existe', async () => {
+    await garminSyncRoute(makeRequest('POST', '/api/v1/garmin/sync', { token }), sql, env(fakeGarmin([activity(3, '2026-11-13 07:00:00')])))
+
+    const short = (await (await garminEvolutionRoute(makeRequest('GET', '/api/v1/garmin/evolution?days=42', { token }), sql, env(fakeGarmin([])))).json()) as { periodDays: number; series: { key: string }[] }
+    const fallback = (await (await garminEvolutionRoute(makeRequest('GET', '/api/v1/garmin/evolution?days=7', { token }), sql, env(fakeGarmin([])))).json()) as { periodDays: number }
+    const anonymous = await garminEvolutionRoute(makeRequest('GET', '/api/v1/garmin/evolution'), sql, env(fakeGarmin([])))
+
+    expect(short.periodDays).toBe(42)
+    expect(short.series.map((item) => item.key)).toContain('vo2max')
+    expect(fallback.periodDays).toBe(91)
+    expect(anonymous.status).toBe(401)
   })
 
   it('o cron exige o segredo e passa por todas as contas conectadas', async () => {

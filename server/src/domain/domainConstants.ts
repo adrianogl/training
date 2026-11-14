@@ -26,3 +26,27 @@ export const LOAD = {
 export const LOAD_FOCUS_TARGET = { low: [0.6, 0.75], high: [0.2, 0.35], anaerobic: [0.05, 0.1] } as const
 
 export const WEEK = { previousWeeks: 4, historyWeeks: 12, daysPerWeek: 7, metersPerKm: 1000 } as const
+
+export const PREDICTION = {
+  riegelExponent: 1.06,
+  effortWindowDays: 150,
+  raceEffortWindowDays: 365,
+  kindWeight: { race: 1, split5k: 0.7, split1k: 0.3 },
+  sameRaceDistanceLogTolerance: 0.1,
+  distances: [
+    { key: 'prediction5k', meters: 5000, label: '5 km' },
+    { key: 'prediction10k', meters: 10000, label: '10 km' },
+    { key: 'predictionHalf', meters: 21097.5, label: '21,1 km' },
+    { key: 'predictionFull', meters: 42195, label: '42,2 km' },
+  ],
+} as const
+
+export const EVOLUTION = {
+  vo2SmoothingDays: 2,
+  volumeWindowDays: 30,
+  focusWindowDays: 28,
+  movingAverageDays: 7,
+  lowZoneCount: 2,
+  periods: [42, 91, 182, 365],
+  defaultPeriod: 91,
+} as const

@@ -68,3 +68,16 @@ export function readinessColor(score: number): string {
 export function isRun(activity: { type: string }): boolean {
   return activity.type.includes('running')
 }
+
+export function signedDuration(seconds: number): string {
+  return `${seconds < 0 ? '−' : '+'}${duration(Math.abs(seconds))}`
+}
+
+export function dayMonth(day: string): string {
+  return new Date(`${day}T12:00:00Z`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).replace('.', '').replace(' de ', ' ')
+}
+
+export function signedNumber(value: number, digits = 0): string {
+  const rounded = Math.abs(value).toFixed(digits).replace('.', ',')
+  return `${value < 0 ? '−' : '+'}${rounded}`
+}

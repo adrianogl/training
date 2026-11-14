@@ -184,3 +184,34 @@ export interface TodaySummary {
   week: { perDay: Record<string, number>; total: number; lastWeek: number; average4Weeks: number; recentWeeks: { start: string; kilometers: number }[] }
   focus: { lowAerobic: number; highAerobic: number; anaerobic: number } | null
 }
+
+export type SeriesPoint = [string, number]
+
+export interface MetricSeries {
+  key: string
+  points: SeriesPoint[]
+  movingAverage: SeriesPoint[]
+  stats: { current: number | null; average: number | null; minimum: number | null; maximum: number | null; change: number | null }
+  band: [number, number] | null
+}
+
+export interface Prediction {
+  key: string
+  label: string
+  seconds: number | null
+  change: number | null
+}
+
+export interface Evolution {
+  day: string
+  periodDays: number
+  series: MetricSeries[]
+  weeks: { start: string; kilometers: number; zoneSeconds: number[] }[]
+  predictions: Prediction[]
+  records: {
+    fastestKm: { seconds: number; day: string; name: string } | null
+    fastest5k: { seconds: number; day: string; name: string } | null
+    longestRun: { meters: number; day: string; name: string } | null
+    biggestWeek: { kilometers: number; start: string } | null
+  }
+}

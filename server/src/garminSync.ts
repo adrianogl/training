@@ -121,7 +121,7 @@ export async function syncAccount(sql: Sql, env: Env, accountId: string, budgetM
         break
       }
       const known = await sql('select 1 from activities where account_id = $1 and activity_id = $2', [accountId, item.id])
-      if (known.length > 0 && state?.activities_done === true) {
+      if (known.length > 0 && state?.activities_done === true && !outdated) {
         reachedKnown = true
         break
       }
@@ -143,7 +143,7 @@ export async function syncAccount(sql: Sql, env: Env, accountId: string, budgetM
   await sql(
     `insert into garmin_sync_state (account_id, oldest_day, activities_done, last_sync_at, version) values ($1, $2, $3, $4, $5)
      on conflict (account_id) do update set oldest_day = excluded.oldest_day,
-       activities_done = garmin_sync_state.activities_done or excluded.activities_done, last_sync_at = excluded.last_sync_at,
+       activities_done = excluded.activities_done or (garmin_sync_state.activities_done and garmin_sync_state.version = excluded.version), last_sync_at = excluded.last_sync_at,
        version = excluded.version`,
     [accountId, oldest, activitiesDone, env.now().toISOString(), SYNC_VERSION],
   )

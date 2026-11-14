@@ -135,6 +135,7 @@ export function parseActivity(raw: unknown): ActivitySummary | undefined {
     vo2max: num(item.vO2MaxValue),
     zoneSeconds: [1, 2, 3, 4, 5].map((zone) => num(item[`hrTimeInZone_${zone}`]) ?? 0),
     fastestKmSeconds: num(item.fastestSplit_1000),
+    fastest5kSeconds: num(item.fastestSplit_5000),
     laps: num(item.lapCount),
     workoutId: num(item.workoutId),
   }
