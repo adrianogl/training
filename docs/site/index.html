@@ -34,7 +34,8 @@
         <li>iOS e iPadOS 26 · Liquid Glass</li>
         <li>Garmin: Personal API e conta</li>
         <li>Mostrador Forerunner 965</li>
-        <li>Treinos do Treinus</li>
+        <li>Treinos planejados do Garmin</li>
+        <li>✦ Apple Intelligence no aparelho</li>
       </ul>
     </div>
 
@@ -222,12 +223,12 @@
     <div class="copy">
       <p class="eyebrow">Treino planejado</p>
       <h2>O treino de amanhã, explicado</h2>
-      <p>Os treinos que o treinador prescreve no Treinus chegam pelo calendário do Garmin. Cada um vira um briefing: como fazer cada trecho, com pace e limite de FC, o que esperar de FC e Training Effect, os pontos de atenção e uma versão reduzida para um dia ruim.</p>
+      <p>Os treinos do seu plano chegam pelo calendário do Garmin Connect, venham do treinador, de um app de planilha ou do próprio Garmin. Cada um vira um briefing: como fazer cada trecho, com pace e limite de FC, o que esperar de FC e Training Effect, os pontos de atenção e uma versão reduzida para um dia ruim.</p>
       <p>O app sugere um percurso salvo no Garmin com a distância certa, mostra o horário mais fresco da manhã pela previsão do tempo e, depois do treino, compara o planejado com o feito.</p>
     </div>
     <div class="card brief">
       <div class="w-head">
-        <div><div class="k">Sábado · Treinus</div><div class="t">Corrida Longo · 20 km</div></div>
+        <div><div class="k">Sábado · Planejado</div><div class="t">Corrida Longo · 20 km</div></div>
         <span class="pill lime-pill">amanhã</span>
       </div>
       <div class="line"><span class="n">km 0–2</span><span>Entrar devagar: 4:50/km, FC abaixo de 150</span></div>
@@ -306,6 +307,33 @@
         <div class="ztimes">Z1 14:30 · Z2 10:10 · Z3 8:05 · Z4 6:15 · Z5 5:00</div>
       </div>
       <p class="note">Zonas do relógio 6 bpm abaixo do limiar.</p>
+    </div>
+  </section>
+
+  <section class="ai-spot" id="apple-intelligence">
+    <div class="spot-head">
+      <p class="eyebrow">✦ Apple Intelligence</p>
+      <h2>Converse com o seu treino</h2>
+      <p class="lead">O modelo da Apple Intelligence roda no próprio iPhone ou iPad. Ele escreve o feedback de cada corrida e responde perguntas sobre o treino com os seus números, sem mandar nada para servidor.</p>
+    </div>
+    <div class="ai-grid">
+      <div class="card ai-chat" role="img" aria-label="Exemplo de conversa sobre um intervalado">
+        <div class="ai-top"><b>Intervalado de 12 nov</b><span>✦ no aparelho</span></div>
+        <div class="bub me">Por que o quarto tiro saiu mais lento?</div>
+        <div class="bub tool">↻ leu os blocos 3 a 4</div>
+        <div class="bub ai">O quarto tiro saiu a 3:45/km, 1 s/km acima da faixa. A recuperação antes dele teve FC média de 148 bpm, a mais alta do treino: você começou o tiro sem ter baixado a frequência.</div>
+        <div class="bub me">Foi melhor que o intervalado anterior?</div>
+        <div class="bub tool">↻ buscou os treinos parecidos</div>
+        <div class="bub ai">Foi. Os tiros saíram 4 s/km mais rápidos que no de 5 de novembro, com FC média 3 bpm menor.</div>
+        <div class="ai-input"><span>Pergunte sobre este treino</span><i>↑</i></div>
+      </div>
+      <ul class="ai-points">
+        <li><b>Conversa sobre o treino</b><span>Pergunte por que um tiro saiu lento, se o trote foi rápido demais ou se você está melhorando. O modelo busca os blocos, os treinos parecidos e o sono e a VFC da noite quando precisa.</span></li>
+        <li><b>Histórico por treino</b><span>Cada conversa fica guardada no treino. Ao voltar, ela continua de onde parou, e a lista mostra quais treinos têm conversa.</span></li>
+        <li><b>Feedback de treinador</b><span>A análise de cada corrida vira um parágrafo que liga causa e efeito: o que ajustar, o que foi bem e o que fazer no próximo.</span></li>
+        <li><b>Números conferidos</b><span>Toda resposta é checada contra os dados do treino. Se aparecer um número que não está lá, o app avisa.</span></li>
+        <li><b>Leituras da Hoje e da Evolução</b><span>A frase da prontidão e o resumo da evolução também são escritos no aparelho. Sem Apple Intelligence, o app usa textos prontos.</span></li>
+      </ul>
     </div>
   </section>
 
@@ -394,7 +422,7 @@
       </svg>
       </div>
       <ul class="callouts right">
-        <li><b>Km da semana</b><span>Feito contra o planejado pelo Treinus, com o traço da meta.</span></li>
+        <li><b>Km da semana</b><span>Feito contra o planejado no calendário, com o traço da meta.</span></li>
         <li><b>Prova</b><span>Dias que faltam, previsão no dia e meta.</span></li>
         <li><b>Segundos e clima</b><span>Anel de segundos, temperatura, umidade colorida pelo ponto de orvalho e bateria.</span></li>
       </ul>
@@ -451,7 +479,7 @@
   <section class="data" id="dados">
     <p class="eyebrow">Os dados</p>
     <h2>O que vem do Garmin e o que o app calcula</h2>
-    <p class="lead">Os dados de saúde e atividades vêm da Personal API do Garmin, com uma chave pessoal e só leitura. O login na conta Garmin, feito no app, traz o calendário com os treinos do Treinus e os percursos salvos, e é usado para enviar a estratégia de prova ao relógio. Todo número calculado pelo app traz o rótulo trAIning.</p>
+    <p class="lead">Os dados de saúde e atividades vêm da Personal API do Garmin, com uma chave pessoal e só leitura. O login na conta Garmin, feito no app, traz o calendário com os treinos planejados e os percursos salvos, e é usado para enviar a estratégia de prova ao relógio. Todo número calculado pelo app traz o rótulo trAIning.</p>
     <div class="cols">
       <div class="card list">
         <div class="list-head"><span class="badge">Garmin</span><span class="s">lido como vem</span></div>
@@ -496,7 +524,7 @@
         <div><div class="t">O que vai pro relógio</div><p>O mostrador só lê o que mostra: a nota do dia, o treino de hoje, os km da semana e o nome, a data, a meta e a previsão da prova. Esses campos ficam no servidor sem cifra, porque o relógio precisa lê-los.</p></div>
         <div><div class="t">Chave e sessão no Keychain</div><p>A chave da Personal API e a sessão da conta Garmin ficam no Keychain do aparelho, sem sincronizar com o iCloud. A senha do Garmin nunca é guardada.</p></div>
         <div><div class="t">Previsão do tempo sem endereço</div><p>Para o melhor horário, o app manda ao Open-Meteo só uma coordenada arredondada, com precisão de uns 10 km.</p></div>
-        <div><div class="t">Textos locais</div><p>As leituras em texto são geradas pelo Foundation Models da Apple, no próprio aparelho. Sem ele, o app usa templates.</p></div>
+        <div><div class="t">Apple Intelligence local</div><p>O feedback, as leituras e a conversa sobre o treino são gerados pelo modelo da Apple Intelligence no próprio aparelho. As conversas ficam só nele.</p></div>
         <div><div class="t">Apagar quando quiser</div><p>Em Ajustes, um botão apaga do aparelho os treinos, os dados diários e as provas.</p></div>
       </div>
     </div>
