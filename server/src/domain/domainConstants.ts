@@ -48,6 +48,7 @@ export const EVOLUTION = {
   movingAverageDays: 7,
   lowZoneCount: 2,
   raceDistanceTolerance: 0.02,
+  intervalAnaerobicEffect: 2,
   periods: [42, 91, 182, 365],
   defaultPeriod: 91,
 } as const

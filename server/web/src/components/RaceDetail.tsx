@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { RACES_TEXT } from '../constants'
-import { dayMonth, duration, kmNumber, longDate, paceClock } from '../format'
+import { dayMonth, dayMonthNear, duration, kmNumber, longDate, paceClock } from '../format'
 import { checklistLine, stretches } from '../raceView'
 import type { RaceDetailProps } from './components.types'
 import { LineChart } from './LineChart'
@@ -64,7 +64,7 @@ export function RaceDetail({ race, onSaved, onDeleted }: RaceDetailProps) {
                   <div><span>{RACES_TEXT.goalLabel}</span><b>{outlook.goalSeconds !== null ? duration(outlook.goalSeconds) : '—'}</b></div>
                 </div>
                 <span className="muted">
-                  {crossing?.kind === 'on' ? RACES_TEXT.crossing.on(dayMonth(crossing.day)) : crossing ? RACES_TEXT.crossing[crossing.kind] : ''}
+                  {crossing?.kind === 'on' ? RACES_TEXT.crossing.on(dayMonthNear(crossing.day)) : crossing ? RACES_TEXT.crossing[crossing.kind] : ''}
                   {outlook.assessment ? ` ${RACES_TEXT.assessment[outlook.assessment]}` : ''}
                 </span>
               </>

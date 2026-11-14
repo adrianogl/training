@@ -3,7 +3,7 @@ import { api } from '../api'
 import { LineChart } from '../components/LineChart'
 import { DATA_TEXT, DEFAULT_EVOLUTION_PERIOD, EVOLUTION_PERIODS, EVOLUTION_TEXT, LOW_ZONE_COUNT, ZONE_COLORS, ZONE_WEEKS } from '../constants'
 import { evolutionReading, trend } from '../evolutionReading'
-import { dayMonth, duration, km, signedDuration, signedNumber } from '../format'
+import { dayMonth, duration, km, paceClock, signedDuration, signedNumber } from '../format'
 import type { Evolution, MetricSeries } from '../types'
 import type { DataPageProps, EvolutionTileProps, TileKey } from './pages.types'
 
@@ -17,8 +17,9 @@ function tileValue(key: TileKey, value: number): string {
       return duration(value)
     case 'monthlyVolume':
       return `${Math.round(value)} km`
-    case 'hrv':
-      return `${Math.round(value)} ms`
+    case 'zone2Pace':
+    case 'thresholdPace':
+      return `${paceClock(value)}/km`
     default:
       return String(Math.round(value))
   }
@@ -27,6 +28,9 @@ function tileValue(key: TileKey, value: number): string {
 function tileChange(key: TileKey, change: number, current: number): string {
   if (key === 'predictionHalf') {
     return signedDuration(change)
+  }
+  if (key === 'zone2Pace' || key === 'thresholdPace') {
+    return `${change < 0 ? '−' : '+'}${Math.round(Math.abs(change))} s`
   }
   if (key === 'monthlyVolume') {
     const before = current - change

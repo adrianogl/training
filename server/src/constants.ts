@@ -168,3 +168,9 @@ export const RACES = {
   priorities: ['A', 'B', 'C'],
   startTimePattern: /^([01]\d|2[0-3]):[0-5]\d$/,
 } as const
+
+export const ACTIVITY = {
+  nameMaxLength: 100,
+  historyDays: 365,
+  comparisonFetchLimit: 4,
+} as const

@@ -1,6 +1,6 @@
 import { DEVICE_LABEL } from './constants'
 import { readToken } from './session'
-import type { Activity, AdminData, Evolution, RaceInput, RaceView, HealthDay, SyncProgress, TodaySummary, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
+import type { Activity, AdminData, Evolution, PlannedWorkout, RaceInput, RaceView, WorkoutAnalysisView, HealthDay, SyncProgress, TodaySummary, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -50,6 +50,9 @@ export const api = {
   garminSync: () => call<SyncProgress>('POST', 'garmin/sync'),
   garminToday: () => call<TodaySummary>('GET', 'garmin/today'),
   garminEvolution: (days: number) => call<Evolution>('GET', `garmin/evolution?days=${days}`),
+  garminActivity: (id: number) => call<{ activity: Activity; analysis: WorkoutAnalysisView; fitMissing: boolean }>('GET', `garmin/activity?id=${id}`),
+  renameActivity: (id: number, name: string) => call<{ id: number; name: string }>('PUT', `garmin/activity?id=${id}`, { name }),
+  garminPlanned: () => call<{ planned: PlannedWorkout[] }>('GET', 'garmin/planned'),
   races: () => call<{ today: string; races: RaceView[] }>('GET', 'races'),
   createRace: (race: RaceInput) => call<{ id: string }>('POST', 'races', race),
   updateRace: (id: string, race: RaceInput) => call<{ id: string }>('PUT', `races?id=${encodeURIComponent(id)}`, race),

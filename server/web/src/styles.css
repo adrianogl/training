@@ -1175,3 +1175,164 @@ h2 {
   background: var(--amber);
   color: var(--on-accent);
 }
+
+.workout-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.workout-title {
+  font-size: 28px;
+  margin: 4px 0 0;
+}
+
+.rename {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.rename input {
+  height: 40px;
+  min-width: 0;
+  flex: 1 1 240px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line-2);
+  background: var(--card);
+  color: var(--text);
+  padding: 0 12px;
+  font: inherit;
+}
+
+.score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid var(--line-2);
+}
+
+.score b {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.score span {
+  font-size: 10px;
+  color: var(--dim);
+}
+
+.score.strong {
+  border-color: var(--accent);
+}
+
+.score.moderate {
+  border-color: var(--amber);
+}
+
+.score.weak {
+  border-color: var(--rest);
+}
+
+.reading {
+  gap: 14px;
+}
+
+.finding-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 12px;
+  border-left: 3px solid var(--line-2);
+}
+
+.finding-group.positive {
+  border-left-color: var(--accent);
+}
+
+.finding-group.negative {
+  border-left-color: var(--rest);
+}
+
+.finding-group.attention {
+  border-left-color: var(--amber);
+}
+
+.finding-group details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.finding-group summary {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.finding-group details > span {
+  display: block;
+  margin: 4px 0 0 16px;
+}
+
+.status.inTarget {
+  color: var(--accent);
+}
+
+.status.faster,
+.status.slower,
+.status.aboveTarget,
+.status.belowTarget,
+.status.incomplete,
+.status.notExecuted {
+  color: var(--amber);
+}
+
+.table tr.current td {
+  font-weight: 700;
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+.workout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
+  gap: 20px;
+}
+
+.score-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+}
+
+.score-row span.small {
+  grid-column: 1 / -1;
+}
+
+.planned-steps {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (min-width: 900px) {
+  .workout-list {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+}

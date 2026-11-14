@@ -134,4 +134,18 @@ describe('evolução', () => {
     const ten = (evolution: typeof without) => evolution.predictions.find((item) => item.key === 'prediction10k')?.seconds ?? 0
     expect(ten(withRace)).not.toBeCloseTo(ten(without), 0)
   })
+
+  it('indicadores do FIT entram como série por dia', () => {
+    const runs = [run(at(-3), 8, { id: 31 }), run(at(-2), 8, { id: 32, anaerobicEffect: 3 }), run(at(-1), 8, { id: 33 })]
+    const metrics = new Map([
+      [31, { zone2Pace: 340, thresholdPace: 270, decoupling: 4, hillIndex: 95 }],
+      [32, { zone2Pace: 336, thresholdPace: null, decoupling: 9, hillIndex: null }],
+      [33, { zone2Pace: 330, thresholdPace: 268, decoupling: 3, hillIndex: 97 }],
+    ])
+    const byKey = new Map(buildEvolution([], runs, today, 42, [], metrics).series.map((item) => [item.key, item]))
+    expect(byKey.get('zone2Pace')?.points.map(([, v]) => v)).toEqual([340, 336, 330])
+    expect(byKey.get('thresholdPace')?.points.map(([, v]) => v)).toEqual([270, 268])
+    expect(byKey.get('durability')?.points.map(([, v]) => v)).toEqual([4, 3])
+    expect(byKey.get('hillStrength')?.stats.current).toBe(97)
+  })
 })

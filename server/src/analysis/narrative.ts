@@ -1,0 +1,239 @@
+import { ANALYSIS } from './analysisConstants.js'
+import type { BlockStatus, EvolutionFacts, Finding, NarratedFinding, WorkoutAssessment, WorkoutBlock } from './analysisTypes.js'
+import { NARRATIVE } from './narrativeConstants.js'
+
+const D = NARRATIVE.detail
+
+export function clock(seconds: number): string {
+  const total = Math.round(seconds)
+  const hours = Math.trunc(total / 3600)
+  const minutes = Math.trunc((total % 3600) / 60)
+  const secs = total % 60
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return hours > 0 ? `${hours}:${pad(minutes)}:${pad(secs)}` : `${minutes}:${pad(secs)}`
+}
+
+const integer = (value: number | undefined) => Math.round(value ?? 0)
+const decimal = (value: number | undefined) => (value ?? 0).toFixed(2).replace('.', ',')
+const percent = (value: number | undefined) => `${Math.round((value ?? 0) * 100)}%`
+const distance = (meters: number) => (meters < ANALYSIS.metersPerKilometer ? `${Math.round(meters)} m` : `${(meters / ANALYSIS.metersPerKilometer).toFixed(2).replace('.', ',')} ${NARRATIVE.distanceUnit}`)
+const paceClock = (speed: number | undefined) => (speed === undefined || speed <= 0 ? null : clock(ANALYSIS.metersPerKilometer / speed))
+const pace = (speed: number | undefined) => {
+  const value = paceClock(speed)
+  return value === null ? null : `${value} ${NARRATIVE.paceUnit}`
+}
+const labelOf = (finding: Finding, blocks: WorkoutBlock[]) => (finding.blockOrdinal === null ? null : (blocks[finding.blockOrdinal]?.label ?? null))
+const statusOf = (finding: Finding, blocks: WorkoutBlock[]): BlockStatus | null => (finding.blockOrdinal === null ? null : (blocks[finding.blockOrdinal]?.status ?? null))
+
+export const orderedFindings = (assessment: WorkoutAssessment) => [...assessment.positives, ...assessment.negatives, ...assessment.attention]
+
+function offTargetDirection(status: BlockStatus | null): string {
+  switch (status) {
+    case 'aboveTarget':
+      return 'acima do alvo'
+    case 'belowTarget':
+      return 'abaixo do alvo'
+    case 'slower':
+      return 'mais lento que o prescrito'
+    case 'faster':
+      return 'mais rápido que o prescrito'
+    default:
+      return 'fora do alvo prescrito'
+  }
+}
+
+const isHeartRateTarget = (status: BlockStatus | null) => status === 'aboveTarget' || status === 'belowTarget'
+
+function heartRateRange(facts: Record<string, number>): string | null {
+  return facts.targetLow === undefined || facts.targetHigh === undefined ? null : `${integer(facts.targetLow)}–${integer(facts.targetHigh)} bpm`
+}
+
+function paceRange(facts: Record<string, number>): string | null {
+  if (facts.targetLow === undefined || facts.targetHigh === undefined) return null
+  const fast = paceClock(facts.targetHigh)
+  const slow = paceClock(facts.targetLow)
+  return fast === null || slow === null ? null : `${fast}–${slow} ${NARRATIVE.paceUnit}`
+}
+
+function incompleteProgress(finding: Finding, blocks: WorkoutBlock[]): { done: string; target: string } | null {
+  const facts = finding.facts
+  const notExecuted = statusOf(finding, blocks) === 'notExecuted'
+  if (facts.targetDistance !== undefined) return { done: distance(notExecuted ? 0 : (facts.distance ?? 0)), target: distance(facts.targetDistance) }
+  if (facts.targetSeconds !== undefined) return { done: clock(notExecuted ? 0 : (facts.seconds ?? 0)), target: clock(facts.targetSeconds) }
+  return null
+}
+
+function offTarget(finding: Finding, label: string, blocks: WorkoutBlock[]): string {
+  const facts = finding.facts
+  const status = statusOf(finding, blocks)
+  const direction = offTargetDirection(status)
+  if (isHeartRateTarget(status)) {
+    const heartRate = facts.heartRate === undefined ? NARRATIVE.unknown : `${integer(facts.heartRate)} bpm`
+    const range = heartRateRange(facts)
+    return range === null ? `${label} com FC ${direction}: ${heartRate}.` : `${label} com FC ${direction}: ${heartRate} para ${range}.`
+  }
+  const value = pace(facts.speed) ?? NARRATIVE.unknown
+  const range = paceRange(facts)
+  return range === null ? `${label} ${direction}: ${value}.` : `${label} ${direction}: ${value} para ${range}.`
+}
+
+function incomplete(finding: Finding, label: string, blocks: WorkoutBlock[]): string {
+  const state = statusOf(finding, blocks) === 'notExecuted' ? 'não executado' : 'não completado'
+  const progress = incompleteProgress(finding, blocks)
+  return progress === null ? `${label} ${state}.` : `${label} ${state}: ${progress.done} de ${progress.target}.`
+}
+
+export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
+  const facts = finding.facts
+  const label = labelOf(finding, blocks) ?? NARRATIVE.genericBlock
+  switch (finding.kind) {
+    case 'blockInTarget': {
+      const inTarget = integer(facts.inTarget)
+      const total = integer(facts.total)
+      return inTarget === total ? `Todos os blocos ativos dentro do alvo prescrito: ${inTarget} de ${total}.` : `${inTarget} de ${total} blocos ativos dentro do alvo prescrito.`
+    }
+    case 'steadyPace':
+      return `${label} com pace constante: ${integer(facts.spread)} s/km de diferença entre as voltas.`
+    case 'lowerHeartRateThanBefore':
+      return `${label} com FC ${integer(facts.delta)} bpm menor que da última vez, no mesmo pace.`
+    case 'goodRecovery':
+      return `${label}: a FC caiu ${integer(facts.drop)} bpm desde o pico do bloco anterior.`
+    case 'blockOffTarget':
+      return offTarget(finding, label, blocks)
+    case 'stepIncomplete':
+      return incomplete(finding, label, blocks)
+    case 'paceFade':
+      return `${label} perdeu ritmo no fim: a última volta saiu ${integer(facts.fade)} s/km mais lenta que a mediana.`
+    case 'cardiacDrift':
+      return `${label} com desacoplamento: a FC subiu ${percent(facts.rise)} (${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm) com o pace estável.`
+    case 'zoneAboveTarget':
+      return `${label} em Z${integer(facts.zone)}, acima do esperado para um bloco leve.`
+    case 'hardOnLowReadiness':
+      return `Treino forte num dia de prontidão baixa: ${integer(facts.readiness)} de 100.`
+    case 'highAcuteChronic':
+      return `Carga aguda:crônica alta: ${decimal(facts.ratio)}.`
+  }
+}
+
+const clockOf = (seconds: number | undefined) => (seconds === undefined || seconds <= 0 ? null : clock(seconds))
+const joined = (parts: (string | null)[]) => {
+  const text = parts.filter((part): part is string => part !== null).join(' · ')
+  return text === '' ? null : text
+}
+
+function inTargetValues(blocks: WorkoutBlock[]): string | null {
+  const inTarget = blocks.filter((block) => block.kind === 'active' && block.status === 'inTarget')
+  if (inTarget.length === 0) return null
+  if (inTarget.every((block) => block.prescribed?.target.kind === 'heartRateBpm')) {
+    const values = inTarget.flatMap((block) => (block.avgHeartRate === null ? [] : [String(block.avgHeartRate)]))
+    return values.length === 0 ? null : `${values.join(' · ')} bpm`
+  }
+  const values = inTarget.flatMap((block) => {
+    const value = paceClock(block.avgSpeed ?? undefined)
+    return value === null ? [] : [value]
+  })
+  return values.length === 0 ? null : `${values.join(' · ')} ${NARRATIVE.paceUnit}`
+}
+
+export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): string | null {
+  const facts = finding.facts
+  switch (finding.kind) {
+    case 'blockInTarget':
+      return inTargetValues(blocks)
+    case 'steadyPace': {
+      const fastest = clockOf(facts.fastestPace)
+      const slowest = clockOf(facts.slowestPace)
+      return fastest === null || slowest === null ? null : `${D.lapsFrom} ${fastest} ${D.to} ${slowest} ${NARRATIVE.paceUnit}`
+    }
+    case 'lowerHeartRateThanBefore':
+      if (facts.heartRate === undefined || facts.beforeHeartRate === undefined) return null
+      return joined([`${integer(facts.heartRate)} bpm ${D.versus} ${integer(facts.beforeHeartRate)} bpm`, pace(facts.speed)])
+    case 'goodRecovery':
+      if (facts.peak === undefined || facts.recovered === undefined) return null
+      return `${D.peak} ${integer(facts.peak)} bpm → ${D.average} ${integer(facts.recovered)} bpm`
+    case 'blockOffTarget': {
+      const heartRate = facts.heartRate === undefined ? null : `FC ${integer(facts.heartRate)} bpm`
+      const paceText = pace(facts.speed)
+      if (isHeartRateTarget(statusOf(finding, blocks))) {
+        const range = heartRateRange(facts)
+        return joined([heartRate, range === null ? null : `${D.target} ${range}`, paceText])
+      }
+      const range = paceRange(facts)
+      return joined([paceText, range === null ? null : `${D.target} ${range}`, heartRate])
+    }
+    case 'stepIncomplete': {
+      const progress = incompleteProgress(finding, blocks)
+      return progress === null ? null : `${D.done} ${progress.done} ${D.of} ${progress.target}`
+    }
+    case 'paceFade': {
+      const last = clockOf(facts.lastPace)
+      const middle = clockOf(facts.medianPace)
+      return last === null || middle === null ? null : `${D.lastLap} ${last} · ${D.median} ${middle} ${NARRATIVE.paceUnit}`
+    }
+    case 'cardiacDrift':
+      return `FC ${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm · +${percent(facts.rise)}`
+    case 'zoneAboveTarget':
+      return joined([pace(facts.speed), facts.heartRate === undefined ? null : `FC ${integer(facts.heartRate)} bpm`])
+    case 'hardOnLowReadiness':
+      return `${D.readiness} ${integer(facts.readiness)} ${D.of} 100 · ${D.limit} ${ANALYSIS.lowReadiness}`
+    case 'highAcuteChronic':
+      return `${D.ratio} ${decimal(facts.ratio)} · ${D.limit} ${decimal(ANALYSIS.highAcuteChronic)}`
+  }
+}
+
+export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
+  const W = NARRATIVE.why
+  const facts = finding.facts
+  switch (finding.kind) {
+    case 'blockInTarget':
+      return facts.inTarget === facts.total ? W.allInTarget : W.someInTarget
+    case 'steadyPace':
+      return W.steadyPace
+    case 'lowerHeartRateThanBefore':
+      return W.lowerHeartRate
+    case 'goodRecovery':
+      return W.goodRecovery
+    case 'blockOffTarget': {
+      const status = statusOf(finding, blocks)
+      if (status === 'faster') return W.faster
+      if (status === 'aboveTarget') return W.heartRateAbove
+      if (status === 'belowTarget') return W.heartRateBelow
+      if (facts.recoveryHeartRate === undefined) return W.slower
+      const bpm = integer(facts.recoveryHeartRate)
+      return facts.recoveryHighest === 1 ? W.slowerHighestRecovery(bpm) : W.slowerAfterRecovery(bpm)
+    }
+    case 'stepIncomplete':
+      return statusOf(finding, blocks) === 'notExecuted' ? W.notExecuted : W.incomplete
+    case 'paceFade':
+      return W.paceFade
+    case 'cardiacDrift':
+      return W.cardiacDrift
+    case 'zoneAboveTarget':
+      return W.zoneAbove
+    case 'hardOnLowReadiness':
+      return W.lowReadiness
+    case 'highAcuteChronic':
+      return W.acuteChronic
+  }
+}
+
+export function evolutionText(facts: EvolutionFacts): string {
+  const seconds = Math.round(Math.abs(facts.paceDelta))
+  const paceText = Math.abs(facts.paceDelta) < NARRATIVE.paceDeltaThreshold ? 'Mesmo pace' : facts.paceDelta < 0 ? `${seconds} s/km mais rápido` : `${seconds} s/km mais lento`
+  const since = `em relação a ${facts.oldestDate.replace(/^\.+|\.+$/g, '')}`
+  if (facts.heartRateDelta === null) return `${paceText} ${since}.`
+  const beats = Math.round(Math.abs(facts.heartRateDelta))
+  const heartRate = Math.abs(facts.heartRateDelta) < NARRATIVE.heartRateDeltaThreshold ? 'FC igual' : facts.heartRateDelta < 0 ? `FC ${beats} bpm menor` : `FC ${beats} bpm maior`
+  return `${paceText}, ${heartRate}, ${since}.`
+}
+
+export function narrate(assessment: WorkoutAssessment, blocks: WorkoutBlock[]): NarratedFinding[] {
+  return orderedFindings(assessment).map((finding) => ({
+    group: finding.group,
+    kind: finding.kind,
+    blockOrdinal: finding.blockOrdinal,
+    text: findingText(finding, blocks),
+    evidence: findingEvidence(finding, blocks),
+    why: findingWhy(finding, blocks),
+  }))
+}

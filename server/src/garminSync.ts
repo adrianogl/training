@@ -4,6 +4,8 @@ import type { Sql } from './db.js'
 import { freshSession } from './garmin.js'
 import { GarminError } from './garminError.js'
 import { parseActivity, parseHealthDay } from './garminParse.js'
+import { FIT } from './fit/fitConstants.js'
+import { fetchFits } from './fit/fitStore.js'
 import type { ActivitySummary, GarminEnv, GarminSession, HealthDay, SyncProgress } from './types.js'
 
 type Env = GarminEnv & { dataKey: Buffer }
@@ -76,7 +78,7 @@ async function saveDay(sql: Sql, key: Buffer, accountId: string, day: HealthDay)
   )
 }
 
-async function saveActivity(sql: Sql, key: Buffer, accountId: string, activity: ActivitySummary): Promise<void> {
+export async function saveActivity(sql: Sql, key: Buffer, accountId: string, activity: ActivitySummary): Promise<void> {
   await sql(
     `insert into activities (account_id, activity_id, day, data_enc) values ($1, $2, $3, $4)
      on conflict (account_id, activity_id) do update set day = excluded.day, data_enc = excluded.data_enc, updated_at = now()`,
@@ -137,6 +139,17 @@ export async function syncAccount(sql: Sql, env: Env, accountId: string, budgetM
     await saveDay(sql, env.dataKey, accountId, await fetchDay(env, session, name, day))
     oldest = day
     days += 1
+  }
+
+  if (hasTime()) {
+    const ids = (await readActivitiesSince(sql, env.dataKey, accountId, addDays(today, -FIT.backfillDays))).filter((item) => item.type.includes('running')).map((item) => item.id)
+    if (ids.length > 0) {
+      try {
+        await fetchFits(sql, env, accountId, ids.reverse(), FIT.backfillPerRound, hasTime)
+      } catch (error) {
+        if (!(error instanceof GarminError) || error.code !== 'rate_limited') throw error
+      }
+    }
   }
 
   const done = activitiesDone && oldest <= limit

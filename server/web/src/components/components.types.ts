@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { RaceView, Route, SyncState, User } from '../types'
+import type { Activity, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
 
 export interface FieldProps {
   label: string
@@ -77,4 +77,23 @@ export interface RaceFormState {
   priority: string
   startTime: string
   city: string
+}
+
+export interface SplitChartProps {
+  pace: number[]
+  heartRate: number[]
+  label: string
+}
+
+export interface WorkoutDetailProps {
+  activity: Activity
+  onRenamed: (id: number, name: string) => void
+}
+
+export interface PlannedDetailProps {
+  planned: PlannedWorkout
+}
+
+export interface PlannedStepListProps {
+  steps: PlannedStep[]
 }

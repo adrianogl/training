@@ -1,4 +1,5 @@
 import { addDays } from '../garminSync.js'
+import type { RunMetrics } from '../fit/fitTypes.js'
 import type { ActivitySummary, HealthDay } from '../types.js'
 import { EVOLUTION, PREDICTION } from './domainConstants.js'
 import type { Effort, Evolution, MetricSeries, MetricStats, Records, SeriesPoint, WeekTotals } from './domainTypes.js'
@@ -62,6 +63,14 @@ function rolling(keys: string[], from: string, today: string, window: number, va
     }
   }
   return result
+}
+
+function fitSeries(runs: ActivitySummary[], metrics: Map<number, RunMetrics>, pick: (item: RunMetrics) => number | null): SeriesPoint[] {
+  return dailyMeans(runs.flatMap((run) => {
+    const item = metrics.get(run.id)
+    const value = item === undefined ? null : pick(item)
+    return value === null ? [] : [[run.day, value] as SeriesPoint]
+  }))
 }
 
 export function efforts(activities: ActivitySummary[]): Effort[] {
@@ -145,7 +154,7 @@ export function weekTotals(activities: ActivitySummary[], from: string, today: s
   return weeks
 }
 
-export function buildEvolution(days: HealthDay[], activities: ActivitySummary[], today: string, periodDays: number, results: RaceResult[] = []): Evolution {
+export function buildEvolution(days: HealthDay[], activities: ActivitySummary[], today: string, periodDays: number, results: RaceResult[] = [], metrics: Map<number, RunMetrics> = new Map()): Evolution {
   const from = addDays(today, 1 - periodDays)
   const runs = activities.filter(isRun)
   const daily = (pick: (day: HealthDay) => number | null | undefined): SeriesPoint[] =>
@@ -203,6 +212,10 @@ export function buildEvolution(days: HealthDay[], activities: ActivitySummary[],
         const total = zones.reduce((sum, list) => sum + list.reduce((a, b) => a + b, 0), 0)
         return total > 0 ? (zones.reduce((sum, list) => sum + list.slice(0, EVOLUTION.lowZoneCount).reduce((a, b) => a + b, 0), 0) / total) * 100 : null
       }), from),
+      series('zone2Pace', fitSeries(runs, metrics, (item) => item.zone2Pace), from),
+      series('thresholdPace', fitSeries(runs, metrics, (item) => item.thresholdPace), from),
+      series('durability', fitSeries(runs.filter((run) => (run.anaerobicEffect ?? 0) < EVOLUTION.intervalAnaerobicEffect), metrics, (item) => item.decoupling), from),
+      series('hillStrength', fitSeries(runs, metrics, (item) => item.hillIndex), from),
       series('cadence', dailyMeans(runs.flatMap((run) => (run.cadence === null ? [] : [[run.day, run.cadence] as SeriesPoint]))), from),
       ...PREDICTION.distances.map((distance) => series(distance.key, predictionSeries(distance.meters, allEfforts, from, today), from)),
     ],

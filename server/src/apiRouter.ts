@@ -1,3 +1,4 @@
+import { activityRoute, plannedRoute, renameActivityRoute } from './activityRoutes.js'
 import { deleteRaceRoute, racesRoute, saveRaceRoute } from './raceRoutes.js'
 import {
   changePasswordRoute,
@@ -60,6 +61,8 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/session': { GET: (request, sql) => garminSessionRoute(request, sql) },
   'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
   races: { GET: (request, sql) => racesRoute(request, sql), POST: (request, sql) => saveRaceRoute(request, sql), PUT: (request, sql) => saveRaceRoute(request, sql), DELETE: (request, sql) => deleteRaceRoute(request, sql) },
+  'garmin/planned': { GET: (request, sql) => plannedRoute(request, sql) },
+  'garmin/activity': { GET: (request, sql) => activityRoute(request, sql), PUT: (request, sql) => renameActivityRoute(request, sql) },
   'garmin/evolution': { GET: (request, sql) => garminEvolutionRoute(request, sql) },
   'garmin/today': { GET: (request, sql) => garminTodayRoute(request, sql) },
   'garmin/days': { GET: (request, sql) => garminDaysRoute(request, sql) },

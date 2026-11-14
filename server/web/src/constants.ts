@@ -197,7 +197,6 @@ export const READINESS_LEVELS: Record<string, string> = {
 
 export const DATA_TEXT = {
   readiness: 'PRONTIDÃO',
-  readinessSource: 'Nota da Garmin. A nossa nota chega no próximo módulo.',
   noReadiness: 'Sem prontidão de hoje ainda. Ela chega depois que o relógio sincroniza o sono.',
   recovery: (hours: number) => `Pronto para treino forte em ${hours} h`,
   recovered: 'Recuperado para treino forte',
@@ -216,22 +215,9 @@ export const DATA_TEXT = {
   disconnected: 'Garmin não conectada',
   connect: 'Conectar em Ajustes',
   firstSync: 'Primeira sincronização: trazendo até 180 dias de dados. Pode levar alguns minutos.',
-  workoutsTitle: 'Treinos',
   noActivities: 'Nenhuma atividade sincronizada ainda.',
   loadMore: 'Carregar mais',
-  distance: 'Distância',
-  time: 'Tempo',
-  pace: 'Pace',
-  heartRate: 'FC média',
-  maxHeartRate: 'FC máx.',
-  elevation: 'Subida',
-  load: 'Carga',
-  effect: 'Efeito aeróbico',
-  vo2: 'VO2 máx.',
-  fastestKm: 'Km mais rápido',
-  zones: 'TEMPO EM CADA ZONA',
   pickOne: 'Escolha um treino na lista.',
-  analysisSoon: 'A análise bloco a bloco, com o arquivo FIT, chega no módulo de análise de treino.',
 } as const
 
 export const VERDICTS = { hard: 'Pode treinar forte', moderate: 'Treino moderado', rest: 'Dia de descanso' } as const
@@ -263,6 +249,8 @@ export const ERRORS: Record<string, string> = {
   invalid_invite: 'Este convite venceu, foi cancelado ou já foi usado.',
   web_only: 'Contas de convidado entram só pelo site, por enquanto.',
   invalid_race_name: 'Dê um nome para a prova.',
+  invalid_activity_name: 'O nome precisa ter entre 1 e 100 caracteres.',
+  activity_not_found: 'Este treino não está mais na sua conta.',
   invalid_day: 'Confira a data da prova.',
   invalid_distance: 'Confira a distância.',
   invalid_goal: 'A meta precisa estar no formato 1:39:00 ou 45:00.',
@@ -303,7 +291,7 @@ export const DEFAULT_EVOLUTION_PERIOD = 91
 
 export const STABLE_FRACTION = 0.01
 
-export const BETTER_WHEN_LOWER = ['restingHeartRate', 'predictionHalf', 'prediction5k', 'prediction10k', 'predictionFull']
+export const BETTER_WHEN_LOWER = ['zone2Pace', 'thresholdPace', 'durability', 'restingHeartRate', 'predictionHalf', 'prediction5k', 'prediction10k', 'predictionFull']
 
 export const ZONE_COLORS = ['#7fb2ff', '#c8f05a', '#e8c547', '#ff8a4c', '#e5534b']
 
@@ -329,11 +317,11 @@ export const EVOLUTION_TEXT = {
   tiles: {
     predictionHalf: 'Previsão 21 km',
     vo2max: 'VO2 máx.',
-    fitness: 'Condicionamento',
+    zone2Pace: 'Pace em Z2',
+    thresholdPace: 'Pace de limiar',
     monthlyVolume: 'Volume em 30 dias',
-    hrv: 'HRV da noite',
   },
-  readingNames: { vo2max: 'VO2', fitness: 'condicionamento', hrv: 'HRV', restingHeartRate: 'FC de repouso' },
+  readingNames: { vo2max: 'VO2', zone2Pace: 'pace em Z2', fitness: 'condicionamento', hrv: 'HRV', restingHeartRate: 'FC de repouso' },
   form: 'FORMA E FADIGA · MÉDIA 7 DIAS',
   fitnessLegend: 'condicionamento',
   fatigueLegend: 'fadiga',
@@ -434,3 +422,75 @@ export const CHECKLIST_TEXT = {
   course: { title: 'Percurso da prova', detail: (km: string, gain: number) => `${km} km · +${gain} m de subida acumulada.`, missing: 'Sem percurso: importe do Garmin no app.' },
   goal: { title: 'Meta cadastrada', detail: (goal: string, priority: string) => `${goal} · prioridade ${priority}.`, missing: 'Sem meta: a estratégia usa a projeção.' },
 } as const
+
+export const WORKOUTS_PAGE_SIZE = 40
+
+export const GARMIN_ACTIVITY_URL = 'https://connect.garmin.com/modern/activity/'
+
+export const WORKOUT_TEXT = {
+  title: 'Treinos',
+  search: 'Buscar',
+  searchPlaceholder: 'Intervalado, longão, 10 km…',
+  planned: 'PLANEJADOS',
+  done: 'FEITOS',
+  plannedTag: 'Planejado',
+  today: 'Hoje',
+  openGarmin: 'Abrir no Garmin Connect',
+  rename: 'Editar nome',
+  save: 'Salvar',
+  cancel: 'Cancelar',
+  loading: 'Carregando a análise…',
+  analysisError: 'Não deu para carregar a análise agora.',
+  fitMissing: 'O arquivo do treino ainda não chegou da Garmin. A análise aparece quando ele for baixado.',
+  notRun: 'A análise detalhada é só para corridas.',
+  numbers: { distance: 'Distância', time: 'Tempo', pace: 'Pace', heartRate: 'FC média', elevation: 'Subida' },
+  reading: 'LEITURA DO TREINO',
+  groups: { positive: 'Positivo', negative: 'A melhorar', attention: 'Atenção' },
+  nothingToSay: 'Nada fora do comum neste treino.',
+  chart: 'PACE E FC POR KM',
+  paceLegend: 'pace',
+  heartRateLegend: 'FC',
+  blocks: 'BLOCOS DO TREINO',
+  blockColumns: ['Bloco', 'Distância', 'Pace', 'FC', 'Status'],
+  zones: 'TEMPO EM CADA ZONA',
+  comparison: 'COMPARADO COM TREINOS PARECIDOS',
+  comparisonColumns: ['Data', 'Pace', 'FC', 'No alvo'],
+  currentRow: 'Este treino',
+  score: 'NOTA DO TREINO',
+  scoreParts: { execution: 'Execução', intent: 'Intenção', cost: 'Custo' },
+  outOfScore: 'fora da nota',
+  estimate: (km: string, time: string) => `${km} · ${time}`,
+  plannedSteps: 'PASSOS',
+  repeat: (times: number) => `${times}×`,
+  stepKinds: { warmup: 'Aquecimento', active: 'Tiro', recovery: 'Recuperação', cooldown: 'Desaquecimento', rest: 'Descanso', other: 'Passo' },
+  zone: (zone: number) => `zona ${zone}`,
+  minutes: (value: number) => `${value} min`,
+} as const
+
+export const BLOCK_STATUS_TEXT: Record<string, string> = {
+  inTarget: 'no alvo',
+  faster: 'mais rápido',
+  slower: 'mais lento',
+  aboveTarget: 'FC acima',
+  belowTarget: 'FC abaixo',
+  noTarget: '',
+  incomplete: 'incompleto',
+  notExecuted: 'não feito',
+}
+
+export const SCORE_REASON_TEXT: Record<string, string> = {
+  blocksOffTarget: 'blocos fora do alvo',
+  incompleteStep: 'bloco incompleto',
+  notExecuted: 'bloco não executado',
+  easyTooHard: 'FC alta no aquecimento ou no treino leve',
+  hardTooEasy: 'esforço baixo nos blocos fortes',
+  heartRateTargetMissed: 'FC fora do alvo',
+  lessEfficient: 'menos eficiente que nos treinos anteriores',
+  moreEfficient: 'mais eficiente que nos treinos anteriores',
+  noHeartRate: 'sem FC no treino',
+  noZones: 'sem zonas de FC',
+  noHistory: 'sem treino anterior para comparar',
+  noPrescription: 'sem prescrição',
+}
+
+export const SCORE_THRESHOLDS = { strong: 80, moderate: 60 } as const

@@ -1,92 +1,77 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
-import { DATA_TEXT } from '../constants'
-import { duration, km, longDate, pace, shortDate } from '../format'
-import type { Activity } from '../types'
+import { PlannedDetail } from '../components/PlannedDetail'
+import { WorkoutDetail } from '../components/WorkoutDetail'
+import { DATA_TEXT, WORKOUT_TEXT, WORKOUTS_PAGE_SIZE } from '../constants'
+import { km, pace, shortDate, todayLocal } from '../format'
+import type { Activity, PlannedWorkout, WorkoutSelection } from '../types'
+import { matches, plannedEstimate, plannedMatches } from '../workoutView'
 import type { DataPageProps } from './pages.types'
-
-const PAGE = 40
-const ZONE_COLORS = ['#7fb2ff', '#c8f05a', '#e8c547', '#ff8a4c', '#e5534b']
 
 export function WorkoutsPage({ version }: DataPageProps) {
   const [activities, setActivities] = useState<Activity[]>([])
-  const [selected, setSelected] = useState<number | null>(null)
+  const [planned, setPlanned] = useState<PlannedWorkout[]>([])
+  const [selected, setSelected] = useState<WorkoutSelection | null>(null)
   const [more, setMore] = useState(true)
+  const [query, setQuery] = useState('')
+  const today = todayLocal()
 
   useEffect(() => {
-    void api.garminActivities(PAGE).then((result) => {
-      if (result.ok) {
-        setActivities(result.value.activities)
-        setMore(result.value.activities.length === PAGE)
-        setSelected((current) => current ?? result.value.activities[0]?.id ?? null)
-      }
+    void api.garminActivities(WORKOUTS_PAGE_SIZE).then((result) => {
+      if (!result.ok) return
+      setActivities(result.value.activities)
+      setMore(result.value.activities.length === WORKOUTS_PAGE_SIZE)
+      setSelected((current) => current ?? (result.value.activities[0] ? { kind: 'done', id: result.value.activities[0].id } : null))
     })
+    void api.garminPlanned().then((result) => result.ok && setPlanned(result.value.planned))
   }, [version])
 
   async function loadMore() {
     const last = activities.at(-1)
-    if (last === undefined) {
-      return
-    }
-    const result = await api.garminActivities(PAGE, last.day)
-    if (result.ok) {
-      setActivities((current) => [...current, ...result.value.activities.filter((item) => !current.some((existing) => existing.id === item.id))])
-      setMore(result.value.activities.length === PAGE)
-    }
+    if (last === undefined) return
+    const result = await api.garminActivities(WORKOUTS_PAGE_SIZE, last.day)
+    if (!result.ok) return
+    setActivities((current) => [...current, ...result.value.activities.filter((item) => !current.some((existing) => existing.id === item.id))])
+    setMore(result.value.activities.length === WORKOUTS_PAGE_SIZE)
   }
 
-  const activity = activities.find((item) => item.id === selected)
-  const zoneTotal = activity ? activity.zoneSeconds.reduce((sum, value) => sum + value, 0) : 0
+  const visible = activities.filter((item) => matches(item, query))
+  const visiblePlanned = planned.filter((item) => plannedMatches(item, query))
+  const activity = selected?.kind === 'done' ? activities.find((item) => item.id === selected.id) : undefined
+  const plan = selected?.kind === 'planned' ? planned.find((item) => item.id === selected.id && item.day === selected.day) : undefined
+
   return (
     <section className="page wide">
-      <h1>{DATA_TEXT.workoutsTitle}</h1>
+      <h1>{WORKOUT_TEXT.title}</h1>
       <div className="workouts">
         <div className="workout-list">
-          {activities.length === 0 && <p className="muted">{DATA_TEXT.noActivities}</p>}
-          {activities.map((item) => (
-            <button key={item.id} type="button" className={`workout-row${item.id === selected ? ' on' : ''}`} onClick={() => setSelected(item.id)}>
+          <label className="field">
+            {WORKOUT_TEXT.search}
+            <input id="workout-search" type="search" placeholder={WORKOUT_TEXT.searchPlaceholder} value={query} onChange={(event) => setQuery(event.target.value)} />
+          </label>
+          {visiblePlanned.length > 0 && <span className="label">{WORKOUT_TEXT.planned}</span>}
+          {visiblePlanned.map((item) => (
+            <button key={`${item.id}-${item.day}`} type="button" className={`workout-row${plan === item ? ' on' : ''}`} onClick={() => setSelected({ kind: 'planned', id: item.id, day: item.day })}>
+              <span className="row"><span className="muted">{item.day === today ? WORKOUT_TEXT.today : shortDate(item.day)}</span><span className="pill">{WORKOUT_TEXT.plannedTag}</span></span>
+              <strong>{item.title}</strong>
+              <span className="muted">{plannedEstimate(item)}</span>
+            </button>
+          ))}
+          <span className="label">{WORKOUT_TEXT.done}</span>
+          {visible.length === 0 && <p className="muted">{DATA_TEXT.noActivities}</p>}
+          {visible.map((item) => (
+            <button key={item.id} type="button" className={`workout-row${activity?.id === item.id ? ' on' : ''}`} onClick={() => setSelected({ kind: 'done', id: item.id })}>
               <span className="muted">{shortDate(item.day)}</span>
               <strong>{item.name}</strong>
               <span className="muted">{km(item.distanceMeters)} · {pace(item.averageSpeed)}{item.averageHeartRate !== null ? ` · FC ${Math.round(item.averageHeartRate)}` : ''}</span>
             </button>
           ))}
-          {more && activities.length > 0 && <button type="button" className="btn" onClick={loadMore}>{DATA_TEXT.loadMore}</button>}
+          {more && activities.length > 0 && query === '' && <button type="button" className="btn" onClick={() => void loadMore()}>{DATA_TEXT.loadMore}</button>}
         </div>
         <div className="workout-detail">
-          {!activity && <p className="muted">{DATA_TEXT.pickOne}</p>}
-          {activity && (
-            <>
-              <div>
-                <span className="muted">{longDate(activity.day)} · {activity.startLocal.slice(11, 16)}</span>
-                <h2 style={{ fontSize: 28, marginTop: 4 }}>{activity.name}</h2>
-              </div>
-              <div className="stats">
-                <div><span>{DATA_TEXT.distance}</span><b>{km(activity.distanceMeters)}</b></div>
-                <div><span>{DATA_TEXT.time}</span><b>{duration(activity.movingSeconds ?? activity.durationSeconds)}</b></div>
-                <div><span>{DATA_TEXT.pace}</span><b>{pace(activity.averageSpeed)}</b></div>
-                <div><span>{DATA_TEXT.heartRate}</span><b>{activity.averageHeartRate === null ? '—' : `${Math.round(activity.averageHeartRate)} bpm`}</b></div>
-                <div><span>{DATA_TEXT.maxHeartRate}</span><b>{activity.maxHeartRate === null ? '—' : `${Math.round(activity.maxHeartRate)} bpm`}</b></div>
-                <div><span>{DATA_TEXT.elevation}</span><b>{activity.elevationGain === null ? '—' : `${Math.round(activity.elevationGain)} m`}</b></div>
-                <div><span>{DATA_TEXT.load}</span><b>{activity.trainingLoad === null ? '—' : Math.round(activity.trainingLoad)}</b></div>
-                <div><span>{DATA_TEXT.effect}</span><b>{activity.aerobicEffect === null ? '—' : activity.aerobicEffect.toFixed(1).replace('.', ',')}</b></div>
-                <div><span>{DATA_TEXT.fastestKm}</span><b>{activity.fastestKmSeconds === null ? '—' : `${duration(activity.fastestKmSeconds)}/km`}</b></div>
-                <div><span>{DATA_TEXT.vo2}</span><b>{activity.vo2max ?? '—'}</b></div>
-              </div>
-              {zoneTotal > 0 && (
-                <div className="card">
-                  <span className="label">{DATA_TEXT.zones}</span>
-                  {activity.zoneSeconds.map((seconds, index) => (
-                    <div className="zone" key={index}>
-                      <span>Z{index + 1}</span>
-                      <div><i style={{ width: `${(seconds / zoneTotal) * 100}%`, background: ZONE_COLORS[index] }} /></div>
-                      <span>{Math.round(seconds / 60)} min</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <p className="note">{DATA_TEXT.analysisSoon}</p>
-            </>
-          )}
+          {activity && <WorkoutDetail key={activity.id} activity={activity} onRenamed={(id, name) => setActivities((current) => current.map((item) => (item.id === id ? { ...item, name } : item)))} />}
+          {plan && <PlannedDetail planned={plan} />}
+          {!activity && !plan && <p className="muted">{DATA_TEXT.pickOne}</p>}
         </div>
       </div>
     </section>

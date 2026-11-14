@@ -286,3 +286,76 @@ export interface RaceInput {
   startTime: string | null
   city: string | null
 }
+
+export type BlockStatus = 'inTarget' | 'faster' | 'slower' | 'aboveTarget' | 'belowTarget' | 'noTarget' | 'incomplete' | 'notExecuted'
+
+export interface WorkoutBlock {
+  kind: 'warmup' | 'active' | 'recovery' | 'cooldown'
+  ordinal: number
+  label: string
+  seconds: number
+  distance: number
+  avgSpeed: number | null
+  avgHeartRate: number | null
+  maxHeartRate: number | null
+  dominantZone: number | null
+  status: BlockStatus
+}
+
+export interface NarratedFinding {
+  group: 'positive' | 'negative' | 'attention'
+  kind: string
+  blockOrdinal: number | null
+  text: string
+  evidence: string | null
+  why: string
+}
+
+export interface ScoreItem {
+  part: 'execution' | 'intent' | 'cost'
+  points: number
+  maximum: number
+  reason: string | null
+}
+
+export interface ComparisonRow {
+  activityId: number
+  day: string
+  isCurrent: boolean
+  secondsPerKilometer: number | null
+  heartRate: number | null
+  inTarget: { done: number; total: number } | null
+}
+
+export interface WorkoutAnalysisView {
+  isRun: boolean
+  hasPrescription: boolean
+  workoutName: string | null
+  zoneSeconds: number[] | null
+  blocks: WorkoutBlock[]
+  kilometers: { block: number; rows: WorkoutBlock[] }[]
+  splits: WorkoutBlock[]
+  findings: NarratedFinding[]
+  score: { value: number; items: ScoreItem[] } | null
+  comparison: { rows: ComparisonRow[]; notice: string | null; evolution: string | null } | null
+}
+
+export interface PlannedStep {
+  kind: 'warmup' | 'active' | 'recovery' | 'cooldown' | 'rest' | 'other'
+  seconds: number | null
+  meters: number | null
+  target: { kind: 'pace'; fastest: number; slowest: number } | { kind: 'heartRate'; low: number; high: number } | { kind: 'zone'; zone: number } | null
+  repeats: number
+  children: PlannedStep[]
+}
+
+export interface PlannedWorkout {
+  id: number
+  day: string
+  title: string
+  estimatedSeconds: number | null
+  estimatedMeters: number | null
+  steps: PlannedStep[]
+}
+
+export type WorkoutSelection = { kind: 'done'; id: number } | { kind: 'planned'; id: number; day: string }

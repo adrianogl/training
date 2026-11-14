@@ -10,6 +10,7 @@ import { buildToday, LOAD_HISTORY_DAYS } from './domain/today.js'
 import { addDays, localDay, readActivities, readActivitiesSince, readDays, syncAccount } from './garminSync.js'
 import { GarminError } from './garminError.js'
 import { readRaces } from './races.js'
+import { readRunMetrics } from './fit/fitStore.js'
 import type { GarminEnv } from './types.js'
 import { parseObject } from './validate.js'
 
@@ -197,6 +198,8 @@ export function garminEvolutionRoute(request: Request, sql: Sql, env: GarminEnv 
     const days = await readDays(sql, key, accountId, addDays(today, 1 - periodDays), today)
     const activities = await readActivitiesSince(sql, key, accountId, addDays(today, -365))
     const results = (await readRaces(sql, key, accountId)).flatMap(({ race }) => (race?.resultActivityId ? [{ name: race.name, activityId: race.resultActivityId }] : []))
-    return json(200, buildEvolution(days, activities, today, periodDays, results))
+    const runIds = activities.filter((activity) => activity.type.includes('running') && activity.day >= addDays(today, 1 - periodDays)).map((activity) => activity.id)
+    const metrics = await readRunMetrics(sql, key, accountId, runIds)
+    return json(200, buildEvolution(days, activities, today, periodDays, results, metrics))
   })
 }

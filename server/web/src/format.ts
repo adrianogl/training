@@ -99,3 +99,7 @@ export function paceClock(secondsPerKm: number): string {
 export function kmNumber(km: number, digits = 1): string {
   return String(Number(km.toFixed(digits))).replace('.', ',')
 }
+
+export function dayMonthNear(day: string, today = todayLocal()): string {
+  return day.slice(0, 4) === today.slice(0, 4) ? dayMonth(day) : `${dayMonth(day)} de ${day.slice(0, 4)}`
+}

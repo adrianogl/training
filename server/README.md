@@ -83,6 +83,10 @@ Spec: `tasks/conta-spec.md`. O token de sessão tem o formato da chave de conta 
 | `POST /api/v1/auth/resend-verification` | 204; 503 `mail_unavailable` |
 | `GET`/`DELETE /api/v1/auth/sessions` | Lista as sessões; `DELETE ?id=` encerra uma |
 
+## FIT
+
+O FIT de cada corrida é baixado de `/download-service/files/activity/{id}` e lido com o `@garmin/fitsdk`. O servidor guarda cifrado só o resultado da leitura (amostras de 5 s, voltas, treino prescrito, zonas) e as métricas da corrida (pace em Z2, pace de limiar, desacoplamento, força em subida) em `activity_fit`, com a versão do processamento. O sync baixa os FITs dos últimos 182 dias, 5 por rodada.
+
 ## Provas
 
 As provas e as decisões de resultado continuam na tabela `records`, no mesmo protocolo de sync. Registros com `"format":"plain"` chegam em JSON e o servidor cifra com `DATA_KEY` antes de gravar; no pull eles voltam decifrados com `format`. Registros sem `format` são os antigos, cifrados no aparelho, e passam intactos. Com o mesmo `updatedAt`, `plain` substitui o antigo, para o reenvio do app atualizado valer.
@@ -106,6 +110,9 @@ O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a
 | `POST /api/v1/garmin/verify` | Corpo `{"code"}`. 200 `{"status":"connected"}`; 400 `garmin_invalid_code`; 409 `garmin_login_expired` |
 | `GET`/`DELETE /api/v1/garmin/status` | `{"connected","connectedAt"}`; `DELETE` desconecta |
 | `GET /api/v1/garmin/evolution?days=` | Séries, previsões e recordes do período (42, 91, 182 ou 365 dias; padrão 91) |
+| `GET /api/v1/garmin/activity?id=` | Análise do treino a partir do FIT: blocos com status, km a km, zonas, avaliação em texto, nota e comparação com até 4 treinos parecidos. Baixa o FIT na primeira vez |
+| `PUT /api/v1/garmin/activity?id=` | Corpo `{"name"}`. Renomeia o treino na Garmin e no cache |
+| `GET /api/v1/garmin/planned` | Treinos de corrida planejados no calendário da Garmin nos próximos 14 dias |
 | `GET /api/v1/garmin/session` | A sessão da Garmin para o app (`accessToken`, `refreshToken`, `clientId`, `expiresAt`); 404 `garmin_not_connected` |
 
 ## Convites e administração

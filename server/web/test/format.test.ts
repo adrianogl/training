@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { duration, km, pace, readinessLabel, shiftDay, todayLocal, weekStart } from '../src/format'
+import { dayMonthNear, duration, km, pace, readinessLabel, shiftDay, todayLocal, weekStart } from '../src/format'
 
 describe('formatação', () => {
   it('pace, distância e tempo', () => {
@@ -21,5 +21,10 @@ describe('formatação', () => {
     expect(readinessLabel('LOW', 25)).toBe('Pegue leve hoje')
     expect(readinessLabel(null, 75)).toBe('Pode treinar forte')
     expect(readinessLabel(null, 50)).toBe('Treino moderado')
+  })
+
+  it('data curta ganha o ano quando não é o ano corrente', () => {
+    expect(dayMonthNear('2026-11-29', '2026-11-14')).toBe('29 nov')
+    expect(dayMonthNear('2027-10-23', '2026-11-14')).toBe('23 out de 2027')
   })
 })

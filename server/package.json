@@ -13,7 +13,9 @@
     "build": "npm run migrate && rm -rf public && mkdir -p public && cp -R landing/. public/ && npm --prefix web ci && npm --prefix web run build"
   },
   "dependencies": {
-    "@neondatabase/serverless": "1.2.0"
+    "@garmin/fitsdk": "21.218.0",
+    "@neondatabase/serverless": "1.2.0",
+    "fflate": "0.8.3"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.12",
