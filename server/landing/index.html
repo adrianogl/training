@@ -53,7 +53,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tags { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
 .tags .tag { margin-bottom: 0; }
 .free-pill { display: inline-flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; }
-.free-scene { padding-block: 24px; }
 .free-band { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 48px; align-items: center; padding: 40px; border-radius: 28px; background: var(--lime-deep); border: 1px solid #3c5214; }
 .free-word { font-size: clamp(56px, 8.5vw, 124px); color: var(--lime); margin: 0; }
 .free-points { display: grid; gap: 14px; color: var(--ink-2); font-size: 17px; }
@@ -112,7 +111,9 @@ footer .footer-note { flex-basis: 100%; font-size: 12px; }
 .scene.pin { height: var(--len, 280vh); }
 .stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: flex; align-items: center; }
 .scene { --p: 1; }
-.flow { padding-block: clamp(80px, 12vw, 160px); }
+.flow { padding-block: clamp(48px, 6vw, 96px); }
+.flow + .flow, .pin + .flow { padding-top: 0; }
+.flow.free-scene { padding-block: clamp(24px, 3vw, 40px); }
 
 /* 1 · Abertura */
 .hero .stage { align-items: stretch; }
@@ -275,7 +276,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 
 @media (max-width: 860px) {
   .scene.pin { height: auto; }
-  .stage { position: relative; height: auto; overflow: visible; padding-block: 96px 64px; }
+  .stage { position: relative; height: auto; overflow: visible; padding-block: 64px 32px; }
   .hero-grid, .pulse-grid, .split, .watch-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
   .hero-grid { padding-top: 40px; }
   .hero h1 { transform: none; opacity: 1; }
@@ -299,7 +300,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   html { scroll-behavior: auto; }
   .scene { --p: 1 !important; }
   .scene.pin { height: auto; }
-  .stage { position: relative; height: auto; padding-block: 96px; }
+  .stage { position: relative; height: auto; padding-block: 64px; }
   .ring .fill { animation: none; stroke-dashoffset: 76; }
   .step { position: static; opacity: 1 !important; transform: none !important; }
   .steps { min-height: 0; display: grid; gap: 28px; }
@@ -316,7 +317,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 </header>
 
 <main id="topo">
-  <section class="scene pin hero" data-scene style="--len: 200vh" aria-labelledby="hero-title">
+  <section class="scene pin hero" data-scene style="--len: 150vh" aria-labelledby="hero-title">
     <div class="stage">
       <div class="wrap hero-grid">
         <div>
@@ -367,7 +368,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     </div>
   </section>
 
-  <section id="pulso" class="scene pin" data-scene data-steps="3" style="--len: 300vh" aria-labelledby="pulso-title">
+  <section id="pulso" class="scene pin" data-scene data-steps="3" style="--len: 210vh" aria-labelledby="pulso-title">
     <div class="stage">
       <div class="wrap pulse-grid">
         <div class="steps">
@@ -454,7 +455,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     </div>
   </section>
 
-  <section class="scene pin" data-scene data-fields style="--len: 280vh" aria-labelledby="relogio-title">
+  <section class="scene pin" data-scene data-fields style="--len: 190vh" aria-labelledby="relogio-title">
     <div class="stage">
       <div class="wrap watch-grid">
         <div>
