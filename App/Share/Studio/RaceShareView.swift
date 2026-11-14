@@ -1,8 +1,10 @@
+import PhotosUI
 import SwiftUI
 import WorkoutAnalysis
 
 struct RaceShareCard: View {
     let summary: CompletedRaceSummary
+    var photo: UIImage?
 
     private typealias C = ShareStudioConstants
 
@@ -26,7 +28,9 @@ struct RaceShareCard: View {
         }
         .padding(24)
         .frame(width: C.width, height: C.heights[.story] ?? C.width, alignment: .topLeading)
-        .background(ShareBackground())
+        .background {
+            if let photo { SharePhotoBackdrop(photo: photo) } else { ShareBackground() }
+        }
         .environment(\.colorScheme, .dark)
     }
 
@@ -84,6 +88,8 @@ struct RaceShareView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var image: UIImage?
     @State private var exported: ExportedFile?
+    @State private var photoItem: PhotosPickerItem?
+    @State private var photo: UIImage?
 
     var body: some View {
         NavigationStack {
@@ -106,6 +112,19 @@ struct RaceShareView: View {
                         .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
                 }
                 .buttonStyle(.plain)
+                HStack(spacing: 16) {
+                    PhotosPicker(selection: $photoItem, matching: .images) {
+                        Label(photo == nil ? ShareStudioConstants.choosePhoto : ShareStudioConstants.changePhoto, systemImage: "photo.on.rectangle")
+                    }
+                    if photo != nil {
+                        Button(ShareStudioConstants.removePhoto, systemImage: "xmark.circle") {
+                            photo = nil
+                            photoItem = nil
+                        }
+                    }
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.accent)
                 Spacer()
             }
             .padding(BrandConstants.screenPadding)
@@ -116,8 +135,14 @@ struct RaceShareView: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Pronto") { dismiss() }.tint(BrandColors.accent) }
             }
         }
-        .task {
-            let renderer = ImageRenderer(content: RaceShareCard(summary: summary))
+        .onChange(of: photoItem) { _, item in
+            Task {
+                guard let data = try? await item?.loadTransferable(type: Data.self) else { return }
+                photo = UIImage(data: data)
+            }
+        }
+        .task(id: photo?.hash ?? 0) {
+            let renderer = ImageRenderer(content: RaceShareCard(summary: summary, photo: photo))
             renderer.scale = ShareStudioConstants.imageScale
             renderer.isOpaque = true
             image = renderer.uiImage

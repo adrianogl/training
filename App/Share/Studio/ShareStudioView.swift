@@ -48,6 +48,7 @@ struct ShareStudioView: View {
     private var showsRoute: Bool { source.track.count >= 2 && ![.series, .evolution, .blocks].contains(current) }
     private var usesFields: Bool { ![.series, .evolution].contains(current) }
     private var isSticker: Bool { [.sticker, .strip].contains(current) }
+    private var acceptsPhoto: Bool { ![.sticker, .strip, .blocks].contains(current) }
 
     var body: some View {
         NavigationStack {
@@ -73,7 +74,7 @@ struct ShareStudioView: View {
                 }
             }
         }
-        .task(id: "\(current.rawValue)|\(aspect.rawValue)|\(hidesEnds)|\(fieldsText)") {
+        .task(id: "\(current.rawValue)|\(aspect.rawValue)|\(hidesEnds)|\(fieldsText)|\(photo?.hash ?? 0)") {
             staticPreview = isAnimated ? nil : ShareMediaExporter.image(source: source, settings: settings, photo: photo, scale: 2)
             #if DEBUG
             ShareDebugExport.runIfRequested(input: source.input, enabled: settings.fields)
@@ -226,11 +227,22 @@ struct ShareStudioView: View {
     @ViewBuilder
     private var options: some View {
         VStack(alignment: .leading, spacing: 14) {
-            if current == .photo {
-                PhotosPicker(selection: $photoItem, matching: .images) {
-                    Label(photo == nil ? C.choosePhoto : C.changePhoto, systemImage: "photo.on.rectangle")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(BrandColors.accent)
+            if acceptsPhoto {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(C.backgroundLabel).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim)
+                    HStack(spacing: 16) {
+                        PhotosPicker(selection: $photoItem, matching: .images) {
+                            Label(photo == nil ? C.choosePhoto : C.changePhoto, systemImage: "photo.on.rectangle")
+                        }
+                        if photo != nil {
+                            Button(C.removePhoto, systemImage: "xmark.circle") {
+                                photo = nil
+                                photoItem = nil
+                            }
+                        }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(BrandColors.accent)
                 }
             }
             if usesAspect {

@@ -12,7 +12,8 @@ struct ShareStudioCard: View {
     var body: some View {
         switch settings.format {
         case .sticker: legacy(.transparent)
-        case .card: legacy(.storiesDark)
+        case .card:
+            if photo == nil { legacy(.storiesDark) } else { photoLegacy }
         case .blocks: legacy(.blocks)
         case .strip: legacy(.strip)
         default: canvas.frame(width: C.width, height: C.heights[settings.aspect] ?? C.width).clipped().environment(\.colorScheme, .dark)
@@ -39,6 +40,21 @@ struct ShareStudioCard: View {
         var input = source.input
         input.route = track.map(\.coordinate)
         return ShareCardView(content: shareContent(record: input, enabled: settings.fields, template: template), template: template)
+    }
+
+    private var photoLegacy: some View {
+        legacy(.transparent)
+            .frame(width: ShareConstants.canvasWidth, height: ShareConstants.storiesHeight)
+            .background { backdrop { ShareBackground() } }
+    }
+
+    @ViewBuilder
+    private func backdrop<Fallback: View>(@ViewBuilder _ fallback: () -> Fallback) -> some View {
+        if let photo {
+            SharePhotoBackdrop(photo: photo)
+        } else {
+            fallback()
+        }
     }
 
     private var track: [TrackPoint] {
@@ -68,7 +84,7 @@ struct ShareStudioCard: View {
             }
         }
         .padding(24)
-        .background(ShareBackground())
+        .background { backdrop { ShareBackground() } }
     }
 
     private var square: some View {
@@ -83,7 +99,7 @@ struct ShareStudioCard: View {
             stats(color: BrandColors.text, size: 28)
         }
         .padding(22)
-        .background(BrandColors.iconBase)
+        .background { backdrop { BrandColors.iconBase } }
     }
 
     private var photoCard: some View {
@@ -132,7 +148,7 @@ struct ShareStudioCard: View {
             }
         }
         .padding(24)
-        .background(ShareBackground())
+        .background { backdrop { ShareBackground() } }
     }
 
     private var evolutionCard: some View {
@@ -155,7 +171,7 @@ struct ShareStudioCard: View {
             ShareEvolutionChart(points: points).frame(maxHeight: .infinity)
         }
         .padding(24)
-        .background(ShareBackground())
+        .background { backdrop { ShareBackground() } }
     }
 
     private func evolutionSubtitle(first: EvolutionPoint, last: EvolutionPoint) -> String {
@@ -274,5 +290,22 @@ struct ShareEvolutionChart: View {
             }
         }
         .accessibilityHidden(true)
+    }
+}
+
+struct SharePhotoBackdrop: View {
+    let photo: UIImage
+
+    var body: some View {
+        Color.clear
+            .overlay { Image(uiImage: photo).resizable().scaledToFill() }
+            .clipped()
+            .overlay {
+                LinearGradient(
+                    colors: [.black.opacity(ShareStudioConstants.scrimTop), .black.opacity(ShareStudioConstants.scrimMiddle), .black.opacity(ShareStudioConstants.scrimBottom)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
     }
 }

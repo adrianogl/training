@@ -124,4 +124,16 @@ import WorkoutAnalysis
         #expect(progresses.suffix(Int(ShareStudioConstants.holdSeconds * 10)).allSatisfy { $0 == 1 })
         #expect(zip(progresses, progresses.dropFirst()).allSatisfy { $0 <= $1 })
     }
+
+    @Test func photoBackgroundRendersOnFormatsWithBackground() throws {
+        let photo = UIGraphicsImageRenderer(size: CGSize(width: 40, height: 40)).image { context in
+            UIColor.red.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 40, height: 40))
+        }
+        for format in [ShareFormat.animatedRoute, .animatedSquare, .series, .evolution, .card] {
+            let plain = try #require(ShareMediaExporter.image(source: Self.source(), settings: Self.settings(format), photo: nil, scale: 1)?.pngData())
+            let withPhoto = try #require(ShareMediaExporter.image(source: Self.source(), settings: Self.settings(format), photo: photo, scale: 1)?.pngData())
+            #expect(plain != withPhoto, "formato \(format.rawValue)")
+        }
+    }
 }

@@ -21,6 +21,11 @@ enum ShareStudioConstants {
     static let heights: [ShareAspect: CGFloat] = [.story: 640, .portrait: 450, .square: 360]
     static let previewWidths: [ShareAspect: CGFloat] = [.story: 220, .portrait: 260, .square: 280]
 
+    static let scrimTop = 0.45
+    static let scrimMiddle = 0.15
+    static let scrimBottom = 0.7
+    static let removePhoto = "Remover foto"
+    static let backgroundLabel = "Foto de fundo"
     static let animationSeconds = 4.0
     static let holdSeconds = 1.2
     static let gifFramesPerSecond = 15.0
