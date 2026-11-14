@@ -52,9 +52,14 @@ import WorkoutAnalysis
     func loadPlanned(client: GarminAccountClient?) async {
         guard let client else { return }
         let first = today.weekStart
-        guard let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: first.adding(days: 6)),
-              !Task.isCancelled
-        else { return }
+        let workouts: [PlannedWorkout]
+        do {
+            workouts = try await PlannedWorkouts.fetch(client: client, from: first, through: first.adding(days: 6))
+        } catch {
+            TodayConstants.logger.error("Falha ao buscar treinos planejados: \(String(describing: error), privacy: .public)")
+            return
+        }
+        guard !Task.isCancelled else { return }
         planned = Dictionary(grouping: workouts) { Day(iso: $0.day) ?? today }
     }
 

@@ -1,8 +1,10 @@
+import OSLog
 import GarminAPI
 import Foundation
 import Metrics
 
 enum TodayConstants {
+    static let logger = Logger(subsystem: "trAIning", category: "Today")
     static let moderateThreshold = 40
     static let hardThreshold = 70
     static let fitnessHistoryDays = 60

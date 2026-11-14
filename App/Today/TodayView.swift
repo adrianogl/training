@@ -78,6 +78,11 @@ struct TodayView: View {
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
             await loaded.refreshSentence()
         }
+        .task(id: app.garminAccount.isSignedIn) {
+            guard let model, app.garminAccount.isSignedIn else { return }
+            await model.loadPlanned(client: app.garminAccount.client)
+            await model.loadPlannedHistory(client: app.garminAccount.client)
+        }
     }
 
     @ViewBuilder
