@@ -21,6 +21,8 @@ import WorkoutAnalysis
     private(set) var raceName: String?
     private(set) var weekRuns: [Day: [WeekRun]] = [:]
     private(set) var recoveryRun: RecoveryRun?
+    private(set) var reportRuns: [ReportRun] = []
+    private(set) var currentRuns: [ReportRun] = []
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var isLoaded = false
@@ -43,6 +45,8 @@ import WorkoutAnalysis
         raceName = result.raceName
         weekRuns = result.weekRuns
         recoveryRun = result.recoveryRun
+        reportRuns = result.reportRuns
+        currentRuns = result.currentRuns
         if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
@@ -186,8 +190,33 @@ import WorkoutAnalysis
             lastRun: lastRun(context: context, id: summary.lastRunId),
             raceName: (try? targetRace(in: context, today: today))?.name,
             weekRuns: weekRuns(context: context, today: today),
-            recoveryRun: recoveryRun(context: context)
+            recoveryRun: recoveryRun(context: context),
+            reportRuns: WeeklyReportBuilder.reportWeek(today: today).map { reportRuns(context: context, start: $0.start) } ?? [],
+            currentRuns: reportRuns(context: context, start: today.weekStart)
         )
+    }
+
+    var weeklyReport: WeeklyReport? {
+        guard let week = WeeklyReportBuilder.reportWeek(today: today) else { return nil }
+        return WeeklyReportBuilder.report(start: week.start, isCurrent: week.isCurrent, runs: reportRuns, plannedKm: plannedWeeks[week.start], race: race)
+    }
+
+    var currentWeekReport: WeeklyReport {
+        WeeklyReportBuilder.report(start: today.weekStart, isCurrent: true, runs: currentRuns, plannedKm: plannedWeeks[today.weekStart], race: race)
+    }
+
+    private var race: (name: String, days: Int)? {
+        guard let name = raceName, let days = summary.raceCountdownDays else { return nil }
+        return (name, days)
+    }
+
+    nonisolated private static func reportRuns(context: ModelContext, start: Day) -> [ReportRun] {
+        let lower = start.chartDate
+        let upper = start.adding(days: 7).chartDate
+        let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= lower && $0.start < upper })
+        return ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) }.map { record in
+            ReportRun(title: record.workoutName ?? record.name, kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer, score: record.scoreValue)
+        }
     }
 
     nonisolated private static func recoveryRun(context: ModelContext) -> RecoveryRun? {

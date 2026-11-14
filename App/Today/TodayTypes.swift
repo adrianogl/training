@@ -33,6 +33,8 @@ struct TodayLoad: Sendable {
     let raceName: String?
     let weekRuns: [Day: [WeekRun]]
     let recoveryRun: RecoveryRun?
+    let reportRuns: [ReportRun]
+    let currentRuns: [ReportRun]
 }
 
 struct WeekRun: Identifiable, Equatable, Sendable {

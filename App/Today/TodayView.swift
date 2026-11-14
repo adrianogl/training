@@ -76,6 +76,9 @@ struct TodayView: View {
             model = loaded
             await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
+            if let sunday = WeeklyReportBuilder.nextSunday(after: .now) {
+                await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: loaded.currentWeekReport.notification, at: sunday)
+            }
             await loaded.refreshSentence()
         }
         .task(id: app.garminAccount.isSignedIn) {
@@ -99,6 +102,9 @@ struct TodayView: View {
             }
             if let plan = model.todayPlan {
                 TodayPlanCard(plan: plan, verdict: model.summary.verdict)
+            }
+            if let report = model.weeklyReport {
+                WeeklyReportCard(report: report)
             }
             if let run = model.recoveryRun {
                 RecoveryCard(
