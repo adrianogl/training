@@ -36,6 +36,10 @@ public actor SyncEngine: ModelActor {
         try await singleFlight(.sync) { try await self.perform(progress: progress) }
     }
 
+    public func runLight() async throws -> SyncReport {
+        try await singleFlight(.light) { try await self.performLight() }
+    }
+
     public func reprocess(limit: Int?) async throws -> SyncReport {
         try await singleFlight(.reprocess) { try await self.performReprocess(limit: limit) }
     }

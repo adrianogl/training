@@ -1,10 +1,16 @@
 import Foundation
+import os
 
 enum WorkoutNoticeConstants {
     static let enabledKey = "workoutNoticeEnabled"
     static let permissionRequestedKey = "workoutNoticePermissionRequested"
-    static let anchorKey = "workoutNoticeAnchor"
+    static let enabledAtKey = "workoutNoticeEnabledAt"
     static let notifiedKey = "workoutNoticeNotifiedIds"
+    static let notifiedWorkoutsKey = "workoutNoticeNotifiedWorkouts"
+    static let pendingKey = "workoutNoticePending"
+    static let logger = Logger(subsystem: "trAIning", category: "WorkoutNotice")
+    static let backgroundTaskName = "workout-notice"
+    static let retryDelay: TimeInterval = 5 * 60
     static let defaultEnabled = true
     static let recentWindow: TimeInterval = 6 * 60 * 60
     static let matchTolerance: TimeInterval = 10 * 60
