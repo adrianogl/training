@@ -223,9 +223,20 @@ import TrainingCore
     }
 
     func publishWatchReadiness(summary: TodaySummary?, day: Day) async {
-        guard let readiness = summary.flatMap({ Self.watchReadiness(summary: $0, day: day) }) else { return }
+        guard let summary, var readiness = Self.watchReadiness(summary: summary, day: day) else { return }
+        let planned = await plannedForWatch(week: day.weekStart)
+        let container = container
+        let weeklyGoal = UserDefaults.standard.integer(forKey: AppConstants.weeklyGoalDefaultsKey)
+        readiness.face = await Task.detached(priority: .utility) {
+            WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal)
+        }.value
         latestWatchReadiness = readiness
         await remoteSync.publishReadiness(readiness)
+    }
+
+    private func plannedForWatch(week start: Day) async -> [PlannedWorkout] {
+        guard let client = garminAccount.client else { return [] }
+        return (try? await PlannedWorkouts.fetch(client: client, from: start, through: start.adding(days: WatchFaceConstants.daysPerWeek - 1))) ?? []
     }
 
     private func todayWatchReadiness() -> WatchReadiness? {

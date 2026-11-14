@@ -12,6 +12,13 @@ enum RemoteSyncConstants {
     static let watchReadinessPath = "api/v1/watch/readiness"
     static let watchVerdictMaxLength = 24
     static let watchScoreRange = 0...100
+    static let watchFaceTextMaxLength = 40
+    static let watchFaceShapeMaxSteps = 24
+    static let watchFaceShapeMaxWeight = 100
+    static let watchFaceZoneRange = 1...5
+    static let watchFaceVO2DeltaLimit = 20.0
+    static let watchFaceWeekKmLimit = 1_000.0
+    static let watchFaceRaceSecondsLimit = 2 * 24 * 60 * 60
     static let sinceQuery = "since"
     static let pushBatchSize = 100
     static let quotaExceededCode = "quota_exceeded"

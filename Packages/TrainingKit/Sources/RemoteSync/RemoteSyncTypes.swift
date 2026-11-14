@@ -70,12 +70,62 @@ public struct WatchReadiness: Codable, Equatable, Sendable {
     public var day: String
     public var score: Int
     public var verdict: String
+    public var face: WatchFace?
 
-    public init(day: String, score: Int, verdict: String) {
+    public init(day: String, score: Int, verdict: String, face: WatchFace? = nil) {
         let range = RemoteSyncConstants.watchScoreRange
         self.day = day
         self.score = min(max(score, range.lowerBound), range.upperBound)
         self.verdict = String(String.UnicodeScalarView(verdict.unicodeScalars.prefix(RemoteSyncConstants.watchVerdictMaxLength)))
+        self.face = face
+    }
+}
+
+public struct WatchFace: Codable, Equatable, Sendable {
+    public var vo2Delta: Double?
+    public var weekPlannedKm: Double?
+    public var weekGoalKm: Double?
+    public var workout: String?
+    public var workoutShape: [[Int]]?
+    public var raceName: String?
+    public var raceDay: String?
+    public var raceGoal: Int?
+    public var racePrediction: Int?
+
+    public init(
+        vo2Delta: Double? = nil,
+        weekPlannedKm: Double? = nil,
+        weekGoalKm: Double? = nil,
+        workout: String? = nil,
+        workoutShape: [[Int]]? = nil,
+        raceName: String? = nil,
+        raceDay: String? = nil,
+        raceGoal: Int? = nil,
+        racePrediction: Int? = nil
+    ) {
+        typealias C = RemoteSyncConstants
+        self.vo2Delta = vo2Delta.map { min(max($0, -C.watchFaceVO2DeltaLimit), C.watchFaceVO2DeltaLimit) }
+        self.weekPlannedKm = weekPlannedKm.map { min(max($0, 0), C.watchFaceWeekKmLimit) }
+        self.weekGoalKm = weekGoalKm.flatMap { $0 > 0 ? min($0, C.watchFaceWeekKmLimit) : nil }
+        self.workout = workout.flatMap(Self.text)
+        self.workoutShape = workoutShape.flatMap { shape in
+            let steps = shape.prefix(C.watchFaceShapeMaxSteps).map { step in
+                [
+                    min(max(step.first ?? 1, 1), C.watchFaceShapeMaxWeight),
+                    min(max(step.last ?? C.watchFaceZoneRange.lowerBound, C.watchFaceZoneRange.lowerBound), C.watchFaceZoneRange.upperBound),
+                ]
+            }
+            return steps.isEmpty ? nil : Array(steps)
+        }
+        self.raceName = raceName.flatMap(Self.text)
+        self.raceDay = raceDay
+        self.raceGoal = raceGoal.flatMap { (1...C.watchFaceRaceSecondsLimit).contains($0) ? $0 : nil }
+        self.racePrediction = racePrediction.flatMap { (1...C.watchFaceRaceSecondsLimit).contains($0) ? $0 : nil }
+    }
+
+    private static func text(_ value: String) -> String? {
+        let trimmed = String(String.UnicodeScalarView(value.unicodeScalars.prefix(RemoteSyncConstants.watchFaceTextMaxLength)))
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
