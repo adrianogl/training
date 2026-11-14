@@ -1,8 +1,11 @@
 import { adminOverview, adminUsers } from './adminStats.js'
 import { accountIdFromAuthorization } from './auth.js'
 import { authEnvFromProcess, isAdmin } from './authRoutes.js'
-import { EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_CHANNELS, INVITE_MESSAGE, INVITE_PATH, INVITE_QUERY, MAIL_INVITE_SUBJECT, NAME_MAX_LENGTH } from './constants.js'
+import { GARMIN_API_BASE, GARMIN_NATIVE_HEADERS, GARMIN_PROBE_PREFIXES, EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_CHANNELS, INVITE_MESSAGE, INVITE_PATH, INVITE_QUERY, MAIL_INVITE_SUBJECT, NAME_MAX_LENGTH } from './constants.js'
 import type { Sql } from './db.js'
+import { freshSession } from './garmin.js'
+import { garminEnvFromProcess } from './garminRoutes.js'
+import type { GarminEnv } from './types.js'
 import { cancelInvite, createInvite, inviteById, listInvites, pendingInvite, renewInvite } from './invites.js'
 import type { AuthEnv, InviteChannel, InviteRow, User } from './types.js'
 import { findSession, userById } from './users.js'
@@ -21,7 +24,7 @@ async function bodyOf(request: Request): Promise<Record<string, unknown> | undef
   return parsed.ok ? parsed.value : undefined
 }
 
-async function withAdmin(request: Request, sql: Sql, env: AuthEnv, handle: (admin: User) => Promise<Response>): Promise<Response> {
+export async function withAdmin(request: Request, sql: Sql, env: AuthEnv, handle: (admin: User) => Promise<Response>): Promise<Response> {
   try {
     const hash = accountIdFromAuthorization(request.headers.get('authorization'))
     const session = hash === undefined ? undefined : await findSession(sql, hash, env.now())
@@ -140,4 +143,30 @@ export async function invitePreviewRoute(request: Request, sql: Sql, env: AuthEn
   } catch {
     return failure(404, 'invalid_invite')
   }
+}
+
+export function garminProbeRoute(
+  request: Request,
+  sql: Sql,
+  env: AuthEnv = authEnvFromProcess(),
+  garmin: GarminEnv = garminEnvFromProcess(),
+): Promise<Response> {
+  return withAdmin(request, sql, env, async (admin) => {
+    const path = new URL(request.url).searchParams.get('path') ?? ''
+    if (!GARMIN_PROBE_PREFIXES.some((prefix) => path.startsWith(prefix)) || path.includes('..')) {
+      return failure(400, 'invalid_path')
+    }
+    if (garmin.dataKey === undefined) {
+      return failure(503, 'storage_unavailable')
+    }
+    const session = await freshSession(sql, { ...garmin, dataKey: garmin.dataKey }, admin.accountId)
+    if (session === undefined) {
+      return failure(404, 'garmin_not_connected')
+    }
+    const response = await garmin.fetcher(`${GARMIN_API_BASE}${path}`, {
+      headers: { ...GARMIN_NATIVE_HEADERS, authorization: `Bearer ${session.accessToken}`, accept: 'application/json' },
+    })
+    const text = await response.text()
+    return new Response(text, { status: response.status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
+  })
 }

@@ -127,3 +127,15 @@ export const ACTIVE_WINDOW_DAYS = 7
 export const MAIL_INVITE_SUBJECT = 'Convite para o trAIning'
 export const INVITE_MESSAGE = (name: string, inviter: string, link: string) =>
   `Oi, ${name}! ${inviter} te convidou para o trAIning, que lê os dados da sua Garmin e mostra a prontidão do dia, a análise dos treinos e a previsão das provas.\n\nCrie sua conta por este link (vale 7 dias):\n${link}`
+export const GARMIN_PROBE_PREFIXES = [
+  '/userprofile-service/',
+  '/usersummary-service/',
+  '/hrv-service/',
+  '/wellness-service/',
+  '/sleep-service/',
+  '/activitylist-service/',
+  '/activity-service/',
+  '/metrics-service/',
+  '/calendar-service/',
+  '/workout-service/',
+] as const
