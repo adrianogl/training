@@ -85,6 +85,11 @@ import WorkoutAnalysis
         #expect(columns.negative.count == model.assessment.negatives.count + model.assessment.attention.count)
         #expect(columns.expected.count + columns.positive.count == model.assessment.positives.count)
         #expect(Set((columns.negative + columns.positive + columns.expected).map(\.id)) == Set(0..<total))
+        #expect(columns.negative.map(\.marker) == columns.negative.indices.map { "N\($0 + 1)" })
+        #expect(columns.positive.map(\.marker) == columns.positive.indices.map { "P\($0 + 1)" })
+        #expect(columns.expected.allSatisfy { $0.marker == nil })
+        let marked = (columns.negative + columns.positive).filter { $0.blockOrdinal != nil }
+        #expect(columns.blockMarkers.values.map(\.count).reduce(0, +) == marked.count)
     }
 
     @Test func comparisonUsesSameWorkoutName() throws {

@@ -19,7 +19,6 @@ enum WorkoutDetailConstants {
     static let labelColumnWidth: CGFloat = 76
     static let kilometerIndent: CGFloat = 14
     static let valueColumnWidth: CGFloat = 52
-    static let dotColumnWidth: CGFloat = 14
     static let barHeight: CGFloat = 8
     static let bandHeight: CGFloat = 14
     static let comparisonValueWidth: CGFloat = 58
@@ -77,7 +76,16 @@ enum WorkoutDetailConstants {
     static let analysisPositive = "O que foi positivo"
     static let analysisExpected = "Dentro do esperado"
     static let analysisNone = "Nenhum"
-    static let analysisBlockFormat = "bloco %d"
+    static let shareTitle = "Compartilhar"
+    static let shareSymbol = "square.and.arrow.up"
+    static let negativeMarker = "N"
+    static let positiveMarker = "P"
+    static let heartRateColumnWidth: CGFloat = 60
+    static let markerColumnWidth: CGFloat = 30
+    static let blocksHeaderPace = "pace no alvo · mais rápido →"
+    static let blocksHeaderValue = "pace"
+    static let blocksHeaderHeartRate = "FC"
+    static let blocksMarkerNote = "As marcas N e P apontam para os itens da análise."
     static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace]
     static let scoreGaugeSize: Double = 120
     static let compactScoreGaugeSize: Double = 104

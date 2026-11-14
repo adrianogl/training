@@ -44,7 +44,7 @@ struct WorkoutDetailView: View {
     private func content(_ model: WorkoutDetailModel) -> some View {
         if let summary = model.summary {
             if model.isRun {
-                SummaryHeader(summary: summary)
+                SummaryHeader(summary: summary, onShare: model.shareInput == nil ? nil : { showsShare = true })
                 runSections(model)
             } else {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)
@@ -72,7 +72,7 @@ struct WorkoutDetailView: View {
             AnalysisCard(columns: model.analysisColumns, onDevice: model.reading.findingsOnDevice)
             if !model.blocks.isEmpty {
                 labelled(model.hasPrescription ? "Blocos × prescrito" : "Parciais") {
-                    BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription)
+                    BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription, markers: model.analysisColumns.blockMarkers)
                 }
                 .id(WorkoutDetailSection.blocks)
             }
@@ -112,9 +112,6 @@ struct WorkoutDetailView: View {
                     .id(WorkoutDetailSection.comparison)
                 }
             }
-        if model.shareInput != nil {
-            shareButton
-        }
         }
         .padding(.top, 12)
     }
@@ -133,21 +130,6 @@ struct WorkoutDetailView: View {
             SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
             content()
         }
-    }
-
-    private var shareButton: some View {
-        Button {
-            showsShare = true
-        } label: {
-            Text("Compartilhar")
-                .font(.system(size: ShareConstants.buttonFontSize, weight: .bold))
-                .foregroundStyle(BrandColors.onAccent)
-                .frame(maxWidth: .infinity)
-                .padding(ShareConstants.buttonPadding)
-                .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: ShareConstants.buttonCornerRadius, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .padding(.top, 18)
     }
 
     private var notice: some View {

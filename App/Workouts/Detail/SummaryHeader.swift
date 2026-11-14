@@ -2,16 +2,33 @@ import SwiftUI
 
 struct SummaryHeader: View {
     let summary: WorkoutSummary
+    var onShare: (() -> Void)? = nil
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(summary.dateText)
-                .font(.subheadline)
-                .foregroundStyle(BrandColors.dim)
-            Text(summary.title)
-                .font(.title2.bold())
-                .foregroundStyle(BrandColors.text)
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(summary.dateText)
+                        .font(.subheadline)
+                        .foregroundStyle(BrandColors.dim)
+                    Text(summary.title)
+                        .font(.title2.bold())
+                        .foregroundStyle(BrandColors.text)
+                }
+                Spacer(minLength: 0)
+                if let onShare {
+                    Button(action: onShare) {
+                        Label(WorkoutDetailConstants.shareTitle, systemImage: WorkoutDetailConstants.shareSymbol)
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(BrandColors.onAccent)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(BrandColors.accentFill, in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
             if summary.hasPrescription || !summary.subtitle.isEmpty {
                 HStack(spacing: 8) {
                     if summary.hasPrescription {

@@ -75,12 +75,22 @@ struct AnalysisItem: Identifiable, Equatable {
     let evidence: String?
     let why: String
     let blockOrdinal: Int?
+    var marker: String? = nil
 }
 
 struct AnalysisColumns: Equatable {
     let negative: [AnalysisItem]
     let positive: [AnalysisItem]
     let expected: [AnalysisItem]
+
+    var blockMarkers: [Int: [String]] {
+        var markers: [Int: [String]] = [:]
+        for item in negative + positive {
+            guard let ordinal = item.blockOrdinal, let marker = item.marker else { continue }
+            markers[ordinal, default: []].append(marker)
+        }
+        return markers
+    }
 }
 
 struct WorkoutReading: Equatable {

@@ -102,7 +102,19 @@ import WorkoutAnalysis
         let expected = items.filter { item in item.0.group == .positive && expectedKinds.contains(item.0.kind) }.map { $0.1 }
         let positive = items.filter { item in item.0.group == .positive && !expectedKinds.contains(item.0.kind) }.map { $0.1 }
         let negative = items.filter { item in item.0.group != .positive }.map { $0.1 }
-        return AnalysisColumns(negative: negative, positive: positive, expected: expected)
+        return AnalysisColumns(
+            negative: Self.marked(negative, prefix: WorkoutDetailConstants.negativeMarker),
+            positive: Self.marked(positive, prefix: WorkoutDetailConstants.positiveMarker),
+            expected: expected
+        )
+    }
+
+    private static func marked(_ items: [AnalysisItem], prefix: String) -> [AnalysisItem] {
+        items.enumerated().map { index, item in
+            var item = item
+            item.marker = "\(prefix)\(index + 1)"
+            return item
+        }
     }
 
     private static func shareInput(
