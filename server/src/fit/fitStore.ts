@@ -30,12 +30,15 @@ export function runMetrics(summary: FitSummary): RunMetrics {
 
 export async function downloadFit(env: KeyedEnv, session: GarminSession, activityId: number): Promise<Uint8Array | null> {
   const response = await env.fetcher(`${GARMIN_API_BASE}/download-service/files/activity/${activityId}`, {
-    headers: { ...GARMIN_NATIVE_HEADERS, authorization: `Bearer ${session.accessToken}`, accept: 'application/octet-stream' },
+    headers: { ...GARMIN_NATIVE_HEADERS, authorization: `Bearer ${session.accessToken}`, accept: '*/*' },
   })
   if (response.status === 429) throw new GarminError('rate_limited')
   if (response.status === 401) throw new GarminError('session_expired')
   if (response.status === 404) return null
-  if (!response.ok) throw new GarminError('unexpected_response')
+  if (!response.ok) {
+    console.error(JSON.stringify({ route: 'fit', download: response.status }))
+    return null
+  }
   return new Uint8Array(await response.arrayBuffer())
 }
 

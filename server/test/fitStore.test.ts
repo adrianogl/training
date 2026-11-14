@@ -25,11 +25,12 @@ function zip(): Uint8Array {
 }
 
 function env(status = 200): GarminEnv {
-  const fetcher = (async (input: string | URL | Request) => {
+  const fetcher = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = new URL(String(input))
     const id = Number(url.pathname.split('/').at(-1))
     downloads.push(id)
     if (status !== 200) return new Response('', { status })
+    expect(init?.headers).toMatchObject({ accept: '*/*' })
     if (id === 404) return new Response('', { status: 404 })
     if (id === 500) return new Response(Buffer.from([1, 2, 3]))
     return new Response(Buffer.from(zip()))
@@ -61,6 +62,12 @@ describe('FITs guardados', () => {
     expect(fetched).toBe(2)
     expect(downloads).toEqual([1, 404, 500, 2])
     expect(await missingFitIds(sql, accountId, [1, 2, 3, 404])).toEqual([3, 404])
+  })
+
+  it('recusa da Garmin no download não derruba: o FIT fica faltando', async () => {
+    const fetched = await fetchFits(sql, { ...env(403), dataKey: key }, accountId, [1, 2], 2)
+    expect(fetched).toBe(0)
+    expect(await missingFitIds(sql, accountId, [1, 2])).toEqual([1, 2])
   })
 
   it('para no 429 da Garmin', async () => {
