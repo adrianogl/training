@@ -59,7 +59,7 @@ struct WorkoutListView: View {
             WorkoutDetailView(activityId: id)
         case .planned(let id):
             if let plan = planned.first(where: { $0.id == id }) {
-                PlannedWorkoutDetailView(plan: plan)
+                PlannedWorkoutDetailView(plan: plan, week: planned)
             }
         }
     }

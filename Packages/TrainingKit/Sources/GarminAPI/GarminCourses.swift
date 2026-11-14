@@ -5,6 +5,13 @@ public struct GarminCourseSummary: Sendable, Equatable, Identifiable, Hashable {
     public let name: String
     public let meters: Double?
     public let elevationGain: Double?
+
+    public init(id: Int64, name: String, meters: Double?, elevationGain: Double?) {
+        self.id = id
+        self.name = name
+        self.meters = meters
+        self.elevationGain = elevationGain
+    }
 }
 
 public enum GarminCourses {
