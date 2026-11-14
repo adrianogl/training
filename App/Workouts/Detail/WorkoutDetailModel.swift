@@ -170,7 +170,7 @@ import WorkoutAnalysis
 
     private static func summary(_ record: ActivityRecord, isRun: Bool, hasPrescription: Bool) -> WorkoutSummary {
         let row = WorkoutListModel.row(record)
-        let kind = hasPrescription ? "Treino do Treinus" : isRun ? "Corrida livre" : record.name
+        let kind = hasPrescription ? WorkoutConstants.plannedKind : isRun ? "Corrida livre" : record.name
         let subtitle = [kind == row.title ? nil : kind, record.locationName].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         return WorkoutSummary(
             title: row.title,

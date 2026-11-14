@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct TreinusBadge: View {
+struct PlannedBadge: View {
     var body: some View {
-        Text("Treinus")
+        Text(WorkoutConstants.plannedBadge)
             .font(.caption2.weight(.semibold))
             .foregroundStyle(BrandColors.accent)
             .padding(.horizontal, 7)

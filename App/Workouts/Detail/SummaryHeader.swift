@@ -32,7 +32,7 @@ struct SummaryHeader: View {
             if summary.hasPrescription || !summary.subtitle.isEmpty {
                 HStack(spacing: 8) {
                     if summary.hasPrescription {
-                        TreinusBadge()
+                        PlannedBadge()
                     }
                     Text(summary.subtitle)
                         .font(.subheadline)

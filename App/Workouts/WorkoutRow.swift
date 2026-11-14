@@ -20,7 +20,7 @@ struct WorkoutRow: View {
                         .lineLimit(2)
                     HStack(spacing: 6) {
                         if row.hasPrescription {
-                            TreinusBadge()
+                            PlannedBadge()
                         }
                         if chatCount > 0 {
                             Label("\(chatCount)", systemImage: "bubble.left.and.text.bubble.right")

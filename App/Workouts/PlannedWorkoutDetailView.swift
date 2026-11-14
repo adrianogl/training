@@ -72,7 +72,7 @@ struct PlannedWorkoutDetailView: View {
                 }
             }
             HStack(spacing: 8) {
-                TreinusBadge()
+                PlannedBadge()
                 Text(WorkoutConstants.plannedDetailSubtitle).font(.subheadline).foregroundStyle(BrandColors.dim)
             }
         }
