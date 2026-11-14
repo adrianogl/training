@@ -5,6 +5,7 @@ import { PUBLIC_ROUTES } from './constants'
 import { AdminPage } from './pages/AdminPage'
 import { ConfirmPage } from './pages/ConfirmPage'
 import { EvolutionPage } from './pages/EvolutionPage'
+import { GoalsPage } from './pages/GoalsPage'
 import { RacesPage } from './pages/RacesPage'
 import { ForgotPage } from './pages/ForgotPage'
 import { InvitePage } from './pages/InvitePage'
@@ -85,6 +86,7 @@ export function App() {
           {target === 'workouts' && <WorkoutsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'evolution' && <EvolutionPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'races' && <RacesPage version={sync.version} syncing={sync.state.kind === 'running'} />}
+          {target === 'goals' && <GoalsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
         </AppLayout>
       )
   }

@@ -346,6 +346,7 @@ h2 {
 @media (max-width: 720px) {
   .nav {
     max-width: none;
+    min-width: 0;
     flex-basis: 100%;
     border-right: 0;
     border-bottom: 1px solid #22262a;
@@ -356,6 +357,7 @@ h2 {
   .nav-links {
     flex-direction: row;
     overflow-x: auto;
+    min-width: 0;
   }
 
   .nav-user {
@@ -1359,4 +1361,131 @@ h2 {
 .request-msg {
   grid-column: 1 / -1;
   color: var(--text-2);
+}
+
+.pill-ok {
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.pill-warn {
+  background: #2a2414;
+  color: #ffc24c;
+}
+
+.goal-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.goal-bar {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--card-2);
+}
+
+.goal-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, rgba(255, 138, 76, 0.25), rgba(255, 138, 76, 0.6));
+}
+
+.goal-mark {
+  position: absolute;
+  top: -5px;
+  width: 3px;
+  height: 20px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.goal-runs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  align-items: end;
+  height: 110px;
+}
+
+.goal-runs div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 100%;
+}
+
+.goal-runs i {
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: #7fb2ff;
+}
+
+.goal-runs i.met {
+  background: var(--accent);
+}
+
+.goal-runs i.unknown {
+  background: var(--card-2);
+}
+
+.goal-runs small {
+  font-size: 11px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.goal-run-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.goal-run-list .accent,
+.goal-progress .accent {
+  color: var(--accent);
+}
+
+.goal-kinds {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.goal-kind {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--card-2);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.goal-kind.on {
+  border-color: var(--accent-line);
+  background: var(--accent-bg);
+}
+
+.goal-kind:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .goal-kinds {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

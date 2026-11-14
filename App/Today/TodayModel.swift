@@ -27,6 +27,7 @@ import WorkoutAnalysis
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var garminReadiness: GarminReadinessScore?
+    private(set) var goals: [GoalSnapshot] = []
     private(set) var isLoaded = false
 
     init(container: ModelContainer, today: Day) {
@@ -50,6 +51,7 @@ import WorkoutAnalysis
         reportRuns = result.reportRuns
         currentRuns = result.currentRuns
         signals = result.signals
+        goals = result.goals
         if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
         }
@@ -208,7 +210,8 @@ import WorkoutAnalysis
             recoveryRun: recoveryRun(context: context),
             reportRuns: WeeklyReportBuilder.reportWeek(today: today).map { reportRuns(context: context, start: $0.start) } ?? [],
             currentRuns: reportRuns(context: context, start: today.weekStart),
-            signals: signals(context: context, today: today)
+            signals: signals(context: context, today: today),
+            goals: (try? goalSnapshots(context: context, today: today)) ?? []
         )
     }
 

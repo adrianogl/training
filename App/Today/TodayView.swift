@@ -102,6 +102,9 @@ struct TodayView: View {
             } else {
                 ReadinessHeroCard(model: model)
             }
+            if !model.goals.isEmpty {
+                GoalsCard(snapshots: model.goals)
+            }
             if let plan = model.todayPlan {
                 TodayPlanCard(plan: plan, verdict: model.summary.verdict)
             }

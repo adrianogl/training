@@ -1,6 +1,6 @@
 import { DEVICE_LABEL } from './constants'
 import { readToken } from './session'
-import type { Activity, AdminData, Evolution, PlannedWorkout, RaceInput, RaceView, WorkoutAnalysisView, HealthDay, SyncProgress, TodaySummary, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
+import type { Activity, AdminData, Evolution, GoalInput, GoalView, PlannedWorkout, RaceInput, RaceView, WorkoutAnalysisView, HealthDay, SyncProgress, TodaySummary, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -53,6 +53,10 @@ export const api = {
   garminActivity: (id: number) => call<{ activity: Activity; analysis: WorkoutAnalysisView; fitMissing: boolean }>('GET', `garmin/activity?id=${id}`),
   renameActivity: (id: number, name: string) => call<{ id: number; name: string }>('PUT', `garmin/activity?id=${id}`, { name }),
   garminPlanned: () => call<{ planned: PlannedWorkout[] }>('GET', 'garmin/planned'),
+  goals: () => call<{ today: string; goals: GoalView[] }>('GET', 'goals'),
+  createGoal: (goal: GoalInput) => call<{ id: string }>('POST', 'goals', goal),
+  updateGoal: (id: string, goal: GoalInput) => call<{ id: string }>('PUT', `goals?id=${encodeURIComponent(id)}`, goal),
+  deleteGoal: (id: string) => call<void>('DELETE', `goals?id=${encodeURIComponent(id)}`),
   races: () => call<{ today: string; races: RaceView[] }>('GET', 'races'),
   createRace: (race: RaceInput) => call<{ id: string }>('POST', 'races', race),
   updateRace: (id: string, race: RaceInput) => call<{ id: string }>('PUT', `races?id=${encodeURIComponent(id)}`, race),

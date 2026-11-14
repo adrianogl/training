@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Activity, InviteRequest, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
+import type { Activity, GoalView, InviteRequest, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
 
 export interface FieldProps {
   label: string
@@ -101,4 +101,25 @@ export interface PlannedStepListProps {
 export interface InviteRequestsProps {
   requests: InviteRequest[]
   onAct: (request: InviteRequest, action: 'invite' | 'decline') => void
+}
+
+export interface GoalEditorProps {
+  goal: GoalView | null
+  onSaved: (id: string) => void
+  onDeleted: () => void
+}
+
+export interface GoalDetailProps {
+  goal: GoalView
+  onSaved: (id: string) => void
+  onDeleted: () => void
+}
+
+export interface GoalFormState {
+  kind: GoalView['kind']
+  distance: string
+  time: string
+  deadline: string
+  longDistance: string
+  pace: string
 }

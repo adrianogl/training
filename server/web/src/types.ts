@@ -29,6 +29,7 @@ export type Route =
   | 'today'
   | 'workouts'
   | 'races'
+  | 'goals'
   | 'evolution'
   | 'settings'
   | 'password'
@@ -369,3 +370,56 @@ export interface PlannedWorkout {
 }
 
 export type WorkoutSelection = { kind: 'done'; id: number } | { kind: 'planned'; id: number; day: string }
+
+export type GoalKind = 'time' | 'continuousLong'
+
+export type GoalCrossingView = { kind: 'on'; day: string } | { kind: 'alreadyBeaten' } | { kind: 'unreachable' } | { kind: 'noGoal' }
+
+export interface TimeGoalProgressView {
+  kind: 'time'
+  todaySeconds: number | null
+  gapSeconds: number | null
+  crossing: GoalCrossingView
+  achievedOn: string | null
+}
+
+export interface LongRunCheckView {
+  activityId: number
+  day: string
+  distanceKm: number
+  longestContinuousKm: number | null
+  pauses: { km: number; seconds: number }[] | null
+  paceSecondsPerKm: number | null
+  met: boolean | null
+}
+
+export interface LongGoalProgressView {
+  kind: 'continuousLong'
+  runs: LongRunCheckView[]
+  metCount: number
+  bestContinuousKm: number | null
+  achievedOn: string | null
+}
+
+export interface GoalView {
+  id: string
+  kind: GoalKind
+  distanceKm: number
+  targetSeconds: number | null
+  deadline: string | null
+  paceSecondsPerKm: number | null
+  archived: boolean
+  achievedAt: string | null
+  createdAt: string
+  updatedAt: string
+  progress: TimeGoalProgressView | LongGoalProgressView | null
+}
+
+export interface GoalInput {
+  kind: GoalKind
+  distanceKm: number
+  targetSeconds?: number
+  deadline?: string | null
+  paceSecondsPerKm?: number
+  archived: boolean
+}

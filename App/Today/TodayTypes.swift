@@ -36,6 +36,7 @@ struct TodayLoad: Sendable {
     let reportRuns: [ReportRun]
     let currentRuns: [ReportRun]
     let signals: [DailySignal]
+    let goals: [GoalSnapshot]
 }
 
 struct WeekRun: Identifiable, Equatable, Sendable {

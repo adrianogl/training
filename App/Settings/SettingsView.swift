@@ -103,6 +103,7 @@ struct SettingsView: View {
                 noticeSection
             case .goals:
                 goalsSection
+                GoalsSection()
             case .appearance:
                 appearanceSection
             case .data:
@@ -130,7 +131,7 @@ struct SettingsView: View {
                 }
             }
         } header: {
-            Text("Metas")
+            Text("Volume semanal")
         } footer: {
             Text("A meta semanal aparece no volume semanal e na semana de treino da Hoje.")
         }
