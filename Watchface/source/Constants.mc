@@ -66,6 +66,7 @@ module ReadinessBridge {
     const WEEK_GOAL_KM = "weekGoalKm";
     const WORKOUT = "workout";
     const WORKOUT_SHAPE = "workoutShape";
+    const WORKOUT_TIP = "workoutTip";
     const RACE_NAME = "raceName";
     const RACE_DAY = "raceDay";
     const RACE_GOAL = "raceGoal";

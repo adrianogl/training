@@ -410,8 +410,11 @@ class TrainingFaceView extends WatchUi.WatchFace {
             var stepWidth = width * step[0] / total;
             var height = s(zone * 3.4);
             dc.setColor(Theme.ZONES[zone - 1], Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(s(x), s(354) - height, max(1, s(stepWidth - 1.5)), height);
+            dc.fillRectangle(s(x), s(352) - height, max(1, s(stepWidth - 1.5)), height);
             x += stepWidth;
+        }
+        if (_data.workoutTip != null) {
+            drawCentered(dc, 368, font(:delta), _data.workoutTip, Theme.MODERATE);
         }
     }
 
@@ -423,7 +426,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
         var date = _data.raceDate;
         dc.setColor(Theme.FAINT, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(max(1, s(2)));
-        dc.drawLine(s(150), s(366), s(304), s(366));
+        dc.drawLine(s(150), s(376), s(304), s(376));
 
         var name = _data.raceName.toUpper();
         if (name.length() > Defaults.RACE_NAME_MAX) {

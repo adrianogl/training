@@ -19,6 +19,7 @@ class FaceData {
     var readiness = null;
     var workout = null;
     var workoutShape = null;
+    var workoutTip = null;
     var raceName = null;
     var raceDate = null;
     var raceGoal = null;
@@ -53,6 +54,7 @@ class FaceData {
         weekPlannedKm = null;
         workout = null;
         workoutShape = null;
+        workoutTip = null;
         var today = Format.isoDate(Gregorian.info(Time.now(), Time.FORMAT_SHORT));
         var day = Application.Storage.getValue(StorageKeys.READINESS_DAY);
         var isToday = day instanceof String && day.equals(today);
@@ -77,6 +79,10 @@ class FaceData {
             }
             if (shape instanceof Array) {
                 workoutShape = shape;
+            }
+            var tip = face[ReadinessBridge.WORKOUT_TIP];
+            if (tip instanceof String) {
+                workoutTip = tip;
             }
         }
         readRace(face);
