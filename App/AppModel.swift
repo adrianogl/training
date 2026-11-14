@@ -15,6 +15,9 @@ import TrainingCore
     let storeError: String?
     private(set) var syncStatus: SyncStatus = .idle
     private(set) var connectionStatus: ConnectionStatus = .untested
+    private(set) var hasLocalData: Bool
+    private(set) var newActivityIds: Set<Int64> = []
+    private(set) var deferredFITRevision = 0
     private(set) var hasKey: Bool
     let autoSyncEnabled: Bool
     let remoteSync: RemoteSyncModel
@@ -34,6 +37,8 @@ import TrainingCore
     @ObservationIgnored private var syncTask: Task<Void, Never>?
     @ObservationIgnored private var runningTrigger: SyncTrigger?
     @ObservationIgnored private var narrativeTask: Task<Void, Never>?
+    @ObservationIgnored private var deferredFITTask: Task<Void, Never>?
+    @ObservationIgnored private var newMarkTask: Task<Void, Never>?
     @ObservationIgnored private var narrativeFailures: Set<String> = []
     @ObservationIgnored private var finishedSummary: (summary: TodaySummary, day: Day)?
     @ObservationIgnored private var latestWatchReadiness: WatchReadiness?
@@ -60,6 +65,7 @@ import TrainingCore
         self.today = today
         self.notifier = notifier
         self.container = container
+        self.hasLocalData = Self.storeHasData(container: container)
         self.scoreRefresher = ScoreRefresher { await ScoreStore.refresh(container: container, ids: nil) }
         self.storeError = storeError
         self.keyStore = keyStore
@@ -87,6 +93,21 @@ import TrainingCore
             return GarminLinkClient(baseURL: remoteBaseURL, token: token, transport: transport)
         }
         account.onSignedOut = { [weak self] in self?.garminAccount.forgetLocal() }
+    }
+
+    var showsSkeleton: Bool { !hasLocalData && syncStatus.isRunning }
+
+    var dataToken: SyncDataToken {
+        var finished: Date?
+        if case .finished(let date) = syncStatus { finished = date }
+        return SyncDataToken(finished: finished, deferredFITRevision: deferredFITRevision)
+    }
+
+    nonisolated static func storeHasData(container: ModelContainer) -> Bool {
+        let context = ModelContext(container)
+        let activities = (try? context.fetchCount(FetchDescriptor<ActivityRecord>())) ?? 0
+        let days = (try? context.fetchCount(FetchDescriptor<DailyRecord>())) ?? 0
+        return activities + days > 0
     }
 
     static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppModel {
@@ -197,14 +218,18 @@ import TrainingCore
         syncStatus = .running(progress: 0)
         let pendingNarratives = narrativeTask
         pendingNarratives?.cancel()
+        let pendingDeferredFIT = deferredFITTask
+        pendingDeferredFIT?.cancel()
         let container = container
         let task = Task { [weak self] in
             await pendingNarratives?.value
+            await pendingDeferredFIT?.value
             let hasOutdatedRuns = trigger == .pull ? await SyncEngineConfiguration.hasOutdatedRuns(container: container) : false
             let configuration = SyncEngineConfiguration(trigger: trigger, hasOutdatedRuns: hasOutdatedRuns)
             guard let source = self?.client(for: key, configuration: configuration) else { return }
             let engine = configuration.makeEngine(source: source, container: container)
             var processed: Set<Int64>?
+            var deferringEngine: SyncEngine?
             do {
                 let report = try await engine.run { fraction in
                     Task { @MainActor in self?.updateProgress(fraction) }
@@ -216,14 +241,18 @@ import TrainingCore
                 self?.syncStatus = .finished(.now)
                 self?.finishedSummary = summary.map { ($0, day) }
                 processed = trigger.runsInBackground ? nil : report.processedActivityIds
+                if trigger != .background { self?.markNew(report.processedActivityIds) }
+                if configuration.deferredFITOlderThanDays != nil { deferringEngine = engine }
                 if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
                 if !trigger.runsInBackground { self?.scoreRefresher.refresh() }
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
+            self?.hasLocalData = Self.storeHasData(container: container)
             self?.syncTask = nil
             self?.runningTrigger = nil
             if let processed, !Task.isCancelled { self?.startNarratives(processed: processed) }
+            if let deferringEngine, !Task.isCancelled { self?.startDeferredFIT(engine: deferringEngine) }
         }
         syncTask = task
         await task.value
@@ -278,6 +307,7 @@ import TrainingCore
     func cancelSync() {
         syncTask?.cancel()
         narrativeTask?.cancel()
+        deferredFITTask?.cancel()
     }
 
     func deleteLocalData() async throws {
@@ -289,12 +319,18 @@ import TrainingCore
             narrativeTask.cancel()
             await narrativeTask.value
         }
+        if let deferredFITTask {
+            deferredFITTask.cancel()
+            await deferredFITTask.value
+        }
         await scoreRefresher.finish()
         let context = container.mainContext
         for model in TrainingSchema.models {
             try deleteAll(model, in: context)
         }
         try context.save()
+        hasLocalData = false
+        newActivityIds = []
         syncStatus = .idle
     }
 
@@ -317,6 +353,29 @@ import TrainingCore
             self?.narrativeTask = nil
         }
         narrativeTask = task
+    }
+
+    private func startDeferredFIT(engine: SyncEngine) {
+        let task = Task(priority: .background) { [weak self] in
+            defer { self?.deferredFITTask = nil }
+            guard let report = try? await engine.runDeferredFIT(), !report.processedActivityIds.isEmpty, !Task.isCancelled else { return }
+            self?.scoreRefresher.refresh()
+            self?.deferredFITRevision += 1
+            await self?.narrativeTask?.value
+            if !Task.isCancelled { self?.startNarratives(processed: report.processedActivityIds) }
+        }
+        deferredFITTask = task
+    }
+
+    private func markNew(_ ids: Set<Int64>) {
+        newMarkTask?.cancel()
+        newActivityIds = ids
+        guard !ids.isEmpty else { return }
+        newMarkTask = Task { [weak self] in
+            try? await Task.sleep(for: AppConstants.newBadgeDuration)
+            guard !Task.isCancelled else { return }
+            self?.newActivityIds = []
+        }
     }
 
     private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {

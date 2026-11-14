@@ -8,21 +8,26 @@ struct SyncEngineConfiguration: Equatable {
     let fitLimit: Int?
     let mode: SyncMode
     let waitsOnRateLimit: Bool
+    let deferredFITOlderThanDays: Int?
 
     init(trigger: SyncTrigger, hasOutdatedRuns: Bool = false) {
         switch trigger {
         case .launch:
             fitLimit = AppConstants.launchFITLimit
             mode = .foreground
+            deferredFITOlderThanDays = AppConstants.launchDeferredFITDays
         case .pull:
             fitLimit = hasOutdatedRuns ? nil : AppConstants.launchFITLimit
             mode = .foreground
+            deferredFITOlderThanDays = nil
         case .settings:
             fitLimit = nil
             mode = .foreground
+            deferredFITOlderThanDays = nil
         case .background, .workoutFinished:
             fitLimit = nil
             mode = .background
+            deferredFITOlderThanDays = nil
         }
         waitsOnRateLimit = mode == .foreground
     }
@@ -38,6 +43,6 @@ struct SyncEngineConfiguration: Equatable {
     }
 
     func makeEngine(source: any GarminDataSource, container: ModelContainer) -> SyncEngine {
-        SyncEngine(source: source, container: container, today: { Day.today() }, fitLimit: fitLimit, mode: mode)
+        SyncEngine(source: source, container: container, today: { Day.today() }, fitLimit: fitLimit, mode: mode, deferredFITOlderThanDays: deferredFITOlderThanDays)
     }
 }

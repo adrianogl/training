@@ -10,17 +10,13 @@ struct EvolutionView: View {
     @State private var path: [MetricKind] = EvolutionView.initialPath()
     @State private var showsChat = false
 
-    private var syncToken: Date? {
-        if case .finished(let date) = app.syncStatus { return date }
-        return nil
-    }
-
     var body: some View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         CompactLogoHeader()
+                        SyncStatusPill()
                         HStack(alignment: .firstTextBaseline) {
                             Text(EvolutionConstants.title)
                                 .font(.largeTitle.weight(.bold))
@@ -31,10 +27,10 @@ struct EvolutionView: View {
                             }
                         }
                         .padding(.bottom, 14)
-                        if let model, model.isLoaded {
+                        if app.showsSkeleton {
+                            SkeletonCards(heights: SkeletonConstants.evolutionHeights)
+                        } else if let model, model.isLoaded {
                             content(model)
-                        } else {
-                            ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                         }
                     }
                     .padding(.horizontal, BrandConstants.screenPadding)
@@ -64,7 +60,7 @@ struct EvolutionView: View {
                     .presentationSizing(.page)
             }
         }
-        .task(id: syncToken) {
+        .task(id: app.dataToken) {
             await Task.yield()
             let loaded = EvolutionModel(
                 container: app.container,

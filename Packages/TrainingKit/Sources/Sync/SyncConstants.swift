@@ -3,6 +3,8 @@ import os
 
 public enum SyncConstants {
     static let fitLogger = Logger(subsystem: "trAIning", category: "FIT")
+    static let timingLogger = Logger(subsystem: "trAIning", category: "SyncTiming")
+    static let secondsPerDay: TimeInterval = 86_400
     public static let fitThresholdSport = "fit"
     static let dailySummaryWindowDays = 180
     static let hrvWindowDays = 180

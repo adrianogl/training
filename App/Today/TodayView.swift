@@ -11,11 +11,6 @@ struct TodayView: View {
     var openSettings: () -> Void = {}
     @State private var model: TodayModel?
 
-    private var syncToken: Date? {
-        if case .finished(let date) = app.syncStatus { return date }
-        return nil
-    }
-
     var body: some View {
         NavigationStack(path: $path) {
             ScrollViewReader { proxy in
@@ -25,6 +20,8 @@ struct TodayView: View {
                     Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutConstants.locale)))
                         .font(.footnote)
                         .foregroundStyle(BrandColors.dim)
+                    SyncStatusPill()
+                        .padding(.top, 6)
                     if let chip = app.remoteSync.chip {
                         RemoteSyncChipView(chip: chip, action: openSettings)
                             .padding(.top, 6)
@@ -39,10 +36,10 @@ struct TodayView: View {
                             .foregroundStyle(BrandColors.danger)
                             .padding(.bottom, 14)
                     }
-                    if let model {
+                    if app.showsSkeleton {
+                        SkeletonCards(heights: SkeletonConstants.todayHeights)
+                    } else if let model {
                         cards(model)
-                    } else {
-                        ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
@@ -69,7 +66,7 @@ struct TodayView: View {
                 }
             }
         }
-        .task(id: syncToken) {
+        .task(id: app.dataToken) {
             await Task.yield()
             let loaded = TodayModel(container: app.container, today: Day.today())
             await loaded.load()

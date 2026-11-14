@@ -14,6 +14,7 @@ enum WorkoutConstants {
     static let plannedToday = "hoje"
     static let plannedTag = "planejado"
     static let plannedBadge = "Planejado"
+    static let newBadge = "novo"
     static let plannedKind = "Treino planejado"
     static let plannedDetailSubtitle = "Planejado no Garmin Connect"
     static let plannedDays = 6

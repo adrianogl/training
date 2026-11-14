@@ -1,5 +1,10 @@
 import Foundation
 
+struct SyncDataToken: Equatable {
+    let finished: Date?
+    let deferredFITRevision: Int
+}
+
 enum SyncStatus: Equatable {
     case idle
     case running(progress: Double)
