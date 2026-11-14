@@ -227,8 +227,13 @@ import TrainingCore
         let planned = await plannedForWatch(week: day.weekStart)
         let container = container
         let weeklyGoal = UserDefaults.standard.integer(forKey: AppConstants.weeklyGoalDefaultsKey)
+        var weather: [HourlyWeather] = []
+        if planned.contains(where: { $0.day == day.iso }), let coordinate = PlannedWeather.lastRunStart(context: container.mainContext) {
+            weather = await PlannedWeather.morning(day: day, coordinate: coordinate)
+        }
+        let forecast = weather
         readiness.face = await Task.detached(priority: .utility) {
-            WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal)
+            WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal, weather: forecast)
         }.value
         latestWatchReadiness = readiness
         await remoteSync.publishReadiness(readiness)

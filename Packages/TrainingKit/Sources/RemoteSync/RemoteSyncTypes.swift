@@ -87,6 +87,7 @@ public struct WatchFace: Codable, Equatable, Sendable {
     public var weekGoalKm: Double?
     public var workout: String?
     public var workoutShape: [[Int]]?
+    public var workoutTip: String?
     public var raceName: String?
     public var raceDay: String?
     public var raceGoal: Int?
@@ -98,6 +99,7 @@ public struct WatchFace: Codable, Equatable, Sendable {
         weekGoalKm: Double? = nil,
         workout: String? = nil,
         workoutShape: [[Int]]? = nil,
+        workoutTip: String? = nil,
         raceName: String? = nil,
         raceDay: String? = nil,
         raceGoal: Int? = nil,
@@ -117,6 +119,7 @@ public struct WatchFace: Codable, Equatable, Sendable {
             }
             return steps.isEmpty ? nil : Array(steps)
         }
+        self.workoutTip = workoutTip.flatMap(Self.text)
         self.raceName = raceName.flatMap(Self.text)
         self.raceDay = raceDay
         self.raceGoal = raceGoal.flatMap { (1...C.watchFaceRaceSecondsLimit).contains($0) ? $0 : nil }

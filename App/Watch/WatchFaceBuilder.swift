@@ -9,7 +9,7 @@ import TrainingCore
 enum WatchFaceBuilder {
     private typealias C = WatchFaceConstants
 
-    static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int) -> WatchFace? {
+    static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int, weather: [HourlyWeather] = []) -> WatchFace? {
         let race = try? targetRace(in: context, today: today)
         let todayPlan = planned.first { $0.day == today.iso }
         let face = WatchFace(
@@ -18,6 +18,12 @@ enum WatchFaceBuilder {
             weekGoalKm: weeklyGoalKm > 0 ? Double(weeklyGoalKm) : nil,
             workout: todayPlan?.title,
             workoutShape: todayPlan.flatMap { shape($0.steps) },
+            workoutTip: todayPlan.flatMap { plan in
+                PlannedBriefingBuilder.briefing(PlannedBriefingLoader.input(
+                    plan: plan, week: planned, context: context, today: today,
+                    weeklyGoalKm: weeklyGoalKm, weather: weather, course: nil
+                )).watchTip
+            },
             raceName: race?.name,
             raceDay: race?.day,
             raceGoal: race?.goalSeconds.map { Int($0.rounded()) },
