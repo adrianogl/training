@@ -62,6 +62,7 @@ struct BriefingInput {
     let weather: [HourlyWeather]
     let course: CourseSuggestion?
     let completed: CompletedCheck?
+    var startHour: Int? = nil
 }
 
 struct BriefingStat: Equatable {

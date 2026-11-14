@@ -12,6 +12,7 @@ struct TrainingApp: App {
         _model = State(initialValue: model)
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
         BackgroundSync.register(model: model)
+        WorkoutFinishNotifier.shared.start(model: model)
     }
 
     var body: some Scene {

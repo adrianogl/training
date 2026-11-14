@@ -65,7 +65,7 @@ struct PlannedWorkoutDetailView: View {
     private func loadExtras() async {
         if let day = Day(iso: plan.day), Day.today().days(until: day) <= PlannedExtrasConstants.forecastDaysAhead,
            let coordinate = PlannedWeather.lastRunStart(context: context) {
-            weather = await PlannedWeather.morning(day: day, coordinate: coordinate)
+            weather = await PlannedWeather.forecast(day: day, coordinate: coordinate)
         }
         if let client = app.garminAccount.client {
             course = await PlannedCourseFinder.suggestion(client: client, plannedMeters: plan.estimatedMeters ?? 0)
@@ -333,9 +333,10 @@ struct PlannedWorkoutDetailView: View {
 
     private func hoursCard(_ briefing: PlannedBriefing) -> some View {
         let coolest = Set(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour))
+        let perRow = briefing.bestHours.count > C.hoursPerRow ? C.hoursPerRowLong : max(briefing.bestHours.count, 1)
         return VStack(alignment: .leading, spacing: 8) {
             SectionLabel(C.hours).padding(.top, 0).padding(.bottom, 0)
-            HStack(spacing: 6) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: perRow), spacing: 6) {
                 ForEach(briefing.bestHours, id: \.hour) { hour in
                     VStack(spacing: 2) {
                         Text("\(Int(hour.temperature.rounded()))°").font(BrandFonts.number(16))

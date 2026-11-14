@@ -38,6 +38,8 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: trAIning
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "O app lê só os treinos do Apple Health para avisar quando um treino termina e já tem análise."
+        CODE_SIGN_ENTITLEMENTS: App/trAIning.entitlements
         INFOPLIST_KEY_NSFaceIDUsageDescription: "O app pede o Face ID para mostrar ou copiar a chave de sincronização entre aparelhos."
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"

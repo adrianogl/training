@@ -17,7 +17,7 @@ struct OpenMeteoResponse: Decodable {
 enum PlannedWeather {
     private typealias C = PlannedExtrasConstants
 
-    static func morning(day: Day, coordinate: Coordinate, session: URLSession = URLSession(configuration: .ephemeral)) async -> [HourlyWeather] {
+    static func forecast(day: Day, coordinate: Coordinate, session: URLSession = URLSession(configuration: .ephemeral)) async -> [HourlyWeather] {
         guard let url = url(day: day, coordinate: coordinate),
               let (data, response) = try? await session.data(from: url),
               (response as? HTTPURLResponse)?.statusCode == 200 else { return [] }
@@ -43,7 +43,7 @@ enum PlannedWeather {
         return hourly.time.indices.compactMap { index in
             guard index < hourly.temperature_2m.count, let temperature = hourly.temperature_2m[index],
                   let hour = Int(hourly.time[index].suffix(5).prefix(2)),
-                  (C.morningStartHour..<C.morningEndHour).contains(hour) else { return nil }
+                  (C.forecastStartHour..<C.forecastEndHour).contains(hour) else { return nil }
             let dewPoint = index < hourly.dew_point_2m.count ? hourly.dew_point_2m[index] : nil
             return HourlyWeather(hour: hour, temperature: temperature, dewPoint: dewPoint)
         }

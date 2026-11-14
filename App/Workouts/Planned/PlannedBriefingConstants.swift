@@ -23,6 +23,7 @@ enum PlannedBriefingConstants {
     static let hotTemperature = 24.0
     static let plannedHour = 7
     static let morningHours = 5...10
+    static let lastStartHour = 21
     static let bestHoursCount = 2
     static let heatSlowdown = "5 a 10 s/km"
     static let hardAerobicEffect = 3.5
@@ -111,6 +112,9 @@ enum PlannedBriefingConstants {
 
     static let bestHoursFormat = "Saindo às %dh você pega %d °C. Às %dh, conte com %@ a mais na mesma FC."
     static let bestHoursCool = "Manhã fresca: qualquer horário até as 10h funciona."
+    static let bestHoursAheadFormat = "Daqui pra frente, o mais fresco é sair às %dh, com %d °C."
+    static let bestHoursAheadHeatFormat = " Às %dh, conte com %@ a mais na mesma FC."
+    static let bestHoursAheadCool = "Sem calor no resto do dia: qualquer horário até as 21h funciona."
 
     static let compareDistance = "Distância"
     static let comparePace = "Pace"
