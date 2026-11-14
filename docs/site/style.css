@@ -195,6 +195,8 @@ h1, h2, p { margin: 0; }
 .slot { position: absolute; }
 .slot-ipad { left: 0; top: calc(60px * var(--scale)); }
 .slot-iphone { right: 0; top: 0; }
+.slot-watch { left: calc(560px * var(--scale)); top: calc(430px * var(--scale)); z-index: 3; }
+.slot-watch .watch-device { width: calc(250px * var(--scale)); }
 .slot .device { zoom: var(--scale); }
 
 .device {
@@ -733,8 +735,7 @@ h2 {
 .planbar i { flex: var(--w); border-radius: 2px; }
 .planbar .z1 { background: var(--z1); height: 30%; } .planbar .z2 { background: var(--z2); height: 50%; } .planbar .z5 { background: var(--z5); height: 100%; }
 .bars i.plan { background: transparent; border: 1.5px dashed rgba(127, 178, 255, 0.7); }
-.watch-card { display: grid; place-items: center; }
-.watchface { width: min(100%, 360px); height: auto; border-radius: 50%; box-shadow: 0 0 0 10px #1C1F24, 0 20px 60px rgba(0, 0, 0, 0.5); font-family: var(--cond); }
+.watchface { width: 100%; height: auto; display: block; border-radius: 50%; font-family: var(--cond); }
 .wf-ink { fill: #fff; font-weight: 700; } .wf-dim { fill: #B3BAC4; font-weight: 700; } .wf-lime { fill: #E4FF1A; font-weight: 700; }
 .share-route { width: min(100%, 300px); height: auto; display: block; margin: 0 auto 8px; }
 .route-base { fill: none; stroke: rgba(255, 255, 255, 0.12); stroke-width: 9; stroke-linejoin: round; }
@@ -744,4 +745,52 @@ h2 {
 @media (prefers-reduced-motion: no-preference) {
   .route-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: route 4s ease-out infinite; }
   @keyframes route { 0% { stroke-dashoffset: 1; } 75%, 100% { stroke-dashoffset: 0; } }
+}
+
+/* Relógio */
+.watch-device { aspect-ratio: 1; border-radius: 50%; padding: 4.5%; background: radial-gradient(circle at 30% 25%, #3A3F46, #15171B 60%, #0B0C0E); box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 0 0 2px rgba(0, 0, 0, 0.6); }
+.watch-device.big { width: min(100%, 440px); justify-self: center; }
+.watch-device.aod { width: 140px; flex: none; }
+.watch-spot { max-width: 1120px; margin: clamp(56px, 9vw, 120px) auto 0; padding: 0 var(--gutter); display: grid; gap: 32px; }
+.spot-head { text-align: center; display: grid; gap: 10px; justify-items: center; }
+.spot-head .lead { max-width: 620px; }
+.spot-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 440px) minmax(0, 1fr); gap: 32px; align-items: center; }
+.callouts { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+.callouts li { display: grid; gap: 4px; padding-left: 14px; border-left: 2px solid var(--lime); }
+.callouts.left { text-align: right; }
+.callouts.left li { padding-left: 0; padding-right: 14px; border-left: 0; border-right: 2px solid var(--lime); }
+.callouts b { font-size: 17px; }
+.callouts span { color: var(--soft); font-size: 15px; line-height: 1.45; }
+.spot-foot { display: flex; gap: 20px; align-items: center; justify-content: center; max-width: 720px; margin: 0 auto; }
+.spot-foot .note { margin: 0; }
+/* Telas de exemplo atualizadas */
+.tally { display: flex; gap: 6px; margin: 6px 0 4px; }
+.tally span { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.up-chip { background: rgba(200, 240, 90, 0.16); color: var(--lime); }
+.flat-chip { background: var(--glass-hi); color: var(--soft); }
+.dumb { display: grid; grid-template-columns: 92px 1fr 46px; gap: 8px; align-items: center; font-size: 12px; padding: 4px 0; }
+.dumb i { position: relative; height: 10px; }
+.dumb i::before { content: ""; position: absolute; left: var(--a); right: calc(100% - var(--b)); top: 4px; height: 2px; background: rgba(200, 240, 90, 0.5); }
+.dumb i::after { content: ""; position: absolute; left: calc(var(--b) - 5px); top: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--lime); }
+.dumb b { text-align: right; font-size: 13px; }
+.zweeks { display: flex; gap: 6px; align-items: flex-end; height: 44px; margin-top: 8px; }
+.zweeks i { flex: 1; height: 100%; border-radius: 3px; background: linear-gradient(to top, var(--z1) 0 calc(var(--z1) * 1%), var(--z2) 0 calc((var(--z1) + var(--z2)) * 1%), var(--z3) 0 calc((var(--z1) + var(--z2) + var(--z3)) * 1%), var(--z4) 0 calc((var(--z1) + var(--z2) + var(--z3) + var(--z4)) * 1%), var(--z5) 0 100%); }
+.rec { display: flex; justify-content: space-between; font-size: 12px; margin-top: 6px; }
+.rec b { font-size: 15px; }
+.recbar { height: 9px; border-radius: 5px; background: rgba(255, 255, 255, 0.1); overflow: hidden; margin: 8px 0 6px; }
+.recbar i { display: block; height: 100%; width: var(--w); background: var(--amber); border-radius: 5px; }
+.n.race { color: var(--race); }
+@media (max-width: 820px) {
+  .spot-grid { grid-template-columns: 1fr; }
+  .callouts.left { text-align: left; order: 2; }
+  .callouts.left li { padding-left: 14px; padding-right: 0; border-right: 0; border-left: 2px solid var(--lime); }
+  .watch-device.big { order: 1; width: min(100%, 340px); }
+  .callouts.right { order: 3; }
+  .slot-watch { left: auto; right: 150px; top: 330px; }
+  .slot-watch .watch-device { width: 150px; }
+}
+@media (max-width: 480px) {
+  .slot-watch { right: auto; left: 12px; top: 320px; }
+  .slot-watch .watch-device { width: 130px; }
+  .spot-foot { flex-direction: column; text-align: center; }
 }

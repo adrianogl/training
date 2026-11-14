@@ -38,7 +38,7 @@
       </ul>
     </div>
 
-    <div class="stage" role="img" aria-label="iPad com a tela Evolução e iPhone com a tela Hoje, com números de exemplo">
+    <div class="stage" role="img" aria-label="iPad com a tela Evolução, iPhone com a tela Hoje e o mostrador do relógio, com números de exemplo">
       <div class="slot slot-ipad">
         <div class="device ipad" aria-hidden="true">
           <div class="screen">
@@ -66,15 +66,12 @@
                 <div class="g-card state">
                   <div class="k">Estado geral</div>
                   <div class="t">Melhor que há 3 meses</div>
-                  <table class="tbl">
-                    <tr class="th"><td></td><td>hoje</td><td>3 meses</td></tr>
-                    <tr><td>Previsão meia</td><td class="n">1:47:52</td><td class="n up">−3:41</td></tr>
-                    <tr><td>VO2max</td><td class="n">52,4</td><td class="n up">+1,2</td></tr>
-                    <tr><td>Fitness</td><td class="n">51</td><td class="n up">+7</td></tr>
-                    <tr><td>Pace na Z2</td><td class="n">5:41</td><td class="n up">−0:09</td></tr>
-                    <tr><td>Pace de limiar</td><td class="n">4:38</td><td class="n up">−0:05</td></tr>
-                    <tr><td>Volume mensal</td><td class="n">148 km</td><td class="n up">+21</td></tr>
-                  </table>
+                  <div class="tally"><span class="up-chip">5 melhoraram</span><span class="flat-chip">1 estável</span></div>
+                  <div class="dumb"><span>Previsão meia</span><i style="--a:20%;--b:62%"></i><b class="n up">−3:41</b></div>
+                  <div class="dumb"><span>VO2max</span><i style="--a:38%;--b:58%"></i><b class="n up">+1,2</b></div>
+                  <div class="dumb"><span>Pace na Z2</span><i style="--a:30%;--b:52%"></i><b class="n up">−0:09</b></div>
+                  <div class="dumb"><span>Pace de limiar</span><i style="--a:44%;--b:60%"></i><b class="n up">−0:05</b></div>
+                  <div class="dumb"><span>Volume mensal</span><i style="--a:40%;--b:66%"></i><b class="n up">+21</b></div>
                 </div>
                 <div class="g-card pred">
                   <div class="k">Previsão · meia <span class="race">· prova em 38 dias</span></div>
@@ -94,19 +91,18 @@
                   <div class="legend"><span class="race">meta 1:46:00</span><span>tracejado: projeção</span></div>
                 </div>
                 <div class="g-card mini">
+                  <div class="k">Tempo por zona</div>
+                  <div class="zweeks"><i style="--z1:14;--z2:40;--z3:22;--z4:14;--z5:10"></i><i style="--z1:12;--z2:44;--z3:20;--z4:14;--z5:10"></i><i style="--z1:16;--z2:36;--z3:24;--z4:14;--z5:10"></i><i style="--z1:12;--z2:46;--z3:20;--z4:12;--z5:10"></i></div>
+                </div>
+                <div class="g-card mini">
+                  <div class="k">Recordes</div>
+                  <div class="rec"><span>1 km</span><b class="n">3:37</b></div>
+                  <div class="rec"><span>5 km</span><b class="n">19:38</b></div>
+                </div>
+                <div class="g-card mini">
                   <div class="k">VO2max</div>
                   <div class="n mid">52,4</div>
                   <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><polyline class="s-hist" points="0,28 20,26 40,24 60,22 80,18"/><polyline class="s-proj" points="80,18 120,12"/></svg>
-                </div>
-                <div class="g-card mini">
-                  <div class="k">Pace na Z2</div>
-                  <div class="n mid">5:41<small>/km</small></div>
-                  <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><polyline class="s-hist" points="0,10 20,14 40,13 60,19 80,22"/><polyline class="s-proj" points="80,22 120,27"/></svg>
-                </div>
-                <div class="g-card mini">
-                  <div class="k">Volume mensal</div>
-                  <div class="n mid">148<small>km</small></div>
-                  <svg class="spark" viewBox="0 0 120 34" preserveAspectRatio="none"><polyline class="s-hist" points="0,26 20,22 40,24 60,16 80,14"/><polyline class="s-proj" points="80,14 120,10"/></svg>
                 </div>
               </div>
             </div>
@@ -135,19 +131,17 @@
             </div>
 
             <div class="p-card">
-              <div class="k">Previsão · meia <span class="race">· prova A em 38 dias</span></div>
+              <div class="k race">Prova-alvo · 22 nov</div>
               <div class="two">
-                <div><div class="s">hoje</div><div class="n mid">1:47:52</div></div>
-                <div><div class="s lime">no dia da prova</div><div class="n mid lime">1:45:40</div></div>
+                <div><div class="n huge race">9</div><div class="s">dias · Meia</div></div>
+                <div><div class="s">meta</div><div class="n mid">1:32:00</div><div class="s lime">no dia 1:31:24</div></div>
               </div>
-              <svg class="chart sm" viewBox="0 0 260 70" preserveAspectRatio="none">
-                <polygon class="band" points="190,42 240,44 240,62 190,48"/>
-                <polyline class="hist draw" pathLength="1" points="0,10 30,14 60,18 90,24 120,30 150,36 190,46"/>
-                <polyline class="proj" points="190,46 240,53"/>
-                <line class="meta" x1="0" y1="50" x2="260" y2="50"/>
-                <line class="raceline" x1="240" y1="0" x2="240" y2="70"/>
-              </svg>
-              <div class="note">Meta de 1:46 deve chegar em 6 de dezembro, 14 dias antes da prova.</div>
+            </div>
+
+            <div class="p-card">
+              <div class="k">Recuperação estimada</div>
+              <div class="recbar"><i style="--w:72%"></i></div>
+              <div class="note">pronto em 14 h · o intervalado de terça vem 58 h depois</div>
             </div>
 
             <div class="p-card">
@@ -165,28 +159,53 @@
               <div class="days"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
             </div>
 
-            <div class="p-card">
-              <div class="k">Fitness · até a prova</div>
-              <div class="three">
-                <div><div class="n mid blue">51</div><div class="s">hoje</div></div>
-                <div><div class="n mid blue">57</div><div class="s">pico</div></div>
-                <div><div class="n mid lime">+9</div><div class="s">forma no dia</div></div>
-              </div>
-            </div>
-
             <div class="tabbar">
               <span class="on"><i class="ico ico-sun"></i>Hoje</span>
               <span><i class="ico ico-chart"></i>Evolução</span>
               <span><i class="ico ico-run"></i>Treinos</span>
               <span><i class="ico ico-flag"></i>Provas</span>
+              <span><i class="ico ico-gear"></i>Ajustes</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="slot slot-watch">
+        <div class="watch-device" aria-hidden="true">
+      <svg class="watchface" viewBox="0 0 454 454" role="img" aria-label="Mostrador de exemplo: 9:41, prontidão 74, VO2 52,4, 31 de 52 km na semana, longão de 20 km hoje e meia em 9 dias">
+        <circle cx="227" cy="227" r="226" fill="#000"/>
+        <g stroke-width="3" stroke-linecap="round"><line x1="227.0" y1="22.0" x2="227.0" y2="8.0" stroke="#E4FF1A" stroke-width="3"/><line x1="249.0" y1="18.2" x2="249.9" y2="9.2" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="21.6" x2="272.5" y2="12.8" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="27.3" x2="294.7" y2="18.7" stroke="#E4FF1A" stroke-width="2"/><line x1="312.4" y1="35.2" x2="316.1" y2="26.9" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="49.5" x2="336.5" y2="37.3" stroke="#E4FF1A" stroke-width="3"/><line x1="350.4" y1="57.1" x2="355.7" y2="49.8" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="70.9" x2="373.5" y2="64.3" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="86.5" x2="389.7" y2="80.5" stroke="#E4FF1A" stroke-width="2"/><line x1="396.9" y1="103.6" x2="404.2" y2="98.3" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="124.5" x2="416.7" y2="117.5" stroke="#E4FF1A" stroke-width="3"/><line x1="418.8" y1="141.6" x2="427.1" y2="137.9" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="162.1" x2="435.3" y2="159.3" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="183.3" x2="441.2" y2="181.5" stroke="#E4FF1A" stroke-width="2"/><line x1="435.8" y1="205.0" x2="444.8" y2="204.1" stroke="#E4FF1A" stroke-width="2"/><line x1="432.0" y1="227.0" x2="446.0" y2="227.0" stroke="#E4FF1A" stroke-width="3"/><line x1="435.8" y1="249.0" x2="444.8" y2="249.9" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="270.7" x2="441.2" y2="272.5" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="291.9" x2="435.3" y2="294.7" stroke="#E4FF1A" stroke-width="2"/><line x1="418.8" y1="312.4" x2="427.1" y2="316.1" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="329.5" x2="416.7" y2="336.5" stroke="#E4FF1A" stroke-width="3"/><line x1="396.9" y1="350.4" x2="404.2" y2="355.7" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="367.5" x2="389.7" y2="373.5" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="383.1" x2="373.5" y2="389.7" stroke="#E4FF1A" stroke-width="2"/><line x1="350.4" y1="396.9" x2="355.7" y2="404.2" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="404.5" x2="336.5" y2="416.7" stroke="#E4FF1A" stroke-width="3"/><line x1="312.4" y1="418.8" x2="316.1" y2="427.1" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="426.7" x2="294.7" y2="435.3" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="432.4" x2="272.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="249.0" y1="435.8" x2="249.9" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="227.0" y1="432.0" x2="227.0" y2="446.0" stroke="#3A3F46" stroke-width="3"/><line x1="205.0" y1="435.8" x2="204.1" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="432.4" x2="181.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="426.7" x2="159.3" y2="435.3" stroke="#3A3F46" stroke-width="2"/><line x1="141.6" y1="418.8" x2="137.9" y2="427.1" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="404.5" x2="117.5" y2="416.7" stroke="#3A3F46" stroke-width="3"/><line x1="103.6" y1="396.9" x2="98.3" y2="404.2" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="383.1" x2="80.5" y2="389.7" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="367.5" x2="64.3" y2="373.5" stroke="#3A3F46" stroke-width="2"/><line x1="57.1" y1="350.4" x2="49.8" y2="355.7" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="329.5" x2="37.3" y2="336.5" stroke="#3A3F46" stroke-width="3"/><line x1="35.2" y1="312.4" x2="26.9" y2="316.1" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="291.9" x2="18.7" y2="294.7" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="270.7" x2="12.8" y2="272.5" stroke="#3A3F46" stroke-width="2"/><line x1="18.2" y1="249.0" x2="9.2" y2="249.9" stroke="#3A3F46" stroke-width="2"/><line x1="22.0" y1="227.0" x2="8.0" y2="227.0" stroke="#3A3F46" stroke-width="3"/><line x1="18.2" y1="205.0" x2="9.2" y2="204.1" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="183.3" x2="12.8" y2="181.5" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="162.1" x2="18.7" y2="159.3" stroke="#3A3F46" stroke-width="2"/><line x1="35.2" y1="141.6" x2="26.9" y2="137.9" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="124.5" x2="37.3" y2="117.5" stroke="#3A3F46" stroke-width="3"/><line x1="57.1" y1="103.6" x2="49.8" y2="98.3" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="86.5" x2="64.3" y2="80.5" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="70.9" x2="80.5" y2="64.3" stroke="#3A3F46" stroke-width="2"/><line x1="103.6" y1="57.1" x2="98.3" y2="49.8" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="49.5" x2="117.5" y2="37.3" stroke="#3A3F46" stroke-width="3"/><line x1="141.6" y1="35.2" x2="137.9" y2="26.9" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="27.3" x2="159.3" y2="18.7" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="21.6" x2="181.5" y2="12.8" stroke="#3A3F46" stroke-width="2"/><line x1="205.0" y1="18.2" x2="204.1" y2="9.2" stroke="#3A3F46" stroke-width="2"/></g>
+        <text x="227" y="80" text-anchor="middle" class="wf-dim" font-size="22">SEXTA 13 NOV</text>
+        <text x="196" y="118" text-anchor="end" class="wf-ink" font-size="30">24°</text>
+        <path d="M208,114 a5,5 0 1,0 10,0 l-5,-11 z" fill="#5CB0FF"/>
+        <text x="222" y="118" class="wf-dim" font-size="24">68%</text>
+        <line x1="276" y1="96" x2="276" y2="120" stroke="#3A3F46" stroke-width="2"/>
+        <text x="290" y="118" class="wf-ink" font-size="24">82%</text>
+        <text x="215" y="214" text-anchor="middle" class="wf-ink" font-size="96">9:41</text>
+        <text x="322" y="214" class="wf-lime" font-size="32">27</text>
+        <text x="121" y="258" text-anchor="middle" fill="#C8F05A" font-size="38" font-weight="700">74</text>
+        <text x="121" y="282" text-anchor="middle" class="wf-dim" font-size="15">FORTE</text>
+        <rect x="86" y="293" width="27" height="5" rx="2.5" fill="#501D1A"/><rect x="115" y="293" width="20" height="5" rx="2.5" fill="#59441A"/><rect x="137" y="293" width="19" height="5" rx="2.5" fill="#46541F"/><circle cx="138" cy="295.5" r="5" fill="#fff" stroke="#000" stroke-width="2"/>
+        <line x1="174" y1="234" x2="174" y2="302" stroke="#3A3F46" stroke-width="2"/>
+        <text x="227" y="258" text-anchor="middle" class="wf-ink" font-size="38">52,4</text>
+        <text x="227" y="282" text-anchor="middle" class="wf-dim" font-size="15">VO2 MÁX.</text>
+        <text x="227" y="300" text-anchor="middle" fill="#C8F05A" font-size="14" font-weight="700">▲ 1,2 · 3M</text>
+        <line x1="280" y1="234" x2="280" y2="302" stroke="#3A3F46" stroke-width="2"/>
+        <text x="333" y="258" text-anchor="middle" font-size="38" font-weight="700"><tspan fill="#C8F05A">31,0</tspan><tspan font-size="22" fill="#B3BAC4">/52</tspan></text>
+        <text x="333" y="282" text-anchor="middle" class="wf-dim" font-size="15">KM SEMANA</text>
+        <rect x="298" y="293" width="70" height="5" rx="2.5" fill="#3A3F46"/><rect x="298" y="293" width="64" height="5" rx="2.5" fill="none" stroke="#7FB2FF" stroke-width="1.2"/><rect x="298" y="293" width="38" height="5" rx="2.5" fill="#C8F05A"/><line x1="353" y1="289" x2="353" y2="302" stroke="#fff" stroke-width="2"/>
+        <text x="227" y="330" text-anchor="middle" fill="#E4FF1A" font-size="21" font-weight="700">CORRIDA LONGO 20 KM</text>
+        <rect x="132" y="341" width="190" height="10" fill="#C8F05A"/>
+        <text x="227" y="370" text-anchor="middle" fill="#FFC24C" font-size="14" font-weight="700">FC até 159 · gel no km 9</text>
+        <text x="227" y="398" text-anchor="middle" fill="#FF8A1A" font-size="21" font-weight="700">MEIA · 22 NOV · 9 DIAS</text>
+        <text x="227" y="424" text-anchor="middle" font-size="24" font-weight="700"><tspan fill="#FF8A1A">1:31:24</tspan><tspan font-size="16" fill="#B3BAC4"> / META 1:32:00</tspan></text>
+      </svg>
         </div>
       </div>
     </div>
   </section>
 
-  <p class="sample-note">Telas recriadas em HTML com números de exemplo.</p>
+  <p class="sample-note">Telas e mostrador recriados em HTML com números de exemplo.</p>
 
   <section class="feature" id="dia">
     <div class="copy">
@@ -343,38 +362,59 @@
     </div>
   </section>
 
-  <section class="feature flip" id="relogio">
-    <div class="copy">
+  <section class="watch-spot" id="relogio">
+    <div class="spot-head">
       <p class="eyebrow">Relógio</p>
       <h2>O essencial no pulso</h2>
-      <p>O mostrador para o Forerunner 965 traz a prontidão com a régua de descanso a forte, o VO2max com a variação de 3 meses, os km da semana contra o planejado e a meta, o treino de hoje com a estrutura colorida por zona e uma dica para ele, e a prova com a previsão e a meta.</p>
-      <p>No modo sempre ligado, ficam a hora, a data, a prontidão e os dias até a prova, em cinza e com deslocamento contra burn-in.</p>
+      <p class="lead">Um mostrador feito para o Forerunner 965 com o que o app sabe sobre o seu dia, a sua semana e a sua prova. Ele lê só esses números, a cada 15 minutos.</p>
     </div>
-    <div class="card watch-card">
+    <div class="spot-grid">
+      <ul class="callouts left">
+        <li><b>Prontidão</b><span>A nota do dia com a régua de descanso a forte.</span></li>
+        <li><b>VO2max</b><span>Com a variação dos últimos 3 meses.</span></li>
+        <li><b>Treino de hoje</b><span>Nome, estrutura colorida por zona e uma dica para ele.</span></li>
+      </ul>
+      <div class="watch-device big">
       <svg class="watchface" viewBox="0 0 454 454" role="img" aria-label="Mostrador de exemplo: 9:41, prontidão 74, VO2 52,4, 31 de 52 km na semana, longão de 20 km hoje e meia em 9 dias">
         <circle cx="227" cy="227" r="226" fill="#000"/>
-        <g stroke-width="3">
-          <line x1="227" y1="8" x2="227" y2="22" stroke="#E4FF1A"/><line x1="337" y1="37" x2="330" y2="49" stroke="#E4FF1A"/><line x1="417" y1="117" x2="405" y2="124" stroke="#E4FF1A"/><line x1="446" y1="227" x2="432" y2="227" stroke="#3A3F46"/><line x1="417" y1="337" x2="405" y2="330" stroke="#3A3F46"/><line x1="117" y1="37" x2="124" y2="49" stroke="#3A3F46"/>
-        </g>
+        <g stroke-width="3" stroke-linecap="round"><line x1="227.0" y1="22.0" x2="227.0" y2="8.0" stroke="#E4FF1A" stroke-width="3"/><line x1="249.0" y1="18.2" x2="249.9" y2="9.2" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="21.6" x2="272.5" y2="12.8" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="27.3" x2="294.7" y2="18.7" stroke="#E4FF1A" stroke-width="2"/><line x1="312.4" y1="35.2" x2="316.1" y2="26.9" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="49.5" x2="336.5" y2="37.3" stroke="#E4FF1A" stroke-width="3"/><line x1="350.4" y1="57.1" x2="355.7" y2="49.8" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="70.9" x2="373.5" y2="64.3" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="86.5" x2="389.7" y2="80.5" stroke="#E4FF1A" stroke-width="2"/><line x1="396.9" y1="103.6" x2="404.2" y2="98.3" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="124.5" x2="416.7" y2="117.5" stroke="#E4FF1A" stroke-width="3"/><line x1="418.8" y1="141.6" x2="427.1" y2="137.9" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="162.1" x2="435.3" y2="159.3" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="183.3" x2="441.2" y2="181.5" stroke="#E4FF1A" stroke-width="2"/><line x1="435.8" y1="205.0" x2="444.8" y2="204.1" stroke="#E4FF1A" stroke-width="2"/><line x1="432.0" y1="227.0" x2="446.0" y2="227.0" stroke="#E4FF1A" stroke-width="3"/><line x1="435.8" y1="249.0" x2="444.8" y2="249.9" stroke="#E4FF1A" stroke-width="2"/><line x1="432.4" y1="270.7" x2="441.2" y2="272.5" stroke="#E4FF1A" stroke-width="2"/><line x1="426.7" y1="291.9" x2="435.3" y2="294.7" stroke="#E4FF1A" stroke-width="2"/><line x1="418.8" y1="312.4" x2="427.1" y2="316.1" stroke="#E4FF1A" stroke-width="2"/><line x1="404.5" y1="329.5" x2="416.7" y2="336.5" stroke="#E4FF1A" stroke-width="3"/><line x1="396.9" y1="350.4" x2="404.2" y2="355.7" stroke="#E4FF1A" stroke-width="2"/><line x1="383.1" y1="367.5" x2="389.7" y2="373.5" stroke="#E4FF1A" stroke-width="2"/><line x1="367.5" y1="383.1" x2="373.5" y2="389.7" stroke="#E4FF1A" stroke-width="2"/><line x1="350.4" y1="396.9" x2="355.7" y2="404.2" stroke="#E4FF1A" stroke-width="2"/><line x1="329.5" y1="404.5" x2="336.5" y2="416.7" stroke="#E4FF1A" stroke-width="3"/><line x1="312.4" y1="418.8" x2="316.1" y2="427.1" stroke="#E4FF1A" stroke-width="2"/><line x1="291.9" y1="426.7" x2="294.7" y2="435.3" stroke="#E4FF1A" stroke-width="2"/><line x1="270.7" y1="432.4" x2="272.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="249.0" y1="435.8" x2="249.9" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="227.0" y1="432.0" x2="227.0" y2="446.0" stroke="#3A3F46" stroke-width="3"/><line x1="205.0" y1="435.8" x2="204.1" y2="444.8" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="432.4" x2="181.5" y2="441.2" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="426.7" x2="159.3" y2="435.3" stroke="#3A3F46" stroke-width="2"/><line x1="141.6" y1="418.8" x2="137.9" y2="427.1" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="404.5" x2="117.5" y2="416.7" stroke="#3A3F46" stroke-width="3"/><line x1="103.6" y1="396.9" x2="98.3" y2="404.2" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="383.1" x2="80.5" y2="389.7" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="367.5" x2="64.3" y2="373.5" stroke="#3A3F46" stroke-width="2"/><line x1="57.1" y1="350.4" x2="49.8" y2="355.7" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="329.5" x2="37.3" y2="336.5" stroke="#3A3F46" stroke-width="3"/><line x1="35.2" y1="312.4" x2="26.9" y2="316.1" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="291.9" x2="18.7" y2="294.7" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="270.7" x2="12.8" y2="272.5" stroke="#3A3F46" stroke-width="2"/><line x1="18.2" y1="249.0" x2="9.2" y2="249.9" stroke="#3A3F46" stroke-width="2"/><line x1="22.0" y1="227.0" x2="8.0" y2="227.0" stroke="#3A3F46" stroke-width="3"/><line x1="18.2" y1="205.0" x2="9.2" y2="204.1" stroke="#3A3F46" stroke-width="2"/><line x1="21.6" y1="183.3" x2="12.8" y2="181.5" stroke="#3A3F46" stroke-width="2"/><line x1="27.3" y1="162.1" x2="18.7" y2="159.3" stroke="#3A3F46" stroke-width="2"/><line x1="35.2" y1="141.6" x2="26.9" y2="137.9" stroke="#3A3F46" stroke-width="2"/><line x1="49.5" y1="124.5" x2="37.3" y2="117.5" stroke="#3A3F46" stroke-width="3"/><line x1="57.1" y1="103.6" x2="49.8" y2="98.3" stroke="#3A3F46" stroke-width="2"/><line x1="70.9" y1="86.5" x2="64.3" y2="80.5" stroke="#3A3F46" stroke-width="2"/><line x1="86.5" y1="70.9" x2="80.5" y2="64.3" stroke="#3A3F46" stroke-width="2"/><line x1="103.6" y1="57.1" x2="98.3" y2="49.8" stroke="#3A3F46" stroke-width="2"/><line x1="124.5" y1="49.5" x2="117.5" y2="37.3" stroke="#3A3F46" stroke-width="3"/><line x1="141.6" y1="35.2" x2="137.9" y2="26.9" stroke="#3A3F46" stroke-width="2"/><line x1="162.1" y1="27.3" x2="159.3" y2="18.7" stroke="#3A3F46" stroke-width="2"/><line x1="183.3" y1="21.6" x2="181.5" y2="12.8" stroke="#3A3F46" stroke-width="2"/><line x1="205.0" y1="18.2" x2="204.1" y2="9.2" stroke="#3A3F46" stroke-width="2"/></g>
         <text x="227" y="80" text-anchor="middle" class="wf-dim" font-size="22">SEXTA 13 NOV</text>
-        <text x="200" y="118" text-anchor="end" class="wf-ink" font-size="30">24°</text>
-        <text x="216" y="118" class="wf-dim" font-size="24">68%</text>
-        <text x="300" y="118" class="wf-ink" font-size="24">82%</text>
+        <text x="196" y="118" text-anchor="end" class="wf-ink" font-size="30">24°</text>
+        <path d="M208,114 a5,5 0 1,0 10,0 l-5,-11 z" fill="#5CB0FF"/>
+        <text x="222" y="118" class="wf-dim" font-size="24">68%</text>
+        <line x1="276" y1="96" x2="276" y2="120" stroke="#3A3F46" stroke-width="2"/>
+        <text x="290" y="118" class="wf-ink" font-size="24">82%</text>
         <text x="215" y="214" text-anchor="middle" class="wf-ink" font-size="96">9:41</text>
         <text x="322" y="214" class="wf-lime" font-size="32">27</text>
         <text x="121" y="258" text-anchor="middle" fill="#C8F05A" font-size="38" font-weight="700">74</text>
         <text x="121" y="282" text-anchor="middle" class="wf-dim" font-size="15">FORTE</text>
+        <rect x="86" y="293" width="27" height="5" rx="2.5" fill="#501D1A"/><rect x="115" y="293" width="20" height="5" rx="2.5" fill="#59441A"/><rect x="137" y="293" width="19" height="5" rx="2.5" fill="#46541F"/><circle cx="138" cy="295.5" r="5" fill="#fff" stroke="#000" stroke-width="2"/>
+        <line x1="174" y1="234" x2="174" y2="302" stroke="#3A3F46" stroke-width="2"/>
         <text x="227" y="258" text-anchor="middle" class="wf-ink" font-size="38">52,4</text>
         <text x="227" y="282" text-anchor="middle" class="wf-dim" font-size="15">VO2 MÁX.</text>
         <text x="227" y="300" text-anchor="middle" fill="#C8F05A" font-size="14" font-weight="700">▲ 1,2 · 3M</text>
+        <line x1="280" y1="234" x2="280" y2="302" stroke="#3A3F46" stroke-width="2"/>
         <text x="333" y="258" text-anchor="middle" font-size="38" font-weight="700"><tspan fill="#C8F05A">31,0</tspan><tspan font-size="22" fill="#B3BAC4">/52</tspan></text>
         <text x="333" y="282" text-anchor="middle" class="wf-dim" font-size="15">KM SEMANA</text>
+        <rect x="298" y="293" width="70" height="5" rx="2.5" fill="#3A3F46"/><rect x="298" y="293" width="64" height="5" rx="2.5" fill="none" stroke="#7FB2FF" stroke-width="1.2"/><rect x="298" y="293" width="38" height="5" rx="2.5" fill="#C8F05A"/><line x1="353" y1="289" x2="353" y2="302" stroke="#fff" stroke-width="2"/>
         <text x="227" y="330" text-anchor="middle" fill="#E4FF1A" font-size="21" font-weight="700">CORRIDA LONGO 20 KM</text>
         <rect x="132" y="341" width="190" height="10" fill="#C8F05A"/>
         <text x="227" y="370" text-anchor="middle" fill="#FFC24C" font-size="14" font-weight="700">FC até 159 · gel no km 9</text>
         <text x="227" y="398" text-anchor="middle" fill="#FF8A1A" font-size="21" font-weight="700">MEIA · 22 NOV · 9 DIAS</text>
         <text x="227" y="424" text-anchor="middle" font-size="24" font-weight="700"><tspan fill="#FF8A1A">1:31:24</tspan><tspan font-size="16" fill="#B3BAC4"> / META 1:32:00</tspan></text>
       </svg>
+      </div>
+      <ul class="callouts right">
+        <li><b>Km da semana</b><span>Feito contra o planejado pelo Treinus, com o traço da meta.</span></li>
+        <li><b>Prova</b><span>Dias que faltam, previsão no dia e meta.</span></li>
+        <li><b>Segundos e clima</b><span>Anel de segundos, temperatura, umidade colorida pelo ponto de orvalho e bateria.</span></li>
+      </ul>
+    </div>
+    <div class="spot-foot">
+      <div class="watch-device aod" aria-hidden="true">
+        <svg viewBox="0 0 454 454" class="watchface"><circle cx="227" cy="227" r="226" fill="#000"/><text x="240" y="150" text-anchor="middle" fill="#5C6168" font-size="24" font-weight="700">SEX 13 NOV</text><text x="240" y="250" text-anchor="middle" fill="#9AA0A8" font-size="104">9:41</text><text x="240" y="300" text-anchor="middle" fill="#8A6A2A" font-size="24" font-weight="700">PRONTIDÃO 74</text><text x="240" y="334" text-anchor="middle" fill="#A35A33" font-size="22" font-weight="700">PROVA EM 9 DIAS</text></svg>
+      </div>
+      <p class="note">No modo sempre ligado: hora, data, prontidão e dias até a prova, em cinza e com deslocamento contra burn-in. A estratégia da prova chega ao relógio como um treino, com o pace alvo de cada km.</p>
     </div>
   </section>
 
