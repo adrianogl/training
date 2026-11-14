@@ -158,3 +158,29 @@ export interface PasswordChangeInput {
   next: string
   endOtherSessions: boolean
 }
+
+export interface GarminSession {
+  accessToken: string
+  refreshToken: string | null
+  clientId: string
+  expiresAt: string
+}
+
+export interface GarminPendingLogin {
+  method: string
+  cookies: string[]
+}
+
+export type GarminLoginOutcome =
+  | { status: 'signed_in'; session: GarminSession }
+  | { status: 'needs_code'; pending: GarminPendingLogin }
+
+export type GarminErrorCode = 'invalid_credentials' | 'invalid_code' | 'rate_limited' | 'unexpected_response' | 'exchange_failed' | 'session_expired'
+
+export type Fetcher = typeof fetch
+
+export interface GarminEnv {
+  dataKey: Buffer | undefined
+  fetcher: Fetcher
+  now: () => Date
+}

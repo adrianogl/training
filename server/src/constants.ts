@@ -75,3 +75,43 @@ export const MAIL_VERIFY_SUBJECT = 'Confirme seu e-mail no trAIning'
 export const MAIL_RESET_SUBJECT = 'Redefinir a senha do trAIning'
 export const MAIL_VERIFY_TEXT = 'Para confirmar o e-mail da sua conta no trAIning, abra o link abaixo. Ele vale por 24 horas.'
 export const MAIL_RESET_TEXT = 'Para criar uma nova senha no trAIning, abra o link abaixo. Ele vale por 30 minutos. Se não foi você, ignore este e-mail.'
+export const DATA_KEY_BYTES = 32
+export const CIPHER_ALGORITHM = 'aes-256-gcm'
+export const CIPHER_IV_BYTES = 12
+export const CIPHER_VERSION = 'v1'
+export const GARMIN_ROUTE = 'garmin'
+export const GARMIN_PENDING_MINUTES = 10
+export const GARMIN_REFRESH_MARGIN_MS = 15 * 60 * 1000
+export const GARMIN_CODE_PATTERN = /^\d{4,8}$/
+export const GARMIN_LOGIN_URL = 'https://sso.garmin.com/mobile/api/login'
+export const GARMIN_MFA_URL = 'https://sso.garmin.com/mobile/api/mfa/verifyCode'
+export const GARMIN_TOKEN_URL = 'https://diauth.garmin.com/di-oauth2-service/oauth/token'
+export const GARMIN_API_BASE = 'https://connectapi.garmin.com'
+export const GARMIN_SSO_ORIGIN = 'https://sso.garmin.com'
+export const GARMIN_SSO_CLIENT_ID = 'GCM_IOS_DARK'
+export const GARMIN_SERVICE_URL = 'https://mobile.integration.garmin.com/gcm/ios'
+export const GARMIN_LOCALE = 'en-US'
+export const GARMIN_LOGIN_USER_AGENT =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148'
+export const GARMIN_SERVICE_TICKET_GRANT = 'https://connectapi.garmin.com/di-oauth2-service/oauth/grant/service_ticket'
+export const GARMIN_REFRESH_GRANT = 'refresh_token'
+export const GARMIN_CLIENT_IDS = [
+  'GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2',
+  'GARMIN_CONNECT_MOBILE_ANDROID_DI_2024Q4',
+  'GARMIN_CONNECT_MOBILE_ANDROID_DI',
+  'GARMIN_CONNECT_MOBILE_IOS_DI',
+] as const
+export const GARMIN_NATIVE_HEADERS: Record<string, string> = {
+  'User-Agent': 'GCM-Android-5.23',
+  'X-Garmin-User-Agent': 'com.garmin.android.apps.connectmobile/5.23; ; Google/sdk_gphone64_arm64/google; Android/33; Dalvik/2.1.0',
+  'X-Garmin-Paired-App-Version': '10861',
+  'X-Garmin-Client-Platform': 'Android',
+  'X-App-Ver': '10861',
+  'X-Lang': 'en',
+  'X-GCExperience': 'GC5',
+  'Accept-Language': 'en-US,en;q=0.9',
+}
+export const GARMIN_DEFAULT_MFA_METHOD = 'email'
+export const GARMIN_SUCCESS_STATUS = 'SUCCESSFUL'
+export const GARMIN_MFA_STATUS = 'MFA_REQUIRED'
+export const GARMIN_INVALID_CREDENTIALS_STATUS = 'INVALID_USERNAME_PASSWORD'

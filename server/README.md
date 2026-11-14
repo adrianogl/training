@@ -12,6 +12,7 @@ API da sincronização entre aparelhos do trAIning: Vercel Functions (Node 22) c
 | `RESEND_API_KEY` | Chave do Resend para os e-mails de confirmação e recuperação de senha. Sem ela, confirmar e recuperar respondem 503 `mail_unavailable`. |
 | `MAIL_FROM` | Remetente dos e-mails, de um domínio verificado no Resend. |
 | `APP_URL` | Base dos links dos e-mails (`/confirmar`, `/redefinir-senha`). |
+| `DATA_KEY` | Chave de 32 bytes em base64url que cifra a sessão da Garmin (e os dados de saúde, nos próximos módulos). Gerar com `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`. Sem ela, as rotas da Garmin respondem 503. Trocar a chave invalida o que já foi cifrado. |
 | `MAX_ACCOUNT_BYTES` | Cota de payload por conta em bytes (padrão 52428800, 50 MB). Push que passa da cota responde 413 `quota_exceeded` e não grava nada. |
 
 ## Comandos
@@ -80,3 +81,14 @@ Spec: `tasks/conta-spec.md`. O token de sessão tem o formato da chave de conta 
 | `POST /api/v1/auth/verify` | Corpo `{"token"}`. 204; 400 `invalid_token` |
 | `POST /api/v1/auth/resend-verification` | 204; 503 `mail_unavailable` |
 | `GET`/`DELETE /api/v1/auth/sessions` | Lista as sessões; `DELETE ?id=` encerra uma |
+
+## Garmin
+
+O login é o mesmo do app (SSO mobile da Garmin, com código por e-mail quando a conta pede). Entre o login e o código, os cookies do SSO ficam cifrados em `garmin_pending_logins` por 10 minutos. A sessão fica cifrada (AES-256-GCM com `DATA_KEY`) em `garmin_connections` e é renovada quando faltam menos de 15 minutos para vencer. A senha da Garmin não é guardada.
+
+| Rota | Resposta |
+| --- | --- |
+| `POST /api/v1/garmin/connect` | Corpo `{"email","password"}`. 200 `{"status":"connected"}` ou `{"status":"needs_code","method"}`; 400 `garmin_invalid_credentials`; 429 `garmin_rate_limited`; 502 `garmin_unavailable` |
+| `POST /api/v1/garmin/verify` | Corpo `{"code"}`. 200 `{"status":"connected"}`; 400 `garmin_invalid_code`; 409 `garmin_login_expired` |
+| `GET`/`DELETE /api/v1/garmin/status` | `{"connected","connectedAt"}`; `DELETE` desconecta |
+| `GET /api/v1/garmin/session` | A sessão da Garmin para o app (`accessToken`, `refreshToken`, `clientId`, `expiresAt`); 404 `garmin_not_connected` |
