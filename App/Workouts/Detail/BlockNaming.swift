@@ -58,6 +58,31 @@ enum BlockNaming {
         }
     }
 
+    static func sections(_ blocks: [WorkoutBlock]) -> [(title: String, positions: [Int])] {
+        var sections: [(title: String, positions: [Int])] = []
+        for position in blocks.indices {
+            let title = sectionTitle(blocks[position].kind, blocks: blocks)
+            if let last = sections.last, last.title == title {
+                sections[sections.count - 1].positions.append(position)
+            } else {
+                sections.append((title, [position]))
+            }
+        }
+        return sections
+    }
+
+    private static func sectionTitle(_ kind: BlockKind, blocks: [WorkoutBlock]) -> String {
+        switch kind {
+        case .warmup: return C.sectionWarmup
+        case .cooldown: return C.sectionCooldown
+        case .active, .recovery:
+            let actives = blocks.filter { $0.kind == .active }
+            let sizes = Set(actives.compactMap { $0.prescribed.flatMap { durationText($0.duration) } })
+            guard actives.count > 1, actives.allSatisfy(isRepeat), sizes.count == 1, let size = sizes.first else { return C.sectionMain }
+            return String(format: C.sectionSeriesFormat, actives.count, size)
+        }
+    }
+
     static func ordinal(_ value: Int) -> String {
         C.ordinals.indices.contains(value - 1) ? C.ordinals[value - 1] : "\(value)º"
     }

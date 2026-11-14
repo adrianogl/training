@@ -13,15 +13,17 @@ struct BlocksSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header.padding(.bottom, 4)
-            ForEach(Array(blocks.enumerated()), id: \.offset) { position, block in
-                row(position: position, block: block)
-                ForEach(Array((kilometers[position] ?? []).enumerated()), id: \.offset) { index, kilometer in
-                    let rowBars = kilometerBars[position] ?? []
-                    line(kilometer, bar: rowBars.indices.contains(index) ? rowBars[index] : nil, indent: WorkoutDetailConstants.kilometerIndent)
-                        .padding(.vertical, 5)
-                }
-                if position < blocks.count - 1 {
-                    Divider().overlay(BrandColors.line)
+            let sections = BlockNaming.sections(blocks)
+            ForEach(Array(sections.enumerated()), id: \.offset) { sectionIndex, section in
+                sectionHeader(section.title, first: sectionIndex == 0)
+                ForEach(Array(section.positions.enumerated()), id: \.element) { index, position in
+                    if index > 0 { Divider().overlay(BrandColors.line) }
+                    row(position: position, block: blocks[position])
+                    ForEach(Array((kilometers[position] ?? []).enumerated()), id: \.offset) { kmIndex, kilometer in
+                        let rowBars = kilometerBars[position] ?? []
+                        line(kilometer, bar: rowBars.indices.contains(kmIndex) ? rowBars[kmIndex] : nil, indent: WorkoutDetailConstants.kilometerIndent)
+                            .padding(.vertical, 5)
+                    }
                 }
             }
             if showsTarget {
@@ -51,6 +53,20 @@ struct BlocksSection: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(canExpand ? .isButton : [])
+    }
+
+    private func sectionHeader(_ title: String, first: Bool) -> some View {
+        HStack(spacing: 8) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .tracking(0.8)
+                .textCase(.uppercase)
+                .foregroundStyle(BrandColors.dim)
+                .fixedSize()
+            Rectangle().fill(BrandColors.line).frame(height: 1)
+        }
+        .padding(.top, first ? 6 : 18)
+        .padding(.bottom, 4)
     }
 
     private var header: some View {

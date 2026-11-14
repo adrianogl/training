@@ -84,4 +84,14 @@ import WorkoutAnalysis
         #expect(BlockNaming.tableLabel(Self.blocks[1]).title == "Trote")
         #expect(BlockNaming.tableLabel(Self.blocks[1]).detail == "2 min")
     }
+
+    @Test func sectionsSplitWarmupSeriesAndCooldown() {
+        let warmup = WorkoutBlock(kind: .warmup, ordinal: 1, label: "Aquecimento", prescribed: nil, laps: [], seconds: 900, distance: 3_000, avgSpeed: 3.3, avgHeartRate: 140, maxHeartRate: 150, dominantZone: 2, status: .noTarget)
+        let cooldown = WorkoutBlock(kind: .cooldown, ordinal: 1, label: "Desaquecimento", prescribed: nil, laps: [], seconds: 600, distance: 1_800, avgSpeed: 3, avgHeartRate: 130, maxHeartRate: 140, dominantZone: 1, status: .noTarget)
+
+        let sections = BlockNaming.sections([warmup] + Self.blocks + [cooldown])
+
+        #expect(sections.map(\.title) == ["Aquecimento", "Série · 5 × 1000 m", "Desaquecimento"])
+        #expect(sections[1].positions == Array(1...9))
+    }
 }
