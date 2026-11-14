@@ -63,7 +63,7 @@ async function fetchDay(env: Env, session: GarminSession, name: string, day: str
     garminGet(env, session, `/hrv-service/hrv/${day}`),
     garminGet(env, session, `/wellness-service/wellness/dailySleepData/${encodeURIComponent(name)}?date=${day}&nonSleepBufferMinutes=60`),
     garminGet(env, session, `/metrics-service/metrics/trainingreadiness/${day}`),
-    garminGet(env, session, `/wellness-service/wellness/bodyBattery/reports/daily?startDate=${addDays(day, -1)}&endDate=${day}`),
+    garminGet(env, session, `/wellness-service/wellness/dailyStress/${day}`),
   ])
   return parseHealthDay(day, summary, hrv, sleep, readiness, battery)
 }

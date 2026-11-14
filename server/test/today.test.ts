@@ -66,6 +66,23 @@ describe('resumo do Hoje', () => {
 })
 
 describe('Body Battery da manhã no sync', () => {
+  it('lê a série do stress diário pelo índice do nível', () => {
+    const end = 1_800_000_000_000
+    const raw = {
+      bodyBatteryValueDescriptorsDTOList: [
+        { bodyBatteryValueDescriptorIndex: 0, bodyBatteryValueDescriptorKey: 'timestamp' },
+        { bodyBatteryValueDescriptorIndex: 1, bodyBatteryValueDescriptorKey: 'bodyBatteryStatus' },
+        { bodyBatteryValueDescriptorIndex: 2, bodyBatteryValueDescriptorKey: 'bodyBatteryLevel' },
+        { bodyBatteryValueDescriptorIndex: 3, bodyBatteryValueDescriptorKey: 'bodyBatteryVersion' },
+      ],
+      bodyBatteryValuesArray: [[end + 600_000, 'MEASURED', 70, 3], [end + 3_600_000, 'MEASURED', 76, 3]],
+    }
+    const parsed = parseHealthDay(today, {}, {}, { dailySleepDTO: { sleepTimeSeconds: 27000, sleepEndTimestampGMT: end } }, [], raw)
+
+    expect(batterySamples(raw)).toEqual([[end + 600_000, 70], [end + 3_600_000, 76]])
+    expect(parsed.bodyBattery.morningMax).toBe(76)
+  })
+
   it('lê a série e pega o maior valor nas 3 horas depois de acordar', () => {
     const end = 1_800_000_000_000
     const raw = [{ date: today, bodyBatteryValuesArray: [[end - 60_000, 90], [end + 600_000, 70], [end + 7_200_000, 74], [end + 4 * 3_600_000, 95]] }]

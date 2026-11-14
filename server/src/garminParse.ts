@@ -20,16 +20,26 @@ function isoFromMillis(value: unknown): string | null {
   return millis === null ? null : new Date(millis).toISOString()
 }
 
+function levelIndex(entry: Json): number {
+  const descriptors = entry.bodyBatteryValueDescriptorsDTOList ?? entry.bodyBatteryValueDescriptorDTOList
+  if (!Array.isArray(descriptors)) {
+    return 1
+  }
+  const level = descriptors.map(obj).find((descriptor) => descriptor.bodyBatteryValueDescriptorKey === 'bodyBatteryLevel')
+  return num(level?.bodyBatteryValueDescriptorIndex) ?? 1
+}
+
 export function batterySamples(raw: unknown): [number, number][] {
-  const days = Array.isArray(raw) ? raw.map(obj) : []
-  return days.flatMap((entry) => {
+  const entries = Array.isArray(raw) ? raw.map(obj) : [obj(raw)]
+  return entries.flatMap((entry) => {
     const values = Array.isArray(entry.bodyBatteryValuesArray) ? entry.bodyBatteryValuesArray : []
-    return values.flatMap((pair) => {
-      if (!Array.isArray(pair)) {
+    const index = levelIndex(entry)
+    return values.flatMap((point) => {
+      if (!Array.isArray(point)) {
         return []
       }
-      const time = num(pair[0])
-      const value = num(pair[1])
+      const time = num(point[0])
+      const value = num(point[index])
       return time === null || value === null ? [] : [[time, Math.round(value)] as [number, number]]
     })
   })
