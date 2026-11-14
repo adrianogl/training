@@ -4,6 +4,10 @@
   "outputDirectory": "public",
   "rewrites": [
     {
+      "source": "/api/v1/:route*",
+      "destination": "/api/router?route=:route*"
+    },
+    {
       "source": "/admin",
       "destination": "/api/admin"
     },
