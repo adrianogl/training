@@ -11,6 +11,7 @@ enum RecoveryConstants {
     static let lookAheadDays = 7
     static let title = "Recuperação estimada"
     static let readyFormat = "pronto em %d h · %@"
+    static let whenFormat = "%@ %dh"
     static let readyNow = "recuperado"
     static let afterFormat = "%d h depois"
     static let enough = "ok"

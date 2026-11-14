@@ -47,7 +47,8 @@ struct RecoveryCard: View {
     private var status: String {
         let remaining = Int((estimate.readyAt.timeIntervalSince(now) / 3_600).rounded())
         guard remaining > 0 else { return C.readyNow }
-        let when = estimate.readyAt.formatted(.dateTime.weekday(.abbreviated).hour().locale(WorkoutConstants.locale))
+        let day = estimate.readyAt.formatted(.dateTime.weekday(.abbreviated).locale(WorkoutConstants.locale))
+        let when = String(format: C.whenFormat, day, Calendar.current.component(.hour, from: estimate.readyAt))
         return String(format: C.readyFormat, remaining, when)
     }
 }
