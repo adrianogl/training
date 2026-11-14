@@ -139,3 +139,9 @@ export const GARMIN_PROBE_PREFIXES = [
   '/calendar-service/',
   '/workout-service/',
 ] as const
+export const SYNC_HISTORY_DAYS = 180
+export const SYNC_RECENT_DAYS = 3
+export const SYNC_BUDGET_MS = 40_000
+export const SYNC_ACTIVITY_PAGE = 50
+export const SYNC_TIME_ZONE = 'America/Sao_Paulo'
+export const CRON_ROUTE = 'cron/garmin-sync'

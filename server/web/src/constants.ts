@@ -183,6 +183,59 @@ export const INVITE_TEXT = {
   loading: 'Abrindo o convite…',
 } as const
 
+export const FORMAT_TEXT = {
+  hard: 'Pode treinar forte',
+  moderate: 'Treino moderado',
+  rest: 'Dia de descanso',
+} as const
+
+export const READINESS_LEVELS: Record<string, string> = {
+  PRIME: 'No auge, pode forte',
+  HIGH: 'Pode treinar forte',
+  MODERATE: 'Treino moderado',
+  LOW: 'Pegue leve hoje',
+  POOR: 'Dia de descanso',
+}
+
+export const DATA_TEXT = {
+  readiness: 'PRONTIDÃO',
+  readinessSource: 'Nota da Garmin. A nossa nota chega no próximo módulo.',
+  noReadiness: 'Sem prontidão de hoje ainda. Ela chega depois que o relógio sincroniza o sono.',
+  recovery: (hours: number) => `Pronto para treino forte em ${hours} h`,
+  recovered: 'Recuperado para treino forte',
+  hrv: 'HRV da noite',
+  sleep: 'Sono',
+  battery: 'Body Battery ao acordar',
+  resting: 'FC de repouso',
+  week: 'SEMANA',
+  weekTotal: (value: string) => `${value} na semana`,
+  lastRun: 'ÚLTIMA CORRIDA',
+  noRuns: 'Nenhuma corrida nos últimos dias.',
+  open: 'Abrir',
+  syncing: (days: number) => `Sincronizando a Garmin… ${days} dias`,
+  synced: (time: string) => `Sincronizado às ${time}`,
+  syncError: 'Não sincronizou. Tente de novo em instantes.',
+  disconnected: 'Garmin não conectada',
+  connect: 'Conectar em Ajustes',
+  firstSync: 'Primeira sincronização: trazendo até 180 dias de dados. Pode levar alguns minutos.',
+  workoutsTitle: 'Treinos',
+  noActivities: 'Nenhuma atividade sincronizada ainda.',
+  loadMore: 'Carregar mais',
+  distance: 'Distância',
+  time: 'Tempo',
+  pace: 'Pace',
+  heartRate: 'FC média',
+  maxHeartRate: 'FC máx.',
+  elevation: 'Subida',
+  load: 'Carga',
+  effect: 'Efeito aeróbico',
+  vo2: 'VO2 máx.',
+  fastestKm: 'Km mais rápido',
+  zones: 'TEMPO EM CADA ZONA',
+  pickOne: 'Escolha um treino na lista.',
+  analysisSoon: 'A análise bloco a bloco, com o arquivo FIT, chega no módulo de análise de treino.',
+} as const
+
 export const WHATSAPP_URL = 'https://wa.me/'
 export const BRAZIL_PREFIX = '55'
 

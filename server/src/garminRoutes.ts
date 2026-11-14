@@ -1,9 +1,10 @@
 import { accountExists, resolveAccountId } from './auth.js'
 import { dataKeyFromEnv } from './cipher.js'
-import { GARMIN_CODE_PATTERN, GARMIN_ROUTE, MAX_BODY_BYTES } from './constants.js'
+import { GARMIN_CODE_PATTERN, GARMIN_ROUTE, MAX_BODY_BYTES, SYNC_BUDGET_MS } from './constants.js'
 import type { Sql } from './db.js'
 import { connectionStatus, deleteConnection, freshSession, saveConnection, savePending, takePending } from './garmin.js'
 import { garminSignIn, garminVerify } from './garminAuth.js'
+import { addDays, localDay, readActivities, readDays, syncAccount } from './garminSync.js'
 import { GarminError } from './garminError.js'
 import type { GarminEnv } from './types.js'
 import { parseObject } from './validate.js'
@@ -117,4 +118,60 @@ export function garminSessionRoute(request: Request, sql: Sql, env: GarminEnv = 
     const session = await freshSession(sql, { ...env, dataKey: key }, accountId)
     return session === undefined ? failure(404, 'garmin_not_connected') : json(200, session)
   })
+}
+
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+const MAX_DAYS_RANGE = 200
+const MAX_ACTIVITIES_PAGE = 100
+
+export function garminSyncRoute(request: Request, sql: Sql, env: GarminEnv = garminEnvFromProcess()): Promise<Response> {
+  return withAccount(request, sql, env, 'sync', async (accountId, key) => {
+    const progress = await syncAccount(sql, { ...env, dataKey: key }, accountId)
+    return progress === undefined ? failure(404, 'garmin_not_connected') : json(200, progress)
+  })
+}
+
+export function garminDaysRoute(request: Request, sql: Sql, env: GarminEnv = garminEnvFromProcess()): Promise<Response> {
+  return withAccount(request, sql, env, 'days', async (accountId, key) => {
+    const params = new URL(request.url).searchParams
+    const to = params.get('to') ?? localDay(env.now())
+    const from = params.get('from') ?? addDays(to, -27)
+    if (!DAY_PATTERN.test(from) || !DAY_PATTERN.test(to) || from > to || from < addDays(to, -MAX_DAYS_RANGE)) {
+      return failure(400, 'invalid_range')
+    }
+    return json(200, { days: await readDays(sql, key, accountId, from, to) })
+  })
+}
+
+export function garminActivitiesRoute(request: Request, sql: Sql, env: GarminEnv = garminEnvFromProcess()): Promise<Response> {
+  return withAccount(request, sql, env, 'activities', async (accountId, key) => {
+    const params = new URL(request.url).searchParams
+    const before = params.get('before') ?? undefined
+    const limit = Math.min(MAX_ACTIVITIES_PAGE, Math.max(1, Number(params.get('limit') ?? 30) || 30))
+    if (before !== undefined && !DAY_PATTERN.test(before)) {
+      return failure(400, 'invalid_range')
+    }
+    return json(200, { activities: await readActivities(sql, key, accountId, before, limit) })
+  })
+}
+
+export async function garminCronRoute(request: Request, sql: Sql, env: GarminEnv = garminEnvFromProcess(), secret = process.env.CRON_SECRET): Promise<Response> {
+  if (secret === undefined || secret === '' || request.headers.get('authorization') !== `Bearer ${secret}`) {
+    return failure(401, 'unauthorized')
+  }
+  if (env.dataKey === undefined) {
+    return failure(503, 'storage_unavailable')
+  }
+  const accounts = await sql<{ account_id: string }>('select account_id from garmin_connections order by updated_at')
+  const budget = Math.max(5_000, Math.floor(SYNC_BUDGET_MS / Math.max(1, accounts.length)))
+  let synced = 0
+  for (const { account_id: accountId } of accounts) {
+    try {
+      await syncAccount(sql, { ...env, dataKey: env.dataKey }, accountId, budget)
+      synced += 1
+    } catch (error) {
+      console.error(JSON.stringify({ route: 'cron/garmin-sync', error: error instanceof GarminError ? error.code : 'unknown' }))
+    }
+  }
+  return json(200, { accounts: accounts.length, synced })
 }

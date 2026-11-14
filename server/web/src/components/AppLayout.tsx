@@ -1,9 +1,9 @@
-import { ADMIN_TEXT, NAV_ITEMS } from '../constants'
+import { ADMIN_TEXT, DATA_TEXT, NAV_ITEMS } from '../constants'
 import type { AppLayoutProps } from './components.types'
 import { Link } from './Link'
 import { Logo } from './Logo'
 
-export function AppLayout({ route, user, children }: AppLayoutProps) {
+export function AppLayout({ route, user, sync, children }: AppLayoutProps) {
   return (
     <div className="shell">
       <nav className="nav" aria-label="Áreas">
@@ -29,7 +29,12 @@ export function AppLayout({ route, user, children }: AppLayoutProps) {
         {user !== null && (
           <div className="nav-user">
             <span>{user.name}</span>
-            <span className="muted">{user.email}</span>
+            <span className="muted">
+              {sync.kind === 'running' && DATA_TEXT.syncing(sync.days)}
+              {sync.kind === 'done' && DATA_TEXT.synced(sync.at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }))}
+              {sync.kind === 'error' && sync.message}
+              {sync.kind === 'disconnected' && <Link to="settings">{DATA_TEXT.connect}</Link>}
+            </span>
           </div>
         )}
       </nav>

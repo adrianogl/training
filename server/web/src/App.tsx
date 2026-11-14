@@ -12,7 +12,10 @@ import { PasswordPage } from './pages/PasswordPage'
 import { ResetPage } from './pages/ResetPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SignupPage } from './pages/SignupPage'
+import { TodayPage } from './pages/TodayPage'
+import { WorkoutsPage } from './pages/WorkoutsPage'
 import { navigate, useRoute } from './router'
+import { useGarminSync } from './useGarminSync'
 import { clearToken, readToken, saveToken } from './session'
 import type { AuthResult, Route, User } from './types'
 
@@ -21,6 +24,7 @@ export function App() {
   const [token, setToken] = useState(readToken)
   const [user, setUser] = useState<User | null>(null)
   const signedIn = token !== null
+  const sync = useGarminSync(signedIn)
 
   useEffect(() => {
     if (token === null) {
@@ -72,11 +76,13 @@ export function App() {
       return <InvitePage onSignedIn={signIn} />
     default:
       return (
-        <AppLayout route={target} user={user}>
+        <AppLayout route={target} user={user} sync={sync.state}>
           {target === 'settings' && user !== null && <SettingsPage user={user} onUserChange={setUser} onSignedOut={signOut} />}
           {target === 'password' && <PasswordPage />}
           {target === 'admin' && user?.admin === true && <AdminPage />}
-          {PAGE_TITLES[target] !== undefined && <ComingSoonPage title={PAGE_TITLES[target] ?? ''} />}
+          {target === 'today' && <TodayPage version={sync.version} syncing={sync.state.kind === 'running'} />}
+          {target === 'workouts' && <WorkoutsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
+          {(target === 'races' || target === 'evolution') && <ComingSoonPage title={PAGE_TITLES[target] ?? ''} />}
         </AppLayout>
       )
   }

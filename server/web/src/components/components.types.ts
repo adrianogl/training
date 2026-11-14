@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Route, User } from '../types'
+import type { Route, SyncState, User } from '../types'
 
 export interface FieldProps {
   label: string
@@ -28,6 +28,7 @@ export interface AuthLayoutProps {
 export interface AppLayoutProps {
   route: Route
   user: User | null
+  sync: SyncState
   children: ReactNode
 }
 

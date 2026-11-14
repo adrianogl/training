@@ -13,7 +13,16 @@ import {
 import { adminCreateInviteRoute, adminDeleteUserRoute, adminInviteActionRoute, adminOverviewRoute, garminProbeRoute, invitePreviewRoute } from './adminRoutes.js'
 import { API_PATH_PREFIX, API_ROUTER_QUERY } from './constants.js'
 import type { Sql } from './db.js'
-import { garminConnectRoute, garminSessionRoute, garminStatusRoute, garminVerifyRoute } from './garminRoutes.js'
+import {
+  garminActivitiesRoute,
+  garminConnectRoute,
+  garminCronRoute,
+  garminDaysRoute,
+  garminSessionRoute,
+  garminStatusRoute,
+  garminSyncRoute,
+  garminVerifyRoute,
+} from './garminRoutes.js'
 import {
   createAccountRoute,
   deleteAccountRoute,
@@ -46,6 +55,10 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/verify': { POST: (request, sql) => garminVerifyRoute(request, sql) },
   'garmin/status': { GET: (request, sql) => garminStatusRoute(request, sql), DELETE: (request, sql) => garminStatusRoute(request, sql) },
   'garmin/session': { GET: (request, sql) => garminSessionRoute(request, sql) },
+  'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
+  'garmin/days': { GET: (request, sql) => garminDaysRoute(request, sql) },
+  'garmin/activities': { GET: (request, sql) => garminActivitiesRoute(request, sql) },
+  'cron/garmin-sync': { GET: (request, sql) => garminCronRoute(request, sql) },
   'admin/overview': { GET: (request, sql) => adminOverviewRoute(request, sql) },
   'admin/invites': { POST: (request, sql) => adminCreateInviteRoute(request, sql) },
   'admin/invites/action': { POST: (request, sql) => adminInviteActionRoute(request, sql) },

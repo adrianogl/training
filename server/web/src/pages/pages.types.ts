@@ -17,3 +17,8 @@ export interface ComingSoonProps {
 export interface ConfirmProps {
   signedIn: boolean
 }
+
+export interface DataPageProps {
+  version: number
+  syncing: boolean
+}

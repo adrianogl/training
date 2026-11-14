@@ -1,6 +1,6 @@
 import { DEVICE_LABEL } from './constants'
 import { readToken } from './session'
-import type { AdminData, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
+import type { Activity, AdminData, HealthDay, SyncProgress, ApiResult, AuthResult, GarminStatus, GarminStep, InviteChannel, InvitePreview, InviteResult, InviteRow, SessionInfo, User } from './types'
 
 async function call<T>(method: string, path: string, body?: unknown): Promise<ApiResult<T>> {
   const headers: Record<string, string> = { accept: 'application/json' }
@@ -47,6 +47,10 @@ export const api = {
   garminConnect: (email: string, password: string) => call<GarminStep>('POST', 'garmin/connect', { email, password }),
   garminVerify: (code: string) => call<GarminStep>('POST', 'garmin/verify', { code }),
   garminDisconnect: () => call<void>('DELETE', 'garmin/status'),
+  garminSync: () => call<SyncProgress>('POST', 'garmin/sync'),
+  garminDays: (from: string, to: string) => call<{ days: HealthDay[] }>('GET', `garmin/days?from=${from}&to=${to}`),
+  garminActivities: (limit: number, before?: string) =>
+    call<{ activities: Activity[] }>('GET', `garmin/activities?limit=${limit}${before === undefined ? '' : `&before=${before}`}`),
   invitePreview: (token: string) => call<InvitePreview>('GET', `invites/preview?c=${encodeURIComponent(token)}`),
   adminOverview: () => call<AdminData>('GET', 'admin/overview'),
   adminInvite: (name: string, channel: InviteChannel, email?: string) =>

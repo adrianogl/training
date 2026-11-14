@@ -631,3 +631,185 @@ h2 {
 .route-counts b {
   color: var(--text);
 }
+
+:root {
+  --amber: #ffc24c;
+  --rest: #e5534b;
+  --track: #22262a;
+}
+
+.page.wide {
+  max-width: 1120px;
+}
+
+.today-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.today-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.readiness {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+}
+
+.readiness-text {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.readiness-text strong {
+  font-size: 22px;
+}
+
+.factors {
+  flex: 1 1 280px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.factors div,
+.stats div {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--card-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.factors span,
+.stats span,
+.factors small {
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.factors b,
+.stats b {
+  font-size: 18px;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+.week div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.week i {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.week i.done {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.week .today span {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.workouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.workout-list {
+  flex: 1 1 300px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workout-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workout-row.on {
+  background: var(--accent-bg);
+  border-color: var(--accent-line);
+}
+
+.workout-row span {
+  font-size: 13px;
+}
+
+.workout-detail {
+  flex: 999 1 480px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.zone {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.zone div {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--track);
+}
+
+.zone i {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+}
+
+.zone span:last-child {
+  text-align: right;
+}

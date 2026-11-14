@@ -15,9 +15,12 @@ describe('applyMigrations', () => {
     expect(tables.map((t) => t.table_name)).toEqual([
       'account_creations',
       'accounts',
+      'activities',
       'email_tokens',
       'garmin_connections',
       'garmin_pending_logins',
+      'garmin_sync_state',
+      'health_days',
       'invites',
       'login_attempts',
       'readiness',
@@ -36,7 +39,7 @@ describe('applyMigrations', () => {
     const first = await applyMigrations(sql, migrationsDir)
     const second = await applyMigrations(sql, migrationsDir)
 
-    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql', '007_garmin.sql', '008_invites.sql'])
+    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql', '007_garmin.sql', '008_invites.sql', '009_garmin_data.sql'])
     expect(second).toEqual([])
   })
 

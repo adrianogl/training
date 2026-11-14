@@ -20,5 +20,11 @@
       "destination": "/app/index.html"
     }
   ],
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build",
+  "crons": [
+    {
+      "path": "/api/v1/cron/garmin-sync",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }

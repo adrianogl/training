@@ -110,3 +110,48 @@ export interface AdminData {
   users: AdminUser[]
   invites: InviteRow[]
 }
+
+export interface HealthDay {
+  day: string
+  restingHeartRate: number | null
+  averageStress: number | null
+  steps: number | null
+  bodyBattery: { highest: number | null; lowest: number | null; atWake: number | null; charged: number | null; drained: number | null }
+  sleep: { seconds: number; score: number | null; deep: number; light: number; rem: number; awake: number; start: string | null; end: string | null } | null
+  hrv: { lastNight: number | null; weeklyAvg: number | null; status: string | null; lowUpper: number | null; balancedLow: number | null; balancedUpper: number | null } | null
+  readiness: { score: number; level: string | null; sleepScore: number | null; recoveryMinutes: number | null; acuteLoad: number | null } | null
+}
+
+export interface Activity {
+  id: number
+  name: string
+  type: string
+  startLocal: string
+  day: string
+  distanceMeters: number | null
+  durationSeconds: number | null
+  movingSeconds: number | null
+  elevationGain: number | null
+  averageSpeed: number | null
+  maxSpeed: number | null
+  averageHeartRate: number | null
+  maxHeartRate: number | null
+  cadence: number | null
+  trainingLoad: number | null
+  aerobicEffect: number | null
+  anaerobicEffect: number | null
+  vo2max: number | null
+  zoneSeconds: number[]
+  fastestKmSeconds: number | null
+  laps: number | null
+  workoutId: number | null
+}
+
+export interface SyncProgress {
+  done: boolean
+  days: number
+  activities: number
+  oldestDay: string | null
+}
+
+export type SyncState = { kind: 'idle' } | { kind: 'running'; days: number } | { kind: 'done'; at: Date } | { kind: 'error'; message: string } | { kind: 'disconnected' }
