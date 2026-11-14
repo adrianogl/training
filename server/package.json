@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node --experimental-strip-types scripts/migrate.ts",
     "test:concurrency": "SYNC_TEST_POSTGRES_IMAGE=postgres:17-alpine vitest run",
-    "build": "rm -rf public && mkdir -p public && cp -R landing/. public/ && npm --prefix web ci && npm --prefix web run build"
+    "build": "npm run migrate && rm -rf public && mkdir -p public && cp -R landing/. public/ && npm --prefix web ci && npm --prefix web run build"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.2.0"

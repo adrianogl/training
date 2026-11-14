@@ -9,3 +9,5 @@
 !landing
 !web
 web/node_modules
+!scripts
+!migrations
