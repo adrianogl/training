@@ -43,7 +43,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--lime); outline-
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
 .nav { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
 .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
-.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 800; letter-spacing: 0.14em; font-size: 15px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: 15px; }
+.brand .word { letter-spacing: 0.08em; }
 .brand b { color: var(--lime); font-weight: 800; }
 .mark { width: 30px; height: 30px; border-radius: 9px; border: 1px solid #5e7a1e; background: var(--lime-deep); color: var(--lime); display: grid; place-items: center; font-size: 12px; letter-spacing: 0; }
 .nav-cta { display: inline-flex; align-items: center; height: 36px; padding: 0 16px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-weight: 700; font-size: 14px; }
@@ -243,7 +244,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <body>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="#topo" aria-label="trAIning, início"><span class="mark">AI</span>TR<b>AI</b>NING</a>
+    <a class="brand" href="#topo" aria-label="trAIning, início"><span class="mark">AI</span><span class="word">TR<b>AI</b>NING</span></a>
     <a class="nav-cta" href="/app/entrar">Entrar</a>
   </div>
 </header>
@@ -486,7 +487,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div class="formats"><span>Rota animada</span><span>Série de tiros</span><span>Evolução</span><span>Cartão</span><span>GIF e MP4</span></div>
       </div>
       <div class="share-card" aria-hidden="true">
-        <div class="brand" style="position: relative; font-size: 12px"><span class="mark" style="width: 24px; height: 24px; font-size: 10px">AI</span>TR<b>AI</b>NING</div>
+        <div class="brand" style="position: relative; font-size: 12px"><span class="mark" style="width: 24px; height: 24px; font-size: 10px">AI</span><span class="word">TR<b>AI</b>NING</span></div>
         <svg viewBox="0 0 300 300"><defs><linearGradient id="pace" x1="0" x2="1"><stop offset="0" stop-color="#7fb2ff"></stop><stop offset=".5" stop-color="#c8f05a"></stop><stop offset="1" stop-color="#ff8a4c"></stop></linearGradient></defs><path class="route" d="M40 250 C 20 200, 60 170, 50 130 S 70 50, 130 40 S 230 30, 250 80 S 230 160, 270 190 S 240 270, 170 260 S 90 280, 40 250" fill="none" stroke="url(#pace)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
         <div class="share-stats"><div>DISTÂNCIA<b>16,0 km</b></div><div>PACE<b>5:21</b></div><div>TEMPO<b>1:25:36</b></div></div>
       </div>
