@@ -165,3 +165,10 @@ export interface AnalysisInput {
   acuteChronic: number | null
   previous: { activityId: number; day: string; distance: number | null; movingSeconds: number | null; averageHeartRate: number | null; fit: FitSummary }[]
 }
+
+export interface RunContinuity {
+  totalMeters: number
+  movingSeconds: number
+  pauses: { startMeters: number; seconds: number }[]
+  longestContinuousMeters: number
+}

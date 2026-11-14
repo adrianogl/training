@@ -258,3 +258,31 @@ export interface RaceView {
   block: BlockWeek[]
   checklist: ChecklistItem[]
 }
+
+export interface TimeGoalProgress {
+  kind: 'time'
+  todaySeconds: number | null
+  gapSeconds: number | null
+  crossing: GoalCrossing
+  achievedOn: string | null
+}
+
+export interface LongRunCheck {
+  activityId: number
+  day: string
+  distanceKm: number
+  longestContinuousKm: number | null
+  pauses: { km: number; seconds: number }[] | null
+  paceSecondsPerKm: number | null
+  met: boolean | null
+}
+
+export interface LongGoalProgress {
+  kind: 'continuousLong'
+  runs: LongRunCheck[]
+  metCount: number
+  bestContinuousKm: number | null
+  achievedOn: string | null
+}
+
+export type GoalProgress = TimeGoalProgress | LongGoalProgress

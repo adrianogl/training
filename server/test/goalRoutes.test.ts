@@ -5,6 +5,9 @@ import { applyGoalEdit, parseGoalEdit } from '../src/goalInput.js'
 import { deleteGoalRoute, goalsRoute, saveGoalRoute } from '../src/goalRoutes.js'
 import { createAccountRoute, pullChangesRoute, pushChangesRoute } from '../src/routes.js'
 import type { GarminEnv } from '../src/types.js'
+import { seal } from '../src/cipher.js'
+import { storeFit } from '../src/fit/fitStore.js'
+import { FIT } from '../src/fit/fitConstants.js'
 import { makeRequest, makeToken, migratedSql, record } from './helpers.js'
 
 const key = randomBytes(32)
@@ -86,5 +89,23 @@ describe('rotas de metas', () => {
     expect(pushed.status).toBe(200)
     const listed = await call(goalsRoute, 'GET', '/api/v1/goals')
     expect(listed.body.goals[0]).toMatchObject({ id: 'B1', targetSeconds: 2400 })
+  })
+
+  it('devolve o progresso da meta de longão a partir do FIT guardado', async () => {
+    const accountId = (await sql<{ id: string }>('select id from accounts'))[0]?.id ?? ''
+    const activity = { id: 501, name: 'Longão', type: 'running', startLocal: '2026-11-12T07:00:00', day: '2026-11-12', distanceMeters: 16000, durationSeconds: 4560, movingSeconds: 4560, elevationGain: 0, averageSpeed: 3.5, maxSpeed: 4, averageHeartRate: 150, maxHeartRate: 170, cadence: 170, trainingLoad: 150, aerobicEffect: 3.5, anaerobicEffect: 1, vo2max: 52, zoneSeconds: [0, 0, 0, 0, 0], fastestKmSeconds: 270, fastest5kSeconds: 1400, laps: 16, workoutId: null }
+    await sql('insert into activities (account_id, activity_id, day, data_enc) values ($1, $2, $3, $4)', [accountId, 501, '2026-11-12', seal(key, JSON.stringify(activity), `activity:${accountId}:501`)])
+    const samples = Array.from({ length: 4561 }, (_, t) => ({ t, heartRate: null, speed: null, altitude: null, distance: t < 3000 ? t * 3.5 : t < 3040 ? 10500 : 10500 + (t - 3040) * 3.5 }))
+    await storeFit(sql, key, accountId, 501, { version: FIT.processingVersion, samples, route: [], physio: null, structure: { prescription: null, laps: [] }, zoneInfo: null })
+    await call(saveGoalRoute, 'POST', '/api/v1/goals', { ...longGoal, paceSecondsPerKm: 300 })
+
+    const listed = await call(goalsRoute, 'GET', '/api/v1/goals')
+
+    const progress = listed.body.goals[0].progress
+    expect(progress.kind).toBe('continuousLong')
+    expect(progress.runs).toHaveLength(1)
+    expect(progress.runs[0].met).toBe(false)
+    expect(progress.runs[0].pauses[0].km).toBeCloseTo(10.5, 1)
+    expect(progress.bestContinuousKm).toBeCloseTo(10.5, 1)
   })
 })

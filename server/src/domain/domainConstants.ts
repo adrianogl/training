@@ -116,3 +116,11 @@ export const CHECKLIST = {
   tuneUpPaceMargin: 10,
   recentWeeks: 4,
 } as const
+
+export const GOAL_PROGRESS = {
+  longShare: 0.7,
+  longRuns: 6,
+  historyDays: 365,
+  timeMatchLow: 0.99,
+  timeMatchHigh: 1.05,
+} as const

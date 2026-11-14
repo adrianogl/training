@@ -4,7 +4,12 @@ import type { Sql } from './db.js'
 import { applyGoalEdit, deadlineError, parseGoalEdit } from './goalInput.js'
 import { deleteGoal, nextGoalUpdatedAt, readGoals, writeGoal } from './goals.js'
 import { body, failure, garminEnvFromProcess, json, withAccount } from './garminRoutes.js'
-import { localDay } from './garminSync.js'
+import { addDays, localDay, readActivitiesSince } from './garminSync.js'
+import { GOAL_PROGRESS } from './domain/domainConstants.js'
+import { longCandidates, longGoalProgress, timeGoalProgress } from './domain/goalProgress.js'
+import { allEfforts } from './domain/raceView.js'
+import { readStoredFits } from './fit/fitStore.js'
+import { readRaces } from './races.js'
 import { limitsFromEnv } from './limits.js'
 import type { GarminEnv, GoalItem } from './types.js'
 
@@ -14,7 +19,17 @@ export function goalsRoute(request: Request, sql: Sql, env: GarminEnv = garminEn
     const goals = (await readGoals(sql, key, accountId)).flatMap(({ goal }) => (goal === null ? [] : [goal]))
     const active = goals.filter((goal) => !goal.archived).sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     const archived = goals.filter((goal) => goal.archived).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    return json(200, { today, goals: [...active, ...archived] })
+    const activities = active.length === 0 ? [] : await readActivitiesSince(sql, key, accountId, addDays(today, -GOAL_PROGRESS.historyDays))
+    const efforts = active.some((goal) => goal.kind === 'time') ? allEfforts(await readRaces(sql, key, accountId), activities) : []
+    const candidates = new Map(active.filter((goal) => goal.kind === 'continuousLong').map((goal) => [goal.id, longCandidates(goal, activities)]))
+    const ids = [...new Set([...candidates.values()].flat().map((run) => run.id))]
+    const fits = ids.length === 0 ? new Map() : await readStoredFits(sql, key, accountId, ids)
+    const samples = new Map([...fits].map(([id, summary]) => [id, summary.samples]))
+    const withProgress = active.map((goal) => ({
+      ...goal,
+      progress: goal.kind === 'time' ? timeGoalProgress(goal, efforts, activities, today) : longGoalProgress(goal, candidates.get(goal.id) ?? [], samples),
+    }))
+    return json(200, { today, goals: [...withProgress, ...archived.map((goal) => ({ ...goal, progress: null }))] })
   })
 }
 
