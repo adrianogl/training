@@ -6,6 +6,7 @@ enum TrainerRoute: Hashable, Codable {
     case day(String)
     case changes
     case strength
+    case cycle
 }
 
 enum TrainerTab: String, CaseIterable, Identifiable {

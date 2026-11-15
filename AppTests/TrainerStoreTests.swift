@@ -112,6 +112,33 @@ import TrainingCore
         try store.delete()
     }
 
+    private static let summary = TrainerCycleSummary(
+        title: "Meia · 16 nov", first: day, last: day.adding(days: 90), verdict: .increase,
+        beforePeakMeters: 80_000, afterPeakMeters: 84_000, resultSeconds: 5_880
+    )
+
+    @Test func storeIgnoresARepeatedSummary() {
+        let store = Self.store()
+        store.archive(Self.summary)
+        store.archive(Self.summary)
+        #expect(store.cycleSummaries() == [Self.summary])
+    }
+
+    @Test func archivedSummariesSurviveDeletingThePlan() throws {
+        let store = Self.store()
+        try store.save(Self.plan())
+        store.archive(Self.summary)
+        try store.delete()
+        #expect(store.cycleSummaries() == [Self.summary])
+    }
+
+    @Test func remembersTheLastSeenCycleEnd() {
+        let store = Self.store()
+        #expect(store.seenCycleEnd == nil)
+        store.markCycleSeen(Self.day)
+        #expect(store.seenCycleEnd == Self.day)
+    }
+
     @Test func remembersSeenVersion() {
         let store = Self.store()
         #expect(store.seenVersion == 0)

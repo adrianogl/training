@@ -9,6 +9,7 @@ struct TrainerView: View {
     @State private var showsEdit = false
     @State private var showsChat = false
     @State private var confirmsDelete = false
+    @State private var confirmsEnd = false
     @State private var toggledWeeks: Set<String> = []
     @State private var highlightedWeek: String?
     @State private var tab: TrainerTab = .plan
@@ -42,6 +43,9 @@ struct TrainerView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(TrainerText.editPlanMenu) { showsEdit = true }
+                        if !model.cycleEnded {
+                            Button(TrainerCycleText.endMenu) { confirmsEnd = true }
+                        }
                         Button(TrainerText.deleteMenu, role: .destructive) { confirmsDelete = true }
                     } label: {
                         Image(systemName: "ellipsis.circle")
@@ -55,11 +59,18 @@ struct TrainerView: View {
         } message: {
             Text(TrainerText.deleteMessage)
         }
+        .confirmationDialog(TrainerCycleText.endTitle, isPresented: $confirmsEnd, titleVisibility: .visible) {
+            Button(TrainerCycleText.endConfirm, role: .destructive) { Task { await model.endCycle() } }
+            Button(TrainerText.cancel, role: .cancel) {}
+        } message: {
+            Text(TrainerCycleText.endMessage(weeks: model.finishedWeekCount))
+        }
         .navigationDestination(for: TrainerRoute.self) { route in
             switch route {
             case .day(let iso): TrainerDayView(iso: iso)
             case .changes: TrainerChangesView()
             case .strength: TrainerStrengthView()
+            case .cycle: TrainerCycleView()
             }
         }
         .sheet(isPresented: $showsNewPlan) { TrainerNewPlanView() }
@@ -84,15 +95,30 @@ struct TrainerView: View {
 
     @ViewBuilder
     private func planContent(_ plan: TrainerPlan, proxy: ScrollViewProxy) -> some View {
+        if model.showsCycleBanner, let review = model.cycleReview {
+            cycleBanner(review, dated: plan.target.date != nil)
+        }
         if model.hasUnseenVersion, let version = model.latestVersion {
             updatedBanner(version)
         }
+        let ended = model.cycleEnded
         TrainerPlanHeaderCard(
             plan: plan, boards: model.scoreboards, cells: model.weekCells, weeksToTarget: model.weeksToTarget,
             weekProgress: TrainerText.weekProgress(index: model.currentWeekIndex, total: plan.weeks.count),
             onToggleLight: { start in Task { await model.toggleLightWeek(start) } },
-            onSelect: { start in select(start, proxy: proxy) }
+            onSelect: { start in select(start, proxy: proxy) },
+            cycle: ended ? model.cycleReview : nil
         )
+        if ended {
+            endedActions
+        } else {
+            activeContent(plan)
+        }
+        previousCycles
+    }
+
+    @ViewBuilder
+    private func activeContent(_ plan: TrainerPlan) -> some View {
         let compareWeeks = model.compareWeeks
         if !compareWeeks.isEmpty {
             TrainerTabPicker(tab: $tab)
@@ -102,6 +128,30 @@ struct TrainerView: View {
         } else {
             planBody(plan)
         }
+    }
+
+    @ViewBuilder
+    private var endedActions: some View {
+        if model.cycleReview != nil {
+            NavigationLink(value: TrainerRoute.cycle) { Text(TrainerCycleText.openAnalysis) }
+                .buttonStyle(TrainerPrimaryButtonStyle())
+                .padding(.top, 4)
+        }
+        Button(TrainerText.newPlanTitle) { showsNewPlan = true }
+            .buttonStyle(TrainerSecondaryButtonStyle())
+    }
+
+    @ViewBuilder
+    private var previousCycles: some View {
+        if !model.cycleSummaries.isEmpty {
+            SectionHeader(TrainerCycleText.previousTitle)
+            ForEach(model.cycleSummaries) { TrainerCycleSummaryRow(summary: $0) }
+        }
+    }
+
+    private func cycleBanner(_ review: TrainerCycleReview, dated: Bool) -> some View {
+        NavigationLink(value: TrainerRoute.cycle) { TrainerCycleBanner(review: review, dated: dated) }
+            .buttonStyle(.plain)
     }
 
     private func updatedBanner(_ version: TrainerVersion) -> some View {

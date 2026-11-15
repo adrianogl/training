@@ -174,9 +174,9 @@ struct TodayView: View {
         let trainer = app.trainer
         return TodayWorkoutPicker.pick(
             garminToday: model.todayPlan,
-            trainerToday: trainer.row(for: model.today.iso),
+            trainerToday: trainer.todayRow(for: model.today),
             garminTomorrow: model.tomorrowPlan,
-            trainerTomorrow: trainer.row(for: model.today.adding(days: 1).iso)
+            trainerTomorrow: trainer.todayRow(for: model.today.adding(days: 1))
         )
     }
 

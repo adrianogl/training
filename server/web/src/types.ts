@@ -569,6 +569,7 @@ export interface TrainerPlan {
   versions: TrainerVersion[]
   strength: TrainerStrength[]
   lightWeeks: string[]
+  endedOn?: string
   longMode: 'continuous' | 'blocks'
   longStage: number
 }

@@ -5,6 +5,7 @@ import WorkoutAnalysis
 
 struct TrainerNewPlanView: View {
     var isEditing = false
+    var suggestedVolumes: (start: Int, peak: Int)? = nil
     @Environment(AppModel.self) private var app
     @Environment(\.dismiss) private var dismiss
     @State private var mode = TrainerTargetMode.race
@@ -84,6 +85,7 @@ struct TrainerNewPlanView: View {
         .task {
             await model.load()
             prefill()
+            if !isEditing, startKilometers == nil { applySuggestion() }
             if raceId == nil { raceId = model.raceOptions().first?.id }
             if startKilometers == nil { startKilometers = averageKilometers }
             if !strengthLoaded {
@@ -170,6 +172,13 @@ struct TrainerNewPlanView: View {
         longMode = current.longMode
         paceOverrides = current.paceOverrides
         strengthLoaded = true
+        applySuggestion()
+    }
+
+    private func applySuggestion() {
+        guard let suggestedVolumes else { return }
+        startKilometers = suggestedVolumes.start
+        peakKilometers = suggestedVolumes.peak
     }
 
     private var averageKilometers: Int {

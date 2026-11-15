@@ -31,7 +31,7 @@ extension TrainerEngine {
             .compactMap { scoreboard(plan: plan, history: history, week: $0.index) }
     }
 
-    private static func longClosed(_ workout: TrainerWorkout, plan: TrainerPlan, history: TrainerHistory, today: Day) -> Bool {
+    static func longClosed(_ workout: TrainerWorkout, plan: TrainerPlan, history: TrainerHistory, today: Day) -> Bool {
         guard let run = status(of: workout, history: history, today: today).run else { return false }
         guard run.meters >= workout.totalMeters * C.doneShare, (run.pauses ?? 0) <= plannedPauses(of: workout) else { return false }
         return !(plan.longMode == .blocks && run.fadeKm != nil)
@@ -48,7 +48,7 @@ extension TrainerEngine {
         return (last.meters, last.seconds - first.seconds)
     }
 
-    private static func nearest(_ values: [Double: Double], to distance: Double) -> (meters: Double, seconds: Double)? {
+    static func nearest(_ values: [Double: Double], to distance: Double) -> (meters: Double, seconds: Double)? {
         values.min { abs($0.key - distance) < abs($1.key - distance) }.map { ($0.key, $0.value) }
     }
 }
