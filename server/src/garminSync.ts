@@ -5,7 +5,7 @@ import { freshSession } from './garmin.js'
 import { GarminError } from './garminError.js'
 import { parseActivity, parseHealthDay } from './garminParse.js'
 import { FIT } from './fit/fitConstants.js'
-import { fetchFits } from './fit/fitStore.js'
+import { fetchFits, recalculateMetrics } from './fit/fitStore.js'
 import type { ActivitySummary, GarminEnv, GarminSession, HealthDay, SyncProgress } from './types.js'
 
 type Env = GarminEnv & { dataKey: Buffer }
@@ -150,6 +150,10 @@ export async function syncAccount(sql: Sql, env: Env, accountId: string, budgetM
         if (!(error instanceof GarminError) || error.code !== 'rate_limited') throw error
       }
     }
+  }
+
+  if (hasTime()) {
+    await recalculateMetrics(sql, env.dataKey, accountId, FIT.recalculatePerRound, hasTime)
   }
 
   const done = activitiesDone && oldest <= limit

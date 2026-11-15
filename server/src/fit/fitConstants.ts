@@ -1,5 +1,7 @@
 export const FIT = {
   processingVersion: 3,
+  metricsVersion: 1,
+  recalculatePerRound: 20,
   bucketSeconds: 5,
   maxRoutePoints: 500,
   initialSimplificationTolerance: 1e-6,
