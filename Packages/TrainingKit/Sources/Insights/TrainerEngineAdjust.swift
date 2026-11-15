@@ -173,10 +173,15 @@ extension TrainerEngine {
         )
         let firstStart = plan.weeks.first { $0.index == rebuildFrom }?.start ?? kept.last?.start.adding(days: C.daysPerWeek) ?? today.weekStart
         let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: volumes.start)
-        let rebuilt = longestLongs(sizedWeeks(
+        let sized = sizedWeeks(
             buildWeeks(context: context, firstIndex: rebuildFrom, firstStart: firstStart, state: state, adjustment: adjustment), paces: paces
-        ), structure: plan.structure, target: plan.target, history: history, today: today, paces: paces)
-        let skeleton = kept + rebuilt
+        )
+        var waved = Array(wavedLongs(
+            kept + sized, from: rebuildFrom, structure: plan.structure, target: plan.target, paces: paces, mode: working.longMode
+        ).dropFirst(kept.count))
+        if let cap = adjustment.longCap, !waved.isEmpty { waved[0].longMeters = min(waved[0].longMeters, cap) }
+        let rebuilt = longestLongs(waved, structure: plan.structure, target: plan.target, history: history, today: today, paces: paces)
+        let skeleton = labeledVo2(kept + rebuilt, from: rebuildFrom)
 
         let active = activeRequests(of: plan, today: today)
         let requests = active + (request.map { shapesDetail($0.category) ? [$0] : [] } ?? [])

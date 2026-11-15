@@ -46,6 +46,18 @@ public enum TrainerMethod: String, Codable, Sendable, CaseIterable {
     public var label: String { TrainerEngineText.methodLabel(self) }
 }
 
+public enum TrainerVariant: String, Codable, Sendable, CaseIterable {
+    case strides
+    case mediumLong
+    case fartlek
+    case hills
+    case continuousTempo
+    case progressiveThreshold
+    case progressiveLong
+    case fastFinish
+    case racePaceLong
+}
+
 public enum TrainerLongMode: String, Codable, Sendable, CaseIterable {
     case continuous
     case blocks
@@ -93,10 +105,11 @@ public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {
     public var rationale: String
     public var method: TrainerMethod?
     public var edited: Bool
+    public var variant: TrainerVariant?
 
     public var id: String { day.iso }
 
-    public init(day: Day, kind: TrainerDayKind, title: String, totalMeters: Double, steps: [TrainerStep], paceLow: Double? = nil, paceHigh: Double? = nil, note: String? = nil, rationale: String, method: TrainerMethod? = nil, edited: Bool = false) {
+    public init(day: Day, kind: TrainerDayKind, title: String, totalMeters: Double, steps: [TrainerStep], paceLow: Double? = nil, paceHigh: Double? = nil, note: String? = nil, rationale: String, method: TrainerMethod? = nil, edited: Bool = false, variant: TrainerVariant? = nil) {
         self.day = day
         self.kind = kind
         self.title = title
@@ -108,10 +121,11 @@ public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {
         self.rationale = rationale
         self.method = method
         self.edited = edited
+        self.variant = variant
     }
 
     private enum CodingKeys: String, CodingKey {
-        case day, kind, title, totalMeters, steps, paceLow, paceHigh, note, rationale, method, edited
+        case day, kind, title, totalMeters, steps, paceLow, paceHigh, note, rationale, method, edited, variant
     }
 
     public init(from decoder: Decoder) throws {
@@ -127,7 +141,8 @@ public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {
             note: try container.decodeIfPresent(String.self, forKey: .note),
             rationale: try container.decode(String.self, forKey: .rationale),
             method: try container.decodeIfPresent(TrainerMethod.self, forKey: .method),
-            edited: try container.decodeIfPresent(Bool.self, forKey: .edited) ?? false
+            edited: try container.decodeIfPresent(Bool.self, forKey: .edited) ?? false,
+            variant: (try? container.decodeIfPresent(String.self, forKey: .variant)).flatMap(TrainerVariant.init(rawValue:))
         )
     }
 
@@ -144,6 +159,7 @@ public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {
         try container.encode(rationale, forKey: .rationale)
         try container.encodeIfPresent(method, forKey: .method)
         if edited { try container.encode(edited, forKey: .edited) }
+        try container.encodeIfPresent(variant, forKey: .variant)
     }
 }
 
@@ -157,10 +173,11 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
     public var longMeters: Double
     public var thresholdFocus: String
     public var vo2Focus: String
+    public var baseLongMeters: Double?
 
     public var id: Int { index }
 
-    public init(index: Int, start: Day, phase: TrainerPhase, isRecovery: Bool, plannedMeters: Double, targetMeters: Double? = nil, longMeters: Double, thresholdFocus: String, vo2Focus: String) {
+    public init(index: Int, start: Day, phase: TrainerPhase, isRecovery: Bool, plannedMeters: Double, targetMeters: Double? = nil, longMeters: Double, thresholdFocus: String, vo2Focus: String, baseLongMeters: Double? = nil) {
         self.index = index
         self.start = start
         self.phase = phase
@@ -170,10 +187,11 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
         self.longMeters = longMeters
         self.thresholdFocus = thresholdFocus
         self.vo2Focus = vo2Focus
+        self.baseLongMeters = baseLongMeters
     }
 
     private enum CodingKeys: String, CodingKey {
-        case index, start, phase, isRecovery, plannedMeters, targetMeters, longMeters, thresholdFocus, vo2Focus
+        case index, start, phase, isRecovery, plannedMeters, targetMeters, longMeters, thresholdFocus, vo2Focus, baseLongMeters
     }
 
     public init(from decoder: Decoder) throws {
@@ -188,8 +206,23 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
             targetMeters: try container.decodeIfPresent(Double.self, forKey: .targetMeters),
             longMeters: try container.decode(Double.self, forKey: .longMeters),
             thresholdFocus: try container.decode(String.self, forKey: .thresholdFocus),
-            vo2Focus: try container.decode(String.self, forKey: .vo2Focus)
+            vo2Focus: try container.decode(String.self, forKey: .vo2Focus),
+            baseLongMeters: try container.decodeIfPresent(Double.self, forKey: .baseLongMeters)
         )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(index, forKey: .index)
+        try container.encode(start, forKey: .start)
+        try container.encode(phase, forKey: .phase)
+        try container.encode(isRecovery, forKey: .isRecovery)
+        try container.encode(plannedMeters, forKey: .plannedMeters)
+        try container.encode(targetMeters, forKey: .targetMeters)
+        try container.encode(longMeters, forKey: .longMeters)
+        try container.encode(thresholdFocus, forKey: .thresholdFocus)
+        try container.encode(vo2Focus, forKey: .vo2Focus)
+        try container.encodeIfPresent(baseLongMeters, forKey: .baseLongMeters)
     }
 }
 

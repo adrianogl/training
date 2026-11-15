@@ -195,7 +195,10 @@ import WorkoutAnalysis
         for workout in created.workouts where workout.kind == .optionalEasy { #expect((9_000...10_000).contains(workout.totalMeters)) }
         for workout in created.workouts where workout.kind == .easy { #expect(workout.totalMeters >= 9_000) }
         for week in created.weeks {
-            #expect(week.longMeters <= max(TrainerEngine.longLimit(weekMeters: week.targetMeters, paces: created.paces), 10_000))
+            let longest = week.baseLongMeters.map { week.longMeters > $0 } ?? false
+            let share = longest ? 0.35 : 0.30
+            let limit = min(TrainerEngine.floorKilometers(week.targetMeters * share), TrainerEngine.floorKilometers(150 * 60 / created.paces.long * 1_000))
+            #expect(week.longMeters <= max(limit, 10_000))
         }
         let first = created.weeks[0]
         #expect(abs(first.plannedMeters - first.targetMeters) <= 2_000)

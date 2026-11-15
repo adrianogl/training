@@ -495,7 +495,19 @@ export interface TrainerWorkout {
   rationale: string
   method: TrainerMethod | null
   edited: boolean
+  variant: TrainerVariant | null
 }
+
+export type TrainerVariant =
+  | 'strides'
+  | 'mediumLong'
+  | 'fartlek'
+  | 'hills'
+  | 'continuousTempo'
+  | 'progressiveThreshold'
+  | 'progressiveLong'
+  | 'fastFinish'
+  | 'racePaceLong'
 
 export interface TrainerWeek {
   index: number

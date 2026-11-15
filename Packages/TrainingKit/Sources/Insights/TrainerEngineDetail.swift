@@ -41,31 +41,6 @@ extension TrainerEngine {
         )
     }
 
-    static func vo2Session(index: Int, isRecovery: Bool, phase: TrainerPhase, lowered: Bool) -> TrainerQualitySession {
-        func session(_ blocks: [TrainerQualityBlock]) -> TrainerQualitySession {
-            TrainerQualitySession(kind: .vo2max, method: .intervals, blocks: blocks, closing: true)
-        }
-        if isRecovery || phase == .taper || lowered {
-            let repeats = phase == .taper ? C.vo2TaperRepeats : C.vo2RecoveryRepeats
-            return session([TrainerQualityBlock(repeats: repeats, meters: C.vo2OneKmMeters)])
-        }
-        if index % C.vo2ShortEvery == 0 {
-            return session([TrainerQualityBlock(repeats: C.vo2ShortRepeats, meters: C.vo2ShortMeters)])
-        }
-        switch index % C.vo2FormatCount {
-        case 1:
-            return session([TrainerQualityBlock(repeats: C.vo2OneKmRepeats, meters: C.vo2OneKmMeters)])
-        case 2:
-            let repeats = phase == .base || phase == .general ? C.vo2LongBaseRepeats : C.vo2LongRepeats
-            return session([TrainerQualityBlock(repeats: repeats, meters: C.vo2LongMeters)])
-        default:
-            return session([
-                TrainerQualityBlock(repeats: C.vo2PyramidRepeats, meters: C.vo2LongMeters),
-                TrainerQualityBlock(repeats: C.vo2PyramidRepeats, meters: C.vo2OneKmMeters),
-            ])
-        }
-    }
-
     static func racePaceSession(week: TrainerWeek, weeks: [TrainerWeek], target: TrainerTarget) -> TrainerQualitySession? {
         guard target.kind == .race, week.phase == .specific, !week.isRecovery, let distance = target.distanceMeters,
               distance >= C.raceMinimumRaceMeters else { return nil }
@@ -162,16 +137,18 @@ extension TrainerEngine {
             return goalPaceSession(step: goalStep ?? ordinal / C.goalPaceEvery, week: week, distance: target.distanceMeters ?? 0)
         }
         if kind == .vo2max {
-            return cappedQuality(vo2Session(index: week.index, isRecovery: week.isRecovery, phase: week.phase, lowered: lowered), weekMeters: week.targetMeters)
+            return cappedQuality(vo2Session(week: week, weeks: weeks, lowered: lowered), weekMeters: week.targetMeters)
         }
         if !lowered, let session = racePaceSession(week: week, weeks: weeks, target: target) { return session }
+        if !lowered, let session = rotatedThreshold(week: week, weeks: weeks) { return cappedQuality(session, weekMeters: week.targetMeters) }
         return cappedQuality(thresholdSession(week: week, lowered: lowered), weekMeters: week.targetMeters)
     }
 
     static func qualityMeters(_ session: TrainerQualitySession) -> Double {
         let work = session.blocks.reduce(0.0) { $0 + Double($1.repeats) * $1.meters }
         let closing = session.closing ? Double(C.closingRepeats) * C.closingMeters + Double(C.closingRepeats - 1) * C.closingJogMeters : 0
-        return C.warmupMeters + work + closing
+        let jog = session.variant == .hills ? session.blocks.reduce(0.0) { $0 + Double($1.repeats - 1) * $1.meters } : 0
+        return C.warmupMeters + work + closing + jog
     }
 
     static func restSeconds(session: TrainerQualitySession, block: TrainerQualityBlock, paces: TrainerPaces, lowered: Bool) -> Double {
@@ -213,15 +190,40 @@ extension TrainerEngine {
             return total + qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
         }
         let longMeters = kinds.contains(.long) ? week.longMeters : 0
-        let easyCount = Double(kinds.filter { $0 == .easy }.count)
+        let easyDays = (1...C.daysPerWeek).filter { kinds[$0 - 1] == .easy }
         let optionalCount = Double(kinds.filter { $0 == .optionalEasy }.count)
-        let weight = easyCount + optionalCount * C.optionalEasyShare
-        let rest = week.targetMeters - longMeters - quality
-        let raw = weight > 0 ? rest / weight : 0
-        let optional = min(max(roundKilometers(raw * C.optionalEasyShare), easyMinimum(paces: paces)), optionalLimit(paces: paces))
-        let easyRaw = easyCount > 0 ? (rest - optional * optionalCount) / easyCount : 0
-        let easy = min(max(roundKilometers(easyRaw), easyMinimum(paces: paces)), easyLimit(paces: paces))
-        return TrainerEasyShare(meters: easy, optional: optional, base: base.meters, fromHistory: base.fromHistory)
+        let fartlekWeek = optionalCount > 0 && isFartlekWeek(week, weeks: weeks)
+        let minimum = easyMinimum(paces: paces)
+        let limit = easyLimit(paces: paces)
+        func allocate(mediumDay: Int?, mediumLong: Double) -> TrainerEasyShare {
+            let regular = easyDays.filter { $0 != mediumDay }
+            let count = Double(regular.count)
+            let rest = week.targetMeters - longMeters - quality - (mediumDay == nil ? 0 : mediumLong)
+            let fartlek = fartlekWeek && rest - count * minimum - optionalCount * fartlekMinimumMeters() >= 0
+            let weight = count + optionalCount * C.optionalEasyShare
+            let raw = weight > 0 ? rest / weight : 0
+            var optional = min(max(roundKilometers(raw * C.optionalEasyShare), minimum), optionalLimit(paces: paces))
+            if fartlek { optional = max(optional, fartlekMinimumMeters()) }
+            let easyRaw = count > 0 ? (rest - optional * optionalCount) / count : 0
+            let easy = min(max(roundKilometers(easyRaw), minimum), limit)
+            let first = count > 0 ? min(max(roundKilometers(rest - optional * optionalCount - easy * (count - 1)), minimum), limit) : nil
+            return TrainerEasyShare(
+                meters: easy, optional: optional, base: base.meters, fromHistory: base.fromHistory, first: first, firstDay: regular.first,
+                mediumLong: mediumDay == nil ? nil : mediumLong, mediumLongDay: mediumDay, fartlek: fartlek
+            )
+        }
+        if let day = mediumLongDay(week: week, structure: structure) {
+            let target = roundKilometers(week.targetMeters * C.mediumLongShare)
+            let optional = fartlekWeek ? max(fartlekMinimumMeters(), minimum) : minimum
+            let room = week.targetMeters - longMeters - quality - Double(easyDays.count - 1) * minimum - optionalCount * optional
+            let meters = min(
+                max(target, C.mediumLongMinimumMeters), C.mediumLongMaximumMeters, limit, week.longMeters - C.metersPerKilometer,
+                floorKilometers(room)
+            )
+            let share = allocate(mediumDay: day, mediumLong: meters)
+            if meters >= min(C.mediumLongMinimumMeters, limit), meters > max(share.meters, share.first ?? 0) { return share }
+        }
+        return allocate(mediumDay: nil, mediumLong: 0)
     }
 
     static func missedQuality(
@@ -268,6 +270,21 @@ extension TrainerEngine {
         let work = band(pace, C.qualityBand)
         let easy = band(paces.easy, C.easyBand)
         var steps = [TrainerStep(kind: .warmup, meters: C.warmupMeters, paceLow: easy.low, paceHigh: easy.high)]
+        if session.variant == .hills, let block = session.blocks.first {
+            steps.append(TrainerStep(kind: .work, repeats: block.repeats, meters: block.meters, method: session.method))
+            steps.append(TrainerStep(kind: .recovery, repeats: block.repeats - 1, meters: block.meters))
+            return steps
+        }
+        if session.variant == .progressiveThreshold, let block = session.blocks.first {
+            let rest = restSeconds(session: session, block: block, paces: paces, lowered: lowered)
+            for index in 0..<block.repeats {
+                let offset = C.progressiveThresholdStep * Double(block.repeats - 1 - 2 * index) / 2
+                let range = band(pace + offset, C.qualityBand)
+                steps.append(TrainerStep(kind: .work, meters: block.meters, paceLow: range.low, paceHigh: range.high, method: session.method))
+                if index < block.repeats - 1 { steps.append(TrainerStep(kind: .recovery, meters: 0, restSeconds: rest)) }
+            }
+            return steps
+        }
         for (index, block) in session.blocks.enumerated() {
             let rest = restSeconds(session: session, block: block, paces: paces, lowered: lowered)
             steps.append(TrainerStep(
@@ -293,11 +310,12 @@ extension TrainerEngine {
         day: Day, session: TrainerQualitySession, paces: TrainerPaces, lowered: Bool, note: String? = nil, rationale: String
     ) -> TrainerWorkout {
         let steps = qualitySteps(session: session, paces: paces, lowered: lowered)
-        let work = steps.first { $0.kind == .work }
+        let work = steps.filter { $0.kind == .work && $0.method != .repetition }
         return TrainerWorkout(
             day: day, kind: session.kind, title: T.title(kind: session.kind, meters: 0, session: session),
             totalMeters: qualityMeters(session), steps: steps,
-            paceLow: work?.paceLow, paceHigh: work?.paceHigh, note: note, rationale: rationale, method: session.method
+            paceLow: work.compactMap(\.paceLow).min(), paceHigh: work.compactMap(\.paceHigh).max(), note: note, rationale: rationale,
+            method: session.method, variant: session.variant
         )
     }
 
@@ -320,6 +338,7 @@ extension TrainerEngine {
         for kind in [TrainerDayKind.threshold, .vo2max] {
             if let miss = missedQuality(kind, past: past, history: history, today: today) { loweredKinds[kind] = miss.day }
         }
+        let roles = long.mode == .continuous ? longRoles(weeks, target: target) : [:]
         var workouts: [TrainerWorkout] = []
         let lastDay = (weeks.map(\.start).max() ?? today).adding(days: C.daysPerWeek - 1)
         let span = max(0, today.days(until: lastDay) + 1)
@@ -349,13 +368,23 @@ extension TrainerEngine {
             case .long:
                 let note = gelNote(history: history, meters: week.longMeters)
                 let previousLong = weeks.first(where: { $0.index == week.index - 1 })?.longMeters
-                var rationale = T.longRationale(week: week, previousLong: previousLong, cap: longCap(for: target), note: note)
+                let role = roles[week.index] ?? .plain
+                var extras: [String] = []
                 if peakShortfall && week.phase != .taper && !week.isRecovery {
-                    rationale += " \(T.peakShortfall(requested: peakVolume, reached: reachedPeak))"
+                    extras.append(T.peakShortfall(requested: peakVolume, reached: reachedPeak))
                 }
-                if let suffix = longContinuousSuffix(long: long, week: week) { rationale += " \(suffix)" }
+                if let suffix = longContinuousSuffix(long: long, week: week) { extras.append(suffix) }
+                var stimulus: TrainerWorkout?
+                if case .stimulus(let kind) = role {
+                    stimulus = stimulusLong(day: day, week: week, stimulus: kind, paces: paces, target: target, extras: extras, note: note)
+                }
+                let head = role == .longest
+                    ? T.longestReason(share: C.longestWeekShare, note: note)
+                    : T.longRationale(week: week, previousLong: previousLong, cap: longCap(for: target), note: note)
+                let rationale = ([head] + extras).joined(separator: " ")
                 workout = (long.mode == .blocks ? longBlocksWorkout(day: day, week: week, paces: paces, long: long) : nil)
                     ?? progressiveLong(day: day, week: week, paces: paces, target: target, rationale: rationale, note: note)
+                    ?? stimulus
                     ?? steadyWorkout(
                         day: day, kind: .long, meters: week.longMeters, pace: paces.long, band: C.easyBand,
                         title: T.title(kind: .long, meters: week.longMeters), note: note, rationale: rationale
@@ -381,28 +410,59 @@ extension TrainerEngine {
                 let miss = lowered && goalStep == nil ? missedQuality(kind, past: past, history: history, today: today) : nil
                 let rationale = T.qualityRationale(
                     kind: kind, title: title, session: session, week: week, previousStatus: previousStatus,
-                    miss: miss, basis: basis, restSeconds: restSeconds, goal: goalNote
+                    miss: miss, basis: basis, restSeconds: restSeconds, goal: goalNote,
+                    format: formatReason(kind: kind, session: session, week: week, weeks: weeks)
                 )
                 workout = qualityWorkout(
                     day: day, session: session, paces: paces, lowered: lowered, note: nil, rationale: rationale
                 )
             case .optionalEasy:
-                let meters = easyShare(
+                let share = easyShare(
                     week: week, weeks: weeks, target: target, structure: weekStructure, history: history, today: today, paces: paces
-                ).optional
-                workout = easyWorkout(
-                    day: day, kind: .optionalEasy, meters: meters, paces: paces, note: T.optionalNote,
-                    rationale: T.optionalRationale(meters: meters)
                 )
+                let meters = share.optional
+                if share.fartlek, let score = history.readiness[day], score < C.optionalReadiness {
+                    workout = easyWorkout(
+                        day: day, kind: .optionalEasy, meters: meters, paces: paces, note: T.optionalNote,
+                        rationale: T.fartlekSkipped(score, meters: meters)
+                    )
+                } else if share.fartlek {
+                    workout = fartlekWorkout(day: day, meters: meters, paces: paces)
+                } else {
+                    workout = easyWorkout(
+                        day: day, kind: .optionalEasy, meters: meters, paces: paces, note: T.optionalNote,
+                        rationale: T.optionalRationale(meters: meters)
+                    )
+                }
             case .easy:
                 let share = easyShare(
                     week: week, weeks: weeks, target: target, structure: weekStructure, history: history, today: today, paces: paces
                 )
-                workout = easyWorkout(day: day, meters: share.meters, paces: paces, rationale: T.easyRationale(share))
+                let meters = easyMeters(weekday: weekday, share: share)
+                if weekday == share.mediumLongDay {
+                    workout = mediumLongWorkout(day: day, meters: meters, week: week, paces: paces)
+                } else if weekday == share.firstDay && !week.isRecovery {
+                    workout = stridesWorkout(day: day, meters: meters, paces: paces, rationale: T.easyRationale(share, meters: meters))
+                } else {
+                    workout = easyWorkout(day: day, meters: meters, paces: paces, rationale: T.easyRationale(share, meters: meters))
+                }
             }
             workouts.append(workout)
         }
         return applying(requests, to: workouts, paces: paces, today: today)
+    }
+
+    static func formatReason(kind: TrainerDayKind, session: TrainerQualitySession, week: TrainerWeek, weeks: [TrainerWeek]) -> String? {
+        switch session.method {
+        case .intervals where kind == .vo2max:
+            return week.phase == .taper ? nil : T.vo2FormatReason(vo2Format(week: week, weeks: weeks))
+        case .tempo, .cruiseIntervals:
+            guard isProgressionWeek(week) else { return nil }
+            let meters = session.blocks.reduce(0.0) { $0 + Double($1.repeats) * $1.meters }
+            return T.thresholdFormatReason(thresholdFormat(week: week, weeks: weeks), meters: meters)
+        default:
+            return nil
+        }
     }
 
     static func progressiveLong(

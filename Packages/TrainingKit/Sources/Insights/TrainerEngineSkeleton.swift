@@ -87,7 +87,7 @@ extension TrainerEngine {
             level += 1
         }
         return TrainerSkeletonState(
-            volume: last.targetMeters, long: last.longMeters, stage: stage,
+            volume: last.targetMeters, long: last.baseLongMeters ?? last.longMeters, stage: stage,
             weeksAtStage: min(level, C.stagesAtLevel), started: true, returning: weeks.last?.isRecovery == true,
             lastRecovery: weeks.last { $0.isRecovery }?.index
         )
@@ -182,10 +182,7 @@ extension TrainerEngine {
             weeks.append(TrainerWeek(
                 index: index, start: start, phase: phase,
                 isRecovery: recovery, plannedMeters: volume, targetMeters: volume, longMeters: long,
-                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]),
-                vo2Focus: TrainerEngineText.sessionLabel(
-                    vo2Session(index: index, isRecovery: recovery, phase: phase, lowered: false).blocks
-                )
+                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]), vo2Focus: ""
             ))
         }
         return weeks

@@ -92,10 +92,20 @@ enum TrainerEngineText {
         blocks.map { $0.repeats > 1 ? "\($0.repeats) × \(distance($0.meters))" : distance($0.meters) }.joined(separator: " + ")
     }
 
-    static func title(kind: TrainerDayKind, meters: Double, session: TrainerQualitySession? = nil) -> String {
+    static func title(kind: TrainerDayKind, meters: Double, session: TrainerQualitySession? = nil, variant: TrainerVariant? = nil) -> String {
+        if let variant, let title = variantTitle(kind: kind, meters: meters, variant: variant) { return title }
         let label = session.map { sessionLabel($0.blocks) }
-        let thresholdName = session?.method == .racePace ? "Ritmo de prova" : "Limiar"
-        let vo2Name = session?.method == .goalPace ? "Pace-alvo" : "VO2 máx"
+        let thresholdName = switch (session?.method, session?.variant) {
+        case (.racePace?, _): "Ritmo de prova"
+        case (_, .continuousTempo?): "Tempo contínuo"
+        case (_, .progressiveThreshold?): "Limiar progressivo"
+        default: "Limiar"
+        }
+        let vo2Name = switch (session?.method, session?.variant) {
+        case (.goalPace?, _): "Pace-alvo"
+        case (_, .hills?): "Subidas"
+        default: (session?.blocks.count ?? 0) > 1 ? "VO2 máx pirâmide" : "VO2 máx"
+        }
         return switch kind {
         case .threshold: "\(thresholdName) \(label ?? kilometers(meters))"
         case .vo2max: "\(vo2Name) \(label ?? kilometers(meters))"
@@ -302,6 +312,8 @@ enum TrainerEngineText {
         let label = sessionLabel(session.blocks)
         let volume = kilometers(session.blocks.reduce(0) { $0 + Double($1.repeats) * $1.meters })
         let rest = restClock(restSeconds)
+        if session.variant == .hills { return hillsRule }
+        if session.variant == .progressiveThreshold { return progressiveThresholdRule(session.blocks, rest: restSeconds) }
         switch session.method {
         case .cruiseIntervals:
             let shape = session.blocks.count > 1 ? "Pirâmide \(label)" : "Cruise intervals de \(distance(session.blocks[0].meters))"
@@ -321,7 +333,7 @@ enum TrainerEngineText {
 
     static func qualityRationale(
         kind: TrainerDayKind, title: String, session: TrainerQualitySession, week: TrainerWeek, previousStatus: TrainerDayStatus?,
-        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, goal: TrainerGoalPaceNote? = nil
+        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, goal: TrainerGoalPaceNote? = nil, format: String? = nil
     ) -> String {
         if let goal { return goalPaceRationale(title: title, session: session, restSeconds: restSeconds, note: goal) }
         let name = kindName(kind)
@@ -332,7 +344,8 @@ enum TrainerEngineText {
         let phase = phaseName(week.phase)
         let recovery = week.isRecovery ? " Semana de recuperação, volume menor." : ""
         let done = previousStatus == .done ? " O último treino saiu no alvo." : ""
-        return "\(title) na semana \(week.index) (\(phase)).\(recovery)\(done) \(rule) \(basis)"
+        let reason = format.map { " \($0)" } ?? ""
+        return "\(title) na semana \(week.index) (\(phase)).\(recovery)\(done) \(rule)\(reason) \(basis)"
     }
 
     static func goalPaceRationale(
@@ -405,9 +418,9 @@ enum TrainerEngineText {
         return text
     }
 
-    static func easyRationale(_ share: TrainerEasyShare) -> String {
+    static func easyRationale(_ share: TrainerEasyShare, meters: Double) -> String {
         let weeks = TrainerEngineConstants.easyWindowDays / TrainerEngineConstants.daysPerWeek
-        let text = "Rodagem de \(kilometers(share.meters))."
+        let text = "Rodagem de \(kilometers(meters))."
         guard share.fromHistory else { return text }
         return "\(text) Suas rodagens das últimas \(weeks) semanas ficam em \(kilometers(share.base))."
     }

@@ -59,9 +59,13 @@ public enum TrainerEngine {
             peakVolume: peak, lightWeeks: lightWeeks
         )
         let state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
-        let weeks = longestLongs(sizedWeeks(buildWeeks(
+        let sized = sizedWeeks(buildWeeks(
             context: context, firstIndex: offset + 1, firstStart: today.weekStart, state: state, adjustment: TrainerSkeletonAdjustment()
-        ), paces: paces), structure: structure, target: target, history: history, today: today, paces: paces)
+        ), paces: paces)
+        let weeks = labeledVo2(longestLongs(
+            wavedLongs(sized, from: offset + 1, structure: structure, target: target, paces: paces, mode: longMode),
+            structure: structure, target: target, history: history, today: today, paces: paces
+        ), from: offset + 1)
         var long = TrainerLongPlan(mode: longMode)
         if longMode == .blocks {
             long.stage = longStage ?? initialLongStage(

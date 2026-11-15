@@ -696,6 +696,8 @@ export const TRAINER_TEXT = {
   optional: 'opcional',
   racePace: 'Ritmo de prova',
   goalPaceName: 'Pace-alvo',
+  mediumLongName: 'Média-longa',
+  fartlekName: 'Fartlek',
   blockSeparator: ' + ',
   closingTag: (repeats: number, distance: string) => `+ ${repeats} × ${distance}`,
   stageTag: (stage: number, count: number) => `etapa ${stage} de ${count}`,
@@ -711,6 +713,7 @@ export const TRAINER_TEXT = {
   kinds: { easy: 'Rodagem', threshold: 'Limiar', vo2max: 'VO2 máx', optionalEasy: 'Opcional', long: 'Longão', off: 'Folga', race: 'Prova' },
   workKinds: { threshold: 'Limiar', vo2max: 'VO2 máx', long: 'Longão' } as Record<string, string>,
   workMethods: { repetition: 'Repetição R', goalPace: 'Pace-alvo', racePace: 'Ritmo de prova' } as Record<string, string>,
+  workVariants: { hills: 'Subida', strides: 'Aceleração', fartlek: 'Forte' } as Record<string, string>,
   stepKinds: { warmup: 'Aquecimento', cooldown: 'Desaquecimento', recovery: 'Recuperação', steady: 'Ritmo constante', work: 'Trabalho' },
   methods: {
     cruiseIntervals: 'Cruise intervals (Daniels)',

@@ -100,7 +100,7 @@ import WorkoutAnalysis
             #expect(!(with.note ?? "").contains("pernas"))
             #expect(!with.rationale.contains("MMII"))
         }
-        #expect(try workout(plan, 5).steps.count == 1)
+        #expect(try workout(plan, 5).steps.allSatisfy { $0.kind == .steady })
         #expect(try workout(plan, 3).steps.first?.meters == 3_000)
     }
 

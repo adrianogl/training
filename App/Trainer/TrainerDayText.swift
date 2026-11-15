@@ -4,6 +4,8 @@ import TrainingCore
 extension TrainerText {
     static let optionalTag = "opcional"
     static let racePaceName = "Ritmo de prova"
+    static let mediumLongName = "Média-longa"
+    static let fartlekName = "Fartlek"
     static let blockSeparator = " + "
 
     static func dayLine(_ workout: TrainerWorkout, strength: [TrainerStrengthLine] = [], longStage: Int? = nil) -> TrainerDayLine {
@@ -18,6 +20,8 @@ extension TrainerText {
 
     private static func dayName(_ workout: TrainerWorkout) -> String {
         switch workout.kind {
+        case .easy where workout.variant == .mediumLong: mediumLongName
+        case .optionalEasy where workout.variant == .fartlek: fartlekName
         case .optionalEasy, .easy: kindName(.easy)
         case .threshold where workout.method == .racePace: racePaceName
         case .vo2max where workout.method == .goalPace: goalPaceLabel
@@ -38,10 +42,22 @@ extension TrainerText {
             return pace.map { "\(blocks) a \($0)" } ?? blocks
         }
         if (workout.kind == .threshold || workout.kind == .vo2max), !main.isEmpty {
-            let blocks = main.map { "\(blockCount($0.repeats)) \(distance($0.meters))" }.joined(separator: blockSeparator)
+            let blocks = groupedBlocks(main).map { "\(blockCount($0.count)) \(distance($0.meters))" }.joined(separator: blockSeparator)
             return barePace(low: workout.paceLow, high: workout.paceHigh).map { "\(blocks) a \($0)" } ?? blocks
         }
         return paceRange(low: workout.paceLow, high: workout.paceHigh) ?? ""
+    }
+
+    private static func groupedBlocks(_ steps: [TrainerStep]) -> [(count: Int, meters: Double)] {
+        var groups: [(count: Int, meters: Double)] = []
+        for step in steps {
+            if let last = groups.last, last.meters == step.meters {
+                groups[groups.count - 1].count += step.repeats
+            } else {
+                groups.append((step.repeats, step.meters))
+            }
+        }
+        return groups
     }
 
     private static func blockCount(_ count: Int) -> String {

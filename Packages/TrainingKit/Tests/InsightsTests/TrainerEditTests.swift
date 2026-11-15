@@ -249,7 +249,8 @@ import WorkoutAnalysis
 
         #expect(edited.totalMeters == workout.totalMeters + 1_500)
         #expect(edited.paceLow == (workout.paceLow ?? 0) + 10)
-        #expect(edited.title == TrainerEngineText.title(kind: .easy, meters: edited.totalMeters))
+        #expect(edited.title == TrainerEngineText.title(kind: .easy, meters: edited.totalMeters, variant: workout.variant))
+        #expect(edited.variant == workout.variant)
     }
 
     @Test func longInBlocksKeepsStageAndChangesDistance() throws {

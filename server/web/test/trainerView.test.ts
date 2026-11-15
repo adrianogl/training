@@ -5,7 +5,7 @@ import type { TrainerPlan, TrainerStep, TrainerWorkout } from '../src/types'
 
 const step = (overrides: Partial<TrainerStep>): TrainerStep => ({ kind: 'work', repeats: 1, meters: 1000, restSeconds: null, paceLow: null, paceHigh: null, method: null, ...overrides })
 const workout = (kind: TrainerWorkout['kind'], steps: TrainerStep[]): TrainerWorkout => ({
-  day: '2026-11-17', kind, title: 'Treino', totalMeters: 10000, steps, paceLow: null, paceHigh: null, note: null, rationale: '', method: null, edited: false,
+  day: '2026-11-17', kind, title: 'Treino', totalMeters: 10000, steps, paceLow: null, paceHigh: null, note: null, rationale: '', method: null, edited: false, variant: null,
 })
 const rows = (value: TrainerWorkout) => stepRows(value).map((row) => [row.title, row.detail, row.header, row.nested])
 
@@ -183,6 +183,19 @@ describe('linha do dia', () => {
     }
     steps.push(step({ kind: 'steady', meters: 5000, paceLow: 268, paceHigh: 282 }))
     expect(line(make('long', 21000, steps, { edited: true }))).toEqual(['Longão · 21 km', '4 × 4 km + 5 km a 4:28–4:47', 'etapa 1 de 6', 'editado'])
+  })
+
+  it('listagem mostra só o tipo: média-longa, fartlek e limiar progressivo sem subtipo', () => {
+    expect(line(make('easy', 14000, [], { paceLow: 290, paceHigh: 304, variant: 'mediumLong', title: 'Média-longa 14 km' }))[0]).toBe('Média-longa · 14 km')
+    expect(line(make('optionalEasy', 9000, [], { paceLow: 290, paceHigh: 304, variant: 'fartlek', title: 'Fartlek 6 × 500 m' })).slice(0, 3)).toEqual(['Fartlek · 9 km', '4:50–5:04/km', 'opcional'])
+    const blocks = [0, 1, 2].map((index) => step({ meters: 2000, paceLow: 250 - 5 * index, paceHigh: 256 - 5 * index }))
+    expect(line(make('threshold', 9000, blocks, { paceLow: 240, paceHigh: 256, variant: 'progressiveThreshold' })).slice(0, 2)).toEqual(['Limiar · 9 km', '3 × 2 km a 4:00–4:16'])
+    expect(rows(make('vo2max', 6000, [step({ repeats: 8, meters: 200, method: 'intervals' })], { variant: 'hills' }))[0]?.[0]).toBe('8× Subida')
+  })
+
+  it('lê a variante do JSON e ignora variante desconhecida', () => {
+    const plan = parseTrainerPlan({ ...raw, workouts: [{ ...raw.workouts[0], variant: 'mediumLong' }, { ...raw.workouts[1], variant: 'nova' }] })
+    expect(plan?.workouts.map((item) => item.variant)).toEqual([null, 'mediumLong'])
   })
 
   it('rodagem opcional com força e folga', () => {

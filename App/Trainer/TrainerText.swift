@@ -465,9 +465,18 @@ enum TrainerText {
             case .repetition: name = "Repetição R"
             case .goalPace: name = "Pace-alvo"
             case .racePace: name = "Ritmo de prova"
-            default: name = kindStepName(workout.kind)
+            default: name = workStepName(workout)
             }
             return step.repeats > 1 ? "\(step.repeats)× \(name)" : name
+        }
+    }
+
+    static func workStepName(_ workout: TrainerWorkout) -> String {
+        switch workout.variant {
+        case .hills?: "Subida"
+        case .strides?: "Aceleração"
+        case .fartlek?: "Forte"
+        default: kindStepName(workout.kind)
         }
     }
 
