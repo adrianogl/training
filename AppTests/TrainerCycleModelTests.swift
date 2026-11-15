@@ -59,12 +59,61 @@ private final class TrainerClock: @unchecked Sendable {
     }
 
     @Test func creatingTheNextPlanArchivesTheCycleOnce() async throws {
-        let model = try Self.makeModel(today: Self.mondayPlusWeeks(6))
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
         await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(6)
         await model.endCycle()
         await Self.createHalf(model, start: 64_000, peak: 86_000)
         #expect(model.cycleSummaries.count == 1)
         #expect(model.plan?.endedOn == nil)
+    }
+
+    @Test func cycleWithoutAClosedWeekIsNotArchived() async throws {
+        let model = try Self.makeModel(today: Self.mondayPlusWeeks(6))
+        await Self.createHalf(model)
+        await model.endCycle()
+        await Self.createHalf(model)
+        #expect(model.cycleSummaries.isEmpty)
+    }
+
+    private static func insertRaceRun(_ container: ModelContainer) throws {
+        let raceDay = mondayPlusWeeks(16)
+        let context = ModelContext(container)
+        let run = WorkoutDetailFixtures.run(id: 40, meters: 21_100)
+        run.start = Calendar.current.date(from: DateComponents(year: raceDay.year, month: raceDay.month, day: raceDay.day, hour: 8))!
+        run.localDay = raceDay.iso
+        context.insert(run)
+        try context.save()
+    }
+
+    @Test func autoAdjustRefreshesTheCycleReview() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock, container: container)
+        await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(16).adding(days: 1)
+        await model.load()
+        #expect(model.cycleReview?.raceSeconds == nil)
+        try Self.insertRaceRun(container)
+        await model.autoAdjust()
+        #expect(model.cycleReview?.raceSeconds == 21_100 * 0.33)
+    }
+
+    @Test func planPulledFromSyncGetsAReviewWithItsHistory() async throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let store = Self.makeStore()
+        let clock = TrainerClock(Self.monday)
+        let receiver = try Self.makeModel(clock: clock, store: store, container: container)
+        await receiver.load()
+        let sender = try Self.makeModel(clock: clock, store: store, container: container)
+        await Self.createHalf(sender)
+        try Self.insertRaceRun(container)
+        clock.day = Self.mondayPlusWeeks(16).adding(days: 1)
+        receiver.reloadFromStore()
+        await receiver.autoAdjust()
+        #expect(receiver.plan != nil)
+        #expect(receiver.cycleReview?.raceSeconds == 21_100 * 0.33)
     }
 
     @Test func seenCycleHidesTheBanner() async throws {
@@ -157,8 +206,10 @@ private final class TrainerClock: @unchecked Sendable {
 
     @Test func deletingThePlanKeepsThePastCycles() async throws {
         let store = Self.makeStore()
-        let model = try Self.makeModel(clock: TrainerClock(Self.mondayPlusWeeks(6)), store: store)
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock, store: store)
         await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(6)
         await model.endCycle()
         await Self.createHalf(model)
         model.deletePlan()

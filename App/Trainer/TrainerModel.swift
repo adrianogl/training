@@ -70,7 +70,6 @@ import TrainingCore
         guard var current = plan, current.endedOn == nil else { return }
         isWorking = true
         defer { isWorking = false }
-        history = await loadHistory()
         current.endedOn = currentDay
         persist(current)
         cycleHistory = await loadCycleHistory()
@@ -310,14 +309,20 @@ import TrainingCore
     func scheduleAutoAdjust() {
         autoTask?.cancel()
         autoTask = Task { [weak self] in
-            guard let self else { return }
-            self.reloadFromStore()
-            guard self.plan != nil else { return }
-            self.history = await self.loadHistory()
-            guard !Task.isCancelled else { return }
-            self.reloadFromStore()
-            self.applyPending()
+            await self?.autoAdjust()
         }
+    }
+
+    func autoAdjust() async {
+        reloadFromStore()
+        guard plan != nil else { return }
+        history = await loadHistory()
+        guard !Task.isCancelled else { return }
+        let cycle = await loadCycleHistory()
+        guard !Task.isCancelled else { return }
+        cycleHistory = cycle
+        reloadFromStore()
+        applyPending()
     }
 
     func isLightWeek(_ start: Day) -> Bool { plan?.lightWeeks.contains(start) == true }
@@ -475,7 +480,7 @@ import TrainingCore
     }
 
     private func archiveCycle() {
-        guard let current = plan, let review = cycleReview else { return }
+        guard let current = plan, let review = cycleReview, !review.weeks.isEmpty else { return }
         store.archive(TrainerCycleSummary(
             title: TrainerText.targetTitle(current.target), first: review.first, last: review.last, verdict: review.verdict,
             beforePeakMeters: review.currentPeakMeters, afterPeakMeters: review.suggestedPeakMeters, resultSeconds: review.raceSeconds
