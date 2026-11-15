@@ -3,7 +3,7 @@ import Insights
 import WorkoutAnalysis
 
 extension WorkoutChatStore {
-    static let trainer = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: TrainerChatConstants.folderName))
+    static var trainer: WorkoutChatStore { AccountScope.current.chats.trainer }
 }
 
 enum TrainerChatConstants {

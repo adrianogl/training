@@ -118,7 +118,7 @@ import WorkoutAnalysis
         return PlannedSessions.merge(garmin: (Array(planned.values) + Array(reportPlanned.values)).flatMap { $0 } + nextWeek, trainer: trainer)
     }
 
-    func loadPlannedHistory(client: GarminAccountClient?, defaults: UserDefaults = .standard) async {
+    func loadPlannedHistory(client: GarminAccountClient?, defaults: UserDefaults = AccountScope.current.defaults) async {
         guard let client else { return }
         let starts = summary.week.recentWeeks.map(\.start)
         let current = today.weekStart

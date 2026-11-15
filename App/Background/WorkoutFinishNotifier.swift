@@ -9,16 +9,19 @@ import UIKit
     private typealias C = WorkoutNoticeConstants
 
     private let store = HKHealthStore()
-    private let defaults: UserDefaults
+    private let fixedDefaults: UserDefaults?
     private let scheduler = UserNotificationScheduler()
     private var observing = false
     private var processing = false
     private var rerun = false
     private var backgroundTask = UIBackgroundTaskIdentifier.invalid
+    private weak var model: AppModel?
 
-    init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
+    init(defaults: UserDefaults? = nil) {
+        self.fixedDefaults = defaults
     }
+
+    private var defaults: UserDefaults { fixedDefaults ?? AccountScope.current.defaults }
 
     var enabled: Bool { defaults.object(forKey: C.enabledKey) as? Bool ?? C.defaultEnabled }
 
@@ -31,6 +34,7 @@ import UIKit
 
     func start(model: AppModel) {
         guard enabled, HKHealthStore.isHealthDataAvailable() else { return }
+        self.model = model
         if enabledAt == nil {
             defaults.set(Date.now, forKey: C.enabledAtKey)
             C.logger.info("aviso ligado, enabledAt gravado")
@@ -47,7 +51,7 @@ import UIKit
                 }
                 Task { @MainActor in
                     C.logger.info("observer disparou")
-                    await self?.refresh(model: model)
+                    if let self, let model = self.model { await self.refresh(model: model) }
                     completion()
                 }
             }
@@ -56,6 +60,11 @@ import UIKit
         store.enableBackgroundDelivery(for: type, frequency: .immediate) { _, error in
             if let error { C.logger.error("background delivery falhou: \(error.localizedDescription, privacy: .public)") }
         }
+    }
+
+    func detach() {
+        model = nil
+        store.disableBackgroundDelivery(for: HKObjectType.workoutType()) { _, _ in }
     }
 
     func stop() {

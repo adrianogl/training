@@ -21,7 +21,8 @@ import UIKit
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let device: String
     @ObservationIgnored var legacyKey: (@MainActor () -> String?)?
-    @ObservationIgnored var onSignedOut: (@MainActor () async -> Void)?
+    @ObservationIgnored var onSignedIn: (@MainActor (AuthUser) -> Void)?
+    @ObservationIgnored var onSignedOut: (@MainActor (AccountSignOut) async -> Void)?
 
     var isSignedIn: Bool { token != nil }
 
@@ -75,7 +76,7 @@ import UIKit
             save(user: fresh)
             sessions = try await client.sessions()
         } catch AuthError.unauthorized {
-            await forget()
+            await forget(deleted: false)
         } catch {
             C.logger.error("Falha ao atualizar a conta: \(String(describing: error), privacy: .public)")
         }
@@ -115,12 +116,12 @@ import UIKit
 
     func signOut() async {
         try? await client().logout()
-        await forget()
+        await forget(deleted: false)
     }
 
     func deleteAccount() async -> Bool {
         let deleted = await run { try await self.client().deleteAccount() }
-        if deleted { await forget() }
+        if deleted { await forget(deleted: true) }
         return deleted
     }
 
@@ -132,6 +133,7 @@ import UIKit
         try store.save(session.token)
         token = session.token
         save(user: session.user)
+        onSignedIn?(session.user)
     }
 
     private func save(user: AuthUser) {
@@ -139,13 +141,14 @@ import UIKit
         defaults.set(try? JSONEncoder().encode(user), forKey: C.userDefaultsKey)
     }
 
-    private func forget() async {
+    private func forget(deleted: Bool) async {
+        let signOut = AccountSignOut(user: user, deleted: deleted)
         try? store.delete()
         defaults.removeObject(forKey: C.userDefaultsKey)
         token = nil
         user = nil
         sessions = []
-        await onSignedOut?()
+        await onSignedOut?(signOut)
     }
 
     private func run(_ work: @escaping @MainActor () async throws -> Void) async -> Bool {

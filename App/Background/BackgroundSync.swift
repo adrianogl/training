@@ -4,10 +4,16 @@ import Foundation
 enum BackgroundSync {
     private typealias C = BackgroundConstants
 
-    static func register(model: AppModel) {
+    static func register(model: @escaping @MainActor () -> AppModel?) {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: C.refreshTaskId, using: .main) { task in
             nonisolated(unsafe) let task = task
-            MainActor.assumeIsolated { handle(task, model: model) }
+            MainActor.assumeIsolated {
+                guard let current = model() else {
+                    task.setTaskCompleted(success: false)
+                    return
+                }
+                handle(task, model: current)
+            }
         }
     }
 

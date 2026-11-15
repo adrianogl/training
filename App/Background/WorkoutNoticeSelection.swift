@@ -22,12 +22,12 @@ extension PendingWorkoutQueue {
         items.removeAll { $0.end < now.addingTimeInterval(-lifetime) }
     }
 
-    static func load(defaults: UserDefaults = .standard) -> PendingWorkoutQueue {
+    static func load(defaults: UserDefaults = AccountScope.current.defaults) -> PendingWorkoutQueue {
         let items = defaults.data(forKey: WorkoutNoticeConstants.pendingKey).flatMap { try? JSONDecoder().decode([PendingWorkout].self, from: $0) }
         return PendingWorkoutQueue(items: items ?? [])
     }
 
-    func save(defaults: UserDefaults = .standard) {
+    func save(defaults: UserDefaults = AccountScope.current.defaults) {
         defaults.set(try? JSONEncoder().encode(items), forKey: WorkoutNoticeConstants.pendingKey)
     }
 }

@@ -4,7 +4,7 @@ struct ScreenSnapshotStore: Sendable {
     let directory: URL
     let version: Int
 
-    init(directory: URL = ScreenSnapshotConstants.defaultDirectory, version: Int = ScreenSnapshotConstants.schemaVersion) {
+    init(directory: URL = AccountScope.current.snapshotsFolder, version: Int = ScreenSnapshotConstants.schemaVersion) {
         self.directory = directory
         self.version = version
     }

@@ -63,7 +63,7 @@ private final class AccountTransport: HTTPTransport {
         let store = MemoryKeyStore("sessao")
         let (account, _) = model(transport, store: store)
         var signedOut = false
-        account.onSignedOut = { signedOut = true }
+        account.onSignedOut = { _ in signedOut = true }
 
         await account.refresh()
 

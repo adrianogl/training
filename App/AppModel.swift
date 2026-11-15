@@ -12,6 +12,7 @@ import TrainingCore
 
 @MainActor @Observable final class AppModel {
     let container: ModelContainer
+    let scope: AccountScope
     let storeError: String?
     private(set) var syncStatus: SyncStatus = .idle
     private(set) var connectionStatus: ConnectionStatus = .untested
@@ -48,13 +49,15 @@ import TrainingCore
 
     init(
         container: ModelContainer,
+        scope: AccountScope = .current,
+        account: AccountModel? = nil,
         storeError: String? = nil,
         keyStore: any APIKeyStore,
         transport: any HTTPTransport = URLSessionTransport(),
-        remoteKeyStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.remoteSyncKeychainAccount),
-        watchTokenStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.watchTokenKeychainAccount),
-        garminSessionStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.garminSessionKeychainAccount),
-        remoteDefaults: UserDefaults = .standard,
+        remoteKeyStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.remoteSyncKeychainAccount),
+        watchTokenStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.watchTokenKeychainAccount),
+        garminSessionStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.garminSessionKeychainAccount),
+        remoteDefaults: UserDefaults = AccountScope.current.defaults,
         trainerStore: TrainerStore = TrainerStore(),
         snapshots: ScreenSnapshotStore = ScreenSnapshotStore(),
         remoteBaseURL: URL = AppConstants.remoteSyncBaseURL,
@@ -70,6 +73,7 @@ import TrainingCore
         self.today = today
         self.notifier = notifier
         self.container = container
+        self.scope = scope
         self.hasLocalData = Self.storeHasData(container: container)
         self.scoreRefresher = ScoreRefresher { await ScoreStore.refresh(container: container, ids: nil) }
         self.storeError = storeError
@@ -85,15 +89,16 @@ import TrainingCore
             baseURL: remoteBaseURL,
             watchTokenStore: watchTokenStore,
             defaults: remoteDefaults,
+            defaultsSuite: scope.suiteName,
             trainerStore: trainerStore
         )
         self.garminAccount = GarminAccountModel(
             store: KeychainGarminSessionStore(keychain: garminSessionStore),
             makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
         )
-        self.account = AccountModel(transport: transport, baseURL: remoteBaseURL)
+        self.account = account ?? AccountModel(transport: transport, baseURL: remoteBaseURL)
         self.strava = StravaModel(container: container, defaults: remoteDefaults)
-        self.trainer = TrainerModel(container: container, store: trainerStore)
+        self.trainer = TrainerModel(container: container, store: trainerStore, defaults: remoteDefaults)
         self.snapshots = snapshots
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
         remoteSync.trainerChanged = { [weak self] in
@@ -101,7 +106,6 @@ import TrainingCore
             self?.trainer.scheduleAutoAdjust()
         }
         trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
-        account.legacyKey = { [weak self] in self?.remoteSync.legacyBearer() }
         garminAccount.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }
             return GarminLinkClient(baseURL: remoteBaseURL, token: token, transport: transport)
@@ -109,11 +113,6 @@ import TrainingCore
         strava.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }
             return StravaClient(baseURL: remoteBaseURL, token: token, transport: transport)
-        }
-        account.onSignedOut = { [weak self] in
-            self?.strava.reset()
-            self?.garminAccount.forgetLocal()
-            self?.snapshots.removeAll()
         }
     }
 
@@ -132,31 +131,42 @@ import TrainingCore
         return activities + days > 0
     }
 
-    static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppModel {
+    static func live(
+        scope: AccountScope, account: AccountModel, transport: any HTTPTransport, remoteBaseURL: URL, environment: [String: String]
+    ) -> AppModel {
         let isTestHost = environment[AppConstants.testHostEnvironmentVariable] != nil
-        let keyStore = KeychainKeyStore()
+        let keyStore = scope.keyStore(AppConstants.keychainAccount)
         #if DEBUG
         if !isTestHost, let injected = environment[AppConstants.apiKeyEnvironmentVariable], !injected.isEmpty,
            ((try? keyStore.read()) ?? nil) == nil {
             try? keyStore.save(injected)
         }
         #endif
-        let remoteBaseURL = RemoteSyncModel.baseURL(environment: environment)
-        if isTestHost {
-            return AppModel(container: inMemoryContainer(), keyStore: keyStore, remoteBaseURL: remoteBaseURL, autoSyncEnabled: false)
+        let make = { (container: ModelContainer, storeError: String?, autoSync: Bool) in
+            AppModel(
+                container: container,
+                scope: scope,
+                account: account,
+                storeError: storeError,
+                keyStore: keyStore,
+                transport: transport,
+                remoteKeyStore: scope.keyStore(AppConstants.remoteSyncKeychainAccount),
+                watchTokenStore: scope.keyStore(AppConstants.watchTokenKeychainAccount),
+                garminSessionStore: scope.keyStore(AppConstants.garminSessionKeychainAccount),
+                remoteDefaults: scope.defaults,
+                trainerStore: TrainerStore(url: scope.trainerURL, defaults: scope.defaults),
+                snapshots: ScreenSnapshotStore(directory: scope.snapshotsFolder),
+                remoteBaseURL: remoteBaseURL,
+                autoSyncEnabled: autoSync,
+                notifier: MorningNotifier(defaults: scope.defaults)
+            )
         }
+        if isTestHost { return make(inMemoryContainer(), nil, false) }
         do {
-            return AppModel(container: try TrainingSchema.container(url: storeURL()), keyStore: keyStore, remoteBaseURL: remoteBaseURL)
+            return make(try TrainingSchema.container(url: scope.storeURL), nil, true)
         } catch {
-            return AppModel(container: inMemoryContainer(), storeError: String(describing: error), keyStore: keyStore, remoteBaseURL: remoteBaseURL)
+            return make(inMemoryContainer(), String(describing: error), true)
         }
-    }
-
-    static func storeURL() throws -> URL {
-        let support = try FileManager.default.url(
-            for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true
-        )
-        return support.appending(path: AppConstants.storeFileName)
     }
 
     private static func inMemoryContainer() -> ModelContainer {
@@ -209,6 +219,11 @@ import TrainingCore
         }
         await syncNow(.launch)
         await workouts.refresh(model: self)
+    }
+
+    func activate() {
+        guard autoSyncEnabled else { return }
+        Task { await appBecameActive() }
     }
 
     func enteredBackground() {
@@ -305,11 +320,11 @@ import TrainingCore
 
     func publishWatchReadiness(summary: TodaySummary?, day: Day) async {
         guard let summary else { return }
-        let garmin = summary.readiness == nil ? await GarminReadinessCache.refresh(client: garminAccount.client, day: day) : nil
+        let garmin = summary.readiness == nil ? await GarminReadinessCache.refresh(client: garminAccount.client, day: day, defaults: scope.defaults) : nil
         var readiness = Self.watchReadiness(summary: summary, day: day, garmin: garmin)
         let planned = await plannedForWatch(week: day.weekStart)
         let container = container
-        let weeklyGoal = UserDefaults.standard.integer(forKey: AppConstants.weeklyGoalDefaultsKey)
+        let weeklyGoal = scope.defaults.integer(forKey: AppConstants.weeklyGoalDefaultsKey)
         var weather: [HourlyWeather] = []
         if planned.contains(where: { $0.day == day.iso }), let coordinate = PlannedWeather.lastRunStart(context: container.mainContext) {
             weather = await PlannedWeather.forecast(day: day, coordinate: coordinate)
@@ -340,6 +355,19 @@ import TrainingCore
     }
 
     func deleteLocalData() async throws {
+        await stopWork()
+        let context = container.mainContext
+        for model in TrainingSchema.models {
+            try deleteAll(model, in: context)
+        }
+        try context.save()
+        snapshots.removeAll()
+        hasLocalData = false
+        newActivityIds = []
+        syncStatus = .idle
+    }
+
+    func stopWork() async {
         if let syncTask {
             syncTask.cancel()
             await syncTask.value
@@ -353,15 +381,6 @@ import TrainingCore
             await deferredFITTask.value
         }
         await scoreRefresher.finish()
-        let context = container.mainContext
-        for model in TrainingSchema.models {
-            try deleteAll(model, in: context)
-        }
-        try context.save()
-        snapshots.removeAll()
-        hasLocalData = false
-        newActivityIds = []
-        syncStatus = .idle
     }
 
     private func deleteAll<T: PersistentModel>(_ model: T.Type, in context: ModelContext) throws {

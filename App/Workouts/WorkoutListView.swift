@@ -95,7 +95,7 @@ struct WorkoutListView: View {
     }
 
     private func updatePlannedWeeks() {
-        let cached = UserDefaults.standard.dictionary(forKey: AppConstants.plannedWeeksDefaultsKey) as? [String: Double] ?? [:]
+        let cached = model.scope.defaults.dictionary(forKey: AppConstants.plannedWeeksDefaultsKey) as? [String: Double] ?? [:]
         plannedWeeks = WorkoutListModel.plannedKilometers(planned: planned, cached: cached)
     }
 
