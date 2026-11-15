@@ -99,10 +99,6 @@ extension TrainerText {
         return text
     }
 
-    static func todayWorkoutLine(_ workout: TrainerWorkout) -> String {
-        TrainerEngine.summary(of: workout)
-    }
-
     static func readinessSuggestionText(_ suggestion: TrainerReadinessSuggestion) -> String {
         let head = suggestion.factor.map { "Prontidão \(suggestion.score) com \($0.name) \($0.value)." } ?? "Prontidão \(suggestion.score)."
         let light = "rodagem leve de \(TrainerConstants.readinessEasyKilometers) km hoje"

@@ -3,6 +3,8 @@ import { dayMonth, kmNumber, paceClock, shiftDay } from './format'
 import { distanceText, paceRange } from './trainerSteps'
 import type {
   TrainerChange,
+  TrainerDayLine,
+  TrainerDayTag,
   TrainerPaces,
   TrainerPhase,
   TrainerPlan,
@@ -197,8 +199,68 @@ export function weekCells(plan: TrainerPlan, today: string): TrainerWeekCell[] {
   ]
 }
 
-export function workoutSummary(workout: TrainerWorkout): string {
-  return [paceRange(workout.paceLow, workout.paceHigh), workout.note === null || workout.note === '' ? null : workout.note].filter((part) => part !== null).join(' · ')
+function barePace(low: number | null, high: number | null): string | null {
+  return paceRange(low, high)?.replace('/km', '') ?? null
+}
+
+function dayName(workout: TrainerWorkout): string {
+  if (workout.kind === 'threshold' && workout.method === 'racePace') return TRAINER_TEXT.racePace
+  if (workout.kind === 'vo2max' && workout.method === 'goalPace') return TRAINER_TEXT.goalPaceName
+  return TRAINER_TEXT.kinds[workout.kind === 'optionalEasy' ? 'easy' : workout.kind]
+}
+
+function pauseBlocks(workout: TrainerWorkout): { count: number; meters: number }[] {
+  const sizes: number[] = []
+  let current = 0
+  for (const step of workout.steps) {
+    if (step.kind === 'recovery' && step.restSeconds !== null) {
+      sizes.push(current)
+      current = 0
+    } else {
+      current += step.meters * step.repeats
+    }
+  }
+  sizes.push(current)
+  const groups: { count: number; meters: number }[] = []
+  for (const size of sizes) {
+    const last = groups.at(-1)
+    if (last !== undefined && last.meters === size) last.count += 1
+    else groups.push({ count: 1, meters: size })
+  }
+  return groups
+}
+
+function hasPauses(workout: TrainerWorkout): boolean {
+  return workout.kind === 'long' && workout.steps.some((step) => step.kind === 'recovery' && step.restSeconds !== null)
+}
+
+function dayDetail(workout: TrainerWorkout, pauses: boolean): string {
+  const withPace = (blocks: string, range: string | null) => (range === null ? blocks : `${blocks} a ${range}`)
+  if (pauses) {
+    const blocks = pauseBlocks(workout).map((group) => (group.count > 1 ? `${group.count} × ${distanceText(group.meters)}` : distanceText(group.meters))).join(TRAINER_TEXT.blockSeparator)
+    const steady = workout.steps.filter((step) => step.kind === 'steady')
+    const lows = steady.flatMap((step) => (step.paceLow === null ? [] : [step.paceLow]))
+    const highs = steady.flatMap((step) => (step.paceHigh === null ? [] : [step.paceHigh]))
+    return withPace(blocks, barePace(lows.length === 0 ? null : Math.min(...lows), highs.length === 0 ? null : Math.max(...highs)))
+  }
+  const main = workout.steps.filter((step) => step.kind === 'work' && step.method !== 'repetition')
+  if ((workout.kind === 'threshold' || workout.kind === 'vo2max') && main.length > 0) {
+    return withPace(main.map((step) => `${step.repeats} × ${distanceText(step.meters)}`).join(TRAINER_TEXT.blockSeparator), barePace(workout.paceLow, workout.paceHigh))
+  }
+  return paceRange(workout.paceLow, workout.paceHigh) ?? ''
+}
+
+export function dayLine(plan: TrainerPlan, workout: TrainerWorkout): TrainerDayLine {
+  const pauses = hasPauses(workout)
+  const closing = workout.steps.find((step) => step.method === 'repetition')
+  const tags: TrainerDayTag[] = []
+  if (workout.kind === 'optionalEasy') tags.push({ text: TRAINER_TEXT.optional, strength: false })
+  if (closing !== undefined) tags.push({ text: TRAINER_TEXT.closingTag(closing.repeats, distanceText(closing.meters)), strength: false })
+  if (pauses) tags.push({ text: TRAINER_TEXT.stageTag(plan.longStage, TRAINER_TEXT.longStageCount), strength: false })
+  if (workout.edited && workout.kind !== 'off') tags.push({ text: TRAINER_TEXT.edited, strength: false })
+  tags.push(...strengthTags(plan, workout.day).map((text) => ({ text, strength: true })))
+  if (workout.kind === 'off') return { title: TRAINER_TEXT.restDay, detail: '', tags }
+  return { title: `${dayName(workout)} · ${distanceText(workout.totalMeters)}`, detail: dayDetail(workout, pauses), tags }
 }
 
 export function strengthTags(plan: TrainerPlan, date: string): string[] {

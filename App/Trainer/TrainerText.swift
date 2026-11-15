@@ -65,7 +65,6 @@ enum TrainerText {
     static let previewTitle = "O que vai mudar"
     static let previewEmpty = "Nada muda no plano."
     static let editedStatus = "editado"
-    static let todayEditedStatus = "hoje · editado"
     static let paceFromHistory = "do histórico"
     static let paceManual = "manual"
     static let paceAdjust = "Ajustar"
@@ -289,7 +288,7 @@ enum TrainerText {
 
     static func weekCaption(plannedMeters: Double?) -> String {
         guard let plannedMeters else { return "" }
-        return "planejado \(kilometersNumber(plannedMeters)) km"
+        return "\(kilometersNumber(plannedMeters)) km"
     }
 
     static func methodLine(_ method: TrainerMethod) -> String {
@@ -317,13 +316,6 @@ enum TrainerText {
     static func goalGlyph(_ target: TrainerTarget) -> String {
         guard target.kind == .race, let meters = target.distanceMeters, meters > 0 else { return "★" }
         return String(Int((meters / 1_000).rounded()))
-    }
-
-    static func summaryLine(_ workout: TrainerWorkout) -> String {
-        var parts: [String] = []
-        if let range = paceRange(low: workout.paceLow, high: workout.paceHigh) { parts.append(range) }
-        if let note = workout.note, !note.isEmpty { parts.append(note) }
-        return parts.joined(separator: " · ")
     }
 
     static func stepRows(_ workout: TrainerWorkout) -> [TrainerStepRow] {
@@ -539,9 +531,8 @@ enum TrainerText {
         case .skipped:
             return TrainerStatusLabel(text: skippedStatus, tone: .dim)
         case .today:
-            return TrainerStatusLabel(text: row.workout.edited ? todayEditedStatus : todayStatus, tone: .good)
+            return TrainerStatusLabel(text: todayStatus, tone: .good)
         case .planned:
-            if row.workout.edited { return TrainerStatusLabel(text: editedStatus, tone: .attention) }
             return row.isChanged ? TrainerStatusLabel(text: changedStatus, tone: .attention) : nil
         }
     }

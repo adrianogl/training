@@ -39,13 +39,26 @@ struct TrainerCompareView: View {
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(color(day.match))
             line(TrainerText.externalLabel, day.externalSummary)
-            line(TrainerText.betaLabel, day.betaSummary)
+            betaLine(day)
             if let done = TrainerText.compareDone(day) {
                 Text(done).font(.footnote).foregroundStyle(BrandColors.accent)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
+    }
+
+    private func betaLine(_ day: TrainerComparisonDay) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(TrainerText.betaLabel).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim).frame(width: 92, alignment: .leading)
+            if let beta = day.beta, beta.kind != .off {
+                VStack(alignment: .leading, spacing: 2) {
+                    TrainerDayLineView(line: TrainerText.dayLine(beta), titleFont: .footnote)
+                }
+            } else {
+                Text(TrainerText.noWorkoutLabel).font(.footnote).foregroundStyle(BrandColors.text)
+            }
+        }
     }
 
     private func line(_ label: String, _ text: String?) -> some View {

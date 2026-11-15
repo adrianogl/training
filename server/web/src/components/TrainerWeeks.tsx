@@ -1,6 +1,6 @@
 import { TRAINER_TEXT } from '../constants'
 import { kmNumber } from '../format'
-import { isCurrentWeek, strengthTags, weekRange, weekWorkouts, weekdayShort, workoutSummary } from '../trainerView'
+import { isCurrentWeek, dayLine, weekRange, weekWorkouts, weekdayShort } from '../trainerView'
 import type { TrainerWeeksProps } from './components.types'
 
 export function TrainerWeeks({ plan, today, selected, onSelect }: TrainerWeeksProps) {
@@ -15,8 +15,7 @@ export function TrainerWeeks({ plan, today, selected, onSelect }: TrainerWeeksPr
               <span className="muted small">{TRAINER_TEXT.weekCaption(kmNumber(week.plannedMeters / 1000))}</span>
             </summary>
             {workouts.map((workout) => {
-              const summary = workoutSummary(workout)
-              const tags = strengthTags(plan, workout.day)
+              const line = dayLine(plan, workout)
               return (
                 <button key={workout.day} type="button" className={`trainer-day kind-${workout.kind}${workout.day === selected ? ' on' : ''}${workout.day === today ? ' today' : ''}`} onClick={() => onSelect(workout.day)}>
                   <span className="trainer-day-date">
@@ -24,11 +23,17 @@ export function TrainerWeeks({ plan, today, selected, onSelect }: TrainerWeeksPr
                     <b>{Number(workout.day.slice(8))}</b>
                   </span>
                   <span className="trainer-day-text">
-                    <b>{workout.title}</b>
-                    {summary !== '' && <span className="muted small">{summary}</span>}
-                    {tags.length > 0 && <span className="trainer-tag">{tags.join(' ')}</span>}
+                    <b>{line.title}</b>
+                    {line.detail !== '' && <span className="muted small">{line.detail}</span>}
+                    {line.tags.length > 0 && (
+                      <span className="trainer-tags">
+                        {line.tags.map((tag) => (
+                          <span key={tag.text} className={`trainer-chip${tag.strength ? ' strength' : ''}`}>{tag.text}</span>
+                        ))}
+                      </span>
+                    )}
                   </span>
-                  {workout.edited && workout.kind !== 'off' && <span className="trainer-edited">{TRAINER_TEXT.edited}</span>}
+                  {workout.day === today && <span className="trainer-status">{TRAINER_TEXT.todayStatus}</span>}
                 </button>
               )
             })}
