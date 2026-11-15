@@ -39,7 +39,7 @@ import WorkoutAnalysis
     private func km(_ plan: TrainerPlan) -> [Int] { plan.weeks.map { Int($0.targetMeters / 1_000) } }
 
     @Test func datedPlanRisesFivePercentRecoversEveryFourthWeekAndTapers() {
-        let plan = plan(target: race(weeks: 16))
+        let plan = plan(target: race(weeks: 16, meters: 42_195))
 
         #expect(plan.weeks.count == 16)
         #expect(km(plan) == [60, 63, 66, 53, 66, 69, 70, 56, 70, 74, 78, 62, 78, 78, 55, 39])
@@ -66,16 +66,16 @@ import WorkoutAnalysis
     }
 
     @Test func reachablePeakHasNoWarning() {
-        let plan = plan(target: race(weeks: 16))
+        let plan = plan(target: race(weeks: 16, meters: 42_195))
 
         #expect(plan.workouts.allSatisfy { !$0.rationale.contains("não dá para chegar") })
     }
 
     @Test func textGoalWithDeadlineBehavesLikeARace() {
-        let deadline = race(weeks: 16).date
+        let deadline = race(weeks: 12).date
         let text = TrainerTarget(kind: .text, name: "Correr forte", date: deadline, text: "Correr forte")
         let textual = plan(target: text)
-        let dated = plan(target: race(weeks: 16))
+        let dated = plan(target: race(weeks: 12))
 
         #expect(km(textual) == km(dated))
         #expect(textual.weeks.map(\.phase) == dated.weeks.map(\.phase))

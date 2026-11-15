@@ -53,7 +53,31 @@ extension TrainerEngine {
         )
     }
 
-    static func racePace(_ target: TrainerTarget) -> Double? {
+    public static func resolvedPaces(
+        history: TrainerHistory, today: Day, target: TrainerTarget, overrides: [TrainerPaceKind: Double]
+    ) -> TrainerPaces {
+        var result = paces(history: history, today: today)
+        result.race = racePace(target)
+        return applying(overrides, to: result)
+    }
+
+    static func applying(_ overrides: [TrainerPaceKind: Double], to paces: TrainerPaces) -> TrainerPaces {
+        var result = paces
+        if let value = overrides[.easy] { result.easy = value }
+        if let value = overrides[.long] { result.long = value }
+        if let value = overrides[.threshold] {
+            result.threshold = value
+            result.thresholdSource = .manual
+        }
+        if let value = overrides[.vo2max] {
+            result.vo2max = value
+            result.vo2Source = .manual
+        }
+        if let value = overrides[.race] { result.race = value }
+        return result
+    }
+
+    public static func racePace(_ target: TrainerTarget) -> Double? {
         if target.kind == .paceDistance { return target.goalPace }
         guard let goal = target.goalSeconds, let meters = target.distanceMeters, meters > 0 else { return nil }
         return goal / (meters / C.metersPerKilometer)

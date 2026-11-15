@@ -117,10 +117,10 @@ import WorkoutAnalysis
         #expect(weeks[3].thresholdFocus == "Blocos de 1 km")
     }
 
-    @Test func detailCoversFifteenDaysAllByDistance() throws {
+    @Test func detailCoversEveryWeekAllByDistance() throws {
         let plan = createPlan()
 
-        #expect(plan.workouts.count == 15)
+        #expect(plan.workouts.count == plan.weeks.count * 7)
         #expect(plan.workouts.first?.day == monday)
         let threshold = try workout(plan, monday.adding(days: 1))
         #expect(threshold.title == "Limiar 8 × 1 km")
@@ -452,7 +452,7 @@ import WorkoutAnalysis
 
         #expect(adjusted.weeks == plan.weeks)
         #expect(adjusted.versions.last?.summary.contains("segue o esqueleto") == true)
-        #expect(adjusted.versions.last?.changes.contains { $0.kind == .newWeek } == true)
+        #expect(adjusted.versions.last?.changes.contains { $0.kind == .newWeek } == false)
         #expect(TrainerEngine.pendingTriggers(adjusted, history: baseHistory(), today: nextMonday).isEmpty)
     }
 

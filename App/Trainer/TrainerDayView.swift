@@ -6,6 +6,8 @@ struct TrainerDayView: View {
     @Environment(AppModel.self) private var app
     let iso: String
     @State private var weather: [HourlyWeather] = []
+    @State private var showsEdit = false
+    @State private var showsChat = false
 
     var body: some View {
         ScrollView {
@@ -21,6 +23,13 @@ struct TrainerDayView: View {
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(Day(iso: iso).map(TrainerText.longDate) ?? "")
+        .toolbar {
+            if let row = app.trainer.row(for: iso), app.trainer.canEdit(row) {
+                ToolbarItem(placement: .primaryAction) { Button(TrainerText.editWorkoutButton) { showsEdit = true } }
+            }
+        }
+        .sheet(isPresented: $showsEdit) { TrainerEditWorkoutView(iso: iso) }
+        .sheet(isPresented: $showsChat) { TrainerChatSheet() }
         .task(id: iso) {
             guard let day = Day(iso: iso), app.trainer.row(for: iso)?.workout.kind == .long else { return }
             weather = await app.trainer.forecast(for: day)
@@ -32,7 +41,12 @@ struct TrainerDayView: View {
         let bestTime = row.workout.kind == .long && row.run == nil ? TrainerBestTimeBuilder.make(weather: weather) : nil
         let workout = displayed(row.workout, heat: bestTime?.heat)
         VStack(alignment: .leading, spacing: 2) {
-            Text(workout.title).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text(workout.title).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
+                if workout.edited && workout.kind != .off {
+                    Text(TrainerText.editedStatus).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
+                }
+            }
             Text(subtitle(workout)).font(.caption).foregroundStyle(BrandColors.dim)
             if !row.strength.isEmpty {
                 HStack(spacing: 8) {
@@ -62,6 +76,7 @@ struct TrainerDayView: View {
         if let run = row.run {
             runCard(run)
         }
+        AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
     }
 
     private func subtitle(_ workout: TrainerWorkout) -> String {

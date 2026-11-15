@@ -110,6 +110,10 @@ struct TodayView: View {
             } else {
                 ReadinessHeroCard(model: model)
             }
+            TrainerTodayCard(
+                trainer: app.trainer, score: model.summary.readiness?.score ?? model.fallbackScore,
+                factor: TrainerModel.lowestFactor(model.summary.readiness)
+            )
             if !model.goals.isEmpty {
                 GoalsCard(snapshots: model.goals)
             }

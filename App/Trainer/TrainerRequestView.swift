@@ -12,6 +12,11 @@ struct TrainerRequestView: View {
     @State private var until = Date.now.addingTimeInterval(TrainerConstants.defaultRequestSeconds)
     @State private var result: TrainerVersion?
 
+    init(prefill: TrainerRequestPrefill? = nil) {
+        _shortcut = State(initialValue: prefill?.category)
+        _text = State(initialValue: prefill?.text ?? "")
+    }
+
     private var model: TrainerModel { app.trainer }
 
     var body: some View {

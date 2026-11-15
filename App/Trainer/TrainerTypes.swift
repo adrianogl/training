@@ -8,6 +8,13 @@ enum TrainerRoute: Hashable, Codable {
     case strength
 }
 
+enum TrainerTab: String, CaseIterable, Identifiable {
+    case plan
+    case compare
+
+    var id: String { rawValue }
+}
+
 enum TrainerTargetMode: String, CaseIterable, Identifiable {
     case race
     case text
@@ -56,6 +63,8 @@ struct TrainerWeekGroup: Identifiable, Equatable {
     let title: String
     let caption: String
     let rows: [TrainerDayRow]
+    var isCurrent = false
+    var isPast = false
 
     var id: String { start.iso }
 }

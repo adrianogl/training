@@ -23,7 +23,8 @@ enum TrainerHistoryLoader {
             runs: trainerRuns,
             readiness: readiness(context: context, today: today),
             predictions: predictions(context: context, today: today),
-            strength: fetchStrength(context: context, today: today)
+            strength: fetchStrength(context: context, today: today),
+            predictionSeries: predictionSeries(context: context, today: today)
         )
     }
 
@@ -98,6 +99,17 @@ enum TrainerHistoryLoader {
         guard let efforts = try? raceEfforts(context: context, today: today) else { return [:] }
         return C.predictionDistances.reduce(into: [:]) { result, distance in
             if let seconds = predict(distance: distance, efforts: efforts, on: today) { result[distance] = seconds }
+        }
+    }
+
+    private nonisolated static func predictionSeries(context: ModelContext, today: Day) -> [Day: [Double: Double]] {
+        guard let efforts = try? raceEfforts(context: context, today: today) else { return [:] }
+        let starts = (0...C.scoreboardWeeks).map { today.weekStart.adding(days: -$0 * C.weekdayCount) }
+        return (starts + [today]).reduce(into: [:]) { result, day in
+            let values = C.predictionDistances.reduce(into: [Double: Double]()) { values, distance in
+                if let seconds = predict(distance: distance, efforts: efforts, on: day) { values[distance] = seconds }
+            }
+            if !values.isEmpty { result[day] = values }
         }
     }
 

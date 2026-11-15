@@ -5,6 +5,7 @@ struct WorkoutChatSheet: View {
     let context: WorkoutChatContext
     var store = WorkoutChatStore.shared
     var autoQuestion: String?
+    var accessory: ((String, ChatMessage) -> AnyView)?
     @Environment(\.dismiss) private var dismiss
     @State private var messages: [ChatMessage] = []
     @State private var question = ""
@@ -130,6 +131,10 @@ struct WorkoutChatSheet: View {
                 if message.unverified {
                     Label(C.unverified, systemImage: "exclamationmark.triangle")
                         .font(.caption).foregroundStyle(BrandColors.attention)
+                }
+                if let accessory, let index = messages.firstIndex(where: { $0.id == message.id }),
+                   let question = messages[..<index].last(where: { $0.role == .user }) {
+                    accessory(question.text, message)
                 }
             }
             .padding(.horizontal, 12).padding(.vertical, 10)

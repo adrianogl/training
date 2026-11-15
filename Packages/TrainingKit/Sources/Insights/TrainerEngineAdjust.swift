@@ -18,6 +18,10 @@ extension TrainerEngine {
             var toggled = plan
             if let at = toggled.lightWeeks.firstIndex(of: day) { toggled.lightWeeks.remove(at: at) } else { toggled.lightWeeks.append(day) }
             return adjustSkeleton(toggled, history: history, today: today, now: now, trigger: trigger)
+        case .edited(let edit):
+            return edit.days.isEmpty ? applyEdit(plan, edit: edit, history: history, today: today, now: now) : plan
+        case .readiness(let day, let score):
+            return applyReadiness(plan, day: day, score: score, history: history, today: today, now: now)
         case .longModeChanged:
             var toggled = plan
             toggled.longMode = plan.longMode == .blocks ? .continuous : .blocks
@@ -34,7 +38,7 @@ extension TrainerEngine {
         }
     }
 
-    private static func chosenVolumes(_ plan: TrainerPlan, history: TrainerHistory, today: Day) -> (start: Double, peak: Double) {
+    static func chosenVolumes(_ plan: TrainerPlan, history: TrainerHistory, today: Day) -> (start: Double, peak: Double) {
         let start = plan.startMeters ?? plan.weeks.first?.targetMeters ?? averageWeeklyMeters(history: history, today: today)
         return (start, max(start, plan.peakMeters ?? defaultPeak(from: start)))
     }
@@ -42,38 +46,71 @@ extension TrainerEngine {
     private static func recreate(
         _ plan: TrainerPlan, history: TrainerHistory, today: Day, now: Date, request: TrainerRequest
     ) -> TrainerPlan {
-        let keptWeeks = plan.weeks.filter { $0.start < today.weekStart }
-        let volumes = chosenVolumes(plan, history: history, today: today)
-        let fresh = build(
-            target: plan.target, structure: plan.structure, strength: plan.strength, history: history, today: today,
-            offset: keptWeeks.count,
-            startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: plan.lightWeeks,
-            longMode: plan.longMode, longStage: plan.longStage
+        let text = T.requestSummary(request, until: request.from)
+        return rebuild(
+            plan, from: plan, history: history, today: today, now: now, trigger: .request(request), summary: text,
+            reasons: TrainerChangeReasons(long: text), leading: [], notify: { $0 >= request.from }
         )
-        let merged = plan.workouts.filter { $0.day < today } + fresh.workouts
+    }
+
+    static func rebuild(
+        _ plan: TrainerPlan, from source: TrainerPlan, history: TrainerHistory, today: Day, now: Date, trigger: TrainerTrigger,
+        summary: String, reasons: TrainerChangeReasons, leading: [TrainerChange], notify: ((Day) -> Bool)?
+    ) -> TrainerPlan {
+        let keptWeeks = source.weeks.filter { $0.start < today.weekStart }
+        let volumes = chosenVolumes(source, history: history, today: today)
+        let fresh = build(
+            target: source.target, structure: source.structure, strength: source.strength, history: history, today: today,
+            offset: keptWeeks.count,
+            startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: source.lightWeeks,
+            longMode: source.longMode, longStage: source.longStage, paceOverrides: source.paceOverrides
+        )
+        let protected = protectingEdited(
+            existing: plan.workouts, generated: fresh.workouts, history: history, keepDone: true, notify: notify
+        )
+        let merged = plan.workouts.filter { $0.day < today } + protected.workouts
         let freshWeeks = withPlannedMeters(
-            keptWeeks + fresh.weeks, workouts: merged, structure: plan.structure, target: plan.target, history: history, today: today
+            keptWeeks + fresh.weeks, workouts: merged, structure: source.structure, target: source.target, history: history, today: today
         )
         let oldWindow = plan.workouts.filter { $0.day >= today }
-        var changes = workoutChanges(old: oldWindow, new: fresh.workouts, reasons: TrainerChangeReasons())
-        if let change = skeletonChange(
-            old: plan.weeks, new: freshWeeks, reasons: TrainerChangeReasons(long: T.requestSummary(request, until: request.from)), held: false
-        ) {
+        var changes = groupingDistant(
+            workoutChanges(old: oldWindow, new: protected.workouts, reasons: TrainerChangeReasons(override: reasons.override)),
+            today: today, weeks: freshWeeks
+        )
+        if let change = skeletonChange(old: plan.weeks, new: freshWeeks, reasons: reasons, held: false) {
             changes.insert(change, at: 0)
         }
-        changes += newWeekChanges(oldEnd: oldWindow.map(\.day).max(), new: fresh.workouts, weeks: freshWeeks)
+        changes = leading + changes
+        changes += protected.notices
+        changes += newWeekChanges(oldEnd: oldWindow.map(\.day).max(), new: protected.workouts, weeks: freshWeeks)
         return finish(
-            plan, weeks: freshWeeks, workouts: merged,
-            paces: fresh.paces, processed: plan.processedActivityIds, trigger: .request(request), now: now,
-            summary: T.requestSummary(request, until: request.from), changes: changes
+            source, weeks: freshWeeks, workouts: merged, paces: fresh.paces, processed: plan.processedActivityIds, trigger: trigger,
+            now: now, summary: summary, changes: changes
         )
+    }
+
+    static func protectingEdited(
+        existing: [TrainerWorkout], generated: [TrainerWorkout], history: TrainerHistory, keepDone: Bool, notify: ((Day) -> Bool)?
+    ) -> (workouts: [TrainerWorkout], notices: [TrainerChange]) {
+        var notices: [TrainerChange] = []
+        let workouts = generated.map { item -> TrainerWorkout in
+            guard let current = existing.first(where: { $0.day == item.day }) else { return item }
+            if keepDone && history.runs.contains(where: { $0.day == item.day }) { return current }
+            guard current.edited else { return item }
+            if let notify, notify(item.day), !sameContent(current, item) {
+                notices.append(TrainerChange(
+                    kind: .unchanged, day: item.day, title: T.editedKeptTitle, reason: T.editedKept
+                ))
+            }
+            return current
+        }
+        return (workouts, notices)
     }
 
     private static func adjustSkeleton(
         _ plan: TrainerPlan, history: TrainerHistory, today: Day, now: Date, trigger: TrainerTrigger
     ) -> TrainerPlan {
-        var paces = paces(history: history, today: today)
-        paces.race = racePace(plan.target)
+        let paces = resolvedPaces(history: history, today: today, target: plan.target, overrides: plan.paceOverrides)
         let currentIndex = plan.weeks.first { $0.start == today.weekStart }?.index ?? plan.weeks.last?.index ?? 0
         var found = TrainerFindings()
         var rebuildFrom = currentIndex + 1
@@ -108,7 +145,7 @@ extension TrainerEngine {
             break
         case .lightWeek(let day):
             rebuildFrom = plan.weeks.first { $0.start == day }?.index ?? rebuildFrom
-        case .created:
+        case .created, .edited, .readiness:
             return plan
         }
 
@@ -141,13 +178,17 @@ extension TrainerEngine {
         let active = activeRequests(of: plan, today: today)
         let requests = active + (request.map { shapesDetail($0.category) ? [$0] : [] } ?? [])
         let past = plan.workouts.filter { $0.day <= today }
-        let window = detailWorkouts(
+        let generatedWindow = detailWorkouts(
             weeks: skeleton, structure: plan.structure, paces: paces, history: history, target: plan.target,
             today: today, past: past, requests: requests, peakVolume: volumes.peak, long: longDetail
         ).map { generated in
             let done = history.runs.contains { $0.day == generated.day }
             return done ? plan.workouts.first { $0.day == generated.day } ?? generated : generated
         }
+        let protected = protectingEdited(
+            existing: plan.workouts, generated: generatedWindow, history: history, keepDone: false, notify: keepNotice(for: request)
+        )
+        let window = protected.workouts
 
         let merged = plan.workouts.filter { $0.day < today } + window
         let weeks = withPlannedMeters(
@@ -210,10 +251,11 @@ extension TrainerEngine {
         let summary = sentences.prefix(2).joined(separator: " ")
 
         let oldWindow = plan.workouts.filter { $0.day >= today }
-        var changes = workoutChanges(old: oldWindow, new: window, reasons: reasons)
+        var changes = groupingDistant(workoutChanges(old: oldWindow, new: window, reasons: reasons), today: today, weeks: weeks)
         let held = adjustment.holdProgression || adjustment.volumeScale != nil
         if let change = skeletonChange(old: plan.weeks, new: weeks, reasons: reasons, held: held) { changes.insert(change, at: 0) }
         changes += closing.changes
+        changes += protected.notices
         if let longModeChange { changes.insert(longModeChange, at: 0) }
         changes += newWeekChanges(oldEnd: oldWindow.map(\.day).max(), new: window, weeks: weeks)
         if changes.isEmpty {
@@ -223,6 +265,13 @@ extension TrainerEngine {
             working, weeks: weeks, workouts: merged, paces: paces, processed: processed,
             trigger: trigger, now: now, summary: summary, changes: changes
         )
+    }
+
+    private static func keepNotice(for request: TrainerRequest?) -> ((Day) -> Bool)? {
+        guard let request, request.category == .fatigue || shapesDetail(request.category) else { return nil }
+        return { day in
+            day >= request.from && (!shapesDetail(request.category) || day <= end(of: request))
+        }
     }
 
     private static func isWeekEnded(_ trigger: TrainerTrigger) -> Bool {
@@ -235,7 +284,7 @@ extension TrainerEngine {
         return nil
     }
 
-    private static func finish(
+    static func finish(
         _ plan: TrainerPlan, weeks: [TrainerWeek], workouts: [TrainerWorkout], paces: TrainerPaces, processed: [Int64],
         trigger: TrainerTrigger, now: Date, summary: String, changes: [TrainerChange]
     ) -> TrainerPlan {

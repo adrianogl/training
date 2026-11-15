@@ -20,6 +20,7 @@ struct TrainerSkeletonContext {
     var longCap: Double
     var peakVolume: Double
     var lightWeeks: [Day] = []
+    var generalWeeks = 0
 }
 
 struct TrainerSkeletonState {
@@ -58,6 +59,7 @@ struct TrainerFindings {
 }
 
 struct TrainerChangeReasons {
+    var override: String?
     var long: String?
     var volume: String?
     var quality: [TrainerDayKind: String] = [:]

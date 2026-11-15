@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import Metrics
 import SwiftUI
 
 enum TrainerConstants {
@@ -10,10 +11,16 @@ enum TrainerConstants {
     static let syncUpdatedAtDefaultsKey = "trainerSyncUpdatedAt"
     static let syncDeletedDefaultsKey = "trainerSyncDeleted"
     static let syncNeedsPushDefaultsKey = "trainerSyncNeedsPush"
+    static let readinessKeptDefaultsKey = "trainerReadinessKeptDay"
+    static let intervalPairCount = 2
+    static let scoreboardWeeks = 12
+    static let readinessEasyKilometers = 8
+    static let externalWeeksAhead = 2
     static let strengthWeeks = 4
     static let historyDays = 120
     static let deepAnalysisDays = 28
-    static let horizonDays = 15
+    static let highlightSeconds = 1.2
+    static let expandedFutureWeeks = 1
     static let predictionDistances: [Double] = [5_000, 10_000, 21_097.5, 42_195]
     static let defaultDeadlineSeconds: TimeInterval = 90 * 86_400
     static let defaultRequestSeconds: TimeInterval = 3 * 86_400
@@ -37,6 +44,9 @@ enum TrainerConstants {
     static let goalDistanceRange = 3...100
     static let goalDistanceDefault = 21
     static let peakKilometersCeiling = 200
+    static let previewLineLimit = 6
+    static let swapColumns = 4
+    static let paceKinds: [TrainerPaceKind] = [.easy, .long, .threshold, .vo2max, .race]
     static let editableKinds: [TrainerDayKind] = [.easy, .threshold, .vo2max, .optionalEasy, .long, .off]
     static let weekdayShort = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
     static let weekdayFull = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
@@ -68,12 +78,17 @@ enum TrainerConstants {
         }
     }
 
+    static let readinessFactorNames: [ReadinessComponent: String] = [
+        .hrv: "HRV", .sleep: "sono", .bodyBattery: "Body Battery", .load: "carga",
+    ]
+
     static func defaultLoad(for group: TrainerStrengthGroup) -> TrainerStrengthLoad {
         group == .lower ? .heavy : .light
     }
 
     static func color(for phase: TrainerPhase) -> Color {
         switch phase {
+        case .general: BrandColors.zones[0]
         case .base: BrandColors.fitness
         case .build: BrandColors.attention
         case .specific: BrandColors.race
