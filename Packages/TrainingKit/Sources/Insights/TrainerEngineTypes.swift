@@ -11,6 +11,7 @@ struct TrainerQualitySession: Equatable {
     var method: TrainerMethod
     var blocks: [TrainerQualityBlock]
     var closing: Bool
+    var variant: TrainerVariant? = nil
 }
 
 struct TrainerSkeletonContext {
@@ -71,6 +72,38 @@ struct TrainerEasyShare {
     var optional: Double
     var base: Double
     var fromHistory: Bool
+    var first: Double? = nil
+    var firstDay: Int? = nil
+    var mediumLong: Double? = nil
+    var mediumLongDay: Int? = nil
+    var fartlek = false
+}
+
+enum TrainerVo2Format: Equatable {
+    case hills
+    case oneKm
+    case eightHundred
+    case longReps
+    case shortReps
+    case pyramid
+}
+
+enum TrainerThresholdFormat: Equatable {
+    case ladder
+    case continuous
+    case progressive
+}
+
+enum TrainerLongStimulus: Equatable {
+    case progressive
+    case fastFinish
+    case racePace
+}
+
+enum TrainerLongRole: Equatable {
+    case plain
+    case longest
+    case stimulus(TrainerLongStimulus)
 }
 
 struct TrainerStrengthKind {

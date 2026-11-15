@@ -19,7 +19,9 @@ export function restClock(seconds: number): string {
 }
 
 function workName(step: TrainerStep, workout: TrainerWorkout): string {
-  return (step.method === null ? undefined : TRAINER_TEXT.workMethods[step.method]) ?? TRAINER_TEXT.workKinds[workout.kind] ?? TRAINER_TEXT.stepKinds.work
+  return (step.method === null ? undefined : TRAINER_TEXT.workMethods[step.method])
+    ?? (workout.variant === null ? undefined : TRAINER_TEXT.workVariants[workout.variant])
+    ?? TRAINER_TEXT.workKinds[workout.kind] ?? TRAINER_TEXT.stepKinds.work
 }
 
 function stepTitle(step: TrainerStep, workout: TrainerWorkout): string {

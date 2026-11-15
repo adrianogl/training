@@ -93,7 +93,7 @@ extension TrainerEngine {
         var meters: [Int: Double] = [:]
         for day in 1...C.daysPerWeek {
             meters[day] = switch structure[day] ?? .off {
-            case .easy: share.meters
+            case .easy: easyMeters(weekday: day, share: share)
             case .optionalEasy: share.optional
             case .long: week.longMeters
             case .threshold, .vo2max:
@@ -175,7 +175,7 @@ extension TrainerEngine {
                 blocks = [TrainerQualityBlock(repeats: C.minimumQualityRepeats, meters: min(size, blocks.map(\.meters).max() ?? size))]
             }
         }
-        return TrainerQualitySession(kind: session.kind, method: session.method, blocks: blocks, closing: session.closing)
+        return TrainerQualitySession(kind: session.kind, method: session.method, blocks: blocks, closing: session.closing, variant: session.variant)
     }
 
     static func longestLongs(
@@ -199,7 +199,7 @@ extension TrainerEngine {
         let share = easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today, paces: paces)
         return structure.values.reduce(0.0) { longest, kind in
             let meters: Double = switch kind {
-            case .easy: share.meters
+            case .easy: max(share.meters, share.first ?? 0, share.mediumLong ?? 0)
             case .optionalEasy: share.optional
             case .threshold, .vo2max: qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
             case .long, .off, .race: 0

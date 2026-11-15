@@ -119,25 +119,42 @@ import WorkoutAnalysis
         #expect(rest(2_000, lowered: true) == 180)
     }
 
-    @Test func vo2AlternatesFormatsAndShortensOnRecovery() {
-        func label(_ index: Int, recovery: Bool = false, phase: TrainerPhase = .build) -> String {
-            TrainerEngineText.sessionLabel(
-                TrainerEngine.vo2Session(index: index, isRecovery: recovery, phase: phase, lowered: false).blocks
-            )
-        }
+    private func week(_ index: Int, phase: TrainerPhase = .build, recovery: Bool = false) -> TrainerWeek {
+        TrainerWeek(
+            index: index, start: monday.adding(days: (index - 1) * 7), phase: phase, isRecovery: recovery, plannedMeters: 70_000,
+            longMeters: 20_000, thresholdFocus: TrainerEngineText.stageLabel(1_000), vo2Focus: ""
+        )
+    }
 
-        #expect(label(1) == "5 × 1 km")
-        #expect(label(2) == "4 × 1,5 km")
-        #expect(label(2, phase: .base) == "3 × 1,5 km")
-        #expect(label(3) == "2 × 1,5 km + 2 × 1 km")
-        #expect(label(5) == "4 × 1,5 km")
-        #expect(label(6) == "12 × 400 m")
-        #expect(label(4, recovery: true) == "4 × 1 km")
-        #expect(label(12, phase: .taper) == "3 × 1 km")
-        for index in 1...5 {
-            let volume = total(TrainerEngine.vo2Session(index: index, isRecovery: false, phase: .build, lowered: false))
+    @Test func vo2RotatesFormatsAndShortensOnRecovery() {
+        func labels(_ weeks: [TrainerWeek]) -> [String] {
+            weeks.map { TrainerEngineText.sessionLabel(TrainerEngine.vo2Session(week: $0, weeks: weeks, lowered: false).blocks) }
+        }
+        let build = (1...6).map { week($0) }
+        let base = (1...4).map { week($0, phase: .base) }
+        let withRecovery = [week(1), week(2), week(3), week(4, recovery: true), week(5)]
+
+        #expect(labels(build) == ["5 × 1 km", "6 × 800 m", "4 × 1,5 km", "12 × 400 m", "2 × 1,5 km + 2 × 1 km", "5 × 1 km"])
+        #expect(labels(base) == ["8 × 200 m", "5 × 1 km", "8 × 200 m", "6 × 800 m"])
+        #expect(labels(withRecovery) == ["5 × 1 km", "6 × 800 m", "4 × 1,5 km", "8 × 400 m", "2 × 1,5 km + 2 × 1 km"])
+        #expect(TrainerEngine.vo2Session(week: base[0], weeks: base, lowered: false).variant == .hills)
+        #expect(labels([week(12, phase: .taper)]) == ["3 × 1 km"])
+        for item in build {
+            let volume = total(TrainerEngine.vo2Session(week: item, weeks: build, lowered: false))
             #expect((4_000...6_000).contains(volume))
         }
+    }
+
+    @Test func hillsJogDownWithoutClosingRepetitions() {
+        let base = [week(1, phase: .base)]
+        let session = TrainerEngine.vo2Session(week: base[0], weeks: base, lowered: false)
+        let workout = TrainerEngine.qualityWorkout(day: monday, session: session, paces: paces, lowered: false, rationale: "x")
+
+        #expect(workout.title == "Subidas 8 × 200 m")
+        #expect(workout.variant == .hills)
+        #expect(!workout.steps.contains { $0.method == .repetition })
+        #expect(workout.steps.last == TrainerStep(kind: .recovery, repeats: 7, meters: 200))
+        #expect(workout.totalMeters == 3_000 + 1_600 + 1_400)
     }
 
     @Test func vo2RestIsSeventyPercentRoundedWithMinimums() {
@@ -155,7 +172,7 @@ import WorkoutAnalysis
     }
 
     @Test func vo2ClosesWithThreeRepetitionsAndMeterJogs() throws {
-        let session = TrainerEngine.vo2Session(index: 1, isRecovery: false, phase: .build, lowered: false)
+        let session = TrainerEngine.vo2Session(week: week(1), weeks: [week(1)], lowered: false)
         let workout = TrainerEngine.qualityWorkout(day: monday, session: session, paces: paces, lowered: false, rationale: "x")
         let closing = try #require(workout.steps.last { $0.kind == .work })
         let jog = try #require(workout.steps.last)
@@ -170,7 +187,8 @@ import WorkoutAnalysis
     }
 
     @Test func pyramidVo2KeepsTheRestBetweenGroups() {
-        let session = TrainerEngine.vo2Session(index: 3, isRecovery: false, phase: .build, lowered: false)
+        let weeks = (1...5).map { week($0) }
+        let session = TrainerEngine.vo2Session(week: weeks[4], weeks: weeks, lowered: false)
         let steps = TrainerEngine.qualitySteps(session: session, paces: paces, lowered: false)
         let rests = steps.filter { $0.kind == .recovery && $0.restSeconds != nil }
 
@@ -276,7 +294,7 @@ import WorkoutAnalysis
         #expect(first.paceLow == 237 && first.paceHigh == 243)
         #expect(first.steps.first { $0.kind == .recovery }?.restSeconds == 90)
         #expect(second.method == .intervals)
-        #expect(plan.workouts.filter { $0.kind == .threshold && $0.day < monday.adding(days: 15) }.allSatisfy { $0.method == .cruiseIntervals })
+        #expect(plan.workouts.filter { $0.kind == .threshold && $0.day < monday.adding(days: 15) }.allSatisfy { $0.method != .goalPace })
         #expect(first.rationale.contains("Pace-alvo 4 × 2 km a 4:00, 1:30 parado."))
     }
 

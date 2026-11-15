@@ -90,7 +90,10 @@ extension TrainerEngine {
         case .long: return week.longMeters
         case .threshold, .vo2max: return qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
         case .easy:
-            return easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today, paces: paces).meters
+            return easyMeters(
+                weekday: weekday,
+                share: easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today, paces: paces)
+            )
         case .optionalEasy:
             return easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today, paces: paces).optional
         case .off, .race: return 0

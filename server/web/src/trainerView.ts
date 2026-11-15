@@ -26,6 +26,7 @@ const TRIGGERS: readonly TrainerTriggerKind[] = ['created', 'weekEnded', 'workou
 const DAY_KINDS = ['easy', 'threshold', 'vo2max', 'optionalEasy', 'long', 'off', 'race'] as const
 const STEP_KINDS = ['warmup', 'work', 'recovery', 'cooldown', 'steady'] as const
 const METHODS = ['cruiseIntervals', 'tempo', 'intervals', 'repetition', 'racePace', 'goalPace'] as const
+const VARIANTS = ['strides', 'mediumLong', 'fartlek', 'hills', 'continuousTempo', 'progressiveThreshold', 'progressiveLong', 'fastFinish', 'racePaceLong'] as const
 const WEEK_DAYS = 7
 const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
@@ -85,6 +86,7 @@ function parseWorkout(raw: Raw): TrainerWorkout | null {
     rationale: text(raw.rationale) ?? '',
     method: oneOf(raw.method, METHODS),
     edited: raw.edited === true,
+    variant: oneOf(raw.variant, VARIANTS),
   }
 }
 
@@ -206,6 +208,8 @@ function barePace(low: number | null, high: number | null): string | null {
 function dayName(workout: TrainerWorkout): string {
   if (workout.kind === 'threshold' && workout.method === 'racePace') return TRAINER_TEXT.racePace
   if (workout.kind === 'vo2max' && workout.method === 'goalPace') return TRAINER_TEXT.goalPaceName
+  if (workout.kind === 'easy' && workout.variant === 'mediumLong') return TRAINER_TEXT.mediumLongName
+  if (workout.kind === 'optionalEasy' && workout.variant === 'fartlek') return TRAINER_TEXT.fartlekName
   return TRAINER_TEXT.kinds[workout.kind === 'optionalEasy' ? 'easy' : workout.kind]
 }
 
@@ -234,6 +238,16 @@ function hasPauses(workout: TrainerWorkout): boolean {
   return workout.kind === 'long' && workout.steps.some((step) => step.kind === 'recovery' && step.restSeconds !== null)
 }
 
+function groupedBlocks(steps: TrainerStep[]): { count: number; meters: number }[] {
+  const groups: { count: number; meters: number }[] = []
+  for (const step of steps) {
+    const last = groups[groups.length - 1]
+    if (last !== undefined && last.meters === step.meters) last.count += step.repeats
+    else groups.push({ count: step.repeats, meters: step.meters })
+  }
+  return groups
+}
+
 function dayDetail(workout: TrainerWorkout, pauses: boolean): string {
   const withPace = (blocks: string, range: string | null) => (range === null ? blocks : `${blocks} a ${range}`)
   if (pauses) {
@@ -245,7 +259,7 @@ function dayDetail(workout: TrainerWorkout, pauses: boolean): string {
   }
   const main = workout.steps.filter((step) => step.kind === 'work' && step.method !== 'repetition')
   if ((workout.kind === 'threshold' || workout.kind === 'vo2max') && main.length > 0) {
-    return withPace(main.map((step) => `${step.repeats} × ${distanceText(step.meters)}`).join(TRAINER_TEXT.blockSeparator), barePace(workout.paceLow, workout.paceHigh))
+    return withPace(groupedBlocks(main).map((group) => `${group.count} × ${distanceText(group.meters)}`).join(TRAINER_TEXT.blockSeparator), barePace(workout.paceLow, workout.paceHigh))
   }
   return paceRange(workout.paceLow, workout.paceHigh) ?? ''
 }

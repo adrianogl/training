@@ -210,6 +210,7 @@ extension TrainerEngine {
         result.steps = steps
         result.totalMeters = stepsMeters(steps)
         result.title = T.title(kind: workout.kind, meters: 0, session: session)
+        result.variant = nil
         result.paceLow = band.low
         result.paceHigh = band.high
         return result
@@ -233,12 +234,16 @@ extension TrainerEngine {
                 shifted.paceHigh = step.paceHigh.map { $0 + shift }
                 return shifted
             }
-            if let index = steps.firstIndex(where: { $0.kind == .steady && $0.meters > 0 }) {
+            if let index = steps.firstIndex(where: { ($0.kind == .steady || $0.kind == .warmup) && $0.meters > 0 }) {
                 let others = stepsMeters(steps) - steps[index].meters * Double(steps[index].repeats)
                 steps[index].meters = max(total - others, C.halfKilometer)
             }
             result.steps = steps
-            result.title = T.title(kind: workout.kind, meters: stepsMeters(steps))
+            let meters = stepsMeters(steps)
+            let base = T.title(kind: workout.kind, meters: workout.totalMeters)
+            result.title = workout.variant == .racePaceLong && workout.title.hasPrefix(base)
+                ? T.title(kind: workout.kind, meters: meters) + workout.title.dropFirst(base.count)
+                : T.title(kind: workout.kind, meters: meters, variant: workout.variant)
         }
         result.totalMeters = stepsMeters(result.steps)
         return result

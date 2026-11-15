@@ -99,12 +99,14 @@ import WorkoutAnalysis
 
     @Test func longRunsStepUpWithinTheRaceCap() {
         let weeks = createPlan(startMeters: 70_000).weeks
+        let base = weeks.map { $0.baseLongMeters ?? $0.longMeters }
 
-        #expect(weeks[0].longMeters == 17_000)
-        #expect(weeks[1].longMeters == 19_000)
-        #expect(weeks[2].longMeters == 21_000)
-        #expect(weeks[3].longMeters == (weeks[2].longMeters * 0.75 / 1_000).rounded() * 1_000)
-        #expect(weeks.map(\.longMeters).max() == 22_000)
+        #expect(base[0] == 17_000)
+        #expect(base[1] == 19_000)
+        #expect(base[2] == 21_000)
+        #expect(weeks[3].longMeters == (base[2] * 0.75 / 1_000).rounded() * 1_000)
+        #expect(base.max() == 22_000)
+        #expect(weeks.map(\.longMeters).max() == 24_000)
         #expect(weeks[12].longMeters < weeks[11].longMeters)
     }
 
@@ -112,7 +114,8 @@ import WorkoutAnalysis
         let weeks = createPlan().weeks
 
         #expect(weeks[0].thresholdFocus == "Blocos de 1 km")
-        #expect(weeks[0].vo2Focus == "5 × 1 km")
+        #expect(weeks[0].vo2Focus == "8 × 200 m")
+        #expect(weeks[1].vo2Focus == "5 × 1 km")
         #expect(weeks[2].thresholdFocus == "Blocos de 2 km")
         #expect(weeks[3].thresholdFocus == "Blocos de 1 km")
     }
@@ -133,13 +136,18 @@ import WorkoutAnalysis
         #expect(threshold.rationale.contains(
             "Cruise intervals de 1 km (Daniels), 60 s parado por km de bloco. Volume de 8 km em blocos, como no método norueguês."
         ))
-        let vo2 = try workout(plan, monday.adding(days: 3))
+        let hills = try workout(plan, monday.adding(days: 3))
+        #expect(hills.title == "Subidas 8 × 200 m")
+        #expect(hills.steps.last == TrainerStep(kind: .recovery, repeats: 7, meters: 200))
+        #expect(hills.rationale.contains("Subidas na fase base"))
+        let vo2 = try workout(plan, monday.adding(days: 10))
         #expect(vo2.method == .intervals)
         #expect(vo2.steps.first { $0.kind == .recovery }?.restSeconds == 180)
         #expect(vo2.steps.first { $0.kind == .recovery }?.meters == 0)
         #expect(vo2.rationale.contains("descanso de 3:00 parado, 0,7 da duração do tiro"))
         #expect(vo2.title == "VO2 máx 5 × 1 km")
-        #expect(try workout(plan, monday.adding(days: 5)).title == "Longão 17 km")
+        #expect(try workout(plan, monday.adding(days: 5)).title == "Longão 17 km progressivo")
+        #expect(try workout(plan, monday.adding(days: 12)).title == "Longão 23 km")
         #expect(try workout(plan, monday.adding(days: 4)).note == "só se a prontidão ≥ 60")
         #expect(try workout(plan, monday.adding(days: 6)).kind == .off)
         for item in plan.workouts where item.kind != .off {
@@ -168,10 +176,12 @@ import WorkoutAnalysis
         let first = try workout(plan, monday)
 
         #expect(plan.weeks[0].targetMeters == 70_000)
-        #expect(first.totalMeters == 11_000)
-        #expect(try workout(plan, monday.adding(days: 2)).totalMeters == 11_000)
+        #expect(first.totalMeters == 12_000)
+        #expect(first.variant == .strides)
+        #expect(try workout(plan, monday.adding(days: 2)).totalMeters == 13_000)
+        #expect(try workout(plan, monday.adding(days: 2)).variant == .mediumLong)
         #expect(try workout(plan, monday.adding(days: 4)).totalMeters == 8_000)
-        #expect(first.rationale == "Rodagem de 11 km. Suas rodagens das últimas 6 semanas ficam em 12 km.")
+        #expect(first.rationale.hasPrefix("Rodagem de 12 km. Suas rodagens das últimas 6 semanas ficam em 12 km."))
         #expect(plan.weeks[0].plannedMeters == plan.workouts.prefix(7).reduce(0) { $0 + $1.totalMeters })
     }
 
@@ -180,7 +190,7 @@ import WorkoutAnalysis
         let week = plan.workouts.prefix(7)
 
         #expect(week.map(\.kind) == [.easy, .threshold, .easy, .vo2max, .optionalEasy, .long, .off])
-        #expect(week.first { $0.kind == .long }?.totalMeters == 21_000)
+        #expect(week.first { $0.kind == .long }?.totalMeters == 20_000)
         #expect((68_000...72_000).contains(plan.weeks[0].plannedMeters))
         #expect(plan.weeks[0].plannedMeters == week.reduce(0) { $0 + $1.totalMeters })
     }
@@ -369,7 +379,7 @@ import WorkoutAnalysis
         #expect(version.number == 2)
         #expect(version.summary.contains("12,7 km"))
         let change = try #require(version.changes.first { $0.kind == .changed && $0.title.hasPrefix("Longão") })
-        #expect(change.before?.hasPrefix("19 km") == true)
+        #expect(change.before?.hasPrefix("23 km") == true)
         #expect(change.after?.hasPrefix("17 km") == true)
         #expect(change.reason.contains("12,7 km"))
         #expect(version.changes.contains { $0.kind == .skeleton })
@@ -419,7 +429,7 @@ import WorkoutAnalysis
         )
 
         let next = try #require(adjusted.workouts.first { $0.kind == .vo2max && $0.day > wednesday })
-        #expect(next.title == "VO2 máx 5 × 1 km")
+        #expect(next.title == "Subidas 8 × 200 m")
         let following = try #require(adjusted.workouts.first { $0.kind == .threshold && $0.day > wednesday })
         #expect(following.title == "Limiar 8 × 1 km")
         #expect(following.steps.first { $0.kind == .recovery }?.restSeconds == 120)
@@ -467,12 +477,12 @@ import WorkoutAnalysis
 
         let wednesday = try workout(adjusted, monday.adding(days: 2))
         #expect(wednesday.kind == .vo2max)
-        #expect(wednesday.title == "VO2 máx 5 × 1 km")
+        #expect(wednesday.title == "Subidas 8 × 200 m")
         #expect(try workout(adjusted, thursday).kind == .off)
         let travelRun = try workout(adjusted, saturday)
         #expect(travelRun.kind == .easy && travelRun.totalMeters == 6_000)
         let back = try workout(adjusted, monday.adding(days: 6))
-        #expect(back.kind == .long && back.title == "Longão 17 km")
+        #expect(back.kind == .long && back.title == "Longão 17 km progressivo")
         let version = try #require(adjusted.versions.last)
         #expect(version.changes.filter { $0.kind == .moved }.count == 2)
         #expect(version.changes.allSatisfy { !$0.reason.isEmpty })
@@ -577,6 +587,7 @@ import WorkoutAnalysis
 
         #expect(plan.weeks.count == 12)
         #expect(plan.weeks.allSatisfy { $0.phase != .taper })
-        #expect(plan.weeks.map(\.longMeters).max() == 20_000)
+        #expect(plan.weeks.map { $0.baseLongMeters ?? $0.longMeters }.max() == 20_000)
+        #expect(plan.weeks.map(\.longMeters).max() ?? 0 <= 22_000)
     }
 }
