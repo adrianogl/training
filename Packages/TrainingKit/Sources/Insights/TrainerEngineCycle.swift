@@ -36,16 +36,68 @@ extension TrainerEngine {
             currentStartMeters: volumes.start, currentPeakMeters: volumes.peak,
             suggestedStartMeters: volumes.start, suggestedPeakMeters: volumes.peak
         )
-        return judged(review)
+        return judged(review, goalMeters: plan.target.distanceMeters)
     }
 
-    private static func judged(_ review: TrainerCycleReview) -> TrainerCycleReview {
+    private static func judged(_ review: TrainerCycleReview, goalMeters: Double?) -> TrainerCycleReview {
         var result = review
-        result.verdict = .keep
-        result.reasons = []
-        result.suggestedStartMeters = review.currentStartMeters
-        result.suggestedPeakMeters = review.currentPeakMeters
+        let outcome = cycleVerdict(review, goalMeters: goalMeters)
+        result.verdict = outcome.verdict
+        result.reasons = outcome.reasons
+        switch outcome.verdict {
+        case .increase:
+            result.suggestedStartMeters = floorKilometers(review.currentStartMeters * C.cycleIncreaseFactor)
+            result.suggestedPeakMeters = floorKilometers(review.currentPeakMeters * C.cycleIncreaseFactor)
+        case .decrease:
+            result.suggestedStartMeters = floorKilometers(review.currentStartMeters * C.cycleDecreaseFactor)
+            result.suggestedPeakMeters = floorKilometers(review.currentPeakMeters * C.cycleDecreaseFactor)
+        case .keep:
+            result.suggestedStartMeters = review.currentStartMeters
+            result.suggestedPeakMeters = review.currentPeakMeters
+        }
         return result
+    }
+
+    static func cycleVerdict(
+        _ review: TrainerCycleReview, goalMeters: Double? = nil
+    ) -> (verdict: TrainerCycleVerdict, reasons: [TrainerCycleReason]) {
+        guard review.weeks.count >= C.cycleMinimumWeeks else {
+            return (.keep, [.tooShort(weeks: review.weeks.count)])
+        }
+        let share = review.doneShare
+        let weeksBelow = review.weeks.filter { $0.doneMeters < $0.plannedMeters * C.cycleWeekBelowShare }.count
+        let readinessFall: Double?
+        if let first = review.readinessFirst, let last = review.readinessLast { readinessFall = first - last } else { readinessFall = nil }
+        let reference = referencePrediction(review, goalMeters: goalMeters)
+        let improved = reference.map { $0.last < $0.first } ?? true
+        let lightWeeks = review.extraLightWeeks.count
+
+        let verdict: TrainerCycleVerdict
+        if share < C.cycleDecreaseShare || (readinessFall ?? 0) >= C.cycleReadinessDrop || lightWeeks >= 2 {
+            verdict = .decrease
+        } else if share >= C.cycleIncreaseShare, (readinessFall ?? 0) <= C.cycleReadinessTolerance, improved, lightWeeks <= 1 {
+            verdict = .increase
+        } else {
+            verdict = .keep
+        }
+
+        var reasons: [TrainerCycleReason] = [.volume(share: share, weeksBelow: weeksBelow)]
+        if verdict == .keep, share >= C.cycleIncreaseShare, !improved { reasons.append(.noProgress) }
+        if let first = review.readinessFirst, let last = review.readinessLast { reasons.append(.readiness(first: first, last: last)) }
+        if lightWeeks > 0 { reasons.append(.lightWeeks(lightWeeks)) }
+        if let seconds = review.raceSeconds, let goal = review.goalSeconds {
+            reasons.append(.race(seconds: seconds, goal: goal))
+        } else if let reference {
+            reasons.append(.prediction(reference))
+        }
+        return (verdict, Array(reasons.prefix(C.cycleMaximumReasons)))
+    }
+
+    private static func referencePrediction(_ review: TrainerCycleReview, goalMeters: Double?) -> TrainerCycleChange? {
+        if let goalMeters, let match = review.predictions.min(by: { abs($0.meters - goalMeters) < abs($1.meters - goalMeters) }) {
+            return match
+        }
+        return review.predictions.first { $0.meters == C.cycleReferencePredictionMeters } ?? review.predictions.first
     }
 
     private static func cycleWindow(

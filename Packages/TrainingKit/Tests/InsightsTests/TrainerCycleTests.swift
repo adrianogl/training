@@ -90,8 +90,8 @@ import WorkoutAnalysis
         #expect(review.readinessFirst == 72 && review.readinessLast == 72)
         let tenK = try #require(review.predictions.first { $0.meters == 10_000 })
         #expect(tenK.first - tenK.last == Double(plan.weeks.count - 1))
-        #expect(review.verdict == .keep && review.reasons.isEmpty)
-        #expect(review.suggestedStartMeters == review.currentStartMeters && review.suggestedPeakMeters == review.currentPeakMeters)
+        #expect(review.verdict == .increase)
+        #expect(review.suggestedPeakMeters > review.currentPeakMeters)
     }
 
     @Test func skippedCycleMissesEveryLong() throws {
@@ -159,46 +159,6 @@ import WorkoutAnalysis
             result.predictionSeries[week.start]?[21_097.5] = 5_900 - Double(offset) * 3
         }
         return result
-    }
-
-    private func history(
-        _ plan: TrainerPlan, done: Double = 0, readiness: Bool = true, readinessDrop: Int = 0, raceSeconds: Double? = nil
-    ) -> TrainerHistory {
-        var runs: [TrainerRun] = []
-        if done > 0 {
-            for (offset, workout) in plan.workouts.sorted(by: { $0.day < $1.day }).enumerated() where workout.totalMeters > 0 {
-                let meters = workout.totalMeters * done
-                let pace = workout.paceLow ?? plan.paces.easy
-                let seconds = workout.kind == .race ? raceSeconds ?? meters / 1_000 * pace : meters / 1_000 * pace
-                runs.append(TrainerRun(activityId: Int64(1_000 + offset), day: workout.day, meters: meters, seconds: seconds, kind: runKind(workout.kind)))
-            }
-        }
-        if let raceSeconds, !runs.contains(where: { $0.day == raceDay && $0.kind == .race }) {
-            runs.append(TrainerRun(activityId: 999, day: raceDay, meters: 21_097.5, seconds: raceSeconds, kind: .race))
-        }
-        let first = plan.weeks.first?.start ?? monday
-        let span = max(1, first.days(until: plan.weeks.last?.start.adding(days: 6) ?? first))
-        var values: [Day: Int] = [:]
-        if readiness {
-            for offset in 0...span {
-                values[first.adding(days: offset)] = 72 - Int((Double(readinessDrop * offset) / Double(span)).rounded())
-            }
-        }
-        var predictionSeries: [Day: [Double: Double]] = [:]
-        for (offset, week) in plan.weeks.enumerated() {
-            predictionSeries[week.start] = [10_000: 2_460 - Double(offset)]
-        }
-        return TrainerHistory(runs: runs, readiness: values, predictions: [10_000: 2_460], predictionSeries: predictionSeries)
-    }
-
-    private func runKind(_ kind: TrainerDayKind) -> RunKind {
-        switch kind {
-        case .long: .long
-        case .threshold: .tempo
-        case .vo2max: .intervals
-        case .race: .race
-        default: .easy
-        }
     }
 
     private func makeOpenPlan(weeks: Int) -> TrainerPlan {
