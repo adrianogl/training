@@ -20,6 +20,7 @@ enum TrainerConstants {
     static let historyDays = 120
     static let deepAnalysisDays = 28
     static let highlightSeconds = 1.2
+    static let tabSwitchSeconds = 0.15
     static let expandedFutureWeeks = 1
     static let predictionDistances: [Double] = [5_000, 10_000, 21_097.5, 42_195]
     static let defaultDeadlineSeconds: TimeInterval = 90 * 86_400

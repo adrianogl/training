@@ -84,6 +84,6 @@ struct MetricChart: View {
                 }
             }
         }
-        .frame(height: isFull ? EvolutionConstants.detailChartHeight : EvolutionConstants.cardChartHeight)
+        .frame(height: isFull ? EvolutionConstants.detailChartHeight : EvolutionConstants.featuredChartHeight)
     }
 }

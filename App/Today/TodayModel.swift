@@ -26,6 +26,7 @@ import WorkoutAnalysis
     private(set) var currentRuns: [ReportRun] = []
     private(set) var signals: [DailySignal] = []
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
+    private(set) var tomorrowPlan: PlannedWorkout?
     private(set) var reportPlanned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var garminReadiness: GarminReadinessScore?
@@ -93,15 +94,19 @@ import WorkoutAnalysis
     func loadPlanned(client: GarminAccountClient?) async {
         guard let client else { return }
         let first = today.weekStart
+        let last = first.adding(days: 6)
+        let tomorrow = today.adding(days: 1)
         let workouts: [PlannedWorkout]
         do {
-            workouts = try await PlannedWorkouts.fetch(client: client, from: first, through: first.adding(days: 6))
+            workouts = try await PlannedWorkouts.fetch(client: client, from: first, through: max(last, tomorrow))
         } catch {
             TodayConstants.logger.error("Falha ao buscar treinos planejados: \(String(describing: error), privacy: .public)")
             return
         }
         guard !Task.isCancelled else { return }
-        planned = Dictionary(grouping: workouts) { Day(iso: $0.day) ?? today }
+        let grouped = Dictionary(grouping: workouts) { Day(iso: $0.day) ?? today }
+        planned = grouped.filter { $0.key <= last }
+        tomorrowPlan = grouped[tomorrow]?.first
         guard let report = WeeklyReportBuilder.reportWeek(today: today), !report.isCurrent else { return }
         let previous = try? await PlannedWorkouts.fetch(client: client, from: report.start, through: report.start.adding(days: 6))
         guard !Task.isCancelled, let previous else { return }
@@ -109,7 +114,8 @@ import WorkoutAnalysis
     }
 
     func plannedSessions(trainer: [TrainerWorkout] = []) -> [PlannedSession] {
-        PlannedSessions.merge(garmin: (Array(planned.values) + Array(reportPlanned.values)).flatMap { $0 }, trainer: trainer)
+        let nextWeek = [tomorrowPlan].compactMap { $0 }.filter { (Day(iso: $0.day) ?? today) > today.weekStart.adding(days: 6) }
+        return PlannedSessions.merge(garmin: (Array(planned.values) + Array(reportPlanned.values)).flatMap { $0 } + nextWeek, trainer: trainer)
     }
 
     func loadPlannedHistory(client: GarminAccountClient?, defaults: UserDefaults = .standard) async {
@@ -267,6 +273,20 @@ import WorkoutAnalysis
             start: today.weekStart, isCurrent: true, runs: currentRuns, plannedKm: plannedWeeks[today.weekStart], race: race,
             sessions: plannedSessions(trainer: trainer), today: today
         )
+    }
+
+    var shownWeek: ShownWeek { WeeklyReportBuilder.shownWeek(today: today) }
+
+    func shownWeekReport(trainer: [TrainerWorkout] = []) -> WeeklyReport {
+        weeklyReport(trainer: trainer) ?? currentWeekReport(trainer: trainer)
+    }
+
+    var volumeSeries: VolumeSeries {
+        VolumeSeriesBuilder.make(week: summary.week, planned: plannedWeeks)
+    }
+
+    func recoveryEstimate(trainer: [TrainerWorkout] = [], now: Date = .now) -> RecoveryEstimate? {
+        recoveryRun.map { RecoveryEstimator.estimate(run: $0, readiness: summary.readiness?.score, sessions: plannedSessions(trainer: trainer), now: now) }
     }
 
     func lastRunPlannedKm(trainer: [TrainerWorkout] = []) -> Double? {

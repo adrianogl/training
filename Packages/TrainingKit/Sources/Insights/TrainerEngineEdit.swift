@@ -12,7 +12,7 @@ extension TrainerEngine {
     public static func makeEdit(
         for plan: TrainerPlan, target: TrainerTarget, startMeters: Double, peakMeters: Double, structure: [Int: TrainerDayKind],
         strength: [TrainerStrengthSession], longMode: TrainerLongMode, paceOverrides: [TrainerPaceKind: Double],
-        history: TrainerHistory, today: Day
+        history: TrainerHistory, today: Day, dayPreference: TrainerDayPreference? = nil
     ) -> TrainerEdit {
         let volumes = chosenVolumes(plan, history: history, today: today)
         let volumesChanged = startMeters != volumes.start || peakMeters != volumes.peak
@@ -23,7 +23,8 @@ extension TrainerEngine {
             structure: structure != plan.structure ? structure : nil,
             strength: sortedStrength(strength) != sortedStrength(plan.strength) ? strength : nil,
             longMode: longMode != plan.longMode ? longMode : nil,
-            paceOverrides: paceOverrides != plan.paceOverrides ? paceOverrides : nil
+            paceOverrides: paceOverrides != plan.paceOverrides ? paceOverrides : nil,
+            dayPreference: dayPreference.flatMap { $0 != plan.dayPreference ? $0 : nil }
         )
     }
 
@@ -43,6 +44,7 @@ extension TrainerEngine {
         if let structure = edit.structure { source.structure = structure }
         if let strength = edit.strength { source.strength = strength }
         if let overrides = edit.paceOverrides { source.paceOverrides = overrides }
+        if let preference = edit.dayPreference { source.dayPreference = preference }
         if let mode = edit.longMode, mode != plan.longMode {
             source.longMode = mode
             source.longStageStreak = 0
@@ -78,7 +80,7 @@ extension TrainerEngine {
         var fields: [String] = []
         if old.target != new.target { fields.append(T.editFieldTarget) }
         if before.start != after.start || before.peak != after.peak { fields.append(T.editFieldVolumes) }
-        if old.structure != new.structure { fields.append(T.editFieldStructure) }
+        if old.structure != new.structure || old.dayPreference != new.dayPreference { fields.append(T.editFieldStructure) }
         if sortedStrength(old.strength) != sortedStrength(new.strength) { fields.append(T.editFieldStrength) }
         if old.longMode != new.longMode { fields.append(T.editFieldLong) }
         if old.paceOverrides != new.paceOverrides { fields.append(T.editFieldPaces) }

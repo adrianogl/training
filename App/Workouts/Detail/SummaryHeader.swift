@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SummaryHeader: View {
     let summary: WorkoutSummary
-    var onShare: (() -> Void)? = nil
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
@@ -17,17 +16,6 @@ struct SummaryHeader: View {
                         .foregroundStyle(BrandColors.text)
                 }
                 Spacer(minLength: 0)
-                if let onShare {
-                    Button(action: onShare) {
-                        Label(WorkoutDetailConstants.shareTitle, systemImage: WorkoutDetailConstants.shareSymbol)
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(BrandColors.onAccent)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            .background(BrandColors.accentFill, in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                }
             }
             if summary.hasPrescription || !summary.subtitle.isEmpty {
                 HStack(spacing: 8) {

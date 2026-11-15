@@ -7,10 +7,12 @@ import TrainingCore
 struct RaceListView: View {
     @Environment(AppModel.self) private var app
     @Query(filter: #Predicate<RaceRecord> { $0.deletedAt == nil }) private var races: [RaceRecord]
+    @Query private var goalRecords: [GoalRecord]
     @State private var model: RaceListModel?
     @SceneStorage(NavigationRestorationConstants.racesPathKey) private var pathData = Data()
     @SceneStorage(NavigationRestorationConstants.racesSelectionKey) private var selectionData = Data()
     @State private var showsEditor = false
+    @State private var goalSheet: GoalSheet?
     @State private var openedDebugRace = false
     @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -32,7 +34,7 @@ struct RaceListView: View {
     }
 
     private var signature: [Date] {
-        races.map(\.updatedAt).sorted()
+        (races.map(\.updatedAt) + goalRecords.map(\.updatedAt)).sorted()
     }
 
     var body: some View {
@@ -65,6 +67,9 @@ struct RaceListView: View {
         }
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: nil)
+        }
+        .sheet(item: $goalSheet) { sheet in
+            GoalSheetView(sheet: sheet)
         }
         .onAppear(perform: applyRestoration)
         .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
@@ -143,10 +148,10 @@ struct RaceListView: View {
     }
 
     @ViewBuilder
-    private func link(_ route: RaceRoute, _ row: RaceRowData) -> some View {
+    private func link<Label: View>(_ route: RaceRoute, @ViewBuilder label: () -> Label) -> some View {
         if sizeClass == .regular {
             Button { selection = route } label: {
-                RaceRow(row: row)
+                label()
                     .overlay {
                         if currentRoute == route {
                             RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
@@ -156,39 +161,43 @@ struct RaceListView: View {
             }
             .buttonStyle(.plain)
         } else {
-            NavigationLink(value: route) { RaceRow(row: row) }
+            NavigationLink(value: route) { label() }
                 .buttonStyle(.plain)
         }
     }
 
     @ViewBuilder
     private func content(_ model: RaceListModel) -> some View {
+        if !model.candidates.isEmpty {
+            RaceCandidatesCard(
+                candidates: model.candidates,
+                onConfirm: { id in Task { await model.confirm(id) } },
+                onDecline: { id in Task { await model.decline(id) } }
+            )
+        }
         if model.upcoming.isEmpty && model.completed.isEmpty && model.candidates.isEmpty {
             Text(RacesConstants.emptyList)
                 .font(.subheadline)
                 .foregroundStyle(BrandColors.dim)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .brandCard()
         }
-        if !model.upcoming.isEmpty {
-            SectionLabel(RacesConstants.upcomingTitle)
-            ForEach(model.upcoming) { row in
-                link(.next(row.id), row)
+        if let target = model.target {
+            link(.next(target.id)) { RaceTargetCard(target: target) }
+        }
+        let others = model.upcoming.filter { $0.id != model.target?.id }
+        if !others.isEmpty {
+            SectionHeader(RacesConstants.upcomingTitle)
+            ForEach(others) { row in
+                link(.next(row.id)) { RaceRow(row: row) }
             }
         }
-        if !model.candidates.isEmpty {
-            SectionLabel(RacesConstants.candidatesTitle)
-            ForEach(model.candidates) { candidate in
-                RaceCandidateRow(
-                    candidate: candidate,
-                    onConfirm: { Task { await model.confirm(candidate.activityId) } },
-                    onDecline: { Task { await model.decline(candidate.activityId) } }
-                )
-            }
-        }
+        SectionHeader(RacesConstants.goalsTitle)
+        GoalsListCard(snapshots: model.goals) { goalSheet = $0 }
         if !model.completed.isEmpty {
-            SectionLabel(RacesConstants.completedTitle)
+            SectionHeader(RacesConstants.completedTitle)
             ForEach(model.completed) { row in
-                link(.completed(row.id), row)
+                link(.completed(row.id)) { RaceRow(row: row) }
             }
         }
     }

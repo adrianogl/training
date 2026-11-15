@@ -50,7 +50,7 @@ struct RecoveryCard: View {
             if estimate.remainingHours > 0 {
                 (Text(String(format: C.hoursRemainingFormat, estimate.remainingHours)).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
                     + Text(" " + C.hoursRemainingUnit).font(.caption).foregroundStyle(BrandColors.dim))
-                (Text(C.readyCaption + " ").foregroundStyle(BrandColors.dim) + Text(dayHour(estimate.readyAt)).bold().foregroundStyle(BrandColors.accent))
+                (Text(C.readyCaption + " ").foregroundStyle(BrandColors.dim) + Text(RecoveryText.dayHour(estimate.readyAt)).bold().foregroundStyle(BrandColors.accent))
                     .font(.caption)
             } else {
                 Text(C.readyNow).font(BrandFonts.number(24)).foregroundStyle(BrandColors.accent)
@@ -73,7 +73,7 @@ struct RecoveryCard: View {
                     .frame(width: max(width * estimate.position(of: estimate.now), C.timelineHeight), height: C.timelineHeight)
                 pin(x: width * estimate.position(of: estimate.now), color: BrandColors.text, label: C.nowLabel, width: width)
                 if estimate.remainingHours > 0 {
-                    pin(x: width * estimate.position(of: estimate.readyAt), color: BrandColors.accent, label: String(format: C.readyLabelFormat, dayHour(estimate.readyAt)), width: width)
+                    pin(x: width * estimate.position(of: estimate.readyAt), color: BrandColors.accent, label: String(format: C.readyLabelFormat, RecoveryText.dayHour(estimate.readyAt)), width: width)
                 }
                 ForEach(events, id: \.next.id) { event in
                     let x = width * estimate.position(of: event.next.start)
@@ -105,8 +105,8 @@ struct RecoveryCard: View {
 
     private func eventLabel(_ next: RecoveryNext) -> some View {
         VStack(spacing: 0) {
-            Text(name(next)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(1).minimumScaleFactor(0.8)
-            Text(dayHour(next.start)).font(.caption2).foregroundStyle(BrandColors.dim)
+            Text(RecoveryText.name(next)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(1).minimumScaleFactor(0.8)
+            Text(RecoveryText.dayHour(next.start)).font(.caption2).foregroundStyle(BrandColors.dim)
         }
     }
 
@@ -114,7 +114,7 @@ struct RecoveryCard: View {
         HStack(spacing: 10) {
             RoundedRectangle(cornerRadius: 2).fill(color(next.kind)).frame(width: 4, height: 34)
             VStack(alignment: .leading, spacing: 1) {
-                Text(String(format: C.eventFormat, name(next), dayHour(next.start))).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                Text(String(format: C.eventFormat, RecoveryText.name(next), RecoveryText.dayHour(next.start))).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
                 Text(next.detail).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
@@ -124,7 +124,7 @@ struct RecoveryCard: View {
         .padding(.vertical, 8)
         .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(name(next)), \(dayHour(next.start)), \(next.detail), \(C.statusLabels[next.status] ?? "")")
+        .accessibilityLabel("\(RecoveryText.name(next)), \(RecoveryText.dayHour(next.start)), \(next.detail), \(C.statusLabels[next.status] ?? "")")
     }
 
     private func chip(_ status: RecoveryStatus) -> some View {
@@ -168,11 +168,6 @@ struct RecoveryCard: View {
         }
     }
 
-    private func name(_ next: RecoveryNext) -> String {
-        guard let km = next.kilometers, !next.title.lowercased().contains("km") else { return next.title }
-        return String(format: C.nextKilometersFormat, next.title, TodayText.decimal(km, fractionDigits: km.rounded() == km ? 0 : 1))
-    }
-
     private var sourceArticle: String {
         estimate.kind.flatMap { C.kindArticle[$0] } ?? C.fallbackArticle
     }
@@ -187,16 +182,7 @@ struct RecoveryCard: View {
         var parts: [String] = []
         if let km = estimate.kilometers { parts.append(String(format: C.kmFormat, TodayText.decimal(km, fractionDigits: 1))) }
         if let heartRate = estimate.averageHeartRate { parts.append(String(format: C.heartRateFormat, heartRate)) }
-        parts.append(String(format: C.finishedFormat, dayHour(estimate.end)))
+        parts.append(String(format: C.finishedFormat, RecoveryText.dayHour(estimate.end)))
         return parts.joined(separator: " · ")
-    }
-
-    private func dayHour(_ date: Date) -> String {
-        let calendar = Calendar.current
-        let weekday = date.formatted(.dateTime.weekday(.abbreviated).locale(WorkoutConstants.locale))
-        let hour = calendar.component(.hour, from: date)
-        let minute = calendar.component(.minute, from: date)
-        let time = minute == 0 ? String(format: C.hourFormat, hour) : String(format: C.hourMinuteFormat, hour, minute)
-        return String(format: C.readyAtFormat, weekday, time)
     }
 }

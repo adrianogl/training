@@ -74,3 +74,9 @@ struct WeeklyReport: Equatable {
     let text: String
     let notification: String
 }
+
+struct ShownWeek: Equatable {
+    let start: Day
+    let isCurrent: Bool
+    let isClosed: Bool
+}

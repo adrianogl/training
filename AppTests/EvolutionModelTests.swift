@@ -87,20 +87,20 @@ import TrainingCore
         #expect(model.indicators.allSatisfy { $0.todayText == "—" })
     }
 
-    @Test func highlightFollowsHorizon() async throws {
-        let model = EvolutionModel(container: try Self.store(), today: Self.today)
-        await model.load()
-        func projectedCount() -> Int { model.highlight.lines.last(where: { $0.dashed })?.points.count ?? 0 }
+    @Test func metricGroupKeepsFeaturedFirstAndPairsTheRest() {
+        let group = MetricGroup(title: "Capacidade", kinds: [.vo2max, .fitness, .hillStrength, .durability])
 
-        let untilRace = projectedCount()
-        model.horizon = .sixMonths
-        let sixMonths = projectedCount()
-        model.horizon = .oneYear
-        let oneYear = projectedCount()
+        #expect(group.featured == .vo2max)
+        #expect(group.pairs == [[.fitness, .hillStrength], [.durability]])
+        #expect(MetricGroup(title: "Vazio", kinds: []).featured == nil)
+        #expect(MetricGroup(title: "Uma", kinds: [.hrv]).pairs.isEmpty)
+    }
 
-        #expect(untilRace == 35)
-        #expect(sixMonths == 183)
-        #expect(oneYear == 366)
+    @Test func selectedGroupFallsBackToFirst() {
+        #expect(MetricGroup.selected(EvolutionConstants.predictionsGroupTitle)?.kinds.first == .prediction5k)
+        #expect(MetricGroup.selected("inexistente")?.title == EvolutionConstants.metricGroups.first?.title)
+        #expect(MetricGroup.selected("x", in: []) == nil)
+        #expect(Set(EvolutionConstants.metricGroups.flatMap(\.kinds)) == Set(EvolutionConstants.cardKinds))
     }
 
     @Test func heatmapCoversTwentySixWeeks() async throws {

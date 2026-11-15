@@ -10,12 +10,13 @@ public enum TrainerEngine {
     public static func create(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
         history: TrainerHistory, today: Day, now: Date, startMeters: Double? = nil, peakMeters: Double? = nil,
-        lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous
+        lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, dayPreference: TrainerDayPreference? = nil
     ) -> TrainerPlan {
-        let plan = build(
+        var plan = build(
             target: target, structure: structure, strength: strength, history: history, today: today, offset: 0,
             startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode
         )
+        if let dayPreference { plan.dayPreference = dayPreference }
         let first = TrainerChange(
             kind: .skeleton, title: T.skeletonLabel, after: T.weeksLabel(plan.weeks.count), reason: T.createdSkeleton(weeks: plan.weeks.count)
         )
@@ -58,9 +59,9 @@ public enum TrainerEngine {
             peakVolume: peak, lightWeeks: lightWeeks
         )
         let state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
-        let weeks = buildWeeks(
+        let weeks = sizedWeeks(buildWeeks(
             context: context, firstIndex: offset + 1, firstStart: today.weekStart, state: state, adjustment: TrainerSkeletonAdjustment()
-        )
+        ), paces: paces)
         var long = TrainerLongPlan(mode: longMode)
         if longMode == .blocks {
             long.stage = longStage ?? initialLongStage(
@@ -74,7 +75,7 @@ public enum TrainerEngine {
         )
         return TrainerPlan(
             target: target, structure: structure, paces: paces,
-            weeks: withPlannedMeters(weeks, workouts: workouts, structure: structure, target: target, history: history, today: today),
+            weeks: withPlannedMeters(weeks, workouts: workouts, structure: structure, target: target, history: history, today: today, paces: paces),
             workouts: workouts, versions: [], strength: strength, startMeters: startMeters, peakMeters: peakMeters,
             lightWeeks: lightWeeks, longMode: long.mode, longStage: long.stage, paceOverrides: paceOverrides
         )

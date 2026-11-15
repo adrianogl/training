@@ -55,4 +55,13 @@ enum WeeklyReportConstants {
     static let offOpacity = 0.55
     static let barHeight: Double = 10
     static let markerWidth: Double = 2
+    static let viewDetails = "ver detalhes ›"
+    static let closedTitleFormat = "Semana %@ · fechada"
+    static let openTitleFormat = "Semana %@ · em andamento"
+    static let sparkHeight: Double = 46
+    static let sparkPointSize: Double = 18
+    static let sparkWeeksFormat = "%d semanas"
+    static let sparkAdherenceFormat = "aderência %d%%"
+    static let sparkAverageFormat = "média %@ km"
+    static let detailTitle = "Semana"
 }

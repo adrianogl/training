@@ -150,6 +150,19 @@ struct RaceListLoad: Sendable, Codable {
     let upcoming: [RaceRowData]
     let completed: [RaceRowData]
     let summaries: [UUID: CompletedRaceSummary]
+    let target: RaceTargetData?
+    let goals: [GoalSnapshot]
+}
+
+struct RaceTargetData: Identifiable, Equatable, Sendable, Codable {
+    let id: UUID
+    let name: String
+    let dateText: String
+    let distanceText: String
+    let days: Int
+    let predictionSeconds: Double?
+    let goalSeconds: Double?
+    let gapText: String?
 }
 
 struct RaceResultCandidate: Sendable {

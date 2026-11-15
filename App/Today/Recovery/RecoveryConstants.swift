@@ -43,6 +43,10 @@ enum RecoveryConstants {
     static let hourFormat = "%dh"
     static let hourMinuteFormat = "%dh%02d"
     static let eventFormat = "%@ · %@"
+    static let nextLineFormat = "%@ · %@ · %@"
+    static let readyNowLine = "Recuperado · pronto para treino forte"
+    static let readyLineFormat = "Pronto para treino forte %@"
+    static let headerFormat = "recuperação · %d h"
     static let statusLabels: [RecoveryStatus: String] = [.relaxed: "tranquilo", .recovered: "recuperado", .almost: "quase", .early: "cedo"]
     static let easyBeforeFormat = "%d h antes de recuperar · rodagem leve não precisa esperar"
     static let afterReadyFormat = "%d h depois de recuperar"
@@ -53,6 +57,7 @@ enum RecoveryConstants {
     static let adviceEasyCutFormat = " Se as pernas ainda estiverem pesadas, corte para %d km."
     static let nextKilometersFormat = "%@ %@ km"
     static let timelineHeight: Double = 10
+    static let stripHeight: Double = 6
     static let markerSize: Double = 12
     static let labelWidth: Double = 104
     static let eventRowHeight: Double = 40

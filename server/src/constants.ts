@@ -184,3 +184,20 @@ export const INVITE_REQUEST = {
   watchNames: { garmin: 'Garmin', other: 'Outro relógio', none: 'Não usa relógio' } as Record<string, string>,
   adminPath: '/administracao',
 } as const
+export const STRAVA_ROUTE = 'strava'
+export const STRAVA_AUTHORIZE_URL = 'https://www.strava.com/oauth/authorize'
+export const STRAVA_TOKEN_URL = 'https://www.strava.com/oauth/token'
+export const STRAVA_DEAUTHORIZE_URL = 'https://www.strava.com/oauth/deauthorize'
+export const STRAVA_API_BASE = 'https://www.strava.com/api/v3'
+export const STRAVA_REDIRECT_URI = 'https://training.aglv.dev/api/v1/strava/callback'
+export const STRAVA_APP_REDIRECT = 'training://strava'
+export const STRAVA_SCOPE = 'activity:read_all,activity:write'
+export const STRAVA_REQUIRED_SCOPES = ['activity:read_all', 'activity:write'] as const
+export const STRAVA_STATE_MINUTES = 10
+export const STRAVA_STATE_CONTEXT = 'training-strava-state'
+export const STRAVA_REFRESH_MARGIN_MS = 5 * 60 * 1000
+export const STRAVA_MATCH_WINDOW_MS = 15 * 60 * 1000
+export const STRAVA_DISTANCE_TOLERANCE = 0.1
+export const STRAVA_SIGNATURE = 'via training.aglv.dev'
+export const STRAVA_FORMAT = 'B'
+export const STRAVA_MAX_TEXT_LENGTH = 1000

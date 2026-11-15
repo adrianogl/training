@@ -9,12 +9,6 @@ enum MetricValueFormat: Sendable {
     case number(decimals: Int, unit: String)
 }
 
-enum ProjectionHorizon: String, CaseIterable, Identifiable, Sendable {
-    case untilRace, sixMonths, oneYear
-
-    var id: String { rawValue }
-}
-
 struct RaceContext: Sendable, Equatable, Codable {
     var countdownDays: Int?
     var priority: String?
@@ -49,6 +43,15 @@ struct MetricGroup: Identifiable, Sendable {
     let kinds: [MetricKind]
 
     var id: String { title }
+    var featured: MetricKind? { kinds.first }
+    var pairs: [[MetricKind]] {
+        let rest = Array(kinds.dropFirst())
+        return stride(from: 0, to: rest.count, by: 2).map { Array(rest[$0..<min($0 + 2, rest.count)]) }
+    }
+
+    static func selected(_ title: String, in groups: [MetricGroup] = EvolutionConstants.metricGroups) -> MetricGroup? {
+        groups.first { $0.title == title } ?? groups.first
+    }
 }
 
 struct IndicatorDumbbellData: Identifiable, Equatable {
@@ -101,15 +104,8 @@ struct MetricPeriodOption {
     static let all = MetricPeriod.allCases.map { MetricPeriodOption(period: $0, title: EvolutionConstants.periodTitles[$0] ?? "") }
 }
 
-struct HorizonOption {
-    let horizon: ProjectionHorizon
-    let title: String
-
-    static let all = ProjectionHorizon.allCases.map { HorizonOption(horizon: $0, title: EvolutionConstants.horizonTitles[$0] ?? "") }
-}
-
 enum MetricChartStyle {
-    case compact
+    case featured
     case full
 }
 

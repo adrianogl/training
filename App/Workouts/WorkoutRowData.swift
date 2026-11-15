@@ -24,6 +24,13 @@ struct WorkoutWeek: Identifiable, Hashable {
     let start: Day
     let kilometers: Double
     let rows: [WorkoutRowData]
+    var runCount: Int
+    var plannedKilometers: Double?
+
+    var plannedProgress: Double? {
+        guard let plannedKilometers, plannedKilometers > 0 else { return nil }
+        return min(kilometers / plannedKilometers, 1)
+    }
 
     var id: Day { start }
 }
@@ -36,4 +43,10 @@ enum WorkoutSelection: Hashable, Codable {
 struct PlannedVisibility: Equatable {
     let visible: [PlannedWorkout]
     let fromPlanIds: Set<Int64>
+}
+
+enum WorkoutKindFilter: String, CaseIterable, Identifiable {
+    case all, quality, long, race
+
+    var id: String { rawValue }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ReadinessDetailView: View {
     let model: TodayModel
+    var recovery: RecoveryEstimate?
 
     var body: some View {
         ScrollView {
@@ -27,6 +28,12 @@ struct ReadinessDetailView: View {
                         .font(.footnote)
                         .foregroundStyle(BrandColors.dim)
                         .padding(.top, 8)
+                }
+                if let overload = model.overload {
+                    OverloadCard(alert: overload).padding(.top, 14)
+                }
+                if let recovery {
+                    RecoveryCard(estimate: recovery).padding(.top, 14)
                 }
                 SectionLabel(TodayConstants.detailExplanationTitle)
                 Text(TodayConstants.detailExplanation)

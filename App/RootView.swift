@@ -46,12 +46,19 @@ struct RootView: View {
         .task(id: model.account.token) {
             await model.garminAccount.adoptAccountSession()
         }
+        .task(id: model.account.token) {
+            await model.strava.refreshStatus()
+        }
         .task {
             guard showsIntro else { return }
             try? await Task.sleep(for: reduceMotion ? AppConstants.introReducedMotionDuration : AppConstants.introDuration)
             withAnimation(.easeOut(duration: AppConstants.introFadeSeconds)) { showsIntro = false }
         }
         .onOpenURL { url in
+            if model.strava.handles(url) {
+                Task { await model.strava.refreshStatus() }
+                return
+            }
             guard let target = AppSection(url: url) else { return }
             open(target)
             if target == .today {

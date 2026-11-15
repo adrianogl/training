@@ -34,10 +34,12 @@ enum RacesText {
         "\(day.day) de \(TodayConstants.months[day.month - 1]) de \(day.year)"
     }
 
-    static func header(priority: String, day: Day, today: Day) -> String {
-        let days = today.days(until: day)
-        let countdown = days == 0 ? C.today : "\(days) \(days == 1 ? "dia" : "dias")"
-        return "prova \(priority) · \(day.day) de \(TodayConstants.months[day.month - 1]) · \(countdown)"
+    static func shortDate(_ day: Day) -> String {
+        String(format: C.shortDateFormat, day.day, day.month)
+    }
+
+    static func goalGapText(prediction: Double?, goal: Double?) -> String? {
+        signedClock(prediction, minus: goal).map { String(format: C.goalGapFormat, $0) }
     }
 
     static func assessmentSentence(goalSeconds: Double, referenceSeconds: Double, reference: AssessmentReference) -> String? {

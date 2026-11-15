@@ -13,7 +13,6 @@ struct SettingsView: View {
     @AppStorage(WorkoutNoticeConstants.enabledKey) private var workoutNoticeEnabled = WorkoutNoticeConstants.defaultEnabled
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
     @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
-    @AppStorage(AppConstants.weeklyGoalDefaultsKey) private var weeklyGoal = 0
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: SettingsGroup = SettingsView.initialGroup()
     var embedded = false
@@ -44,14 +43,18 @@ struct SettingsView: View {
             CompactLogoHeader()
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
-            ForEach(SettingsGroup.allCases) { group in
-                if sizeClass == .regular {
-                    Button { selection = group } label: { groupRow(group) }
-                        .buttonStyle(.plain)
-                        .listRowBackground(group == selection ? BrandColors.accentFill.opacity(0.18) : BrandColors.card)
-                } else {
-                    NavigationLink(value: group) { groupRow(group) }
-                        .listRowBackground(BrandColors.card)
+            ForEach(SettingsSection.allCases) { section in
+                Section(section.title) {
+                    ForEach(section.groups) { group in
+                        if sizeClass == .regular {
+                            Button { selection = group } label: { groupRow(group) }
+                                .buttonStyle(.plain)
+                                .listRowBackground(group == selection ? BrandColors.accentFill.opacity(0.18) : BrandColors.card)
+                        } else {
+                            NavigationLink(value: group) { groupRow(group) }
+                                .listRowBackground(BrandColors.card)
+                        }
+                    }
                 }
             }
         }
@@ -72,18 +75,37 @@ struct SettingsView: View {
                 Text(status(group)).font(.caption).foregroundStyle(BrandColors.dim).lineLimit(1)
             }
             Spacer(minLength: 0)
+            if let connection = connection(group) {
+                Text(connection.text)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(connection.isConnected ? BrandColors.accent : BrandColors.dim)
+                    .lineLimit(1)
+            }
         }
         .contentShape(Rectangle())
+    }
+
+    private func connection(_ group: SettingsGroup) -> (text: String, isConnected: Bool)? {
+        switch group {
+        case .garmin:
+            let signedIn = model.garminAccount.isSignedIn
+            return (signedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut, signedIn)
+        case .strava:
+            let connected = model.strava.status.connected
+            return (connected ? StravaConstants.statusConnected : StravaConstants.statusDisconnected, connected)
+        default:
+            return nil
+        }
     }
 
     private func status(_ group: SettingsGroup) -> String {
         switch group {
         case .account: model.account.user.map { "\($0.name) · \($0.email)" } ?? AccountConstants.accountTitle
-        case .garmin: [model.hasKey ? "sync \(lastSyncText)" : "sem chave da API", model.garminAccount.isSignedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut].joined(separator: " · ")
+        case .garmin: model.hasKey ? "sync \(lastSyncText)" : "sem chave da API"
+        case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
         case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
         case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
-        case .goals: weeklyGoal > 0 ? "\(weeklyGoal) km por semana" : "Sem meta semanal"
         case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
         case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
         }
@@ -100,6 +122,8 @@ struct SettingsView: View {
                 keySection
                 connectionSection
                 syncSection
+            case .strava:
+                StravaSection(model: model.strava)
             case .devices:
                 RemoteSyncSection(model: model.remoteSync, part: .sync)
             case .watch:
@@ -107,9 +131,6 @@ struct SettingsView: View {
             case .notice:
                 noticeSection
                 workoutNoticeSection
-            case .goals:
-                goalsSection
-                GoalsSection()
             case .appearance:
                 appearanceSection
             case .data:
@@ -125,22 +146,6 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
         .navigationTitle(group.title)
-    }
-
-    private var goalsSection: some View {
-        Section {
-            Stepper(value: $weeklyGoal, in: AppConstants.weeklyGoalRange, step: AppConstants.weeklyGoalStep) {
-                HStack {
-                    Text("Volume semanal")
-                    Spacer()
-                    Text(weeklyGoal > 0 ? "\(weeklyGoal) km" : "sem meta").foregroundStyle(BrandColors.dim)
-                }
-            }
-        } header: {
-            Text("Volume semanal")
-        } footer: {
-            Text("A meta semanal aparece no volume semanal e na semana de treino da Hoje.")
-        }
     }
 
     private var keySection: some View {

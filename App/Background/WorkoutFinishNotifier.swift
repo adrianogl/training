@@ -97,6 +97,7 @@ import UIKit
             await deliver(item, container: model.container, queue: &queue)
         }
         queue.save(defaults: defaults)
+        await model.strava.sendPending()
         guard !queue.items.isEmpty else { return }
         BackgroundSync.scheduleWorkoutRetry()
         C.logger.info("aviso adiado, pendentes: \(queue.items.count)")

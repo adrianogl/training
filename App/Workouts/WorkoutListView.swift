@@ -15,6 +15,8 @@ struct WorkoutListView: View {
     @State private var planned: [PlannedWorkout] = []
     @State private var userScrolled = false
     @State private var showsPlanned = false
+    @State private var plannedWeeks: [Day: Double] = [:]
+    @State private var kindFilter: WorkoutKindFilter = .all
 
     @State private var path: [WorkoutSelection] = []
     @State private var selection: WorkoutSelection?
@@ -29,11 +31,13 @@ struct WorkoutListView: View {
     }
 
     var body: some View {
-        let weeks = WorkoutListModel.weeks(records: records)
+        let allWeeks = WorkoutListModel.weeks(records: records, plannedKilometers: plannedWeeks)
+        let weeks = WorkoutListModel.filtered(allWeeks, records: records, by: kindFilter)
+        let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows), from: Day.today().iso)
         Group {
             if sizeClass == .regular {
                 HStack(spacing: 0) {
-                    list(weeks)
+                    list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility)
                         .frame(width: WorkoutConstants.listWidth)
                     Divider().overlay(BrandColors.line)
                     NavigationStack {
@@ -49,7 +53,7 @@ struct WorkoutListView: View {
                 }
             } else {
                 NavigationStack(path: $path) {
-                    list(weeks)
+                    list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility)
                         .navigationDestination(for: WorkoutSelection.self) { item in destination(item) }
                 }
             }
@@ -67,12 +71,14 @@ struct WorkoutListView: View {
             #if DEBUG
             if UserDefaults.standard.bool(forKey: AppConstants.samplePlannedDefaultsKey) {
                 planned = PlannedSamples.week(from: Day.today())
+                updatePlannedWeeks()
                 return
             }
             #endif
-            guard let client = model.garminAccount.client else { planned = []; return }
+            guard let client = model.garminAccount.client else { planned = []; updatePlannedWeeks(); return }
             let today = Day.today()
-            planned = (try? await PlannedWorkouts.fetch(client: client, from: today, through: today.adding(days: WorkoutConstants.plannedDays))) ?? []
+            planned = (try? await PlannedWorkouts.fetch(client: client, from: today.weekStart, through: today.adding(days: WorkoutConstants.plannedDays))) ?? []
+            updatePlannedWeeks()
             dropMissingPlanned()
         }
     }
@@ -86,6 +92,11 @@ struct WorkoutListView: View {
         guard !debugPath.isEmpty else { return }
         path = debugPath
         selection = debugPath.first
+    }
+
+    private func updatePlannedWeeks() {
+        let cached = UserDefaults.standard.dictionary(forKey: AppConstants.plannedWeeksDefaultsKey) as? [String: Double] ?? [:]
+        plannedWeeks = WorkoutListModel.plannedKilometers(planned: planned, cached: cached)
     }
 
     private func dropMissingPlanned() {
@@ -115,10 +126,9 @@ struct WorkoutListView: View {
         }
     }
 
-    private func list(_ weeks: [WorkoutWeek]) -> some View {
+    private func list(_ weeks: [WorkoutWeek], hasRuns: Bool, visibility: PlannedVisibility) -> some View {
         let selected = current(weeks)
         let today = Day.today().iso
-        let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: weeks.flatMap(\.rows))
         return ScrollViewReader { proxy in
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 10) {
@@ -127,6 +137,9 @@ struct WorkoutListView: View {
                     .font(.largeTitle.weight(.bold))
                     .foregroundStyle(BrandColors.text)
                 SyncStatusPill()
+                if hasRuns {
+                    WorkoutKindFilterBar(selection: $kindFilter)
+                }
                 if !visibility.visible.isEmpty {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) { showsPlanned.toggle() }
@@ -154,6 +167,10 @@ struct WorkoutListView: View {
                 }
                 if weeks.isEmpty && model.showsSkeleton {
                     FirstSyncView()
+                } else if weeks.isEmpty && hasRuns {
+                    Text(WorkoutConstants.emptyFilter)
+                        .foregroundStyle(BrandColors.dim)
+                        .brandCard()
                 } else if weeks.isEmpty {
                     Text(WorkoutConstants.emptyList)
                         .foregroundStyle(BrandColors.dim)
@@ -174,6 +191,9 @@ struct WorkoutListView: View {
                         }
                         .font(.caption)
                         .foregroundStyle(BrandColors.dim)
+                        if let progress = week.plannedProgress {
+                            weekBar(progress)
+                        }
                     }
                     .padding(.top, 8)
                     .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
@@ -197,6 +217,17 @@ struct WorkoutListView: View {
         .onChange(of: visibility.visible.map(\.id)) { scrollToLatest(proxy) }
         .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
         }
+    }
+
+    private func weekBar(_ progress: Double) -> some View {
+        GeometryReader { proxy in
+            Capsule()
+                .fill(BrandColors.accentFill)
+                .frame(width: max(WorkoutConstants.weekBarHeight, proxy.size.width * progress))
+        }
+        .frame(height: WorkoutConstants.weekBarHeight)
+        .background(BrandColors.track, in: Capsule())
+        .padding(.top, -4)
     }
 
     private func scrollToLatest(_ proxy: ScrollViewProxy) {

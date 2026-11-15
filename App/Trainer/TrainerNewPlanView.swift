@@ -13,6 +13,7 @@ struct TrainerNewPlanView: View {
     @State private var hasDeadline = false
     @State private var deadline = Date.now.addingTimeInterval(TrainerConstants.defaultDeadlineSeconds)
     @State private var structure = TrainerEngine.defaultStructure
+    @State private var dayPreference = TrainerDayPreference.standard
     @State private var strength: [TrainerStrengthSession] = []
     @State private var strengthLoaded = false
     @State private var startKilometers: Int?
@@ -39,7 +40,7 @@ struct TrainerNewPlanView: View {
                     .pickerStyle(.segmented)
                     targetCard
                     volumeCard
-                    weekCard
+                    daysCards
                     if isEditing { strengthLink }
                     TrainerLongModeCard(mode: longMode, suggestion: model.longSuggestion) { longMode = $0 }
                     if isEditing {
@@ -101,7 +102,24 @@ struct TrainerNewPlanView: View {
         return model.makeEdit(
             target: target, startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
             peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer, structure: structure, longMode: longMode,
-            paceOverrides: paceOverrides
+            paceOverrides: paceOverrides, dayPreference: dayPreference
+        )
+    }
+
+    private var daysCards: some View {
+        let peak = Double(chosenPeak) * TrainerConstants.metersPerKilometer
+        let paces = isEditing ? model.plan?.paces ?? model.previewPaces() : model.previewPaces()
+        let goal = target() ?? TrainerDaysConstants.fallbackTarget
+        return TrainerDaysCards(
+            preference: Binding(get: { dayPreference }, set: { next in
+                dayPreference = next
+                structure = TrainerEngine.suggestedStructure(next)
+            }),
+            structure: $structure, strength: $strength,
+            suggested: TrainerEngine.suggestedStructure(dayPreference),
+            meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal),
+            warnings: TrainerEngine.dayWarnings(structure: structure, strength: strength, peakMeters: peak, paces: paces, target: goal),
+            showsStrength: !isEditing
         )
     }
 
@@ -145,6 +163,7 @@ struct TrainerNewPlanView: View {
         }
         startKilometers = volumes.start
         peakKilometers = volumes.peak
+        dayPreference = current.dayPreference
         structure = current.structure
         strength = current.strength
         longMode = current.longMode
@@ -287,67 +306,6 @@ struct TrainerNewPlanView: View {
         .brandCard()
     }
 
-    private var weekCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.weekGridTitle).padding(.vertical, 0)
-            HStack(spacing: TrainerConstants.stripSpacing) {
-                ForEach(1...TrainerConstants.weekdayCount, id: \.self) { weekday in
-                    VStack(spacing: 4) {
-                        dayMenu(weekday)
-                        if !isEditing { strengthMenu(weekday) }
-                    }
-                }
-            }
-            Text(isEditing ? TrainerText.editGridHint : TrainerText.strengthGridHint).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
-        .brandCard()
-    }
-
-    private func strengthMenu(_ weekday: Int) -> some View {
-        let current = strength.first { $0.weekday == weekday }
-        return Menu {
-            Button(TrainerText.strengthNone) { setStrength(nil, on: weekday) }
-            ForEach(TrainerConstants.strengthGroups, id: \.self) { group in
-                Button(TrainerText.groupName(group)) { setStrength(group, on: weekday) }
-            }
-        } label: {
-            Text(current.map { TrainerText.groupShort($0.group) } ?? "+")
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(current == nil ? BrandColors.dim : BrandColors.strength)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .padding(.vertical, 5)
-                .frame(maxWidth: .infinity)
-                .background(current == nil ? BrandColors.track : BrandColors.strengthGlow, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-        }
-    }
-
-    private func setStrength(_ group: TrainerStrengthGroup?, on weekday: Int) {
-        strength.removeAll { $0.weekday == weekday }
-        guard let group else { return }
-        strength.append(TrainerStrengthSession(
-            weekday: weekday, group: group, legLoad: TrainerConstants.defaultLoad(for: group), name: TrainerText.groupName(group)
-        ))
-    }
-
-    private func dayMenu(_ weekday: Int) -> some View {
-        let kind = structure[weekday] ?? .off
-        return Menu {
-            ForEach(TrainerConstants.editableKinds, id: \.self) { option in
-                Button(TrainerText.kindName(option)) { structure[weekday] = option }
-            }
-        } label: {
-            VStack(spacing: 2) {
-                Text(TrainerText.weekdayName(weekday - 1)).font(.caption2).foregroundStyle(BrandColors.dim)
-                Text(TrainerText.kindShort(kind)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(1).minimumScaleFactor(0.7)
-                Capsule().fill(TrainerConstants.color(for: kind)).frame(height: 4).padding(.horizontal, 4)
-            }
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity)
-            .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-        }
-    }
-
     private var pacesCard: some View {
         let paces = model.previewPaces()
         return VStack(alignment: .leading, spacing: 8) {
@@ -405,7 +363,7 @@ struct TrainerNewPlanView: View {
                 target: target, structure: structure, strength: strength,
                 startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
                 peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer,
-                lightWeeks: lightWeeks.sorted(), longMode: longMode
+                lightWeeks: lightWeeks.sorted(), longMode: longMode, dayPreference: dayPreference
             )
             dismiss()
         }

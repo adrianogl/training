@@ -15,9 +15,6 @@ struct CompletedRaceView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 header
-                if summary.resultSeconds != nil {
-                    AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
-                }
                 pair {
                     resultCard
                     if !summary.splits.isEmpty {
@@ -39,6 +36,8 @@ struct CompletedRaceView: View {
                         title: RacesConstants.lessonTitle,
                         expectedTitle: RacesConstants.lessonNextTitle
                     )
+                    AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
+                        .padding(.top, 8)
                 }
             }
             .padding(.horizontal, BrandConstants.screenPadding)

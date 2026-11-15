@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import Storage
 import TrainingCore
 import WorkoutAnalysis
@@ -30,6 +31,23 @@ enum GoalsText {
         case .continuousLong:
             return String(format: C.longLineFormat, TodayText.decimal(distanceKm, fractionDigits: 1), WorkoutFormat.clock(paceSecondsPerKm ?? 0))
         }
+    }
+
+    static func status(_ snapshot: GoalSnapshot) -> GoalStatus? {
+        switch snapshot.progress {
+        case .time(let progress):
+            if let day = progress.achievedOn { return GoalStatus(text: String(format: C.achievedFormat, GoalsChatFacts.shortDay(day)), good: true) }
+            guard let gap = progress.gapSeconds else { return nil }
+            return gap <= 0 ? GoalStatus(text: C.ahead, good: true) : GoalStatus(text: String(format: C.remainingFormat, WorkoutFormat.clock(gap)), good: false)
+        case .continuousLong(let progress):
+            guard !progress.runs.isEmpty else { return nil }
+            if let day = progress.achievedOn { return GoalStatus(text: String(format: C.achievedFormat, GoalsChatFacts.shortDay(day)), good: true) }
+            return GoalStatus(text: String(format: C.runsFormat, progress.metCount, progress.runs.count), good: progress.metCount > 0)
+        }
+    }
+
+    static func title(_ snapshot: GoalSnapshot) -> String {
+        title(kind: snapshot.kind, distanceKm: snapshot.distanceKm, targetSeconds: snapshot.targetSeconds)
     }
 
     static func title(_ goal: GoalRecord) -> String {

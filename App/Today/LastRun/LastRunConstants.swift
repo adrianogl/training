@@ -20,6 +20,10 @@ enum LastRunConstants {
     static let shortDateFormat = "d/M"
 
     static let viewAnalysis = "Ver análise ›"
+    static let compactTitleFormat = "%@ · %@ km"
+    static let compactHeartRateFormat = "FC %d"
+    static let compactPlanFormat = "%d%% do plano"
+    static let compactReadingLines = 2
     static let minutesFormat = "%d min"
     static let hoursMinutesFormat = "%dh%02d"
     static let planFormat = "plano %@ km"

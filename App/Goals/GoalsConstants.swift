@@ -45,6 +45,15 @@ enum GoalsConstants {
     static let maxPace = 900.0
     static let maxDistanceKm = 100.0
 
+    static let weeklyTitle = "Volume semanal"
+    static let weeklyNone = "sem meta"
+    static let weeklyKmFormat = "%d km"
+    static let weeklyPerWeekFormat = "%d km por semana"
+    static let weeklyFooter = "A meta semanal aparece no volume semanal e na semana de treino da Hoje."
+    static let allGoals = "Todas as metas"
+    static let close = "Fechar"
+    static let newGoalPlus = "+ Nova meta"
+
     static let cardTitle = "Metas"
     static let cardCountFormat = "%d ativas"
     static let cardCountOne = "1 ativa"

@@ -12,6 +12,8 @@ struct WorkoutDetailView: View {
     @State private var planCheck: PlannedBriefing?
     @State private var goalEntries: [WorkoutGoalEntry] = []
     @State private var showsChat = false
+    @State private var stravaSending = false
+    @State private var stravaFeedback: String?
     @Environment(AppModel.self) private var app
 
     var body: some View {
@@ -37,11 +39,21 @@ struct WorkoutDetailView: View {
         }
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if model?.isRun == true, model?.shareSource != nil || app.strava.status.connected {
+                ToolbarItem(placement: .topBarTrailing) { actionsMenu }
+            }
+        }
         .task(id: activityId) {
             let loaded = WorkoutDetailModel(activityId: activityId, context: context)
             model = loaded
             goalEntries = WorkoutGoalCheck.entries(activityId: activityId, blocks: loaded.blocks, context: context)
             planCheck = await loadPlanCheck()
+        }
+        .alert(StravaConstants.sectionTitle, isPresented: Binding(get: { stravaFeedback != nil }, set: { if !$0 { stravaFeedback = nil } })) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(stravaFeedback ?? "")
         }
         .sheet(isPresented: $showsChat) {
             if let context = model?.chatContext {
@@ -61,7 +73,7 @@ struct WorkoutDetailView: View {
     private func content(_ model: WorkoutDetailModel) -> some View {
         if let summary = model.summary {
             if model.isRun {
-                SummaryHeader(summary: summary, onShare: model.shareSource == nil ? nil : { showsShare = true })
+                SummaryHeader(summary: summary)
                 runSections(model)
             } else {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)
@@ -75,26 +87,16 @@ struct WorkoutDetailView: View {
     @ViewBuilder
     private func runSections(_ model: WorkoutDetailModel) -> some View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-            if model.structureMissing {
-                notice
-            }
-            pair {
-                if let score = model.score, !model.scoreRows.isEmpty {
-                    ScoreSummaryCard(value: score.value, rows: model.scoreRows)
-                }
-                if let effect = model.trainingEffect {
-                    TrainingEffectCard(effect: effect)
-                }
-            }
-            if let planCheck, !planCheck.comparison.isEmpty {
-                PlanComparisonCard(rows: planCheck.comparison, note: planCheck.comparisonNote)
-            }
-            WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries)
+            DetailSectionHeader(WorkoutDetailConstants.sectionHowItWent)
+            howItWent(model)
             if !goalEntries.isEmpty {
                 WorkoutGoalCard(entries: goalEntries)
             }
-            if model.chatContext != nil {
-                chatButton
+            if hasWorkoutSection(model) {
+                DetailSectionHeader(WorkoutDetailConstants.sectionWorkout)
+            }
+            if model.structureMissing {
+                notice
             }
             if !model.blocks.isEmpty {
                 labelled(model.hasPrescription ? "Blocos × prescrito" : "Parciais") {
@@ -109,14 +111,6 @@ struct WorkoutDetailView: View {
                     }
                     .id(WorkoutDetailSection.heartRate)
                 }
-                if !model.route.isEmpty {
-                    labelled("Percurso") {
-                        RouteMapView(route: model.route, altitude: model.altitude)
-                    }
-                    .id(WorkoutDetailSection.route)
-                }
-            }
-            pair {
                 if let ruler = model.ruler {
                     labelled("Tempo em zona de FC") { ZoneRuler(data: ruler) }
                         .id(WorkoutDetailSection.zones)
@@ -124,22 +118,84 @@ struct WorkoutDetailView: View {
                     labelled("Tempo em zona de FC") { ZonesBar(shares: model.zoneShares) }
                         .id(WorkoutDetailSection.zones)
                 }
-                if model.comparison != nil, !model.comparisonRows.isEmpty {
-                    labelled("Comparado com treinos parecidos") {
-                        ComparisonSection(
-                            title: model.comparisonTitle,
-                            rows: model.comparisonRows,
-                            evolution: model.evolutionText,
-                            evolutionOnDevice: model.reading.evolutionOnDevice,
-                            notice: model.comparisonNotice,
-                            showsTarget: model.hasPrescription
-                        )
-                    }
-                    .id(WorkoutDetailSection.comparison)
+            }
+            if !model.route.isEmpty {
+                labelled("Percurso") {
+                    RouteMapView(route: model.route, altitude: model.altitude)
                 }
+                .id(WorkoutDetailSection.route)
+            }
+            if model.comparison != nil, !model.comparisonRows.isEmpty {
+                DetailSectionHeader(WorkoutDetailConstants.sectionComparison)
+                labelled("Comparado com treinos parecidos") {
+                    ComparisonSection(
+                        title: model.comparisonTitle,
+                        rows: model.comparisonRows,
+                        evolution: model.evolutionText,
+                        evolutionOnDevice: model.reading.evolutionOnDevice,
+                        notice: model.comparisonNotice,
+                        showsTarget: model.hasPrescription
+                    )
+                }
+                .id(WorkoutDetailSection.comparison)
+            }
+            if model.chatContext != nil {
+                chatButton
+                    .padding(.top, 8)
             }
         }
-        .padding(.top, 12)
+    }
+
+    private func howItWent(_ model: WorkoutDetailModel) -> some View {
+        let showsScore = model.score != nil && !model.scoreRows.isEmpty
+        let comparison = planCheck.flatMap { $0.comparison.isEmpty ? nil : $0 }
+        return VStack(alignment: .leading, spacing: 16) {
+            if showsScore || model.trainingEffect != nil {
+                pair {
+                    if let score = model.score, showsScore {
+                        ScoreSummaryCard(value: score.value, rows: model.scoreRows, framed: false)
+                    }
+                    if let effect = model.trainingEffect {
+                        TrainingEffectCard(effect: effect, framed: false)
+                    }
+                }
+                Divider().overlay(BrandColors.line)
+            }
+            if let comparison {
+                PlanComparisonCard(rows: comparison.comparison, note: comparison.comparisonNote, framed: false)
+                Divider().overlay(BrandColors.line)
+            }
+            WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, framed: false)
+        }
+        .brandCard()
+    }
+
+    private func hasWorkoutSection(_ model: WorkoutDetailModel) -> Bool {
+        model.structureMissing || !model.blocks.isEmpty || !model.heartRate.isEmpty || model.ruler != nil
+            || !model.zoneShares.isEmpty || !model.route.isEmpty
+    }
+
+    private var actionsMenu: some View {
+        Menu {
+            if model?.shareSource != nil {
+                Button { showsShare = true } label: {
+                    Label(WorkoutDetailConstants.shareTitle, systemImage: WorkoutDetailConstants.shareSymbol)
+                }
+            }
+            if app.strava.status.connected {
+                Button(app.strava.ledger.isSent(activityId) ? StravaConstants.resendButton : StravaConstants.sendButton, systemImage: "arrow.up.forward.app") {
+                    Task {
+                        stravaSending = true
+                        stravaFeedback = await app.strava.send(activityId: activityId).message
+                        stravaSending = false
+                    }
+                }
+                .disabled(stravaSending)
+            }
+        } label: {
+            Image(systemName: WorkoutDetailConstants.actionsSymbol)
+        }
+        .accessibilityLabel(WorkoutDetailConstants.actionsTitle)
     }
 
     @ViewBuilder
@@ -184,7 +240,6 @@ struct WorkoutDetailView: View {
                 .foregroundStyle(BrandColors.dim)
         }
         .brandCard()
-        .padding(.top, 16)
     }
 
     private static func debugChatQuestion(defaults: UserDefaults = .standard) -> String? {

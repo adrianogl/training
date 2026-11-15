@@ -3,54 +3,6 @@ import Metrics
 import SwiftUI
 import WorkoutAnalysis
 
-struct TodayPlanCard: View {
-    let plan: PlannedWorkout
-    let verdict: ReadinessVerdict?
-    @Environment(\.horizontalSizeClass) private var sizeClass
-
-    private typealias C = TodayConstants
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                SectionLabel(C.planTitle).padding(.top, 0).padding(.bottom, 0)
-                Spacer()
-                if let estimate = PlanText.estimate(plan) {
-                    Text(estimate).font(.caption).foregroundStyle(BrandColors.dim)
-                }
-            }
-            if sizeClass == .regular {
-                HStack(alignment: .top, spacing: 20) {
-                    summary
-                    PlannedStepsList(steps: plan.steps).frame(maxWidth: .infinity, alignment: .leading)
-                }
-            } else {
-                summary
-                PlannedStepsList(steps: plan.steps)
-            }
-        }
-        .brandCard()
-    }
-
-    private var summary: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(plan.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
-            PlannedShape(steps: plan.steps).frame(height: C.planShapeHeight)
-            if let verdict, let advice = C.planAdjust[verdict] {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(C.planAdjustTitle).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
-                    Text(advice).font(.footnote).foregroundStyle(BrandColors.text)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(BrandColors.attention.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 struct PlannedShape: View {
     let steps: [PlannedStep]
 
