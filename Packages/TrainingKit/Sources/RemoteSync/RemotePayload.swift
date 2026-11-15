@@ -39,6 +39,21 @@ public enum RemotePayload {
         try open(text, context: context(.goal, id), key: key)
     }
 
+    public static func seal(trainer data: Data, key: SymmetricKey) throws -> String {
+        guard let combined = try AES.GCM.seal(data, using: key, authenticating: context(.trainer, RemoteSyncConstants.trainerRecordId)).combined else {
+            throw RemoteSyncError.tamperedPayload
+        }
+        return combined.base64EncodedString()
+    }
+
+    public static func openTrainer(_ text: String, id: String, key: SymmetricKey) throws -> Data {
+        guard let combined = Data(base64Encoded: text),
+              let box = try? AES.GCM.SealedBox(combined: combined),
+              let plaintext = try? AES.GCM.open(box, using: key, authenticating: context(.trainer, id))
+        else { throw RemoteSyncError.tamperedPayload }
+        return plaintext
+    }
+
     public static func decodeRace(_ text: String) throws -> RaceTransferItem {
         try decode(text)
     }

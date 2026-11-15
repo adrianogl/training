@@ -7,6 +7,9 @@ enum TrainerConstants {
     static let storeFileName = "trainer-plan.json"
     static let seenVersionDefaultsKey = "trainerSeenVersion"
     static let strengthMigratedDefaultsKey = "trainerStrengthMigrated"
+    static let syncUpdatedAtDefaultsKey = "trainerSyncUpdatedAt"
+    static let syncDeletedDefaultsKey = "trainerSyncDeleted"
+    static let syncNeedsPushDefaultsKey = "trainerSyncNeedsPush"
     static let strengthWeeks = 4
     static let historyDays = 120
     static let deepAnalysisDays = 28

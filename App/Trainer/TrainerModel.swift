@@ -17,6 +17,8 @@ import TrainingCore
     @ObservationIgnored private let store: TrainerStore
     @ObservationIgnored private let today: @Sendable () -> Day
     @ObservationIgnored private var autoTask: Task<Void, Never>?
+    @ObservationIgnored private var loadedStamp: Date?
+    @ObservationIgnored var onChange: @MainActor () -> Void = {}
 
     init(container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() }) {
         self.container = container
@@ -24,6 +26,7 @@ import TrainingCore
         self.today = today
         self.seenVersion = store.seenVersion
         self.plan = store.load()
+        self.loadedStamp = store.updatedAt()
     }
 
     var currentDay: Day { today() }
@@ -174,8 +177,17 @@ import TrainingCore
         TrainerEngine.paces(history: history, today: currentDay)
     }
 
+    func reloadFromStore() {
+        let stamp = store.updatedAt()
+        guard stamp != loadedStamp else { return }
+        loadedStamp = stamp
+        plan = store.load()
+        seenVersion = store.seenVersion
+    }
+
     func load() async {
         plan = store.load()
+        loadedStamp = store.updatedAt()
         history = await loadHistory()
         isLoaded = true
         migrateStrength()
@@ -185,9 +197,12 @@ import TrainingCore
     func scheduleAutoAdjust() {
         autoTask?.cancel()
         autoTask = Task { [weak self] in
-            guard let self, self.plan != nil else { return }
+            guard let self else { return }
+            self.reloadFromStore()
+            guard self.plan != nil else { return }
             self.history = await self.loadHistory()
             guard !Task.isCancelled else { return }
+            self.reloadFromStore()
             self.applyPending()
         }
     }
@@ -260,6 +275,8 @@ import TrainingCore
             try store.delete()
             plan = nil
             seenVersion = 0
+            loadedStamp = store.updatedAt()
+            onChange()
         } catch {
             saveFailed = true
         }
@@ -298,7 +315,9 @@ import TrainingCore
         plan = next
         do {
             try store.save(next)
+            loadedStamp = store.updatedAt()
             saveFailed = false
+            onChange()
         } catch {
             saveFailed = true
         }
