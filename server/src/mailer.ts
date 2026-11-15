@@ -7,7 +7,7 @@ export function resendMailer(apiKey: string, from: string, fetcher: typeof fetch
       const response = await fetcher(RESEND_URL, {
         method: 'POST',
         headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-        body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.text }),
+        body: JSON.stringify({ from, to: [mail.to], subject: mail.subject, text: mail.text, html: mail.html }),
       })
       if (!response.ok) {
         throw new Error(`mail_failed_${response.status}`)

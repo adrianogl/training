@@ -1,7 +1,8 @@
 import { adminOverview, adminUsers } from './adminStats.js'
 import { accountIdFromAuthorization } from './auth.js'
 import { authEnvFromProcess, isAdmin } from './authRoutes.js'
-import { EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_CHANNELS, INVITE_MESSAGE, INVITE_PATH, INVITE_QUERY, MAIL_INVITE_SUBJECT, NAME_MAX_LENGTH } from './constants.js'
+import { inviteMail } from './mailTemplates.js'
+import { EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_CHANNELS, INVITE_MESSAGE, INVITE_PATH, INVITE_QUERY, NAME_MAX_LENGTH } from './constants.js'
 import { dataKeyFromEnv } from './cipher.js'
 import type { Sql } from './db.js'
 import { pendingRequests } from './inviteRequests.js'
@@ -52,7 +53,7 @@ export async function deliver(env: AuthEnv, admin: User, invite: InviteRow, toke
     if (env.mailer === undefined) {
       return json(200, { invite, link, message, mailed: false })
     }
-    await env.mailer.send({ to: invite.email, subject: MAIL_INVITE_SUBJECT, text: message })
+    await env.mailer.send({ to: invite.email, ...inviteMail({ name: invite.name, inviter: admin.name, link, message }) })
     return json(200, { invite, link, message, mailed: true })
   }
   return json(200, { invite, link, message, mailed: false })
