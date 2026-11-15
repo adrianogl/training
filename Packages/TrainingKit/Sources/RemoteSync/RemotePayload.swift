@@ -39,6 +39,11 @@ public enum RemotePayload {
         try open(text, context: context(.goal, id), key: key)
     }
 
+    public static func plain(trainer data: Data) throws -> String {
+        guard let text = String(data: data, encoding: .utf8) else { throw RemoteSyncError.decoding }
+        return text
+    }
+
     public static func seal(trainer data: Data, key: SymmetricKey) throws -> String {
         guard let combined = try AES.GCM.seal(data, using: key, authenticating: context(.trainer, RemoteSyncConstants.trainerRecordId)).combined else {
             throw RemoteSyncError.tamperedPayload

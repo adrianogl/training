@@ -69,7 +69,7 @@ private final class FakeRecordsServer: HTTPTransport {
         return next
     }
 
-    @Test func sendsSavedPlanSealedToTheServer() async throws {
+    @Test func sendsSavedPlanAsPlainToTheServer() async throws {
         let server = FakeRecordsServer()
         let a = try Self.device(server, clock: Self.base)
 
@@ -78,8 +78,8 @@ private final class FakeRecordsServer: HTTPTransport {
 
         let record = try #require(server.trainerRecord)
         #expect(record["deleted"] as? Bool == false)
-        #expect(record["format"] == nil)
-        #expect(!(record["payload"] as? String ?? "").contains("Limiar"))
+        #expect(record["format"] as? String == "plain")
+        #expect(record["payload"] is String)
         #expect(report.pushed == 1)
         #expect(a.store.pending() == nil)
     }

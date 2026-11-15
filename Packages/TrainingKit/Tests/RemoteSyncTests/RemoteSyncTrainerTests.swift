@@ -42,6 +42,12 @@ private final class FakeTrainerStore: RemoteTrainerStore {
 
     func updatedAt() -> Date? { stamp }
 
+    func markPending() {
+        state.withLock { state in
+            if state.stamp != nil { state.needsPush = true }
+        }
+    }
+
     func markPushed(updatedAt: Date) {
         state.withLock { state in
             state.pushedStamps.append(updatedAt)
@@ -59,23 +65,23 @@ private final class FakeTrainerStore: RemoteTrainerStore {
     }
 }
 
-private func run(_ store: FakeTrainerStore, _ responses: [ScriptedTransport.Response]) async throws -> (RemoteSyncReport, ScriptedTransport) {
+private func run(_ store: FakeTrainerStore, _ responses: [ScriptedTransport.Response], defaults: String = migratedSuite()) async throws -> (RemoteSyncReport, ScriptedTransport) {
     let container = try TrainingSchema.container(inMemory: true)
     let transport = ScriptedTransport(responses)
     let client = RemoteClient(baseURL: URL(string: "https://sync.example.test")!, keys: keys, transport: transport)
-    let engine = RemoteSyncEngine(container: container, client: client, keys: keys, defaultsSuite: migratedSuite(), trainerStore: store, now: { base.addingTimeInterval(3_600) })
+    let engine = RemoteSyncEngine(container: container, client: client, keys: keys, defaultsSuite: defaults, trainerStore: store, now: { base.addingTimeInterval(3_600) })
     return (try await engine.sync(), transport)
 }
 
-private func remote(_ data: Data?, at stamp: Date, seq: Int64 = 3) throws -> ScriptedTransport.Response {
-    let payload = try data.map { try RemotePayload.seal(trainer: $0, key: keys.payload) }
-    let record = RemoteRecord(kind: .trainer, id: "plan", updatedAt: stamp, deleted: data == nil, payload: payload, seq: seq)
+private func remote(_ data: Data?, at stamp: Date, seq: Int64 = 3, sealed: Bool = false) throws -> ScriptedTransport.Response {
+    let payload = try data.map { sealed ? try RemotePayload.seal(trainer: $0, key: keys.payload) : try RemotePayload.plain(trainer: $0) }
+    let record = RemoteRecord(kind: .trainer, id: "plan", updatedAt: stamp, deleted: data == nil, payload: payload, seq: seq, format: sealed ? nil : .plain)
     let encoded = String(data: try RemoteJSON.encoder().encode([record]), encoding: .utf8)!
     return .json(200, #"{"records":\#(encoded),"cursor":\#(seq),"hasMore":false}"#)
 }
 
 @Suite struct RemoteSyncTrainerTests {
-    @Test func pushesPendingPlanSealedWithFixedId() async throws {
+    @Test func pushesPendingPlanAsPlainWithFixedId() async throws {
         let store = FakeTrainerStore(data: plan, stamp: base, needsPush: true)
 
         let (report, transport) = try await run(store, [accepted(), emptyPage])
@@ -83,9 +89,8 @@ private func remote(_ data: Data?, at stamp: Date, seq: Int64 = 3) throws -> Scr
         let sent = try #require(transport.pushBodies.first?.first)
         #expect(sent["kind"] as? String == "trainer")
         #expect(sent["id"] as? String == "plan")
-        #expect(sent["format"] == nil)
-        let opened = try RemotePayload.openTrainer(try #require(sent["payload"] as? String), id: "plan", key: keys.payload)
-        #expect(opened == plan)
+        #expect(sent["format"] as? String == "plain")
+        #expect(Data((sent["payload"] as? String ?? "").utf8) == plan)
         #expect(report.pushed == 1)
         #expect(store.needsPush == false)
     }
@@ -115,6 +120,7 @@ private func remote(_ data: Data?, at stamp: Date, seq: Int64 = 3) throws -> Scr
 
         let sent = try #require(transport.pushBodies.first?.first)
         #expect(sent["deleted"] as? Bool == true)
+        #expect(sent["format"] as? String == "plain")
         #expect(sent["payload"] is NSNull)
         #expect(store.needsPush == false)
     }
@@ -129,6 +135,32 @@ private func remote(_ data: Data?, at stamp: Date, seq: Int64 = 3) throws -> Scr
         #expect(store.stamp == base.addingTimeInterval(60))
         #expect(report.trainerChanged)
         #expect(report.applied == 1)
+    }
+
+    @Test func remotePlanSealedWithTheDeviceKeyIsStillRead() async throws {
+        let store = FakeTrainerStore(data: nil, stamp: nil, needsPush: false)
+        let legacy = Data(#"{"name":"selado pelo aparelho"}"#.utf8)
+
+        let (report, _) = try await run(store, [try remote(legacy, at: base, sealed: true)])
+
+        #expect(store.data == legacy)
+        #expect(report.trainerChanged)
+    }
+
+    @Test func firstSyncAfterUpdateResendsTheUnchangedPlanAsPlainOnce() async throws {
+        let store = FakeTrainerStore(data: plan, stamp: base, needsPush: false)
+        let suite = migratedSuite()
+        UserDefaults(suiteName: suite)?.removeObject(forKey: RemoteSyncConstants.trainerPlainMigrationKey)
+
+        let (first, firstTransport) = try await run(store, [accepted(), emptyPage], defaults: suite)
+        let (second, secondTransport) = try await run(store, [emptyPage], defaults: suite)
+
+        let sent = try #require(firstTransport.pushBodies.first?.first)
+        #expect(sent["kind"] as? String == "trainer")
+        #expect(sent["format"] as? String == "plain")
+        #expect(first.pushed == 1)
+        #expect(second.pushed == 0)
+        #expect(secondTransport.pushBodies.isEmpty)
     }
 
     @Test func olderRemotePlanKeepsLocal() async throws {

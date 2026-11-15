@@ -14,6 +14,7 @@ import { PasswordPage } from './pages/PasswordPage'
 import { ResetPage } from './pages/ResetPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SignupPage } from './pages/SignupPage'
+import { TrainerPage } from './pages/TrainerPage'
 import { TodayPage } from './pages/TodayPage'
 import { WorkoutsPage } from './pages/WorkoutsPage'
 import { navigate, useRoute } from './router'
@@ -86,6 +87,7 @@ export function App() {
           {target === 'workouts' && <WorkoutsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'evolution' && <EvolutionPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'races' && <RacesPage version={sync.version} syncing={sync.state.kind === 'running'} />}
+          {target === 'trainer' && <TrainerPage version={sync.version} syncing={sync.state.kind === 'running'} />}
           {target === 'goals' && <GoalsPage version={sync.version} syncing={sync.state.kind === 'running'} />}
         </AppLayout>
       )

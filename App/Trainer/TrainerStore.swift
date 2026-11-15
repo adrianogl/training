@@ -113,6 +113,11 @@ extension TrainerStore: RemoteTrainerStore {
         return RemoteTrainerState(data: data, updatedAt: stamp)
     }
 
+    func markPending() {
+        guard let stamp = updatedAt() else { return }
+        store(stamp: stamp, deleted: isTombstone, needsPush: true)
+    }
+
     func markPushed(updatedAt pushed: Date) {
         guard updatedAt() == pushed else { return }
         store(stamp: pushed, deleted: isTombstone, needsPush: false)

@@ -24,6 +24,7 @@ private struct Harness {
 func migratedSuite(_ done: Bool = true) -> String {
     let suite = "remote-sync-\(UUID().uuidString)"
     UserDefaults(suiteName: suite)?.set(done, forKey: RemoteSyncConstants.plainMigrationKey)
+    UserDefaults(suiteName: suite)?.set(done, forKey: RemoteSyncConstants.trainerPlainMigrationKey)
     return suite
 }
 

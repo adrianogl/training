@@ -88,6 +88,23 @@ import TrainingCore
         try Self.store().delete()
     }
 
+    @Test func markPendingQueuesTheSavedPlanForPushAgain() throws {
+        let store = Self.store()
+        try store.save(Self.plan())
+        store.markPushed(updatedAt: try #require(store.updatedAt()))
+        #expect(store.pending() == nil)
+
+        store.markPending()
+
+        #expect(store.pending() != nil)
+    }
+
+    @Test func markPendingWithoutPlanDoesNothing() {
+        let store = Self.store()
+        store.markPending()
+        #expect(store.pending() == nil)
+    }
+
     @Test func loadsNilWhenFileIsCorrupt() throws {
         let store = Self.store()
         try Data("{".utf8).write(to: store.url)

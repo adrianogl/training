@@ -72,9 +72,6 @@ function validateRecord(value: unknown): IncomingRecord | string {
   if (format !== undefined && !RECORD_FORMATS.some((item) => item === format)) {
     return 'invalid_format'
   }
-  if (format === 'plain' && kind === 'trainer') {
-    return 'invalid_format'
-  }
   if (format === 'plain') {
     const error = deleted ? null : plainPayloadError(kind, id, storedPayload ?? '')
     return error ?? { kind, id, updatedAt, deleted, payload: storedPayload, format: 'plain' as RecordFormat }

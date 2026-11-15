@@ -30,4 +30,5 @@ enum RemoteSyncConstants {
     static let batchEnvelopeBytes = 32
     static let trainerRecordId = "plan"
     static let plainMigrationKey = "remoteSync.plainPayloadsPushed"
+    static let trainerPlainMigrationKey = "remoteSync.trainerPlainPushed"
 }

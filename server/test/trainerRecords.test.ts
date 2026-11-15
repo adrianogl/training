@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Sql } from '../src/db.js'
 import { createAccountRoute, pullChangesRoute, pushChangesRoute } from '../src/routes.js'
@@ -5,11 +6,15 @@ import { makeRequest, makeToken, migratedSql, record } from './helpers.js'
 
 const token = makeToken(1)
 
-async function push(sql: Sql, records: unknown[]) {
+const key = randomBytes(32)
+const plan = { target: { kind: 'race', name: 'Meia de exemplo' }, paces: {}, weeks: [], workouts: [], versions: [] }
+
+async function push(sql: Sql, records: unknown[], dataKey?: Buffer) {
   const response = await pushChangesRoute(
     makeRequest('POST', '/api/v1/changes', { token, body: JSON.stringify({ records }) }),
     sql,
     { maxAccounts: 3, maxAccountBytes: 50 * 1024 * 1024 },
+    dataKey,
   )
   return { status: response.status, body: await response.json() }
 }
@@ -42,10 +47,33 @@ describe('registro do treinador', () => {
     expect(pushed).toEqual({ status: 400, body: { error: 'invalid_id' } })
   })
 
-  it('recusa formato plain, porque o servidor não lê o plano', async () => {
-    const pushed = await push(sql, [record({ kind: 'trainer', id: 'plan', payload: '{}', format: 'plain' })])
+  it('aceita o plano em plain, cifra no servidor e devolve o JSON no pull', async () => {
+    const payload = JSON.stringify(plan)
+    const pushed = await push(sql, [record({ kind: 'trainer', id: 'plan', payload, format: 'plain' })], key)
+    const stored = await sql<{ payload: string; format: string }>("select payload, format from records where kind = 'trainer'")
+    const pulled = await pullChangesRoute(makeRequest('GET', '/api/v1/changes', { token }), sql, key)
+    const body = (await pulled.json()) as { records: { payload: string; format: string }[] }
 
-    expect(pushed.status).toBe(400)
+    expect(pushed.status).toBe(200)
+    expect(stored[0]?.format).toBe('plain')
+    expect(stored[0]?.payload).not.toContain('Meia')
+    expect(body.records[0]).toMatchObject({ payload, format: 'plain' })
+  })
+
+  it('recusa plain que não é um plano ou com id diferente de plan', async () => {
+    const notPlan = await push(sql, [record({ kind: 'trainer', id: 'plan', payload: '{}', format: 'plain' })], key)
+    const wrongId = await push(sql, [record({ kind: 'trainer', id: 'outro', payload: JSON.stringify(plan), format: 'plain' })], key)
+
+    expect(notPlan).toEqual({ status: 400, body: { error: 'invalid_plain_payload' } })
+    expect(wrongId).toEqual({ status: 400, body: { error: 'invalid_id' } })
+  })
+
+  it('plain substitui o plano selado pelo aparelho com o mesmo updatedAt', async () => {
+    await push(sql, [record({ kind: 'trainer', id: 'plan', payload: 'c2VsYWRv' })])
+    await push(sql, [record({ kind: 'trainer', id: 'plan', payload: JSON.stringify(plan), format: 'plain' })], key)
+    const stored = await sql<{ format: string }>("select format from records where kind = 'trainer'")
+
+    expect(stored.map((row) => row.format)).toEqual(['plain'])
   })
 
   it('o mais novo vence e o tombstone apaga o plano', async () => {

@@ -1,5 +1,5 @@
 import { open, seal } from './cipher.js'
-import { BASE64_PATTERN, DAY_PATTERN, GOALS, PLAIN_LIMITS, RECORD_CONTEXT_PREFIX } from './constants.js'
+import { BASE64_PATTERN, DAY_PATTERN, GOALS, PLAIN_LIMITS, RECORD_CONTEXT_PREFIX, TRAINER_RECORD_ID } from './constants.js'
 import type { IncomingRecord, RecordKind, StoredRecord } from './types.js'
 
 type Check = (value: unknown) => boolean
@@ -12,6 +12,8 @@ const isBase64: Check = (value) => typeof value === 'string' && BASE64_PATTERN.t
 const isInteger: Check = (value) => typeof value === 'number' && Number.isSafeInteger(value)
 const isBoolean: Check = (value) => typeof value === 'boolean'
 const isString: Check = (value) => typeof value === 'string'
+const isArray: Check = (value) => Array.isArray(value)
+const isObject: Check = (value) => typeof value === 'object' && value !== null && !Array.isArray(value)
 const optional = (check: Check): Check => (value) => value === undefined || value === null || check(value)
 
 const RACE_FIELDS: Record<string, Check> = {
@@ -46,6 +48,14 @@ const GOAL_FIELDS: Record<string, Check> = {
   updatedAt: isString,
 }
 
+const TRAINER_FIELDS: Record<string, Check> = {
+  target: isObject,
+  paces: isObject,
+  weeks: isArray,
+  workouts: isArray,
+  versions: isArray,
+}
+
 const DECISION_FIELDS: Record<string, Check> = {
   activityId: isInteger,
   decision: isText(PLAIN_LIMITS.decision),
@@ -65,9 +75,12 @@ export function plainPayloadError(kind: RecordKind, id: string, payload: string)
   if (value === undefined) {
     return 'invalid_plain_payload'
   }
-  const fields = kind === 'race' ? RACE_FIELDS : kind === 'goal' ? GOAL_FIELDS : DECISION_FIELDS
+  const fields = kind === 'race' ? RACE_FIELDS : kind === 'goal' ? GOAL_FIELDS : kind === 'trainer' ? TRAINER_FIELDS : DECISION_FIELDS
   if (!Object.entries(fields).every(([name, check]) => check(value[name]))) {
     return 'invalid_plain_payload'
+  }
+  if (kind === 'trainer') {
+    return id === TRAINER_RECORD_ID ? null : 'invalid_plain_payload'
   }
   const ownId = kind === 'decision' ? String(value.activityId) : String(value.id).toLowerCase()
   return ownId === id.toLowerCase() ? null : 'invalid_plain_payload'

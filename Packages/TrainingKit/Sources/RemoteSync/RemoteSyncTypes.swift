@@ -189,6 +189,7 @@ public struct RemoteTrainerState: Equatable, Sendable {
 public protocol RemoteTrainerStore: Sendable {
     func pending() -> RemoteTrainerState?
     func updatedAt() -> Date?
+    func markPending()
     func markPushed(updatedAt: Date)
     func apply(_ remote: RemoteTrainerState) -> Bool
 }

@@ -2,6 +2,7 @@ import { inviteRequestActionRoute, inviteRequestRoute } from './inviteRequestRou
 import { activityRoute, detailedActivityRoute, plannedRoute, renameActivityRoute } from './activityRoutes.js'
 import { deleteRaceRoute, racesRoute, saveRaceRoute } from './raceRoutes.js'
 import { deleteGoalRoute, goalsRoute, saveGoalRoute } from './goalRoutes.js'
+import { trainerRoute } from './trainerRoutes.js'
 import {
   changePasswordRoute,
   forgotPasswordRoute,
@@ -64,6 +65,7 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
   goals: { GET: (request, sql) => goalsRoute(request, sql), POST: (request, sql) => saveGoalRoute(request, sql), PUT: (request, sql) => saveGoalRoute(request, sql), DELETE: (request, sql) => deleteGoalRoute(request, sql) },
   races: { GET: (request, sql) => racesRoute(request, sql), POST: (request, sql) => saveRaceRoute(request, sql), PUT: (request, sql) => saveRaceRoute(request, sql), DELETE: (request, sql) => deleteRaceRoute(request, sql) },
+  trainer: { GET: (request, sql) => trainerRoute(request, sql) },
   'garmin/planned': { GET: (request, sql) => plannedRoute(request, sql) },
   'garmin/activity': { GET: (request, sql) => activityRoute(request, sql), PUT: (request, sql) => renameActivityRoute(request, sql) },
   'garmin/activity/detailed': { GET: (request, sql) => detailedActivityRoute(request, sql) },
