@@ -87,45 +87,24 @@ import WorkoutAnalysis
         #expect(sessions.first?.group == .fullBody)
     }
 
-    @Test func warmupStaysAtThreeKilometersAfterHeavyLegs() throws {
-        let plan = createPlan(strength: [mmii])
-
-        let vo2 = try workout(plan, 3)
-        #expect(vo2.steps.first?.kind == .warmup && vo2.steps.first?.meters == 3_000)
-        #expect(vo2.totalMeters == 9_000)
-        #expect(vo2.note == "pernas de ontem (MMII)")
-        #expect(vo2.rationale.contains("MMII"))
-        #expect(vo2.rationale.contains("aquecimento continua em 3 km"))
-        let threshold = try workout(plan, 1)
-        #expect(threshold.steps.first?.meters == 3_000)
-        #expect(threshold.note == nil)
-    }
-
-    @Test func strengthOnTheSameDayDoesNotChangeTheRun() throws {
-        let thursdayStrength = TrainerStrengthSession(weekday: 4, group: .lower, legLoad: .heavy, name: "MMII")
-        let plan = createPlan(strength: [thursdayStrength])
+    @Test func strengthTheDayBeforeLeavesTheRunIdentical() throws {
+        let plan = createPlan(strength: [mmii, fullBody])
         let plain = createPlan(strength: [])
 
-        let vo2 = try workout(plan, 3)
-        #expect(vo2.steps == (try workout(plain, 3)).steps)
-        #expect(vo2.note == nil)
+        for offset in [1, 3, 5] {
+            let with = try workout(plan, offset)
+            let without = try workout(plain, offset)
+            #expect(with.steps == without.steps)
+            #expect(with.note == without.note)
+            #expect(with.rationale == without.rationale)
+            #expect(!(with.note ?? "").contains("pernas"))
+            #expect(!with.rationale.contains("MMII"))
+        }
+        #expect(try workout(plan, 5).steps.count == 1)
+        #expect(try workout(plan, 3).steps.first?.meters == 3_000)
     }
 
-    @Test func longRunAfterFullBodyStartsSlower() throws {
-        let plan = createPlan(strength: [fullBody])
-
-        let long = try workout(plan, 5)
-        #expect(long.steps.count == 2)
-        #expect(long.steps[0].kind == .steady && long.steps[0].meters == 5_000)
-        #expect(long.steps[1].meters == 12_000)
-        #expect(long.steps[0].paceLow == 338 && long.steps[0].paceHigh == 352)
-        #expect(long.steps[1].paceLow == 328 && long.steps[1].paceHigh == 342)
-        #expect(long.totalMeters == 17_000)
-        #expect(long.note?.contains("começa mais lento: força ontem") == true)
-        #expect(createPlan(strength: []).workouts.first { $0.day == monday.adding(days: 5) }?.steps.count == 1)
-    }
-
-    @Test func offTargetQualityAfterLegsCitesTheStrength() throws {
+    @Test func offTargetQualityDoesNotCiteTheStrength() throws {
         let plan = createPlan(strength: [mmii])
         let thursday = monday.adding(days: 3)
         let friday = monday.adding(days: 4)
@@ -136,30 +115,12 @@ import WorkoutAnalysis
         )
 
         let version = try #require(adjusted.versions.last)
-        #expect(version.summary.contains("MMII"))
-        #expect(version.changes.contains { $0.reason.contains("força de pernas") })
+        #expect(!version.summary.contains("MMII"))
         #expect(!version.summary.contains("Pense em fazer"))
+        #expect(!version.changes.contains { $0.reason.contains("força de pernas") })
     }
 
-    @Test func twoWeeksInARowSuggestMovingTheLegsToTheThresholdDay() throws {
-        let plan = createPlan(strength: [mmii])
-        let firstThursday = monday.adding(days: 3)
-        let secondThursday = monday.adding(days: 10)
-        let history = baseHistory(extra: [
-            run(97, firstThursday, km: 12.6, pace: 250, kind: .intervals, onTarget: 3, total: 5),
-            run(98, secondThursday, km: 12.6, pace: 250, kind: .intervals, onTarget: 2, total: 5),
-        ])
-
-        let adjusted = TrainerEngine.adjust(
-            plan, history: history, today: secondThursday.adding(days: 1), now: now,
-            trigger: .workout(activityId: 98, day: secondThursday)
-        )
-
-        let summary = try #require(adjusted.versions.last?.summary)
-        #expect(summary.contains("Pense em fazer o MMII no dia do vo2 máx, depois da corrida. O plano não muda a musculação sozinho."))
-    }
-
-    @Test func strengthChangedRecalculatesTheDetail() throws {
+    @Test func strengthChangedUpdatesTheRegistryWithoutChangingTheRun() throws {
         let plan = createPlan(strength: [])
         var edited = plan
         edited.strength = [mmii]
@@ -168,26 +129,11 @@ import WorkoutAnalysis
 
         let version = try #require(adjusted.versions.last)
         #expect(version.trigger == .strengthChanged)
-        let change = try #require(version.changes.first { $0.kind == .changed && $0.title.hasPrefix("VO2") })
-        #expect(change.before == "sem observação")
-        #expect(change.after == "pernas de ontem (MMII)")
-        #expect(change.reason.contains("MMII"))
-        #expect(try workout(adjusted, 3).steps.first?.meters == 3_000)
+        #expect(version.summary == "Treinos de força atualizados. A corrida não muda por causa deles.")
+        #expect(version.changes.allSatisfy { $0.kind == .unchanged })
+        #expect(adjusted.workouts == plan.workouts)
         #expect(adjusted.strength == [mmii])
         #expect(adjusted.weeks.map(\.targetMeters) == plan.weeks.map(\.targetMeters))
-    }
-
-    @Test func removingTheStrengthRemovesTheLegsNote() throws {
-        let plan = createPlan(strength: [mmii])
-        var edited = plan
-        edited.strength = []
-
-        let adjusted = TrainerEngine.adjust(edited, history: baseHistory(), today: monday, now: now, trigger: .strengthChanged)
-
-        let change = try #require(adjusted.versions.last?.changes.first { $0.title.hasPrefix("VO2") })
-        #expect(change.before == "pernas de ontem (MMII)")
-        #expect(change.after == "sem observação")
-        #expect(!change.reason.isEmpty)
     }
 
     @Test func oldJsonWithoutStrengthStillDecodes() throws {

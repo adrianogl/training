@@ -27,6 +27,11 @@ struct ReadinessHeroCard: View {
                         }
                     }
                     ReadinessDrivers(rows: model.factorRows)
+                    if model.summary.readinessFromYesterday {
+                        Text(C.readinessFromYesterday)
+                            .font(.caption)
+                            .foregroundStyle(BrandColors.dim)
+                    }
                 } else if let score = model.fallbackScore {
                     HStack(alignment: .center, spacing: 18) {
                         ScoreGauge(score: score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)

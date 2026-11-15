@@ -61,9 +61,6 @@ struct TrainerStrengthView: View {
                 Text(row.caption).font(.caption).foregroundStyle(BrandColors.dim)
             }
             Spacer(minLength: 6)
-            Text(TrainerText.legsLoad(row.session.legLoad))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(row.session.legLoad == .heavy ? BrandColors.attention : BrandColors.dim)
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
@@ -125,13 +122,6 @@ struct TrainerStrengthEditView: View {
                         }
                         .pickerStyle(.menu)
                         .tint(BrandColors.text)
-                        Text(TrainerText.strengthLoadLabel).font(.footnote).foregroundStyle(BrandColors.dim)
-                        Picker(TrainerText.strengthLoadLabel, selection: $session.legLoad) {
-                            ForEach(TrainerConstants.strengthLoads, id: \.self) { load in
-                                Text(TrainerText.loadName(load).capitalized).tag(load)
-                            }
-                        }
-                        .pickerStyle(.segmented)
                         TextField(TrainerText.strengthNameLabel, text: $session.name)
                             .padding(10)
                             .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))

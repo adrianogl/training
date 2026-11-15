@@ -89,6 +89,9 @@ struct TrainerView: View {
             .buttonStyle(.plain)
         }
         strengthCard(plan)
+        TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in
+            Task { await model.setLongMode(mode) }
+        }
         TrainerWeekStrip(cells: model.weekCells, weeksText: weeksText) { start in Task { await model.toggleLightWeek(start) } }
         SectionLabel(TrainerText.upcoming)
         ForEach(model.weekGroups) { group in

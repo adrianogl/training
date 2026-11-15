@@ -19,6 +19,7 @@ struct TrainerNewPlanView: View {
     @State private var goalPace = TrainerConstants.goalPaceDefault
     @State private var goalKilometers = TrainerConstants.goalDistanceDefault
     @State private var lightWeeks: Set<Day> = []
+    @State private var longMode = TrainerLongMode.continuous
 
     private var model: TrainerModel { app.trainer }
 
@@ -35,6 +36,7 @@ struct TrainerNewPlanView: View {
                     targetCard
                     volumeCard
                     weekCard
+                    TrainerLongModeCard(mode: longMode, suggestion: model.longSuggestion) { longMode = $0 }
                     lightWeeksCard
                     pacesCard
                     Button(mode == .race ? TrainerText.createButton : TrainerText.createTextButton) { create() }
@@ -305,7 +307,7 @@ struct TrainerNewPlanView: View {
                 target: target, structure: structure, strength: strength,
                 startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
                 peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer,
-                lightWeeks: lightWeeks.sorted()
+                lightWeeks: lightWeeks.sorted(), longMode: longMode
             )
             dismiss()
         }

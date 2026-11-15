@@ -18,6 +18,17 @@ extension TrainerEngine {
             var toggled = plan
             if let at = toggled.lightWeeks.firstIndex(of: day) { toggled.lightWeeks.remove(at: at) } else { toggled.lightWeeks.append(day) }
             return adjustSkeleton(toggled, history: history, today: today, now: now, trigger: trigger)
+        case .longModeChanged:
+            var toggled = plan
+            toggled.longMode = plan.longMode == .blocks ? .continuous : .blocks
+            toggled.longStageStreak = 0
+            toggled.longStageMisses = 0
+            if toggled.longMode == .blocks {
+                toggled.longStage = initialLongStage(
+                    history: history, plan: plan, today: today, meters: currentLongMeters(plan.weeks, today: today)
+                )
+            }
+            return adjustSkeleton(toggled, history: history, today: today, now: now, trigger: trigger)
         default:
             return adjustSkeleton(plan, history: history, today: today, now: now, trigger: trigger)
         }
@@ -36,7 +47,8 @@ extension TrainerEngine {
         let fresh = build(
             target: plan.target, structure: plan.structure, strength: plan.strength, history: history, today: today,
             offset: keptWeeks.count,
-            startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: plan.lightWeeks
+            startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: plan.lightWeeks,
+            longMode: plan.longMode, longStage: plan.longStage
         )
         let merged = plan.workouts.filter { $0.day < today } + fresh.workouts
         let freshWeeks = withPlannedMeters(
@@ -68,6 +80,7 @@ extension TrainerEngine {
         var processed = plan.processedActivityIds
         var request: TrainerRequest?
         var checkedDay: Day?
+        var longScope: [TrainerWorkout] = []
         switch trigger {
         case .weekEnded(let index):
             guard let week = plan.weeks.first(where: { $0.index == index }) else { return plan }
@@ -76,6 +89,7 @@ extension TrainerEngine {
                 workouts: plan.workouts.filter { days.contains($0.day) }, plan: plan, history: history, today: today,
                 readinessDays: days, weekly: true
             )
+            longScope = plan.workouts.filter { days.contains($0.day) }
             rebuildFrom = index + 1
             processed += history.runs.filter { days.contains($0.day) }.map(\.activityId)
         case .workout(let id, let day):
@@ -83,19 +97,26 @@ extension TrainerEngine {
                 workouts: plan.workouts.filter { $0.day == day }, plan: plan, history: history, today: today,
                 readinessDays: [day], weekly: false
             )
+            longScope = plan.workouts.filter { $0.day == day }
             rebuildFrom = (plan.weeks.first { $0.start == day.weekStart }?.index ?? currentIndex) + 1
             processed.append(id)
             checkedDay = day
         case .request(let value):
             request = value
             found.lowReadiness = value.category == .fatigue
-        case .strengthChanged:
+        case .strengthChanged, .longModeChanged:
             break
         case .lightWeek(let day):
             rebuildFrom = plan.weeks.first { $0.start == day }?.index ?? rebuildFrom
         case .created:
             return plan
         }
+
+        let closing = closeLongBlocks(plan: plan, workouts: longScope, history: history)
+        var working = plan
+        working.apply(closing.long)
+        var longDetail = working.longPlan
+        if longDetail.mode == .blocks { longDetail.evidence = longEvidence(history: history, plan: plan, today: today) }
 
         var adjustment = TrainerSkeletonAdjustment()
         if found.longFailed || found.longPaused {
@@ -122,7 +143,7 @@ extension TrainerEngine {
         let past = plan.workouts.filter { $0.day <= today }
         let window = detailWorkouts(
             weeks: skeleton, structure: plan.structure, paces: paces, history: history, target: plan.target,
-            today: today, past: past, requests: requests, strength: plan.strength, peakVolume: volumes.peak
+            today: today, past: past, requests: requests, peakVolume: volumes.peak, long: longDetail
         ).map { generated in
             let done = history.runs.contains { $0.day == generated.day }
             return done ? plan.workouts.first { $0.day == generated.day } ?? generated : generated
@@ -134,7 +155,6 @@ extension TrainerEngine {
         )
 
         var reasons = TrainerChangeReasons()
-        reasons.strength = trigger == .strengthChanged
         reasons.requests = requests.map { $0.from...end(of: $0).adding(days: C.returnSearchDays) }
         var sentences: [String] = []
         if found.longFailed || found.longPaused, let day = found.longDay {
@@ -142,19 +162,32 @@ extension TrainerEngine {
             reasons.long = T.longFailure(found, day: day, next: next)
             sentences.append(reasons.long ?? "")
         }
-        var suggestion: String?
         for kind in [TrainerDayKind.threshold, .vo2max] {
             if let miss = missedQuality(kind, past: past, history: history, today: today) {
-                let legs = legsName(before: miss.day, plan: plan, history: history)
-                reasons.quality[kind] = T.qualityMiss(miss, legs: legs)
+                reasons.quality[kind] = T.qualityMiss(miss)
                 guard found.misses.contains(miss) else { continue }
-                sentences.append(T.qualityMiss(miss, legs: legs))
-                if let legs, repeatedLegsMiss(miss, plan: plan, history: history, today: today) {
-                    suggestion = T.strengthSuggestion(name: legs, kind: kind)
-                }
+                sentences.append(T.qualityMiss(miss))
             }
         }
         if trigger == .strengthChanged { sentences.append(T.strengthSummary) }
+        sentences += closing.sentences
+        if !closing.changes.isEmpty { reasons.long = closing.sentences.last }
+        var longModeChange: TrainerChange?
+        if trigger == .longModeChanged {
+            let meters = currentLongMeters(weeks, today: today)
+            let stage = working.longStage
+            let blocks = longBlocks(stage: stage, meters: meters)
+            let text = T.longModeChanged(to: working.longMode, stage: stage, blocks: blocks, rest: longRest(stage: stage))
+            let previous: TrainerLongMode = working.longMode == .blocks ? .continuous : .blocks
+            longModeChange = TrainerChange(
+                kind: .changed, title: T.longModeTitle,
+                before: T.longModeSummary(previous, stage: stage, blocks: blocks, rest: longRest(stage: stage)),
+                after: T.longModeSummary(working.longMode, stage: stage, blocks: blocks, rest: longRest(stage: stage)),
+                reason: text
+            )
+            reasons.long = text
+            sentences.append(text)
+        }
         if case .lightWeek(let day) = trigger, let marked = weeks.first(where: { $0.start == day }) {
             let flipped = zip(plan.weeks, weeks).filter { $0.0.isRecovery != $0.1.isRecovery && $0.1.start != day && $0.1.index >= rebuildFrom }
             let text = plan.lightWeeks.contains(day)
@@ -174,30 +207,22 @@ extension TrainerEngine {
         if sentences.isEmpty {
             sentences = [weekEndedText(trigger) ?? checkedDay.map(T.workoutChecked) ?? ""]
         }
-        let summary = (sentences.prefix(suggestion == nil ? 2 : 1) + (suggestion.map { [$0] } ?? [])).joined(separator: " ")
+        let summary = sentences.prefix(2).joined(separator: " ")
 
         let oldWindow = plan.workouts.filter { $0.day >= today }
         var changes = workoutChanges(old: oldWindow, new: window, reasons: reasons)
         let held = adjustment.holdProgression || adjustment.volumeScale != nil
         if let change = skeletonChange(old: plan.weeks, new: weeks, reasons: reasons, held: held) { changes.insert(change, at: 0) }
+        changes += closing.changes
+        if let longModeChange { changes.insert(longModeChange, at: 0) }
         changes += newWeekChanges(oldEnd: oldWindow.map(\.day).max(), new: window, weeks: weeks)
         if changes.isEmpty {
             changes = [TrainerChange(kind: .unchanged, title: T.unchangedTitle, reason: sentences.joined(separator: " "))]
         }
         return finish(
-            plan, weeks: weeks, workouts: merged, paces: paces, processed: processed,
+            working, weeks: weeks, workouts: merged, paces: paces, processed: processed,
             trigger: trigger, now: now, summary: summary, changes: changes
         )
-    }
-
-    private static func repeatedLegsMiss(_ miss: TrainerQualityMiss, plan: TrainerPlan, history: TrainerHistory, today: Day) -> Bool {
-        let previousStart = miss.day.weekStart.adding(days: -C.daysPerWeek)
-        return plan.workouts.contains { workout in
-            guard workout.day.weekStart == previousStart, workout.day <= today,
-                  workout.kind == .threshold || workout.kind == .vo2max,
-                  status(of: workout, history: history, today: today).status == .offTarget else { return false }
-            return legsName(before: workout.day, plan: plan, history: history) != nil
-        }
     }
 
     private static func isWeekEnded(_ trigger: TrainerTrigger) -> Bool {

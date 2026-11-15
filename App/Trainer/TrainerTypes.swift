@@ -65,6 +65,8 @@ struct TrainerStepRow: Identifiable, Equatable {
     let kind: TrainerStepKind
     let title: String
     let detail: String
+    var isHeader = false
+    var isNested = false
 }
 
 struct TrainerShapeBar: Identifiable, Equatable {
@@ -127,4 +129,11 @@ struct TrainerStrengthDraft: Identifiable {
 enum TrainerStrengthResult {
     case save(TrainerStrengthSession)
     case remove(UUID)
+}
+
+struct TrainerBestTime: Equatable {
+    let hour: Int
+    let temperature: Double
+    let heat: TrainerHeat
+    let laterHotHour: Int?
 }

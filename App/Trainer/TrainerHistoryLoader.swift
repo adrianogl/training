@@ -54,12 +54,14 @@ enum TrainerHistoryLoader {
     ) -> TrainerRun {
         var fadeKm: Int?
         var pauses: Int?
+        var firstPauseKm: Int?
         var onTarget: Int?
         var total: Int?
         if deep {
             if let analysis = detailedAnalysis(record: record, history: runs, daily: [], longGoalKm: nil, raceGoalKms: raceKms) {
                 fadeKm = analysis.fadeKm
                 pauses = analysis.pauseKilometers.count
+                firstPauseKm = analysis.pauseKilometers.first.map { Int($0.rounded(.down)) + 1 }
             }
             let analysis = WorkoutAnalysisContext.build(record: record, records: runs, inputs: inputs)
             let active = analysis.blocks.filter { $0.kind == .active }
@@ -77,6 +79,7 @@ enum TrainerHistoryLoader {
             averageHeartRate: record.averageHR,
             fadeKm: fadeKm,
             pauses: pauses,
+            firstPauseKm: firstPauseKm,
             activeOnTarget: onTarget,
             activeTotal: total,
             workPaceSeconds: workPace(record)?.pace

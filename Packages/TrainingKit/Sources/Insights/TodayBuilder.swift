@@ -20,8 +20,10 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
     func input(on day: Day) -> ReadinessInput? {
         records[day]?.readinessInput(acuteChronic: acuteChronicRatio(dailyLoad: load, on: day.adding(days: -1)))
     }
-    let todayInput = input(on: today)
-    let history = (1...C.readinessHistoryDays).reversed().compactMap { input(on: today.adding(days: -$0)) }
+    let fromYesterday = input(on: today) == nil && input(on: today.adding(days: -1)) != nil
+    let readinessDay = fromYesterday ? today.adding(days: -1) : today
+    let todayInput = input(on: readinessDay)
+    let history = (1...C.readinessHistoryDays).reversed().compactMap { input(on: readinessDay.adding(days: -$0)) }
     let runs = activities.filter(isRun)
     return TodaySummary(
         readiness: todayInput.flatMap { readinessBreakdown(today: $0, history: history) },
@@ -39,7 +41,8 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
         week: weekVolume(runs, today: today),
         predictions: builder.predictions(efforts),
         lastRunId: runs.last?.activityId,
-        readinessRaw: readinessRaw(today: todayInput, history: history)
+        readinessRaw: readinessRaw(today: todayInput, history: history),
+        readinessFromYesterday: fromYesterday
     )
 }
 

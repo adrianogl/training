@@ -32,9 +32,10 @@ extension TrainerEngine {
             let result = status(of: workout, history: history, today: today)
             guard let run = result.run, !plan.processedActivityIds.contains(run.activityId) else { continue }
             let short = run.meters < workout.totalMeters * C.longFailShare
-            let paused = workout.kind == .long && (run.pauses ?? 0) > 0
+            let paused = (run.pauses ?? 0) > plannedPauses(of: workout)
+            let closesLong = plan.longMode == .blocks && workout.kind == .long
             let lowReadiness = history.readiness[run.day].map { $0 < C.readinessTrigger } ?? false
-            if short || result.status == .offTarget || paused || lowReadiness {
+            if short || result.status == .offTarget || paused || closesLong || lowReadiness {
                 triggers.append(.workout(activityId: run.activityId, day: run.day))
             }
         }
@@ -50,7 +51,7 @@ extension TrainerEngine {
             guard let run = outcome.run, !plan.processedActivityIds.contains(run.activityId) else { continue }
             switch workout.kind {
             case .long:
-                let paused = (run.pauses ?? 0) > 0
+                let paused = (run.pauses ?? 0) > plannedPauses(of: workout)
                 let failed = run.meters < workout.totalMeters * C.longFailShare
                 guard failed || paused else { continue }
                 result.longPlanned = workout.totalMeters

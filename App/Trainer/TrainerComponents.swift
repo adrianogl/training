@@ -186,15 +186,21 @@ struct TrainerStepList: View {
         VStack(spacing: 0) {
             ForEach(rows) { row in
                 HStack(spacing: 8) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(TrainerConstants.color(for: row.kind))
-                        .frame(width: 10, height: 10)
-                    Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
+                    if row.isHeader {
+                        Image(systemName: "repeat").font(.caption2.weight(.semibold)).foregroundStyle(BrandColors.dim)
+                        Text(row.title).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
+                    } else {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(TrainerConstants.color(for: row.kind))
+                            .frame(width: 10, height: 10)
+                        Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
+                    }
                     Spacer(minLength: 6)
                     Text(row.detail).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
                 }
+                .padding(.leading, row.isNested ? TrainerConstants.nestedStepInset : 0)
                 .padding(.vertical, 7)
-                if row.id != rows.last?.id {
+                if row.id != rows.last?.id && !row.isHeader {
                     Divider().overlay(BrandColors.line)
                 }
             }
