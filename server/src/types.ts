@@ -339,3 +339,32 @@ export interface InviteRequestRow extends InviteRequestInput {
   id: string
   createdAt: string
 }
+
+export interface StravaEnv {
+  dataKey: Buffer | undefined
+  fetcher: Fetcher
+  now: () => Date
+  clientId: string | undefined
+  clientSecret: string | undefined
+}
+
+export interface StravaLink {
+  athleteId: number
+  athleteName: string
+  accessToken: string
+  refreshToken: string
+  expiresAt: string
+  scope: string
+  format: string
+  enabled: boolean
+}
+
+export interface StravaTokenSet {
+  accessToken: string
+  refreshToken: string
+  expiresAt: string
+  athleteId: number | undefined
+  athleteName: string | undefined
+}
+
+export type StravaDescribeStatus = 'posted' | 'updated' | 'not_found' | 'edited_by_user' | 'disabled' | 'retry_later'

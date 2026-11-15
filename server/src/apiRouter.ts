@@ -30,6 +30,7 @@ import {
   garminEvolutionRoute,
   garminVerifyRoute,
 } from './garminRoutes.js'
+import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaStatusRoute } from './stravaRoutes.js'
 import {
   createAccountRoute,
   deleteAccountRoute,
@@ -63,6 +64,14 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/status': { GET: (request, sql) => garminStatusRoute(request, sql), DELETE: (request, sql) => garminStatusRoute(request, sql) },
   'garmin/session': { GET: (request, sql) => garminSessionRoute(request, sql) },
   'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
+  'strava/connect': { GET: (request, sql) => stravaConnectRoute(request, sql) },
+  'strava/callback': { GET: (request, sql) => stravaCallbackRoute(request, sql) },
+  'strava/describe': { POST: (request, sql) => stravaDescribeRoute(request, sql) },
+  strava: {
+    GET: (request, sql) => stravaStatusRoute(request, sql),
+    PATCH: (request, sql) => stravaStatusRoute(request, sql),
+    DELETE: (request, sql) => stravaStatusRoute(request, sql),
+  },
   goals: { GET: (request, sql) => goalsRoute(request, sql), POST: (request, sql) => saveGoalRoute(request, sql), PUT: (request, sql) => saveGoalRoute(request, sql), DELETE: (request, sql) => deleteGoalRoute(request, sql) },
   races: { GET: (request, sql) => racesRoute(request, sql), POST: (request, sql) => saveRaceRoute(request, sql), PUT: (request, sql) => saveRaceRoute(request, sql), DELETE: (request, sql) => deleteRaceRoute(request, sql) },
   trainer: { GET: (request, sql) => trainerRoute(request, sql) },

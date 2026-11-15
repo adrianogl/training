@@ -23,6 +23,7 @@ import TrainingCore
     let remoteSync: RemoteSyncModel
     let garminAccount: GarminAccountModel
     let account: AccountModel
+    let strava: StravaModel
     let trainer: TrainerModel
     let snapshots: ScreenSnapshotStore
     @ObservationIgnored let notifier: MorningNotifier
@@ -91,6 +92,7 @@ import TrainingCore
             makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
         )
         self.account = AccountModel(transport: transport, baseURL: remoteBaseURL)
+        self.strava = StravaModel(container: container, defaults: remoteDefaults)
         self.trainer = TrainerModel(container: container, store: trainerStore)
         self.snapshots = snapshots
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
@@ -104,7 +106,12 @@ import TrainingCore
             guard let self, let token = self.account.token else { return nil }
             return GarminLinkClient(baseURL: remoteBaseURL, token: token, transport: transport)
         }
+        strava.link = { [weak self] in
+            guard let self, let token = self.account.token else { return nil }
+            return StravaClient(baseURL: remoteBaseURL, token: token, transport: transport)
+        }
         account.onSignedOut = { [weak self] in
+            self?.strava.reset()
             self?.garminAccount.forgetLocal()
             self?.snapshots.removeAll()
         }
@@ -266,7 +273,7 @@ import TrainingCore
                 if trigger != .background { self?.markNew(report.processedActivityIds) }
                 if configuration.deferredFITOlderThanDays != nil { deferringEngine = engine }
                 if let summary, !Task.isCancelled { await self?.handleMorningNotice(summary, trigger: trigger) }
-                if !trigger.runsInBackground { self?.scoreRefresher.refresh() }
+                if !trigger.runsInBackground { self?.refreshScores() }
             } catch {
                 self?.syncStatus = Task.isCancelled || error is CancellationError ? .idle : .failed(SyncFailure(error))
             }
@@ -382,12 +389,20 @@ import TrainingCore
         let task = Task(priority: .background) { [weak self] in
             defer { self?.deferredFITTask = nil }
             guard let report = try? await engine.runDeferredFIT(), !report.processedActivityIds.isEmpty, !Task.isCancelled else { return }
-            self?.scoreRefresher.refresh()
+            self?.refreshScores()
             self?.deferredFITRevision += 1
             await self?.narrativeTask?.value
             if !Task.isCancelled { self?.startNarratives(processed: report.processedActivityIds) }
         }
         deferredFITTask = task
+    }
+
+    private func refreshScores() {
+        let task = scoreRefresher.refresh()
+        Task { [weak self] in
+            await task.value
+            await self?.strava.sendPending()
+        }
     }
 
     private func markNew(_ ids: Set<Int64>) {
