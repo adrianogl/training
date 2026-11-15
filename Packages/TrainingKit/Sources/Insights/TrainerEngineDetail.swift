@@ -218,9 +218,9 @@ extension TrainerEngine {
         let weight = easyCount + optionalCount * C.optionalEasyShare
         let rest = week.targetMeters - longMeters - quality
         let raw = weight > 0 ? rest / weight : 0
-        let optional = min(max(roundKilometers(raw * C.optionalEasyShare), C.optionalMinimumMeters), C.optionalMaximumMeters)
+        let optional = min(max(roundKilometers(raw * C.optionalEasyShare), easyMinimum(paces: paces)), optionalLimit(paces: paces))
         let easyRaw = easyCount > 0 ? (rest - optional * optionalCount) / easyCount : 0
-        let easy = min(max(roundKilometers(easyRaw), C.minimumEasyMeters), easyLimit(paces: paces))
+        let easy = min(max(roundKilometers(easyRaw), easyMinimum(paces: paces)), easyLimit(paces: paces))
         return TrainerEasyShare(meters: easy, optional: optional, base: base.meters, fromHistory: base.fromHistory)
     }
 

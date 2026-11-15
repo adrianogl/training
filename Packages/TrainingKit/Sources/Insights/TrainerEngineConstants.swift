@@ -125,7 +125,6 @@ enum TrainerEngineConstants {
     static let easyWindowDays = 42
     static let halfKilometer = 500.0
     static let optionalEasyShare = 0.7
-    static let optionalMinimumMeters = 5_000.0
     static let optionalReadiness = 60
     static let raceWeekEasyMeters = 5_000.0
     static let doneShare = 0.9
