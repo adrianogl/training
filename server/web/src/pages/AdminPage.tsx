@@ -23,6 +23,7 @@ export function AdminPage() {
   const [result, setResult] = useState<InviteResult | null>(null)
   const [notice, setNotice] = useState<string>()
   const [busy, setBusy] = useState(false)
+  const [appAccess, setAppAccess] = useState(false)
 
   async function load() {
     const response = await api.adminOverview()
@@ -42,13 +43,22 @@ export function AdminPage() {
     setBusy(true)
     setError(undefined)
     setNotice(undefined)
-    const response = await api.adminInvite(name.trim(), channel, channel === 'email' ? email.trim() : undefined)
+    const response = await api.adminInvite(name.trim(), channel, channel === 'email' ? email.trim() : undefined, appAccess)
     setBusy(false)
     if (!response.ok) {
       setError(errorText(response.error))
       return
     }
     setResult(response.value)
+    void load()
+  }
+
+  async function toggleApp(invite: InviteRow) {
+    const response = await api.adminInviteAppAccess(invite.id, !invite.appAccess)
+    if (!response.ok) {
+      setError(errorText(response.error))
+      return
+    }
     void load()
   }
 
@@ -133,6 +143,10 @@ export function AdminPage() {
           </div>
           {channel === 'email' && <label className="field">{ADMIN_TEXT.email}<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="off" /></label>}
           {channel === 'whatsapp' && <label className="field">{ADMIN_TEXT.phone}<input inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} autoComplete="off" /></label>}
+          <label className="check">
+            <input type="checkbox" checked={appAccess} onChange={(event) => setAppAccess(event.target.checked)} />
+            {ADMIN_TEXT.appAccess}
+          </label>
           <span className="muted">{ADMIN_TEXT.inviteHint}</span>
           <button className="btn btn-primary" type="submit" disabled={busy || name.trim() === '' || (channel === 'email' && email.trim() === '')}>{ADMIN_TEXT.actions[channel]}</button>
           {result && (
@@ -153,13 +167,17 @@ export function AdminPage() {
           {data && data.invites.length === 0 && <p className="muted">{ADMIN_TEXT.noInvites}</p>}
           {data && data.invites.length > 0 && (
             <div className="table-wrap"><table className="table">
-              <thead><tr><th>{ADMIN_TEXT.columns.name}</th><th>{ADMIN_TEXT.columns.channel}</th><th>{ADMIN_TEXT.columns.status}</th><th /></tr></thead>
+              <thead><tr><th>{ADMIN_TEXT.columns.name}</th><th>{ADMIN_TEXT.columns.channel}</th><th>{ADMIN_TEXT.columns.status}</th><th>{ADMIN_TEXT.columns.app}</th><th /></tr></thead>
               <tbody>
                 {data.invites.map((invite) => (
                   <tr key={invite.id}>
                     <td>{invite.name}</td>
                     <td className="muted">{ADMIN_TEXT.channels[invite.channel]}</td>
                     <td><span className={`pill pill-${invite.status}`}>{ADMIN_TEXT.statuses[invite.status]}{invite.status === 'pending' ? ` · até ${shortDate(invite.expiresAt)}` : ''}</span></td>
+                    <td>
+                      <span className={invite.appAccess ? 'accent' : 'muted'}>{invite.appAccess ? ADMIN_TEXT.appOn : ADMIN_TEXT.appOff}</span>
+                      {invite.status !== 'canceled' && <div><button className="btn btn-small" type="button" onClick={() => void toggleApp(invite)}>{ADMIN_TEXT.appToggle(invite.appAccess)}</button></div>}
+                    </td>
                     <td className="right">
                       {invite.status === 'pending' && <button className="btn btn-small" type="button" onClick={() => act(invite, 'cancel')}>{ADMIN_TEXT.cancel}</button>}
                       {(invite.status === 'expired' || invite.status === 'canceled') && <button className="btn btn-small" type="button" onClick={() => act(invite, 'renew')}>{ADMIN_TEXT.renew}</button>}
@@ -181,7 +199,7 @@ export function AdminPage() {
                 <tr key={user.id}>
                   <td>{user.name}<div className="muted">{user.email}</div></td>
                   <td className={user.admin ? 'accent' : ''}>{user.admin ? ADMIN_TEXT.adminRole : ADMIN_TEXT.role[user.role]}</td>
-                  <td className="muted">{ADMIN_TEXT.access[user.role]}</td>
+                  <td className="muted">{user.role === 'guest' && user.appAccess ? ADMIN_TEXT.access.guestApp : ADMIN_TEXT.access[user.role]}</td>
                   <td className={user.garminConnected ? '' : 'muted'}>{user.garminConnected ? ADMIN_TEXT.garminOn : ADMIN_TEXT.garminOff}</td>
                   <td className="muted">{user.lastSeenAt ? shortDate(user.lastSeenAt) : ADMIN_TEXT.never}</td>
                   <td className="muted">{formatBytes(user.dataBytes)}</td>

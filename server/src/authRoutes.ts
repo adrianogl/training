@@ -12,7 +12,7 @@ import {
 import { parseEmailBody, parseLogin, parseNameBody, parsePasswordChange, parseSignup, parseTokenBody } from './authValidate.js'
 import type { Sql } from './db.js'
 import { limitsFromEnv } from './limits.js'
-import { acceptInvite, pendingInvite } from './invites.js'
+import { acceptInvite, pendingInvite, userHasAppAccess } from './invites.js'
 import { mailerFromEnv } from './mailer.js'
 import { resetPasswordMail, verifyEmailMail } from './mailTemplates.js'
 import { hashPassword, verifyPassword } from './password.js'
@@ -135,7 +135,7 @@ export function signupRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFr
       return failure(403, 'invite_required')
     }
     const role = trusted ? 'member' : 'guest'
-    if (role === 'guest' && fromApp(request)) {
+    if (role === 'guest' && fromApp(request) && invite?.appAccess !== true) {
       return failure(403, 'web_only')
     }
     const outcome = await createUser(
@@ -181,7 +181,7 @@ export function loginRoute(request: Request, sql: Sql, env: AuthEnv = authEnvFro
       await recordLoginAttempt(sql, ipHash, now)
       return failure(401, 'invalid_credentials')
     }
-    if (found.user.role === 'guest' && fromApp(request)) {
+    if (found.user.role === 'guest' && fromApp(request) && !(await userHasAppAccess(sql, found.user.id))) {
       return failure(403, 'web_only')
     }
     const token = await createSession(sql, found.user.id, parsed.value.device, now)
