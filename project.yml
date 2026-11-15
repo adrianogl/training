@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     iOS: "26.0"
   createIntermediateGroups: true
+  developmentLanguage: pt-BR
 packages:
   TrainingKit:
     path: Packages/TrainingKit
