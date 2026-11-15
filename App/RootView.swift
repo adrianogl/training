@@ -11,27 +11,11 @@ struct RootView: View {
     @SceneStorage(NavigationRestorationConstants.todayPathKey) private var todayPathData = Data()
     @SceneStorage(NavigationRestorationConstants.morePathKey) private var morePathData = Data()
     @State private var appliedRestoration = false
+    @State private var section = AppSection.today
+    @State private var sidebarSelection: AppSection? = .today
+    @State private var todayPath: [TodayRoute] = []
+    @State private var morePath = NavigationPath()
     @State private var columnVisibility = NavigationSplitViewVisibility.all
-
-    private var section: AppSection {
-        get { NavigationRestoration.section(sectionRaw, allowed: AppConstants.compactTabs) }
-        nonmutating set { sectionRaw = newValue.rawValue }
-    }
-
-    private var sidebarSelection: AppSection? {
-        get { NavigationRestoration.section(sidebarRaw, allowed: AppSection.sidebarSections) }
-        nonmutating set { sidebarRaw = (newValue ?? .today).rawValue }
-    }
-
-    private var todayPath: [TodayRoute] {
-        get { NavigationRestoration.decodePath(todayPathData) }
-        nonmutating set { todayPathData = NavigationRestoration.encode(newValue) }
-    }
-
-    private var morePath: NavigationPath {
-        get { NavigationRestoration.decodeNavigationPath(morePathData) }
-        nonmutating set { morePathData = NavigationRestoration.encode(newValue) }
-    }
 
     var body: some View {
         Group {
@@ -49,6 +33,10 @@ struct RootView: View {
             }
         }
         .onAppear(perform: applyRestoration)
+        .onChange(of: section) { _, value in sectionRaw = value.rawValue }
+        .onChange(of: sidebarSelection) { _, value in sidebarRaw = (value ?? .today).rawValue }
+        .onChange(of: todayPath) { _, value in todayPathData = NavigationRestoration.encode(value) }
+        .onChange(of: morePath) { _, value in morePathData = NavigationRestoration.encode(value) }
         .task(id: model.trainer.isLoaded) {
             guard model.trainer.isLoaded, model.trainer.plan == nil, morePath.count > 1 else { return }
             var path = morePath
@@ -73,7 +61,7 @@ struct RootView: View {
     }
 
     private var tabView: some View {
-        TabView(selection: Binding(get: { section }, set: { section = $0 })) {
+        TabView(selection: $section) {
             ForEach(AppConstants.compactTabs) { item in
                 Tab(item.title, systemImage: item.systemImage, value: item) {
                     screen(for: item)
@@ -84,7 +72,7 @@ struct RootView: View {
 
     private var splitView: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(AppSection.sidebarSections, selection: Binding(get: { sidebarSelection }, set: { sidebarSelection = $0 })) { item in
+            List(AppSection.sidebarSections, selection: $sidebarSelection) { item in
                 Label(item.title, systemImage: item.systemImage).tag(item)
             }
             .navigationTitle("")
@@ -106,13 +94,13 @@ struct RootView: View {
     @ViewBuilder
     private func screen(for item: AppSection) -> some View {
         switch item {
-        case .today: TodayView(path: Binding(get: { todayPath }, set: { todayPath = $0 })) { open(.settings) }
+        case .today: TodayView(path: $todayPath) { open(.settings) }
         case .evolution: EvolutionView()
         case .races: RaceListView()
         case .trainer: NavigationStack { TrainerView() }
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
-        case .more: MoreView(path: Binding(get: { morePath }, set: { morePath = $0 }))
+        case .more: MoreView(path: $morePath)
         }
     }
 
@@ -120,11 +108,13 @@ struct RootView: View {
         guard !appliedRestoration else { return }
         appliedRestoration = true
         let context = ModelContext(model.container)
-        let restored = NavigationRestoration.validPrefix(todayPath) { route in
+        section = NavigationRestoration.section(sectionRaw, allowed: AppConstants.compactTabs)
+        sidebarSelection = NavigationRestoration.section(sidebarRaw, allowed: AppSection.sidebarSections)
+        todayPath = NavigationRestoration.validPrefix(NavigationRestoration.decodePath(todayPathData)) { (route: TodayRoute) in
             if case .workout(let id) = route { return NavigationRestoration.hasActivity(id, in: context) }
             return true
         }
-        if restored.count != todayPath.count { todayPath = restored }
+        morePath = NavigationRestoration.decodeNavigationPath(morePathData)
         if let override = AppSection.debugOverride() {
             section = override
             sidebarSelection = override

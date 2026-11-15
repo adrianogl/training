@@ -16,15 +16,8 @@ struct WorkoutListView: View {
     @State private var userScrolled = false
     @State private var showsPlanned = false
 
-    private var path: [WorkoutSelection] {
-        get { validated(NavigationRestoration.decodePath(pathData)) }
-        nonmutating set { pathData = NavigationRestoration.encode(newValue) }
-    }
-
-    private var selection: WorkoutSelection? {
-        get { NavigationRestoration.decodeValue(selectionData).flatMap { isRestorable($0) ? $0 : nil } }
-        nonmutating set { selectionData = newValue.map { NavigationRestoration.encode($0) } ?? Data() }
-    }
+    @State private var path: [WorkoutSelection] = []
+    @State private var selection: WorkoutSelection?
 
     private func isRestorable(_ item: WorkoutSelection) -> Bool {
         guard case .activity(let id) = item else { return true }
@@ -55,13 +48,15 @@ struct WorkoutListView: View {
                     }
                 }
             } else {
-                NavigationStack(path: Binding(get: { path }, set: { path = $0 })) {
+                NavigationStack(path: $path) {
                     list(weeks)
                         .navigationDestination(for: WorkoutSelection.self) { item in destination(item) }
                 }
             }
         }
-        .onAppear(perform: applyDebugOverride)
+        .onAppear(perform: applyRestoration)
+        .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
+        .onChange(of: selection) { _, value in selectionData = value.map { NavigationRestoration.encode($0) } ?? Data() }
         .task {
             model.scoreRefresher.refresh()
         }
@@ -82,9 +77,11 @@ struct WorkoutListView: View {
         }
     }
 
-    private func applyDebugOverride() {
+    private func applyRestoration() {
         guard !appliedRestoration else { return }
         appliedRestoration = true
+        path = validated(NavigationRestoration.decodePath(pathData))
+        selection = NavigationRestoration.decodeValue(selectionData).flatMap { isRestorable($0) ? $0 : nil }
         let debugPath = Self.initialPath()
         guard !debugPath.isEmpty else { return }
         path = debugPath

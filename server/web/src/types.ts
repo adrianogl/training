@@ -30,6 +30,7 @@ export type Route =
   | 'workouts'
   | 'races'
   | 'goals'
+  | 'trainer'
   | 'evolution'
   | 'settings'
   | 'password'
@@ -461,4 +462,117 @@ export interface DetailedAnalysisView {
   findings: DetailedFinding[]
   recommendations: DetailedRecommendation[]
   sources: { key: 'fit' | 'plan' | 'similar' | 'readiness' | 'goal'; count: number }[]
+}
+
+export type TrainerDayKind = 'easy' | 'threshold' | 'vo2max' | 'optionalEasy' | 'long' | 'off' | 'race'
+export type TrainerPhase = 'general' | 'base' | 'build' | 'specific' | 'taper'
+export type TrainerStepKind = 'warmup' | 'work' | 'recovery' | 'cooldown' | 'steady'
+export type TrainerMethod = 'cruiseIntervals' | 'tempo' | 'intervals' | 'repetition' | 'racePace' | 'goalPace'
+export type TrainerTriggerKind = 'created' | 'weekEnded' | 'workout' | 'request' | 'strengthChanged' | 'lightWeek' | 'longModeChanged' | 'edited' | 'readiness'
+
+export interface TrainerStep {
+  kind: TrainerStepKind
+  repeats: number
+  meters: number
+  restSeconds: number | null
+  paceLow: number | null
+  paceHigh: number | null
+  method: TrainerMethod | null
+}
+
+export interface TrainerWorkout {
+  day: string
+  kind: TrainerDayKind
+  title: string
+  totalMeters: number
+  steps: TrainerStep[]
+  paceLow: number | null
+  paceHigh: number | null
+  note: string | null
+  rationale: string
+  method: TrainerMethod | null
+  edited: boolean
+}
+
+export interface TrainerWeek {
+  index: number
+  start: string
+  phase: TrainerPhase
+  isRecovery: boolean
+  plannedMeters: number
+  longMeters: number
+}
+
+export interface TrainerTarget {
+  name: string
+  date: string | null
+  distanceMeters: number | null
+  goalSeconds: number | null
+  goalPace: number | null
+}
+
+export interface TrainerPaces {
+  easy: number
+  long: number
+  threshold: number
+  vo2max: number
+  race: number | null
+}
+
+export interface TrainerStrength {
+  weekday: number
+  name: string
+}
+
+export interface TrainerChange {
+  kind: string
+  title: string
+  before: string | null
+  after: string | null
+  reason: string
+}
+
+export interface TrainerTrigger {
+  kind: TrainerTriggerKind
+  day: string | null
+  number: number | null
+}
+
+export interface TrainerVersion {
+  number: number
+  createdAt: string
+  trigger: TrainerTrigger
+  summary: string
+  changes: TrainerChange[]
+}
+
+export interface TrainerPlan {
+  target: TrainerTarget
+  paces: TrainerPaces
+  weeks: TrainerWeek[]
+  workouts: TrainerWorkout[]
+  versions: TrainerVersion[]
+  strength: TrainerStrength[]
+  lightWeeks: string[]
+  longMode: 'continuous' | 'blocks'
+  longStage: number
+}
+
+export interface TrainerStepRow {
+  id: number
+  kind: TrainerStepKind
+  title: string
+  detail: string
+  header: boolean
+  nested: boolean
+}
+
+export interface TrainerWeekCell {
+  id: number
+  title: string
+  kilometers: string
+  detail: string
+  phase: TrainerPhase | null
+  current: boolean
+  past: boolean
 }

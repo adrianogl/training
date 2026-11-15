@@ -87,4 +87,25 @@ import TrainingCore
         let onTarget = TrainerRun(activityId: 2, day: workout.day, meters: 11_800, seconds: 3_400, kind: .tempo, activeOnTarget: 3, activeTotal: 3)
         #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .done, run: onTarget, isChanged: false))?.text == "no alvo")
     }
+
+    @Test func labelsEditedWorkoutsAndTriggers() {
+        var workout = TrainerStoreTests.plan().workouts[0]
+        workout.edited = true
+        #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .planned, run: nil, isChanged: true))?.text == "editado")
+        #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .today, run: nil, isChanged: false))?.text == "hoje · editado")
+        #expect(TrainerText.triggerText(.edited(TrainerEdit())) == "plano editado por você")
+        #expect(TrainerText.triggerText(.edited(TrainerEdit(days: [workout.day]))) == "treino editado por você")
+    }
+
+    @Test func summarizesEditPreview() {
+        let changes = [
+            TrainerChange(kind: .changed, title: "Pace do limiar", before: "4:06/km", after: "4:02/km", reason: ""),
+            TrainerChange(kind: .skeleton, title: "Semana 3", reason: ""),
+            TrainerChange(kind: .newWeek, title: "Semana 14", reason: ""),
+            TrainerChange(kind: .unchanged, title: "Treino editado mantido", reason: ""),
+        ]
+        #expect(TrainerText.previewLines(changes) == ["Pace do limiar: 4:06/km → 4:02/km", "Semana 3"])
+        #expect(TrainerText.editTotal(total: 11_000, warmup: 3_000) == "Total: 11 km com 3 km de aquecimento.")
+        #expect(TrainerText.editTotal(total: 8_500, warmup: nil) == "Total: 8,5 km.")
+    }
 }

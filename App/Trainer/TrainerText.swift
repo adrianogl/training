@@ -11,7 +11,7 @@ enum TrainerText {
     static let cardCreate = "Criar plano"
     static let emptyTitle = "Nenhum plano ainda"
     static let emptyBody = "O treinador monta duas semanas de treino por distância, com a estrutura da sua semana, e revê o plano a cada semana e depois de treinos fora do previsto."
-    static let upcoming = "Próximos 15 dias"
+    static let upcoming = "Semanas"
     static let weeksLabel = "Até a prova"
     static let askButton = "Pedir readequação"
     static let updatedBanner = "Plano atualizado"
@@ -23,7 +23,7 @@ enum TrainerText {
     static let cancel = "Cancelar"
     static let done = "Concluir"
     static let phases: [(TrainerPhase, String)] = [
-        (.base, "base"), (.build, "construção"), (.specific, "específico"), (.taper, "polimento"),
+        (.general, "base geral"), (.base, "base"), (.build, "construção"), (.specific, "específico"), (.taper, "polimento"),
     ]
     static let restTitle = "Folga"
     static let raceCell = "prova"
@@ -58,6 +58,67 @@ enum TrainerText {
     static let numbersTitle = "Números"
     static let doneTitle = "O que você fez"
     static let structureTitle = "Estrutura"
+    static let editPlanMenu = "Editar plano"
+    static let editPlanTitle = "Editar plano"
+    static let save = "Salvar"
+    static let saveEditButton = "Salvar e refazer daqui pra frente"
+    static let previewTitle = "O que vai mudar"
+    static let previewEmpty = "Nada muda no plano."
+    static let editedStatus = "editado"
+    static let todayEditedStatus = "hoje · editado"
+    static let paceFromHistory = "do histórico"
+    static let paceManual = "manual"
+    static let paceAdjust = "Ajustar"
+    static let paceBackToHistory = "Do histórico"
+    static let paceRaceName = "Prova"
+    static let paceGoalName = "Pace-alvo"
+    static let paceLongName = "Longão"
+    static let paceEasyName = "Rodagem"
+    static let editWorkoutButton = "Editar"
+    static let editWorkoutTitle = "Editar treino"
+    static let seriesTitle = "Série"
+    static let workoutEditTitle = "Treino"
+    static let repeatsLabel = "Repetições"
+    static let blockLabel = "Bloco"
+    static let restLabel = "Descanso parado"
+    static let totalDistanceLabel = "Distância"
+    static let swapTitle = "Trocar de dia"
+    static let editGridHint = "Toque num dia para trocar o tipo."
+    static let swapEmpty = "Não há outro dia livre nesta semana para trocar."
+    static let swapHint = "Escolha outro dia para trocar os dois treinos de lugar."
+    static let revertButton = "↺ Voltar à sugestão do treinador"
+
+    static func paceKindName(_ kind: TrainerPaceKind, goal: Bool) -> String {
+        switch kind {
+        case .easy: paceEasyName
+        case .long: paceLongName
+        case .threshold: "Limiar"
+        case .vo2max: "VO2 máx"
+        case .race: goal ? paceGoalName : paceRaceName
+        }
+    }
+
+    static func previewLines(_ changes: [TrainerChange]) -> [String] {
+        let lines = changes.filter { $0.kind != .unchanged && $0.kind != .newWeek }.map { change -> String in
+            guard let before = change.before, let after = change.after else { return change.title }
+            return "\(change.title): \(before) → \(after)"
+        }
+        guard lines.count > C.previewLineLimit else { return lines }
+        return Array(lines.prefix(C.previewLineLimit)) + ["e mais \(lines.count - C.previewLineLimit)"]
+    }
+
+    static func editHeading(_ workout: TrainerWorkout) -> String {
+        "\(kindName(workout.kind)) · \(C.weekdayFull[weekday(workout.day)]), \(workout.day.day)"
+    }
+
+    static func editTotal(total: Double, warmup: Double?) -> String {
+        guard let warmup, warmup > 0 else { return "Total: \(distance(total))." }
+        return "Total: \(distance(total)) com \(distance(warmup)) de aquecimento."
+    }
+
+    static func swapChip(_ day: Day) -> String {
+        "\(weekdayShort(day)) \(day.day)"
+    }
     static let plannedLabel = "Planejado"
     static let paceLabel = "Pace"
     static let notePrefix = "Observação"
@@ -478,8 +539,9 @@ enum TrainerText {
         case .skipped:
             return TrainerStatusLabel(text: skippedStatus, tone: .dim)
         case .today:
-            return TrainerStatusLabel(text: todayStatus, tone: .good)
+            return TrainerStatusLabel(text: row.workout.edited ? todayEditedStatus : todayStatus, tone: .good)
         case .planned:
+            if row.workout.edited { return TrainerStatusLabel(text: editedStatus, tone: .attention) }
             return row.isChanged ? TrainerStatusLabel(text: changedStatus, tone: .attention) : nil
         }
     }
@@ -498,6 +560,8 @@ enum TrainerText {
         case .strengthChanged: "treinos de força atualizados"
         case .lightWeek(let day): "semana de \(dayMonth(day)) alterada"
         case .longModeChanged: "modo do longão alterado"
+        case .readiness(_, let score): "prontidão \(score)"
+        case .edited(let edit): edit.days.isEmpty ? "plano editado por você" : "treino editado por você"
         }
     }
 

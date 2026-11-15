@@ -15,7 +15,7 @@ import WorkoutAnalysis
 
     private var goalTarget: TrainerTarget {
         TrainerTarget(
-            kind: .paceDistance, name: "4:00/km até 21 km", date: monday.adding(days: 16 * 7 + 5), distanceMeters: 21_000, goalPace: 240
+            kind: .paceDistance, name: "4:00/km até 21 km", date: monday.adding(days: 13 * 7 + 5), distanceMeters: 21_000, goalPace: 240
         )
     }
 
@@ -204,11 +204,14 @@ import WorkoutAnalysis
 
     @Test func racePaceGrowsUpToSeventyPercentInOneBlock() {
         func totals(_ meters: Double) -> [Double] {
-            let plan = TrainerEngine.create(
-                target: target(weeks: 40, meters: meters), structure: TrainerEngine.defaultStructure, strength: [],
-                history: history(), today: monday, now: now
-            )
-            return plan.weeks.compactMap { TrainerEngine.racePaceSession(week: $0, weeks: plan.weeks, target: plan.target) }.map(total)
+            let weeks = (1...40).map {
+                TrainerWeek(
+                    index: $0, start: monday.adding(days: ($0 - 1) * 7), phase: .specific, isRecovery: false, plannedMeters: 50_000,
+                    longMeters: 20_000, thresholdFocus: "", vo2Focus: ""
+                )
+            }
+            let goal = target(weeks: 40, meters: meters)
+            return weeks.compactMap { TrainerEngine.racePaceSession(week: $0, weeks: weeks, target: goal) }.map(total)
         }
         let half = totals(21_097.5)
         let marathon = totals(42_195)
@@ -273,7 +276,7 @@ import WorkoutAnalysis
         #expect(first.paceLow == 237 && first.paceHigh == 243)
         #expect(first.steps.first { $0.kind == .recovery }?.restSeconds == 90)
         #expect(second.method == .intervals)
-        #expect(plan.workouts.filter { $0.kind == .threshold }.allSatisfy { $0.method == .cruiseIntervals })
+        #expect(plan.workouts.filter { $0.kind == .threshold && $0.day < monday.adding(days: 15) }.allSatisfy { $0.method == .cruiseIntervals })
         #expect(first.rationale.contains("Pace-alvo 4 × 2 km a 4:00, 1:30 parado."))
     }
 

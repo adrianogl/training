@@ -1,5 +1,7 @@
 import Foundation
+import GarminAPI
 import Insights
+import Metrics
 import Observation
 import Storage
 import SwiftData
@@ -12,18 +14,26 @@ import TrainingCore
     private(set) var isLoaded = false
     private(set) var isWorking = false
     private(set) var saveFailed = false
+    private(set) var externalWorkouts: [TrainerExternalWorkout] = []
+    private(set) var keptReadinessDay: String?
 
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let store: TrainerStore
     @ObservationIgnored private let today: @Sendable () -> Day
+    @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var autoTask: Task<Void, Never>?
     @ObservationIgnored private var loadedStamp: Date?
     @ObservationIgnored var onChange: @MainActor () -> Void = {}
 
-    init(container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() }) {
+    init(
+        container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
+        defaults: UserDefaults = .standard
+    ) {
         self.container = container
         self.store = store
         self.today = today
+        self.defaults = defaults
+        self.keptReadinessDay = defaults.string(forKey: TrainerConstants.readinessKeptDefaultsKey)
         self.seenVersion = store.seenVersion
         self.plan = store.load()
         self.loadedStamp = store.updatedAt()
@@ -49,19 +59,72 @@ import TrainingCore
     var weekGroups: [TrainerWeekGroup] {
         guard let plan else { return [] }
         let now = currentDay
-        let from = now.weekStart
-        let through = now.adding(days: TrainerConstants.horizonDays - 1)
-        let visible = plan.workouts.filter { $0.day >= from && $0.day <= through }.sorted { $0.day < $1.day }
-        let grouped = Dictionary(grouping: visible) { $0.day.weekStart }
+        let grouped = Dictionary(grouping: plan.workouts.sorted { $0.day < $1.day }) { $0.day.weekStart }
         return grouped.keys.sorted().map { start in
             let week = plan.weeks.first { $0.start == start }
             return TrainerWeekGroup(
                 start: start,
                 title: TrainerText.weekTitle(index: week?.index, start: start),
                 caption: TrainerText.weekCaption(plannedMeters: week?.plannedMeters),
-                rows: (grouped[start] ?? []).map(row)
+                rows: (grouped[start] ?? []).map(row),
+                isCurrent: start == now.weekStart,
+                isPast: start < now.weekStart
             )
         }
+    }
+
+    var scoreboards: [TrainerScoreboard] {
+        guard let plan else { return [] }
+        return TrainerEngine.scoreboards(plan: plan, history: history, today: currentDay)
+    }
+
+    var compareWeeks: [TrainerComparisonWeek] {
+        guard let plan else { return [] }
+        let now = currentDay
+        let first = now.weekStart.adding(days: -TrainerConstants.weekdayCount)
+        return (0...TrainerConstants.externalWeeksAhead)
+            .map { first.adding(days: $0 * TrainerConstants.weekdayCount) }
+            .filter { start in externalWorkouts.contains { $0.day.weekStart == start } }
+            .map { TrainerEngine.compare(plan: plan, external: externalWorkouts, history: history, week: $0, today: now) }
+    }
+
+    func loadExternal(client: GarminAccountClient?) async {
+        guard let client else {
+            externalWorkouts = []
+            return
+        }
+        let first = currentDay.weekStart.adding(days: -TrainerConstants.weekdayCount)
+        let last = first.adding(days: (TrainerConstants.externalWeeksAhead + 1) * TrainerConstants.weekdayCount - 1)
+        guard let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: last), !Task.isCancelled else { return }
+        externalWorkouts = workouts.compactMap(TrainerExternalMapper.convert)
+    }
+
+    static func lowestFactor(_ breakdown: ReadinessBreakdown?) -> TrainerReadinessFactor? {
+        let scored = (breakdown?.factors ?? []).compactMap { factor in factor.todayScore.map { (factor.component, $0) } }
+        guard let lowest = scored.min(by: { $0.1 < $1.1 }) else { return nil }
+        return TrainerReadinessFactor(name: TrainerConstants.readinessFactorNames[lowest.0] ?? "", value: Int(lowest.1.rounded()))
+    }
+
+    func readinessSuggestion(score: Int?, factor: TrainerReadinessFactor?) -> TrainerReadinessSuggestion? {
+        guard let plan, let score, keptReadinessDay != currentDay.iso else { return nil }
+        var seen = history
+        seen.readiness[currentDay] = score
+        return TrainerEngine.readinessSuggestion(plan: plan, history: seen, today: currentDay, factor: factor)
+    }
+
+    func keepReadiness(_ suggestion: TrainerReadinessSuggestion) {
+        defaults.set(suggestion.day.iso, forKey: TrainerConstants.readinessKeptDefaultsKey)
+        keptReadinessDay = suggestion.day.iso
+    }
+
+    func acceptReadiness(_ suggestion: TrainerReadinessSuggestion) async {
+        guard let current = plan else { return }
+        isWorking = true
+        defer { isWorking = false }
+        history = await loadHistory()
+        let trigger = TrainerTrigger.readiness(day: suggestion.day, score: suggestion.score)
+        persist(TrainerEngine.adjust(current, history: history, today: currentDay, now: .now, trigger: trigger))
+        markSeen()
     }
 
     var weekCells: [TrainerWeekCell] {
@@ -268,6 +331,72 @@ import TrainingCore
         persist(adjusted)
         markSeen()
         return adjusted.versions.last
+    }
+
+    func editVolumes() -> (start: Int, peak: Int)? {
+        guard let plan else { return nil }
+        let volumes = TrainerEngine.volumes(of: plan, history: history, today: currentDay)
+        return (
+            Int((volumes.start / TrainerConstants.metersPerKilometer).rounded()),
+            Int((volumes.peak / TrainerConstants.metersPerKilometer).rounded())
+        )
+    }
+
+    func makeEdit(
+        target: TrainerTarget, startMeters: Double, peakMeters: Double, structure: [Int: TrainerDayKind], longMode: TrainerLongMode,
+        paceOverrides: [TrainerPaceKind: Double]
+    ) -> TrainerEdit? {
+        guard let plan else { return nil }
+        return TrainerEngine.makeEdit(
+            for: plan, target: target, startMeters: startMeters, peakMeters: peakMeters, structure: structure, strength: plan.strength,
+            longMode: longMode, paceOverrides: paceOverrides, history: history, today: currentDay
+        )
+    }
+
+    func previewEdit(_ edit: TrainerEdit) -> [TrainerChange] {
+        guard let plan else { return [] }
+        return TrainerEngine.previewEdit(plan, edit: edit, history: history, today: currentDay, now: .now)
+    }
+
+    func saveEdit(_ edit: TrainerEdit) async {
+        guard let current = plan else { return }
+        isWorking = true
+        defer { isWorking = false }
+        history = await loadHistory()
+        persist(TrainerEngine.adjust(current, history: history, today: currentDay, now: .now, trigger: .edited(edit)))
+        markSeen()
+    }
+
+    func canEdit(_ row: TrainerDayRow) -> Bool {
+        (row.status == .planned || row.status == .today) && row.workout.day >= currentDay && TrainerEngine.isEditable(row.workout)
+    }
+
+    func swapCandidates(for day: Day) -> [Day] {
+        guard let plan else { return [] }
+        let now = currentDay
+        return plan.workouts
+            .filter { $0.day.weekStart == day.weekStart && $0.day != day && $0.day >= now && $0.kind != .race }
+            .filter { workout in !history.runs.contains { $0.day == workout.day } }
+            .map(\.day)
+            .sorted()
+    }
+
+    func saveWorkoutEdit(day: Day, edited: TrainerWorkout?, swapWith other: Day?) {
+        guard var current = plan else { return }
+        if let edited { current = TrainerEngine.editWorkout(current, edited, now: .now) }
+        if let other { current = TrainerEngine.swapWorkouts(current, day, other, now: .now) }
+        guard current != plan else { return }
+        persist(current)
+        markSeen()
+    }
+
+    func revertWorkout(_ day: Day) async {
+        guard let current = plan else { return }
+        isWorking = true
+        defer { isWorking = false }
+        history = await loadHistory()
+        persist(TrainerEngine.revertWorkout(current, day: day, history: history, today: currentDay, now: .now))
+        markSeen()
     }
 
     func deletePlan() {

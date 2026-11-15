@@ -14,20 +14,21 @@ struct RaceListView: View {
     @State private var openedDebugRace = false
     @Environment(\.horizontalSizeClass) private var sizeClass
 
-    private var path: [RaceRoute] {
-        get { NavigationRestoration.validPrefix(NavigationRestoration.decodePath(pathData), isValid: isRestorable) }
-        nonmutating set { pathData = NavigationRestoration.encode(newValue) }
-    }
-
-    private var selection: RaceRoute? {
-        get { NavigationRestoration.decodeValue(selectionData).flatMap { isRestorable($0) ? $0 : nil } }
-        nonmutating set { selectionData = newValue.map { NavigationRestoration.encode($0) } ?? Data() }
-    }
+    @State private var path: [RaceRoute] = []
+    @State private var selection: RaceRoute?
+    @State private var appliedRestoration = false
 
     private func isRestorable(_ route: RaceRoute) -> Bool {
         switch route {
         case .next(let id), .completed(let id): races.contains { $0.id == id }
         }
+    }
+
+    private func applyRestoration() {
+        guard !appliedRestoration else { return }
+        appliedRestoration = true
+        path = NavigationRestoration.validPrefix(NavigationRestoration.decodePath(pathData), isValid: isRestorable)
+        selection = NavigationRestoration.decodeValue(selectionData).flatMap { isRestorable($0) ? $0 : nil }
     }
 
     private var signature: [Date] {
@@ -55,7 +56,7 @@ struct RaceListView: View {
                     }
                 }
             } else {
-                NavigationStack(path: Binding(get: { path }, set: { path = $0 })) {
+                NavigationStack(path: $path) {
                     listScroll
                         .navigationDestination(for: RaceRoute.self) { route in destination(route) }
                         .navigationDestination(for: Int64.self) { activityId in WorkoutDetailView(activityId: activityId) }
@@ -65,6 +66,9 @@ struct RaceListView: View {
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: nil)
         }
+        .onAppear(perform: applyRestoration)
+        .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
+        .onChange(of: selection) { _, value in selectionData = value.map { NavigationRestoration.encode($0) } ?? Data() }
         .task(id: signature) {
             await Task.yield()
             if model == nil {

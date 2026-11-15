@@ -1557,3 +1557,316 @@ h2 {
   grid-column: 2 / -1;
   margin-top: -6px;
 }
+
+.trainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  --phase-general: #6aa9ff;
+  --phase-base: #5fd4a8;
+  --phase-build: var(--amber);
+  --phase-specific: var(--rest);
+  --phase-taper: #b58cff;
+}
+
+.trainer-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trainer-head p {
+  margin: 0;
+}
+
+.trainer-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trainer-beta {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.trainer-readonly {
+  height: 28px;
+  color: var(--dim);
+  font-size: 12px;
+}
+
+.trainer-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.trainer-cell {
+  --tone: var(--line-2);
+  flex: 0 0 104px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--tone);
+  background: var(--card);
+  font-size: 12px;
+}
+
+.trainer-cell.past {
+  opacity: 0.55;
+}
+
+.trainer-cell.current {
+  opacity: 1;
+  border-color: var(--accent-line);
+  border-top-color: var(--tone);
+  background: var(--accent-bg);
+}
+
+.trainer-cell.race {
+  --tone: var(--accent);
+}
+
+.trainer-cell b {
+  font-size: 16px;
+}
+
+.trainer-cell small {
+  color: var(--dim);
+}
+
+.trainer-cell i {
+  color: var(--tone);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.phase-general {
+  --tone: var(--phase-general);
+}
+
+.phase-base {
+  --tone: var(--phase-base);
+}
+
+.phase-build {
+  --tone: var(--phase-build);
+}
+
+.phase-specific {
+  --tone: var(--phase-specific);
+}
+
+.phase-taper {
+  --tone: var(--phase-taper);
+}
+
+.trainer-weeks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.trainer-week {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trainer-week summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 2px;
+  cursor: pointer;
+}
+
+.trainer-day {
+  --tone: var(--line-2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--tone);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trainer-day.on {
+  border-color: var(--accent-line);
+  border-left-color: var(--tone);
+  background: var(--accent-bg);
+}
+
+.trainer-day.today:not(.on) {
+  border-color: var(--accent-line);
+  border-left-color: var(--tone);
+}
+
+.trainer-day:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.kind-easy {
+  --tone: var(--accent);
+}
+
+.kind-optionalEasy {
+  --tone: var(--dim);
+}
+
+.kind-threshold {
+  --tone: var(--amber);
+}
+
+.kind-vo2max {
+  --tone: var(--rest);
+}
+
+.kind-long {
+  --tone: var(--phase-general);
+}
+
+.kind-race {
+  --tone: var(--phase-taper);
+}
+
+.trainer-day-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 28px;
+  color: var(--dim);
+}
+
+.trainer-day-date b {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.trainer-day-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.trainer-tag {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.trainer-edited {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #2a2414;
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.trainer-day-head h2 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.trainer-steps {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trainer-steps li {
+  --tone: var(--accent);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0 8px 12px;
+  border-left: 3px solid var(--tone);
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.trainer-steps .step-warmup {
+  --tone: var(--phase-general);
+}
+
+.trainer-steps .step-work {
+  --tone: var(--amber);
+}
+
+.trainer-steps .step-recovery,
+.trainer-steps .step-cooldown {
+  --tone: var(--phase-base);
+}
+
+.trainer-steps .header {
+  border-bottom: 0;
+  padding-bottom: 0;
+  font-weight: 700;
+}
+
+.trainer-steps .nested {
+  margin-left: 16px;
+}
+
+.trainer-change-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trainer-change-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trainer-versions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trainer-version {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.trainer-version.on {
+  border-color: var(--accent-line);
+  color: var(--text);
+}

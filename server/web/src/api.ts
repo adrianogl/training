@@ -58,6 +58,7 @@ export const api = {
   createGoal: (goal: GoalInput) => call<{ id: string }>('POST', 'goals', goal),
   updateGoal: (id: string, goal: GoalInput) => call<{ id: string }>('PUT', `goals?id=${encodeURIComponent(id)}`, goal),
   deleteGoal: (id: string) => call<void>('DELETE', `goals?id=${encodeURIComponent(id)}`),
+  trainer: () => call<unknown>('GET', 'trainer'),
   races: () => call<{ today: string; races: RaceView[] }>('GET', 'races'),
   createRace: (race: RaceInput) => call<{ id: string }>('POST', 'races', race),
   updateRace: (id: string, race: RaceInput) => call<{ id: string }>('PUT', `races?id=${encodeURIComponent(id)}`, race),

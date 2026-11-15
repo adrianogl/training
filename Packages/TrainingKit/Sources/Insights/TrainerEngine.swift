@@ -32,7 +32,8 @@ public enum TrainerEngine {
             number: 1, createdAt: now, trigger: .created,
             summary: T.createdSummary(
                 weeks: plan.weeks.count, target: target.name, phases: T.phasesList(plan.weeks.map(\.phase)),
-                goal: goalPaceSummary(target: target, paces: plan.paces)
+                goal: goalPaceSummary(target: target, paces: plan.paces),
+                blockStart: plan.weeks.contains { $0.phase == .general } ? plan.weeks.first { $0.phase != .general }?.start : nil
             ),
             changes: [first] + longChanges + weekChanges
         )
@@ -44,12 +45,11 @@ public enum TrainerEngine {
     static func build(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
         history: TrainerHistory, today: Day, offset: Int, startMeters: Double?, peakMeters: Double?, lightWeeks: [Day] = [],
-        longMode: TrainerLongMode = .continuous, longStage: Int? = nil
+        longMode: TrainerLongMode = .continuous, longStage: Int? = nil, paceOverrides: [TrainerPaceKind: Double] = [:]
     ) -> TrainerPlan {
         let volume = startMeters ?? averageWeeklyMeters(history: history, today: today)
         let peak = max(volume, peakMeters ?? defaultPeak(from: volume))
-        var paces = paces(history: history, today: today)
-        paces.race = racePace(target)
+        let paces = resolvedPaces(history: history, today: today, target: target, overrides: paceOverrides)
         let datedWeeks = target.date.flatMap { date -> Int? in
             date >= today ? today.weekStart.days(until: date.weekStart) / C.daysPerWeek + 1 : nil
         }
@@ -76,7 +76,7 @@ public enum TrainerEngine {
             target: target, structure: structure, paces: paces,
             weeks: withPlannedMeters(weeks, workouts: workouts, structure: structure, target: target, history: history, today: today),
             workouts: workouts, versions: [], strength: strength, startMeters: startMeters, peakMeters: peakMeters,
-            lightWeeks: lightWeeks, longMode: long.mode, longStage: long.stage
+            lightWeeks: lightWeeks, longMode: long.mode, longStage: long.stage, paceOverrides: paceOverrides
         )
     }
 }

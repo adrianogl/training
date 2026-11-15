@@ -9,7 +9,7 @@ extension TrainerEngine {
     static func thresholdVolume(week: TrainerWeek, stage: Int) -> Double {
         if week.isRecovery || week.phase == .taper { return C.thresholdRecoveryMeters }
         switch week.phase {
-        case .base, .taper: return C.thresholdBaseMeters
+        case .general, .base, .taper: return C.thresholdBaseMeters
         case .build: return C.thresholdBuildMeters[stage]
         case .specific: return C.thresholdSpecificMeters[stage]
         }
@@ -56,7 +56,7 @@ extension TrainerEngine {
         case 1:
             return session([TrainerQualityBlock(repeats: C.vo2OneKmRepeats, meters: C.vo2OneKmMeters)])
         case 2:
-            let repeats = phase == .base ? C.vo2LongBaseRepeats : C.vo2LongRepeats
+            let repeats = phase == .base || phase == .general ? C.vo2LongBaseRepeats : C.vo2LongRepeats
             return session([TrainerQualityBlock(repeats: repeats, meters: C.vo2LongMeters)])
         default:
             return session([
@@ -318,7 +318,9 @@ extension TrainerEngine {
             if let miss = missedQuality(kind, past: past, history: history, today: today) { loweredKinds[kind] = miss.day }
         }
         var workouts: [TrainerWorkout] = []
-        for offset in 0..<C.detailDays {
+        let lastDay = (weeks.map(\.start).max() ?? today).adding(days: C.daysPerWeek - 1)
+        let span = max(0, today.days(until: lastDay) + 1)
+        for offset in 0..<span {
             let day = today.adding(days: offset)
             guard let week = weeks.first(where: { $0.start == day.weekStart }) else { continue }
             let weekday = week.start.days(until: day) + 1
@@ -359,7 +361,7 @@ extension TrainerEngine {
                 let restSeconds = restSeconds(
                     session: session, block: session.blocks[0], paces: paces, lowered: lowered
                 )
-                let previous = past.last { $0.kind == kind && $0.day < day }
+                let previous = offset < C.detailDays ? past.last { $0.kind == kind && $0.day < day } : nil
                 let previousStatus = previous.map { status(of: $0, history: history, today: today).status }
                 let basis = kind == .threshold
                     ? T.thresholdBasis(paces, predicted: history.predictions[C.thresholdPredictionMeters])

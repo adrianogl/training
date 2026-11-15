@@ -93,6 +93,7 @@ struct TrainerWeekStrip: View {
     let cells: [TrainerWeekCell]
     let weeksText: String
     let onToggleLight: (Day) -> Void
+    let onSelect: (Day) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -105,6 +106,7 @@ struct TrainerWeekStrip: View {
                 HStack(spacing: TrainerConstants.stripSpacing) {
                     ForEach(cells) { cell in
                         TrainerWeekCellView(cell: cell)
+                            .onTapGesture { if let start = cell.start { onSelect(start) } }
                             .contextMenu {
                                 if let start = cell.start, !cell.isPast {
                                     Button(cell.isLight ? TrainerText.unmarkLight : TrainerText.markLight) { onToggleLight(start) }

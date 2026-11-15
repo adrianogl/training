@@ -122,10 +122,13 @@ enum TrainerEngineText {
         "\(kilometers(week.plannedMeters)), longão \(kilometers(week.longMeters))"
     }
 
-    static func createdSummary(weeks: Int, target: String, phases: String, goal: String? = nil) -> String {
-        let text = "Plano de \(weeks) semanas para \(target): \(phases). O detalhe treino a treino cobre os próximos 15 dias."
+    static func createdSummary(weeks: Int, target: String, phases: String, goal: String? = nil, blockStart: Day? = nil) -> String {
+        var text = "Plano de \(weeks) semanas para \(target): \(phases). O detalhe treino a treino cobre os próximos 15 dias."
+        if let blockStart { text += " \(blockStartsOn(blockStart))" }
         return goal.map { "\(text) \($0)" } ?? text
     }
+
+    static func blockStartsOn(_ day: Day) -> String { "Bloco específico começa em \(date(day))." }
 
     static func createdSkeleton(weeks: Int) -> String {
         "Esqueleto de \(weeks) semanas calculado com o volume inicial, o volume de pico e o maior longão dos últimos 30 dias."
@@ -154,6 +157,50 @@ enum TrainerEngineText {
     }
 
     static let unchangedTitle = "Plano mantido"
+    static func distantWeekChanged(_ index: Int, count: Int) -> String {
+        "Semana \(index): \(count) \(count == 1 ? "treino mudou" : "treinos mudaram")"
+    }
+
+    static let manualPaceBasis = "Pace definido por você."
+    static let editedByYou = "Treino editado por você."
+    static let editedKeptTitle = "Treino editado mantido"
+    static let editedKept = "Seu treino editado foi mantido."
+    static let editedRevertedReason = "Você voltou à sugestão do treinador."
+    static let editTargetTitle = "Meta"
+
+    static func editedPlanSummary(_ fields: [String]) -> String {
+        fields.isEmpty ? "Plano editado por você." : "Plano editado por você: \(fields.joined(separator: ", "))."
+    }
+
+    static func editedWorkoutSummary(_ day: Day) -> String { "Treino de \(dayLabel(day)) editado por você." }
+
+    static func editedSwapSummary(_ first: Day, _ second: Day) -> String {
+        "Treinos de \(dayLabel(first)) e \(dayLabel(second)) trocados por você."
+    }
+
+    static func editedRevertSummary(_ day: Day) -> String { "Treino de \(dayLabel(day)) voltou à sugestão do treinador." }
+
+    static func editedPaceTitle(_ kind: TrainerPaceKind) -> String {
+        switch kind {
+        case .easy: "Pace da rodagem"
+        case .long: "Pace do longão"
+        case .threshold: "Pace do limiar"
+        case .vo2max: "Pace do VO2 máx"
+        case .race: "Pace da prova"
+        }
+    }
+
+    static func editedPaceReason(manual: Bool) -> String {
+        manual ? "Você definiu o pace manualmente." : "Você voltou ao pace do histórico."
+    }
+
+    static let editedByYouReason = "Plano editado por você."
+    static let editFieldTarget = "meta"
+    static let editFieldVolumes = "volumes"
+    static let editFieldStructure = "estrutura"
+    static let editFieldStrength = "força"
+    static let editFieldLong = "longão"
+    static let editFieldPaces = "paces"
 
     static func longFailure(_ findings: TrainerFindings, day: Day, next: Double?) -> String {
         var text: String
@@ -233,6 +280,8 @@ enum TrainerEngineText {
             return "Pace de \(pace(paces.threshold))/km, a mediana dos blocos dos seus últimos \(paces.thresholdWorkRuns ?? 0) limiares."
         case .fallback:
             return "Pace 60 s/km abaixo da rodagem, sem limiares recentes."
+        case .manual:
+            return manualPaceBasis
         case .prediction, .history, nil:
             return predicted.map { "Pace do 10 km previsto em \(clock($0)) mais 8 s/km." } ?? history
         }
@@ -242,6 +291,8 @@ enum TrainerEngineText {
         switch paces.vo2Source {
         case .work:
             return "Pace de \(pace(paces.vo2max))/km, a mediana dos blocos dos seus últimos \(paces.vo2WorkRuns ?? 0) treinos de VO2."
+        case .manual:
+            return manualPaceBasis
         case .prediction, .history, .fallback, nil:
             return predicted.map { "Pace do 5 km previsto em \(clock($0))." } ?? "Pace 15 s/km abaixo do limiar, sem previsão de 5 km."
         }
@@ -374,6 +425,7 @@ enum TrainerEngineText {
 
     static func phaseName(_ phase: TrainerPhase) -> String {
         switch phase {
+        case .general: "base geral"
         case .base: "base"
         case .build: "construção"
         case .specific: "específico"
@@ -475,5 +527,19 @@ extension TrainerEngineText {
 
     static func longContinuousRule(_ meters: Double) -> String {
         "Etapa \(TrainerEngineConstants.longStageCount) de \(TrainerEngineConstants.longStageCount): contínuo, \(kilometers(meters))."
+    }
+}
+
+extension TrainerEngineText {
+    static func readinessReason(_ score: Int) -> String { "Trocado pela prontidão (\(score))." }
+
+    static func readinessEasyRationale(_ score: Int) -> String {
+        "Prontidão \(score) hoje: rodagem leve no lugar do treino forte."
+    }
+
+    static func readinessSummary(_ score: Int, swapped: Bool) -> String {
+        swapped
+            ? "Prontidão \(score): rodagem leve hoje e o treino forte amanhã."
+            : "Prontidão \(score): rodagem leve hoje, o resto da semana fica como está."
     }
 }

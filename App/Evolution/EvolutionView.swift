@@ -11,13 +11,10 @@ struct EvolutionView: View {
     @State private var appliedRestoration = false
     @State private var showsChat = false
 
-    private var path: [MetricKind] {
-        get { NavigationRestoration.decodePath(pathData) }
-        nonmutating set { pathData = NavigationRestoration.encode(newValue) }
-    }
+    @State private var path: [MetricKind] = []
 
     var body: some View {
-        NavigationStack(path: Binding(get: { path }, set: { path = $0 })) {
+        NavigationStack(path: $path) {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -72,9 +69,11 @@ struct EvolutionView: View {
         .onAppear {
             guard !appliedRestoration else { return }
             appliedRestoration = true
+            path = NavigationRestoration.decodePath(pathData)
             let debugPath = Self.initialPath()
             if !debugPath.isEmpty { path = debugPath }
         }
+        .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
         .task(id: app.dataToken) {
             await Task.yield()
             if model == nil {

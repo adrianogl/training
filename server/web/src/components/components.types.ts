@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Activity, GoalView, InviteRequest, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
+import type { Activity, GoalView, TrainerPlan, TrainerVersion, TrainerWeekCell, TrainerWorkout, InviteRequest, PlannedStep, PlannedWorkout, RaceView, Route, SyncState, User } from '../types'
 
 export interface FieldProps {
   label: string
@@ -127,4 +127,24 @@ export interface GoalFormState {
   deadline: string
   longDistance: string
   pace: string
+}
+
+export interface TrainerStripProps {
+  cells: TrainerWeekCell[]
+}
+
+export interface TrainerWeeksProps {
+  plan: TrainerPlan
+  today: string
+  selected: string | null
+  onSelect: (day: string) => void
+}
+
+export interface TrainerDayProps {
+  plan: TrainerPlan
+  workout: TrainerWorkout
+}
+
+export interface TrainerChangesProps {
+  versions: TrainerVersion[]
 }

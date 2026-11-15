@@ -44,6 +44,7 @@ extension TrainerEngine {
     }
 
     static func reason(old: TrainerWorkout, new: TrainerWorkout, reasons: TrainerChangeReasons) -> String {
+        if let text = reasons.override { return text }
         if reasons.requests.contains(where: { $0.contains(new.day) }) { return new.rationale }
         let kind = new.kind == .off ? old.kind : new.kind
         if kind == .long, let text = reasons.long { return text }
@@ -90,6 +91,23 @@ extension TrainerEngine {
             ))
         }
         return changes.sorted { ($0.day?.iso ?? "") < ($1.day?.iso ?? "") }
+    }
+
+    static func groupingDistant(_ changes: [TrainerChange], today: Day, weeks: [TrainerWeek]) -> [TrainerChange] {
+        let limit = today.adding(days: C.detailDays)
+        let grouped = Dictionary(grouping: changes.filter { change in
+            change.day.map { $0 >= limit } == true && change.kind != .unchanged
+        }) { $0.day?.weekStart ?? limit }
+        guard !grouped.isEmpty else { return changes }
+        let near = changes.filter { change in change.day.map { $0 < limit } ?? true }
+        let summaries = grouped.keys.sorted().compactMap { start -> TrainerChange? in
+            guard let items = grouped[start], let week = weeks.first(where: { $0.start == start }) else { return nil }
+            return TrainerChange(
+                kind: .changed, weekIndex: week.index, title: T.distantWeekChanged(week.index, count: items.count),
+                reason: items.first?.reason ?? T.skeletonFallback
+            )
+        }
+        return near + summaries
     }
 
     static func skeletonChange(old: [TrainerWeek], new: [TrainerWeek], reasons: TrainerChangeReasons, held: Bool) -> TrainerChange? {

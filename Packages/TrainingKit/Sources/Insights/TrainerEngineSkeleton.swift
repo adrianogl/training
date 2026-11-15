@@ -42,14 +42,20 @@ extension TrainerEngine {
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
         return TrainerSkeletonContext(
             total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume,
-            lightWeeks: lightWeeks
+            lightWeeks: lightWeeks, generalWeeks: max(0, datedWeeks - blockWeeks(for: target))
         )
     }
 
+    static func blockWeeks(for target: TrainerTarget) -> Int {
+        let meters = target.distanceMeters ?? 0
+        return C.blockWeeksLimits.first { meters >= $0.from }?.weeks ?? C.defaultBlockWeeks
+    }
+
     static func phase(of index: Int, in context: TrainerSkeletonContext) -> TrainerPhase {
-        let span = context.openEnded ? C.openHorizonWeeks : context.total - context.taperWeeks
-        if !context.openEnded && index > span { return .taper }
-        let position = context.openEnded ? (index - 1) % C.openHorizonWeeks + 1 : index
+        if index <= context.generalWeeks { return .general }
+        let span = context.openEnded ? C.openHorizonWeeks : context.total - context.taperWeeks - context.generalWeeks
+        if !context.openEnded && index > span + context.generalWeeks { return .taper }
+        let position = context.openEnded ? (index - 1) % C.openHorizonWeeks + 1 : index - context.generalWeeks
         let base = Int((C.baseShare * Double(span)).rounded())
         let build = Int((C.buildShare * Double(span)).rounded())
         if position <= base { return .base }
@@ -73,7 +79,7 @@ extension TrainerEngine {
     }
 
     static func derivedState(from weeks: [TrainerWeek]) -> TrainerSkeletonState? {
-        let progression = weeks.filter { !$0.isRecovery && $0.phase != .taper }
+        let progression = weeks.filter { !$0.isRecovery && $0.phase != .taper && $0.phase != .general }
         guard let last = progression.last else { return nil }
         let stage = stageIndex(of: last.thresholdFocus)
         var level = 0
@@ -129,6 +135,14 @@ extension TrainerEngine {
                 state.returning = true
                 long = roundKilometers(state.long * C.recoveryLongShare)
                 stage = max(0, state.stage - 1)
+            } else if phase == .general {
+                if first, let scale = adjustment.volumeScale { state.volume = roundKilometers(state.volume * scale) }
+                if first, let cap = adjustment.longCap { state.long = min(state.long, cap) }
+                state.returning = false
+                holdPending = false
+                volume = state.volume
+                long = state.long
+                stage = 0
             } else {
                 if !state.started {
                     state.started = true

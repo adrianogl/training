@@ -42,6 +42,8 @@ public actor RemoteSyncEngine {
         let lastPush = migrated ? Self.syncState(in: snapshot)?.remoteLastPush : nil
         let cursor = Self.syncState(in: snapshot)?.remoteCursor ?? 0
         var outgoing = try pendingRecords(since: lastPush, in: snapshot)
+        let trainerMigrated = defaults.bool(forKey: C.trainerPlainMigrationKey)
+        if !trainerMigrated { trainerStore?.markPending() }
         let trainerPending = trainerStore?.pending()
         if let trainerPending {
             if let record = try trainerRecord(trainerPending) {
@@ -81,6 +83,9 @@ public actor RemoteSyncEngine {
         if !push.quotaExceeded { state.remoteLastPush = startedAt }
         try context.save()
         if !push.quotaExceeded { defaults.set(true, forKey: C.plainMigrationKey) }
+        if !push.quotaExceeded, trainerStore != nil, trainerPending == nil || push.accepted.contains(RemoteRecordKey(kind: .trainer, id: C.trainerRecordId)) {
+            defaults.set(true, forKey: C.trainerPlainMigrationKey)
+        }
         return RemoteSyncReport(
             pushed: push.count,
             pulled: pages.records.count,
@@ -201,11 +206,11 @@ public actor RemoteSyncEngine {
 
     private func trainerRecord(_ state: RemoteTrainerState) throws -> RemoteRecord? {
         guard let data = state.data else {
-            return RemoteRecord(kind: .trainer, id: C.trainerRecordId, updatedAt: state.updatedAt, deleted: true, payload: nil)
+            return RemoteRecord(kind: .trainer, id: C.trainerRecordId, updatedAt: state.updatedAt, deleted: true, payload: nil, format: .plain)
         }
-        let payload = try RemotePayload.seal(trainer: data, key: key)
+        let payload = try RemotePayload.plain(trainer: data)
         guard payload.utf8.count <= C.maxPayloadCharacters else { return nil }
-        return RemoteRecord(kind: .trainer, id: C.trainerRecordId, updatedAt: state.updatedAt, deleted: false, payload: payload)
+        return RemoteRecord(kind: .trainer, id: C.trainerRecordId, updatedAt: state.updatedAt, deleted: false, payload: payload, format: .plain)
     }
 
     private func applyTrainer(_ record: RemoteRecord) throws -> Bool {
@@ -213,7 +218,7 @@ public actor RemoteSyncEngine {
         switch RemoteMerge.action(remoteUpdatedAt: record.updatedAt, remoteDeleted: record.deleted, localUpdatedAt: trainerStore.updatedAt()) {
         case .insert, .replace:
             guard let payload = record.payload else { throw RemoteSyncError.decoding }
-            let data = try RemotePayload.openTrainer(payload, id: record.id, key: key)
+            let data = record.format == .plain ? Data(payload.utf8) : try RemotePayload.openTrainer(payload, id: record.id, key: key)
             return trainerStore.apply(RemoteTrainerState(data: data, updatedAt: record.updatedAt))
         case .delete:
             return trainerStore.apply(RemoteTrainerState(data: nil, updatedAt: record.updatedAt))
