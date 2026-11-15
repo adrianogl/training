@@ -8,10 +8,12 @@ struct TrainingApp: App {
     @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
 
     init() {
-        let session = AppSession.live()
-        _session = State(initialValue: session)
+        let reference = AppSessionReference()
+        BackgroundSync.register { reference.session?.model }
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
-        BackgroundSync.register { session.model }
+        let session = AppSession.live()
+        reference.session = session
+        _session = State(initialValue: session)
     }
 
     var body: some Scene {
