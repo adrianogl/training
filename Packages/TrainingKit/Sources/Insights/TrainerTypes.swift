@@ -40,6 +40,21 @@ public enum TrainerMethod: String, Codable, Sendable, CaseIterable {
     public var label: String { TrainerEngineText.methodLabel(self) }
 }
 
+public enum TrainerLongMode: String, Codable, Sendable, CaseIterable {
+    case continuous
+    case blocks
+}
+
+public struct TrainerLongSuggestion: Sendable, Equatable {
+    public var flagged: Int
+    public var total: Int
+
+    public init(flagged: Int, total: Int) {
+        self.flagged = flagged
+        self.total = total
+    }
+}
+
 public struct TrainerStep: Codable, Sendable, Equatable {
     public var kind: TrainerStepKind
     public var repeats: Int
@@ -271,6 +286,7 @@ public enum TrainerTrigger: Codable, Sendable, Equatable {
     case request(TrainerRequest)
     case strengthChanged
     case lightWeek(Day)
+    case longModeChanged
 }
 
 public enum TrainerChangeKind: String, Codable, Sendable {
@@ -331,8 +347,12 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var startMeters: Double?
     public var peakMeters: Double?
     public var lightWeeks: [Day]
+    public var longMode: TrainerLongMode
+    public var longStage: Int
+    public var longStageStreak: Int
+    public var longStageMisses: Int
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = []) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -344,10 +364,15 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.startMeters = startMeters
         self.peakMeters = peakMeters
         self.lightWeeks = lightWeeks
+        self.longMode = longMode
+        self.longStage = longStage
+        self.longStageStreak = longStageStreak
+        self.longStageMisses = longStageMisses
     }
 
     private enum CodingKeys: String, CodingKey {
         case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters, lightWeeks
+        case longMode, longStage, longStageStreak, longStageMisses
     }
 
     public init(from decoder: Decoder) throws {
@@ -366,7 +391,11 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             processedActivityIds: try container.decodeIfPresent([Int64].self, forKey: .processedActivityIds) ?? [],
             strength: try container.decodeIfPresent([TrainerStrengthSession].self, forKey: .strength) ?? [],
             startMeters: start, peakMeters: peak,
-            lightWeeks: try container.decodeIfPresent([Day].self, forKey: .lightWeeks) ?? []
+            lightWeeks: try container.decodeIfPresent([Day].self, forKey: .lightWeeks) ?? [],
+            longMode: try container.decodeIfPresent(TrainerLongMode.self, forKey: .longMode) ?? .continuous,
+            longStage: try container.decodeIfPresent(Int.self, forKey: .longStage) ?? 1,
+            longStageStreak: try container.decodeIfPresent(Int.self, forKey: .longStageStreak) ?? 0,
+            longStageMisses: try container.decodeIfPresent(Int.self, forKey: .longStageMisses) ?? 0
         )
     }
 
@@ -383,6 +412,10 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         try container.encodeIfPresent(startMeters, forKey: .startMeters)
         try container.encodeIfPresent(peakMeters, forKey: .peakMeters)
         try container.encode(lightWeeks, forKey: .lightWeeks)
+        try container.encode(longMode, forKey: .longMode)
+        try container.encode(longStage, forKey: .longStage)
+        try container.encode(longStageStreak, forKey: .longStageStreak)
+        try container.encode(longStageMisses, forKey: .longStageMisses)
     }
 }
 
@@ -395,11 +428,12 @@ public struct TrainerRun: Sendable, Equatable {
     public var averageHeartRate: Double?
     public var fadeKm: Int?
     public var pauses: Int?
+    public var firstPauseKm: Int?
     public var activeOnTarget: Int?
     public var activeTotal: Int?
     public var workPaceSeconds: Double?
 
-    public init(activityId: Int64, day: Day, meters: Double, seconds: Double, kind: RunKind, averageHeartRate: Double? = nil, fadeKm: Int? = nil, pauses: Int? = nil, activeOnTarget: Int? = nil, activeTotal: Int? = nil, workPaceSeconds: Double? = nil) {
+    public init(activityId: Int64, day: Day, meters: Double, seconds: Double, kind: RunKind, averageHeartRate: Double? = nil, fadeKm: Int? = nil, pauses: Int? = nil, firstPauseKm: Int? = nil, activeOnTarget: Int? = nil, activeTotal: Int? = nil, workPaceSeconds: Double? = nil) {
         self.activityId = activityId
         self.day = day
         self.meters = meters
@@ -408,6 +442,7 @@ public struct TrainerRun: Sendable, Equatable {
         self.averageHeartRate = averageHeartRate
         self.fadeKm = fadeKm
         self.pauses = pauses
+        self.firstPauseKm = firstPauseKm
         self.activeOnTarget = activeOnTarget
         self.activeTotal = activeTotal
         self.workPaceSeconds = workPaceSeconds

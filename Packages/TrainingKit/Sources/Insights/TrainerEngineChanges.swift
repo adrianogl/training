@@ -18,6 +18,9 @@ extension TrainerEngine {
             let label = blocks.count == 1 ? "\(blocks[0].repeats) × \(T.distance(blocks[0].meters))" : T.sessionLabel(blocks)
             return "\(label)\(suffix)\(recovery)"
         }
+        if plannedPauses(of: workout) > 0, let rest = workout.steps.first(where: { $0.restSeconds != nil })?.restSeconds {
+            return "\(T.longStageLabel(blocks: blockSizes(of: workout), rest: rest))\(suffix)"
+        }
         return "\(T.kilometers(workout.totalMeters))\(suffix)"
     }
 
@@ -33,14 +36,6 @@ extension TrainerEngine {
         "\(T.kindName(workout.kind)) de \(T.weekdayName(workout.day)), \(workout.day.day)"
     }
 
-    static func legsAffected(_ workout: TrainerWorkout) -> Bool {
-        switch workout.kind {
-        case .threshold, .vo2max: workout.note != nil
-        case .long: workout.steps.count > 1
-        default: false
-        }
-    }
-
     static func describeChange(_ old: TrainerWorkout, _ new: TrainerWorkout) -> (before: String, after: String) {
         let before = describe(old)
         let after = describe(new)
@@ -49,7 +44,6 @@ extension TrainerEngine {
     }
 
     static func reason(old: TrainerWorkout, new: TrainerWorkout, reasons: TrainerChangeReasons) -> String {
-        if reasons.strength { return legsAffected(new) ? new.rationale : T.strengthLifted }
         if reasons.requests.contains(where: { $0.contains(new.day) }) { return new.rationale }
         let kind = new.kind == .off ? old.kind : new.kind
         if kind == .long, let text = reasons.long { return text }

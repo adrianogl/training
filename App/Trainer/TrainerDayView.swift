@@ -5,6 +5,7 @@ import TrainingCore
 struct TrainerDayView: View {
     @Environment(AppModel.self) private var app
     let iso: String
+    @State private var weather: [HourlyWeather] = []
 
     var body: some View {
         ScrollView {
@@ -20,11 +21,16 @@ struct TrainerDayView: View {
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(Day(iso: iso).map(TrainerText.longDate) ?? "")
+        .task(id: iso) {
+            guard let day = Day(iso: iso), app.trainer.row(for: iso)?.workout.kind == .long else { return }
+            weather = await app.trainer.forecast(for: day)
+        }
     }
 
     @ViewBuilder
     private func content(_ row: TrainerDayRow) -> some View {
-        let workout = row.workout
+        let bestTime = row.workout.kind == .long && row.run == nil ? TrainerBestTimeBuilder.make(weather: weather) : nil
+        let workout = displayed(row.workout, heat: bestTime?.heat)
         VStack(alignment: .leading, spacing: 2) {
             Text(workout.title).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
             Text(subtitle(workout)).font(.caption).foregroundStyle(BrandColors.dim)
@@ -40,6 +46,9 @@ struct TrainerDayView: View {
                 TrainerStepList(rows: TrainerText.stepRows(workout))
             }
             .brandCard()
+        }
+        if let bestTime {
+            TrainerBestTimeCard(bestTime: bestTime, hasBlocks: TrainerEngine.plannedPauses(of: workout) > 0)
         }
         VStack(alignment: .leading, spacing: 8) {
             SectionLabel(TrainerText.whyTitle).padding(.vertical, 0)
@@ -58,7 +67,15 @@ struct TrainerDayView: View {
     private func subtitle(_ workout: TrainerWorkout) -> String {
         var parts = [TrainerText.distance(workout.totalMeters)]
         if let index = app.trainer.weekIndex(of: workout.day) { parts.append("semana \(index) do plano") }
+        if let plan = app.trainer.plan, plan.longMode == .blocks, workout.kind == .long, workout.day >= app.trainer.currentDay {
+            parts.append(TrainerText.longStageCaption(stage: plan.longStage, streak: plan.longStageStreak))
+        }
         return parts.joined(separator: " · ")
+    }
+
+    private func displayed(_ workout: TrainerWorkout, heat: TrainerHeat?) -> TrainerWorkout {
+        guard let heat, let pace = app.trainer.plan?.paces.long else { return workout }
+        return heat.apply(to: workout, longPace: pace)
     }
 
     private func numbers(_ workout: TrainerWorkout) -> some View {

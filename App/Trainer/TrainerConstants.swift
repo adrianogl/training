@@ -3,6 +3,7 @@ import Insights
 import SwiftUI
 
 enum TrainerConstants {
+    static let nestedStepInset: CGFloat = 18
     static let storeFileName = "trainer-plan.json"
     static let seenVersionDefaultsKey = "trainerSeenVersion"
     static let strengthMigratedDefaultsKey = "trainerStrengthMigrated"
@@ -41,8 +42,8 @@ enum TrainerConstants {
         "janeiro", "fevereiro", "março", "abril", "maio", "junho",
         "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
     ]
+    static let longModes: [TrainerLongMode] = [.continuous, .blocks]
     static let strengthGroups: [TrainerStrengthGroup] = [.upper, .lower, .fullBody, .core]
-    static let strengthLoads: [TrainerStrengthLoad] = [.light, .heavy]
     static let locale = Locale(identifier: "pt_BR")
 
     static let shortcuts: [TrainerRequestShortcut] = [

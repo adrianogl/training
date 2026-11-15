@@ -171,9 +171,8 @@ enum TrainerEngineText {
         "O treino de \(date(day)) foi registrado. O plano segue o esqueleto."
     }
 
-    static func qualityMiss(_ miss: TrainerQualityMiss, legs: String? = nil) -> String {
-        let eve = legs.map { " Na véspera teve \($0), força de pernas." } ?? ""
-        return "O \(kindName(miss.kind).lowercased()) de \(date(miss.day)) ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos.\(eve) O próximo desce uma etapa e a recuperação sobe 200 m."
+    static func qualityMiss(_ miss: TrainerQualityMiss) -> String {
+        "O \(kindName(miss.kind).lowercased()) de \(date(miss.day)) ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. O próximo desce uma etapa e a recuperação sobe 200 m."
     }
 
     static func lowReadiness(_ value: Double, weekly: Bool) -> String {
@@ -271,23 +270,22 @@ enum TrainerEngineText {
 
     static func qualityRationale(
         kind: TrainerDayKind, title: String, session: TrainerQualitySession, week: TrainerWeek, previousStatus: TrainerDayStatus?,
-        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, legs: String? = nil, goal: TrainerGoalPaceNote? = nil
+        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, goal: TrainerGoalPaceNote? = nil
     ) -> String {
-        if let goal { return goalPaceRationale(title: title, session: session, restSeconds: restSeconds, note: goal, legs: legs) }
+        if let goal { return goalPaceRationale(title: title, session: session, restSeconds: restSeconds, note: goal) }
         let name = kindName(kind)
-        let warmup = legs.map { " \(legsWarmup($0))" } ?? ""
         if let miss {
-            return "\(name) uma etapa abaixo. Descanso de \(restClock(restSeconds)) parado, 1 min a mais porque o último ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. \(basis)\(warmup)"
+            return "\(name) uma etapa abaixo. Descanso de \(restClock(restSeconds)) parado, 1 min a mais porque o último ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. \(basis)"
         }
         let rule = methodRule(session, restSeconds: restSeconds)
         let phase = phaseName(week.phase)
         let recovery = week.isRecovery ? " Semana de recuperação, volume menor." : ""
         let done = previousStatus == .done ? " O último treino saiu no alvo." : ""
-        return "\(title) na semana \(week.index) (\(phase)).\(recovery)\(done) \(rule) \(basis)\(warmup)"
+        return "\(title) na semana \(week.index) (\(phase)).\(recovery)\(done) \(rule) \(basis)"
     }
 
     static func goalPaceRationale(
-        title: String, session: TrainerQualitySession, restSeconds: Double, note: TrainerGoalPaceNote, legs: String?
+        title: String, session: TrainerQualitySession, restSeconds: Double, note: TrainerGoalPaceNote
     ) -> String {
         let blocks = sessionLabel(session.blocks)
         let rest = session.blocks[0].repeats > 1 ? ", \(restClock(restSeconds)) parado" : ""
@@ -298,7 +296,6 @@ enum TrainerEngineText {
         case nil: text += " Primeira sessão no pace-alvo: a progressão só sobe quando a anterior fecha no alvo."
         }
         if let shortfall = note.shortfall { text += " \(shortfall)" }
-        if let legs { text += " \(legsWarmup(legs))" }
         return text
     }
 
@@ -329,18 +326,7 @@ enum TrainerEngineText {
         return text
     }
 
-    static func legsNote(_ name: String) -> String { "pernas de ontem (\(name))" }
-
-    static func legsWarmup(_ name: String) -> String {
-        "Ontem teve \(name), com as pernas cansadas. O aquecimento continua em \(kilometers(TrainerEngineConstants.warmupMeters))."
-    }
-
     static let noNote = "sem observação"
-    static let slowStartNote = "começa mais lento: força ontem"
-
-    static func slowStartRationale(_ name: String) -> String {
-        "Os \(kilometers(TrainerEngineConstants.slowStartMeters)) primeiros saem \(Int(TrainerEngineConstants.slowStartSeconds)) s/km acima do pace do longão, porque ontem teve \(name)."
-    }
 
     static func strengthGroupName(_ group: TrainerStrengthGroup) -> String {
         switch group {
@@ -351,14 +337,9 @@ enum TrainerEngineText {
         }
     }
 
-    static let strengthSummary = "Treinos de força atualizados. A corrida se ajusta em volta deles, e a musculação fica como você definiu."
-    static let strengthLifted = "Sem força de pernas na véspera, o treino volta ao padrão."
+    static let strengthSummary = "Treinos de força atualizados. A corrida não muda por causa deles."
 
-    static func strengthSuggestion(name: String, kind: TrainerDayKind) -> String {
-        "Pense em fazer o \(name) no dia do \(kindName(kind).lowercased()), depois da corrida. O plano não muda a musculação sozinho."
-    }
-
-    static func longRationale(week: TrainerWeek, previousLong: Double?, cap: Double, note: String?, slowStart: String? = nil) -> String {
+    static func longRationale(week: TrainerWeek, previousLong: Double?, cap: Double, note: String?) -> String {
         var text: String
         if week.phase == .taper {
             text = "Longão reduzido no polimento, para chegar descansado à prova."
@@ -370,7 +351,6 @@ enum TrainerEngineText {
             text = "Longão de \(kilometers(week.longMeters)) repetido, até o histórico mostrar que fecha sem queda."
         }
         if let note { text += " \(note.prefix(1).uppercased() + note.dropFirst())." }
-        if let slowStart { text += " \(slowStartRationale(slowStart))" }
         return text
     }
 
@@ -405,5 +385,95 @@ enum TrainerEngineText {
         var seen: [TrainerPhase] = []
         for phase in phases where !seen.contains(phase) { seen.append(phase) }
         return seen.map(phaseName).joined(separator: ", ")
+    }
+}
+
+extension TrainerEngineText {
+    static func number(_ meters: Double) -> String {
+        kilometers(meters).replacingOccurrences(of: " km", with: "")
+    }
+
+    static func blocksLabel(_ blocks: [Double]) -> String {
+        guard blocks.count > 1 else { return kilometers(blocks.first ?? 0) }
+        if let first = blocks.first, blocks.allSatisfy({ abs($0 - first) < 1 }) {
+            return "\(blocks.count) × \(kilometers(first))"
+        }
+        return blocks.map(number).joined(separator: " + ") + " km"
+    }
+
+    static func longStageLabel(blocks: [Double], rest: Double?) -> String {
+        guard let rest, blocks.count > 1 else { return "contínuo, \(kilometers(blocks.reduce(0, +)))" }
+        return "\(blocksLabel(blocks)), \(restSummary(rest))"
+    }
+
+    static func longBlocksTitle(_ meters: Double) -> String {
+        "Longão \(kilometers(meters)) em blocos"
+    }
+
+    static func longStageName(stage: Int, blocks: [Double], rest: Double?) -> String {
+        "etapa \(stage) de \(TrainerEngineConstants.longStageCount) · \(longStageLabel(blocks: blocks, rest: rest))"
+    }
+
+    static func longEvidence(count: Int, km: Int, longest: Double) -> String {
+        let head = count > 1
+            ? "Seus últimos \(count) longões tiveram pausa ou queda de pace depois do km \(km)."
+            : "Um dos seus últimos longões teve pausa ou queda de pace depois do km \(km)."
+        return longest < Double(km) * 1_000 ? "\(head) Blocos de \(kilometers(longest)) terminam bem antes disso." : head
+    }
+
+    static func longBlocksRule(stage: Int, blocks: [Double], rest: Double?) -> String {
+        "Etapa \(stage) de \(TrainerEngineConstants.longStageCount): \(longStageLabel(blocks: blocks, rest: rest)). Os 2 primeiros km de cada bloco saem 5 s/km acima do pace do longão."
+    }
+
+    static func longNextStage(remaining: Int, next: Int, blocks: [Double], rest: Double?, fewerPauses: Bool) -> String {
+        let closing = remaining > 1 ? "Fechando este e o próximo" : "Fechando este"
+        let effect = fewerPauses ? "tira uma pausa" : next == TrainerEngineConstants.longStageCount ? "vira contínuo" : "muda a última pausa"
+        return "\(closing), a etapa \(next) \(effect): \(longStageLabel(blocks: blocks, rest: rest))."
+    }
+
+    static let longModeTitle = "Longão"
+    static let longContinuousSuggestion = "Etapa 6 fechada duas vezes. Já dá para trocar o longão para contínuo na tela do plano."
+    static let longContinuousNext = "Fechando este e o próximo, o plano sugere trocar o longão para contínuo."
+
+    static func longModeChanged(to mode: TrainerLongMode, stage: Int, blocks: [Double], rest: Double?) -> String {
+        switch mode {
+        case .blocks:
+            return "O longão passa a ser em blocos, na \(longStageName(stage: stage, blocks: blocks, rest: rest))."
+        case .continuous:
+            return "O longão volta a ser contínuo, sem pausas paradas."
+        }
+    }
+
+    static func longModeSummary(_ mode: TrainerLongMode, stage: Int, blocks: [Double], rest: Double?) -> String {
+        mode == .blocks ? "Em blocos · \(longStageName(stage: stage, blocks: blocks, rest: rest))" : "Contínuo"
+    }
+
+    static func longClosed(_ day: Day, missing: Int, next: Int) -> String {
+        "O longão de \(date(day)) fechou nas pausas previstas. Falta \(missing) para a etapa \(next)."
+    }
+
+    static func longAdvanced(_ day: Day, to stage: Int) -> String {
+        "O longão de \(date(day)) fechou pela segunda vez seguida. O plano sobe para a etapa \(stage)."
+    }
+
+    static func longMissed(_ day: Day, reasons: [String], back: Int?) -> String {
+        var text = "O longão de \(date(day)) não fechou: \(reasons.joined(separator: ", "))."
+        if let back { text += " O plano volta para a etapa \(back)." }
+        return text
+    }
+
+    static let longMissShort = "distância abaixo de 90%"
+    static let longMissPauses = "pausa fora do previsto"
+
+    static func longMissFade(_ km: Int) -> String {
+        "queda de pace no km \(km)"
+    }
+
+    static func longClosedLast(_ day: Day, missing: Int) -> String {
+        "O longão de \(date(day)) fechou sem pausas. Falta \(missing) para o plano sugerir o contínuo."
+    }
+
+    static func longContinuousRule(_ meters: Double) -> String {
+        "Etapa \(TrainerEngineConstants.longStageCount) de \(TrainerEngineConstants.longStageCount): contínuo, \(kilometers(meters))."
     }
 }

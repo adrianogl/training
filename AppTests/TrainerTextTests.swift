@@ -24,7 +24,7 @@ import TrainingCore
     @Test func buildsStepRowsByDistance() {
         let workout = TrainerStoreTests.plan().workouts[0]
         let rows = TrainerText.stepRows(workout)
-        #expect(rows.map(\.title) == ["Aquecimento", "3× Limiar", "Trote"])
+        #expect(rows.map(\.title) == ["Aquecimento", "3× Limiar", "3× Trote"])
         #expect(rows.map(\.detail) == ["3 km", "2 km · 4:14–4:20/km", "400 m"])
     }
 
@@ -37,8 +37,9 @@ import TrainingCore
             TrainerStep(kind: .recovery, repeats: 2, meters: 200),
         ]
         let rows = TrainerText.stepRows(workout)
-        #expect(rows.map(\.title) == ["3× Repetição R", "Trote"])
-        #expect(rows[1].detail == "200 m")
+        #expect(rows.map(\.title) == ["3×", "Repetição R", "Trote"])
+        #expect(rows[0].isHeader && rows[2].isNested)
+        #expect(rows[2].detail == "200 m")
     }
 
     @Test func interleavesRepeatsInShape() {
@@ -50,11 +51,24 @@ import TrainingCore
         var workout = TrainerStoreTests.plan().workouts[0]
         workout.steps[2] = TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 90)
         let rows = TrainerText.stepRows(workout)
-        #expect(rows[2].title == "Descanso parado")
-        #expect(rows[2].detail == "1:30")
+        #expect(rows.map(\.title) == ["Aquecimento", "3×", "Limiar", "Descanso parado"])
+        #expect(rows[3].detail == "1:30")
         let bars = TrainerText.shapeBars(workout.steps)
         #expect(bars.filter(\.isRest).count == 2)
         #expect(bars.filter(\.isRest).allSatisfy { $0.kind == .recovery && $0.meters == 0 })
+    }
+
+    @Test func skipsTheTransitionRestAfterASeries() {
+        var workout = TrainerStoreTests.plan().workouts[0]
+        workout.kind = .vo2max
+        workout.steps = [
+            TrainerStep(kind: .work, repeats: 3, meters: 1_500, paceLow: 233, paceHigh: 239),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 240),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 240),
+            TrainerStep(kind: .work, repeats: 3, meters: 200, paceLow: 227, paceHigh: 233, method: .repetition),
+        ]
+        let titles = TrainerText.stepRows(workout).map(\.title)
+        #expect(titles == ["3×", "VO2 máx", "Descanso parado", "3× Repetição R"])
     }
 
     @Test func formatsDatesAndWeeks() {

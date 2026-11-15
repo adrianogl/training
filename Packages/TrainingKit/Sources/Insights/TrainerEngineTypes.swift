@@ -58,7 +58,6 @@ struct TrainerFindings {
 }
 
 struct TrainerChangeReasons {
-    var strength = false
     var long: String?
     var volume: String?
     var quality: [TrainerDayKind: String] = [:]
@@ -82,4 +81,23 @@ struct TrainerGoalPaceNote {
     var pace: Double
     var previousClosed: Bool?
     var shortfall: String?
+}
+
+struct TrainerLongEvidence: Equatable {
+    var count: Int
+    var km: Int
+}
+
+struct TrainerLongPlan: Equatable {
+    var mode: TrainerLongMode = .continuous
+    var evidence: TrainerLongEvidence?
+    var stage = 1
+    var streak = 0
+    var misses = 0
+}
+
+struct TrainerLongOutcome {
+    var long: TrainerLongPlan
+    var sentences: [String] = []
+    var changes: [TrainerChange] = []
 }

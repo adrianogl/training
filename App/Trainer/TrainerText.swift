@@ -48,6 +48,12 @@ enum TrainerText {
     static let unmarkLight = "Desmarcar semana leve"
     static let lightCell = "semana leve"
     static let restStepTitle = "Descanso parado"
+    static let restBeforeNextTitle = "Descanso antes da próxima série"
+    static let longBlockPauseTitle = "Pausa parada · água e gel"
+    static let longModeTitle = "Longão"
+    static let longModeHint = "Em blocos, o longão tem pausas curtas para beber e tomar gel, e os blocos crescem até ele ficar contínuo."
+    static let bestTimeTitle = "Melhor horário"
+    static let bestTimeCaption = "previsão do dia"
     static let whyTitle = "Por que este treino"
     static let numbersTitle = "Números"
     static let doneTitle = "O que você fez"
@@ -114,7 +120,7 @@ enum TrainerText {
     static let saveError = "Não deu para salvar o plano neste aparelho."
     static let goalFormat = "meta %@"
     static let strengthTitle = "Treinos de força"
-    static let strengthCardEmpty = "Cadastre a musculação para a corrida se ajustar em volta dela."
+    static let strengthCardEmpty = "Cadastre a musculação para ver os dias de força no plano."
     static let strengthWeekTitle = "Sua semana de força"
     static let strengthSource = "da Garmin · 4 semanas"
     static let strengthEmpty = "Nenhuma sessão cadastrada."
@@ -125,10 +131,9 @@ enum TrainerText {
     static let strengthSave = "Salvar"
     static let strengthDayLabel = "Dia"
     static let strengthGroupLabel = "Grupo"
-    static let strengthLoadLabel = "Peso para as pernas"
     static let strengthNameLabel = "Nome"
     static let strengthNone = "Sem força"
-    static let strengthNote = "O treinador não muda a musculação. Ele ajusta a corrida em volta dela."
+    static let strengthNote = "O treinador não muda a musculação, e a corrida não muda por causa dela."
     static let strengthGridHint = "A força vem do que a Garmin mostrou nas últimas 4 semanas. Toque para ajustar."
 
     static func kindName(_ kind: TrainerDayKind) -> String {
@@ -261,21 +266,141 @@ enum TrainerText {
     }
 
     static func stepRows(_ workout: TrainerWorkout) -> [TrainerStepRow] {
-        workout.steps.enumerated().map { index, step in
-            if let rest = step.restSeconds {
-                return TrainerStepRow(id: index, kind: step.kind, title: restStepTitle, detail: restClock(rest))
+        if let rows = longBlockRows(workout) { return rows }
+        let steps = workout.steps
+        var rows: [TrainerStepRow] = []
+        var index = 0
+        while index < steps.count {
+            let step = steps[index]
+            let next = index + 1 < steps.count ? steps[index + 1] : nil
+            if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
+                rows.append(TrainerStepRow(id: rows.count, kind: step.kind, title: seriesTitle(step.repeats), detail: "", isHeader: true))
+                rows.append(row(step, at: index, in: workout, single: true, id: rows.count, isNested: true))
+                rows.append(row(next, at: index + 1, in: workout, single: true, id: rows.count, isNested: true))
+                index += 2
+                if index < steps.count, steps[index].repeats <= 1, let rest = steps[index].restSeconds, rest == next.restSeconds {
+                    index += 1
+                }
+            } else {
+                rows.append(row(step, at: index, in: workout, single: false, id: rows.count))
+                index += 1
             }
-            if step.kind == .recovery && step.meters > 0 && step.paceLow == nil {
-                return TrainerStepRow(id: index, kind: step.kind, title: trotTitle, detail: distance(step.meters))
-            }
-            var detail = distance(step.meters)
-            if let range = paceRange(low: step.paceLow, high: step.paceHigh) {
-                detail += " · \(range)"
-            } else if step.kind == .recovery {
-                detail += " · \(trot)"
-            }
-            return TrainerStepRow(id: index, kind: step.kind, title: stepTitle(step, in: workout), detail: detail)
         }
+        return rows
+    }
+
+    private static func longBlockRows(_ workout: TrainerWorkout) -> [TrainerStepRow]? {
+        guard workout.kind == .long, workout.steps.contains(where: { $0.kind == .recovery && $0.restSeconds != nil }) else { return nil }
+        var blocks: [(steps: [TrainerStep], rest: Double?)] = []
+        var current: [TrainerStep] = []
+        for step in workout.steps {
+            if step.kind == .recovery, let rest = step.restSeconds {
+                blocks.append((current, rest))
+                current = []
+            } else {
+                current.append(step)
+            }
+        }
+        blocks.append((current, nil))
+        var rows: [TrainerStepRow] = []
+        func append(_ kind: TrainerStepKind, title: String, detail: String, isHeader: Bool = false, isNested: Bool = false) {
+            rows.append(TrainerStepRow(id: rows.count, kind: kind, title: title, detail: detail, isHeader: isHeader, isNested: isNested))
+        }
+        func appendBlock(_ block: [TrainerStep], isNested: Bool) {
+            let meters = block.reduce(0.0) { $0 + $1.meters * Double($1.repeats) }
+            let lows = block.compactMap(\.paceLow)
+            let highs = block.compactMap(\.paceHigh)
+            var detail = distance(meters)
+            if let range = paceRange(low: lows.min(), high: highs.max()) { detail += " · \(range)" }
+            append(.steady, title: kindStepName(.long), detail: detail, isNested: isNested)
+        }
+        func appendPause(_ rest: Double, isNested: Bool) {
+            append(.recovery, title: longBlockPauseTitle, detail: restClock(rest), isNested: isNested)
+        }
+        var index = 0
+        while index < blocks.count {
+            var end = index
+            while end + 1 < blocks.count, blocks[end + 1].steps == blocks[index].steps { end += 1 }
+            let count = end - index + 1
+            if count > 1, let rest = blocks[index].rest {
+                append(.work, title: seriesTitle(count), detail: "", isHeader: true)
+                appendBlock(blocks[index].steps, isNested: true)
+                appendPause(rest, isNested: true)
+                if let last = blocks[end].rest { appendPause(last, isNested: false) }
+            } else {
+                appendBlock(blocks[index].steps, isNested: false)
+                if let rest = blocks[end].rest { appendPause(rest, isNested: false) }
+            }
+            index = end + 1
+        }
+        return rows
+    }
+
+    private static func row(_ step: TrainerStep, at index: Int, in workout: TrainerWorkout, single: Bool, id: Int, isNested: Bool = false) -> TrainerStepRow {
+        let steps = workout.steps
+        let repeats = single ? 1 : step.repeats
+        if let rest = step.restSeconds {
+            let isTransition = !isNested && step.repeats <= 1 && index + 1 < steps.count && steps[index + 1].kind == .work
+            let title = isTransition ? restBeforeNextTitle : repeated(repeats, restStepTitle)
+            return TrainerStepRow(id: id, kind: step.kind, title: title, detail: restClock(rest), isNested: isNested)
+        }
+        if step.kind == .recovery && step.meters > 0 && step.paceLow == nil {
+            return TrainerStepRow(id: id, kind: step.kind, title: repeated(repeats, trotTitle), detail: distance(step.meters), isNested: isNested)
+        }
+        var detail = distance(step.meters)
+        if let range = paceRange(low: step.paceLow, high: step.paceHigh) {
+            detail += " · \(range)"
+        } else if step.kind == .recovery {
+            detail += " · \(trot)"
+        }
+        var single = step
+        single.repeats = repeats
+        return TrainerStepRow(id: id, kind: step.kind, title: stepTitle(single, in: workout), detail: detail, isNested: isNested)
+    }
+
+    static func longModeName(_ mode: TrainerLongMode) -> String {
+        mode == .blocks ? "Em blocos" : "Contínuo"
+    }
+
+    static func longSuggestion(_ suggestion: TrainerLongSuggestion) -> String {
+        "Sugerido: pausas ou queda de pace em \(suggestion.flagged) dos últimos \(suggestion.total) longões."
+    }
+
+    static func longStageCaption(stage: Int, streak: Int) -> String {
+        let count = TrainerEngine.longStageCount
+        if stage >= count { return "etapa \(stage) de \(count) · \(streak + 1)º de \(TrainerEngine.longStageAdvanceStreak) para o contínuo" }
+        return "etapa \(stage) de \(count) · \(streak + 1)º de \(TrainerEngine.longStageAdvanceStreak) para avançar"
+    }
+
+    static func bestTimeStart(_ hour: Int) -> String {
+        "Sair às \(hour)h"
+    }
+
+    static func temperature(_ value: Double) -> String {
+        "\(Int(value.rounded())) °C"
+    }
+
+    static func heatWarning(_ heat: TrainerHeat, hasBlocks: Bool) -> String {
+        let limit = temperature(TrainerHeat.threshold)
+        let pace = "o pace sobe \(Int(heat.paceOffset)) s/km"
+        return hasBlocks
+            ? "Mesmo no horário mais fresco passa de \(limit): \(pace) e os blocos ficam 1 km menores."
+            : "Mesmo no horário mais fresco passa de \(limit): \(pace)."
+    }
+
+    static func heatLater(hour: Int, hasBlocks: Bool) -> String {
+        let limit = temperature(TrainerHeat.threshold)
+        return hasBlocks
+            ? "A partir das \(hour)h passa de \(limit). Com calor, o pace sobe 5 a 10 s/km e os blocos ficam 1 km menores."
+            : "A partir das \(hour)h passa de \(limit). Com calor, o pace sobe 5 a 10 s/km."
+    }
+
+    static func seriesTitle(_ repeats: Int) -> String {
+        "\(repeats)×"
+    }
+
+    static func repeated(_ repeats: Int, _ title: String) -> String {
+        repeats > 1 ? "\(repeats)× \(title)" : title
     }
 
     static func stepTitle(_ step: TrainerStep, in workout: TrainerWorkout) -> String {
@@ -369,6 +494,7 @@ enum TrainerText {
         case .request: "pedido por você"
         case .strengthChanged: "treinos de força atualizados"
         case .lightWeek(let day): "semana de \(dayMonth(day)) alterada"
+        case .longModeChanged: "modo do longão alterado"
         }
     }
 
@@ -392,14 +518,6 @@ enum TrainerText {
         case .fullBody: "Full"
         case .core: "Core"
         }
-    }
-
-    static func loadName(_ load: TrainerStrengthLoad) -> String {
-        load == .heavy ? "pesado" : "leve"
-    }
-
-    static func legsLoad(_ load: TrainerStrengthLoad) -> String {
-        "pernas \(loadName(load))"
     }
 
     static func strengthCaption(done: Int, minutes: Int?) -> String {

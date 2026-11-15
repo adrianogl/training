@@ -39,24 +39,6 @@ extension TrainerEngine {
         day.weekStart.days(until: day) + 1
     }
 
-    static func sessions(before day: Day, in strength: [TrainerStrengthSession]) -> [TrainerStrengthSession] {
-        let weekday = weekdayNumber(day.adding(days: -1))
-        return strength.filter { $0.weekday == weekday }
-    }
-
-    static func isLegHeavy(_ session: TrainerStrengthSession) -> Bool {
-        session.legLoad == .heavy || session.group == .lower
-    }
-
-    static func legsName(before day: Day, plan: TrainerPlan, history: TrainerHistory) -> String? {
-        let eve = day.adding(days: -1)
-        if let done = history.strength.first(where: { $0.day == eve }) {
-            let kind = classifyStrength(name: done.name)
-            if kind.load == .heavy || kind.group == .lower { return done.name }
-        }
-        return sessions(before: day, in: plan.strength).first(where: isLegHeavy)?.name
-    }
-
     static func classifyStrength(name: String) -> TrainerStrengthKind {
         let normalized = name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil).lowercased()
         func matches(_ words: [String]) -> Bool { words.contains { normalized.contains($0) } }
@@ -65,29 +47,6 @@ extension TrainerEngine {
         if matches(C.fullBodyWords) { return TrainerStrengthKind(group: .fullBody, load: .light, matched: true) }
         if matches(C.coreWords) { return TrainerStrengthKind(group: .core, load: .light, matched: true) }
         return TrainerStrengthKind(group: .fullBody, load: .light, matched: false)
-    }
-
-    static func longWorkout(
-        day: Day, week: TrainerWeek, paces: TrainerPaces, note: String?, slowStart: String?, rationale: String
-    ) -> TrainerWorkout {
-        let title = T.title(kind: .long, meters: week.longMeters)
-        guard slowStart != nil, week.longMeters > C.slowStartMeters else {
-            return steadyWorkout(
-                day: day, kind: .long, meters: week.longMeters, pace: paces.long, band: C.easyBand, title: title,
-                note: note, rationale: rationale
-            )
-        }
-        let normal = band(paces.long, C.easyBand)
-        let slow = band(paces.long + C.slowStartSeconds, C.easyBand)
-        let steps = [
-            TrainerStep(kind: .steady, meters: C.slowStartMeters, paceLow: slow.low, paceHigh: slow.high),
-            TrainerStep(kind: .steady, meters: week.longMeters - C.slowStartMeters, paceLow: normal.low, paceHigh: normal.high),
-        ]
-        let joined = [note, T.slowStartNote].compactMap { $0 }.joined(separator: " · ")
-        return TrainerWorkout(
-            day: day, kind: .long, title: title, totalMeters: week.longMeters, steps: steps,
-            paceLow: normal.low, paceHigh: normal.high, note: joined, rationale: rationale
-        )
     }
 
     private static func mostCommon(_ names: [String]) -> String {

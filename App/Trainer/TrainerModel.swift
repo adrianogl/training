@@ -203,6 +203,25 @@ import TrainingCore
         markSeen()
     }
 
+    var longSuggestion: TrainerLongSuggestion? {
+        TrainerEngine.longModeSuggestion(history: history, plan: plan, today: currentDay)
+    }
+
+    func setLongMode(_ mode: TrainerLongMode) async {
+        guard let current = plan, current.longMode != mode else { return }
+        isWorking = true
+        defer { isWorking = false }
+        history = await loadHistory()
+        persist(TrainerEngine.adjust(current, history: history, today: currentDay, now: .now, trigger: .longModeChanged))
+        markSeen()
+    }
+
+    func forecast(for day: Day) async -> [HourlyWeather] {
+        guard day >= currentDay, currentDay.days(until: day) <= PlannedExtrasConstants.forecastDaysAhead,
+              let coordinate = PlannedWeather.lastRunStart(context: container.mainContext) else { return [] }
+        return await PlannedWeather.forecast(day: day, coordinate: coordinate)
+    }
+
     func previewLightWeekStarts() -> [Day] {
         let first = currentDay.weekStart
         return (0..<TrainerConstants.lightWeekChoices).map { first.adding(days: $0 * TrainerConstants.weekdayCount) }
@@ -210,14 +229,14 @@ import TrainingCore
 
     func createPlan(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], startMeters: Double?,
-        peakMeters: Double?, lightWeeks: [Day] = []
+        peakMeters: Double?, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous
     ) async {
         isWorking = true
         defer { isWorking = false }
         history = await loadHistory()
         let created = TrainerEngine.create(
             target: target, structure: structure, strength: strength, history: history, today: currentDay, now: .now,
-            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks
+            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode
         )
         persist(created)
         store.markStrengthMigrated()

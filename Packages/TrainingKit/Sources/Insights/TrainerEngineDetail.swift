@@ -308,8 +308,8 @@ extension TrainerEngine {
 
     static func detailWorkouts(
         weeks: [TrainerWeek], structure: [Int: TrainerDayKind], paces: TrainerPaces, history: TrainerHistory,
-        target: TrainerTarget, today: Day, past: [TrainerWorkout], requests: [TrainerRequest],
-        strength: [TrainerStrengthSession], peakVolume: Double
+        target: TrainerTarget, today: Day, past: [TrainerWorkout], requests: [TrainerRequest], peakVolume: Double,
+        long: TrainerLongPlan = TrainerLongPlan()
     ) -> [TrainerWorkout] {
         let reachedPeak = weeks.filter { !$0.isRecovery && $0.phase != .taper }.map(\.targetMeters).max() ?? 0
         let peakShortfall = target.date != nil && reachedPeak < peakVolume
@@ -339,18 +339,17 @@ extension TrainerEngine {
             case .long:
                 let note = gelNote(history: history, meters: week.longMeters)
                 let previousLong = weeks.first(where: { $0.index == week.index - 1 })?.longMeters
-                let slowStart = sessions(before: day, in: strength).first { $0.group == .lower || $0.group == .fullBody }
-                var rationale = T.longRationale(
-                    week: week, previousLong: previousLong, cap: longCap(for: target), note: note, slowStart: slowStart?.name
-                )
+                var rationale = T.longRationale(week: week, previousLong: previousLong, cap: longCap(for: target), note: note)
                 if peakShortfall && week.phase != .taper && !week.isRecovery {
                     rationale += " \(T.peakShortfall(requested: peakVolume, reached: reachedPeak))"
                 }
-                workout = progressiveLong(
-                    day: day, week: week, paces: paces, target: target, rationale: rationale, slowStart: slowStart?.name, note: note
-                ) ?? longWorkout(
-                    day: day, week: week, paces: paces, note: note, slowStart: slowStart?.name, rationale: rationale
-                )
+                if let suffix = longContinuousSuffix(long: long, week: week) { rationale += " \(suffix)" }
+                workout = (long.mode == .blocks ? longBlocksWorkout(day: day, week: week, paces: paces, long: long) : nil)
+                    ?? progressiveLong(day: day, week: week, paces: paces, target: target, rationale: rationale, note: note)
+                    ?? steadyWorkout(
+                        day: day, kind: .long, meters: week.longMeters, pace: paces.long, band: C.easyBand,
+                        title: T.title(kind: .long, meters: week.longMeters), note: note, rationale: rationale
+                    )
             case .threshold, .vo2max:
                 let lowered = loweredKinds[kind].map { $0 < day } ?? false
                 if lowered { loweredKinds[kind] = nil }
@@ -360,7 +359,6 @@ extension TrainerEngine {
                 let restSeconds = restSeconds(
                     session: session, block: session.blocks[0], paces: paces, lowered: lowered
                 )
-                let legs = sessions(before: day, in: strength).first(where: isLegHeavy)
                 let previous = past.last { $0.kind == kind && $0.day < day }
                 let previousStatus = previous.map { status(of: $0, history: history, today: today).status }
                 let basis = kind == .threshold
@@ -373,11 +371,10 @@ extension TrainerEngine {
                 let miss = lowered && goalStep == nil ? missedQuality(kind, past: past, history: history, today: today) : nil
                 let rationale = T.qualityRationale(
                     kind: kind, title: title, session: session, week: week, previousStatus: previousStatus,
-                    miss: miss, basis: basis, restSeconds: restSeconds, legs: legs?.name, goal: goalNote
+                    miss: miss, basis: basis, restSeconds: restSeconds, goal: goalNote
                 )
                 workout = qualityWorkout(
-                    day: day, session: session, paces: paces, lowered: lowered,
-                    note: legs.map { T.legsNote($0.name) }, rationale: rationale
+                    day: day, session: session, paces: paces, lowered: lowered, note: nil, rationale: rationale
                 )
             case .optionalEasy:
                 let meters = easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today).optional
@@ -395,9 +392,9 @@ extension TrainerEngine {
     }
 
     static func progressiveLong(
-        day: Day, week: TrainerWeek, paces: TrainerPaces, target: TrainerTarget, rationale: String, slowStart: String?, note: String?
+        day: Day, week: TrainerWeek, paces: TrainerPaces, target: TrainerTarget, rationale: String, note: String?
     ) -> TrainerWorkout? {
-        guard target.kind == .paceDistance, let goal = target.goalPace, slowStart == nil, !week.isRecovery, week.phase != .taper
+        guard target.kind == .paceDistance, let goal = target.goalPace, !week.isRecovery, week.phase != .taper
         else { return nil }
         let final = goal + C.goalPaceLongOffset
         guard final < paces.long else { return nil }
