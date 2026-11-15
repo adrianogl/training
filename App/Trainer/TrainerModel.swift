@@ -246,6 +246,7 @@ import TrainingCore
         loadedStamp = stamp
         plan = store.load()
         seenVersion = store.seenVersion
+        fillMissingWeeks()
     }
 
     func load() async {
@@ -253,6 +254,7 @@ import TrainingCore
         loadedStamp = store.updatedAt()
         history = await loadHistory()
         isLoaded = true
+        fillMissingWeeks()
         migrateStrength()
         applyPending()
     }
@@ -419,6 +421,12 @@ import TrainingCore
 
     func resolvedCategory(shortcut: TrainerRequestCategory?, text: String) -> TrainerRequestCategory {
         shortcut ?? TrainerEngine.classify(requestText: text)
+    }
+
+    private func fillMissingWeeks() {
+        guard let current = plan,
+              let filled = TrainerEngine.fillMissingWeeks(current, history: history, today: currentDay) else { return }
+        persist(filled)
     }
 
     private func migrateStrength() {

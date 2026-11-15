@@ -106,6 +106,17 @@ actor FakeNotificationScheduler: NotificationScheduling {
         #expect(await scheduler.delivered.isEmpty)
     }
 
+    @Test func skipsYesterdaysReadiness() async {
+        let (notifier, scheduler) = makeNotifier()
+        var yesterday = summary()
+        yesterday.readinessFromYesterday = true
+
+        await notifier.evaluate(summary: yesterday, now: date(hour: 7), lastAppOpen: nil, settings: settings)
+
+        #expect(await scheduler.scheduled.isEmpty)
+        #expect(await scheduler.delivered.isEmpty)
+    }
+
     @Test func skipsWhenAlreadyNotifiedOrAppOpened() async {
         let (notifier, scheduler) = makeNotifier()
         await notifier.evaluate(summary: summary(), now: date(hour: 7), lastAppOpen: nil, settings: settings)
