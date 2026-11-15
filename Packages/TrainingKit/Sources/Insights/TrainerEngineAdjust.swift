@@ -173,9 +173,9 @@ extension TrainerEngine {
         )
         let firstStart = plan.weeks.first { $0.index == rebuildFrom }?.start ?? kept.last?.start.adding(days: C.daysPerWeek) ?? today.weekStart
         let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: volumes.start)
-        let rebuilt = sizedWeeks(
+        let rebuilt = longestLongs(sizedWeeks(
             buildWeeks(context: context, firstIndex: rebuildFrom, firstStart: firstStart, state: state, adjustment: adjustment), paces: paces
-        )
+        ), structure: plan.structure, target: plan.target, history: history, today: today, paces: paces)
         let skeleton = kept + rebuilt
 
         let active = activeRequests(of: plan, today: today)

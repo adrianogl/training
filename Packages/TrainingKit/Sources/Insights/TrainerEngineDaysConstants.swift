@@ -6,6 +6,12 @@ extension TrainerEngineConstants {
     static let longMaximumSeconds = 150.0 * 60
     static let longWeekShare = 0.30
     static let easyMinimumSeconds = 40.0 * 60
+    static let thresholdWeekShare = 0.17
+    static let vo2WeekShare = 0.08
+    static let vo2MaximumWorkMeters = 10_000.0
+    static let minimumQualityRepeats = 2
+    static let minimumQualityBlockMeters = 1_000.0
+    static let minimumTempoMeters = 2_000.0
     static let optionalMaximumSeconds = 50.0 * 60
     static let raceQualityGapDays = 4
     static let singleQualityRuns = 4

@@ -400,7 +400,7 @@ import WorkoutAnalysis
     }
 
     @Test func plannedMetersIgnoreTheRest() throws {
-        let plan = createPlan()
+        let plan = createPlan(startMeters: 70_000)
         let week = plan.workouts.prefix(7)
         #expect(plan.weeks[0].plannedMeters == week.reduce(0) { $0 + $1.totalMeters })
         let threshold = try workout(plan, monday.adding(days: 1))
@@ -408,7 +408,7 @@ import WorkoutAnalysis
     }
 
     @Test func offTargetQualityDropsAStageWithLongerRecovery() throws {
-        let plan = createPlan()
+        let plan = createPlan(startMeters: 70_000)
         let tuesday = monday.adding(days: 1)
         let wednesday = monday.adding(days: 2)
         let history = baseHistory(extra: [run(97, tuesday, km: 11.8, pace: 270, kind: .tempo, onTarget: 2, total: 3)])

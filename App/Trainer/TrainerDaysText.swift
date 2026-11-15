@@ -25,8 +25,10 @@ enum TrainerDaysText {
         meters > 0 ? "\(Int((meters / 1_000).rounded())) km" : noKilometers
     }
 
-    static func summary(meters: Double, quality: Int, alternates: Bool) -> String {
-        let peak = "Pico de \(Int((meters / 1_000).rounded())) km"
+    static func summary(peakMeters: Double, meters: Double, quality: Int, alternates: Bool) -> String {
+        let requested = Int((peakMeters / 1_000).rounded())
+        let suggested = Int((meters / 1_000).rounded())
+        let peak = suggested > requested ? "Pico de \(requested) km, dias somam \(suggested) km" : "Pico de \(requested) km"
         if alternates { return "\(peak) · 1 de qualidade, alternando limiar e VO2" }
         return "\(peak) · \(quality) de qualidade"
     }

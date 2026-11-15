@@ -46,8 +46,9 @@ import Testing
     @Test func textsDescribeTheWeek() {
         #expect(TrainerDaysText.runsDetail(runs: 6, optional: true) == "5 fixas + 1 opcional")
         #expect(TrainerDaysText.runsDetail(runs: 4, optional: false) == "4 fixas")
-        #expect(TrainerDaysText.summary(meters: 70_400, quality: 2, alternates: false) == "Pico de 70 km · 2 de qualidade")
-        #expect(TrainerDaysText.summary(meters: 63_000, quality: 1, alternates: true) == "Pico de 63 km · 1 de qualidade, alternando limiar e VO2")
+        #expect(TrainerDaysText.summary(peakMeters: 70_000, meters: 70_400, quality: 2, alternates: false) == "Pico de 70 km · 2 de qualidade")
+        #expect(TrainerDaysText.summary(peakMeters: 19_000, meters: 33_000, quality: 1, alternates: true) == "Pico de 19 km, dias somam 33 km · 1 de qualidade, alternando limiar e VO2")
+        #expect(TrainerDaysText.summary(peakMeters: 63_000, meters: 63_000, quality: 1, alternates: true) == "Pico de 63 km · 1 de qualidade, alternando limiar e VO2")
         #expect(TrainerDaysText.kilometers(0) == "—")
         #expect(TrainerDaysText.warningsCount(2) == "2 avisos")
     }

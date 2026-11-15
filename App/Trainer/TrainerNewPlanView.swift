@@ -118,6 +118,7 @@ struct TrainerNewPlanView: View {
             structure: $structure, strength: $strength,
             suggested: TrainerEngine.suggestedStructure(dayPreference),
             meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal),
+            peakMeters: peak,
             warnings: TrainerEngine.dayWarnings(structure: structure, strength: strength, peakMeters: peak, paces: paces, target: goal),
             showsStrength: !isEditing
         )
