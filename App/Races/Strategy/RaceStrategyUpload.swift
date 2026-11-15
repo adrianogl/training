@@ -41,7 +41,7 @@ struct RaceStrategyUploadCard: View {
             }
             Spacer(minLength: 8)
             if sending {
-                ProgressView()
+                BrandLoader(size: .mini)
             } else {
                 Button(C.send) { confirming = true }
                     .font(.subheadline.weight(.bold))

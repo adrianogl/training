@@ -239,7 +239,7 @@ private struct ResultPickerSheet: View {
                         .scrollContentBackground(.hidden)
                     }
                 } else {
-                    ProgressView()
+                    BrandLoader(size: .regular)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -16,7 +16,7 @@ struct DetailedAnalysisView: View {
                 if let model {
                     content(model)
                 } else {
-                    ProgressView().frame(maxWidth: .infinity)
+                    writing
                 }
             }
             .padding(.horizontal, BrandConstants.screenPadding)
@@ -55,6 +55,20 @@ struct DetailedAnalysisView: View {
         } else if model.isLoaded {
             Text(C.unavailable).font(.subheadline).foregroundStyle(BrandColors.dim).padding(.top, 16)
         }
+    }
+
+    private var writing: some View {
+        VStack(spacing: 16) {
+            BrandLoader(size: .large)
+                .padding(BrandLoaderConstants.large.ringGap)
+            Text(C.writingTitle).font(.headline).foregroundStyle(BrandColors.text)
+            Text(C.writingDetail)
+                .font(.footnote)
+                .foregroundStyle(BrandColors.dim)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, FirstSyncConstants.verticalPadding)
     }
 
     private func header(_ model: DetailedAnalysisModel) -> some View {

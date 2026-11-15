@@ -75,7 +75,12 @@ struct TrainerRequestView: View {
             }
             .environment(\.locale, TrainerConstants.locale)
             .brandCard()
-            Button(model.isWorking ? TrainerText.requestWorking : TrainerText.requestSubmit) { submit() }
+            Button { submit() } label: {
+                HStack(spacing: 8) {
+                    if model.isWorking { BrandLoader(size: .mini) }
+                    Text(model.isWorking ? TrainerText.requestWorking : TrainerText.requestSubmit)
+                }
+            }
                 .buttonStyle(TrainerPrimaryButtonStyle())
                 .disabled(!canSubmit || model.isWorking)
                 .opacity(canSubmit ? 1 : 0.5)

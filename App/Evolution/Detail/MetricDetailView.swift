@@ -13,7 +13,7 @@ struct MetricDetailView: View {
             VStack(alignment: .leading, spacing: 12) {
                 periodPicker
                 if model.series == nil {
-                    ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+                    BrandLoader(size: .regular).frame(maxWidth: .infinity).padding(.top, 40)
                 } else if !model.hasData {
                     Text(EvolutionConstants.detailNoData)
                         .font(.subheadline)

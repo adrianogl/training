@@ -19,7 +19,7 @@ struct RaceEditorSheet: View {
                 if let model, model.isLoaded {
                     form(model)
                 } else {
-                    ProgressView()
+                    BrandLoader(size: .regular)
                 }
             }
             .scrollContentBackground(.hidden)

@@ -109,6 +109,8 @@ struct RaceListView: View {
                 .padding(.bottom, 8)
                 if let model, model.isLoaded, !app.showsSkeleton {
                     content(model)
+                } else if app.showsSkeleton {
+                    FirstSyncView()
                 } else {
                     SkeletonCards(heights: SkeletonConstants.racesHeights)
                 }
@@ -117,6 +119,7 @@ struct RaceListView: View {
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
+        .brandRefreshable { await app.syncNow(.pull) }
         .background(BrandBackground())
         .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
     }

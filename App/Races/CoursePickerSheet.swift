@@ -24,7 +24,7 @@ struct CoursePickerSheet: View {
                                         Text(detail(course)).font(.caption).foregroundStyle(BrandColors.dim)
                                     }
                                     Spacer()
-                                    if loadingId == course.id { ProgressView() }
+                                    if loadingId == course.id { BrandLoader(size: .mini) }
                                 }
                             }
                             .disabled(loadingId != nil)
@@ -34,7 +34,7 @@ struct CoursePickerSheet: View {
                 } else if failed {
                     Text(RacesConstants.courseFailed).foregroundStyle(BrandColors.danger).padding()
                 } else {
-                    ProgressView()
+                    BrandLoader(size: .regular)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

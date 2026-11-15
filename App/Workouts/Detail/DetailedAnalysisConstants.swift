@@ -10,9 +10,8 @@ enum DetailedScreenConstants {
     static let skeletonWidths: [CGFloat] = [1, 0.94, 0.97, 0.58]
     static let skeletonLineHeight: CGFloat = 12
     static let skeletonLineSpacing: CGFloat = 8
-    static let pulseDotSize: CGFloat = 7
-    static let pulseSeconds = 1.2
-    static let pulseLowOpacity = 0.3
+    static let writingTitle = "Escrevendo a análise"
+    static let writingDetail = "O Apple Intelligence está lendo os blocos, a FC e os treinos parecidos."
     static let buttonTitle = "Ver análise detalhada"
     static let screenTitle = "Análise detalhada"
     static let comparedFormat = "comparado com %d treinos dos últimos %d dias"

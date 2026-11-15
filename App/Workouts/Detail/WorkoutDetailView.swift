@@ -21,7 +21,7 @@ struct WorkoutDetailView: View {
                     if let model {
                         content(model)
                     } else {
-                        ProgressView().frame(maxWidth: .infinity)
+                        BrandLoader(size: .regular).frame(maxWidth: .infinity).padding(.vertical, 24)
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)

@@ -29,7 +29,7 @@ struct WorkoutChatSheet: View {
                                 bubble(message).id(message.id)
                             }
                             if thinking {
-                                HStack(spacing: 8) { ProgressView(); Text(C.thinking).font(.caption).foregroundStyle(BrandColors.dim) }
+                                HStack(spacing: 8) { BrandLoader(size: .mini); Text(C.thinking).font(.caption).foregroundStyle(BrandColors.dim) }
                                     .id("thinking")
                             }
                         }
