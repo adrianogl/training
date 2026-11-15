@@ -8,12 +8,32 @@ struct WorkoutListView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
-    @State private var path = WorkoutListView.initialPath()
+    @SceneStorage(NavigationRestorationConstants.workoutsPathKey) private var pathData = Data()
+    @SceneStorage(NavigationRestorationConstants.workoutsSelectionKey) private var selectionData = Data()
+    @State private var appliedRestoration = false
     @State private var chatCounts: [Int64: Int] = [:]
-    @State private var selection: WorkoutSelection? = WorkoutListView.initialPath().first
     @State private var planned: [PlannedWorkout] = []
     @State private var userScrolled = false
     @State private var showsPlanned = false
+
+    private var path: [WorkoutSelection] {
+        get { validated(NavigationRestoration.decodePath(pathData)) }
+        nonmutating set { pathData = NavigationRestoration.encode(newValue) }
+    }
+
+    private var selection: WorkoutSelection? {
+        get { NavigationRestoration.decodeValue(selectionData).flatMap { isRestorable($0) ? $0 : nil } }
+        nonmutating set { selectionData = newValue.map { NavigationRestoration.encode($0) } ?? Data() }
+    }
+
+    private func isRestorable(_ item: WorkoutSelection) -> Bool {
+        guard case .activity(let id) = item else { return true }
+        return records.contains { $0.activityId == id }
+    }
+
+    private func validated(_ items: [WorkoutSelection]) -> [WorkoutSelection] {
+        NavigationRestoration.validPrefix(items, isValid: isRestorable)
+    }
 
     var body: some View {
         let weeks = WorkoutListModel.weeks(records: records)
@@ -35,12 +55,13 @@ struct WorkoutListView: View {
                     }
                 }
             } else {
-                NavigationStack(path: $path) {
+                NavigationStack(path: Binding(get: { path }, set: { path = $0 })) {
                     list(weeks)
                         .navigationDestination(for: WorkoutSelection.self) { item in destination(item) }
                 }
             }
         }
+        .onAppear(perform: applyDebugOverride)
         .task {
             model.scoreRefresher.refresh()
         }
@@ -57,7 +78,28 @@ struct WorkoutListView: View {
             guard let client = model.garminAccount.client else { planned = []; return }
             let today = Day.today()
             planned = (try? await PlannedWorkouts.fetch(client: client, from: today, through: today.adding(days: WorkoutConstants.plannedDays))) ?? []
+            dropMissingPlanned()
         }
+    }
+
+    private func applyDebugOverride() {
+        guard !appliedRestoration else { return }
+        appliedRestoration = true
+        let debugPath = Self.initialPath()
+        guard !debugPath.isEmpty else { return }
+        path = debugPath
+        selection = debugPath.first
+    }
+
+    private func dropMissingPlanned() {
+        let plannedIds = Set(planned.map(\.id))
+        let isPresent: (WorkoutSelection) -> Bool = { item in
+            guard case .planned(let id) = item else { return true }
+            return plannedIds.contains(id)
+        }
+        let kept = NavigationRestoration.validPrefix(path, isValid: isPresent)
+        if kept.count != path.count { path = kept }
+        if let current = selection, !isPresent(current) { selection = nil }
     }
 
     private func current(_ weeks: [WorkoutWeek]) -> WorkoutSelection? {

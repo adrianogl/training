@@ -8,11 +8,27 @@ struct RaceListView: View {
     @Environment(AppModel.self) private var app
     @Query(filter: #Predicate<RaceRecord> { $0.deletedAt == nil }) private var races: [RaceRecord]
     @State private var model: RaceListModel?
-    @State private var path: [RaceRoute] = []
+    @SceneStorage(NavigationRestorationConstants.racesPathKey) private var pathData = Data()
+    @SceneStorage(NavigationRestorationConstants.racesSelectionKey) private var selectionData = Data()
     @State private var showsEditor = false
     @State private var openedDebugRace = false
-    @State private var selection: RaceRoute?
     @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private var path: [RaceRoute] {
+        get { NavigationRestoration.validPrefix(NavigationRestoration.decodePath(pathData), isValid: isRestorable) }
+        nonmutating set { pathData = NavigationRestoration.encode(newValue) }
+    }
+
+    private var selection: RaceRoute? {
+        get { NavigationRestoration.decodeValue(selectionData).flatMap { isRestorable($0) ? $0 : nil } }
+        nonmutating set { selectionData = newValue.map { NavigationRestoration.encode($0) } ?? Data() }
+    }
+
+    private func isRestorable(_ route: RaceRoute) -> Bool {
+        switch route {
+        case .next(let id), .completed(let id): races.contains { $0.id == id }
+        }
+    }
 
     private var signature: [Date] {
         races.map(\.updatedAt).sorted()
@@ -39,7 +55,7 @@ struct RaceListView: View {
                     }
                 }
             } else {
-                NavigationStack(path: $path) {
+                NavigationStack(path: Binding(get: { path }, set: { path = $0 })) {
                     listScroll
                         .navigationDestination(for: RaceRoute.self) { route in destination(route) }
                         .navigationDestination(for: Int64.self) { activityId in WorkoutDetailView(activityId: activityId) }

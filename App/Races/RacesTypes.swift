@@ -7,7 +7,7 @@ import TrainingCore
 
 typealias RaceAnswer = (Int64, ModelContext) throws -> Void
 
-enum RaceRoute: Hashable {
+enum RaceRoute: Hashable, Codable {
     case next(UUID)
     case completed(UUID)
 }

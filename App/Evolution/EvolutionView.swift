@@ -7,11 +7,17 @@ struct EvolutionView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var model: EvolutionModel?
-    @State private var path: [MetricKind] = EvolutionView.initialPath()
+    @SceneStorage(NavigationRestorationConstants.evolutionPathKey) private var pathData = Data()
+    @State private var appliedRestoration = false
     @State private var showsChat = false
 
+    private var path: [MetricKind] {
+        get { NavigationRestoration.decodePath(pathData) }
+        nonmutating set { pathData = NavigationRestoration.encode(newValue) }
+    }
+
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack(path: Binding(get: { path }, set: { path = $0 })) {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
@@ -62,6 +68,12 @@ struct EvolutionView: View {
                 WorkoutChatSheet(activityId: WorkoutChatConstants.evolutionKey, context: chatContext(model), store: .evolution)
                     .presentationSizing(.page)
             }
+        }
+        .onAppear {
+            guard !appliedRestoration else { return }
+            appliedRestoration = true
+            let debugPath = Self.initialPath()
+            if !debugPath.isEmpty { path = debugPath }
         }
         .task(id: app.dataToken) {
             await Task.yield()

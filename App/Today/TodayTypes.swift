@@ -3,7 +3,7 @@ import Insights
 import Metrics
 import TrainingCore
 
-enum TodayRoute: Hashable {
+enum TodayRoute: Hashable, Codable {
     case readiness
     case workout(Int64)
 }
