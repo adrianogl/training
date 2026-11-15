@@ -181,7 +181,7 @@ private final class FakeRecordsServer: HTTPTransport {
         try a.store.save(plan)
         try await a.sync()
         try await b.sync()
-        let model = TrainerModel(container: b.container, store: b.store)
+        let model = TrainerModel(container: b.container, store: b.store, today: { Day(iso: "2027-06-01")! })
         #expect(model.plan == plan)
 
         let adjusted = Self.edited(plan, summary: "ajuste automático")

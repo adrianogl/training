@@ -90,4 +90,27 @@ import WorkoutAnalysis
         #expect(plan.workouts.count == 24 * 7)
         #expect(grown < 950_000)
     }
+
+    @Test func fillMissingWeeksCompletesTruncatedPlanWithoutVersion() throws {
+        let full = create(weeks: 13, distance: 21_097.5, goal: 5_700)
+        var truncated = full
+        truncated.workouts = full.workouts.filter { $0.day < monday.adding(days: 15) }
+
+        let filled = try #require(TrainerEngine.fillMissingWeeks(truncated, history: history, today: monday))
+
+        #expect(filled.versions == truncated.versions)
+        #expect(filled.workouts.filter { $0.day < monday.adding(days: 15) } == truncated.workouts)
+        for week in filled.weeks {
+            let days = filled.workouts.filter { $0.day.weekStart == week.start }
+            #expect(days.count == 7)
+        }
+        #expect(filled.weeks.prefix(2) == truncated.weeks.prefix(2))
+        #expect(filled.weeks.dropFirst(2).allSatisfy { $0.plannedMeters > 0 })
+    }
+
+    @Test func fillMissingWeeksReturnsNilForCompletePlan() {
+        let plan = create(weeks: 13, distance: 21_097.5, goal: 5_700)
+
+        #expect(TrainerEngine.fillMissingWeeks(plan, history: history, today: monday) == nil)
+    }
 }
