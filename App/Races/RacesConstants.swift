@@ -111,14 +111,14 @@ enum RacesConstants {
     static let checklistTitles: [ChecklistKind: String] = [
         .vo2max: "VO2max vs início do bloco",
         .longRun: "Longão mais longo vs alvo",
-        .thresholdPace: "Pace de limiar vs pace alvo",
+        .thresholdPace: "Limiar vs meta",
         .hrv: "HRV vs base",
         .raceDayForm: "Forma no dia da prova (projeção)",
     ]
     static let checklistMissing: [ChecklistKind: String] = [
         .vo2max: "sem VO2max nas corridas do bloco",
         .longRun: "sem corridas no bloco",
-        .thresholdPace: "sem FC de limiar ou trechos no limiar",
+        .thresholdPace: "sem meta ou sem treinos de limiar",
         .hrv: "sem HRV da noite",
         .raceDayForm: "sem carga suficiente para projetar",
     ]
@@ -139,6 +139,7 @@ enum RacesConstants {
     static let racePaceMissing = "sem meta nem projeção para definir o pace de prova"
     static let tuneUpTitle = "Simulado de %@ km"
     static let tuneUpDetail = "%@, %@ km a %@."
+    static let thresholdDetail = "limiar %@ aponta %@ · meta %@"
     static let tuneUpMissing = "Nenhum treino de %@ km forte no bloco."
     static let courseChecklistTitle = "Percurso da prova"
     static let courseDetail = "%@ km · +%d m de subida acumulada."

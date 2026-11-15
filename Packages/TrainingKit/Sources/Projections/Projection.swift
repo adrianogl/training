@@ -6,7 +6,8 @@ public func project(
     today: Day,
     horizonDays: Int,
     softCeiling: Double? = nil,
-    target: Double? = nil
+    target: Double? = nil,
+    anchor: Double? = nil
 ) -> Projection? {
     guard horizonDays >= 1 else { return nil }
     let samples: [(x: Double, y: Double)] = series.compactMap { day, value in
@@ -31,7 +32,8 @@ public func project(
     }
     let sigma = (residualSquares / (n - 2)).squareRoot()
 
-    var cursor = intercept
+    let start = anchor ?? intercept
+    var cursor = start
     var points: [ProjectionPoint] = []
     points.reserveCapacity(horizonDays)
     for h in 1...horizonDays {
@@ -56,7 +58,7 @@ public func project(
 
     var crossing: Day?
     if let target, slope != 0 {
-        let ahead = slope > 0 ? target - intercept : intercept - target
+        let ahead = slope > 0 ? target - start : start - target
         if abs(ahead) <= ProjectionConstants.targetTolerance * max(1, abs(target)) {
             crossing = today
         } else if ahead > 0 {

@@ -56,7 +56,7 @@ export function raceChecklist(input: ChecklistInput): ChecklistItem[] {
   const tuneUps =
     pace === null
       ? []
-      : inBlock.filter((run) => (run.distance ?? 0) >= tuneUpKm * 1000 * CHECKLIST.tuneUpDistanceRatio && (run.seconds ?? 0) > 0 && (run.seconds ?? 0) / ((run.distance ?? 1) / 1000) <= pace + CHECKLIST.tuneUpPaceMargin)
+      : inBlock.filter((run) => !run.structured && (run.distance ?? 0) >= tuneUpKm * 1000 * CHECKLIST.tuneUpDistanceRatio && (run.seconds ?? 0) > 0 && (run.seconds ?? 0) / ((run.distance ?? 1) / 1000) <= pace + CHECKLIST.tuneUpPaceMargin)
   const best = tuneUps.reduce<ChecklistRun | undefined>((latest, run) => (latest === undefined || run.day >= latest.day ? run : latest), undefined)
   const profile = input.profile !== null && input.profile.length > 1 ? input.profile : null
   const gain = profile === null ? null : profile.slice(1).reduce((sum, point, index) => sum + Math.max(0, point.altitude - (profile[index]?.altitude ?? point.altitude)), 0)

@@ -112,3 +112,23 @@ private func noisySeries() -> [(Day, Double)] {
     let p = project(doubled, today: today, horizonDays: 30)!
     #expect(abs(p.points.last!.mid - 51.9) < 0.01)
 }
+
+@Test func anchorStartsTheCurveAtTheGivenValueKeepingTheSlope() {
+    let free = project(linearSeries(), today: today, horizonDays: 30)!
+    let anchored = project(linearSeries(), today: today, horizonDays: 30, anchor: 60)!
+    #expect(abs(anchored.points[0].mid - 60.1) < 1e-9)
+    for (a, b) in zip(free.points, anchored.points) {
+        #expect(abs((b.mid - a.mid) - (60 - 48.9)) < 1e-9)
+    }
+}
+
+@Test func anchoredProjectionIsNeverSlowerThanTheAnchorWhenTheTrendImproves() {
+    let series = linearSeries(start: 80, slope: -0.1)
+    let anchored = project(series, today: today, horizonDays: 30, anchor: 60)!
+    #expect(anchored.points.allSatisfy { $0.mid < 60 })
+}
+
+@Test func anchoredProjectionKeepsTheRelativeWorseningWhenTheTrendWorsens() {
+    let anchored = project(linearSeries(), today: today, horizonDays: 30, anchor: 60)!
+    #expect(abs(anchored.points.last!.mid - 63) < 1e-9)
+}

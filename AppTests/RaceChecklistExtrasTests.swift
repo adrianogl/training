@@ -1,3 +1,5 @@
+import Foundation
+import Storage
 import Testing
 import TrainingCore
 @testable import trAIning
@@ -43,5 +45,43 @@ import TrainingCore
         ]
 
         #expect(RaceChecklistExtras.racePaceKm(splits: splits, targetPace: 280) == 3)
+    }
+
+    @Test func thresholdItemPointsTheRaceDistanceTimeFromTheWorkPace() {
+        let item = RaceChecklistExtras.thresholdItem(workPace: 246, raceDistance: 10_000, goalSeconds: 2_400)
+
+        #expect(item.title == "Limiar vs meta")
+        #expect(item.detail == "limiar 4:06 /km aponta 39:50 · meta 40:00")
+        #expect(item.status == .ok)
+    }
+
+    @Test func thresholdItemNeedsAttentionWhenItPointsSlowerThanTheGoal() {
+        let item = RaceChecklistExtras.thresholdItem(workPace: 252, raceDistance: 10_000, goalSeconds: 2_400)
+
+        #expect(item.status == .attention)
+    }
+
+    @Test func thresholdItemIsMissingWithoutGoalOrWorkPace() {
+        #expect(RaceChecklistExtras.thresholdItem(workPace: nil, raceDistance: 10_000, goalSeconds: 2_400).status == .missing)
+        #expect(RaceChecklistExtras.thresholdItem(workPace: 246, raceDistance: 10_000, goalSeconds: nil).status == .missing)
+    }
+
+    @Test func tuneUpIgnoresRunsWithWorkBlocks() throws {
+        let start = Self.today.adding(days: -3).chartDate
+        let threshold = ActivityRecord(activityId: 1, typeKey: "running", name: "Limiar 10x1km", start: start, distance: 14_100, duration: 3_510)
+        let input = RaceChecklistExtras.Input(
+            today: Self.today, blockStart: Self.today.adding(days: -30), distance: 10_000, goalSeconds: 2_400, priority: .a,
+            profile: nil, targetPace: 240, weeklyKm: [:], runs: [threshold]
+        )
+        let missing = try #require(RaceChecklistExtras.items(input).first { $0.kind == .tuneUp })
+        #expect(missing.status == .missing)
+
+        let steady = ActivityRecord(activityId: 2, typeKey: "running", name: "Corrida", start: start, distance: 5_400, duration: 1_300)
+        let withSteady = RaceChecklistExtras.Input(
+            today: Self.today, blockStart: Self.today.adding(days: -30), distance: 10_000, goalSeconds: 2_400, priority: .a,
+            profile: nil, targetPace: 240, weeklyKm: [:], runs: [threshold, steady]
+        )
+        let found = try #require(RaceChecklistExtras.items(withSteady).first { $0.kind == .tuneUp })
+        #expect(found.status == .ok)
     }
 }

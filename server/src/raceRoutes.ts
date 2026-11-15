@@ -3,7 +3,7 @@ import { RACES } from './constants.js'
 import type { Sql } from './db.js'
 import { addDays as shift } from './garminSync.js'
 import type { Weather, WeatherNote } from './domain/domainTypes.js'
-import { readTrainingEfforts } from './trainingEffortStore.js'
+import { readStructuredRuns, readTrainingEfforts } from './trainingEffortStore.js'
 import { blockStartOf, buildRaceViews, racePoints } from './domain/raceView.js'
 import { isRun } from './domain/today.js'
 import { fetchMissingLaps, readLaps } from './garminLaps.js'
@@ -45,7 +45,7 @@ export function racesRoute(request: Request, sql: Sql, env: GarminEnv = garminEn
     const ids = earliest === undefined ? [] : activities.filter((run) => isRun(run) && run.day >= earliest).map((run) => run.id)
     const keyed = { ...env, dataKey: key }
     const laps = await fetchMissingLaps(sql, keyed, accountId, ids).catch(() => readLaps(sql, key, accountId, ids))
-    const views = buildRaceViews(races, { today, activities, laps, weather: await forecasts(env, races, today), trainingEfforts: await readTrainingEfforts(sql, key, accountId, activities, races, today) })
+    const views = buildRaceViews(races, { today, activities, laps, weather: await forecasts(env, races, today), trainingEfforts: await readTrainingEfforts(sql, key, accountId, activities, races, today), structuredRuns: await readStructuredRuns(sql, key, accountId, activities, races, ids) })
     const order = (day: string | null) => day ?? ''
     const upcoming = views.filter((view) => view.status === 'upcoming').sort((a, b) => order(a.day).localeCompare(order(b.day)))
     const done = views.filter((view) => view.status === 'done').sort((a, b) => order(b.day).localeCompare(order(a.day)))

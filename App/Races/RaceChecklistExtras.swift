@@ -1,6 +1,7 @@
 import FITReader
 import Foundation
 import Metrics
+import Reports
 import Storage
 import SwiftData
 import TrainingCore
@@ -37,6 +38,19 @@ enum RaceChecklistExtras {
 
     static func racePaceTarget(distance: Double) -> Double {
         (distance / C.metersPerKm * C.racePaceVolumeRatio).rounded()
+    }
+
+    static func thresholdItem(workPace: Double?, raceDistance: Double, goalSeconds: Double?) -> ChecklistItem {
+        let title = C.checklistTitles[.thresholdPace] ?? ""
+        guard let workPace, let goalSeconds, goalSeconds > 0 else {
+            return ChecklistItem(kind: .thresholdPace, title: title, detail: C.checklistMissing[.thresholdPace] ?? "", status: .missing)
+        }
+        let pointed = thresholdRaceSeconds(workPace: workPace, raceDistance: raceDistance)
+        let detail = String(
+            format: C.thresholdDetail,
+            RacesText.paceText(workPace), WorkoutFormat.clock(pointed), WorkoutFormat.clock(goalSeconds)
+        )
+        return ChecklistItem(kind: .thresholdPace, title: title, detail: detail, status: pointed <= goalSeconds ? .ok : .attention)
     }
 
     static func tuneUpDistance(distance: Double) -> Double {
@@ -90,6 +104,7 @@ enum RaceChecklistExtras {
         let distance = tuneUpDistance(distance: input.distance)
         let title = String(format: C.tuneUpTitle, RacesText.km(distance))
         let candidates = input.runs.filter { run in
+            guard isContinuous(run) else { return false }
             guard Day.today(now: run.start) >= input.blockStart, let meters = run.distance, meters >= distance * C.metersPerKm * C.tuneUpDistanceRatio,
                   let seconds = run.movingDuration ?? run.duration, let pace = input.targetPace else { return false }
             return seconds / (meters / C.metersPerKm) <= pace + C.tuneUpPaceMargin
@@ -104,6 +119,12 @@ enum RaceChecklistExtras {
             RacesText.paceText(seconds / (meters / C.metersPerKm))
         )
         return ChecklistItem(kind: .tuneUp, title: title, detail: detail, status: .ok)
+    }
+
+    private static func isContinuous(_ run: ActivityRecord) -> Bool {
+        guard workPace(run) == nil else { return false }
+        let kind = classifyRun(run, longGoalKm: nil, raceGoalKms: [])
+        return kind != .intervals && kind != .tempo
     }
 
     private static func course(_ input: Input) -> ChecklistItem {

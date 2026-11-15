@@ -46,4 +46,16 @@ private func session(_ daysAgo: Int, pace: Double, km: Double = 6) -> TrainingSe
         #expect(abs(fiveK - 1_155) < 5)
         #expect(abs(half - 5_285) < 5)
     }
+
+    @Test func thresholdWorkPaceIsTheMedianOfTheLastFourSessionsUpToTheDay() throws {
+        let sessions = [session(2, pace: 248), session(9, pace: 245), session(16, pace: 250), session(23, pace: 240), session(30, pace: 200)]
+        #expect(thresholdWorkPace(sessions, on: today) == 246.5)
+        #expect(thresholdWorkPace(sessions, on: today.adding(days: -20)) == 220)
+        #expect(thresholdWorkPace(sessions, on: today.adding(days: -40)) == nil)
+    }
+
+    @Test func thresholdRaceSecondsTakesTheTenKilometerEffortToTheRaceDistance() {
+        #expect(thresholdRaceSeconds(workPace: 246, raceDistance: 10_000) == 2_390)
+        #expect(abs(thresholdRaceSeconds(workPace: 246, raceDistance: 21_097.5) - 2_390 * pow(2.10975, 1.06)) < 1e-6)
+    }
 }

@@ -229,6 +229,7 @@ export interface ChecklistRun {
   distance: number | null
   seconds: number | null
   laps: Lap[]
+  structured: boolean
 }
 
 export type WeatherNote = 'tooFar' | 'noLocation' | 'unavailable' | null
