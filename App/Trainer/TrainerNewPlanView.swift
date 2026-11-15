@@ -14,7 +14,8 @@ struct TrainerNewPlanView: View {
     @State private var structure = TrainerEngine.defaultStructure
     @State private var strength: [TrainerStrengthSession] = []
     @State private var strengthLoaded = false
-    @State private var weeklyKilometers: Int?
+    @State private var startKilometers: Int?
+    @State private var peakKilometers: Int?
 
     private var model: TrainerModel { app.trainer }
 
@@ -50,7 +51,7 @@ struct TrainerNewPlanView: View {
         .task {
             await model.load()
             if raceId == nil { raceId = model.raceOptions().first?.id }
-            if weeklyKilometers == nil { weeklyKilometers = averageKilometers }
+            if startKilometers == nil { startKilometers = averageKilometers }
             if !strengthLoaded {
                 strengthLoaded = true
                 strength = model.previewStrength()
@@ -62,16 +63,43 @@ struct TrainerNewPlanView: View {
         Int((model.previewWeeklyMeters() / TrainerConstants.metersPerKilometer).rounded())
     }
 
+    private var chosenStart: Int { startKilometers ?? averageKilometers }
+
+    private var chosenPeak: Int {
+        max(peakKilometers ?? defaultPeak(for: chosenStart), chosenStart)
+    }
+
+    private func defaultPeak(for start: Int) -> Int {
+        let meters = model.previewPeakMeters(start: Double(start) * TrainerConstants.metersPerKilometer)
+        return Int((meters / TrainerConstants.metersPerKilometer).rounded())
+    }
+
+    private var datedTarget: Bool {
+        mode == .race || (mode == .text && hasDeadline)
+    }
+
     private var volumeCard: some View {
-        let kilometers = weeklyKilometers ?? averageKilometers
+        let start = chosenStart
+        let peak = chosenPeak
+        let weeks = model.previewWeeksToPeak(
+            start: Double(start) * TrainerConstants.metersPerKilometer, peak: Double(peak) * TrainerConstants.metersPerKilometer
+        )
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.weeklyTitle).padding(.vertical, 0)
+            SectionLabel(TrainerText.startTitle).padding(.vertical, 0)
             Stepper(
-                TrainerText.weeklyValue(kilometers),
-                value: Binding(get: { kilometers }, set: { weeklyKilometers = $0 }),
+                TrainerText.weeklyValue(start),
+                value: Binding(get: { start }, set: { startKilometers = $0 }),
                 in: TrainerConstants.weeklyKilometersRange
             )
             Text(TrainerText.weeklyAverage(averageKilometers)).font(.footnote).foregroundStyle(BrandColors.dim)
+            SectionLabel(TrainerText.peakTitle).padding(.vertical, 0)
+            Stepper(
+                TrainerText.weeklyValue(peak),
+                value: Binding(get: { peak }, set: { peakKilometers = $0 }),
+                in: start...TrainerConstants.peakKilometersCeiling
+            )
+            Text(TrainerText.volumeSummary(start: start, peak: peak, weeks: weeks, dated: datedTarget))
+                .font(.footnote).foregroundStyle(BrandColors.dim)
             Text(TrainerText.weeklyHint).font(.caption2).foregroundStyle(BrandColors.dim)
         }
         .brandCard()
@@ -231,7 +259,8 @@ struct TrainerNewPlanView: View {
         Task {
             await model.createPlan(
                 target: target, structure: structure, strength: strength,
-                weeklyMeters: Double(weeklyKilometers ?? averageKilometers) * TrainerConstants.metersPerKilometer
+                startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
+                peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer
             )
             dismiss()
         }

@@ -11,7 +11,7 @@ struct TrainerSkeletonContext {
     var taperWeeks: Int
     var openEnded: Bool
     var longCap: Double
-    var baseVolume: Double
+    var peakVolume: Double
 }
 
 struct TrainerSkeletonState {
@@ -20,6 +20,7 @@ struct TrainerSkeletonState {
     var stage: Int
     var weeksAtStage: Int
     var started: Bool
+    var returning = false
 }
 
 struct TrainerSkeletonAdjustment {

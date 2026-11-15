@@ -101,7 +101,11 @@ enum TrainerEngineText {
     }
 
     static func createdSkeleton(weeks: Int) -> String {
-        "Esqueleto de \(weeks) semanas calculado com o volume das últimas 4 semanas e o maior longão dos últimos 30 dias."
+        "Esqueleto de \(weeks) semanas calculado com o volume inicial, o volume de pico e o maior longão dos últimos 30 dias."
+    }
+
+    static func peakShortfall(requested: Double, reached: Double) -> String {
+        "O tempo até a prova não dá para chegar aos \(kilometers(requested)) com segurança; o pico fica em \(kilometers(reached))."
     }
 
     static let skeletonLabel = "Esqueleto"

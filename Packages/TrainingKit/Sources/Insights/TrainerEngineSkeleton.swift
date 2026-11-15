@@ -8,6 +8,19 @@ extension TrainerEngine {
         (meters / C.metersPerKilometer).rounded() * C.metersPerKilometer
     }
 
+    public static func defaultPeak(from start: Double) -> Double {
+        roundKilometers(start * C.defaultPeakShare)
+    }
+
+    public static func weeksToPeak(startMeters: Double, peakMeters: Double) -> Int {
+        let context = TrainerSkeletonContext(
+            total: C.weeksToPeakLimit, taperWeeks: 0, openEnded: true, longCap: C.fallbackLongCap, peakVolume: peakMeters
+        )
+        let state = TrainerSkeletonState(volume: startMeters, long: 0, stage: 0, weeksAtStage: 0, started: false)
+        let weeks = buildWeeks(context: context, firstIndex: 1, firstStart: Day(year: 2000, month: 1, day: 3), state: state, adjustment: TrainerSkeletonAdjustment())
+        return weeks.first { $0.targetMeters >= peakMeters && !$0.isRecovery }?.index ?? C.weeksToPeakLimit
+    }
+
     static func roundHalfKilometers(_ meters: Double) -> Double {
         (meters / C.halfKilometer).rounded() * C.halfKilometer
     }
@@ -17,13 +30,13 @@ extension TrainerEngine {
         return C.longCaps.first { meters <= $0.upTo }?.cap ?? C.fallbackLongCap
     }
 
-    static func skeletonContext(target: TrainerTarget, datedWeeks: Int?, openTotal: Int, baseVolume: Double) -> TrainerSkeletonContext {
+    static func skeletonContext(target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double) -> TrainerSkeletonContext {
         let cap = longCap(for: target)
         guard let datedWeeks else {
-            return TrainerSkeletonContext(total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, baseVolume: baseVolume)
+            return TrainerSkeletonContext(total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume)
         }
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
-        return TrainerSkeletonContext(total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, baseVolume: baseVolume)
+        return TrainerSkeletonContext(total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume)
     }
 
     static func phase(of index: Int, in context: TrainerSkeletonContext) -> TrainerPhase {
@@ -62,12 +75,21 @@ extension TrainerEngine {
         }
         return TrainerSkeletonState(
             volume: last.targetMeters, long: last.longMeters, stage: stage,
-            weeksAtStage: min(level, C.stagesAtLevel), started: true
+            weeksAtStage: min(level, C.stagesAtLevel), started: true, returning: weeks.last?.isRecovery == true
         )
     }
 
     static func stageIndex(of label: String, in stages: [TrainerQualityStage]) -> Int {
         stages.firstIndex { TrainerEngineText.stageLabel($0) == label } ?? 0
+    }
+
+    static func nextVolume(state: TrainerSkeletonState, phase: TrainerPhase, context: TrainerSkeletonContext) -> Double {
+        if state.returning { return state.volume }
+        let cap = context.openEnded || phase == .specific
+            ? context.peakVolume
+            : max(roundKilometers(context.peakVolume * C.preSpecificPeakShare), state.volume)
+        let grown = max(roundKilometers(state.volume * (1 + C.weeklyGrowth)), state.volume + C.metersPerKilometer)
+        return min(grown, max(cap, state.volume))
     }
 
     static func buildWeeks(
@@ -88,11 +110,12 @@ extension TrainerEngine {
             if phase == .taper {
                 let position = max(0, index - (context.total - context.taperWeeks) - 1)
                 let share = C.taperShares[min(position, C.taperShares.count - 1)]
-                volume = roundKilometers(context.baseVolume * share)
+                volume = roundKilometers(context.peakVolume * share)
                 long = roundKilometers(state.long * share)
                 stage = max(0, state.stage - 1)
             } else if recovery {
-                volume = roundKilometers(context.baseVolume * C.recoveryVolumeShare)
+                volume = roundKilometers(state.volume * C.recoveryVolumeShare)
+                state.returning = true
                 long = roundKilometers(state.long * C.recoveryLongShare)
                 stage = max(0, state.stage - 1)
             } else {
@@ -103,13 +126,19 @@ extension TrainerEngine {
                     state.volume = roundKilometers(state.volume * scale)
                     state.weeksAtStage = min(C.stagesAtLevel, state.weeksAtStage + 1)
                     holdPending = false
+                    state.returning = false
                 } else if holdPending {
+                    state.returning = false
                     state.weeksAtStage = min(C.stagesAtLevel, state.weeksAtStage + 1)
                     holdPending = false
                 } else {
-                    state.volume = min(roundKilometers(state.volume * (1 + C.weeklyGrowth)), roundKilometers(context.baseVolume * C.peakVolumeShare))
+                    state.volume = nextVolume(state: state, phase: phase, context: context)
+                    state.returning = false
                     state.long = min(state.long + C.longStep, context.longCap)
-                    if state.weeksAtStage >= C.stagesAtLevel {
+                    if context.openEnded && index % C.recoveryEvery == 1 && state.stage == C.thresholdStages.count - 1 {
+                        state.stage = 0
+                        state.weeksAtStage = 1
+                    } else if state.weeksAtStage >= C.stagesAtLevel {
                         state.stage = min(state.stage + 1, C.thresholdStages.count - 1)
                         state.weeksAtStage = 1
                     } else {
