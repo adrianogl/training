@@ -5,7 +5,8 @@ extension TrainerEngineConstants {
     static let easyMaximumSeconds = 75.0 * 60
     static let longMaximumSeconds = 150.0 * 60
     static let longWeekShare = 0.30
-    static let optionalMaximumMeters = 8_000.0
+    static let easyMinimumSeconds = 40.0 * 60
+    static let optionalMaximumSeconds = 50.0 * 60
     static let raceQualityGapDays = 4
     static let singleQualityRuns = 4
     static let qualityOffsets = [-4, -2, -3, -5, -1, 1]

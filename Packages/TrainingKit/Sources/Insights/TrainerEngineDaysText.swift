@@ -31,6 +31,10 @@ extension TrainerEngineText {
 
     static let noRestWarning = "A semana não tem dia off: nenhum dia de descanso."
 
+    static func minimumVolumeWarning(runs: Int, minimum: Double, peak: Double) -> String {
+        "Com \(runs) corridas e rodagens de pelo menos 40 min, a semana passa de \(kilometers(minimum)), acima do pico de \(kilometers(peak)). Use \(runs - 1) corridas ou suba o pico."
+    }
+
     static func volumeWarning(runs: Int, possible: Double, peak: Double, nextPossible: Double?) -> String {
         let base = "Com \(runs) corridas, o pico possível é \(kilometers(possible)), não \(kilometers(peak))."
         guard let nextPossible else { return base }

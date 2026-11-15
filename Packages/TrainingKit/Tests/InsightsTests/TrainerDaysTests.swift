@@ -100,7 +100,8 @@ import WorkoutAnalysis
         #expect(!kinds(result).contains(.off))
         #expect(TrainerEngine.qualityPerWeek(result) == 2)
         #expect(!strongInARow(result))
-        #expect(warnings.map(\.text) == ["A semana não tem dia off: nenhum dia de descanso."])
+        #expect(warnings.map(\.text).first == "A semana não tem dia off: nenhum dia de descanso.")
+        #expect(warnings.contains { $0.text.hasPrefix("Com 7 corridas e rodagens de pelo menos 40 min") })
     }
 
     @Test func offDaysNeverGetARun() {
@@ -191,7 +192,8 @@ import WorkoutAnalysis
             #expect(workout.totalMeters.truncatingRemainder(dividingBy: 1_000) == 0)
         }
         for workout in created.workouts where workout.kind == .easy { #expect(workout.totalMeters <= easyCap) }
-        for workout in created.workouts where workout.kind == .optionalEasy { #expect((5_000...8_000).contains(workout.totalMeters)) }
+        for workout in created.workouts where workout.kind == .optionalEasy { #expect((9_000...10_000).contains(workout.totalMeters)) }
+        for workout in created.workouts where workout.kind == .easy { #expect(workout.totalMeters >= 9_000) }
         for week in created.weeks {
             #expect(week.longMeters <= max(TrainerEngine.longLimit(weekMeters: week.targetMeters, paces: created.paces), 10_000))
         }
@@ -209,6 +211,19 @@ import WorkoutAnalysis
         #expect(created.weeks[0].plannedMeters < created.weeks[0].targetMeters)
     }
 
+    @Test func easyRunsLastAtLeastFortyMinutes() {
+        #expect(TrainerEngine.easyMinimum(paces: paces) == 9_000)
+        #expect(TrainerEngine.optionalLimit(paces: paces) == 10_000)
+        #expect(TrainerEngine.easyMinimum(paces: TrainerPaces(easy: 300, long: 285, threshold: 250, vo2max: 230)) == 8_000)
+    }
+
+    @Test func weekTooSmallForFortyMinuteRunsWarns() {
+        let six = TrainerEngine.suggestedStructure(.standard)
+        let warnings = TrainerEngine.dayWarnings(structure: six, strength: [], peakMeters: 50_000, paces: paces, target: openTarget)
+
+        #expect(warnings.contains { $0.text.hasPrefix("Com 6 corridas e rodagens de pelo menos 40 min") })
+    }
+
     @Test func peakWeekPreviewGivesKilometersPerDay() {
         let meters = TrainerEngine.peakWeekMeters(
             structure: TrainerEngine.defaultStructure, peakMeters: 70_000, paces: paces, target: openTarget
@@ -216,7 +231,7 @@ import WorkoutAnalysis
 
         #expect(meters[6] == 20_000)
         #expect(meters[7] == 0)
-        #expect((5_000...8_000).contains(meters[5] ?? 0))
+        #expect((9_000...10_000).contains(meters[5] ?? 0))
         #expect(meters.values.allSatisfy { $0.truncatingRemainder(dividingBy: 1_000) == 0 })
         #expect(abs(meters.values.reduce(0, +) - 70_000) <= 2_000)
     }

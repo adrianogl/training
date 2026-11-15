@@ -74,6 +74,11 @@ extension TrainerEngine {
                 days: [], text: T.volumeWarning(runs: runs, possible: possible, peak: peak, nextPossible: runs < C.daysPerWeek ? next : nil)
             ))
         }
+        let minimum = minimumWeek(structure: structure, meters: peak, paces: paces, target: target)
+        if minimum > peak {
+            let runs = kinds.filter { $0 != .off }.count
+            warnings.append(TrainerDayWarning(days: [], text: T.minimumVolumeWarning(runs: runs, minimum: minimum, peak: peak)))
+        }
         return warnings
     }
 
@@ -133,6 +138,14 @@ extension TrainerEngine {
         floorKilometers(C.easyMaximumSeconds / paces.easy * C.metersPerKilometer)
     }
 
+    static func easyMinimum(paces: TrainerPaces) -> Double {
+        ceilKilometers(C.easyMinimumSeconds / paces.easy * C.metersPerKilometer)
+    }
+
+    static func optionalLimit(paces: TrainerPaces) -> Double {
+        max(floorKilometers(C.optionalMaximumSeconds / paces.easy * C.metersPerKilometer), easyMinimum(paces: paces))
+    }
+
     static func longLimit(weekMeters: Double, paces: TrainerPaces) -> Double {
         min(floorKilometers(C.longMaximumSeconds / paces.long * C.metersPerKilometer), floorKilometers(weekMeters * C.longWeekShare))
     }
@@ -151,6 +164,10 @@ extension TrainerEngine {
 
     static func floorKilometers(_ meters: Double) -> Double {
         (meters / C.metersPerKilometer).rounded(.down) * C.metersPerKilometer
+    }
+
+    static func ceilKilometers(_ meters: Double) -> Double {
+        (meters / C.metersPerKilometer).rounded(.up) * C.metersPerKilometer
     }
 
     static func shifted(_ weekday: Int, by days: Int) -> Int {
@@ -193,13 +210,27 @@ extension TrainerEngine {
         )
     }
 
+    static func minimumWeek(structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget) -> Double {
+        let week = previewWeek(meters: meters, paces: paces, target: target)
+        return (1...C.daysPerWeek).reduce(0.0) { total, day in
+            let kind = structure[day] ?? .off
+            let meters: Double = switch kind {
+            case .easy, .optionalEasy: easyMinimum(paces: paces)
+            case .long: week.longMeters
+            case .threshold, .vo2max: qualityMeters(qualitySession(kind, week: week, weeks: [week], target: target, lowered: false))
+            case .off, .race: 0
+            }
+            return total + meters
+        }
+    }
+
     private static func capacity(structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget) -> Double {
         let week = previewWeek(meters: meters, paces: paces, target: target)
         return (1...C.daysPerWeek).reduce(0.0) { total, day in
             let kind = structure[day] ?? .off
             let meters: Double = switch kind {
             case .easy: easyLimit(paces: paces)
-            case .optionalEasy: C.optionalMaximumMeters
+            case .optionalEasy: optionalLimit(paces: paces)
             case .long: week.longMeters
             case .threshold, .vo2max: qualityMeters(qualitySession(kind, week: week, weeks: [week], target: target, lowered: false))
             case .off, .race: 0
