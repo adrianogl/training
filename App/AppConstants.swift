@@ -37,7 +37,8 @@ enum AppConstants {
     static let weeklyGoalStep = 5
     static let settingsListWidth: Double = 320
     static let settingsIconSize: Double = 30
-    static let moreSections: Set<AppSection> = [.trainer, .settings]
+    static let compactTabs: [AppSection] = [.today, .evolution, .workouts, .races, .more]
+    static let moreItems: [AppSection] = [.trainer, .settings]
     static let sidebarCollapsedSections: Set<AppSection> = [.workouts, .races, .trainer, .settings]
     static let introDuration = Duration.milliseconds(1700)
     static let introReducedMotionDuration = Duration.milliseconds(500)

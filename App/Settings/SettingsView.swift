@@ -16,6 +16,7 @@ struct SettingsView: View {
     @AppStorage(AppConstants.weeklyGoalDefaultsKey) private var weeklyGoal = 0
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: SettingsGroup = SettingsView.initialGroup()
+    var embedded = false
 
     var body: some View {
         if sizeClass == .regular {
@@ -27,6 +28,9 @@ struct SettingsView: View {
                     form(for: selection)
                 }
             }
+        } else if embedded {
+            groupList
+                .navigationDestination(for: SettingsGroup.self) { group in form(for: group) }
         } else {
             NavigationStack {
                 groupList

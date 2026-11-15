@@ -8,6 +8,7 @@ struct RootView: View {
     @State private var section = AppSection.initial()
     @State private var sidebarSelection: AppSection? = AppSection.initial()
     @State private var todayPath: [TodayRoute] = RootView.initialTodayPath()
+    @State private var morePath = NavigationPath()
     @State private var columnVisibility = RootView.visibility(for: AppSection.initial())
 
     var body: some View {
@@ -35,8 +36,7 @@ struct RootView: View {
         }
         .onOpenURL { url in
             guard let target = AppSection(url: url) else { return }
-            section = target
-            sidebarSelection = target
+            open(target)
             if target == .today {
                 todayPath = url.path() == AppConstants.readinessDeepLinkPath ? [.readiness] : []
             }
@@ -45,10 +45,9 @@ struct RootView: View {
 
     private var tabView: some View {
         TabView(selection: $section) {
-            ForEach(AppSection.allCases) { item in
+            ForEach(AppConstants.compactTabs) { item in
                 Tab(item.title, systemImage: item.systemImage, value: item) {
                     screen(for: item)
-                        .toolbarVisibility(AppConstants.moreSections.contains(item) ? .hidden : .automatic, for: .navigationBar)
                 }
             }
         }
@@ -56,7 +55,7 @@ struct RootView: View {
 
     private var splitView: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(AppSection.allCases, selection: $sidebarSelection) { item in
+            List(AppSection.sidebarSections, selection: $sidebarSelection) { item in
                 Label(item.title, systemImage: item.systemImage).tag(item)
             }
             .navigationTitle("")
@@ -78,15 +77,25 @@ struct RootView: View {
     @ViewBuilder
     private func screen(for item: AppSection) -> some View {
         switch item {
-        case .today: TodayView(path: $todayPath) {
-            section = .settings
-            sidebarSelection = .settings
-        }
+        case .today: TodayView(path: $todayPath) { open(.settings) }
         case .evolution: EvolutionView()
         case .races: RaceListView()
         case .trainer: NavigationStack { TrainerView() }
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
+        case .more: MoreView(path: $morePath)
+        }
+    }
+
+    private func open(_ target: AppSection) {
+        sidebarSelection = target == .more ? .today : target
+        if sizeClass != .regular && target.isInMore {
+            section = .more
+            var path = NavigationPath()
+            path.append(target)
+            morePath = path
+        } else {
+            section = target
         }
     }
 

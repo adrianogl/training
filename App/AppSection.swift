@@ -7,6 +7,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
     case races
     case trainer
     case settings
+    case more
 
     var id: String { rawValue }
 
@@ -18,6 +19,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         case .races: "provas"
         case .trainer: "treinador"
         case .settings: "ajustes"
+        case .more: "mais"
         }
     }
 
@@ -37,6 +39,10 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         self = section
     }
 
+    var isInMore: Bool { AppConstants.moreItems.contains(self) }
+
+    static var sidebarSections: [AppSection] { allCases.filter { $0 != .more } }
+
     var title: String {
         switch self {
         case .today: "Hoje"
@@ -45,6 +51,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         case .races: "Provas"
         case .trainer: "Treinador"
         case .settings: "Ajustes"
+        case .more: "Mais"
         }
     }
 
@@ -56,6 +63,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         case .races: "flag.checkered"
         case .trainer: "figure.run.square.stack"
         case .settings: "gearshape"
+        case .more: "ellipsis"
         }
     }
 }
