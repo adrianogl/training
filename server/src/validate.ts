@@ -16,6 +16,7 @@ import {
   RECORD_FORMATS,
   RECORD_KINDS,
   SINCE_PATTERN,
+  TRAINER_RECORD_ID,
   UPDATED_AT_PATTERN,
   WATCH_TOKEN_HASH_PATTERN,
 } from './constants.js'
@@ -49,6 +50,9 @@ function validateRecord(value: unknown): IncomingRecord | string {
   if (typeof id !== 'string' || id.length === 0 || id.length > MAX_ID_LENGTH) {
     return 'invalid_id'
   }
+  if (kind === 'trainer' && id !== TRAINER_RECORD_ID) {
+    return 'invalid_id'
+  }
   if (!isUpdatedAt(updatedAt)) {
     return 'invalid_updated_at'
   }
@@ -66,6 +70,9 @@ function validateRecord(value: unknown): IncomingRecord | string {
     return 'payload_too_large'
   }
   if (format !== undefined && !RECORD_FORMATS.some((item) => item === format)) {
+    return 'invalid_format'
+  }
+  if (format === 'plain' && kind === 'trainer') {
     return 'invalid_format'
   }
   if (format === 'plain') {

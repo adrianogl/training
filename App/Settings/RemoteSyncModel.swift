@@ -28,7 +28,9 @@ import SwiftData
     @ObservationIgnored private let clipboard: any KeyClipboard
     @ObservationIgnored private let watchTokenStore: any APIKeyStore
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let trainerStore: (any RemoteTrainerStore)?
     @ObservationIgnored var readinessProvider: (@MainActor () -> WatchReadiness?)?
+    @ObservationIgnored var trainerChanged: (@MainActor () -> Void)?
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
     @ObservationIgnored private var runningTask: Task<Void, Never>?
     @ObservationIgnored private var rerunRequested = false
@@ -42,8 +44,10 @@ import SwiftData
         authenticator: any DeviceOwnerAuthenticating = DeviceOwnerAuthenticator(),
         clipboard: any KeyClipboard = SystemKeyClipboard(),
         watchTokenStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.watchTokenKeychainAccount),
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        trainerStore: (any RemoteTrainerStore)? = nil
     ) {
+        self.trainerStore = trainerStore
         self.clipboard = clipboard
         self.watchTokenStore = watchTokenStore
         self.defaults = defaults
@@ -124,7 +128,7 @@ import SwiftData
         let key = text.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
             let keys = try RemoteKeys(syncKey: key)
-            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys).sync()
+            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys, trainerStore: trainerStore).sync()
             try keyStore.save(key)
             finished(report)
             return true
@@ -365,7 +369,7 @@ import SwiftData
         }
         status = .syncing
         do {
-            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys).sync()
+            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys, trainerStore: trainerStore).sync()
             guard currentKey() == key else { return }
             finished(report)
         } catch let error as URLError where Self.isNetwork(error) {
@@ -382,6 +386,7 @@ import SwiftData
         tooLarge = report.tooLarge.count
         lastSync = currentState()?.remoteLastPush ?? .now
         status = report.quotaExceeded ? .failed(.quotaExceeded) : .idle
+        if report.trainerChanged { trainerChanged?() }
     }
 
     private func pendingCount() -> Int {

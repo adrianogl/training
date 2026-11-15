@@ -83,7 +83,8 @@ import TrainingCore
             transport: transport,
             baseURL: remoteBaseURL,
             watchTokenStore: watchTokenStore,
-            defaults: remoteDefaults
+            defaults: remoteDefaults,
+            trainerStore: trainerStore
         )
         self.garminAccount = GarminAccountModel(
             store: KeychainGarminSessionStore(keychain: garminSessionStore),
@@ -93,6 +94,11 @@ import TrainingCore
         self.trainer = TrainerModel(container: container, store: trainerStore)
         self.snapshots = snapshots
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
+        remoteSync.trainerChanged = { [weak self] in
+            self?.trainer.reloadFromStore()
+            self?.trainer.scheduleAutoAdjust()
+        }
+        trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
         account.legacyKey = { [weak self] in self?.remoteSync.legacyBearer() }
         garminAccount.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }

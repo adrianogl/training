@@ -11,13 +11,15 @@ public actor RemoteSyncEngine {
     private let key: SymmetricKey
     private let now: @Sendable () -> Date
     private let defaultsSuite: String?
+    private let trainerStore: (any RemoteTrainerStore)?
     private var current: Task<RemoteSyncReport, any Error>?
 
-    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, defaultsSuite: String? = nil, now: @escaping @Sendable () -> Date = { .now }) {
+    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, defaultsSuite: String? = nil, trainerStore: (any RemoteTrainerStore)? = nil, now: @escaping @Sendable () -> Date = { .now }) {
         self.container = container
         self.client = client
         self.key = keys.payload
         self.defaultsSuite = defaultsSuite
+        self.trainerStore = trainerStore
         self.now = now
     }
 
@@ -39,14 +41,33 @@ public actor RemoteSyncEngine {
         let migrated = defaults.bool(forKey: C.plainMigrationKey)
         let lastPush = migrated ? Self.syncState(in: snapshot)?.remoteLastPush : nil
         let cursor = Self.syncState(in: snapshot)?.remoteCursor ?? 0
-        let outgoing = try pendingRecords(since: lastPush, in: snapshot)
+        var outgoing = try pendingRecords(since: lastPush, in: snapshot)
+        let trainerPending = trainerStore?.pending()
+        if let trainerPending {
+            if let record = try trainerRecord(trainerPending) {
+                outgoing.records.append(record)
+            } else {
+                outgoing.tooLarge.append(RemoteRecordKey(kind: .trainer, id: C.trainerRecordId))
+            }
+        }
         let push = try await pushAll(outgoing.records)
         let pages = try await pullAll(since: cursor)
 
         let context = ModelContext(container)
+        if let trainerPending, push.accepted.contains(RemoteRecordKey(kind: .trainer, id: C.trainerRecordId)) {
+            trainerStore?.markPushed(updatedAt: trainerPending.updatedAt)
+        }
         var applied = 0
+        var trainerChanged = false
         for record in pages.records {
-            if try apply(record, in: context) { applied += 1 }
+            if record.kind == .trainer {
+                if try applyTrainer(record) {
+                    applied += 1
+                    trainerChanged = true
+                }
+            } else if try apply(record, in: context) {
+                applied += 1
+            }
         }
         for key in push.confirmedTombstones {
             try purgeTombstone(key, in: context)
@@ -61,20 +82,23 @@ public actor RemoteSyncEngine {
         try context.save()
         if !push.quotaExceeded { defaults.set(true, forKey: C.plainMigrationKey) }
         return RemoteSyncReport(
-            pushed: push.accepted,
+            pushed: push.count,
             pulled: pages.records.count,
             applied: applied,
             tooLarge: outgoing.tooLarge + push.rejected,
-            quotaExceeded: push.quotaExceeded
+            quotaExceeded: push.quotaExceeded,
+            trainerChanged: trainerChanged
         )
     }
 
-    private func pushAll(_ records: [RemoteRecord]) async throws -> (accepted: Int, rejected: [RemoteRecordKey], confirmedTombstones: [RemoteRecordKey], quotaExceeded: Bool) {
-        var accepted = 0
+    private func pushAll(_ records: [RemoteRecord]) async throws -> (accepted: Set<RemoteRecordKey>, count: Int, rejected: [RemoteRecordKey], confirmedTombstones: [RemoteRecordKey], quotaExceeded: Bool) {
+        var accepted: Set<RemoteRecordKey> = []
+        var count = 0
         var rejected: [RemoteRecordKey] = []
         var confirmed: [RemoteRecordKey] = []
         func record(_ sent: [RemoteRecord], ignored: Set<RemoteRecordKey>) {
-            accepted += sent.count
+            count += sent.count
+            accepted.formUnion(sent.map(Self.key))
             confirmed += sent.filter { $0.deleted && !ignored.contains(Self.key($0)) }.map(Self.key)
         }
         do {
@@ -92,9 +116,9 @@ public actor RemoteSyncEngine {
                 }
             }
         } catch RemoteSyncError.quotaExceeded {
-            return (accepted, rejected, confirmed, true)
+            return (accepted, count, rejected, confirmed, true)
         }
-        return (accepted, rejected, confirmed, false)
+        return (accepted, count, rejected, confirmed, false)
     }
 
     private func pullAll(since start: Int64) async throws -> (records: [RemoteRecord], cursor: Int64) {
@@ -175,6 +199,29 @@ public actor RemoteSyncEngine {
         return (records, tooLarge)
     }
 
+    private func trainerRecord(_ state: RemoteTrainerState) throws -> RemoteRecord? {
+        guard let data = state.data else {
+            return RemoteRecord(kind: .trainer, id: C.trainerRecordId, updatedAt: state.updatedAt, deleted: true, payload: nil)
+        }
+        let payload = try RemotePayload.seal(trainer: data, key: key)
+        guard payload.utf8.count <= C.maxPayloadCharacters else { return nil }
+        return RemoteRecord(kind: .trainer, id: C.trainerRecordId, updatedAt: state.updatedAt, deleted: false, payload: payload)
+    }
+
+    private func applyTrainer(_ record: RemoteRecord) throws -> Bool {
+        guard let trainerStore, record.id == C.trainerRecordId else { return false }
+        switch RemoteMerge.action(remoteUpdatedAt: record.updatedAt, remoteDeleted: record.deleted, localUpdatedAt: trainerStore.updatedAt()) {
+        case .insert, .replace:
+            guard let payload = record.payload else { throw RemoteSyncError.decoding }
+            let data = try RemotePayload.openTrainer(payload, id: record.id, key: key)
+            return trainerStore.apply(RemoteTrainerState(data: data, updatedAt: record.updatedAt))
+        case .delete:
+            return trainerStore.apply(RemoteTrainerState(data: nil, updatedAt: record.updatedAt))
+        case .keepLocal, .ignore:
+            return false
+        }
+    }
+
     private func racePayload(_ race: RaceRecord) throws -> String? {
         var item = RaceTransferItem(race)
         let payload = try RemotePayload.plain(race: item)
@@ -187,6 +234,7 @@ public actor RemoteSyncEngine {
 
     private func apply(_ record: RemoteRecord, in context: ModelContext) throws -> Bool {
         switch record.kind {
+        case .trainer: false
         case .race: try applyRace(record, in: context)
         case .decision: try applyDecision(record, in: context)
         case .goal: try applyGoal(record, in: context)
@@ -297,6 +345,8 @@ public actor RemoteSyncEngine {
         case .goal:
             guard let id = UUID(uuidString: key.id), let local = try Self.goal(id, in: context), local.deletedAt != nil else { return }
             context.delete(local)
+        case .trainer:
+            return
         }
     }
 
