@@ -51,7 +51,7 @@ import TrainingCore
     }
 
     nonisolated static func hasNightData(_ summary: TodaySummary) -> Bool {
-        guard let breakdown = summary.readiness else { return false }
+        guard !summary.readinessFromYesterday, let breakdown = summary.readiness else { return false }
         let present = Set(breakdown.factors.filter { $0.todayScore != nil }.map(\.component))
         return present.contains(.hrv) && present.contains(.sleep)
     }
