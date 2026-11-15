@@ -85,7 +85,7 @@ export function InvitePage({ onSignedIn }: SignInProps) {
             <Field label={TEXT.password} type="password" value={password} onChange={setPassword} autoComplete="new-password" />
             <span className="muted">{TEXT.passwordHint}</span>
             <Field label={TEXT.confirmPassword} type="password" value={confirmation} onChange={setConfirmation} autoComplete="new-password" />
-            <p className="note">{INVITE_TEXT.webOnly}</p>
+            <p className="note">{preview?.appAccess ? INVITE_TEXT.appAccess : INVITE_TEXT.webOnly}</p>
             <Message error={error} />
             <button className="btn btn-primary" type="submit" disabled={busy || name === '' || email === '' || password === ''}>
               {TEXT.create}

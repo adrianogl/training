@@ -63,11 +63,13 @@ export async function adminUsers(sql: Sql, adminEmails: string[]): Promise<Admin
     email: string
     role: UserRole
     garmin: boolean
+    app: boolean
     last_seen: string | Date | null
     bytes: string | number | null
   }>(
     `select u.id, u.name, u.email, u.role,
        exists (select 1 from garmin_connections g where g.account_id = u.account_id) as garmin,
+       exists (select 1 from invites i where i.accepted_user_id = u.id and i.app_access) as app,
        (select max(last_seen_at) from sessions s where s.user_id = u.id) as last_seen,
        (select coalesce(sum(length(coalesce(payload, ''))), 0) from records r where r.account_id = u.account_id) as bytes
      from users u order by u.created_at`,
@@ -80,6 +82,7 @@ export async function adminUsers(sql: Sql, adminEmails: string[]): Promise<Admin
     role: row.role,
     admin: admins.has(row.email.toLowerCase()),
     garminConnected: row.garmin,
+    appAccess: row.app,
     lastSeenAt: row.last_seen === null ? null : new Date(row.last_seen).toISOString(),
     dataBytes: Number(row.bytes ?? 0),
   }))

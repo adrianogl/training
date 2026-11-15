@@ -66,6 +66,7 @@ export interface InviteRow {
   createdAt: string
   expiresAt: string
   acceptedAt: string | null
+  appAccess: boolean
 }
 
 export interface InviteResult {
@@ -79,6 +80,7 @@ export interface InvitePreview {
   name: string
   email: string | null
   inviterName: string | null
+  appAccess?: boolean
   expiresAt: string
 }
 
@@ -89,6 +91,7 @@ export interface AdminUser {
   role: 'member' | 'guest'
   admin: boolean
   garminConnected: boolean
+  appAccess: boolean
   lastSeenAt: string | null
   dataBytes: number
 }

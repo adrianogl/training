@@ -68,9 +68,10 @@ export const api = {
     call<{ activities: Activity[] }>('GET', `garmin/activities?limit=${limit}${before === undefined ? '' : `&before=${before}`}`),
   invitePreview: (token: string) => call<InvitePreview>('GET', `invites/preview?c=${encodeURIComponent(token)}`),
   adminOverview: () => call<AdminData>('GET', 'admin/overview'),
-  adminInvite: (name: string, channel: InviteChannel, email?: string) =>
-    call<InviteResult>('POST', 'admin/invites', { name, channel, ...(email === undefined || email === '' ? {} : { email }) }),
+  adminInvite: (name: string, channel: InviteChannel, email: string | undefined, appAccess: boolean) =>
+    call<InviteResult>('POST', 'admin/invites', { name, channel, appAccess, ...(email === undefined || email === '' ? {} : { email }) }),
   adminInviteAction: (id: string, action: 'cancel' | 'renew') => call<InviteResult | { invite: InviteRow }>('POST', 'admin/invites/action', { id, action }),
+  adminInviteAppAccess: (id: string, appAccess: boolean) => call<{ invite: InviteRow }>('POST', 'admin/invites/action', { id, action: 'app', appAccess }),
   adminRequestAction: (id: string, action: 'invite' | 'decline') => call<InviteResult | { id: string; status: string }>('POST', 'admin/invite-requests/action', { id, action }),
   adminRemoveUser: (id: string) => call<void>('DELETE', `admin/users?id=${encodeURIComponent(id)}`),
 }

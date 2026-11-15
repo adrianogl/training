@@ -153,7 +153,11 @@ export const ADMIN_TEXT = {
   phone: 'Celular com DDD (opcional)',
   channels: { email: 'E-mail', whatsapp: 'WhatsApp', link: 'Só o link' },
   actions: { email: 'Enviar convite por e-mail', whatsapp: 'Gerar mensagem para o WhatsApp', link: 'Gerar link' },
-  inviteHint: 'O link vale por 7 dias e serve para uma conta só. Convidados entram pelo site.',
+  inviteHint: 'O link vale por 7 dias e serve para uma conta só. Sem o app liberado, o convidado entra só pelo site.',
+  appAccess: 'Liberar o app para iPhone e iPad',
+  appOn: 'App liberado',
+  appOff: 'Só site',
+  appToggle: (on: boolean) => (on ? 'Tirar o app' : 'Liberar o app'),
   mailed: 'Convite enviado para',
   whatsappReady: 'Mensagem pronta. Abra o WhatsApp e envie.',
   linkReady: 'Link criado. Copie e mande como quiser.',
@@ -170,7 +174,7 @@ export const ADMIN_TEXT = {
   users: 'CONTAS',
   role: { member: 'Membro', guest: 'Convidado' },
   adminRole: 'Administrador',
-  access: { member: 'app e site', guest: 'só site' },
+  access: { member: 'app e site', guest: 'só site', guestApp: 'app e site' },
   garminOn: 'Conectada',
   garminOff: 'não conectou',
   never: 'nunca',
@@ -178,7 +182,7 @@ export const ADMIN_TEXT = {
   removeConfirm: 'Remover a conta e todos os dados dela? Não dá para desfazer.',
   usage: 'REQUISIÇÕES POR HORA · 24 H',
   database: 'banco',
-  columns: { name: 'Nome', channel: 'Canal', status: 'Situação', role: 'Papel', access: 'Acesso', garmin: 'Garmin', lastSeen: 'Último uso', data: 'Dados' },
+  columns: { name: 'Nome', channel: 'Canal', status: 'Situação', app: 'App', role: 'Papel', access: 'Acesso', garmin: 'Garmin', lastSeen: 'Último uso', data: 'Dados' },
 } as const
 
 export const INVITE_TEXT = {
@@ -190,6 +194,7 @@ export const INVITE_TEXT = {
   formTitle: 'Criar sua conta',
   formSubtitle: 'Depois você conecta a Garmin em Ajustes.',
   webOnly: 'Por enquanto, quem entra por convite usa o trAIning pelo site, em qualquer navegador. O app para iPhone e iPad vem depois.',
+  appAccess: 'Você pode usar o trAIning pelo site e pelo app para iPhone e iPad.',
   invalidTitle: 'Este convite não vale mais',
   invalidText: 'Ele venceu, foi cancelado ou já foi usado. Peça um novo a quem te convidou.',
   loading: 'Abrindo o convite…',

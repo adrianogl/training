@@ -207,12 +207,14 @@ export interface InviteRow {
   createdAt: string
   expiresAt: string
   acceptedAt: string | null
+  appAccess: boolean
 }
 
 export interface InviteInput {
   name: string
   email: string | undefined
   channel: InviteChannel
+  appAccess?: boolean
 }
 
 export interface AdminUserRow {
@@ -221,6 +223,7 @@ export interface AdminUserRow {
   email: string
   role: UserRole
   admin: boolean
+  appAccess: boolean
   garminConnected: boolean
   lastSeenAt: string | null
   dataBytes: number
