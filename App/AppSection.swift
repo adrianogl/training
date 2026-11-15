@@ -5,6 +5,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
     case evolution
     case workouts
     case races
+    case trainer
     case settings
 
     var id: String { rawValue }
@@ -15,6 +16,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         case .evolution: "evolucao"
         case .workouts: "treinos"
         case .races: "provas"
+        case .trainer: "treinador"
         case .settings: "ajustes"
         }
     }
@@ -41,6 +43,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         case .evolution: "Evolução"
         case .workouts: "Treinos"
         case .races: "Provas"
+        case .trainer: "Treinador"
         case .settings: "Ajustes"
         }
     }
@@ -51,6 +54,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         case .evolution: "chart.line.uptrend.xyaxis"
         case .workouts: "figure.run"
         case .races: "flag.checkered"
+        case .trainer: "figure.run.square.stack"
         case .settings: "gearshape"
         }
     }

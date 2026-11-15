@@ -6,7 +6,6 @@ import TrainingCore
 enum TodayRoute: Hashable {
     case readiness
     case workout(Int64)
-    case trainer
 }
 
 struct LastRunSummary: Equatable, Sendable {

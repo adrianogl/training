@@ -43,14 +43,6 @@ import TrainingCore
         Set((latestVersion?.changes ?? []).filter { $0.kind != .unchanged }.compactMap(\.weekIndex))
     }
 
-    var todayRow: TrainerDayRow? {
-        plan?.workouts.first { $0.day == currentDay }.map(row)
-    }
-
-    var nextRow: TrainerDayRow? {
-        plan?.workouts.sorted { $0.day < $1.day }.first { $0.day > currentDay && $0.kind != .off }.map(row)
-    }
-
     var weekGroups: [TrainerWeekGroup] {
         guard let plan else { return [] }
         let now = currentDay
