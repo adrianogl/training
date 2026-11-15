@@ -23,7 +23,7 @@ extension TrainerEngine {
         guard !generated.isEmpty else { return nil }
         let merged = (plan.workouts + generated).sorted { $0.day < $1.day }
         let weeks = withPlannedMeters(
-            plan.weeks, workouts: merged, structure: plan.structure, target: plan.target, history: history, today: today
+            plan.weeks, workouts: merged, structure: plan.structure, target: plan.target, history: history, today: today, paces: paces
         )
         var result = plan
         result.workouts = merged

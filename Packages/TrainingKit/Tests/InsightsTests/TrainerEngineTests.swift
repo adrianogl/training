@@ -98,7 +98,7 @@ import WorkoutAnalysis
     }
 
     @Test func longRunsStepUpWithinTheRaceCap() {
-        let weeks = createPlan().weeks
+        let weeks = createPlan(startMeters: 70_000).weeks
 
         #expect(weeks[0].longMeters == 17_000)
         #expect(weeks[1].longMeters == 19_000)
@@ -118,7 +118,7 @@ import WorkoutAnalysis
     }
 
     @Test func detailCoversEveryWeekAllByDistance() throws {
-        let plan = createPlan()
+        let plan = createPlan(startMeters: 70_000)
 
         #expect(plan.workouts.count == plan.weeks.count * 7)
         #expect(plan.workouts.first?.day == monday)
@@ -168,10 +168,10 @@ import WorkoutAnalysis
         let first = try workout(plan, monday)
 
         #expect(plan.weeks[0].targetMeters == 70_000)
-        #expect(first.totalMeters == 10_500)
-        #expect(try workout(plan, monday.adding(days: 2)).totalMeters == 10_500)
-        #expect(try workout(plan, monday.adding(days: 4)).totalMeters == 7_500)
-        #expect(first.rationale == "Rodagem de 10,5 km. Suas rodagens das últimas 6 semanas ficam em 12 km.")
+        #expect(first.totalMeters == 11_000)
+        #expect(try workout(plan, monday.adding(days: 2)).totalMeters == 11_000)
+        #expect(try workout(plan, monday.adding(days: 4)).totalMeters == 8_000)
+        #expect(first.rationale == "Rodagem de 11 km. Suas rodagens das últimas 6 semanas ficam em 12 km.")
         #expect(plan.weeks[0].plannedMeters == plan.workouts.prefix(7).reduce(0) { $0 + $1.totalMeters })
     }
 
@@ -180,7 +180,7 @@ import WorkoutAnalysis
         let week = plan.workouts.prefix(7)
 
         #expect(week.map(\.kind) == [.easy, .threshold, .easy, .vo2max, .optionalEasy, .long, .off])
-        #expect(week.first { $0.kind == .long }?.totalMeters == 22_000)
+        #expect(week.first { $0.kind == .long }?.totalMeters == 21_000)
         #expect((68_000...72_000).contains(plan.weeks[0].plannedMeters))
         #expect(plan.weeks[0].plannedMeters == week.reduce(0) { $0 + $1.totalMeters })
     }
@@ -303,7 +303,8 @@ import WorkoutAnalysis
         let plan = createPlan(history: history, startMeters: 70_000, peakMeters: 77_000)
         func easy(_ index: Int) -> Double {
             TrainerEngine.easyShare(
-                week: plan.weeks[index], weeks: plan.weeks, target: plan.target, structure: plan.structure, history: history, today: monday
+                week: plan.weeks[index], weeks: plan.weeks, target: plan.target, structure: plan.structure, history: history, today: monday,
+                paces: plan.paces
             ).meters
         }
 
@@ -346,7 +347,7 @@ import WorkoutAnalysis
     }
 
     @Test func longRunBelowEightyFivePercentDelaysTheSkeleton() throws {
-        let plan = createPlan()
+        let plan = createPlan(startMeters: 70_000)
         let saturday = monday.adding(days: 5)
         let history = baseHistory(
             extra: [run(99, saturday, km: 12.7, pace: 345, kind: .long, fadeKm: 11)], readiness: [saturday: 58]
@@ -355,7 +356,7 @@ import WorkoutAnalysis
         let triggers = TrainerEngine.pendingTriggers(plan, history: history, today: saturday)
         #expect(triggers == [.workout(activityId: 99, day: saturday)])
 
-        let adjusted = TrainerEngine.adjust(plan, history: history, today: saturday, now: now, trigger: triggers[0])
+        let adjusted = TrainerEngine.adjust(plan, history: history, today: saturday, now: now, trigger: try #require(triggers.first))
 
         #expect(adjusted.weeks[1].longMeters < plan.weeks[1].longMeters)
         #expect(adjusted.weeks[2].targetMeters == plan.weeks[1].targetMeters)
@@ -376,7 +377,7 @@ import WorkoutAnalysis
     }
 
     @Test func veryShortLongRunReducesTwoKilometers() {
-        let plan = createPlan()
+        let plan = createPlan(startMeters: 70_000)
         let saturday = monday.adding(days: 5)
         let history = baseHistory(extra: [run(98, saturday, km: 10, pace: 345, kind: .long)])
 
@@ -457,7 +458,7 @@ import WorkoutAnalysis
     }
 
     @Test func travelMovesQualityBeforeAndTurnsTheLongRunIntoAnEasyRun() throws {
-        let plan = createPlan()
+        let plan = createPlan(startMeters: 70_000)
         let thursday = monday.adding(days: 3)
         let saturday = monday.adding(days: 5)
         let request = TrainerRequest(category: .travel, text: "viagem a trabalho", from: thursday, until: saturday)
@@ -570,7 +571,8 @@ import WorkoutAnalysis
     @Test func planWithoutDateUsesTwelveWeekCycles() {
         let target = TrainerTarget(kind: .text, name: "Ficar mais forte", text: "ficar mais forte")
         let plan = TrainerEngine.create(
-            target: target, structure: TrainerEngine.defaultStructure, strength: [], history: baseHistory(), today: monday, now: now
+            target: target, structure: TrainerEngine.defaultStructure, strength: [], history: baseHistory(), today: monday, now: now,
+            startMeters: 70_000
         )
 
         #expect(plan.weeks.count == 12)

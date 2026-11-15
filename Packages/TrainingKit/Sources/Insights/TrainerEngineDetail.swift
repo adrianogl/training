@@ -203,7 +203,8 @@ extension TrainerEngine {
     }
 
     static func easyShare(
-        week: TrainerWeek, weeks: [TrainerWeek], target: TrainerTarget, structure: [Int: TrainerDayKind], history: TrainerHistory, today: Day
+        week: TrainerWeek, weeks: [TrainerWeek], target: TrainerTarget, structure: [Int: TrainerDayKind], history: TrainerHistory, today: Day,
+        paces: TrainerPaces
     ) -> TrainerEasyShare {
         let base = easyBase(history: history, today: today)
         let kinds = (1...C.daysPerWeek).map { structure[$0] ?? .off }
@@ -215,9 +216,11 @@ extension TrainerEngine {
         let easyCount = Double(kinds.filter { $0 == .easy }.count)
         let optionalCount = Double(kinds.filter { $0 == .optionalEasy }.count)
         let weight = easyCount + optionalCount * C.optionalEasyShare
-        let raw = weight > 0 ? (week.targetMeters - longMeters - quality) / weight : 0
-        let easy = min(max(roundHalfKilometers(raw), C.minimumEasyMeters), C.maximumEasyMeters)
-        let optional = min(max(roundHalfKilometers(raw * C.optionalEasyShare), C.optionalMinimumMeters), C.maximumEasyMeters)
+        let rest = week.targetMeters - longMeters - quality
+        let raw = weight > 0 ? rest / weight : 0
+        let optional = min(max(roundKilometers(raw * C.optionalEasyShare), C.optionalMinimumMeters), C.optionalMaximumMeters)
+        let easyRaw = easyCount > 0 ? (rest - optional * optionalCount) / easyCount : 0
+        let easy = min(max(roundKilometers(easyRaw), C.minimumEasyMeters), easyLimit(paces: paces))
         return TrainerEasyShare(meters: easy, optional: optional, base: base.meters, fromHistory: base.fromHistory)
     }
 
@@ -324,13 +327,18 @@ extension TrainerEngine {
             let day = today.adding(days: offset)
             guard let week = weeks.first(where: { $0.start == day.weekStart }) else { continue }
             let weekday = week.start.days(until: day) + 1
-            var kind = structure[weekday] ?? .off
+            let weekStructure = weekStructure(structure, index: week.index)
+            var kind = weekStructure[weekday] ?? .off
             let isRaceWeek = target.date.map { $0.weekStart == week.start } ?? false
             if isRaceWeek, let raceDay = target.date {
                 if day == raceDay { kind = .race } else if day > raceDay { kind = .off } else if kind != .off {
                     workouts.append(raceWeekWorkout(day: day, kind: kind, paces: paces))
                     continue
                 }
+            }
+            if let raceDay = target.date, day < raceDay, day.days(until: raceDay) < C.raceQualityGapDays, C.qualityKinds.contains(kind) {
+                workouts.append(raceWeekWorkout(day: day, kind: kind, paces: paces))
+                continue
             }
             let workout: TrainerWorkout
             switch kind {
@@ -379,13 +387,17 @@ extension TrainerEngine {
                     day: day, session: session, paces: paces, lowered: lowered, note: nil, rationale: rationale
                 )
             case .optionalEasy:
-                let meters = easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today).optional
+                let meters = easyShare(
+                    week: week, weeks: weeks, target: target, structure: weekStructure, history: history, today: today, paces: paces
+                ).optional
                 workout = easyWorkout(
                     day: day, kind: .optionalEasy, meters: meters, paces: paces, note: T.optionalNote,
                     rationale: T.optionalRationale(meters: meters)
                 )
             case .easy:
-                let share = easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today)
+                let share = easyShare(
+                    week: week, weeks: weeks, target: target, structure: weekStructure, history: history, today: today, paces: paces
+                )
                 workout = easyWorkout(day: day, meters: share.meters, paces: paces, rationale: T.easyRationale(share))
             }
             workouts.append(workout)

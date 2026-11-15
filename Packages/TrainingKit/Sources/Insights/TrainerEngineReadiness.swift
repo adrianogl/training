@@ -52,7 +52,8 @@ extension TrainerEngine {
             ))
         }
         let weeks = withPlannedMeters(
-            plan.weeks, workouts: workouts, structure: plan.structure, target: plan.target, history: history, today: today
+            plan.weeks, workouts: workouts, structure: plan.structure, target: plan.target, history: history, today: today,
+            paces: plan.paces
         )
         return finish(
             plan, weeks: weeks, workouts: workouts, paces: plan.paces, processed: plan.processedActivityIds,

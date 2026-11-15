@@ -221,6 +221,61 @@ public struct TrainerStrengthSession: Codable, Sendable, Equatable, Identifiable
     }
 }
 
+public struct TrainerDayPreference: Codable, Sendable, Equatable, Hashable {
+    public var runs: Int
+    public var optional: Bool
+    public var offDays: Set<Int>
+    public var longDay: Int
+
+    public static let standard = TrainerDayPreference(runs: 6, optional: true, offDays: [7], longDay: 6)
+    public static let runsRange = 3...7
+
+    public init(runs: Int, optional: Bool, offDays: Set<Int>, longDay: Int) {
+        self.runs = runs
+        self.optional = optional
+        self.offDays = offDays
+        self.longDay = longDay
+    }
+
+    public init(structure: [Int: TrainerDayKind]) {
+        let kinds = (1...7).map { structure[$0] ?? .off }
+        let runs = kinds.filter { $0 != .off }.count
+        self.init(
+            runs: min(max(runs, Self.runsRange.lowerBound), Self.runsRange.upperBound),
+            optional: kinds.contains(.optionalEasy),
+            offDays: Set((1...7).filter { (structure[$0] ?? .off) == .off }),
+            longDay: (1...7).first { structure[$0] == .long } ?? Self.standard.longDay
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case runs, optional, offDays, longDay
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let standard = Self.standard
+        self.init(
+            runs: try container.decodeIfPresent(Int.self, forKey: .runs) ?? standard.runs,
+            optional: try container.decodeIfPresent(Bool.self, forKey: .optional) ?? standard.optional,
+            offDays: try container.decodeIfPresent(Set<Int>.self, forKey: .offDays) ?? standard.offDays,
+            longDay: try container.decodeIfPresent(Int.self, forKey: .longDay) ?? standard.longDay
+        )
+    }
+}
+
+public struct TrainerDayWarning: Sendable, Equatable, Hashable {
+    public var days: [Int]
+    public var text: String
+    public var isSoft: Bool
+
+    public init(days: [Int], text: String, isSoft: Bool = false) {
+        self.days = days
+        self.text = text
+        self.isSoft = isSoft
+    }
+}
+
 public struct TrainerStrengthDone: Sendable, Equatable {
     public var activityId: Int64
     public var day: Day
@@ -353,11 +408,12 @@ public struct TrainerEdit: Codable, Sendable, Equatable {
     public var longMode: TrainerLongMode?
     public var paceOverrides: [TrainerPaceKind: Double]?
     public var days: [Day]
+    public var dayPreference: TrainerDayPreference?
 
     public init(
         target: TrainerTarget? = nil, startMeters: Double? = nil, peakMeters: Double? = nil, structure: [Int: TrainerDayKind]? = nil,
         strength: [TrainerStrengthSession]? = nil, longMode: TrainerLongMode? = nil, paceOverrides: [TrainerPaceKind: Double]? = nil,
-        days: [Day] = []
+        days: [Day] = [], dayPreference: TrainerDayPreference? = nil
     ) {
         self.target = target
         self.startMeters = startMeters
@@ -367,6 +423,7 @@ public struct TrainerEdit: Codable, Sendable, Equatable {
         self.longMode = longMode
         self.paceOverrides = paceOverrides
         self.days = days
+        self.dayPreference = dayPreference
     }
 }
 
@@ -433,8 +490,9 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var longStageStreak: Int
     public var longStageMisses: Int
     public var paceOverrides: [TrainerPaceKind: Double]
+    public var dayPreference: TrainerDayPreference
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:]) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -451,11 +509,12 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.longStageStreak = longStageStreak
         self.longStageMisses = longStageMisses
         self.paceOverrides = paceOverrides
+        self.dayPreference = dayPreference ?? TrainerDayPreference(structure: structure)
     }
 
     private enum CodingKeys: String, CodingKey {
         case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters, lightWeeks
-        case longMode, longStage, longStageStreak, longStageMisses, paceOverrides
+        case longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference
     }
 
     public init(from decoder: Decoder) throws {
@@ -479,7 +538,8 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             longStage: try container.decodeIfPresent(Int.self, forKey: .longStage) ?? 1,
             longStageStreak: try container.decodeIfPresent(Int.self, forKey: .longStageStreak) ?? 0,
             longStageMisses: try container.decodeIfPresent(Int.self, forKey: .longStageMisses) ?? 0,
-            paceOverrides: try container.decodeIfPresent([TrainerPaceKind: Double].self, forKey: .paceOverrides) ?? [:]
+            paceOverrides: try container.decodeIfPresent([TrainerPaceKind: Double].self, forKey: .paceOverrides) ?? [:],
+            dayPreference: try container.decodeIfPresent(TrainerDayPreference.self, forKey: .dayPreference)
         )
     }
 
@@ -501,6 +561,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         try container.encode(longStageStreak, forKey: .longStageStreak)
         try container.encode(longStageMisses, forKey: .longStageMisses)
         if !paceOverrides.isEmpty { try container.encode(paceOverrides, forKey: .paceOverrides) }
+        try container.encode(dayPreference, forKey: .dayPreference)
     }
 }
 

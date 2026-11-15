@@ -177,7 +177,8 @@ import WorkoutAnalysis
         let week = plan.weeks[4]
 
         let share = TrainerEngine.easyShare(
-            week: week, weeks: plan.weeks, target: plan.target, structure: plan.structure, history: baseHistory(), today: monday
+            week: week, weeks: plan.weeks, target: plan.target, structure: plan.structure, history: baseHistory(), today: monday,
+            paces: plan.paces
         )
         func session(_ kind: TrainerDayKind) -> TrainerQualitySession {
             TrainerEngine.qualitySession(kind, week: week, weeks: plan.weeks, target: plan.target, lowered: false)
