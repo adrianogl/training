@@ -13,6 +13,7 @@ struct WorkoutListView: View {
     @State private var selection: WorkoutSelection? = WorkoutListView.initialPath().first
     @State private var planned: [PlannedWorkout] = []
     @State private var userScrolled = false
+    @State private var showsPlanned = false
 
     var body: some View {
         let weeks = WorkoutListModel.weeks(records: records)
@@ -88,13 +89,27 @@ struct WorkoutListView: View {
                     .foregroundStyle(BrandColors.text)
                 SyncStatusPill()
                 if !visibility.visible.isEmpty {
-                    Text(WorkoutConstants.plannedTitle)
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
-                        .padding(.top, 8)
-                    ForEach(visibility.visible) { plan in
-                        link(.planned(plan.id)) {
-                            PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) { showsPlanned.toggle() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(String(format: WorkoutConstants.plannedHeaderFormat, WorkoutConstants.plannedTitle, visibility.visible.count))
+                                .font(.caption)
+                                .foregroundStyle(BrandColors.dim)
+                            Image(systemName: showsPlanned ? "chevron.up" : "chevron.down")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(BrandColors.dim)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 8)
+                    if showsPlanned {
+                        ForEach(visibility.visible) { plan in
+                            link(.planned(plan.id)) {
+                                PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
+                            }
                         }
                     }
                 }
@@ -107,7 +122,7 @@ struct WorkoutListView: View {
                 }
                 ForEach(weeks) { week in
                     VStack(alignment: .leading, spacing: 10) {
-                        if week.id == weeks.first?.id && !visibility.visible.isEmpty {
+                        if week.id == weeks.first?.id && !visibility.visible.isEmpty && showsPlanned {
                             Text(WorkoutConstants.upcomingMarker)
                                 .font(.caption2)
                                 .foregroundStyle(BrandColors.dim)

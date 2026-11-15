@@ -11,6 +11,7 @@ enum WorkoutConstants {
     static let listTitle = "Treinos"
     static let selectWorkout = "Escolha uma corrida na lista."
     static let plannedTitle = "Planejados"
+    static let plannedHeaderFormat = "%@ · %d"
     static let fromPlan = "do plano"
     static let upcomingMarker = "↑ próximos treinos"
     static let listTopAnchor = "workoutListTopAnchor"
