@@ -18,18 +18,20 @@ extension TrainerEngine {
         }
     }
 
-    private static func chosenVolume(_ plan: TrainerPlan, history: TrainerHistory, today: Day) -> Double {
-        plan.weeklyMeters ?? plan.weeks.first?.targetMeters ?? averageWeeklyMeters(history: history, today: today)
+    private static func chosenVolumes(_ plan: TrainerPlan, history: TrainerHistory, today: Day) -> (start: Double, peak: Double) {
+        let start = plan.startMeters ?? plan.weeks.first?.targetMeters ?? averageWeeklyMeters(history: history, today: today)
+        return (start, max(start, plan.peakMeters ?? defaultPeak(from: start)))
     }
 
     private static func recreate(
         _ plan: TrainerPlan, history: TrainerHistory, today: Day, now: Date, request: TrainerRequest
     ) -> TrainerPlan {
         let keptWeeks = plan.weeks.filter { $0.start < today.weekStart }
+        let volumes = chosenVolumes(plan, history: history, today: today)
         let fresh = build(
             target: plan.target, structure: plan.structure, strength: plan.strength, history: history, today: today,
             offset: keptWeeks.count,
-            weeklyMeters: chosenVolume(plan, history: history, today: today)
+            startMeters: volumes.start, peakMeters: volumes.peak
         )
         let merged = plan.workouts.filter { $0.day < today } + fresh.workouts
         let freshWeeks = withPlannedMeters(
@@ -97,14 +99,14 @@ extension TrainerEngine {
         if found.lowReadiness { adjustment.volumeScale = C.readinessScale }
 
         let kept = plan.weeks.filter { $0.index < rebuildFrom }
-        let baseVolume = chosenVolume(plan, history: history, today: today)
+        let volumes = chosenVolumes(plan, history: history, today: today)
         let context = skeletonContext(
             target: plan.target, datedWeeks: plan.target.date == nil ? nil : plan.weeks.count,
             openTotal: max(plan.weeks.count, rebuildFrom + C.openHorizonWeeks - 1),
-            baseVolume: baseVolume
+            peakVolume: volumes.peak
         )
         let firstStart = plan.weeks.first { $0.index == rebuildFrom }?.start ?? kept.last?.start.adding(days: C.daysPerWeek) ?? today.weekStart
-        let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: baseVolume)
+        let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: volumes.start)
         let rebuilt = buildWeeks(context: context, firstIndex: rebuildFrom, firstStart: firstStart, state: state, adjustment: adjustment)
         let skeleton = kept + rebuilt
 
@@ -113,7 +115,7 @@ extension TrainerEngine {
         let past = plan.workouts.filter { $0.day <= today }
         let window = detailWorkouts(
             weeks: skeleton, structure: plan.structure, paces: paces, history: history, target: plan.target,
-            today: today, past: past, requests: requests, strength: plan.strength
+            today: today, past: past, requests: requests, strength: plan.strength, peakVolume: volumes.peak
         ).map { generated in
             let done = history.runs.contains { $0.day == generated.day }
             return done ? plan.workouts.first { $0.day == generated.day } ?? generated : generated

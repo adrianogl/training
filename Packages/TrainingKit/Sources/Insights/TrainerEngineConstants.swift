@@ -1,6 +1,10 @@
 import Foundation
 
 enum TrainerEngineConstants {
+    static func legacyPeak(from meters: Double) -> Double {
+        (meters * legacyPeakShare / metersPerKilometer).rounded() * metersPerKilometer
+    }
+
     static let defaultStructure: [Int: TrainerDayKind] = [
         1: .easy, 2: .threshold, 3: .easy, 4: .vo2max, 5: .optionalEasy, 6: .long, 7: .off,
     ]
@@ -27,8 +31,11 @@ enum TrainerEngineConstants {
     static let longCaps: [(upTo: Double, cap: Double)] = [
         (7_500, 14_000), (15_000, 16_000), (30_000, 22_000), (.infinity, 32_000),
     ]
-    static let weeklyGrowth = 0.03
-    static let peakVolumeShare = 1.10
+    static let weeklyGrowth = 0.05
+    static let legacyPeakShare = 1.10
+    static let defaultPeakShare = 1.25
+    static let preSpecificPeakShare = 0.9
+    static let weeksToPeakLimit = 80
     static let longStep = 2_000.0
     static let recoveryEvery = 4
     static let recoveryVolumeShare = 0.8

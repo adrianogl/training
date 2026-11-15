@@ -14,6 +14,7 @@ import WorkoutAnalysis
 
     let today: Day
     @ObservationIgnored private let container: ModelContainer
+    @ObservationIgnored private let snapshots: ScreenSnapshotStore?
     private(set) var summary: TodaySummary = .empty
     private(set) var readinessSentence = ""
     private(set) var readinessDay = ReadinessDay()
@@ -29,10 +30,20 @@ import WorkoutAnalysis
     private(set) var garminReadiness: GarminReadinessScore?
     private(set) var goals: [GoalSnapshot] = []
     private(set) var isLoaded = false
+    private(set) var isStale = false
 
-    init(container: ModelContainer, today: Day) {
+    init(container: ModelContainer, today: Day, snapshots: ScreenSnapshotStore? = nil) {
         self.container = container
         self.today = today
+        self.snapshots = snapshots
+    }
+
+    static func restored(container: ModelContainer, snapshots: ScreenSnapshotStore) async -> TodayModel? {
+        guard let snapshot = await snapshots.read(TodaySnapshot.self, for: .today) else { return nil }
+        let model = TodayModel(container: container, today: snapshot.today, snapshots: snapshots)
+        model.apply(snapshot.load)
+        model.isStale = true
+        return model
     }
 
     func load() async {
@@ -42,6 +53,12 @@ import WorkoutAnalysis
             Self.compute(container: container, today: today)
         }.value
         guard !Task.isCancelled else { return }
+        apply(result)
+        isStale = false
+        await snapshots?.write(TodaySnapshot(today: today, load: result), for: .today)
+    }
+
+    private func apply(_ result: TodayLoad) {
         summary = result.summary
         readinessDay = result.readinessDay
         lastRun = result.lastRun

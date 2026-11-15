@@ -1,10 +1,10 @@
 import Metrics
 
-public enum OverallVerdict: String, Sendable {
+public enum OverallVerdict: String, Sendable, Codable {
     case better, stable, worse
 }
 
-public struct OverallFacts: Sendable, Equatable {
+public struct OverallFacts: Sendable, Equatable, Codable {
     public var verdict: OverallVerdict
     public var improved: Int
     public var worsened: Int

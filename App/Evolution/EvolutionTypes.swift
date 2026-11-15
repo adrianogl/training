@@ -15,17 +15,17 @@ enum ProjectionHorizon: String, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
 }
 
-struct RaceContext: Sendable, Equatable {
+struct RaceContext: Sendable, Equatable, Codable {
     var countdownDays: Int?
     var priority: String?
 }
 
-struct RaceMarker: Sendable, Equatable {
+struct RaceMarker: Sendable, Equatable, Codable {
     let day: Day
     let name: String
 }
 
-struct EvolutionOverview: Sendable {
+struct EvolutionOverview: Sendable, Codable {
     let overall: OverallState
     let heatmap: [Day: Double]
     let outlook: RaceOutlook
@@ -35,7 +35,7 @@ struct EvolutionOverview: Sendable {
     let records: [PersonalRecord]
 }
 
-struct MetricCardData: Sendable, Identifiable {
+struct MetricCardData: Sendable, Identifiable, Codable {
     let kind: MetricKind
     let stats: MetricStats
     let chart: MetricChartData
@@ -75,7 +75,7 @@ struct MetricStatCell: Identifiable, Equatable {
     var id: String { title }
 }
 
-struct MonthlyMean: Identifiable, Sendable {
+struct MonthlyMean: Identifiable, Sendable, Codable {
     let date: Date
     let value: Double
 

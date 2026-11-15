@@ -84,6 +84,20 @@ import TrainingCore
         #expect(abs((outlook.yearAgo ?? 0) - riegel(seconds: 1_500 + 2 * 366, from: 5_000, to: 21_097.5)) < 1e-6)
     }
 
+    @Test func raceDayProjectionIsAnchoredAtTodayPrediction() throws {
+        var efforts = (0..<40).map { index in
+            Effort(distance: 5_000, seconds: 1_500 + Double(index % 3), day: daysAgo(100 - index * 2), kind: .split5k)
+        }
+        efforts.append(Effort(distance: 10_000, seconds: 2_390, day: fixtureToday, kind: .threshold))
+
+        let outlook = raceOutlook(distance: 10_000, raceDay: fixtureToday.adding(days: 30), goalSeconds: 2_400, efforts: efforts, today: fixtureToday)
+
+        let today = try #require(outlook.today)
+        let raceDay = try #require(outlook.raceDay)
+        #expect(raceDay.mid <= today + 1e-6)
+        #expect(abs(outlook.projection[0].mid - today) < 5)
+    }
+
     @Test func chunkedSeriesMatchesPredictionSeries() {
         let efforts = (0..<200).map { index in
             Effort(

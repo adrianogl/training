@@ -30,7 +30,7 @@ enum AssessmentReference: Equatable, Sendable {
     case todayPrediction
 }
 
-enum ChecklistKind: Equatable, Sendable {
+enum ChecklistKind: Equatable, Sendable, Codable {
     case vo2max
     case longRun
     case thresholdPace
@@ -43,13 +43,13 @@ enum ChecklistKind: Equatable, Sendable {
     case goal
 }
 
-enum ChecklistStatus: Equatable, Sendable {
+enum ChecklistStatus: Equatable, Sendable, Codable {
     case ok
     case attention
     case missing
 }
 
-struct ChecklistItem: Identifiable, Equatable, Sendable {
+struct ChecklistItem: Identifiable, Equatable, Sendable, Codable {
     let kind: ChecklistKind
     let title: String
     let detail: String
@@ -58,7 +58,7 @@ struct ChecklistItem: Identifiable, Equatable, Sendable {
     var id: String { title }
 }
 
-struct RaceInfo: Equatable, Sendable {
+struct RaceInfo: Equatable, Sendable, Codable {
     let id: UUID
     let name: String
     let day: Day
@@ -69,7 +69,7 @@ struct RaceInfo: Equatable, Sendable {
     let startTime: String?
 }
 
-struct RaceRowData: Identifiable, Equatable, Sendable {
+struct RaceRowData: Identifiable, Equatable, Sendable, Codable {
     let id: UUID
     let name: String
     let dateText: String
@@ -81,7 +81,7 @@ struct RaceRowData: Identifiable, Equatable, Sendable {
     let isUpcoming: Bool
 }
 
-struct RaceSplit: Identifiable, Equatable, Sendable {
+struct RaceSplit: Identifiable, Equatable, Sendable, Codable {
     let index: Int
     let distance: Double
     let pace: Double
@@ -90,7 +90,7 @@ struct RaceSplit: Identifiable, Equatable, Sendable {
     var id: Int { index }
 }
 
-struct CompletedRaceSummary: Equatable, Sendable {
+struct CompletedRaceSummary: Equatable, Sendable, Codable {
     let info: RaceInfo
     let resultSeconds: Double?
     let resultActivityId: Int64?
@@ -127,7 +127,7 @@ struct EditorAssessment: Equatable, Sendable {
     }
 }
 
-struct NextRaceLoad: Sendable {
+struct NextRaceLoad: Sendable, Codable {
     let info: RaceInfo
     let outlook: RaceOutlook
     let target: StrategyTarget?
@@ -140,12 +140,12 @@ struct NextRaceLoad: Sendable {
     let taper: TaperPlan?
 }
 
-struct GPXPoint: Equatable, Sendable {
+struct GPXPoint: Equatable, Sendable, Codable {
     let distance: Double
     let altitude: Double
 }
 
-struct RaceListLoad: Sendable {
+struct RaceListLoad: Sendable, Codable {
     let candidates: [RaceCandidate]
     let upcoming: [RaceRowData]
     let completed: [RaceRowData]

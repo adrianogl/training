@@ -116,8 +116,10 @@ extension TrainerEngine {
     static func detailWorkouts(
         weeks: [TrainerWeek], structure: [Int: TrainerDayKind], paces: TrainerPaces, history: TrainerHistory,
         target: TrainerTarget, today: Day, past: [TrainerWorkout], requests: [TrainerRequest],
-        strength: [TrainerStrengthSession]
+        strength: [TrainerStrengthSession], peakVolume: Double
     ) -> [TrainerWorkout] {
+        let reachedPeak = weeks.filter { !$0.isRecovery && $0.phase != .taper }.map(\.targetMeters).max() ?? 0
+        let peakShortfall = target.date != nil && reachedPeak < peakVolume
         var loweredKinds: [TrainerDayKind: Day] = [:]
         for kind in [TrainerDayKind.threshold, .vo2max] {
             if let miss = missedQuality(kind, past: past, history: history, today: today) { loweredKinds[kind] = miss.day }
@@ -145,11 +147,14 @@ extension TrainerEngine {
                 let note = gelNote(history: history, meters: week.longMeters)
                 let previousLong = weeks.first(where: { $0.index == week.index - 1 })?.longMeters
                 let slowStart = sessions(before: day, in: strength).first { $0.group == .lower || $0.group == .fullBody }
+                var rationale = T.longRationale(
+                    week: week, previousLong: previousLong, cap: longCap(for: target), note: note, slowStart: slowStart?.name
+                )
+                if peakShortfall && week.phase != .taper && !week.isRecovery {
+                    rationale += " \(T.peakShortfall(requested: peakVolume, reached: reachedPeak))"
+                }
                 workout = longWorkout(
-                    day: day, week: week, paces: paces, note: note, slowStart: slowStart?.name,
-                    rationale: T.longRationale(
-                        week: week, previousLong: previousLong, cap: longCap(for: target), note: note, slowStart: slowStart?.name
-                    )
+                    day: day, week: week, paces: paces, note: note, slowStart: slowStart?.name, rationale: rationale
                 )
             case .threshold, .vo2max:
                 let lowered = loweredKinds[kind].map { $0 < day } ?? false

@@ -1,19 +1,19 @@
 import TrainingCore
 
-struct TaperWeek: Equatable, Sendable {
+struct TaperWeek: Equatable, Sendable, Codable {
     let start: Day
     let doneKm: Double
     let targetKm: Double?
     let isRaceWeek: Bool
 }
 
-struct TaperHistory: Equatable, Sendable {
+struct TaperHistory: Equatable, Sendable, Codable {
     let name: String
     let reduction: Double
     let deltaToGoal: Double
 }
 
-struct TaperPlan: Equatable, Sendable {
+struct TaperPlan: Equatable, Sendable, Codable {
     let daysLeft: Int
     let baseKm: Double
     let weeks: [TaperWeek]

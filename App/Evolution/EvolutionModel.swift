@@ -2,6 +2,7 @@ import Foundation
 import Insights
 import Metrics
 import Narrative
+import Reports
 import Observation
 import Storage
 import SwiftData
@@ -13,6 +14,9 @@ import TrainingCore
     let today: Day
     let cards: [MetricKind] = C.cardKinds
     @ObservationIgnored private let container: ModelContainer
+    @ObservationIgnored private let snapshots: ScreenSnapshotStore?
+    @ObservationIgnored let reportMemo = ReportMemo()
+    @ObservationIgnored private var overview: EvolutionOverview?
     private(set) var overall = OverallState(indicators: [], facts: .empty)
     private(set) var overallSentence = ""
     private(set) var outlook = TodaySummary.empty.race
@@ -24,22 +28,45 @@ import TrainingCore
     private(set) var records: [PersonalRecord] = []
     private(set) var isLoaded = false
     private(set) var isLoadingCards = false
+    private(set) var isStale = false
     var horizon = ProjectionHorizon.untilRace
 
-    init(container: ModelContainer, today: Day, period: MetricPeriod = C.defaultPeriod, horizon: ProjectionHorizon = .untilRace) {
+    init(
+        container: ModelContainer, today: Day, period: MetricPeriod = C.defaultPeriod, horizon: ProjectionHorizon = .untilRace,
+        snapshots: ScreenSnapshotStore? = nil
+    ) {
         self.container = container
         self.today = today
         self.period = period
         self.horizon = horizon
+        self.snapshots = snapshots
+    }
+
+    static func restored(
+        container: ModelContainer, horizon: ProjectionHorizon, snapshots: ScreenSnapshotStore
+    ) async -> EvolutionModel? {
+        guard let snapshot = await snapshots.read(EvolutionSnapshot.self, for: .evolution) else { return nil }
+        let model = EvolutionModel(container: container, today: snapshot.today, period: snapshot.period, horizon: horizon, snapshots: snapshots)
+        model.apply(snapshot.overview)
+        model.cardData = snapshot.cards
+        model.isStale = true
+        return model
     }
 
     func load() async {
         let container = container
         let today = today
+        let memo = reportMemo
         let overview = await Task.detached(priority: .userInitiated) {
-            Self.computeOverview(container: container, today: today)
+            Self.computeOverview(container: container, today: today, memo: memo)
         }.value
         guard !Task.isCancelled else { return }
+        apply(overview)
+        await loadCards(for: period)
+    }
+
+    private func apply(_ overview: EvolutionOverview) {
+        self.overview = overview
         overall = overview.overall
         heatmap = overview.heatmap
         zoneWeeks = overview.zoneWeeks
@@ -48,7 +75,6 @@ import TrainingCore
         raceContext = overview.race
         overallSentence = TemplateInsightNarrator.overallSentence(overview.overall.facts)
         isLoaded = true
-        await loadCards(for: period)
     }
 
     func select(period newPeriod: MetricPeriod) async {
@@ -109,18 +135,23 @@ import TrainingCore
         let container = container
         let today = today
         let kinds = cards
+        let memo = reportMemo
         let data = await Task.detached(priority: .userInitiated) {
-            Self.computeCards(container: container, today: today, period: requested, kinds: kinds)
+            Self.computeCards(container: container, today: today, period: requested, kinds: kinds, memo: memo)
         }.value
         guard !Task.isCancelled, requested == period else { return }
         cardData = data
         isLoadingCards = false
+        isStale = false
+        if let snapshots, let overview {
+            await snapshots.write(EvolutionSnapshot(today: today, period: requested, overview: overview, cards: data), for: .evolution)
+        }
     }
 
-    nonisolated private static func computeOverview(container: ModelContainer, today: Day) -> EvolutionOverview {
+    nonisolated private static func computeOverview(container: ModelContainer, today: Day, memo: ReportMemo) -> EvolutionOverview {
         let context = ModelContext(container)
-        let overall = (try? overallState(context: context, today: today)) ?? OverallState(indicators: [], facts: .empty)
-        let outlook = (try? raceOutlook(context: context, today: today)) ?? TodaySummary.empty.race
+        let overall = (try? overallState(context: context, today: today, memo: memo)) ?? OverallState(indicators: [], facts: .empty)
+        let outlook = (try? raceOutlook(context: context, today: today, memo: memo)) ?? TodaySummary.empty.race
         let target = (try? targetRace(in: context, today: today)) ?? nil
         let race = RaceContext(
             countdownDays: target.flatMap { Day(iso: $0.day) }.map { today.days(until: $0) },
@@ -136,14 +167,14 @@ import TrainingCore
     }
 
     nonisolated private static func computeCards(
-        container: ModelContainer, today: Day, period: MetricPeriod, kinds: [MetricKind]
+        container: ModelContainer, today: Day, period: MetricPeriod, kinds: [MetricKind], memo: ReportMemo
     ) -> [MetricKind: MetricCardData] {
         let context = ModelContext(container)
         let raceDay = ((try? targetRace(in: context, today: today)) ?? nil).flatMap { Day(iso: $0.day) }
         var result: [MetricKind: MetricCardData] = [:]
         for kind in kinds {
             guard !Task.isCancelled else { break }
-            guard let series = try? metricSeries(kind, context: context, today: today, period: period) else { continue }
+            guard let series = try? metricSeries(kind, context: context, today: today, period: period, memo: memo) else { continue }
             result[kind] = MetricCardData(
                 kind: kind,
                 stats: series.stats,

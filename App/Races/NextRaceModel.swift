@@ -14,6 +14,7 @@ import TrainingCore
     let today: Day
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let onChange: @MainActor () -> Void
+    @ObservationIgnored private let snapshots: ScreenSnapshotStore?
     private(set) var info: RaceInfo?
     private(set) var outlook = TodaySummary.empty.race
     private(set) var target: StrategyTarget?
@@ -27,12 +28,28 @@ import TrainingCore
     private(set) var weeklyLongest: [Day: Double] = [:]
     private(set) var taper: TaperPlan?
     private(set) var isLoaded = false
+    private(set) var isStale = false
 
-    init(container: ModelContainer, raceId: UUID, today: Day, onChange: @escaping @MainActor () -> Void = {}) {
+    init(
+        container: ModelContainer, raceId: UUID, today: Day, onChange: @escaping @MainActor () -> Void = {},
+        snapshots: ScreenSnapshotStore? = nil
+    ) {
+        self.snapshots = snapshots
         self.container = container
         self.onChange = onChange
         self.raceId = raceId
         self.today = today
+    }
+
+    static func restored(
+        container: ModelContainer, raceId: UUID, snapshots: ScreenSnapshotStore, onChange: @escaping @MainActor () -> Void = {}
+    ) async -> NextRaceModel? {
+        guard let snapshot = await snapshots.read(NextRaceSnapshot.self, for: .nextRace), snapshot.load.info.id == raceId else { return nil }
+        let model = NextRaceModel(container: container, raceId: raceId, today: snapshot.today, onChange: onChange, snapshots: snapshots)
+        model.apply(snapshot.load)
+        model.isLoaded = true
+        model.isStale = true
+        return model
     }
 
     func load() async {
@@ -44,19 +61,25 @@ import TrainingCore
         }.value
         guard !Task.isCancelled else { return }
         if let result {
-            info = result.info
-            outlook = result.outlook
-            target = result.target
-            profile = result.profile
-            manual = result.manual
-            block = result.block
-            checklist = result.checklist
-            blockReading = result.blockReading
-            weeklyLongest = result.weeklyLongest
-            taper = result.taper
-            recalculate()
+            apply(result)
+            await snapshots?.write(NextRaceSnapshot(today: today, load: result), for: .nextRace)
         }
+        isStale = false
         isLoaded = true
+    }
+
+    private func apply(_ result: NextRaceLoad) {
+        info = result.info
+        outlook = result.outlook
+        target = result.target
+        profile = result.profile
+        manual = result.manual
+        block = result.block
+        checklist = result.checklist
+        blockReading = result.blockReading
+        weeklyLongest = result.weeklyLongest
+        taper = result.taper
+        recalculate()
     }
 
     func setManualPace(_ pace: Double, at index: Int) {
@@ -182,7 +205,7 @@ import TrainingCore
             block: block,
             checklist: checklist(
                 context: context, today: today, raceDay: raceDay, blockStart: blockStart,
-                longest: longest, longTarget: longTarget, targetPace: pace
+                longest: longest, longTarget: longTarget, raceDistance: race.distance, goalSeconds: race.goalSeconds
             ) + RaceChecklistExtras.items(RaceChecklistExtras.Input(
                 today: today, blockStart: blockStart, distance: race.distance, goalSeconds: race.goalSeconds,
                 priority: race.priorityLevel, profile: profile, targetPace: pace, weeklyKm: weekly,
@@ -240,7 +263,7 @@ import TrainingCore
 
     nonisolated private static func checklist(
         context: ModelContext, today: Day, raceDay: Day, blockStart: Day,
-        longest: Double?, longTarget: Double, targetPace: Double?
+        longest: Double?, longTarget: Double, raceDistance: Double, goalSeconds: Double?
     ) -> [ChecklistItem] {
         func item(_ kind: ChecklistKind, _ detail: String?, ok: Bool) -> ChecklistItem {
             ChecklistItem(
@@ -260,9 +283,6 @@ import TrainingCore
         let longDetail = longest.map { "\(RacesText.km($0 / C.metersPerKm)) km de \(RacesText.km(longTarget / C.metersPerKm)) km" }
 
         let threshold = (try? metricSeries(.thresholdPace, context: context, today: today, period: C.checklistPeriod))?.stats.current
-        let thresholdDetail = threshold.flatMap { value in
-            targetPace.map { "limiar \(RacesText.paceText(value)) · alvo \(RacesText.paceText($0))" }
-        }
 
         let iso = today.iso
         var dailyDescriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == iso })
@@ -281,7 +301,7 @@ import TrainingCore
         return [
             item(.vo2max, vo2Detail, ok: (vo2Now ?? 0) >= (vo2Start ?? 0)),
             item(.longRun, longDetail, ok: (longest ?? 0) >= longTarget),
-            item(.thresholdPace, thresholdDetail, ok: (threshold ?? .infinity) <= (targetPace ?? 0)),
+            RaceChecklistExtras.thresholdItem(workPace: threshold, raceDistance: raceDistance, goalSeconds: goalSeconds),
             item(.hrv, hrvDetail, ok: hrvOK),
             item(.raceDayForm, form.map { "\(TodayText.signed($0)) \(C.raceDayLabel)" }, ok: (form ?? -1) >= 0),
         ]

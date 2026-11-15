@@ -83,10 +83,18 @@ enum TrainerText {
     static let vo2Name = "VO2"
     static let thresholdRuns = "limiares"
     static let vo2Runs = "treinos de VO2"
-    static let weeklyTitle = "Km por semana"
+    static let startTitle = "Km para começar"
+    static let peakTitle = "Km no pico"
     static let weeklyHint = "A rodagem opcional conta no volume."
     static func weeklyAverage(_ kilometers: Int) -> String { "Sua média das últimas 4 semanas: \(kilometers) km" }
     static func weeklyValue(_ kilometers: Int) -> String { "\(kilometers) km" }
+    static func volumeSummary(start: Int, peak: Int, weeks: Int, dated: Bool) -> String {
+        guard peak > start else {
+            return dated ? "Mantém \(start) km, com recuperação a cada 4 semanas." : "Mantém \(start) km em ciclos de 4 semanas."
+        }
+        let rise = "Sobe de \(start) para \(peak) km em \(weeks) semanas, com recuperação a cada 4"
+        return dated ? "\(rise)." : "\(rise), e depois mantém em ciclos de 4 semanas."
+    }
     static let paceEasy = "rodagem"
     static let paceThreshold = "limiar"
     static let paceVo2 = "VO2 máx"

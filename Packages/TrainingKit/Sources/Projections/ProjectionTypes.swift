@@ -1,6 +1,6 @@
 import TrainingCore
 
-public struct ProjectionPoint: Sendable, Equatable {
+public struct ProjectionPoint: Sendable, Equatable, Codable {
     public var day: Day
     public var mid: Double
     public var low: Double

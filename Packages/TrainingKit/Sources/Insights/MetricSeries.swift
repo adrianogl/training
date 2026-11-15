@@ -7,11 +7,11 @@ import SwiftData
 import Sync
 import TrainingCore
 
-public func metricSeries(_ kind: MetricKind, context: ModelContext, today: Day, period: MetricPeriod) throws -> MetricSeries {
+public func metricSeries(_ kind: MetricKind, context: ModelContext, today: Day, period: MetricPeriod, memo: ReportMemo = ReportMemo()) throws -> MetricSeries {
     typealias C = InsightsConstants
     let windowStart = period.days.map { today.adding(days: 1 - $0) }
     let lower = windowStart.map { $0.adding(days: -C.yearDays) }
-    let raw = try rawMetric(kind, context: context, since: lower, today: today)
+    let raw = try rawMetric(kind, context: context, since: lower, today: today, memo: memo)
     let values = raw.values.filter { point in point.0 <= today && (lower.map { point.0 >= $0 } ?? true) }
     let start = windowStart ?? values.first?.0 ?? today
     let points = values.filter { $0.0 >= start }
@@ -38,7 +38,7 @@ public func metricSeries(_ kind: MetricKind, context: ModelContext, today: Day, 
     )
 }
 
-func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, today: Day) throws -> RawMetric {
+func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, today: Day, memo: ReportMemo = ReportMemo()) throws -> RawMetric {
     typealias C = InsightsConstants
     switch kind {
     case .restingHeartRate:
@@ -62,7 +62,7 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
         return RawMetric(values: latest.map { ($0.key, $0.value) }.sorted { $0.0 < $1.0 })
     case .fitness:
         let activities = try fetchActivities(context, since: nil, through: today)
-        let load = ReportBuilder(context: context, today: today).dailyLoad(activities)
+        let load = ReportBuilder(context: context, today: today, memo: memo).dailyLoad(activities)
         guard let first = load.keys.min(), first <= today else { return RawMetric(values: []) }
         return RawMetric(values: fitnessFatigueForm(dailyLoad: load, from: first, to: today).map { ($0.day, $0.fitness) })
     case .monthlyVolume:
@@ -109,6 +109,11 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
             return samples(of: run).flatMap { zone2Pace($0, zone2: zone2) }
         })
     case .thresholdPace:
+        let activities = try fetchActivities(context, since: nil, through: today)
+        let sessions = try ReportBuilder(context: context, today: today, memo: memo).thresholdSessions(from: activities)
+        if !sessions.isEmpty {
+            return RawMetric(values: thresholdWorkSeries(sessions, since: lower, today: today))
+        }
         guard let lthr = try thresholdHeartRate(on: today, in: context) else { return RawMetric(values: []) }
         return RawMetric(values: try runValues(context, since: lower, today: today) { run in
             samples(of: run).flatMap { thresholdPace([$0], lthr: lthr) }
@@ -131,10 +136,17 @@ func rawMetric(_ kind: MetricKind, context: ModelContext, since lower: Day?, tod
     case .prediction5k, .prediction10k, .predictionHalf, .predictionFull:
         guard let distance = C.predictionDistances[kind] else { return RawMetric(values: []) }
         let activities = try fetchActivities(context, since: lower?.adding(days: -C.raceEffortWindowDays), through: today)
-        let efforts = try ReportBuilder(context: context, today: today).efforts(from: activities)
+        let efforts = try ReportBuilder(context: context, today: today, memo: memo).efforts(from: activities)
         guard let first = lower ?? efforts.map(\.day).min() else { return RawMetric(values: []) }
         return RawMetric(values: chunkedPredictionSeries(distance: distance, efforts: efforts, from: first, to: today))
     }
+}
+
+private func thresholdWorkSeries(_ sessions: [TrainingSession], since lower: Day?, today: Day) -> [(Day, Double)] {
+    Set(sessions.map(\.day))
+        .filter { day in day <= today && (lower.map { day >= $0 } ?? true) }
+        .sorted()
+        .compactMap { day in thresholdWorkPace(sessions, on: day).map { (day, $0) } }
 }
 
 private func dailyValues(_ context: ModelContext, since lower: Day?, today: Day, value: (DailyRecord) -> Double?) throws -> [(Day, Double)] {

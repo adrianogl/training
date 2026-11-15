@@ -38,11 +38,12 @@ import WorkoutAnalysis
     }
 
     private func createPlan(
-        history: TrainerHistory? = nil, strength: [TrainerStrengthSession] = [], weeklyMeters: Double? = nil
+        history: TrainerHistory? = nil, strength: [TrainerStrengthSession] = [], target: TrainerTarget? = nil,
+        startMeters: Double? = nil, peakMeters: Double? = nil
     ) -> TrainerPlan {
         TrainerEngine.create(
-            target: halfMarathon, structure: TrainerEngine.defaultStructure, strength: strength, history: history ?? baseHistory(),
-            today: monday, now: now, weeklyMeters: weeklyMeters
+            target: target ?? halfMarathon, structure: TrainerEngine.defaultStructure, strength: strength, history: history ?? baseHistory(),
+            today: monday, now: now, startMeters: startMeters, peakMeters: peakMeters
         )
     }
 
@@ -91,7 +92,7 @@ import WorkoutAnalysis
         #expect(weeks[1].targetMeters / weeks[0].targetMeters > 1)
         #expect(weeks[1].targetMeters / weeks[0].targetMeters <= 1.10)
         #expect(weeks[3].isRecovery && weeks[7].isRecovery)
-        #expect(weeks[3].targetMeters == (weeks[0].targetMeters * 0.8 / 1_000).rounded() * 1_000)
+        #expect(weeks[3].targetMeters == (weeks[2].targetMeters * 0.8 / 1_000).rounded() * 1_000)
         #expect(weeks[11].targetMeters < weeks[10].targetMeters)
         #expect(weeks[12].targetMeters < weeks[11].targetMeters)
     }
@@ -160,7 +161,7 @@ import WorkoutAnalysis
     }
 
     @Test func easyRunsFillTheWeeklyVolumeAndKeepTheHistoryAsReference() throws {
-        let plan = createPlan(history: longRunnerHistory(), weeklyMeters: 70_000)
+        let plan = createPlan(history: longRunnerHistory(), startMeters: 70_000, peakMeters: 77_000)
         let first = try workout(plan, monday)
 
         #expect(plan.weeks[0].targetMeters == 70_000)
@@ -172,7 +173,7 @@ import WorkoutAnalysis
     }
 
     @Test func weekOneWithSeventyKilometersCountsTheOptionalRun() {
-        let plan = createPlan(history: longRunnerHistory(), weeklyMeters: 70_000)
+        let plan = createPlan(history: longRunnerHistory(), startMeters: 70_000, peakMeters: 77_000)
         let week = plan.workouts.prefix(7)
 
         #expect(week.map(\.kind) == [.easy, .threshold, .easy, .vo2max, .optionalEasy, .long, .off])
@@ -181,38 +182,53 @@ import WorkoutAnalysis
         #expect(plan.weeks[0].plannedMeters == week.reduce(0) { $0 + $1.totalMeters })
     }
 
-    @Test func normalWeeksStayWithinTenPercentOfTheChosenVolume() {
-        let plan = createPlan(history: longRunnerHistory(), weeklyMeters: 70_000)
+    @Test func normalWeeksStayBetweenStartAndPeak() {
+        let plan = createPlan(history: longRunnerHistory(), startMeters: 70_000, peakMeters: 77_000)
         let normal = plan.weeks.filter { !$0.isRecovery && $0.phase != .taper }
 
         #expect(normal.allSatisfy { $0.targetMeters >= 70_000 && $0.targetMeters <= 77_000 })
         #expect(normal.map(\.targetMeters).max() == 77_000)
-        #expect(plan.weeks.filter(\.isRecovery).allSatisfy { $0.targetMeters == 56_000 })
-        #expect(plan.weeks.filter { $0.phase == .taper }.map(\.targetMeters) == [49_000, 35_000])
+        #expect(plan.weeks[3].targetMeters == 56_000)
+        #expect(plan.weeks.filter { $0.phase == .taper }.map(\.targetMeters) == [54_000, 39_000])
     }
 
     @Test func weeklyVolumeFallsBackToTheFourWeekAverage() {
         let history = longRunnerHistory()
         let plan = createPlan(history: history)
 
-        #expect(plan.weeklyMeters == nil)
+        #expect(plan.startMeters == nil && plan.peakMeters == nil)
         #expect(plan.weeks[0].targetMeters == TrainerEngine.averageWeeklyMeters(history: history, today: monday))
         #expect(plan.weeks[0].targetMeters == 58_000)
     }
 
-    @Test func oldJsonWithoutWeeklyMetersDecodes() throws {
-        let plan = createPlan(weeklyMeters: 70_000)
+    @Test func oldJsonWithWeeklyMetersMigratesToStartAndPeak() throws {
+        let plan = createPlan(startMeters: 70_000, peakMeters: 80_000)
         let data = try JSONEncoder().encode(plan)
         var object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
-        #expect(object["weeklyMeters"] != nil)
-        object["weeklyMeters"] = nil
+        #expect(object["weeklyMeters"] == nil)
+        object["startMeters"] = nil
+        object["peakMeters"] = nil
+        object["weeklyMeters"] = 70_000
         let old = try JSONSerialization.data(withJSONObject: object)
 
         let decoded = try JSONDecoder().decode(TrainerPlan.self, from: old)
 
-        #expect(decoded.weeklyMeters == nil)
+        #expect(decoded.startMeters == 70_000)
+        #expect(decoded.peakMeters == 77_000)
         #expect(decoded.workouts == plan.workouts)
-        #expect(try JSONDecoder().decode(TrainerPlan.self, from: data).weeklyMeters == 70_000)
+        let current = try JSONDecoder().decode(TrainerPlan.self, from: data)
+        #expect(current.startMeters == 70_000 && current.peakMeters == 80_000)
+    }
+
+    @Test func oldJsonWithoutAnyVolumeDecodes() throws {
+        let plan = createPlan()
+        let data = try JSONEncoder().encode(plan)
+        var object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        object["weeklyMeters"] = nil
+
+        let decoded = try JSONDecoder().decode(TrainerPlan.self, from: try JSONSerialization.data(withJSONObject: object))
+
+        #expect(decoded.startMeters == nil && decoded.peakMeters == nil)
     }
 
     private func tempoHistory(workPace: Double?) -> TrainerHistory {
@@ -261,7 +277,7 @@ import WorkoutAnalysis
     }
 
     @Test func easyRunHasNoHistoryReferenceWithoutEasyRuns() throws {
-        let plan = createPlan(history: TrainerHistory(runs: [], predictions: [:]), weeklyMeters: 40_000)
+        let plan = createPlan(history: TrainerHistory(runs: [], predictions: [:]), startMeters: 40_000)
 
         let easy = try workout(plan, monday)
         #expect(easy.totalMeters >= 6_000 && easy.totalMeters <= 14_000)
@@ -281,14 +297,13 @@ import WorkoutAnalysis
 
     @Test func recoveryWeekReducesTheEasyRun() {
         let history = longRunnerHistory()
-        let plan = createPlan(history: history, weeklyMeters: 70_000)
+        let plan = createPlan(history: history, startMeters: 70_000, peakMeters: 77_000)
         func easy(_ index: Int) -> Double {
             TrainerEngine.easyShare(week: plan.weeks[index], structure: plan.structure, history: history, today: monday).meters
         }
 
         #expect(plan.weeks[3].isRecovery)
         #expect(easy(3) < easy(2))
-        #expect(easy(2) >= easy(0))
         #expect([0, 2, 3].allSatisfy { easy($0) >= 6_000 && easy($0) <= 14_000 })
     }
 

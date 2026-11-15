@@ -1,6 +1,6 @@
 import TrainingCore
 
-public struct RaceCandidate: Sendable, Identifiable, Equatable {
+public struct RaceCandidate: Sendable, Identifiable, Equatable, Codable {
     public var activityId: Int64
     public var day: Day
     public var name: String

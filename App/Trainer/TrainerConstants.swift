@@ -26,6 +26,7 @@ enum TrainerConstants {
     static let weekdayCount = 7
     static let metersPerKilometer = 1_000.0
     static let weeklyKilometersRange = 10...150
+    static let peakKilometersCeiling = 200
     static let editableKinds: [TrainerDayKind] = [.easy, .threshold, .vo2max, .optionalEasy, .long, .off]
     static let weekdayShort = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
     static let weekdayFull = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]

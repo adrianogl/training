@@ -56,7 +56,7 @@ export function raceOutlook(raceDistance: number, upcoming: string | null, goalS
   const series = predictionSeries(distance, efforts, addDays(today, -RACE.yearDays), today)
   const current = predict(distance, efforts, today)
   const displayDays = raceDay === null ? RACE.raceProjectionFallbackDays : daysBetween(today, raceDay)
-  const projected = project(series, today, Math.max(displayDays, RACE.goalHorizonDays), null, goal)
+  const projected = project(series, today, Math.max(displayDays, RACE.goalHorizonDays), null, goal, current)
   const points = (projected?.points ?? []).slice(0, displayDays)
   const racePoint =
     raceDay === null

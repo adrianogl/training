@@ -1,14 +1,14 @@
 import Narrative
 
-public enum IndicatorKind: String, CaseIterable, Sendable {
+public enum IndicatorKind: String, CaseIterable, Sendable, Codable {
     case racePrediction, vo2max, fitness, zone2Pace, thresholdPace, monthlyVolume
 }
 
-public enum IndicatorTrend: String, Sendable {
+public enum IndicatorTrend: String, Sendable, Codable {
     case better, same, worse, unknown
 }
 
-public struct Indicator: Sendable, Equatable {
+public struct Indicator: Sendable, Equatable, Codable {
     public var kind: IndicatorKind
     public var today: Double?
     public var delta: Double?
@@ -24,7 +24,7 @@ public struct Indicator: Sendable, Equatable {
     }
 }
 
-public struct OverallState: Sendable, Equatable {
+public struct OverallState: Sendable, Equatable, Codable {
     public var indicators: [Indicator]
     public var facts: OverallFacts
 

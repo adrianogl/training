@@ -158,6 +158,14 @@ import TrainingCore
         TrainerEngine.averageWeeklyMeters(history: history, today: currentDay)
     }
 
+    func previewPeakMeters(start: Double) -> Double {
+        TrainerEngine.defaultPeak(from: start)
+    }
+
+    func previewWeeksToPeak(start: Double, peak: Double) -> Int {
+        TrainerEngine.weeksToPeak(startMeters: start, peakMeters: peak)
+    }
+
     func previewPaces() -> TrainerPaces {
         TrainerEngine.paces(history: history, today: currentDay)
     }
@@ -180,13 +188,13 @@ import TrainingCore
         }
     }
 
-    func createPlan(target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], weeklyMeters: Double?) async {
+    func createPlan(target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], startMeters: Double?, peakMeters: Double?) async {
         isWorking = true
         defer { isWorking = false }
         history = await loadHistory()
         let created = TrainerEngine.create(
             target: target, structure: structure, strength: strength, history: history, today: currentDay, now: .now,
-            weeklyMeters: weeklyMeters
+            startMeters: startMeters, peakMeters: peakMeters
         )
         persist(created)
         store.markStrengthMigrated()

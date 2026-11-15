@@ -46,8 +46,14 @@ struct MetricChart: View {
                 ForEach(data.markers) { marker in
                     RuleMark(x: .value("Prova", marker.date))
                         .foregroundStyle(BrandColors.race.opacity(0.6))
-                        .annotation(position: .top, alignment: .leading) {
-                            Text(marker.name).font(.caption2).foregroundStyle(BrandColors.race).lineLimit(1)
+                        .annotation(position: .top, alignment: .leading, overflowResolution: .init(x: .fit(to: .chart), y: .disabled)) {
+                            if marker.showsLabel {
+                                Text(marker.name)
+                                    .font(.caption2)
+                                    .foregroundStyle(BrandColors.race)
+                                    .lineLimit(1)
+                                    .frame(maxWidth: EvolutionConstants.markerLabelMaxWidth, alignment: .leading)
+                            }
                         }
                 }
                 if let point = data.raceDayPoint {

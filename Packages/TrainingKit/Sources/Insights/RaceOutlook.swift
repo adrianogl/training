@@ -13,13 +13,13 @@ public func targetRace(in context: ModelContext, today: Day) throws -> RaceRecor
     return (upcoming.first { $0.0.priorityLevel == .a } ?? upcoming.first)?.0
 }
 
-public func raceOutlook(context: ModelContext, today: Day) throws -> RaceOutlook {
-    raceOutlook(race: try targetRace(in: context, today: today), efforts: try raceEfforts(context: context, today: today), today: today)
+public func raceOutlook(context: ModelContext, today: Day, memo: ReportMemo = ReportMemo()) throws -> RaceOutlook {
+    raceOutlook(race: try targetRace(in: context, today: today), efforts: try raceEfforts(context: context, today: today, memo: memo), today: today)
 }
 
-public func raceEfforts(context: ModelContext, today: Day) throws -> [Effort] {
+public func raceEfforts(context: ModelContext, today: Day, memo: ReportMemo = ReportMemo()) throws -> [Effort] {
     let activities = try fetchActivities(context, since: today.adding(days: -InsightsConstants.raceHistoryDays), through: today)
-    return try ReportBuilder(context: context, today: today).efforts(from: activities)
+    return try ReportBuilder(context: context, today: today, memo: memo).efforts(from: activities)
 }
 
 func raceOutlook(race: RaceRecord?, efforts: [Effort], today: Day) -> RaceOutlook {
@@ -40,7 +40,7 @@ public func raceOutlook(distance raceDistance: Double, raceDay upcoming: Day?, g
     let series = chunkedPredictionSeries(distance: distance, efforts: efforts, from: today.adding(days: -C.yearDays), to: today)
     let current = predict(distance: distance, efforts: efforts, on: today)
     let displayDays = raceDay.map { today.days(until: $0) } ?? C.raceProjectionFallbackDays
-    let projected = project(series, today: today, horizonDays: max(displayDays, C.goalHorizonDays), target: goal)
+    let projected = project(series, today: today, horizonDays: max(displayDays, C.goalHorizonDays), target: goal, anchor: current)
     let points = Array((projected?.points ?? []).prefix(displayDays))
     let racePoint = raceDay.flatMap { day in
         day == today ? current.map { ProjectionPoint(day: day, mid: $0, low: $0, high: $0) } : points.first { $0.day == day }

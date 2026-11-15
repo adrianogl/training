@@ -27,6 +27,17 @@ function effortFor(rule: Rule, sessions: { day: string; pace: number; meters: nu
   return { distance: rule.distance, seconds: ((pace + rule.paceOffset) * rule.distance) / TRAINING_EFFORT.metersPerKilometer, day: latest.day, kind: rule.effortKind }
 }
 
+export function structuredRunIds(activities: ActivitySummary[], metrics: Map<number, RunMetrics>, raceGoalKms: number[]): Set<number> {
+  return new Set(
+    activities.filter(isRun).flatMap((run) => {
+      const item = metrics.get(run.id)
+      if (item === undefined) return []
+      const kind = classifyRun(run, item.shape, raceGoalKms)
+      return item.workPace || kind === 'tempo' || kind === 'intervals' ? [run.id] : []
+    }),
+  )
+}
+
 export function trainingEfforts(activities: ActivitySummary[], metrics: Map<number, RunMetrics>, raceGoalKms: number[], today: string): Effort[] {
   const sessions = { tempo: [] as { day: string; pace: number; meters: number }[], intervals: [] as { day: string; pace: number; meters: number }[] }
   for (const run of activities.filter(isRun)) {

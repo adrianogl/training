@@ -17,11 +17,13 @@ import WorkoutAnalysis
     @ObservationIgnored private let confirmAnswer: RaceAnswer
     @ObservationIgnored private let declineAnswer: RaceAnswer
     @ObservationIgnored private let onChange: @MainActor () -> Void
+    @ObservationIgnored private let snapshots: ScreenSnapshotStore?
     private(set) var candidates: [RaceCandidate] = []
     private(set) var upcoming: [RaceRowData] = []
     private(set) var completed: [RaceRowData] = []
     private(set) var summaries: [UUID: CompletedRaceSummary] = [:]
     private(set) var isLoaded = false
+    private(set) var isStale = false
     private(set) var answerFailed = false
 
     init(
@@ -29,13 +31,23 @@ import WorkoutAnalysis
         today: Day,
         confirmAnswer: @escaping RaceAnswer = { try confirmRace(activityId: $0, in: $1) },
         declineAnswer: @escaping RaceAnswer = { try declineRace(activityId: $0, in: $1) },
-        onChange: @escaping @MainActor () -> Void = {}
+        onChange: @escaping @MainActor () -> Void = {},
+        snapshots: ScreenSnapshotStore? = nil
     ) {
+        self.snapshots = snapshots
         self.onChange = onChange
         self.container = container
         self.today = today
         self.confirmAnswer = confirmAnswer
         self.declineAnswer = declineAnswer
+    }
+
+    static func restored(container: ModelContainer, snapshots: ScreenSnapshotStore, onChange: @escaping @MainActor () -> Void = {}) async -> RaceListModel? {
+        guard let snapshot = await snapshots.read(RaceListSnapshot.self, for: .raceList) else { return nil }
+        let model = RaceListModel(container: container, today: snapshot.today, onChange: onChange, snapshots: snapshots)
+        model.apply(snapshot.load)
+        model.isStale = true
+        return model
     }
 
     func load() async {
@@ -45,6 +57,12 @@ import WorkoutAnalysis
             Self.compute(container: container, today: today)
         }.value
         guard !Task.isCancelled else { return }
+        apply(result)
+        isStale = false
+        await snapshots?.write(RaceListSnapshot(today: today, load: result), for: .raceList)
+    }
+
+    private func apply(_ result: RaceListLoad) {
         candidates = result.candidates
         upcoming = result.upcoming
         completed = result.completed

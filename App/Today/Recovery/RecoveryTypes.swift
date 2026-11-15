@@ -1,6 +1,6 @@
 import Foundation
 
-struct RecoveryRun: Equatable, Sendable {
+struct RecoveryRun: Equatable, Sendable, Codable {
     let title: String
     let end: Date
     let aerobicEffect: Double?

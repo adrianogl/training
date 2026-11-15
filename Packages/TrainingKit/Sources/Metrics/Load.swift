@@ -1,6 +1,6 @@
 import TrainingCore
 
-public struct FFFPoint: Sendable, Equatable {
+public struct FFFPoint: Sendable, Equatable, Codable {
     public var day: Day
     public var fitness: Double
     public var fatigue: Double

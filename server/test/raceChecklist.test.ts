@@ -49,6 +49,13 @@ describe('checklist da prova (paridade com o app)', () => {
     expect(racePaceKm(laps, 281)).toBe(2)
   })
 
+  it('simulado ignora corrida com blocos de trabalho', () => {
+    const base = { today, blockStart: addDays(today, -60), distance: 10000, goalSeconds: 2400, priority: 'A', profile: null, targetPace: 240, weeklyKm: new Map<string, number>() }
+    const blocks = { day: addDays(today, -3), distance: 14100, seconds: 3510, laps: [], structured: true }
+    expect(raceChecklist({ ...base, runs: [blocks] }).find((item) => item.kind === 'tuneUp')?.status).toBe('missing')
+    expect(raceChecklist({ ...base, runs: [blocks, { ...blocks, structured: false, distance: 5400, seconds: 1300 }] }).find((item) => item.kind === 'tuneUp')?.status).toBe('ok')
+  })
+
   it('monta os cinco itens', () => {
     const blockStart = addDays(today, -60)
     const items = raceChecklist({
@@ -61,8 +68,8 @@ describe('checklist da prova (paridade com o app)', () => {
       targetPace: 281,
       weeklyKm: new Map([[addDays(weekStartOf(today), -7), 44]]),
       runs: [
-        { day: addDays(today, -10), distance: 10000, seconds: 2850, laps: Array.from({ length: 16 }, () => ({ distance: 1000, seconds: 281 })) },
-        { day: addDays(today, -90), distance: 12000, seconds: 3300, laps: [] },
+        { day: addDays(today, -10), distance: 10000, seconds: 2850, laps: Array.from({ length: 16 }, () => ({ distance: 1000, seconds: 281 })), structured: false },
+        { day: addDays(today, -90), distance: 12000, seconds: 3300, laps: [], structured: false },
       ],
     })
     expect(items.map((item) => [item.kind, item.status])).toEqual([

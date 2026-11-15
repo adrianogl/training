@@ -307,9 +307,10 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var versions: [TrainerVersion]
     public var processedActivityIds: [Int64]
     public var strength: [TrainerStrengthSession]
-    public var weeklyMeters: Double?
+    public var startMeters: Double?
+    public var peakMeters: Double?
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], weeklyMeters: Double? = nil) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -318,15 +319,20 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.versions = versions
         self.processedActivityIds = processedActivityIds
         self.strength = strength
-        self.weeklyMeters = weeklyMeters
+        self.startMeters = startMeters
+        self.peakMeters = peakMeters
     }
 
     private enum CodingKeys: String, CodingKey {
-        case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, weeklyMeters
+        case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let legacyMeters = try container.decodeIfPresent(Double.self, forKey: .weeklyMeters)
+        let start = try container.decodeIfPresent(Double.self, forKey: .startMeters) ?? legacyMeters
+        let peak = try container.decodeIfPresent(Double.self, forKey: .peakMeters)
+            ?? legacyMeters.map { TrainerEngineConstants.legacyPeak(from: $0) }
         self.init(
             target: try container.decode(TrainerTarget.self, forKey: .target),
             structure: try container.decode([Int: TrainerDayKind].self, forKey: .structure),
@@ -336,8 +342,22 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             versions: try container.decode([TrainerVersion].self, forKey: .versions),
             processedActivityIds: try container.decodeIfPresent([Int64].self, forKey: .processedActivityIds) ?? [],
             strength: try container.decodeIfPresent([TrainerStrengthSession].self, forKey: .strength) ?? [],
-            weeklyMeters: try container.decodeIfPresent(Double.self, forKey: .weeklyMeters)
+            startMeters: start, peakMeters: peak
         )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(target, forKey: .target)
+        try container.encode(structure, forKey: .structure)
+        try container.encode(paces, forKey: .paces)
+        try container.encode(weeks, forKey: .weeks)
+        try container.encode(workouts, forKey: .workouts)
+        try container.encode(versions, forKey: .versions)
+        try container.encode(processedActivityIds, forKey: .processedActivityIds)
+        try container.encode(strength, forKey: .strength)
+        try container.encodeIfPresent(startMeters, forKey: .startMeters)
+        try container.encodeIfPresent(peakMeters, forKey: .peakMeters)
     }
 }
 

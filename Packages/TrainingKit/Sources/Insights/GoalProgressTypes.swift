@@ -3,7 +3,7 @@ import Storage
 import TrainingCore
 import WorkoutAnalysis
 
-public struct TimeGoalProgress: Sendable, Equatable {
+public struct TimeGoalProgress: Sendable, Equatable, Codable {
     public var todaySeconds: Double?
     public var gapSeconds: Double?
     public var crossing: GoalCrossing
@@ -17,7 +17,7 @@ public struct TimeGoalProgress: Sendable, Equatable {
     }
 }
 
-public struct LongRunCheck: Sendable, Equatable {
+public struct LongRunCheck: Sendable, Equatable, Codable {
     public var activityId: Int64
     public var day: Day
     public var distanceKm: Double
@@ -40,7 +40,7 @@ public struct LongRunCheck: Sendable, Equatable {
     }
 }
 
-public struct LongGoalProgress: Sendable, Equatable {
+public struct LongGoalProgress: Sendable, Equatable, Codable {
     public var runs: [LongRunCheck]
     public var metCount: Int
     public var bestContinuousKm: Double?
@@ -54,12 +54,12 @@ public struct LongGoalProgress: Sendable, Equatable {
     }
 }
 
-public enum GoalProgress: Sendable, Equatable {
+public enum GoalProgress: Sendable, Equatable, Codable {
     case time(TimeGoalProgress)
     case continuousLong(LongGoalProgress)
 }
 
-public struct GoalSnapshot: Sendable, Equatable {
+public struct GoalSnapshot: Sendable, Equatable, Codable {
     public var id: UUID
     public var kind: GoalKind
     public var distanceKm: Double

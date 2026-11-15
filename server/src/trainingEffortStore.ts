@@ -1,7 +1,7 @@
 import type { Sql } from './db.js'
 import { TRAINING_EFFORT } from './domain/domainConstants.js'
 import type { Effort } from './domain/domainTypes.js'
-import { trainingEfforts } from './domain/trainingEffort.js'
+import { structuredRunIds, trainingEfforts } from './domain/trainingEffort.js'
 import { isRun } from './domain/today.js'
 import { readRunMetrics } from './fit/fitStore.js'
 import { addDays } from './garminSync.js'
@@ -13,4 +13,10 @@ export async function readTrainingEfforts(sql: Sql, key: Buffer, accountId: stri
   const metrics = await readRunMetrics(sql, key, accountId, ids)
   const raceGoalKms = races.flatMap(({ race }) => (race === null ? [] : [race.distance / TRAINING_EFFORT.metersPerKilometer]))
   return trainingEfforts(activities, metrics, raceGoalKms, today)
+}
+
+export async function readStructuredRuns(sql: Sql, key: Buffer, accountId: string, activities: ActivitySummary[], races: StoredRace[], ids: number[]): Promise<Set<number>> {
+  const metrics = await readRunMetrics(sql, key, accountId, ids)
+  const raceGoalKms = races.flatMap(({ race }) => (race === null ? [] : [race.distance / TRAINING_EFFORT.metersPerKilometer]))
+  return structuredRunIds(activities.filter((activity) => ids.includes(activity.id)), metrics, raceGoalKms)
 }

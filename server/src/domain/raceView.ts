@@ -14,6 +14,7 @@ export interface RaceContext {
   laps: Map<number, Lap[]>
   weather: Map<string, { weather: Weather | null; note: WeatherNote }>
   trainingEfforts?: Effort[]
+  structuredRuns?: Set<number>
 }
 
 export function racePoints(race: RaceItem): GpxPoint[] {
@@ -71,7 +72,7 @@ export function buildRaceViews(races: StoredRace[], context: RaceContext): RaceV
     const blockStart = block[0]?.start ?? race.day
     const runs: ChecklistRun[] = activities
       .filter((activity) => isRun(activity) && activity.day >= blockStart)
-      .map((run) => ({ day: run.day, distance: run.distanceMeters, seconds: run.movingSeconds ?? run.durationSeconds, laps: context.laps.get(run.id) ?? [] }))
+      .map((run) => ({ day: run.day, distance: run.distanceMeters, seconds: run.movingSeconds ?? run.durationSeconds, laps: context.laps.get(run.id) ?? [], structured: context.structuredRuns?.has(run.id) ?? false }))
     const { longProjection: _long, ...outlookView } = outlook
     return {
       ...base,

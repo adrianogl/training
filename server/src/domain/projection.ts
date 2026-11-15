@@ -3,7 +3,7 @@ import { PROJECTION } from './domainConstants.js'
 import type { Projection, ProjectionPoint, SeriesPoint } from './domainTypes.js'
 import { daysBetween } from './prediction.js'
 
-export function project(series: SeriesPoint[], today: string, horizonDays: number, softCeiling: number | null = null, target: number | null = null): Projection | null {
+export function project(series: SeriesPoint[], today: string, horizonDays: number, softCeiling: number | null = null, target: number | null = null, anchor: number | null = null): Projection | null {
   if (horizonDays < 1) {
     return null
   }
@@ -27,7 +27,8 @@ export function project(series: SeriesPoint[], today: string, horizonDays: numbe
   const residualSquares = samples.reduce((sum, item) => sum + (item.y - (intercept + slope * item.x)) ** 2, 0)
   const sigma = Math.sqrt(residualSquares / (n - 2))
 
-  let cursor = intercept
+  const start = anchor ?? intercept
+  let cursor = start
   const points: ProjectionPoint[] = []
   for (let h = 1; h <= horizonDays; h += 1) {
     const next = cursor + slope
@@ -45,7 +46,7 @@ export function project(series: SeriesPoint[], today: string, horizonDays: numbe
 
   let crossing: string | null = null
   if (target !== null && slope !== 0) {
-    const ahead = slope > 0 ? target - intercept : intercept - target
+    const ahead = slope > 0 ? target - start : start - target
     if (Math.abs(ahead) <= PROJECTION.targetTolerance * Math.max(1, Math.abs(target))) {
       crossing = today
     } else if (ahead > 0) {
