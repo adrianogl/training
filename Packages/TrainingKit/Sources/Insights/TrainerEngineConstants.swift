@@ -57,20 +57,67 @@ enum TrainerEngineConstants {
     static let upperWords = ["superior", "upper", "braco", "peito", "costas"]
     static let fullBodyWords = ["full"]
     static let coreWords = ["core", "abdom"]
-    static let thresholdRestShare = 0.2
-    static let vo2RestShare = 0.9
+    static let thresholdRestSecondsPerKm = 60.0
     static let thresholdMinimumRestSeconds = 60.0
-    static let vo2MinimumRestSeconds = 120.0
+    static let thresholdMaximumRestSeconds = 240.0
+    static let vo2RestShare = 0.7
+    static let vo2MinimumRestSeconds = 150.0
+    static let vo2ShortRestMinimumSeconds = 60.0
+    static let vo2ShortRepMeters = 600.0
     static let restStepSeconds = 30.0
     static let extraRestSeconds = 60.0
-    static let thresholdStages = [
-        TrainerQualityStage(repeats: 3, meters: 2_000), TrainerQualityStage(repeats: 4, meters: 2_000),
-        TrainerQualityStage(repeats: 3, meters: 3_000), TrainerQualityStage(repeats: 4, meters: 3_000),
+    static let thresholdBlocks = [1_000.0, 2_000, 3_000, 4_000, 0]
+    static let thresholdBaseMeters = 8_000.0
+    static let thresholdBuildMeters = [9_000.0, 9_000, 10_000, 10_000, 9_000]
+    static let thresholdSpecificMeters = [10_000.0, 10_000, 11_000, 12_000, 12_000]
+    static let thresholdRecoveryMeters = 6_000.0
+    static let thresholdPyramid = [3_000.0, 2_000, 1_000]
+    static let thresholdSplit = [6_000.0, 3_000]
+    static let thresholdSplitMinimumMeters = 9_000.0
+    static let thresholdDoubleBlockMeters = 5_000.0
+    static let thresholdDoubleMinimumMeters = 10_000.0
+    static let vo2FormatCount = 3
+    static let vo2ShortEvery = 6
+    static let vo2ShortRepeats = 12
+    static let vo2ShortMeters = 400.0
+    static let vo2OneKmRepeats = 5
+    static let vo2OneKmMeters = 1_000.0
+    static let vo2LongMeters = 1_500.0
+    static let vo2LongBaseRepeats = 3
+    static let vo2LongRepeats = 4
+    static let vo2PyramidRepeats = 2
+    static let vo2RecoveryRepeats = 4
+    static let vo2TaperRepeats = 3
+    static let closingRepeats = 3
+    static let closingMeters = 200.0
+    static let closingJogMeters = 200.0
+    static let repetitionBelowVo2 = 6.0
+    static let raceMinimumRaceMeters = 21_000.0
+    static let raceBlockMeters = 4_000.0
+    static let raceStartMeters = 8_000.0
+    static let raceStepMeters = 4_000.0
+    static let raceShare = 0.7
+    static let raceMaximumMeters = 20_000.0
+    static let raceRestSeconds = 90.0
+    static let raceRestStepSeconds = 30.0
+    static let raceRestMaximumSeconds = 150.0
+    static let raceEvery = 2
+    static let goalPaceLadder: [(repeats: Int, meters: Double)] = [
+        (4, 2_000), (3, 3_000), (2, 5_000), (2, 6_000), (1, 8_000), (1, 10_000), (1, 12_000), (1, 15_000),
     ]
-    static let vo2Stages = [
-        TrainerQualityStage(repeats: 5, meters: 1_000), TrainerQualityStage(repeats: 6, meters: 1_000),
-        TrainerQualityStage(repeats: 5, meters: 1_200), TrainerQualityStage(repeats: 6, meters: 1_200),
-    ]
+    static let goalPaceExtraMeters = 3_000.0
+    static let goalPaceEvery = 2
+    static let goalPaceBlockShare = 0.2
+    static let goalPaceShortBlockMeters = 3_000.0
+    static let goalPaceShortRestSeconds = 90.0
+    static let goalPaceLongRestSeconds = 120.0
+    static let goalPaceStepLimit = 60
+    static let goalPaceLongOffset = 18.0
+    static let goalPaceLongMinimumMeters = 3_000.0
+    static let goalPaceLongMaximumMeters = 6_000.0
+    static let goalPaceLongWeeksPerKm = 3
+    static let thresholdFromTenKmOffset = 7.0
+    static let thresholdEquivalenceMeters = 10_000.0
     static let stagesAtLevel = 2
     static let minimumEasyMeters = 6_000.0
     static let maximumEasyMeters = 14_000.0

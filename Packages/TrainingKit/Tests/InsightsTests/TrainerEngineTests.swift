@@ -111,10 +111,10 @@ import WorkoutAnalysis
     @Test func qualityStagesProgressAndDropOnRecovery() {
         let weeks = createPlan().weeks
 
-        #expect(weeks[0].thresholdFocus == "3 × 2 km")
-        #expect(weeks[0].vo2Focus == "5 × 1000 m")
-        #expect(weeks[2].thresholdFocus == "4 × 2 km")
-        #expect(weeks[3].thresholdFocus == "3 × 2 km")
+        #expect(weeks[0].thresholdFocus == "Blocos de 1 km")
+        #expect(weeks[0].vo2Focus == "5 × 1 km")
+        #expect(weeks[2].thresholdFocus == "Blocos de 2 km")
+        #expect(weeks[3].thresholdFocus == "Blocos de 1 km")
     }
 
     @Test func detailCoversFifteenDaysAllByDistance() throws {
@@ -123,19 +123,22 @@ import WorkoutAnalysis
         #expect(plan.workouts.count == 15)
         #expect(plan.workouts.first?.day == monday)
         let threshold = try workout(plan, monday.adding(days: 1))
-        #expect(threshold.title == "Limiar 3 × 2 km")
+        #expect(threshold.title == "Limiar 8 × 1 km")
+        #expect(threshold.method == .cruiseIntervals)
         #expect(threshold.steps.first?.kind == .warmup && threshold.steps.first?.meters == 3_000)
-        #expect(threshold.steps.last?.kind == .recovery)
         let rest = try #require(threshold.steps.first { $0.kind == .recovery })
-        #expect(rest.meters == 0 && rest.restSeconds == 120 && rest.repeats == 2)
-        #expect(threshold.totalMeters == 9_000)
-        #expect(TrainerEngine.describe(threshold).hasSuffix("parado 2:00"))
-        #expect(threshold.rationale.contains("Descanso de 2:00 parado, 1 min para cada 5 min de bloco."))
+        #expect(rest.meters == 0 && rest.restSeconds == 60 && rest.repeats == 7)
+        #expect(threshold.totalMeters == 11_000)
+        #expect(TrainerEngine.describe(threshold).hasSuffix("parado 1:00"))
+        #expect(threshold.rationale.contains(
+            "Cruise intervals de 1 km (Daniels), 60 s parado por km de bloco. Volume de 8 km em blocos, como no método norueguês."
+        ))
         let vo2 = try workout(plan, monday.adding(days: 3))
-        #expect(vo2.steps.first { $0.kind == .recovery }?.restSeconds == 210)
+        #expect(vo2.method == .intervals)
+        #expect(vo2.steps.first { $0.kind == .recovery }?.restSeconds == 180)
         #expect(vo2.steps.first { $0.kind == .recovery }?.meters == 0)
-        #expect(vo2.rationale.contains("Descanso de 3:30 parado, um pouco menos que o tempo do tiro."))
-        #expect(try workout(plan, monday.adding(days: 3)).title == "VO2 máx 5 × 1000 m")
+        #expect(vo2.rationale.contains("descanso de 3:00 parado, 0,7 da duração do tiro"))
+        #expect(vo2.title == "VO2 máx 5 × 1 km")
         #expect(try workout(plan, monday.adding(days: 5)).title == "Longão 17 km")
         #expect(try workout(plan, monday.adding(days: 4)).note == "só se a prontidão ≥ 60")
         #expect(try workout(plan, monday.adding(days: 6)).kind == .off)
@@ -165,10 +168,10 @@ import WorkoutAnalysis
         let first = try workout(plan, monday)
 
         #expect(plan.weeks[0].targetMeters == 70_000)
-        #expect(first.totalMeters == 11_500)
-        #expect(try workout(plan, monday.adding(days: 2)).totalMeters == 11_500)
-        #expect(try workout(plan, monday.adding(days: 4)).totalMeters == 8_000)
-        #expect(first.rationale == "Rodagem de 11,5 km. Suas rodagens das últimas 6 semanas ficam em 12 km.")
+        #expect(first.totalMeters == 10_500)
+        #expect(try workout(plan, monday.adding(days: 2)).totalMeters == 10_500)
+        #expect(try workout(plan, monday.adding(days: 4)).totalMeters == 7_500)
+        #expect(first.rationale == "Rodagem de 10,5 km. Suas rodagens das últimas 6 semanas ficam em 12 km.")
         #expect(plan.weeks[0].plannedMeters == plan.workouts.prefix(7).reduce(0) { $0 + $1.totalMeters })
     }
 
@@ -299,7 +302,9 @@ import WorkoutAnalysis
         let history = longRunnerHistory()
         let plan = createPlan(history: history, startMeters: 70_000, peakMeters: 77_000)
         func easy(_ index: Int) -> Double {
-            TrainerEngine.easyShare(week: plan.weeks[index], structure: plan.structure, history: history, today: monday).meters
+            TrainerEngine.easyShare(
+                week: plan.weeks[index], weeks: plan.weeks, target: plan.target, structure: plan.structure, history: history, today: monday
+            ).meters
         }
 
         #expect(plan.weeks[3].isRecovery)
@@ -382,22 +387,6 @@ import WorkoutAnalysis
         #expect(adjusted.weeks[1].longMeters == 15_000)
     }
 
-    @Test func restFollowsBlockDurationAndKind() {
-        let paces = TrainerPaces(easy: 340, long: 335, threshold: 245, vo2max: 228)
-        func rest(_ kind: TrainerDayKind, _ repeats: Int, _ meters: Double, lowered: Bool = false) -> Double {
-            TrainerEngine.restSeconds(kind: kind, stage: TrainerQualityStage(repeats: repeats, meters: meters), paces: paces, lowered: lowered)
-        }
-
-        #expect(rest(.threshold, 3, 2_000) == 90)
-        #expect(rest(.threshold, 3, 3_000) == 150)
-        #expect(rest(.vo2max, 5, 1_000) == 210)
-        #expect(rest(.vo2max, 5, 1_200) == 240)
-        #expect(rest(.threshold, 3, 2_000, lowered: true) == 150)
-        #expect(rest(.vo2max, 5, 1_000, lowered: true) == 270)
-        #expect(rest(.threshold, 3, 500) == 60)
-        #expect(rest(.vo2max, 5, 200) == 120)
-    }
-
     @Test func oldRecoveryInMetersStillDecodesAndDescribes() throws {
         let json = #"{"kind":"recovery","repeats":2,"meters":400}"#.data(using: .utf8)!
         let step = try JSONDecoder().decode(TrainerStep.self, from: json)
@@ -414,7 +403,7 @@ import WorkoutAnalysis
         let week = plan.workouts.prefix(7)
         #expect(plan.weeks[0].plannedMeters == week.reduce(0) { $0 + $1.totalMeters })
         let threshold = try workout(plan, monday.adding(days: 1))
-        #expect(threshold.totalMeters == 3_000 + 3 * 2_000)
+        #expect(threshold.totalMeters == 3_000 + 8 * 1_000)
     }
 
     @Test func offTargetQualityDropsAStageWithLongerRecovery() throws {
@@ -429,11 +418,11 @@ import WorkoutAnalysis
         )
 
         let next = try #require(adjusted.workouts.first { $0.kind == .vo2max && $0.day > wednesday })
-        #expect(next.title == "VO2 máx 5 × 1000 m")
+        #expect(next.title == "VO2 máx 5 × 1 km")
         let following = try #require(adjusted.workouts.first { $0.kind == .threshold && $0.day > wednesday })
-        #expect(following.title == "Limiar 3 × 2 km")
-        #expect(following.steps.first { $0.kind == .recovery }?.restSeconds == 180)
-        #expect(following.rationale.contains("Descanso de 3:00 parado, 1 min a mais"))
+        #expect(following.title == "Limiar 8 × 1 km")
+        #expect(following.steps.first { $0.kind == .recovery }?.restSeconds == 120)
+        #expect(following.rationale.contains("Descanso de 2:00 parado, 1 min a mais"))
         let lowered = try #require(
             adjusted.versions.last?.changes.first { $0.reason.contains("fora do alvo") }
         )
@@ -477,7 +466,7 @@ import WorkoutAnalysis
 
         let wednesday = try workout(adjusted, monday.adding(days: 2))
         #expect(wednesday.kind == .vo2max)
-        #expect(wednesday.title == "VO2 máx 5 × 1000 m")
+        #expect(wednesday.title == "VO2 máx 5 × 1 km")
         #expect(try workout(adjusted, thursday).kind == .off)
         let travelRun = try workout(adjusted, saturday)
         #expect(travelRun.kind == .easy && travelRun.totalMeters == 6_000)

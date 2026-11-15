@@ -30,13 +30,20 @@ extension TrainerEngine {
         return C.longCaps.first { meters <= $0.upTo }?.cap ?? C.fallbackLongCap
     }
 
-    static func skeletonContext(target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double) -> TrainerSkeletonContext {
+    static func skeletonContext(
+        target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double, lightWeeks: [Day] = []
+    ) -> TrainerSkeletonContext {
         let cap = longCap(for: target)
         guard let datedWeeks else {
-            return TrainerSkeletonContext(total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume)
+            return TrainerSkeletonContext(
+                total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume, lightWeeks: lightWeeks
+            )
         }
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
-        return TrainerSkeletonContext(total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume)
+        return TrainerSkeletonContext(
+            total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume,
+            lightWeeks: lightWeeks
+        )
     }
 
     static func phase(of index: Int, in context: TrainerSkeletonContext) -> TrainerPhase {
@@ -68,19 +75,20 @@ extension TrainerEngine {
     static func derivedState(from weeks: [TrainerWeek]) -> TrainerSkeletonState? {
         let progression = weeks.filter { !$0.isRecovery && $0.phase != .taper }
         guard let last = progression.last else { return nil }
-        let stage = stageIndex(of: last.thresholdFocus, in: C.thresholdStages)
+        let stage = stageIndex(of: last.thresholdFocus)
         var level = 0
-        for week in progression.reversed() where stageIndex(of: week.thresholdFocus, in: C.thresholdStages) == stage {
+        for week in progression.reversed() where stageIndex(of: week.thresholdFocus) == stage {
             level += 1
         }
         return TrainerSkeletonState(
             volume: last.targetMeters, long: last.longMeters, stage: stage,
-            weeksAtStage: min(level, C.stagesAtLevel), started: true, returning: weeks.last?.isRecovery == true
+            weeksAtStage: min(level, C.stagesAtLevel), started: true, returning: weeks.last?.isRecovery == true,
+            lastRecovery: weeks.last { $0.isRecovery }?.index
         )
     }
 
-    static func stageIndex(of label: String, in stages: [TrainerQualityStage]) -> Int {
-        stages.firstIndex { TrainerEngineText.stageLabel($0) == label } ?? 0
+    static func stageIndex(of label: String) -> Int {
+        C.thresholdBlocks.firstIndex { TrainerEngineText.stageLabel($0) == label } ?? 0
     }
 
     static func nextVolume(state: TrainerSkeletonState, phase: TrainerPhase, context: TrainerSkeletonContext) -> Double {
@@ -100,10 +108,13 @@ extension TrainerEngine {
         var state = initial
         var holdPending = adjustment.holdProgression
         var weeks: [TrainerWeek] = []
+        var lastRecovery = initial.lastRecovery ?? (firstIndex - 1) / C.recoveryEvery * C.recoveryEvery
         for index in firstIndex...context.total {
             let first = index == firstIndex
             let phase = phase(of: index, in: context)
-            let recovery = index % C.recoveryEvery == 0 && phase != .taper
+            let start = firstStart.adding(days: (index - firstIndex) * C.daysPerWeek)
+            let recovery = phase != .taper && (context.lightWeeks.contains(start) || index - lastRecovery >= C.recoveryEvery)
+            if recovery { lastRecovery = index }
             var volume: Double
             var long: Double
             var stage: Int
@@ -135,11 +146,11 @@ extension TrainerEngine {
                     state.volume = nextVolume(state: state, phase: phase, context: context)
                     state.returning = false
                     state.long = min(state.long + C.longStep, context.longCap)
-                    if context.openEnded && index % C.recoveryEvery == 1 && state.stage == C.thresholdStages.count - 1 {
+                    if context.openEnded && index % C.recoveryEvery == 1 && state.stage == C.thresholdBlocks.count - 1 {
                         state.stage = 0
                         state.weeksAtStage = 1
                     } else if state.weeksAtStage >= C.stagesAtLevel {
-                        state.stage = min(state.stage + 1, C.thresholdStages.count - 1)
+                        state.stage = min(state.stage + 1, C.thresholdBlocks.count - 1)
                         state.weeksAtStage = 1
                     } else {
                         state.weeksAtStage += 1
@@ -155,10 +166,12 @@ extension TrainerEngine {
                 if let cap = adjustment.longCap { long = min(long, cap) }
             }
             weeks.append(TrainerWeek(
-                index: index, start: firstStart.adding(days: (index - firstIndex) * C.daysPerWeek), phase: phase,
+                index: index, start: start, phase: phase,
                 isRecovery: recovery, plannedMeters: volume, targetMeters: volume, longMeters: long,
-                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdStages[stage]),
-                vo2Focus: TrainerEngineText.stageLabel(C.vo2Stages[stage])
+                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]),
+                vo2Focus: TrainerEngineText.sessionLabel(
+                    vo2Session(index: index, isRecovery: recovery, phase: phase, lowered: false).blocks
+                )
             ))
         }
         return weeks

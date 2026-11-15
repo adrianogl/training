@@ -92,7 +92,7 @@ import WorkoutAnalysis
 
         let vo2 = try workout(plan, 3)
         #expect(vo2.steps.first?.kind == .warmup && vo2.steps.first?.meters == 3_000)
-        #expect(vo2.totalMeters == 8_000)
+        #expect(vo2.totalMeters == 9_000)
         #expect(vo2.note == "pernas de ontem (MMII)")
         #expect(vo2.rationale.contains("MMII"))
         #expect(vo2.rationale.contains("aquecimento continua em 3 km"))
@@ -230,9 +230,13 @@ import WorkoutAnalysis
         let plan = createPlan(strength: [])
         let week = plan.weeks[4]
 
-        let share = TrainerEngine.easyShare(week: week, structure: plan.structure, history: baseHistory(), today: monday)
-        let quality = TrainerEngine.qualityMeters(TrainerEngine.qualityStage(.threshold, week: week, lowered: false))
-            + TrainerEngine.qualityMeters(TrainerEngine.qualityStage(.vo2max, week: week, lowered: false))
+        let share = TrainerEngine.easyShare(
+            week: week, weeks: plan.weeks, target: plan.target, structure: plan.structure, history: baseHistory(), today: monday
+        )
+        func session(_ kind: TrainerDayKind) -> TrainerQualitySession {
+            TrainerEngine.qualitySession(kind, week: week, weeks: plan.weeks, target: plan.target, lowered: false)
+        }
+        let quality = TrainerEngine.qualityMeters(session(.threshold)) + TrainerEngine.qualityMeters(session(.vo2max))
         #expect(week.plannedMeters == week.longMeters + quality + 2 * share.meters + share.optional)
     }
 

@@ -69,14 +69,18 @@ import TrainingCore
                 id: week.index,
                 title: "S\(week.index) · \(week.start.day)/\(week.start.month)",
                 kilometers: "\(TrainerText.kilometersNumber(week.plannedMeters)) km",
-                detail: week.isRecovery
+                detail: plan.lightWeeks.contains(week.start)
+                    ? TrainerText.lightCell
+                    : week.isRecovery
                     ? "\(TrainerText.recoveryWeek) \(TrainerText.kilometersNumber(week.longMeters))"
                     : "\(TrainerText.longRun) \(TrainerText.kilometersNumber(week.longMeters))",
                 phase: week.phase,
                 isCurrent: week.start <= now && now < week.start.adding(days: TrainerConstants.weekdayCount),
                 isPast: week.start.adding(days: TrainerConstants.weekdayCount) <= now,
                 isChanged: changedWeeks.contains(week.index),
-                isRace: false
+                isRace: false,
+                start: week.start,
+                isLight: plan.lightWeeks.contains(week.start)
             )
         }
         if plan.target.kind == .race, let date = plan.target.date {
@@ -188,13 +192,32 @@ import TrainingCore
         }
     }
 
-    func createPlan(target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], startMeters: Double?, peakMeters: Double?) async {
+    func isLightWeek(_ start: Day) -> Bool { plan?.lightWeeks.contains(start) == true }
+
+    func toggleLightWeek(_ start: Day) async {
+        guard let plan else { return }
+        isWorking = true
+        defer { isWorking = false }
+        history = await loadHistory()
+        persist(TrainerEngine.adjust(plan, history: history, today: currentDay, now: .now, trigger: .lightWeek(start)))
+        markSeen()
+    }
+
+    func previewLightWeekStarts() -> [Day] {
+        let first = currentDay.weekStart
+        return (0..<TrainerConstants.lightWeekChoices).map { first.adding(days: $0 * TrainerConstants.weekdayCount) }
+    }
+
+    func createPlan(
+        target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], startMeters: Double?,
+        peakMeters: Double?, lightWeeks: [Day] = []
+    ) async {
         isWorking = true
         defer { isWorking = false }
         history = await loadHistory()
         let created = TrainerEngine.create(
             target: target, structure: structure, strength: strength, history: history, today: currentDay, now: .now,
-            startMeters: startMeters, peakMeters: peakMeters
+            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks
         )
         persist(created)
         store.markStrengthMigrated()

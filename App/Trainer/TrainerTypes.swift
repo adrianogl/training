@@ -11,6 +11,7 @@ enum TrainerRoute: Hashable {
 enum TrainerTargetMode: String, CaseIterable, Identifiable {
     case race
     case text
+    case paceDistance
 
     var id: String { rawValue }
 }
@@ -83,6 +84,8 @@ struct TrainerWeekCell: Identifiable, Equatable {
     let isPast: Bool
     let isChanged: Bool
     let isRace: Bool
+    var start: Day?
+    var isLight = false
 }
 
 struct TrainerRaceOption: Identifiable, Equatable {

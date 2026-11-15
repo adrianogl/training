@@ -16,6 +16,9 @@ struct TrainerNewPlanView: View {
     @State private var strengthLoaded = false
     @State private var startKilometers: Int?
     @State private var peakKilometers: Int?
+    @State private var goalPace = TrainerConstants.goalPaceDefault
+    @State private var goalKilometers = TrainerConstants.goalDistanceDefault
+    @State private var lightWeeks: Set<Day> = []
 
     private var model: TrainerModel { app.trainer }
 
@@ -26,11 +29,13 @@ struct TrainerNewPlanView: View {
                     Picker("", selection: $mode) {
                         Text(TrainerText.targetRace).tag(TrainerTargetMode.race)
                         Text(TrainerText.targetText).tag(TrainerTargetMode.text)
+                        Text(TrainerText.paceDistanceTarget).tag(TrainerTargetMode.paceDistance)
                     }
                     .pickerStyle(.segmented)
                     targetCard
                     volumeCard
                     weekCard
+                    lightWeeksCard
                     pacesCard
                     Button(mode == .race ? TrainerText.createButton : TrainerText.createTextButton) { create() }
                         .buttonStyle(TrainerPrimaryButtonStyle())
@@ -75,7 +80,7 @@ struct TrainerNewPlanView: View {
     }
 
     private var datedTarget: Bool {
-        mode == .race || (mode == .text && hasDeadline)
+        mode == .race || hasDeadline
     }
 
     private var volumeCard: some View {
@@ -113,6 +118,7 @@ struct TrainerNewPlanView: View {
         switch mode {
         case .race: selectedRace != nil
         case .text: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        case .paceDistance: true
         }
     }
 
@@ -139,13 +145,51 @@ struct TrainerNewPlanView: View {
                     .lineLimit(2...4)
                     .padding(10)
                     .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                Toggle(TrainerText.deadlineToggle, isOn: $hasDeadline).font(.footnote)
-                if hasDeadline {
-                    DatePicker(TrainerText.deadlineLabel, selection: $deadline, in: Date.now..., displayedComponents: .date)
-                        .font(.footnote)
-                        .environment(\.locale, TrainerConstants.locale)
+                deadlineControls
+            case .paceDistance:
+                SectionLabel(TrainerText.goalPaceLabel).padding(.vertical, 0)
+                Stepper(
+                    "\(WorkoutFormat.clock(Double(goalPace)))/km", value: $goalPace,
+                    in: TrainerConstants.goalPaceRange, step: TrainerConstants.goalPaceStep
+                )
+                SectionLabel(TrainerText.distanceLabel).padding(.vertical, 0)
+                Stepper("\(goalKilometers) km", value: $goalKilometers, in: TrainerConstants.goalDistanceRange)
+                deadlineControls
+            }
+        }
+        .brandCard()
+    }
+
+    @ViewBuilder
+    private var deadlineControls: some View {
+        Toggle(TrainerText.deadlineToggle, isOn: $hasDeadline).font(.footnote)
+        if hasDeadline {
+            DatePicker(TrainerText.deadlineLabel, selection: $deadline, in: Date.now..., displayedComponents: .date)
+                .font(.footnote)
+                .environment(\.locale, TrainerConstants.locale)
+        }
+    }
+
+    private var lightWeeksCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(TrainerText.lightWeeksTitle).padding(.vertical, 0)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
+                ForEach(model.previewLightWeekStarts(), id: \.iso) { start in
+                    let marked = lightWeeks.contains(start)
+                    Button {
+                        if marked { lightWeeks.remove(start) } else { lightWeeks.insert(start) }
+                    } label: {
+                        Text(TrainerText.dayMonth(start))
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(marked ? BrandColors.accent : BrandColors.dim)
+                            .padding(.vertical, 6)
+                            .frame(maxWidth: .infinity)
+                            .background(marked ? BrandColors.accentGlow : BrandColors.track, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+            Text(TrainerText.lightWeeksHint).font(.caption2).foregroundStyle(BrandColors.dim)
         }
         .brandCard()
     }
@@ -260,7 +304,8 @@ struct TrainerNewPlanView: View {
             await model.createPlan(
                 target: target, structure: structure, strength: strength,
                 startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
-                peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer
+                peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer,
+                lightWeeks: lightWeeks.sorted()
             )
             dismiss()
         }
@@ -275,6 +320,12 @@ struct TrainerNewPlanView: View {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmed.isEmpty else { return nil }
             return TrainerTarget(kind: .text, name: trimmed, date: hasDeadline ? Day.today(now: deadline) : nil, text: trimmed)
+        case .paceDistance:
+            return TrainerTarget(
+                kind: .paceDistance, name: TrainerText.paceGoalName(pace: goalPace, kilometers: goalKilometers),
+                date: hasDeadline ? Day.today(now: deadline) : nil,
+                distanceMeters: Double(goalKilometers) * TrainerConstants.metersPerKilometer, goalPace: Double(goalPace)
+            )
         }
     }
 }

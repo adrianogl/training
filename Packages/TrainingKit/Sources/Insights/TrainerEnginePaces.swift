@@ -4,6 +4,7 @@ import TrainingCore
 import WorkoutAnalysis
 
 private typealias C = TrainerEngineConstants
+private typealias T = TrainerEngineText
 
 extension TrainerEngine {
     public static func paces(history: TrainerHistory, today: Day) -> TrainerPaces {
@@ -53,8 +54,20 @@ extension TrainerEngine {
     }
 
     static func racePace(_ target: TrainerTarget) -> Double? {
+        if target.kind == .paceDistance { return target.goalPace }
         guard let goal = target.goalSeconds, let meters = target.distanceMeters, meters > 0 else { return nil }
         return goal / (meters / C.metersPerKilometer)
+    }
+
+    public static func requiredThreshold(target: TrainerTarget) -> Double? {
+        guard target.kind == .paceDistance, let pace = target.goalPace, let meters = target.distanceMeters, meters > 0 else { return nil }
+        let equivalent = riegel(seconds: pace * meters / C.metersPerKilometer, from: meters, to: C.thresholdEquivalenceMeters)
+        return equivalent / (C.thresholdEquivalenceMeters / C.metersPerKilometer) + C.thresholdFromTenKmOffset
+    }
+
+    public static func goalPaceSummary(target: TrainerTarget, paces: TrainerPaces) -> String? {
+        guard let needed = requiredThreshold(target: target), let pace = target.goalPace, let meters = target.distanceMeters else { return nil }
+        return T.thresholdNeed(current: paces.threshold, goal: pace, meters: meters, needed: needed)
     }
 
     static func band(_ pace: Double, _ width: Double) -> (low: Double, high: Double) {

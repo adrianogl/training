@@ -27,6 +27,19 @@ public enum TrainerStepKind: String, Codable, Sendable {
     case steady
 }
 
+public enum TrainerMethod: String, Codable, Sendable, CaseIterable {
+    case cruiseIntervals
+    case tempo
+    case intervals
+    case repetition
+    case racePace
+    case goalPace
+
+    public var title: String { TrainerEngineText.methodTitle(self) }
+    public var source: String { TrainerEngineText.methodSource(self) }
+    public var label: String { TrainerEngineText.methodLabel(self) }
+}
+
 public struct TrainerStep: Codable, Sendable, Equatable {
     public var kind: TrainerStepKind
     public var repeats: Int
@@ -34,14 +47,16 @@ public struct TrainerStep: Codable, Sendable, Equatable {
     public var restSeconds: Double?
     public var paceLow: Double?
     public var paceHigh: Double?
+    public var method: TrainerMethod?
 
-    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil) {
+    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil, method: TrainerMethod? = nil) {
         self.kind = kind
         self.repeats = repeats
         self.meters = meters
         self.restSeconds = restSeconds
         self.paceLow = paceLow
         self.paceHigh = paceHigh
+        self.method = method
     }
 }
 
@@ -55,10 +70,11 @@ public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {
     public var paceHigh: Double?
     public var note: String?
     public var rationale: String
+    public var method: TrainerMethod?
 
     public var id: String { day.iso }
 
-    public init(day: Day, kind: TrainerDayKind, title: String, totalMeters: Double, steps: [TrainerStep], paceLow: Double? = nil, paceHigh: Double? = nil, note: String? = nil, rationale: String) {
+    public init(day: Day, kind: TrainerDayKind, title: String, totalMeters: Double, steps: [TrainerStep], paceLow: Double? = nil, paceHigh: Double? = nil, note: String? = nil, rationale: String, method: TrainerMethod? = nil) {
         self.day = day
         self.kind = kind
         self.title = title
@@ -68,6 +84,7 @@ public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {
         self.paceHigh = paceHigh
         self.note = note
         self.rationale = rationale
+        self.method = method
     }
 }
 
@@ -162,6 +179,7 @@ public struct TrainerStrengthDone: Sendable, Equatable {
 public enum TrainerTargetKind: String, Codable, Sendable {
     case race
     case text
+    case paceDistance
 }
 
 public struct TrainerTarget: Codable, Sendable, Equatable {
@@ -172,8 +190,9 @@ public struct TrainerTarget: Codable, Sendable, Equatable {
     public var distanceMeters: Double?
     public var goalSeconds: Double?
     public var text: String?
+    public var goalPace: Double?
 
-    public init(kind: TrainerTargetKind, name: String, raceId: UUID? = nil, date: Day? = nil, distanceMeters: Double? = nil, goalSeconds: Double? = nil, text: String? = nil) {
+    public init(kind: TrainerTargetKind, name: String, raceId: UUID? = nil, date: Day? = nil, distanceMeters: Double? = nil, goalSeconds: Double? = nil, text: String? = nil, goalPace: Double? = nil) {
         self.kind = kind
         self.name = name
         self.raceId = raceId
@@ -181,6 +200,7 @@ public struct TrainerTarget: Codable, Sendable, Equatable {
         self.distanceMeters = distanceMeters
         self.goalSeconds = goalSeconds
         self.text = text
+        self.goalPace = goalPace
     }
 }
 
@@ -250,6 +270,7 @@ public enum TrainerTrigger: Codable, Sendable, Equatable {
     case workout(activityId: Int64, day: Day)
     case request(TrainerRequest)
     case strengthChanged
+    case lightWeek(Day)
 }
 
 public enum TrainerChangeKind: String, Codable, Sendable {
@@ -309,8 +330,9 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var strength: [TrainerStrengthSession]
     public var startMeters: Double?
     public var peakMeters: Double?
+    public var lightWeeks: [Day]
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = []) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -321,10 +343,11 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.strength = strength
         self.startMeters = startMeters
         self.peakMeters = peakMeters
+        self.lightWeeks = lightWeeks
     }
 
     private enum CodingKeys: String, CodingKey {
-        case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters
+        case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters, lightWeeks
     }
 
     public init(from decoder: Decoder) throws {
@@ -342,7 +365,8 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             versions: try container.decode([TrainerVersion].self, forKey: .versions),
             processedActivityIds: try container.decodeIfPresent([Int64].self, forKey: .processedActivityIds) ?? [],
             strength: try container.decodeIfPresent([TrainerStrengthSession].self, forKey: .strength) ?? [],
-            startMeters: start, peakMeters: peak
+            startMeters: start, peakMeters: peak,
+            lightWeeks: try container.decodeIfPresent([Day].self, forKey: .lightWeeks) ?? []
         )
     }
 
@@ -358,6 +382,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         try container.encode(strength, forKey: .strength)
         try container.encodeIfPresent(startMeters, forKey: .startMeters)
         try container.encodeIfPresent(peakMeters, forKey: .peakMeters)
+        try container.encode(lightWeeks, forKey: .lightWeeks)
     }
 }
 

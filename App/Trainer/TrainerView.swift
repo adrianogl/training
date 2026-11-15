@@ -89,7 +89,7 @@ struct TrainerView: View {
             .buttonStyle(.plain)
         }
         strengthCard(plan)
-        TrainerWeekStrip(cells: model.weekCells, weeksText: weeksText)
+        TrainerWeekStrip(cells: model.weekCells, weeksText: weeksText) { start in Task { await model.toggleLightWeek(start) } }
         SectionLabel(TrainerText.upcoming)
         ForEach(model.weekGroups) { group in
             VStack(alignment: .leading, spacing: 6) {
@@ -99,6 +99,11 @@ struct TrainerView: View {
                     Text(group.caption).font(.caption).foregroundStyle(BrandColors.dim)
                 }
                 .padding(.horizontal, 2)
+                .contextMenu {
+                    Button(model.isLightWeek(group.start) ? TrainerText.unmarkLight : TrainerText.markLight) {
+                        Task { await model.toggleLightWeek(group.start) }
+                    }
+                }
                 ForEach(group.rows) { row in
                     NavigationLink(value: TrainerRoute.day(row.id)) {
                         TrainerDayRowView(row: row, isToday: row.workout.day == model.currentDay)
@@ -144,6 +149,9 @@ struct TrainerView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(TrainerText.targetTitle(plan.target)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
                 Text(TrainerText.goalCaption(plan: plan, weeks: model.weeksToTarget)).font(.caption).foregroundStyle(BrandColors.dim)
+                if let line = TrainerEngine.goalPaceSummary(target: plan.target, paces: plan.paces) {
+                    Text(line).font(.caption).foregroundStyle(BrandColors.dim)
+                }
             }
             Spacer(minLength: 0)
         }
