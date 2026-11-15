@@ -63,8 +63,6 @@ struct TodayView: View {
                     if let model { ReadinessDetailView(model: model) }
                 case .workout(let id):
                     WorkoutDetailView(activityId: id)
-                case .trainer:
-                    TrainerView()
                 }
             }
         }
@@ -107,7 +105,6 @@ struct TodayView: View {
             if !model.goals.isEmpty {
                 GoalsCard(snapshots: model.goals)
             }
-            TrainerTodayCard(model: app.trainer)
             if let plan = model.todayPlan {
                 TodayPlanCard(plan: plan, verdict: model.summary.verdict)
             }

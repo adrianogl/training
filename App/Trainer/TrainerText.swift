@@ -8,13 +8,7 @@ enum TrainerText {
 
     static let title = "Treinador"
     static let beta = "BETA"
-    static let cardTitle = "Treinador beta"
-    static let cardInvite = "Monte um plano de corrida até a sua prova, com os treinos por distância. Ele se ajusta conforme você corre."
     static let cardCreate = "Criar plano"
-    static let cardToday = "Hoje"
-    static let cardNext = "Próximo"
-    static let cardRestToday = "Folga hoje"
-    static let cardEmptyNext = "Sem próximo treino no plano."
     static let emptyTitle = "Nenhum plano ainda"
     static let emptyBody = "O treinador monta duas semanas de treino por distância, com a estrutura da sua semana, e revê o plano a cada semana e depois de treinos fora do previsto."
     static let upcoming = "Próximos 15 dias"

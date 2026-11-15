@@ -83,6 +83,7 @@ struct RootView: View {
         }
         case .evolution: EvolutionView()
         case .races: RaceListView()
+        case .trainer: NavigationStack { TrainerView() }
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         }
