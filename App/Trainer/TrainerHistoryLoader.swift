@@ -9,9 +9,10 @@ import WorkoutAnalysis
 enum TrainerHistoryLoader {
     private typealias C = TrainerConstants
 
-    nonisolated static func load(container: ModelContainer, today: Day) -> TrainerHistory {
+    nonisolated static func load(container: ModelContainer, today: Day, since: Day? = nil) -> TrainerHistory {
         let context = ModelContext(container)
-        let runs = fetchRuns(context: context, today: today)
+        let lower = min(today.adding(days: -C.historyDays), since ?? today)
+        let runs = fetchRuns(context: context, from: lower, today: today)
         let raceKms = ((try? context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))) ?? [])
             .map { $0.distance / 1_000 }
         let inputs = WorkoutAnalysisContext.inputs(records: runs, in: context)
@@ -21,15 +22,15 @@ enum TrainerHistoryLoader {
         }
         return TrainerHistory(
             runs: trainerRuns,
-            readiness: readiness(context: context, today: today),
+            readiness: readiness(context: context, from: lower),
             predictions: predictions(context: context, today: today),
             strength: fetchStrength(context: context, today: today),
-            predictionSeries: predictionSeries(context: context, today: today)
+            predictionSeries: predictionSeries(context: context, today: today, since: since)
         )
     }
 
-    private nonisolated static func fetchRuns(context: ModelContext, today: Day) -> [ActivityRecord] {
-        let lower = date(of: today.adding(days: -C.historyDays))
+    private nonisolated static func fetchRuns(context: ModelContext, from first: Day, today: Day) -> [ActivityRecord] {
+        let lower = date(of: first)
         let upper = date(of: today.adding(days: 1))
         var descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= lower && $0.start < upper })
         descriptor.sortBy = [SortDescriptor(\.start)]
@@ -87,8 +88,8 @@ enum TrainerHistoryLoader {
         )
     }
 
-    private nonisolated static func readiness(context: ModelContext, today: Day) -> [Day: Int] {
-        let lower = today.adding(days: -C.historyDays).iso
+    private nonisolated static func readiness(context: ModelContext, from first: Day) -> [Day: Int] {
+        let lower = first.iso
         let descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.readinessScore != nil && $0.day >= lower })
         return ((try? context.fetch(descriptor)) ?? []).reduce(into: [:]) { result, record in
             if let score = record.readinessScore, let day = Day(iso: record.day) { result[day] = score }
@@ -102,9 +103,10 @@ enum TrainerHistoryLoader {
         }
     }
 
-    private nonisolated static func predictionSeries(context: ModelContext, today: Day) -> [Day: [Double: Double]] {
+    private nonisolated static func predictionSeries(context: ModelContext, today: Day, since: Day?) -> [Day: [Double: Double]] {
         guard let efforts = try? raceEfforts(context: context, today: today) else { return [:] }
-        let starts = (0...C.scoreboardWeeks).map { today.weekStart.adding(days: -$0 * C.weekdayCount) }
+        let planWeeks = since.map { $0.weekStart.days(until: today.weekStart) / C.weekdayCount } ?? 0
+        let starts = (0...max(C.scoreboardWeeks, planWeeks)).map { today.weekStart.adding(days: -$0 * C.weekdayCount) }
         return (starts + [today]).reduce(into: [:]) { result, day in
             let values = C.predictionDistances.reduce(into: [Double: Double]()) { values, distance in
                 if let seconds = predict(distance: distance, efforts: efforts, on: day) { values[distance] = seconds }

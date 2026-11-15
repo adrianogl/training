@@ -1,6 +1,7 @@
 import Foundation
 import Insights
 import RemoteSync
+import TrainingCore
 
 struct TrainerStore: Sendable {
     let url: URL
@@ -27,6 +28,27 @@ struct TrainerStore: Sendable {
 
     func markSeen(_ version: Int) {
         defaults.set(version, forKey: TrainerConstants.seenVersionDefaultsKey)
+    }
+
+    var seenCycleEnd: Day? {
+        defaults.string(forKey: TrainerConstants.seenCycleEndDefaultsKey).flatMap(Day.init(iso:))
+    }
+
+    func markCycleSeen(_ day: Day) {
+        defaults.set(day.iso, forKey: TrainerConstants.seenCycleEndDefaultsKey)
+    }
+
+    func cycleSummaries() -> [TrainerCycleSummary] {
+        guard let data = defaults.data(forKey: TrainerConstants.cycleSummariesDefaultsKey) else { return [] }
+        return (try? Self.decoder.decode([TrainerCycleSummary].self, from: data)) ?? []
+    }
+
+    func archive(_ summary: TrainerCycleSummary) {
+        var summaries = cycleSummaries()
+        guard !summaries.contains(where: { $0.id == summary.id }) else { return }
+        summaries.append(summary)
+        guard let data = try? Self.encoder.encode(summaries) else { return }
+        defaults.set(data, forKey: TrainerConstants.cycleSummariesDefaultsKey)
     }
 
     func load() -> TrainerPlan? {

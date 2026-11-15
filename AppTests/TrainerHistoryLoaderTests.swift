@@ -69,6 +69,39 @@ import WorkoutAnalysis
         #expect(sessions.first?.legLoad == .heavy)
     }
 
+    private static func containerWithOldEffort() throws -> ModelContainer {
+        let container = try Self.container()
+        let context = ModelContext(container)
+        let old = F.run(id: 20, daysAgo: 130, meters: 10_000)
+        old.fastestSplit_5000 = 1_500
+        context.insert(old)
+        context.insert(DailyRecord(day: Self.today.adding(days: -125).iso, readinessScore: 71))
+        try context.save()
+        return container
+    }
+
+    @Test func seriesReachesBackToThePlanStart() throws {
+        let start = Self.today.weekStart.adding(days: -16 * TrainerConstants.weekdayCount)
+        let history = TrainerHistoryLoader.load(container: try Self.containerWithOldEffort(), today: Self.today, since: start)
+        #expect(history.predictionSeries.keys.min() == start)
+    }
+
+    @Test func runsAndReadinessReachBackToAnOlderPlanStart() throws {
+        let start = Self.today.weekStart.adding(days: -20 * TrainerConstants.weekdayCount)
+        let history = TrainerHistoryLoader.load(container: try Self.containerWithOldEffort(), today: Self.today, since: start)
+        #expect(history.readiness[Self.today.adding(days: -125)] == 71)
+        #expect(history.runs.contains { $0.activityId == 20 })
+        #expect(!history.runs.contains { $0.activityId == 3 })
+    }
+
+    @Test func seriesKeepsTheDefaultWindowWithoutAPlanStart() throws {
+        let history = TrainerHistoryLoader.load(container: try Self.containerWithOldEffort(), today: Self.today)
+        let oldest = Self.today.weekStart.adding(days: -TrainerConstants.scoreboardWeeks * TrainerConstants.weekdayCount)
+        #expect(history.predictionSeries.keys.min() == oldest)
+        #expect(history.readiness[Self.today.adding(days: -125)] == nil)
+        #expect(!history.runs.contains { $0.activityId == 20 })
+    }
+
     @Test func emptyStoreGivesEmptyHistory() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let history = TrainerHistoryLoader.load(container: container, today: Self.today)

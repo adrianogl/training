@@ -10,12 +10,15 @@ import TrainingCore
 @MainActor @Observable final class TrainerModel {
     private(set) var plan: TrainerPlan?
     private(set) var history = TrainerHistory(runs: [])
+    private(set) var cycleHistory = TrainerHistory(runs: [])
     private(set) var seenVersion: Int
     private(set) var isLoaded = false
     private(set) var isWorking = false
     private(set) var saveFailed = false
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []
     private(set) var keptReadinessDay: String?
+    private(set) var seenCycleEnd: Day?
+    private(set) var cycleSummaries: [TrainerCycleSummary]
 
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let store: TrainerStore
@@ -35,6 +38,8 @@ import TrainingCore
         self.defaults = defaults
         self.keptReadinessDay = defaults.string(forKey: TrainerConstants.readinessKeptDefaultsKey)
         self.seenVersion = store.seenVersion
+        self.seenCycleEnd = store.seenCycleEnd
+        self.cycleSummaries = store.cycleSummaries()
         self.plan = store.load()
         self.loadedStamp = store.updatedAt()
     }
@@ -42,6 +47,48 @@ import TrainingCore
     var currentDay: Day { today() }
 
     var latestVersion: TrainerVersion? { plan?.versions.last }
+
+    var cycleReview: TrainerCycleReview? {
+        guard let plan else { return nil }
+        return TrainerEngine.cycleReview(plan: plan, history: cycleHistory, today: currentDay)
+    }
+
+    var showsCycleBanner: Bool {
+        guard let review = cycleReview else { return false }
+        guard let seen = seenCycleEnd else { return true }
+        return review.last > seen
+    }
+
+    var cycleEnded: Bool {
+        guard let plan else { return false }
+        if plan.endedOn != nil { return true }
+        guard let date = plan.target.date else { return false }
+        return currentDay > date || cycleReview != nil
+    }
+
+    func endCycle() async {
+        guard var current = plan, current.endedOn == nil else { return }
+        isWorking = true
+        defer { isWorking = false }
+        history = await loadHistory()
+        current.endedOn = currentDay
+        persist(current)
+        cycleHistory = await loadCycleHistory()
+    }
+
+    func markCycleSeen() {
+        guard let review = cycleReview else { return }
+        seenCycleEnd = review.last
+        store.markCycleSeen(review.last)
+    }
+
+    func suggestedVolumes() -> (start: Int, peak: Int)? {
+        guard let review = cycleReview else { return nil }
+        return (
+            Int((review.suggestedStartMeters / TrainerConstants.metersPerKilometer).rounded()),
+            Int((review.suggestedPeakMeters / TrainerConstants.metersPerKilometer).rounded())
+        )
+    }
 
     var hasUnseenVersion: Bool {
         guard let number = latestVersion?.number else { return false }
@@ -253,6 +300,7 @@ import TrainingCore
         plan = store.load()
         loadedStamp = store.updatedAt()
         history = await loadHistory()
+        if plan != nil { cycleHistory = await loadCycleHistory() }
         isLoaded = true
         fillMissingWeeks()
         migrateStrength()
@@ -314,11 +362,14 @@ import TrainingCore
         isWorking = true
         defer { isWorking = false }
         history = await loadHistory()
+        if plan != nil { cycleHistory = await loadCycleHistory() }
+        archiveCycle()
         let created = TrainerEngine.create(
             target: target, structure: structure, strength: strength, history: history, today: currentDay, now: .now,
             startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, dayPreference: dayPreference
         )
         persist(created)
+        cycleHistory = history
         store.markStrengthMigrated()
         markSeen()
     }
@@ -423,6 +474,15 @@ import TrainingCore
         shortcut ?? TrainerEngine.classify(requestText: text)
     }
 
+    private func archiveCycle() {
+        guard let current = plan, let review = cycleReview else { return }
+        store.archive(TrainerCycleSummary(
+            title: TrainerText.targetTitle(current.target), first: review.first, last: review.last, verdict: review.verdict,
+            beforePeakMeters: review.currentPeakMeters, afterPeakMeters: review.suggestedPeakMeters, resultSeconds: review.raceSeconds
+        ))
+        cycleSummaries = store.cycleSummaries()
+    }
+
     private func fillMissingWeeks() {
         guard let current = plan,
               let filled = TrainerEngine.fillMissingWeeks(current, history: history, today: currentDay) else { return }
@@ -460,11 +520,15 @@ import TrainingCore
         }
     }
 
-    private func loadHistory() async -> TrainerHistory {
+    private func loadCycleHistory() async -> TrainerHistory {
+        await loadHistory(since: plan?.weeks.map(\.start).min())
+    }
+
+    private func loadHistory(since: Day? = nil) async -> TrainerHistory {
         let container = container
         let day = currentDay
         return await Task.detached(priority: .utility) {
-            TrainerHistoryLoader.load(container: container, today: day)
+            TrainerHistoryLoader.load(container: container, today: day, since: since)
         }.value
     }
 
