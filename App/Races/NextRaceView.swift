@@ -14,6 +14,9 @@ struct NextRaceView: View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                if model?.isStale == true {
+                    RefreshingLabel()
+                }
                 if let model, model.isLoaded, let info = model.info {
                     header(model, info: info)
                     AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
@@ -36,7 +39,7 @@ struct NextRaceView: View {
                 } else if model?.isLoaded == true {
                     Text(RacesConstants.emptyList).foregroundStyle(BrandColors.dim)
                 } else {
-                    ProgressView().frame(maxWidth: .infinity).padding(.top, 40)
+                    SkeletonCards(heights: SkeletonConstants.racesHeights)
                 }
             }
             .padding(.horizontal, BrandConstants.screenPadding)
@@ -81,8 +84,12 @@ struct NextRaceView: View {
     }
 
     private func reload() async {
-        let loaded = NextRaceModel(container: app.container, raceId: raceId, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
+        if model == nil {
+            model = await NextRaceModel.restored(container: app.container, raceId: raceId, snapshots: app.snapshots, onChange: { app.remoteSync.scheduleSync() })
+        }
+        let loaded = NextRaceModel(container: app.container, raceId: raceId, today: Day.today(), onChange: { app.remoteSync.scheduleSync() }, snapshots: app.snapshots)
         await loaded.load()
+        guard !Task.isCancelled else { return }
         model = loaded
     }
 

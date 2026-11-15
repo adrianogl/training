@@ -1,4 +1,4 @@
-public struct RunPause: Sendable, Equatable {
+public struct RunPause: Sendable, Equatable, Codable {
     public var startMeters: Double
     public var seconds: Double
 

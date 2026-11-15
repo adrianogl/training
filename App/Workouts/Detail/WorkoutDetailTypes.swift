@@ -69,7 +69,7 @@ struct TrainingEffectData: Equatable {
     let load: Double?
 }
 
-struct AnalysisItem: Identifiable, Equatable {
+struct AnalysisItem: Identifiable, Equatable, Codable {
     let id: Int
     let text: String
     let evidence: String?
@@ -99,7 +99,7 @@ struct WorkoutAnalysisSummary: Equatable {
     }
 }
 
-struct AnalysisColumns: Equatable {
+struct AnalysisColumns: Equatable, Codable {
     let negative: [AnalysisItem]
     let positive: [AnalysisItem]
     let expected: [AnalysisItem]

@@ -6,10 +6,10 @@ import SwiftData
 import Sync
 import TrainingCore
 
-public func overallState(context: ModelContext, today: Day) throws -> OverallState {
+public func overallState(context: ModelContext, today: Day, memo: ReportMemo = ReportMemo()) throws -> OverallState {
     typealias C = InsightsConstants
     let activities = try fetchActivities(context, since: nil, through: today)
-    let builder = ReportBuilder(context: context, today: today)
+    let builder = ReportBuilder(context: context, today: today, memo: memo)
     let efforts = try builder.efforts(from: activities)
     let outlook = raceOutlook(race: try targetRace(in: context, today: today), efforts: efforts, today: today)
     let runs = activities.filter(isRun)
@@ -23,6 +23,7 @@ public func overallState(context: ModelContext, today: Day) throws -> OverallSta
         efforts: efforts,
         distance: outlook.distance,
         thresholdHeartRate: try thresholdHeartRate(on: today, in: context),
+        thresholdSessions: try builder.thresholdSessions(from: activities),
         zone2ByDay: zone2ByDay,
         today: today
     )
@@ -71,12 +72,14 @@ struct IndicatorSource {
     let distance: Double
     let zone2ByDay: [Day: ClosedRange<Int>]
     let thresholdHeartRate: Int?
+    let thresholdSessions: [TrainingSession]
     let vo2max: [(Day, Double)]
     let fitness: [Day: Double]
     let runDays: [Day]
 
-    init(runs: [ActivityRecord], load: [Day: Double], efforts: [Effort], distance: Double, thresholdHeartRate: Int?, zone2ByDay: [Day: ClosedRange<Int>], today: Day) {
+    init(runs: [ActivityRecord], load: [Day: Double], efforts: [Effort], distance: Double, thresholdHeartRate: Int?, thresholdSessions: [TrainingSession], zone2ByDay: [Day: ClosedRange<Int>], today: Day) {
         self.runs = runs
+        self.thresholdSessions = thresholdSessions
         self.efforts = efforts
         self.distance = distance
         self.zone2ByDay = zone2ByDay
@@ -106,6 +109,7 @@ struct IndicatorSource {
                 zone2ByDay[activityDay(run)].flatMap { zone2 in samples(of: run).flatMap { zone2Pace($0, zone2: zone2) } }
             })
         case .thresholdPace:
+            if !thresholdSessions.isEmpty { return thresholdWorkPace(thresholdSessions, on: day) }
             guard let thresholdHeartRate else { return nil }
             let sampled = window(C.paceWindowDays, endingOn: day).compactMap(samples(of:))
             return thresholdPace(sampled, lthr: thresholdHeartRate)

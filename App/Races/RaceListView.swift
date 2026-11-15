@@ -51,8 +51,12 @@ struct RaceListView: View {
         }
         .task(id: signature) {
             await Task.yield()
-            let loaded = RaceListModel(container: app.container, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
+            if model == nil {
+                model = await RaceListModel.restored(container: app.container, snapshots: app.snapshots, onChange: { app.remoteSync.scheduleSync() })
+            }
+            let loaded = RaceListModel(container: app.container, today: Day.today(), onChange: { app.remoteSync.scheduleSync() }, snapshots: app.snapshots)
             await loaded.load()
+            guard !Task.isCancelled else { return }
             model = loaded
             openDebugRaceIfNeeded(loaded)
         }
@@ -63,6 +67,9 @@ struct RaceListView: View {
             VStack(alignment: .leading, spacing: 10) {
                 CompactLogoHeader()
                 SyncStatusPill()
+                if model?.isStale == true {
+                    RefreshingLabel()
+                }
                 HStack {
                     Text(RacesConstants.title)
                         .font(.largeTitle.weight(.bold))
@@ -80,10 +87,10 @@ struct RaceListView: View {
                     .accessibilityLabel(RacesConstants.addRace)
                 }
                 .padding(.bottom, 8)
-                if app.showsSkeleton {
-                    SkeletonCards(heights: SkeletonConstants.racesHeights)
-                } else if let model, model.isLoaded {
+                if let model, model.isLoaded, !app.showsSkeleton {
                     content(model)
+                } else {
+                    SkeletonCards(heights: SkeletonConstants.racesHeights)
                 }
             }
             .padding(.horizontal, BrandConstants.screenPadding)

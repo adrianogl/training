@@ -17,6 +17,9 @@ struct EvolutionView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         CompactLogoHeader()
                         SyncStatusPill()
+                        if model?.isStale == true {
+                            RefreshingLabel()
+                        }
                         HStack(alignment: .firstTextBaseline) {
                             Text(EvolutionConstants.title)
                                 .font(.largeTitle.weight(.bold))
@@ -27,10 +30,10 @@ struct EvolutionView: View {
                             }
                         }
                         .padding(.bottom, 14)
-                        if app.showsSkeleton {
-                            SkeletonCards(heights: SkeletonConstants.evolutionHeights)
-                        } else if let model, model.isLoaded {
+                        if let model, model.isLoaded, !app.showsSkeleton {
                             content(model)
+                        } else {
+                            SkeletonCards(heights: SkeletonConstants.evolutionHeights)
                         }
                     }
                     .padding(.horizontal, BrandConstants.screenPadding)
@@ -62,13 +65,18 @@ struct EvolutionView: View {
         }
         .task(id: app.dataToken) {
             await Task.yield()
+            if model == nil {
+                model = await EvolutionModel.restored(container: app.container, horizon: Self.initialHorizon(), snapshots: app.snapshots)
+            }
             let loaded = EvolutionModel(
                 container: app.container,
                 today: Day.today(),
                 period: model?.period ?? EvolutionConstants.defaultPeriod,
-                horizon: model?.horizon ?? Self.initialHorizon()
+                horizon: model?.horizon ?? Self.initialHorizon(),
+                snapshots: app.snapshots
             )
             await loaded.load()
+            guard !Task.isCancelled else { return }
             model = loaded
             await loaded.refreshSentence()
         }

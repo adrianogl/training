@@ -8,7 +8,7 @@ enum TodayRoute: Hashable {
     case workout(Int64)
 }
 
-struct LastRunSummary: Equatable, Sendable {
+struct LastRunSummary: Equatable, Sendable, Codable {
     let activityId: Int64
     let title: String
     let dateText: String
@@ -21,12 +21,12 @@ struct LastRunSummary: Equatable, Sendable {
     let score: Int?
 }
 
-struct ReadinessDay: Equatable, Sendable {
+struct ReadinessDay: Equatable, Sendable, Codable {
     var sleepSeconds: Int?
     var stress: Int?
 }
 
-struct TodayLoad: Sendable {
+struct TodayLoad: Sendable, Codable {
     let summary: TodaySummary
     let readinessDay: ReadinessDay
     let lastRun: LastRunSummary?
@@ -39,7 +39,7 @@ struct TodayLoad: Sendable {
     let goals: [GoalSnapshot]
 }
 
-struct WeekRun: Identifiable, Equatable, Sendable {
+struct WeekRun: Identifiable, Equatable, Sendable, Codable {
     let activityId: Int64
     let title: String
     let kilometers: Double
@@ -83,14 +83,14 @@ enum ChartColorKey {
     case projection
 }
 
-struct ChartPoint: Identifiable {
+struct ChartPoint: Identifiable, Codable {
     let date: Date
     let value: Double
 
     var id: Date { date }
 }
 
-struct ChartBandPoint: Identifiable {
+struct ChartBandPoint: Identifiable, Codable {
     let date: Date
     let low: Double
     let high: Double

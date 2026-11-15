@@ -1,6 +1,6 @@
 import TrainingCore
 
-struct DailySignal: Equatable, Sendable {
+struct DailySignal: Equatable, Sendable, Codable {
     let day: Day
     let restingHeartRate: Int?
     let hrv: Double?

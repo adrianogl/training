@@ -1,6 +1,6 @@
 import TrainingCore
 
-struct ReportRun: Equatable, Sendable {
+struct ReportRun: Equatable, Sendable, Codable {
     let title: String
     let kilometers: Double
     let score: Int?

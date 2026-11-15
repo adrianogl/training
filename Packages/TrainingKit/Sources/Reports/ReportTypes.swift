@@ -10,7 +10,7 @@ public struct DatedValue: Sendable, Equatable {
     }
 }
 
-public struct Prediction: Sendable, Equatable {
+public struct Prediction: Sendable, Equatable, Codable {
     public var label: String
     public var seconds: Double?
     public var yearAgoSeconds: Double?

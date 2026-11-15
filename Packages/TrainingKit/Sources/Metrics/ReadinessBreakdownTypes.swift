@@ -1,4 +1,4 @@
-public enum ReadinessComponent: String, CaseIterable, Sendable {
+public enum ReadinessComponent: String, CaseIterable, Sendable, Codable {
     case hrv, sleep, bodyBattery, load
 
     var weight: Double {
@@ -11,7 +11,7 @@ public enum ReadinessComponent: String, CaseIterable, Sendable {
     }
 }
 
-public struct ReadinessFactor: Sendable, Equatable {
+public struct ReadinessFactor: Sendable, Equatable, Codable {
     public var component: ReadinessComponent
     public var todayScore: Double?
     public var normalScore: Double?
@@ -27,7 +27,7 @@ public struct ReadinessFactor: Sendable, Equatable {
     }
 }
 
-public struct ReadinessBreakdown: Sendable, Equatable {
+public struct ReadinessBreakdown: Sendable, Equatable, Codable {
     public var score: Int
     public var normal: Double?
     public var factors: [ReadinessFactor]

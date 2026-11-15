@@ -24,6 +24,7 @@ import TrainingCore
     let garminAccount: GarminAccountModel
     let account: AccountModel
     let trainer: TrainerModel
+    let snapshots: ScreenSnapshotStore
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
@@ -54,6 +55,7 @@ import TrainingCore
         garminSessionStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.garminSessionKeychainAccount),
         remoteDefaults: UserDefaults = .standard,
         trainerStore: TrainerStore = TrainerStore(),
+        snapshots: ScreenSnapshotStore = ScreenSnapshotStore(),
         remoteBaseURL: URL = AppConstants.remoteSyncBaseURL,
         autoSyncEnabled: Bool = true,
         makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() },
@@ -89,13 +91,17 @@ import TrainingCore
         )
         self.account = AccountModel(transport: transport, baseURL: remoteBaseURL)
         self.trainer = TrainerModel(container: container, store: trainerStore)
+        self.snapshots = snapshots
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
         account.legacyKey = { [weak self] in self?.remoteSync.legacyBearer() }
         garminAccount.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }
             return GarminLinkClient(baseURL: remoteBaseURL, token: token, transport: transport)
         }
-        account.onSignedOut = { [weak self] in self?.garminAccount.forgetLocal() }
+        account.onSignedOut = { [weak self] in
+            self?.garminAccount.forgetLocal()
+            self?.snapshots.removeAll()
+        }
     }
 
     var showsSkeleton: Bool { !hasLocalData && syncStatus.isRunning }
@@ -339,6 +345,7 @@ import TrainingCore
             try deleteAll(model, in: context)
         }
         try context.save()
+        snapshots.removeAll()
         hasLocalData = false
         newActivityIds = []
         syncStatus = .idle

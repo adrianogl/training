@@ -9,10 +9,12 @@ import WorkoutAnalysis
 public struct ReportBuilder {
     let context: ModelContext
     let today: Day
+    let memo: ReportMemo
 
-    public init(context: ModelContext, today: Day) {
+    public init(context: ModelContext, today: Day, memo: ReportMemo = ReportMemo()) {
         self.context = context
         self.today = today
+        self.memo = memo
     }
 
     public func build() throws -> TrainingReport {
@@ -84,6 +86,10 @@ public struct ReportBuilder {
     }
 
     public func efforts(from all: [ActivityRecord]) throws -> [Effort] {
+        try memo.efforts(for: all.map(\.activityId)) { try computeEfforts(from: all) }
+    }
+
+    private func computeEfforts(from all: [ActivityRecord]) throws -> [Effort] {
         var efforts: [Effort] = []
         for run in all where run.hasStart && ActivityTypeKey.isRun(run.typeKey) {
             let runDay = day(of: run.start)
@@ -105,6 +111,21 @@ public struct ReportBuilder {
     }
 
     private func trainingEfforts(from all: [ActivityRecord]) throws -> [Effort] {
+        let sessions = try trainingSessions(from: all)
+        return [TrainingEffortConstants.threshold, TrainingEffortConstants.interval].compactMap { rule in
+            trainingEffort(rule, sessions: sessions[rule.runKind] ?? [], today: today)
+        }
+    }
+
+    public func thresholdSessions(from all: [ActivityRecord]) throws -> [TrainingSession] {
+        try trainingSessions(from: all)[TrainingEffortConstants.threshold.runKind] ?? []
+    }
+
+    private func trainingSessions(from all: [ActivityRecord]) throws -> [RunKind: [TrainingSession]] {
+        try memo.sessions(for: all.map(\.activityId)) { try computeTrainingSessions(from: all) }
+    }
+
+    private func computeTrainingSessions(from all: [ActivityRecord]) throws -> [RunKind: [TrainingSession]] {
         let raceKms = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil })).map { $0.distance / ReportConstants.metersPerKilometer }
         var sessions: [RunKind: [TrainingSession]] = [:]
         for run in all where run.hasStart && ActivityTypeKey.isRun(run.typeKey) {
@@ -112,9 +133,7 @@ public struct ReportBuilder {
             guard kind == .tempo || kind == .intervals, let work = workPace(run) else { continue }
             sessions[kind, default: []].append(TrainingSession(day: day(of: run.start), work: work))
         }
-        return [TrainingEffortConstants.threshold, TrainingEffortConstants.interval].compactMap { rule in
-            trainingEffort(rule, sessions: sessions[rule.runKind] ?? [], today: today)
-        }
+        return sessions
     }
 
     public static func isContinuous(_ run: ActivityRecord) -> Bool {

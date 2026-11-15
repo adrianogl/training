@@ -26,7 +26,7 @@ public struct ReadinessInput: Sendable {
     }
 }
 
-public enum ReadinessVerdict: String, Sendable {
+public enum ReadinessVerdict: String, Sendable, Codable {
     case rest, moderate, hard
 }
 

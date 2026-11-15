@@ -10,7 +10,7 @@ import TrainingCore
 @Suite struct EvolutionModelTests {
     private static let today = Day(iso: WorkoutDetailFixtures.day(WorkoutDetailFixtures.base))!
 
-    private static func store(goalSeconds: Double? = 6_300) throws -> ModelContainer {
+    static func store(goalSeconds: Double? = 6_300) throws -> ModelContainer {
         let container = try TodayModelTests.store(withRace: true, goalSeconds: goalSeconds)
         let context = container.mainContext
         for offset in 41...300 {

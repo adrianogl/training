@@ -22,6 +22,10 @@ struct TodayView: View {
                         .foregroundStyle(BrandColors.dim)
                     SyncStatusPill()
                         .padding(.top, 6)
+                    if model?.isStale == true {
+                        RefreshingLabel()
+                            .padding(.top, 6)
+                    }
                     if let chip = app.remoteSync.chip {
                         RemoteSyncChipView(chip: chip, action: openSettings)
                             .padding(.top, 6)
@@ -36,10 +40,10 @@ struct TodayView: View {
                             .foregroundStyle(BrandColors.danger)
                             .padding(.bottom, 14)
                     }
-                    if app.showsSkeleton {
-                        SkeletonCards(heights: SkeletonConstants.todayHeights)
-                    } else if let model {
+                    if let model, model.isLoaded, !app.showsSkeleton {
                         cards(model)
+                    } else {
+                        SkeletonCards(heights: SkeletonConstants.todayHeights)
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
@@ -68,8 +72,12 @@ struct TodayView: View {
         }
         .task(id: app.dataToken) {
             await Task.yield()
-            let loaded = TodayModel(container: app.container, today: Day.today())
+            if model == nil {
+                model = await TodayModel.restored(container: app.container, snapshots: app.snapshots)
+            }
+            let loaded = TodayModel(container: app.container, today: Day.today(), snapshots: app.snapshots)
             await loaded.load()
+            guard !Task.isCancelled else { return }
             model = loaded
             await loaded.loadGarminReadiness(client: app.garminAccount.client)
             await loaded.loadPlanned(client: app.garminAccount.client)

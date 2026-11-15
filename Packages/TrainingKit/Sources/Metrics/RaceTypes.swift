@@ -38,7 +38,7 @@ public struct KmPlan: Codable, Sendable, Equatable {
     }
 }
 
-public struct BlockWeek: Sendable, Equatable {
+public struct BlockWeek: Sendable, Equatable, Codable {
     public var start: Day
     public var km: Double
     public var projected: Bool

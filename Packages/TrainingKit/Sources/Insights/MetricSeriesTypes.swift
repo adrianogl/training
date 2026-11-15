@@ -1,14 +1,14 @@
 import Projections
 import TrainingCore
 
-public enum MetricKind: String, CaseIterable, Sendable {
+public enum MetricKind: String, CaseIterable, Sendable, Codable {
     case vo2max, zone2Pace, fitness, monthlyVolume, loadFocus, thresholdPace, thresholdHeartRate
     case prediction5k, prediction10k, predictionHalf, predictionFull
     case durability, hillStrength, cadence, groundContact, verticalOscillation
     case restingHeartRate, hrv, sleep, bodyBattery, zoneDistribution
 }
 
-public enum MetricPeriod: String, CaseIterable, Sendable {
+public enum MetricPeriod: String, CaseIterable, Sendable, Codable {
     case sixMonths, oneYear, twoYears, all
 
     var days: Int? {
@@ -16,7 +16,7 @@ public enum MetricPeriod: String, CaseIterable, Sendable {
     }
 }
 
-public struct MetricStats: Sendable, Equatable {
+public struct MetricStats: Sendable, Equatable, Codable {
     public var current: Double?
     public var average: Double?
     public var minimum: Double?

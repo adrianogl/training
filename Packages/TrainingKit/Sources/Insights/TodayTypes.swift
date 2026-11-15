@@ -3,7 +3,7 @@ import Reports
 import Storage
 import TrainingCore
 
-public struct ReadinessSupport: Sendable, Equatable {
+public struct ReadinessSupport: Sendable, Equatable, Codable {
     public var hrvVsBaseline: Double?
     public var sleepScore: Int?
     public var acuteChronic: Double?
@@ -17,7 +17,7 @@ public struct ReadinessSupport: Sendable, Equatable {
     }
 }
 
-public struct ReadinessRawValue: Sendable, Equatable {
+public struct ReadinessRawValue: Sendable, Equatable, Codable {
     public var today: Double?
     public var normal: Double?
 
@@ -27,7 +27,7 @@ public struct ReadinessRawValue: Sendable, Equatable {
     }
 }
 
-public struct WeekVolume: Sendable, Equatable {
+public struct WeekVolume: Sendable, Equatable, Codable {
     public var perDay: [Day: Double]
     public var total: Double
     public var lastWeek: Double
@@ -43,7 +43,7 @@ public struct WeekVolume: Sendable, Equatable {
     }
 }
 
-public struct WeekTotal: Sendable, Equatable {
+public struct WeekTotal: Sendable, Equatable, Codable {
     public var start: Day
     public var kilometers: Double
 
@@ -53,7 +53,7 @@ public struct WeekTotal: Sendable, Equatable {
     }
 }
 
-public struct TodaySummary: Sendable {
+public struct TodaySummary: Sendable, Codable {
     public var readiness: ReadinessBreakdown?
     public var verdict: ReadinessVerdict?
     public var supporting: ReadinessSupport
