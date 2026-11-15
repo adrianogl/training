@@ -3,7 +3,9 @@ import { Encoder } from '@garmin/fitsdk'
 import { zipSync } from 'fflate'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Sql } from '../src/db.js'
-import { fetchFits, fitFor, missingFitIds } from '../src/fit/fitStore.js'
+import { open, seal } from '../src/cipher.js'
+import { FIT } from '../src/fit/fitConstants.js'
+import { fetchFits, fitFor, missingFitIds, readRunMetrics, recalculateMetrics } from '../src/fit/fitStore.js'
 import { saveConnection } from '../src/garmin.js'
 import { createAccountRoute } from '../src/routes.js'
 import type { GarminEnv } from '../src/types.js'
@@ -72,5 +74,59 @@ describe('FITs guardados', () => {
 
   it('para no 429 da Garmin', async () => {
     await expect(fetchFits(sql, { ...env(429), dataKey: key }, accountId, [1, 2], 2)).rejects.toThrow()
+  })
+
+  describe('recálculo das métricas', () => {
+    const summary = {
+      version: FIT.processingVersion,
+      samples: [],
+      route: [],
+      physio: null,
+      zoneInfo: null,
+      structure: {
+        prescription: { name: null, description: null, steps: [{ index: 0, intensity: 'active', duration: { kind: 'distance', meters: 1000 }, target: { kind: 'open' } }] },
+        laps: [{ stepIndex: 0, intensity: 'active', trigger: 'distance', startOffset: 0, timerSeconds: 300, distance: 1000, avgSpeed: 3.33, avgHeartRate: 170, maxHeartRate: 175 }],
+      },
+    }
+
+    async function insertOld(id: number, data: string = JSON.stringify(summary)): Promise<void> {
+      await sql(
+        'insert into activity_fit (account_id, activity_id, version, data_enc, metrics_enc, metrics_version) values ($1, $2, $3, $4, $5, 0)',
+        [accountId, id, FIT.processingVersion, seal(key, data, `activity-fit:${accountId}:${id}`), seal(key, '{"zone2Pace":null,"thresholdPace":null,"decoupling":null,"hillIndex":null}', `activity-fit-metrics:${accountId}:${id}`)],
+      )
+    }
+
+    it('FIT antiga ganha workPace e passa a valer na versão nova', async () => {
+      await insertOld(1)
+      expect(await recalculateMetrics(sql, key, accountId, 20)).toBe(1)
+      const metrics = (await readRunMetrics(sql, key, accountId, [1])).get(1)
+      expect(metrics?.workPace).toEqual({ seconds: 300, meters: 1000 })
+      const [row] = await sql<{ metrics_version: number }>('select metrics_version from activity_fit')
+      expect(row?.metrics_version).toBe(FIT.metricsVersion)
+    })
+
+    it('respeita o limite por rodada', async () => {
+      for (const id of [1, 2, 3]) await insertOld(id)
+      expect(await recalculateMetrics(sql, key, accountId, 2)).toBe(2)
+      expect(await recalculateMetrics(sql, key, accountId, 2)).toBe(1)
+      expect(await recalculateMetrics(sql, key, accountId, 2)).toBe(0)
+    })
+
+    it('data_enc inválido não bloqueia as outras e não é tentado de novo', async () => {
+      await insertOld(1, 'não é json')
+      await insertOld(2)
+      expect(await recalculateMetrics(sql, key, accountId, 20)).toBe(1)
+      const rows = await sql<{ activity_id: string; metrics_version: number; metrics_enc: string }>('select activity_id, metrics_version, metrics_enc from activity_fit order by activity_id')
+      expect(rows.map((row) => row.metrics_version)).toEqual([FIT.metricsVersion, FIT.metricsVersion])
+      expect(open(key, rows[0]?.metrics_enc ?? '', `activity-fit-metrics:${accountId}:1`)).toContain('zone2Pace')
+      expect(await recalculateMetrics(sql, key, accountId, 20)).toBe(0)
+    })
+
+    it('FIT já na versão nova não é reprocessada', async () => {
+      await fetchFits(sql, { ...env(), dataKey: key }, accountId, [1], 1)
+      const before = await sql<{ metrics_enc: string }>('select metrics_enc from activity_fit')
+      expect(await recalculateMetrics(sql, key, accountId, 20)).toBe(0)
+      expect(await sql<{ metrics_enc: string }>('select metrics_enc from activity_fit')).toEqual(before)
+    })
   })
 })

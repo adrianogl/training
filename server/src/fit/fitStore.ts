@@ -62,9 +62,9 @@ export async function readStoredFits(sql: Sql, key: Buffer, accountId: string, i
 
 export async function storeFit(sql: Sql, key: Buffer, accountId: string, activityId: number, summary: FitSummary): Promise<void> {
   await sql(
-    `insert into activity_fit (account_id, activity_id, version, data_enc, metrics_enc) values ($1, $2, $3, $4, $5)
-     on conflict (account_id, activity_id) do update set version = excluded.version, data_enc = excluded.data_enc, metrics_enc = excluded.metrics_enc, fetched_at = now()`,
-    [accountId, activityId, summary.version, seal(key, JSON.stringify(summary), context(accountId, activityId)), seal(key, JSON.stringify(runMetrics(summary)), metricsContext(accountId, activityId))],
+    `insert into activity_fit (account_id, activity_id, version, data_enc, metrics_enc, metrics_version) values ($1, $2, $3, $4, $5, $6)
+     on conflict (account_id, activity_id) do update set version = excluded.version, data_enc = excluded.data_enc, metrics_enc = excluded.metrics_enc, metrics_version = excluded.metrics_version, fetched_at = now()`,
+    [accountId, activityId, summary.version, seal(key, JSON.stringify(summary), context(accountId, activityId)), seal(key, JSON.stringify(runMetrics(summary)), metricsContext(accountId, activityId)), FIT.metricsVersion],
   )
 }
 
@@ -96,6 +96,30 @@ export async function fetchFits(sql: Sql, env: KeyedEnv, accountId: string, ids:
     }
   }
   return fetched
+}
+
+export async function recalculateMetrics(sql: Sql, key: Buffer, accountId: string, limit: number, hasTime: () => boolean = () => true): Promise<number> {
+  const rows = await sql<{ activity_id: string | number; data_enc: string }>(
+    `select activity_id, data_enc from activity_fit where account_id = $1 and version = $2 and metrics_version < $3
+     order by fetched_at desc, activity_id desc limit $4`,
+    [accountId, FIT.processingVersion, FIT.metricsVersion, limit],
+  )
+  let recalculated = 0
+  for (const row of rows) {
+    if (!hasTime()) break
+    const id = Number(row.activity_id)
+    try {
+      const text = open(key, row.data_enc, context(accountId, id))
+      if (text === undefined) throw new Error('data_enc ilegível')
+      const metrics = seal(key, JSON.stringify(runMetrics(JSON.parse(text) as FitSummary)), metricsContext(accountId, id))
+      await sql('update activity_fit set metrics_enc = $3, metrics_version = $4 where account_id = $1 and activity_id = $2', [accountId, id, metrics, FIT.metricsVersion])
+      recalculated += 1
+    } catch (error) {
+      console.error(JSON.stringify({ route: 'fit', activity: 'recalculate_failed', error: error instanceof Error ? error.message : 'unknown' }))
+      await sql('update activity_fit set metrics_version = $3 where account_id = $1 and activity_id = $2', [accountId, id, FIT.metricsVersion])
+    }
+  }
+  return recalculated
 }
 
 export async function fitFor(sql: Sql, env: KeyedEnv, accountId: string, activityId: number): Promise<FitSummary | null> {
