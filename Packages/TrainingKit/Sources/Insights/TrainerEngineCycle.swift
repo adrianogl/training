@@ -11,23 +11,24 @@ extension TrainerEngine {
         let weeks = plan.weeks
             .filter { $0.start >= first && $0.start.adding(days: C.daysPerWeek - 1) <= last }
             .sorted { $0.index < $1.index }
-        let workouts = plan.workouts.filter { $0.day >= first && $0.day <= last }
+        let reference = min(today, last)
+        let workouts = plan.workouts.filter { $0.day >= first && $0.day <= reference }
         let longs = workouts.filter { $0.kind == .long }
         let volumes = volumes(of: plan, history: history, today: today)
         let review = TrainerCycleReview(
             first: first, last: last, endedEarly: window.endedEarly,
             weeks: weeks.compactMap { cycleWeek($0, plan: plan, history: history) },
-            long: cycleCount(longs, history: history, today: last),
-            threshold: cycleCount(workouts.filter { $0.kind == .threshold }, history: history, today: last),
-            vo2: cycleCount(workouts.filter { $0.kind == .vo2max }, history: history, today: last),
-            mediumLong: cycleCount(workouts.filter { $0.variant == .mediumLong }, history: history, today: last),
-            longestLongMeters: longs.compactMap { status(of: $0, history: history, today: last).run?.meters }.max(),
+            long: cycleCount(longs, history: history, today: reference),
+            threshold: cycleCount(workouts.filter { $0.kind == .threshold }, history: history, today: reference),
+            vo2: cycleCount(workouts.filter { $0.kind == .vo2max }, history: history, today: reference),
+            mediumLong: cycleCount(workouts.filter { $0.variant == .mediumLong }, history: history, today: reference),
+            longestLongMeters: longs.compactMap { status(of: $0, history: history, today: reference).run?.meters }.max(),
             longestLongPlannedMeters: longs.map(\.totalMeters).max(),
             readinessFirst: averageReadiness(weeks.prefix(C.cycleReadinessWeeks), history: history),
             readinessLast: averageReadiness(weeks.suffix(C.cycleReadinessWeeks), history: history),
             lowReadinessDays: history.readiness.filter { $0.key >= first && $0.key <= last && $0.value < C.cycleLowReadiness }.count,
             extraLightWeeks: plan.lightWeeks.filter { $0 >= first && $0 <= last }.sorted(),
-            longsMissed: longs.filter { !longClosed($0, plan: plan, history: history, today: last) }.count,
+            longsMissed: longs.filter { !longClosed($0, plan: plan, history: history, today: reference) }.count,
             predictions: cyclePredictions(plan: plan, history: history, first: first, last: last),
             raceSeconds: cycleRaceSeconds(plan: plan, history: history, first: first, last: last),
             goalSeconds: plan.target.goalSeconds,
@@ -85,17 +86,19 @@ extension TrainerEngine {
     }
 
     private static func cyclePredictions(plan: TrainerPlan, history: TrainerHistory, first: Day, last: Day) -> [TrainerCycleChange] {
-        var distances = C.cyclePredictionMeters
-        if let goal = plan.target.distanceMeters, !distances.contains(goal) { distances.append(goal) }
+        let distances = C.cyclePredictionMeters + [plan.target.distanceMeters].compactMap { $0 }
         let points = history.predictionSeries
             .filter { $0.key >= first && $0.key <= last }
             .sorted { $0.key < $1.key }
             .map(\.value)
-        return distances.compactMap { meters in
-            let values = points.compactMap { $0[meters] }
-            guard values.count > 1, let start = values.first, let end = values.last else { return nil }
-            return TrainerCycleChange(meters: meters, first: start, last: end)
+        guard points.count > 1, let firstPoint = points.first, let lastPoint = points.last else { return [] }
+        var changes: [TrainerCycleChange] = []
+        for distance in distances {
+            guard let start = nearest(firstPoint, to: distance), let end = nearest(lastPoint, to: distance),
+                  start.meters == end.meters, !changes.contains(where: { $0.meters == start.meters }) else { continue }
+            changes.append(TrainerCycleChange(meters: start.meters, first: start.seconds, last: end.seconds))
         }
+        return changes
     }
 
     private static func cycleRaceSeconds(plan: TrainerPlan, history: TrainerHistory, first: Day, last: Day) -> Double? {

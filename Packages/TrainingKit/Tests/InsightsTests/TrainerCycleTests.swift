@@ -120,6 +120,47 @@ import WorkoutAnalysis
         #expect(review.extraLightWeeks == [light])
     }
 
+    @Test func raceDayWithoutAnyRunHasNoReview() {
+        let plan = makePlan()
+        #expect(TrainerEngine.cycleReview(plan: plan, history: history(plan), today: raceDay) == nil)
+    }
+
+    @Test func closingOnRaceDayLeavesLaterWorkoutsOut() throws {
+        let plan = makePlan()
+        let done = history(plan, done: 1.0, raceSeconds: 5_628)
+        var withSunday = plan
+        withSunday.workouts.append(TrainerWorkout(day: raceDay.adding(days: 1), kind: .long, title: "Longão", totalMeters: 16_000, steps: [], rationale: ""))
+        let review = try #require(TrainerEngine.cycleReview(plan: withSunday, history: done, today: raceDay))
+        let longs = plan.workouts.filter { $0.kind == .long && $0.day <= raceDay }
+        #expect(review.long == TrainerCycleCount(done: longs.count, total: longs.count))
+        #expect(review.longsMissed == 0)
+    }
+
+    @Test func roundGoalDistanceUsesTheNearestPredictionKey() throws {
+        var plan = makePlan()
+        plan.target.distanceMeters = 21_000
+        let review = try #require(TrainerEngine.cycleReview(plan: plan, history: halfPredictions(plan), today: raceDay.adding(days: 1)))
+        let half = try #require(review.predictions.first { $0.meters == 21_097.5 })
+        #expect(half.first == 5_900 && half.last == 5_900 - Double(plan.weeks.count - 1) * 3)
+        #expect(review.predictions.map(\.meters) == [10_000, 21_097.5])
+    }
+
+    @Test func exactGoalDistanceUsesItsPredictionKey() throws {
+        let plan = makePlan()
+        let review = try #require(TrainerEngine.cycleReview(plan: plan, history: halfPredictions(plan), today: raceDay.adding(days: 1)))
+        let half = try #require(review.predictions.first { $0.meters == 21_097.5 })
+        #expect(half.first == 5_900 && half.last == 5_900 - Double(plan.weeks.count - 1) * 3)
+        #expect(review.predictions.count == 2)
+    }
+
+    private func halfPredictions(_ plan: TrainerPlan) -> TrainerHistory {
+        var result = history(plan, done: 1.0)
+        for (offset, week) in plan.weeks.enumerated() {
+            result.predictionSeries[week.start]?[21_097.5] = 5_900 - Double(offset) * 3
+        }
+        return result
+    }
+
     private func history(
         _ plan: TrainerPlan, done: Double = 0, readiness: Bool = true, readinessDrop: Int = 0, raceSeconds: Double? = nil
     ) -> TrainerHistory {

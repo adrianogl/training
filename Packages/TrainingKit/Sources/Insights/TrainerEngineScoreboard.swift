@@ -48,7 +48,7 @@ extension TrainerEngine {
         return (last.meters, last.seconds - first.seconds)
     }
 
-    private static func nearest(_ values: [Double: Double], to distance: Double) -> (meters: Double, seconds: Double)? {
+    static func nearest(_ values: [Double: Double], to distance: Double) -> (meters: Double, seconds: Double)? {
         values.min { abs($0.key - distance) < abs($1.key - distance) }.map { ($0.key, $0.value) }
     }
 }
