@@ -85,7 +85,7 @@ extension TrainerEngine {
     public static func peakWeekMeters(
         structure: [Int: TrainerDayKind], peakMeters: Double, paces: TrainerPaces, target: TrainerTarget
     ) -> [Int: Double] {
-        let week = previewWeek(meters: roundKilometers(peakMeters), paces: paces, target: target)
+        let week = previewWeek(meters: roundKilometers(peakMeters), paces: paces, target: target, structure: structure)
         let share = easyShare(
             week: week, weeks: [week], target: target, structure: structure, history: TrainerHistory(runs: []),
             today: week.start, paces: paces
@@ -154,6 +154,60 @@ extension TrainerEngine {
         max(min(meters, longLimit(weekMeters: weekMeters, paces: paces)), min(meters, C.minimumLongMeters))
     }
 
+    static func cappedQuality(_ session: TrainerQualitySession, weekMeters: Double) -> TrainerQualitySession {
+        let cap: Double
+        switch (session.kind, session.method) {
+        case (.threshold, .cruiseIntervals), (.threshold, .tempo): cap = weekMeters * C.thresholdWeekShare
+        case (.vo2max, .intervals): cap = min(weekMeters * C.vo2WeekShare, C.vo2MaximumWorkMeters)
+        default: return session
+        }
+        var blocks = session.blocks
+        func work() -> Double { blocks.reduce(0.0) { $0 + Double($1.repeats) * $1.meters } }
+        func repeats() -> Int { blocks.reduce(0) { $0 + $1.repeats } }
+        while work() > cap, repeats() > C.minimumQualityRepeats, let last = blocks.indices.last {
+            if blocks[last].repeats > 1 { blocks[last].repeats -= 1 } else { blocks.removeLast() }
+        }
+        if work() > cap {
+            if repeats() == 1, let only = blocks.first {
+                blocks = [TrainerQualityBlock(repeats: 1, meters: min(only.meters, max(floorKilometers(cap), C.minimumTempoMeters)))]
+            } else {
+                let size = max((cap / Double(C.minimumQualityRepeats) / C.halfKilometer).rounded(.down) * C.halfKilometer, C.minimumQualityBlockMeters)
+                blocks = [TrainerQualityBlock(repeats: C.minimumQualityRepeats, meters: min(size, blocks.map(\.meters).max() ?? size))]
+            }
+        }
+        return TrainerQualitySession(kind: session.kind, method: session.method, blocks: blocks, closing: session.closing)
+    }
+
+    static func longestLongs(
+        _ weeks: [TrainerWeek], structure: [Int: TrainerDayKind], target: TrainerTarget, history: TrainerHistory, today: Day, paces: TrainerPaces
+    ) -> [TrainerWeek] {
+        weeks.map { week in
+            let kinds = weekStructure(structure, index: week.index)
+            guard kinds.values.contains(.long) else { return week }
+            let longest = longestOtherRun(week: week, weeks: weeks, structure: kinds, target: target, history: history, today: today, paces: paces)
+            guard longest > week.longMeters else { return week }
+            var sized = week
+            sized.longMeters = min(ceilKilometers(longest), floorKilometers(C.longMaximumSeconds / paces.long * C.metersPerKilometer))
+            return sized
+        }
+    }
+
+    static func longestOtherRun(
+        week: TrainerWeek, weeks: [TrainerWeek], structure: [Int: TrainerDayKind], target: TrainerTarget, history: TrainerHistory,
+        today: Day, paces: TrainerPaces
+    ) -> Double {
+        let share = easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today, paces: paces)
+        return structure.values.reduce(0.0) { longest, kind in
+            let meters: Double = switch kind {
+            case .easy: share.meters
+            case .optionalEasy: share.optional
+            case .threshold, .vo2max: qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
+            case .long, .off, .race: 0
+            }
+            return max(longest, meters)
+        }
+    }
+
     static func sizedWeeks(_ weeks: [TrainerWeek], paces: TrainerPaces) -> [TrainerWeek] {
         weeks.map { week in
             var sized = week
@@ -202,16 +256,19 @@ extension TrainerEngine {
         return combinations(rest, size - 1).map { [first] + $0 } + combinations(rest, size)
     }
 
-    private static func previewWeek(meters: Double, paces: TrainerPaces, target: TrainerTarget) -> TrainerWeek {
-        TrainerWeek(
+    private static func previewWeek(
+        meters: Double, paces: TrainerPaces, target: TrainerTarget, structure: [Int: TrainerDayKind] = [:]
+    ) -> TrainerWeek {
+        let week = TrainerWeek(
             index: 1, start: C.previewWeekStart, phase: .specific, isRecovery: false, plannedMeters: meters,
             longMeters: sizedLong(longCap(for: target), weekMeters: meters, paces: paces),
             thresholdFocus: T.stageLabel(C.thresholdBlocks[C.thresholdBlocks.count - 1]), vo2Focus: ""
         )
+        return longestLongs([week], structure: structure, target: target, history: TrainerHistory(runs: []), today: week.start, paces: paces)[0]
     }
 
     static func minimumWeek(structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget) -> Double {
-        let week = previewWeek(meters: meters, paces: paces, target: target)
+        let week = previewWeek(meters: meters, paces: paces, target: target, structure: structure)
         return (1...C.daysPerWeek).reduce(0.0) { total, day in
             let kind = structure[day] ?? .off
             let meters: Double = switch kind {
@@ -225,7 +282,7 @@ extension TrainerEngine {
     }
 
     private static func capacity(structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget) -> Double {
-        let week = previewWeek(meters: meters, paces: paces, target: target)
+        let week = previewWeek(meters: meters, paces: paces, target: target, structure: structure)
         return (1...C.daysPerWeek).reduce(0.0) { total, day in
             let kind = structure[day] ?? .off
             let meters: Double = switch kind {

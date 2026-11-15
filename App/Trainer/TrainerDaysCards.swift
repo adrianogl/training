@@ -7,6 +7,7 @@ struct TrainerDaysCards: View {
     @Binding var strength: [TrainerStrengthSession]
     let suggested: [Int: TrainerDayKind]
     let meters: [Int: Double]
+    let peakMeters: Double
     let warnings: [TrainerDayWarning]
     let showsStrength: Bool
 
@@ -121,7 +122,7 @@ struct TrainerDaysCards: View {
                 }
             }
             Text(TrainerDaysText.summary(
-                meters: meters.values.reduce(0, +), quality: TrainerEngine.qualityPerWeek(structure), alternates: alternates
+                peakMeters: peakMeters, meters: meters.values.reduce(0, +), quality: TrainerEngine.qualityPerWeek(structure), alternates: alternates
             ))
             .font(.caption).foregroundStyle(BrandColors.dim)
             ForEach(warnings, id: \.self) { warning in

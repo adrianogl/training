@@ -59,9 +59,9 @@ public enum TrainerEngine {
             peakVolume: peak, lightWeeks: lightWeeks
         )
         let state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
-        let weeks = sizedWeeks(buildWeeks(
+        let weeks = longestLongs(sizedWeeks(buildWeeks(
             context: context, firstIndex: offset + 1, firstStart: today.weekStart, state: state, adjustment: TrainerSkeletonAdjustment()
-        ), paces: paces)
+        ), paces: paces), structure: structure, target: target, history: history, today: today, paces: paces)
         var long = TrainerLongPlan(mode: longMode)
         if longMode == .blocks {
             long.stage = longStage ?? initialLongStage(

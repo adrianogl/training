@@ -224,6 +224,39 @@ import WorkoutAnalysis
         #expect(warnings.contains { $0.text.hasPrefix("Com 6 corridas e rodagens de pelo menos 40 min") })
     }
 
+    @Test func qualityStaysProportionalToALowVolume() {
+        let four = TrainerEngine.suggestedStructure(preference(4))
+        let meters = TrainerEngine.peakWeekMeters(structure: four, peakMeters: 19_000, paces: paces, target: openTarget)
+        let quality = four.filter { [.threshold, .vo2max].contains($0.value) }.map { meters[$0.key] ?? 0 }
+        let longDay = four.first { $0.value == .long }?.key ?? 0
+
+        #expect(quality.allSatisfy { $0 <= 3_000 + 19_000 * 0.17 + 1_000 })
+        #expect(meters.filter { $0.key != longDay }.values.allSatisfy { $0 <= meters[longDay] ?? 0 })
+    }
+
+    @Test func qualityCapKeepsTheHighVolumePattern() {
+        let meters = TrainerEngine.peakWeekMeters(
+            structure: TrainerEngine.defaultStructure, peakMeters: 70_000, paces: paces, target: openTarget
+        )
+
+        #expect((meters[2] ?? 0) >= 3_000 + 10_000)
+        #expect((meters[4] ?? 0) >= 3_000 + 5_000)
+    }
+
+    @Test func cappedQualityKeepsAtLeastTwoRepeats() {
+        let vo2 = TrainerEngine.cappedQuality(
+            TrainerQualitySession(kind: .vo2max, method: .intervals, blocks: [TrainerQualityBlock(repeats: 5, meters: 1_000)], closing: true),
+            weekMeters: 19_000
+        )
+        let tempo = TrainerEngine.cappedQuality(
+            TrainerQualitySession(kind: .threshold, method: .tempo, blocks: [TrainerQualityBlock(repeats: 1, meters: 10_000)], closing: false),
+            weekMeters: 19_000
+        )
+
+        #expect(vo2.blocks == [TrainerQualityBlock(repeats: 2, meters: 1_000)])
+        #expect(tempo.blocks == [TrainerQualityBlock(repeats: 1, meters: 3_000)])
+    }
+
     @Test func peakWeekPreviewGivesKilometersPerDay() {
         let meters = TrainerEngine.peakWeekMeters(
             structure: TrainerEngine.defaultStructure, peakMeters: 70_000, paces: paces, target: openTarget

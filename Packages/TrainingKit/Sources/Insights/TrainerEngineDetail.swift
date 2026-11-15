@@ -162,10 +162,10 @@ extension TrainerEngine {
             return goalPaceSession(step: goalStep ?? ordinal / C.goalPaceEvery, week: week, distance: target.distanceMeters ?? 0)
         }
         if kind == .vo2max {
-            return vo2Session(index: week.index, isRecovery: week.isRecovery, phase: week.phase, lowered: lowered)
+            return cappedQuality(vo2Session(index: week.index, isRecovery: week.isRecovery, phase: week.phase, lowered: lowered), weekMeters: week.targetMeters)
         }
         if !lowered, let session = racePaceSession(week: week, weeks: weeks, target: target) { return session }
-        return thresholdSession(week: week, lowered: lowered)
+        return cappedQuality(thresholdSession(week: week, lowered: lowered), weekMeters: week.targetMeters)
     }
 
     static func qualityMeters(_ session: TrainerQualitySession) -> Double {
