@@ -148,4 +148,30 @@ import TrainingCore
         #expect(raw[.hrv]?.today == 70)
         #expect(raw[.hrv]?.normal == nil)
     }
+
+    @Test func readinessFallsBackToYesterdayWhenTodayIsPartial() throws {
+        var models: [any PersistentModel] = [daily(daysAgo: 0, stress: 30, restingHR: 50)]
+        for offset in 1...30 {
+            models.append(daily(daysAgo: offset, hrv: 60, balanced: 50...70, sleepScore: 80, bodyBattery: 70))
+        }
+        let context = try makeContext(models)
+
+        let summary = try todaySummary(context: context, today: fixtureToday)
+
+        #expect(summary.readinessFromYesterday)
+        #expect(summary.readiness != nil)
+    }
+
+    @Test func readinessUsesTodayWhenItIsComplete() throws {
+        var models: [any PersistentModel] = []
+        for offset in 0...30 {
+            models.append(daily(daysAgo: offset, hrv: 60, balanced: 50...70, sleepScore: 80, bodyBattery: 70))
+        }
+        let context = try makeContext(models)
+
+        let summary = try todaySummary(context: context, today: fixtureToday)
+
+        #expect(!summary.readinessFromYesterday)
+        #expect(summary.readiness != nil)
+    }
 }

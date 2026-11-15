@@ -20,7 +20,11 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
     func input(on day: Day) -> ReadinessInput? {
         records[day]?.readinessInput(acuteChronic: acuteChronicRatio(dailyLoad: load, on: day.adding(days: -1)))
     }
-    let fromYesterday = input(on: today) == nil && input(on: today.adding(days: -1)) != nil
+    func breakdown(on day: Day) -> ReadinessBreakdown? {
+        let history = (1...C.readinessHistoryDays).reversed().compactMap { input(on: day.adding(days: -$0)) }
+        return input(on: day).flatMap { readinessBreakdown(today: $0, history: history) }
+    }
+    let fromYesterday = breakdown(on: today) == nil && breakdown(on: today.adding(days: -1)) != nil
     let readinessDay = fromYesterday ? today.adding(days: -1) : today
     let todayInput = input(on: readinessDay)
     let history = (1...C.readinessHistoryDays).reversed().compactMap { input(on: readinessDay.adding(days: -$0)) }
