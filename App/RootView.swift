@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 struct RootView: View {
@@ -5,11 +6,32 @@ struct RootView: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showsIntro = !RootView.isTestHost
-    @State private var section = AppSection.initial()
-    @State private var sidebarSelection: AppSection? = AppSection.initial()
-    @State private var todayPath: [TodayRoute] = RootView.initialTodayPath()
-    @State private var morePath = NavigationPath()
-    @State private var columnVisibility = RootView.visibility(for: AppSection.initial())
+    @SceneStorage(NavigationRestorationConstants.sectionKey) private var sectionRaw = AppSection.today.rawValue
+    @SceneStorage(NavigationRestorationConstants.sidebarKey) private var sidebarRaw = AppSection.today.rawValue
+    @SceneStorage(NavigationRestorationConstants.todayPathKey) private var todayPathData = Data()
+    @SceneStorage(NavigationRestorationConstants.morePathKey) private var morePathData = Data()
+    @State private var appliedRestoration = false
+    @State private var columnVisibility = NavigationSplitViewVisibility.all
+
+    private var section: AppSection {
+        get { NavigationRestoration.section(sectionRaw, allowed: AppConstants.compactTabs) }
+        nonmutating set { sectionRaw = newValue.rawValue }
+    }
+
+    private var sidebarSelection: AppSection? {
+        get { NavigationRestoration.section(sidebarRaw, allowed: AppSection.sidebarSections) }
+        nonmutating set { sidebarRaw = (newValue ?? .today).rawValue }
+    }
+
+    private var todayPath: [TodayRoute] {
+        get { NavigationRestoration.decodePath(todayPathData) }
+        nonmutating set { todayPathData = NavigationRestoration.encode(newValue) }
+    }
+
+    private var morePath: NavigationPath {
+        get { NavigationRestoration.decodeNavigationPath(morePathData) }
+        nonmutating set { morePathData = NavigationRestoration.encode(newValue) }
+    }
 
     var body: some View {
         Group {
@@ -25,6 +47,13 @@ struct RootView: View {
             if showsIntro {
                 IntroView().transition(.opacity)
             }
+        }
+        .onAppear(perform: applyRestoration)
+        .task(id: model.trainer.isLoaded) {
+            guard model.trainer.isLoaded, model.trainer.plan == nil, morePath.count > 1 else { return }
+            var path = morePath
+            path.removeLast(path.count - 1)
+            morePath = path
         }
         .task(id: model.account.token) {
             await model.garminAccount.adoptAccountSession()
@@ -44,7 +73,7 @@ struct RootView: View {
     }
 
     private var tabView: some View {
-        TabView(selection: $section) {
+        TabView(selection: Binding(get: { section }, set: { section = $0 })) {
             ForEach(AppConstants.compactTabs) { item in
                 Tab(item.title, systemImage: item.systemImage, value: item) {
                     screen(for: item)
@@ -55,7 +84,7 @@ struct RootView: View {
 
     private var splitView: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            List(AppSection.sidebarSections, selection: $sidebarSelection) { item in
+            List(AppSection.sidebarSections, selection: Binding(get: { sidebarSelection }, set: { sidebarSelection = $0 })) { item in
                 Label(item.title, systemImage: item.systemImage).tag(item)
             }
             .navigationTitle("")
@@ -77,14 +106,32 @@ struct RootView: View {
     @ViewBuilder
     private func screen(for item: AppSection) -> some View {
         switch item {
-        case .today: TodayView(path: $todayPath) { open(.settings) }
+        case .today: TodayView(path: Binding(get: { todayPath }, set: { todayPath = $0 })) { open(.settings) }
         case .evolution: EvolutionView()
         case .races: RaceListView()
         case .trainer: NavigationStack { TrainerView() }
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
-        case .more: MoreView(path: $morePath)
+        case .more: MoreView(path: Binding(get: { morePath }, set: { morePath = $0 }))
         }
+    }
+
+    private func applyRestoration() {
+        guard !appliedRestoration else { return }
+        appliedRestoration = true
+        let context = ModelContext(model.container)
+        let restored = NavigationRestoration.validPrefix(todayPath) { route in
+            if case .workout(let id) = route { return NavigationRestoration.hasActivity(id, in: context) }
+            return true
+        }
+        if restored.count != todayPath.count { todayPath = restored }
+        if let override = AppSection.debugOverride() {
+            section = override
+            sidebarSelection = override
+        }
+        let debugPath = Self.initialTodayPath()
+        if !debugPath.isEmpty { todayPath = debugPath }
+        columnVisibility = Self.visibility(for: sidebarSelection ?? .today)
     }
 
     private func open(_ target: AppSection) {

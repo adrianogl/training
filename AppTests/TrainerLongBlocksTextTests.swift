@@ -28,9 +28,9 @@ import TrainingCore
 
     @Test func keepsUnequalBlocksAsSeparateRows() {
         let rows = TrainerText.stepRows(workout(blocks: [7_000, 7_000, 6_000]))
-        #expect(rows.map(\.title) == ["2×", "Longão", "Pausa parada · água e gel", "Pausa parada · água e gel", "Longão"])
-        #expect(rows.map(\.isNested) == [false, true, true, false, false])
-        #expect(rows[4].detail == "6 km · 5:00–5:15/km")
+        #expect(rows.map(\.title) == ["2×", "Longão", "Pausa parada · água e gel", "Longão"])
+        #expect(rows.map(\.isNested) == [false, true, true, false])
+        #expect(rows[3].detail == "6 km · 5:00–5:15/km")
         let two = TrainerText.stepRows(workout(blocks: [14_000, 6_000]))
         #expect(two.map(\.title) == ["Longão", "Pausa parada · água e gel", "Longão"])
     }
@@ -38,6 +38,7 @@ import TrainingCore
     @Test func buildsTheShapeWithOneRestBarPerPause() {
         let bars = TrainerText.shapeBars(workout(blocks: [10_000, 10_000]).steps)
         #expect(bars.filter(\.isRest).count == 1)
+        #expect(bars.filter { !$0.isRest }.count == 2)
     }
 
     @Test func picksTheCoolestMorningHourAndWarnsAboutHeat() {

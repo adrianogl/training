@@ -2,7 +2,7 @@ import Foundation
 import Insights
 import TrainingCore
 
-enum TrainerRoute: Hashable {
+enum TrainerRoute: Hashable, Codable {
     case day(String)
     case changes
     case strength

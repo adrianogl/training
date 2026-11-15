@@ -1,6 +1,6 @@
 import Foundation
 
-enum AppSection: String, CaseIterable, Identifiable, Hashable {
+enum AppSection: String, CaseIterable, Identifiable, Hashable, Codable {
     case today
     case evolution
     case workouts
@@ -23,12 +23,12 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable {
         }
     }
 
-    static func initial(defaults: UserDefaults = .standard) -> AppSection {
+    static func debugOverride(defaults: UserDefaults = .standard) -> AppSection? {
         #if DEBUG
         let path = defaults.string(forKey: AppConstants.initialSectionDefaultsKey)
-        return allCases.first { $0.path == path } ?? .today
+        return allCases.first { $0.path == path }
         #else
-        return .today
+        return nil
         #endif
     }
 

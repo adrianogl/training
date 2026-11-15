@@ -418,7 +418,7 @@ extension TrainerEngineText {
         let head = count > 1
             ? "Seus últimos \(count) longões tiveram pausa ou queda de pace depois do km \(km)."
             : "Um dos seus últimos longões teve pausa ou queda de pace depois do km \(km)."
-        return longest < Double(km) * 1_000 ? "\(head) Blocos de \(kilometers(longest)) terminam bem antes disso." : head
+        return longest < Double(km) * 1_000 ? "\(head) Blocos de até \(kilometers(longest)) terminam antes disso." : head
     }
 
     static func longBlocksRule(stage: Int, blocks: [Double], rest: Double?) -> String {

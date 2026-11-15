@@ -326,7 +326,6 @@ enum TrainerText {
                 append(.work, title: seriesTitle(count), detail: "", isHeader: true)
                 appendBlock(blocks[index].steps, isNested: true)
                 appendPause(rest, isNested: true)
-                if let last = blocks[end].rest { appendPause(last, isNested: false) }
             } else {
                 appendBlock(blocks[index].steps, isNested: false)
                 if let rest = blocks[end].rest { appendPause(rest, isNested: false) }
@@ -438,6 +437,10 @@ enum TrainerText {
     static func shapeBars(_ steps: [TrainerStep]) -> [TrainerShapeBar] {
         var bars: [TrainerShapeBar] = []
         func append(_ kind: TrainerStepKind, _ meters: Double, isRest: Bool = false) {
+            if kind == .steady, !isRest, let last = bars.last, last.kind == .steady, !last.isRest {
+                bars[bars.count - 1] = TrainerShapeBar(id: last.id, kind: kind, meters: last.meters + meters, isRest: false)
+                return
+            }
             bars.append(TrainerShapeBar(id: bars.count, kind: kind, meters: meters, isRest: isRest))
         }
         var index = 0

@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum SettingsGroup: String, CaseIterable, Identifiable, Hashable {
+enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
     case account, garmin, devices, watch, notice, goals, appearance, data
 
     var id: String { rawValue }

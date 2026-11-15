@@ -10,6 +10,9 @@ struct ReadinessHeroCard: View {
     var body: some View {
         NavigationLink(value: TodayRoute.readiness) {
             VStack(alignment: .leading, spacing: 14) {
+                if model.summary.readiness != nil && model.summary.readinessFromYesterday {
+                    yesterdayBanner
+                }
                 SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
                 if let breakdown = model.summary.readiness {
                     HStack(alignment: .center, spacing: 18) {
@@ -27,11 +30,6 @@ struct ReadinessHeroCard: View {
                         }
                     }
                     ReadinessDrivers(rows: model.factorRows)
-                    if model.summary.readinessFromYesterday {
-                        Text(C.readinessFromYesterday)
-                            .font(.caption)
-                            .foregroundStyle(BrandColors.dim)
-                    }
                 } else if let score = model.fallbackScore {
                     HStack(alignment: .center, spacing: 18) {
                         ScoreGauge(score: score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
@@ -59,6 +57,22 @@ struct ReadinessHeroCard: View {
             .brandCard(fillsHeight: true)
         }
         .buttonStyle(.plain)
+    }
+
+    private var yesterdayBanner: some View {
+        let radius = BrandConstants.cardCornerRadius
+        return Text(C.readinessFromYesterday)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(BrandColors.attention)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, BrandConstants.cardPadding)
+            .padding(.vertical, C.yesterdayBannerPadding)
+            .background(
+                BrandColors.attention.opacity(C.yesterdayBannerOpacity),
+                in: UnevenRoundedRectangle(topLeadingRadius: radius, topTrailingRadius: radius, style: .continuous)
+            )
+            .padding(.horizontal, -BrandConstants.cardPadding)
+            .padding(.top, -BrandConstants.cardPadding)
     }
 }
 
