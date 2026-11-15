@@ -11,7 +11,6 @@ extension TrainerText {
     static let betaLabel = "Beta"
     static let noWorkoutLabel = "folga"
     static let scoreboardWeeks = "Semanas"
-    static let todayCardTitle = "Treinador · hoje"
     static let acceptReadiness = "Aceitar"
     static let keepReadiness = "Manter"
     static let todayRestDay = "Folga hoje"

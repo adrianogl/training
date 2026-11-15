@@ -114,7 +114,7 @@ private struct SamplePayload: Codable, Equatable {
         let source = EvolutionModel(container: container, today: Self.today, snapshots: store)
         await source.load()
 
-        let restored = try #require(await EvolutionModel.restored(container: container, horizon: .untilRace, snapshots: store))
+        let restored = try #require(await EvolutionModel.restored(container: container, snapshots: store))
 
         #expect(restored.isLoaded)
         #expect(restored.isStale)
@@ -127,7 +127,6 @@ private struct SamplePayload: Codable, Equatable {
         #expect(restored.zoneWeeks == source.zoneWeeks)
         #expect(restored.records == source.records)
         #expect(restored.outlook.series.map(\.1) == source.outlook.series.map(\.1))
-        #expect(restored.highlight.goalSentence == source.highlight.goalSentence)
     }
 
     @Test func evolutionKeepsContentWhileReloading() async throws {

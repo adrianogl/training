@@ -12,5 +12,9 @@ enum OverloadConstants {
     static let baseFormat = "base %d"
     static let baseHrvFormat = "base %d ms"
     static let loadRange = "0,8–1,3"
+    static let headlineFormat = "Sobrecarga há %d dias"
+    static let restingLineFormat = "FC de repouso %d (base %d)"
+    static let hrvLineFormat = "VFC %d ms (base %d)"
+    static let loadLineFormat = "carga %@"
     static let advice = "Troque o próximo treino forte por um leve e reavalie amanhã."
 }

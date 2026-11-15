@@ -3,6 +3,8 @@ import SwiftUI
 
 struct ReadinessHeroCard: View {
     let model: TodayModel
+    var overload: OverloadAlert?
+    var recovery: RecoveryEstimate?
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = TodayConstants
@@ -13,7 +15,15 @@ struct ReadinessHeroCard: View {
                 if model.summary.readiness != nil && model.summary.readinessFromYesterday {
                     yesterdayBanner
                 }
-                SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
+                HStack(alignment: .firstTextBaseline) {
+                    SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
+                    Spacer()
+                    if let recovery, recovery.remainingHours > 0 {
+                        Text(String(format: RecoveryConstants.headerFormat, recovery.remainingHours))
+                            .font(.caption)
+                            .foregroundStyle(BrandColors.dim)
+                    }
+                }
                 if let breakdown = model.summary.readiness {
                     HStack(alignment: .center, spacing: 18) {
                         ScoreGauge(score: breakdown.score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
@@ -52,6 +62,12 @@ struct ReadinessHeroCard: View {
                     Text(String(format: C.stressContextFormat, stress))
                         .font(.caption)
                         .foregroundStyle(BrandColors.dim)
+                }
+                if let overload {
+                    ReadinessOverloadLine(alert: overload)
+                }
+                if let recovery {
+                    ReadinessRecoveryStrip(estimate: recovery)
                 }
             }
             .brandCard(fillsHeight: true)
@@ -138,5 +154,74 @@ private struct DriverBar: View {
             }
         }
         .frame(height: TodayConstants.driverBarHeight)
+    }
+}
+
+private struct ReadinessOverloadLine: View {
+    let alert: OverloadAlert
+
+    var body: some View {
+        let detail = OverloadText.flaggedLine(alert)
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.footnote)
+                .foregroundStyle(BrandColors.attention)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(OverloadText.headline(alert))
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(BrandColors.attention)
+                if !detail.isEmpty {
+                    Text(detail).font(.caption).foregroundStyle(BrandColors.text)
+                }
+                Text(OverloadConstants.advice).font(.caption).foregroundStyle(BrandColors.dim)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(BrandColors.attention.opacity(TodayConstants.overloadTintOpacity), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private struct ReadinessRecoveryStrip: View {
+    let estimate: RecoveryEstimate
+
+    private typealias C = RecoveryConstants
+
+    var body: some View {
+        let ready = estimate.remainingHours <= 0
+        VStack(alignment: .leading, spacing: 6) {
+            Divider().overlay(BrandColors.line)
+            HStack(alignment: .firstTextBaseline) {
+                if ready {
+                    Text(C.readyNowLine).foregroundStyle(BrandColors.accent)
+                } else {
+                    Text(String(format: C.readyLineFormat, RecoveryText.dayHour(estimate.readyAt))).foregroundStyle(BrandColors.text)
+                }
+                Spacer()
+                if !ready {
+                    Text("\(String(format: C.hoursRemainingFormat, estimate.remainingHours)) \(C.hoursRemainingUnit)")
+                        .foregroundStyle(BrandColors.dim)
+                }
+            }
+            .font(.footnote.weight(.semibold))
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(BrandColors.track)
+                    Capsule()
+                        .fill(ready ? BrandColors.accentFill : BrandColors.attention)
+                        .frame(width: max(proxy.size.width * estimate.progress, C.stripHeight))
+                }
+            }
+            .frame(height: C.stripHeight)
+            if let next = estimate.upcoming.first {
+                Text(RecoveryText.nextLine(next)).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            if let advice = estimate.advice {
+                Text(advice).font(.caption).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }

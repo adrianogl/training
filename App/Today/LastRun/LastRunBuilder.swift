@@ -103,4 +103,21 @@ enum LastRunBuilder {
         if let readiness, readiness < C.readinessLow { text += String(format: C.readinessFormat, readiness) }
         return text
     }
+
+    static func compactTitle(_ run: LastRunSummary) -> String {
+        let name = run.kind.flatMap { C.kindTitles[$0] } ?? run.title
+        guard let km = run.kilometers else { return name }
+        return String(format: C.compactTitleFormat, name, TodayText.decimal(km, fractionDigits: 1))
+    }
+
+    static func compactLine(_ run: LastRunSummary, plannedKm: Double?) -> String {
+        var parts: [String] = []
+        if let pace = run.paceSeconds { parts.append(WorkoutFormat.clock(pace) + WorkoutConstants.paceUnit) }
+        if let heartRate = run.averageHeartRate { parts.append(String(format: C.compactHeartRateFormat, heartRate)) }
+        if let fade = run.fadeKm { parts.append(String(format: C.fadeFormat, fade)) }
+        if let plannedKm, plannedKm > 0, let km = run.kilometers {
+            parts.append(String(format: C.compactPlanFormat, Int((km / plannedKm * 100).rounded())))
+        }
+        return parts.joined(separator: " · ")
+    }
 }

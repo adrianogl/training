@@ -5,71 +5,86 @@ import SwiftUI
 struct MetricGroupCard: View {
     let group: MetricGroup
     let data: [MetricKind: MetricCardData]
-    @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = EvolutionConstants
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            SectionLabel(group.title).padding(.top, 0).padding(.bottom, 6)
-            ForEach(Array(group.kinds.enumerated()), id: \.element) { index, kind in
-                if index > 0 { Divider().overlay(BrandColors.line) }
-                NavigationLink(value: kind) {
-                    row(kind)
+        VStack(spacing: TodayConstants.rowSpacing) {
+            if let featured = group.featured {
+                tile(featured, featured: true)
+            }
+            ForEach(group.pairs, id: \.first) { pair in
+                HStack(alignment: .top, spacing: TodayConstants.rowSpacing) {
+                    ForEach(pair, id: \.self) { kind in tile(kind, featured: false) }
+                    if pair.count == 1 { Color.clear.frame(maxWidth: .infinity) }
                 }
-                .buttonStyle(.plain)
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .brandCard(fillsHeight: true)
+    }
+
+    private func tile(_ kind: MetricKind, featured: Bool) -> some View {
+        NavigationLink(value: kind) {
+            content(kind, featured: featured)
+                .brandCard(fillsHeight: !featured)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
-    private func row(_ kind: MetricKind) -> some View {
+    private func content(_ kind: MetricKind, featured: Bool) -> some View {
         let card = data[kind]
         let change = card.flatMap { EvolutionText.change(kind: kind, stats: $0.stats) }
-        let showsMonthly = kind == .monthlyVolume && !(card?.monthly.isEmpty ?? true)
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 10) {
-                Text(C.metricNames[kind] ?? "")
-                    .font(.footnote)
-                    .foregroundStyle(BrandColors.text)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if !showsMonthly {
-                    Sparkline(points: card?.chart.average ?? [], reversed: C.reversedAxis.contains(kind), color: EvolutionColors.trendFill(change?.trend ?? .unknown))
-                        .frame(minWidth: C.sparklineMinWidth, maxWidth: sizeClass == .regular ? C.sparklineWidth : C.compactSparklineWidth)
-                        .frame(height: C.sparklineHeight)
-                }
+        let monthly = kind == .monthlyVolume ? card?.monthly ?? [] : []
+        VStack(alignment: .leading, spacing: 8) {
+            Text(C.metricNames[kind] ?? "")
+                .font(featured ? .subheadline.weight(.semibold) : .footnote)
+                .foregroundStyle(BrandColors.text)
+                .lineLimit(2)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(EvolutionText.value(card?.stats.current, C.metricFormats[kind]))
-                    .font(BrandFonts.number(16))
+                    .font(BrandFonts.number(featured ? 24 : 16))
                     .foregroundStyle(BrandColors.text)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                    .frame(width: C.metricValueWidth, alignment: .trailing)
+                    .minimumScaleFactor(0.75)
                 Text(change?.text ?? C.emptyValue)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(EvolutionColors.trend(change?.trend ?? .unknown))
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
-                    .frame(width: C.metricChangeWidth, alignment: .trailing)
             }
-            if showsMonthly, let monthly = card?.monthly {
-                Chart(Array(monthly.enumerated()), id: \.offset) { index, month in
-                    BarMark(x: .value("Mês", month.date, unit: .month), y: .value("km", month.value))
-                        .foregroundStyle(BrandColors.fitness.opacity(index == monthly.count - 1 ? 1 : 0.55))
-                        .cornerRadius(3)
-                }
-                .chartYAxis(.hidden)
-                .chartXAxis {
-                    AxisMarks(values: .stride(by: .month, count: 3)) { _ in
-                        AxisValueLabel(format: .dateTime.month(.abbreviated).locale(WorkoutConstants.locale)).foregroundStyle(BrandColors.dim)
-                    }
-                }
-                .frame(height: C.monthlyBarHeight)
+            Spacer(minLength: 0)
+            if !monthly.isEmpty {
+                MonthlyBars(monthly: monthly)
+                    .frame(height: featured ? C.featuredChartHeight : C.monthlyBarHeight)
+            } else if featured, let chart = card?.chart, !chart.isEmpty {
+                MetricChart(data: chart, style: .featured)
+            } else if !featured {
+                Sparkline(points: card?.chart.average ?? [], reversed: C.reversedAxis.contains(kind), color: EvolutionColors.trendFill(change?.trend ?? .unknown))
+                    .frame(height: C.sparklineHeight)
             }
         }
-        .padding(.vertical, 8)
-        .contentShape(Rectangle())
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct MonthlyBars: View {
+    let monthly: [MonthlyMean]
+
+    var body: some View {
+        Chart(Array(monthly.enumerated()), id: \.offset) { index, month in
+            BarMark(x: .value("Mês", month.date, unit: .month), y: .value("km", month.value))
+                .foregroundStyle(BrandColors.fitness.opacity(index == monthly.count - 1 ? 1 : 0.55))
+                .cornerRadius(3)
+        }
+        .chartYAxis(.hidden)
+        .chartXAxis {
+            AxisMarks(values: .stride(by: .month, count: 3)) { _ in
+                AxisValueLabel(format: .dateTime.month(.abbreviated).locale(WorkoutConstants.locale)).foregroundStyle(BrandColors.dim)
+            }
+        }
     }
 }
 

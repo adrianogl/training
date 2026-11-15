@@ -3,6 +3,7 @@ import WorkoutAnalysis
 
 struct TrainingEffectCard: View {
     let effect: TrainingEffectData
+    var framed = true
 
     private typealias C = WorkoutDetailConstants
 
@@ -27,7 +28,7 @@ struct TrainingEffectCard: View {
                 row(C.effectLoad, effect.load.map { "\(Int($0.rounded()))" })
             }
         }
-        .brandCard(fillsHeight: true)
+        .brandCard(framed: framed, fillsHeight: true)
     }
 
     @ViewBuilder

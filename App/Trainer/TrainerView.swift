@@ -12,6 +12,7 @@ struct TrainerView: View {
     @State private var toggledWeeks: Set<String> = []
     @State private var highlightedWeek: String?
     @State private var tab: TrainerTab = .plan
+    @State private var showsAdjustments = false
 
     private var model: TrainerModel { app.trainer }
 
@@ -83,8 +84,15 @@ struct TrainerView: View {
 
     @ViewBuilder
     private func planContent(_ plan: TrainerPlan, proxy: ScrollViewProxy) -> some View {
-        TrainerScoreboardCard(boards: model.scoreboards)
-        goalCard(plan)
+        if model.hasUnseenVersion, let version = model.latestVersion {
+            updatedBanner(version)
+        }
+        TrainerPlanHeaderCard(
+            plan: plan, boards: model.scoreboards, cells: model.weekCells, weeksToTarget: model.weeksToTarget,
+            weekProgress: TrainerText.weekProgress(index: model.currentWeekIndex, total: plan.weeks.count),
+            onToggleLight: { start in Task { await model.toggleLightWeek(start) } },
+            onSelect: { start in select(start, proxy: proxy) }
+        )
         let compareWeeks = model.compareWeeks
         if !compareWeeks.isEmpty {
             TrainerTabPicker(tab: $tab)
@@ -92,50 +100,81 @@ struct TrainerView: View {
         if tab == .compare && !compareWeeks.isEmpty {
             TrainerCompareView(weeks: compareWeeks, weekIndex: { model.weekIndex(of: $0.start) })
         } else {
-            planBody(plan, proxy: proxy)
+            planBody(plan)
+        }
+    }
+
+    private func updatedBanner(_ version: TrainerVersion) -> some View {
+        NavigationLink(value: TrainerRoute.changes) {
+            HStack(spacing: 8) {
+                Text("⟳").foregroundStyle(BrandColors.accent)
+                (Text(TrainerText.updatedBanner).fontWeight(.bold).foregroundStyle(BrandColors.accent)
+                    + Text(" \(TrainerText.triggerText(version.trigger))").foregroundStyle(BrandColors.text))
+                    .font(.footnote)
+                Spacer(minLength: 6)
+                Text(TrainerText.updatedAction).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(BrandColors.accentGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.35), lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func planBody(_ plan: TrainerPlan) -> some View {
+        SectionHeader(TrainerText.upcoming)
+        ForEach(model.weekGroups) { group in
+            weekSection(group)
+        }
+        adjustments(plan)
+        AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
+        if model.saveFailed {
+            Text(TrainerText.saveError).font(.footnote).foregroundStyle(BrandColors.danger)
         }
     }
 
     @ViewBuilder
-    private func planBody(_ plan: TrainerPlan, proxy: ScrollViewProxy) -> some View {
-        if model.hasUnseenVersion, let version = model.latestVersion {
-            NavigationLink(value: TrainerRoute.changes) {
-                HStack(spacing: 8) {
-                    Text("⟳").foregroundStyle(BrandColors.accent)
-                    (Text(TrainerText.updatedBanner).fontWeight(.bold).foregroundStyle(BrandColors.accent)
-                        + Text(" \(TrainerText.triggerText(version.trigger))").foregroundStyle(BrandColors.text))
-                        .font(.footnote)
-                    Spacer(minLength: 6)
-                    Text(TrainerText.updatedAction).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
+    private func adjustments(_ plan: TrainerPlan) -> some View {
+        Button { withAnimation { showsAdjustments.toggle() } } label: {
+            HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(TrainerText.adjustmentsTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                    Text(TrainerText.adjustmentsSummary(strength: plan.strength, longMode: plan.longMode))
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.dim)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(BrandColors.accentGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.35), lineWidth: 1))
+                Spacer(minLength: 6)
+                Image(systemName: showsAdjustments ? "chevron.down" : "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
             }
-            .buttonStyle(.plain)
+            .brandCard()
+            .contentShape(Rectangle())
         }
-        strengthCard(plan)
-        TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in
-            Task { await model.setLongMode(mode) }
-        }
-        TrainerWeekStrip(
-            cells: model.weekCells, weeksText: weeksText,
-            onToggleLight: { start in Task { await model.toggleLightWeek(start) } },
-            onSelect: { start in reveal(start, proxy: proxy) }
-        )
-        SectionLabel(TrainerText.upcoming)
-        ForEach(model.weekGroups) { group in
-            weekSection(group)
-        }
-        Button { showsRequest = true } label: {
-            Label(TrainerText.askButton, systemImage: "square.and.pencil")
-        }
-        .buttonStyle(TrainerSecondaryButtonStyle())
+        .buttonStyle(.plain)
         .padding(.top, 6)
-        AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
-        if model.saveFailed {
-            Text(TrainerText.saveError).font(.footnote).foregroundStyle(BrandColors.danger)
+        if showsAdjustments {
+            strengthCard(plan)
+            TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in
+                Task { await model.setLongMode(mode) }
+            }
+            Button { showsEdit = true } label: {
+                Label(TrainerText.editPacesButton, systemImage: "slider.horizontal.3")
+            }
+            .buttonStyle(TrainerSecondaryButtonStyle())
+            Button { showsRequest = true } label: {
+                Label(TrainerText.askButton, systemImage: "square.and.pencil")
+            }
+            .buttonStyle(TrainerSecondaryButtonStyle())
+        }
+    }
+
+    private func select(_ start: Day, proxy: ScrollViewProxy) {
+        guard tab != .plan else { return reveal(start, proxy: proxy) }
+        tab = .plan
+        Task {
+            try? await Task.sleep(for: .seconds(TrainerConstants.tabSwitchSeconds))
+            reveal(start, proxy: proxy)
         }
     }
 
@@ -211,30 +250,6 @@ struct TrainerView: View {
             .brandCard()
         }
         .buttonStyle(.plain)
-    }
-
-    private func goalCard(_ plan: TrainerPlan) -> some View {
-        HStack(spacing: 10) {
-            Text(TrainerText.goalGlyph(plan.target))
-                .font(.system(size: 15, weight: .heavy))
-                .foregroundStyle(BrandColors.race)
-                .frame(width: TrainerConstants.goalIconSize, height: TrainerConstants.goalIconSize)
-                .background(BrandColors.raceGlow, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(TrainerText.targetTitle(plan.target)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(TrainerText.goalCaption(plan: plan, weeks: model.weeksToTarget)).font(.caption).foregroundStyle(BrandColors.dim)
-                if let line = TrainerEngine.goalPaceSummary(target: plan.target, paces: plan.paces) {
-                    Text(line).font(.caption).foregroundStyle(BrandColors.dim)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .brandCard()
-    }
-
-    private var weeksText: String {
-        guard let index = model.currentWeekIndex, let total = model.plan?.weeks.count else { return "" }
-        return "semana \(index) de \(total)"
     }
 }
 

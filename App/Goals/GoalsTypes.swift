@@ -22,3 +22,22 @@ struct GoalValues: Equatable {
     var deadline: String?
     var paceSecondsPerKm: Double?
 }
+
+struct GoalStatus: Equatable {
+    let text: String
+    let good: Bool
+}
+
+enum GoalSheet: Identifiable, Hashable {
+    case new
+    case edit(UUID)
+    case all
+
+    var id: String {
+        switch self {
+        case .new: "new"
+        case .edit(let id): id.uuidString
+        case .all: "all"
+        }
+    }
+}

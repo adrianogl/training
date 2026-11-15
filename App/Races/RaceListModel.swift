@@ -22,6 +22,8 @@ import WorkoutAnalysis
     private(set) var upcoming: [RaceRowData] = []
     private(set) var completed: [RaceRowData] = []
     private(set) var summaries: [UUID: CompletedRaceSummary] = [:]
+    private(set) var target: RaceTargetData?
+    private(set) var goals: [GoalSnapshot] = []
     private(set) var isLoaded = false
     private(set) var isStale = false
     private(set) var answerFailed = false
@@ -67,6 +69,8 @@ import WorkoutAnalysis
         upcoming = result.upcoming
         completed = result.completed
         summaries = result.summaries
+        target = result.target
+        goals = result.goals
         isLoaded = true
     }
 
@@ -212,7 +216,17 @@ import WorkoutAnalysis
             )
         }
         let pending = (try? raceCandidates(in: context, today: today)) ?? []
-        return RaceListLoad(candidates: pending, upcoming: upcomingRows, completed: completedRows, summaries: summaries)
+        return RaceListLoad(
+            candidates: pending, upcoming: upcomingRows, completed: completedRows, summaries: summaries,
+            target: upcomingRaces.first.map { target($0.0, day: $0.1, context: context, today: today) },
+            goals: (try? goalSnapshots(context: context, today: today)) ?? []
+        )
+    }
+
+    nonisolated private static func target(_ race: RaceRecord, day: Day, context: ModelContext, today: Day) -> RaceTargetData {
+        let efforts = (try? raceEfforts(context: context, today: today)) ?? []
+        let outlook = raceOutlook(distance: race.distance, raceDay: day, goalSeconds: race.goalSeconds, efforts: efforts, today: today)
+        return RaceTargetBuilder.target(info(race, day: day), todayPrediction: outlook.today, raceDayPrediction: outlook.raceDay?.mid, today: today)
     }
 
     nonisolated static func info(_ race: RaceRecord, day: Day) -> RaceInfo {

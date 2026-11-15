@@ -68,7 +68,6 @@ struct RaceCoursePointsCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .brandCard()
     }
 
     private func km(_ value: Double) -> String {

@@ -49,7 +49,7 @@ import Testing
     @Test func morePathWithSettingsRoundTrip() {
         var path = NavigationPath()
         path.append(AppSection.settings)
-        path.append(SettingsGroup.goals)
+        path.append(SettingsGroup.notice)
         let decoded = NavigationRestoration.decodeNavigationPath(NavigationRestoration.encode(path))
         #expect(NavigationRestoration.encode(decoded) == NavigationRestoration.encode(path))
     }

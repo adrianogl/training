@@ -1,4 +1,5 @@
 import Foundation
+import GarminAPI
 import Insights
 import Metrics
 import TrainingCore
@@ -6,6 +7,19 @@ import TrainingCore
 enum TodayRoute: Hashable, Codable {
     case readiness
     case workout(Int64)
+    case week
+    case lastRun
+}
+
+enum TodayWorkoutSource: Equatable {
+    case garmin(PlannedWorkout)
+    case trainer(TrainerDayRow)
+}
+
+struct TodayWorkoutPick: Equatable {
+    let today: TodayWorkoutSource?
+    let tomorrow: TodayWorkoutSource?
+    var strength: [TrainerStrengthLine] = []
 }
 
 struct LastRunSummary: Equatable, Sendable, Codable {
@@ -30,6 +44,11 @@ struct LastRunSummary: Equatable, Sendable, Codable {
     var heartRateHigh: Bool? = nil
     var similar: [LastRunSimilar]? = nil
     var reading: String? = nil
+}
+
+struct TodayGoalStatus: Equatable {
+    let text: String
+    let good: Bool
 }
 
 struct ReadinessDay: Equatable, Sendable, Codable {

@@ -17,14 +17,14 @@ enum EvolutionConstants {
     static let emptyValue = "—"
     static let loadingCards = "Calculando as séries…"
     static let endAnchor = "evolucao-fim"
-    static let highlightAnchor = "evolucao-destaque"
+    static let metricsAnchor = "evolucao-metricas"
+    static let groupStorageKey = "evolucao-grupo"
     static let gridMinimumWidth: Double = 160
-    static let cardChartHeight: Double = 44
+    static let featuredChartHeight: Double = 120
     static let compactPointLimit = 90
     static let detailChartHeight: Double = 240
     static let monthlyChartHeight: Double = 120
     static let monthlyBars = 12
-    static let horizonCapDays = 60
     static let heatmapWeeks = HeatmapDefaults.weeks
     static let heatmapTitle = "Atividades"
     static let heatmapCellSpacing: Double = 2
@@ -33,36 +33,26 @@ enum EvolutionConstants {
     static let defaultPeriod = MetricPeriod.oneYear
     static let minusSign = "\u{2212}"
 
+    static let summaryTitle = "Resumo do período"
     static let overallTitleWindow = "Estado geral · vs. 3 meses"
-    static let tallyHeight: Double = 10
-    static let tallyFormat = "%d melhoraram · %d estáveis · %d pioraram"
-    static let indicatorsTitle = "Indicadores · de 3 meses atrás para hoje"
-    static let indicatorsLegend = "○ 3 meses · ● hoje · | meta"
-    static let indicatorsFootnote = "Mais à direita é melhor, inclusive nos paces e na previsão."
-    static let dumbbellWidth: Double = 150
-    static let compactDumbbellWidth: Double = 92
-    static let dumbbellHeight: Double = 18
-    static let dumbbellPaddingRatio = 0.15
+    static let historyTitle = "Histórico"
     static let indicatorValueWidth: Double = 76
     static let indicatorDeltaWidth: Double = 58
     static let indicatorGoalWidth: Double = 60
     static let lowerIsBetterIndicators: Set<IndicatorKind> = [.racePrediction, .zone2Pace, .thresholdPace]
     static let metricsTitle = "Métricas"
-    static let sparklineWidth: Double = 96
-    static let compactSparklineWidth: Double = 64
     static let sparklineHeight: Double = 24
-    static let metricValueWidth: Double = 80
-    static let metricChangeWidth: Double = 60
-    static let sparklineMinWidth: Double = 36
     static let monthlyBarHeight: Double = 56
+    static let predictionsGroupTitle = "Previsões"
     static let metricGroups: [MetricGroup] = [
+        MetricGroup(title: "Ritmo e limiar", kinds: [.thresholdPace, .zone2Pace, .thresholdHeartRate]),
         MetricGroup(title: "Capacidade", kinds: [.vo2max, .fitness, .hillStrength, .durability]),
-        MetricGroup(title: "Ritmo e limiar", kinds: [.zone2Pace, .thresholdPace, .thresholdHeartRate]),
         MetricGroup(title: "Volume e carga", kinds: [.monthlyVolume, .loadFocus, .zoneDistribution]),
         MetricGroup(title: "Recuperação", kinds: [.restingHeartRate, .hrv, .sleep, .bodyBattery]),
         MetricGroup(title: "Técnica de corrida", kinds: [.cadence, .groundContact, .verticalOscillation]),
-        MetricGroup(title: "Previsões", kinds: [.prediction5k, .prediction10k, .predictionHalf, .predictionFull]),
+        MetricGroup(title: predictionsGroupTitle, kinds: [.prediction5k, .prediction10k, .predictionHalf, .predictionFull]),
     ]
+    static let groupChipSpacing: Double = 6
     static let heatmapWeekdayLabels = ["S", "", "Q", "", "S", "", "D"]
     static let heatmapLabelWidth: Double = 14
     static let heatmapMonthFormat = "MMM"
@@ -76,13 +66,8 @@ enum EvolutionConstants {
         .sixMonths: "6M", .oneYear: "1 ano", .twoYears: "2 anos", .all: "Tudo",
     ]
     static let periodDays: [MetricPeriod: Int] = [.sixMonths: 182, .oneYear: 365, .twoYears: 730]
-    static let horizonTitles: [ProjectionHorizon: String] = [
-        .untilRace: "Até a prova", .sixMonths: "6 meses", .oneYear: "1 ano",
-    ]
-    static let horizonDays: [ProjectionHorizon: Int] = [.sixMonths: 182, .oneYear: 365]
     static let periodLabel = "Período"
     static let periodPickerWidth: Double = 320
-    static let horizonLabel = "Projeção"
 
     static let cardKinds: [MetricKind] = [
         .vo2max, .zone2Pace, .fitness, .monthlyVolume, .loadFocus, .thresholdPace, .thresholdHeartRate,

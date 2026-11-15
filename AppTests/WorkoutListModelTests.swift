@@ -130,4 +130,80 @@ import Testing
         #expect(result.visible.map(\.id) == [2, 1])
         #expect(result.fromPlanIds == [10])
     }
+
+    @Test func hidesPastPlansFromTheVisibleList() {
+        let result = WorkoutListModel.visiblePlanned(
+            planned: [plan(1, "2026-11-10", "A"), plan(2, "2026-11-16", "B")],
+            rows: [],
+            from: "2026-11-15"
+        )
+        #expect(result.visible.map(\.id) == [2])
+    }
+}
+
+@MainActor
+@Suite struct WorkoutKindFilterTests {
+    private let monday = Calendar(identifier: .gregorian).date(from: DateComponents(year: 2026, month: 11, day: 9, hour: 7))!
+
+    private func records(in container: ModelContainer) throws -> [ActivityRecord] {
+        let context = container.mainContext
+        context.insert(ActivityRecord(activityId: 1, typeKey: "running", name: "Rodagem leve", start: monday, distance: 6_000, duration: 2_100))
+        context.insert(ActivityRecord(activityId: 2, typeKey: "running", name: "Corrida", start: monday.addingTimeInterval(86_400), distance: 9_000, duration: 2_700, workoutName: "Limiar 3 x 2 km"))
+        context.insert(ActivityRecord(activityId: 3, typeKey: "running", name: "Longão", start: monday.addingTimeInterval(5 * 86_400), distance: 18_000, duration: 6_000))
+        context.insert(ActivityRecord(activityId: 4, typeKey: "running", name: "Prova 10 km", start: monday.addingTimeInterval(-2 * 86_400), distance: 10_000, duration: 2_700))
+        try context.save()
+        return try context.fetch(FetchDescriptor<ActivityRecord>())
+    }
+
+    @Test func matchesKindsToFilters() {
+        #expect(WorkoutListModel.matches(.threshold, filter: .quality))
+        #expect(WorkoutListModel.matches(.intervals, filter: .quality))
+        #expect(!WorkoutListModel.matches(.long, filter: .quality))
+        #expect(WorkoutListModel.matches(.long, filter: .long))
+        #expect(WorkoutListModel.matches(.race, filter: .race))
+        #expect(!WorkoutListModel.matches(.easy, filter: .race))
+        #expect(WorkoutKindFilter.allCases.allSatisfy { WorkoutListModel.matches(.easy, filter: $0) == ($0 == .all) })
+    }
+
+    @Test func filtersRowsAndKeepsWeekTotals() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let records = try records(in: container)
+        let weeks = WorkoutListModel.weeks(records: records)
+
+        #expect(WorkoutListModel.filtered(weeks, records: records, by: .all) == weeks)
+
+        let quality = WorkoutListModel.filtered(weeks, records: records, by: .quality)
+        try #require(quality.count == 1)
+        #expect(quality[0].rows.map(\.activityId) == [2])
+        #expect(quality[0].kilometers == 33)
+        #expect(quality[0].runCount == 3)
+        #expect(WorkoutListModel.filtered(weeks, records: records, by: .long).flatMap(\.rows).map(\.activityId) == [3])
+        #expect(WorkoutListModel.filtered(weeks, records: records, by: .race).flatMap(\.rows).map(\.activityId) == [4])
+    }
+
+    @Test func sumsPlannedKilometersPerWeekOverCache() {
+        let plans = [
+            PlannedWorkout(id: 1, day: "2026-11-10", title: "Limiar", estimatedSeconds: nil, estimatedMeters: 9_000, steps: []),
+            PlannedWorkout(id: 2, day: "2026-11-14", title: "Longão", estimatedSeconds: nil, estimatedMeters: 18_500, steps: []),
+            PlannedWorkout(id: 3, day: "2026-11-12", title: "Força", estimatedSeconds: 2_400, estimatedMeters: nil, steps: []),
+        ]
+        let weeks = WorkoutListModel.plannedKilometers(
+            planned: plans,
+            cached: ["2026-11-09": 20, "2026-11-02": 40.5, "2026-10-26": 0]
+        )
+
+        #expect(weeks == [Day(iso: "2026-11-09")!: 27.5, Day(iso: "2026-11-02")!: 40.5])
+    }
+
+    @Test func weekSummaryShowsDoneOverPlanned() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let records = try records(in: container)
+        let weeks = WorkoutListModel.weeks(records: records, plannedKilometers: [Day(iso: "2026-11-09")!: 40])
+
+        try #require(weeks.count == 2)
+        #expect(WorkoutListModel.weekSummary(weeks[0]) == "33,0 de 40,0 km · 3 corridas")
+        #expect(weeks[0].plannedProgress == 33.0 / 40)
+        #expect(weeks[1].plannedProgress == nil)
+        #expect(WorkoutListModel.weekSummary(weeks[1]) == "10,0 km · 1 corrida")
+    }
 }

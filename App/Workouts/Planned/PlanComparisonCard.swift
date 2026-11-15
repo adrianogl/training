@@ -4,6 +4,7 @@ struct PlanComparisonCard: View {
     let rows: [BriefingComparison]
     let note: String?
     var title = PlannedViewConstants.comparison
+    var framed = true
 
     private typealias C = PlannedViewConstants
 
@@ -43,6 +44,6 @@ struct PlanComparisonCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .brandCard()
+        .brandCard(framed: framed)
     }
 }

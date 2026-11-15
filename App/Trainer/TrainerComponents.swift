@@ -112,17 +112,11 @@ struct TrainerDayRowView: View {
 
 struct TrainerWeekStrip: View {
     let cells: [TrainerWeekCell]
-    let weeksText: String
     let onToggleLight: (Day) -> Void
     let onSelect: (Day) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                SectionLabel(TrainerText.weeksLabel).padding(.vertical, 0)
-                Spacer()
-                Text(weeksText).font(.caption).foregroundStyle(BrandColors.dim)
-            }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: TrainerConstants.stripSpacing) {
                     ForEach(cells) { cell in
@@ -145,7 +139,6 @@ struct TrainerWeekStrip: View {
                 }
             }
         }
-        .brandCard()
     }
 }
 

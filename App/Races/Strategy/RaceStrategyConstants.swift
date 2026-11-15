@@ -1,9 +1,8 @@
 enum RaceStrategyConstants {
     static let bandSeconds = 5.0
-    static let title = "Estratégia no relógio"
     static let detailFormat = "Envia %d passos, um por km, com o pace alvo ±%d s/km, agendados no dia da prova."
     static let needsLogin = "Entre na conta Garmin em Ajustes para enviar."
-    static let send = "Enviar"
+    static let send = "Enviar ao Garmin"
     static let confirmTitle = "Enviar a estratégia para o Garmin?"
     static let confirmAction = "Enviar e agendar"
     static let confirmMessageFormat = "Cria um treino na sua conta do Garmin Connect e agenda para %@. Ele aparece no relógio no próximo sync."

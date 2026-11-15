@@ -98,16 +98,6 @@ import TrainingCore
         store([:])
     }
 
-    var predictionContent: RacePredictionContent {
-        RacePredictionContent(
-            race: outlook,
-            today: today,
-            countdownDays: info.map { today.days(until: $0.day) },
-            priority: info?.priority.rawValue,
-            historyDays: TodayConstants.predictionHistoryDays
-        )
-    }
-
     var goalSummary: GoalSummary? {
         guard let info, let goal = info.goalSeconds, goal > 0 else { return nil }
         let reference: (Double, AssessmentReference)? = outlook.raceDay.map { ($0.mid, .raceDayProjection) }
@@ -119,10 +109,6 @@ import TrainingCore
             raceDaySeconds: outlook.raceDay?.mid,
             sentence: reference.flatMap { RacesText.assessmentSentence(goalSeconds: goal, referenceSeconds: $0.0, reference: $0.1) }
         )
-    }
-
-    var headerText: String? {
-        info.map { RacesText.header(priority: $0.priority.rawValue, day: $0.day, today: today) }
     }
 
     var targetText: String? {

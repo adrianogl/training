@@ -19,22 +19,21 @@ struct NextRaceView: View {
                 }
                 if let model, model.isLoaded, let info = model.info {
                     header(model, info: info)
-                    AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
+                    heroCard(model, info: info)
+                    SectionHeader(RacesConstants.readySection)
                     pair {
-                        goalTile(model, info: info)
                         RaceChecklistCard(items: model.checklist)
-                    }
-                    if let taper = model.taper {
-                        RaceTaperCard(plan: taper)
-                    }
-                    PaceStrategyCard(model: model)
-                    RaceStrategyUploadCard(info: info, strategy: model.strategy, client: app.garminAccount.client)
-                    RaceCoursePointsCard(raceId: info.id, distance: info.distance, profile: model.profile, targetSeconds: model.target?.seconds ?? info.goalSeconds)
-                    pair {
                         RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading, longest: model.weeklyLongest)
                             .id(RacesConstants.blockAnchor)
-                        RacePredictionCard(content: model.predictionContent)
                     }
+                    if let taper = model.taper {
+                        SectionHeader(RacesConstants.taperSection)
+                        RaceTaperCard(plan: taper)
+                    }
+                    SectionHeader(RacesConstants.raceDaySection)
+                    RaceDayCard(model: model, info: info, client: app.garminAccount.client)
+                    AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
+                        .padding(.top, 8)
                     Color.clear.frame(height: 1).id(RacesConstants.endAnchor)
                 } else if model?.isLoaded == true {
                     Text(RacesConstants.emptyList).foregroundStyle(BrandColors.dim)
@@ -104,7 +103,7 @@ struct NextRaceView: View {
 
     private func header(_ model: NextRaceModel, info: RaceInfo) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(model.headerText ?? "")
+            Text(String(format: RacesConstants.priorityFormat, info.priority.rawValue))
                 .font(.caption.weight(.medium))
                 .tracking(1)
                 .textCase(.uppercase)
@@ -119,26 +118,46 @@ struct NextRaceView: View {
         }
     }
 
-    private func goalTile(_ model: NextRaceModel, info: RaceInfo) -> some View {
-        let days = model.today.days(until: info.day)
+    private func heroCard(_ model: NextRaceModel, info: RaceInfo) -> some View {
+        let target = RaceTargetBuilder.target(info, todayPrediction: model.outlook.today, raceDayPrediction: model.outlook.raceDay?.mid, today: model.today)
         return VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(RacesConstants.goalTileTitle).padding(.top, 0).padding(.bottom, 0)
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("\(max(days, 0))")
-                    .font(BrandFonts.number(TodayConstants.compactCountdownFontSize))
+            HStack(alignment: .firstTextBaseline) {
+                Text("\(target.dateText) · \(target.distanceText)")
+                    .font(.caption.weight(.semibold))
+                    .tracking(1)
+                    .textCase(.uppercase)
+                    .foregroundStyle(BrandColors.dim)
+                Spacer()
+                Text("\(target.days)")
+                    .font(BrandFonts.number(RacesConstants.targetDaysFontSize))
                     .foregroundStyle(BrandColors.race)
-                Text(RacesConstants.daysLabel).foregroundStyle(BrandColors.dim)
-                if let pace = model.goalSummary?.goalPaceText {
-                    Text(pace).font(.subheadline).foregroundStyle(BrandColors.dim)
-                }
+                Text(RacesConstants.daysLabel).font(.caption).foregroundStyle(BrandColors.dim)
             }
-            GoalBulletChart(today: model.outlook.today, raceDay: model.outlook.raceDay?.mid, goal: info.goalSeconds)
+            HStack(alignment: .top, spacing: 16) {
+                heroValue(RacesConstants.predictionLabel, seconds: target.predictionSeconds, color: BrandColors.text)
+                heroValue(RacesConstants.goalLabel, seconds: target.goalSeconds, color: BrandColors.accent)
+            }
+            let caption = [target.gapText, model.goalSummary?.goalPaceText].compactMap { $0 }.joined(separator: " · ")
+            if !caption.isEmpty {
+                Text(caption).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
+            }
             Text(model.goalSummary?.sentence ?? (info.goalSeconds == nil ? RacesConstants.noGoal : RacesConstants.noPredictionForGoal))
                 .font(.footnote)
                 .foregroundStyle(BrandColors.text.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .brandCard(fillsHeight: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
+    }
+
+    private func heroValue(_ label: String, seconds: Double?, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label).font(.caption).foregroundStyle(BrandColors.dim)
+            Text(seconds.map(WorkoutFormat.clock) ?? "—")
+                .font(BrandFonts.number(RacesConstants.heroClockFontSize))
+                .foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder

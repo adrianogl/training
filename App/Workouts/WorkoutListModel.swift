@@ -12,7 +12,7 @@ enum WorkoutListModel {
             .map(row)
     }
 
-    static func weeks(records: [ActivityRecord]) -> [WorkoutWeek] {
+    static func weeks(records: [ActivityRecord], plannedKilometers: [Day: Double] = [:]) -> [WorkoutWeek] {
         var order: [Day] = []
         var grouped: [Day: [WorkoutRowData]] = [:]
         for row in rows(records: records) {
@@ -21,11 +21,54 @@ enum WorkoutListModel {
         }
         return order.map { start in
             let rows = grouped[start] ?? []
-            return WorkoutWeek(start: start, kilometers: rows.reduce(0) { $0 + ($1.kilometers ?? 0) }, rows: rows)
+            return WorkoutWeek(
+                start: start,
+                kilometers: rows.reduce(0) { $0 + ($1.kilometers ?? 0) },
+                rows: rows,
+                runCount: rows.count,
+                plannedKilometers: plannedKilometers[start]
+            )
         }
     }
 
-    static func visiblePlanned(planned: [PlannedWorkout], rows: [WorkoutRowData]) -> PlannedVisibility {
+    static func filtered(_ weeks: [WorkoutWeek], records: [ActivityRecord], by filter: WorkoutKindFilter) -> [WorkoutWeek] {
+        guard filter != .all else { return weeks }
+        let byId = Dictionary(records.map { ($0.activityId, $0) }) { first, _ in first }
+        return weeks.compactMap { week in
+            let rows = week.rows.filter { row in byId[row.activityId].map { matches(kind($0), filter: filter) } ?? false }
+            guard !rows.isEmpty else { return nil }
+            return WorkoutWeek(start: week.start, kilometers: week.kilometers, rows: rows, runCount: week.runCount, plannedKilometers: week.plannedKilometers)
+        }
+    }
+
+    static func kind(_ record: ActivityRecord) -> SessionKind {
+        SessionKind(run: classifyRun(record, longGoalKm: nil, raceGoalKms: []))
+    }
+
+    static func matches(_ kind: SessionKind, filter: WorkoutKindFilter) -> Bool {
+        switch filter {
+        case .all: true
+        case .quality: kind.isQuality
+        case .long: kind == .long
+        case .race: kind == .race
+        }
+    }
+
+    static func plannedKilometers(planned: [PlannedWorkout], cached: [String: Double]) -> [Day: Double] {
+        var weeks: [Day: Double] = [:]
+        for (iso, km) in cached where km > 0 {
+            if let start = Day(iso: iso) { weeks[start] = km }
+        }
+        var fetched: [Day: Double] = [:]
+        for plan in planned {
+            guard let start = Day(iso: plan.day)?.weekStart, let meters = plan.estimatedMeters, meters > 0 else { continue }
+            fetched[start, default: 0] += meters / WorkoutConstants.metersPerKilometer
+        }
+        weeks.merge(fetched) { _, new in new }
+        return weeks
+    }
+
+    static func visiblePlanned(planned: [PlannedWorkout], rows: [WorkoutRowData], from today: String = "") -> PlannedVisibility {
         let byDay = Dictionary(grouping: rows, by: \.dayIso)
         var fromPlan: Set<Int64> = []
         var visible: [PlannedWorkout] = []
@@ -35,7 +78,7 @@ enum WorkoutListModel {
                 ?? (sameDay.count == 1 ? sameDay.first : nil)
             if let match {
                 fromPlan.insert(match.activityId)
-            } else {
+            } else if plan.day >= today {
                 visible.append(plan)
             }
         }
@@ -55,9 +98,15 @@ enum WorkoutListModel {
 
     static func weekSummary(_ week: WorkoutWeek) -> String {
         let km = TodayText.decimal(week.kilometers, fractionDigits: 1)
-        return week.rows.count == 1
+        if week.plannedProgress != nil, let planned = week.plannedKilometers {
+            let plannedText = TodayText.decimal(planned, fractionDigits: 1)
+            return week.runCount == 1
+                ? String(format: WorkoutConstants.weekPlannedSingular, km, plannedText)
+                : String(format: WorkoutConstants.weekPlannedFormat, km, plannedText, week.runCount)
+        }
+        return week.runCount == 1
             ? String(format: WorkoutConstants.weekSummarySingular, km)
-            : String(format: WorkoutConstants.weekSummaryFormat, km, week.rows.count)
+            : String(format: WorkoutConstants.weekSummaryFormat, km, week.runCount)
     }
 
     static func row(_ record: ActivityRecord) -> WorkoutRowData {

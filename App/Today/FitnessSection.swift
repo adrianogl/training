@@ -1,16 +1,21 @@
 import Charts
 import SwiftUI
 
-struct FitnessCard: View {
+struct FitnessSection: View {
     let model: TodayModel
 
     var body: some View {
         let fitness = model.summary.fitness
-        let hasRace = model.raceDay != nil
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(hasRace ? TodayConstants.fitnessTitleWithRace : TodayConstants.fitnessTitleWithoutRace)
-                .padding(.top, 0)
-                .padding(.bottom, 0)
+            HStack(alignment: .firstTextBaseline) {
+                Text(TodayConstants.outlookFitnessTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                Spacer()
+                if let form = fitness.raceDayForm {
+                    Text(String(format: TodayConstants.outlookFitnessFormat, TodayText.signed(form)))
+                        .font(BrandFonts.number(15))
+                        .foregroundStyle(BrandColors.accent)
+                }
+            }
             if fitness.history.isEmpty {
                 Text(TodayConstants.fitnessEmpty)
                     .font(.subheadline)
@@ -19,22 +24,18 @@ struct FitnessCard: View {
                 HStack(alignment: .top) {
                     stat(fitness.history.last.map { TodayText.decimal($0.fitness, fractionDigits: 0) }, TodayConstants.fitnessNow, BrandColors.fitness)
                     stat(fitness.peakFitness.map { TodayText.decimal($0, fractionDigits: 0) }, TodayConstants.fitnessPeak, BrandColors.fitness)
-                    if hasRace {
-                        stat(fitness.raceDayForm.map { TodayText.signed($0) }, TodayConstants.fitnessRaceForm, BrandColors.accent)
-                    }
                 }
                 chart
                 HStack(spacing: 14) {
                     legend(TodayConstants.fitnessLegendFitness, BrandColors.fitness)
                     legend(TodayConstants.fitnessLegendForm, BrandColors.form)
-                    if hasRace { legend(TodayConstants.fitnessLegendRace, BrandColors.race) }
+                    legend(TodayConstants.fitnessLegendRace, BrandColors.race)
                     Text(TodayConstants.fitnessLegendProjection)
                 }
                 .font(.caption2)
                 .foregroundStyle(BrandColors.dim)
             }
         }
-        .brandCard()
     }
 
     private var chart: some View {
@@ -67,7 +68,7 @@ struct FitnessCard: View {
 
     private func stat(_ value: String?, _ label: String, _ color: Color) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(value ?? "—").font(BrandFonts.number(30)).foregroundStyle(color)
+            Text(value ?? "—").font(BrandFonts.number(22)).foregroundStyle(color)
             Text(label).font(.caption).foregroundStyle(BrandColors.dim)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

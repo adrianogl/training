@@ -5,6 +5,7 @@ struct WorkoutAnalysisCard: View {
     let summary: WorkoutAnalysisSummary
     let activityId: Int64
     let goalEntries: [WorkoutGoalEntry]
+    var framed = true
     @State private var showsAll = false
     @State private var coach: String?
     @State private var isGenerating = false
@@ -39,7 +40,7 @@ struct WorkoutAnalysisCard: View {
             }
             detailedLink
         }
-        .brandCard()
+        .brandCard(framed: framed)
         .task(id: summary) { await generateCoach() }
     }
 

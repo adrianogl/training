@@ -52,6 +52,31 @@ private final class RouteTransport: HTTPTransport {
         #expect(!transport.paths.withLock { $0 }.contains("/workout-service/workout/12"))
     }
 
+    @Test func sundayKeepsNextMondayAsTomorrowOutsideTheWeek() async throws {
+        let today = Day(year: 2026, month: 11, day: 15)
+        let calendar = """
+        {"calendarItems":[
+         {"itemType":"workout","date":"2026-11-14","title":"Longão","workoutId":11,"sportTypeKey":"running"},
+         {"itemType":"workout","date":"2026-11-16","title":"Rodagem","workoutId":13,"sportTypeKey":"running"}
+        ]}
+        """
+        let transport = RouteTransport([
+            "/calendar-service/year/2026/month/10": calendar,
+            "/workout-service/workout/11": #"{"workoutId":11,"workoutName":"Longão 18 km","estimatedDistanceInMeters":18000,"workoutSegments":[]}"#,
+            "/workout-service/workout/13": #"{"workoutId":13,"workoutName":"Rodagem 10 km","estimatedDistanceInMeters":10000,"workoutSegments":[]}"#,
+        ])
+        let store = KeychainGarminSessionStore(keychain: MemoryKeyStore())
+        try store.save(GarminAccountSession(accessToken: "t", refreshToken: "r", clientId: "C", expiresAt: .distantFuture))
+        let model = TodayModel(container: try TrainingSchema.container(inMemory: true), today: today)
+
+        await model.loadPlanned(client: GarminAccountClient(transport: transport, store: store))
+
+        #expect(model.todayPlan == nil)
+        #expect(model.tomorrowPlan?.title == "Rodagem 10 km")
+        #expect(model.planned[Day(year: 2026, month: 11, day: 16)] == nil)
+        #expect(model.plannedSessions().contains { $0.day == Day(year: 2026, month: 11, day: 16) })
+    }
+
     @Test func withoutAccountNothingIsLoaded() async throws {
         let model = TodayModel(container: try TrainingSchema.container(inMemory: true), today: Day(year: 2026, month: 11, day: 13))
         await model.loadPlanned(client: nil)

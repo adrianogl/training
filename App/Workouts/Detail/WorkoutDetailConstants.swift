@@ -80,6 +80,11 @@ enum WorkoutDetailConstants {
     static let analysisNone = "Nenhum"
     static let shareTitle = "Compartilhar"
     static let shareSymbol = "square.and.arrow.up"
+    static let actionsTitle = "Ações"
+    static let actionsSymbol = "ellipsis.circle"
+    static let sectionHowItWent = "Como foi"
+    static let sectionWorkout = "O treino"
+    static let sectionComparison = "Comparação"
     static let similarChartPadding = 4.0
     static let similarChartMinimumRuns = 2
     static let similarChartHeight: CGFloat = 130

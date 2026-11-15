@@ -43,11 +43,8 @@ enum TodayConstants {
     static let rulerModerate = "moderado"
     static let rulerHard = "forte"
 
-    static let fitnessTitleWithRace = "Fitness · até a prova"
-    static let fitnessTitleWithoutRace = "Fitness"
     static let fitnessNow = "hoje"
     static let fitnessPeak = "pico"
-    static let fitnessRaceForm = "forma no dia"
     static let fitnessEmpty = "Ainda sem treinos com carga para calcular o fitness."
 
     static let predictionTitle = "Previsão"
@@ -96,7 +93,7 @@ enum TodayConstants {
 
     static let sidebarRaceTitle = "Prova-alvo"
 
-    static let topRowWeights: [Double] = [3, 2]
+    static let overloadTintOpacity = 0.12
     static let rowSpacing: Double = 12
     static let heroGaugeSize: Double = 150
     static let compactGaugeSize: Double = 112
@@ -115,17 +112,14 @@ enum TodayConstants {
     static let driverDown = "puxa para baixo"
     static let driverUp = "puxa para cima"
     static let stressContextFormat = "Stress do dia %d · entra só como contexto"
-    static let countdownFontSize: Double = 72
     static let compactCountdownFontSize: Double = 60
     static let daysLabel = "dias"
-    static let weekStripHeight: Double = 6
     static let weeksLeftJoin = " e "
     static let weeksLeftSuffix = " de treino"
     static let weekSingular = "semana"
     static let weekPlural = "semanas"
     static let daySingular = "dia"
     static let dayPlural = "dias"
-    static let raceDayFormLabel = "forma prevista no dia"
     static let bulletHeight: Double = 76
     static let bulletTrackHeight: Double = 10
     static let bulletPaddingRatio = 0.25
@@ -137,17 +131,7 @@ enum TodayConstants {
     static let bulletLabelInset = 32.0
     static let bulletLabelGap = 64.0
     static let bulletFaster = "mais rápido →"
-    static let calendarTitle = "Semana de treino"
-    static let calendarRest = "Descanso"
-    static let calendarFuture = "—"
-    static let calendarCellMinHeight: Double = 122
-    static let calendarCompactCellWidth: Double = 116
-    static let calendarCornerRadius: Double = 14
-    static let calendarDoneTintOpacity = 0.12
     static let calendarDash: [CGFloat] = [4, 3]
-    static let calendarDayFormat = "EEE d"
-    static let calendarScoreFormat = "nota %d"
-    static let calendarSummaryFormat = "%@ km em %d corridas"
     static let zoneStripHeight: Double = 4
     static let volumeTitle = "Volume semanal"
     static let volumeChartHeight: Double = 190
@@ -173,13 +157,29 @@ enum TodayConstants {
     static let volumeTitlePlanned = "Volume semanal · planejado × realizado"
     static let adherenceGood = 0.95
     static let adherenceFormat = "%d%%"
-    static let calendarGoalFormat = " · meta %d km"
     static let volumeWeekFormat = "d MMM"
-    static let predictionsDistance = "distância"
-    static let predictionsToday = "hoje"
-    static let predictionsYearAgo = "vs. 12 meses"
-    static let trendTitle = "Tendência"
+    static let blockLabelTopInset: Double = 20
+    static let blockLabelBottomInset: Double = 4
+    static let blockNow = "Como estou"
+    static let blockToday = "O que faço hoje"
+    static let blockWeek = "Como vai a semana"
+    static let blockOutlook = "Onde vou chegar"
+    static let outlookPredictionLabels = ["5 km", "10 km", "21,1 km"]
+    static let outlookRaceFormat = "Prova-alvo · %@"
+    static let outlookGoalTodayFormat = "hoje %@"
+    static let outlookLongRunsFormat = "%d de %d longões"
+    static let outlookFitnessTitle = "Forma até a prova"
+    static let outlookFitnessFormat = "%@ no dia"
+    static let outlookDividerPadding: Double = 2
     static let planTitle = "Treino de hoje"
+    static let workoutSourceGarmin = "Garmin"
+    static let workoutSourceTrainer = "seu treinador"
+    static let workoutTitleFormat = "%@ · %@"
+    static let workoutTomorrow = "amanhã"
+    static let workoutTomorrowPrefix = "Amanhã"
+    static let workoutNothingTomorrow = "Nada planejado para amanhã."
+    static let workoutReadinessFormat = "prontidão %d"
+    static let workoutBestTimeTitle = "Melhor horário amanhã"
     static let planEstimateFormat = "%@ km · ~%@"
     static let planStepNames: [PlannedStepKind: String] = [
         .warmup: "Aquecimento", .active: "Bloco", .recovery: "Recuperação", .cooldown: "Desaquecimento", .rest: "Descanso", .other: "Passo",
@@ -198,7 +198,4 @@ enum TodayConstants {
         .moderate: "Prontidão moderada: faça os blocos fortes no lado mais lento da faixa e pare um bloco antes se a FC subir demais.",
         .rest: "Prontidão baixa: troque por rodagem leve em Z1–Z2 ou descanse hoje.",
     ]
-    static let calendarPlannedLabel = "planejado"
-    static let calendarPlannedFormat = "planejado %@ km"
-    static let calendarDonePlannedFormat = "%@ km feitos de %@ km planejados"
 }

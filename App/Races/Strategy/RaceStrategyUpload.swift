@@ -17,7 +17,7 @@ enum RaceStrategyUpload {
     }
 }
 
-struct RaceStrategyUploadCard: View {
+struct RaceStrategyUploadButton: View {
     let info: RaceInfo
     let strategy: [KmPlan]
     let client: GarminAccountClient?
@@ -28,32 +28,30 @@ struct RaceStrategyUploadCard: View {
     private typealias C = RaceStrategyConstants
 
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Image(systemName: "applewatch.radiowaves.left.and.right")
-                .font(.title2)
-                .foregroundStyle(BrandColors.accent)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(C.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(message ?? (client == nil ? C.needsLogin : String(format: C.detailFormat, strategy.count, Int(C.bandSeconds))))
-                    .font(.caption)
-                    .foregroundStyle(BrandColors.dim)
-                    .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 6) {
+            Button { confirming = true } label: {
+                HStack(spacing: 8) {
+                    if sending {
+                        BrandLoader(size: .mini)
+                    } else {
+                        Image(systemName: "applewatch.radiowaves.left.and.right")
+                    }
+                    Text(C.send)
+                }
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(BrandColors.onAccent)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(BrandColors.accentFill, in: Capsule())
             }
-            Spacer(minLength: 8)
-            if sending {
-                BrandLoader(size: .mini)
-            } else {
-                Button(C.send) { confirming = true }
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(BrandColors.onAccent)
-                    .padding(.horizontal, 12).padding(.vertical, 7)
-                    .background(BrandColors.accentFill, in: Capsule())
-                    .buttonStyle(.plain)
-                    .disabled(client == nil || strategy.isEmpty)
-                    .opacity(client == nil || strategy.isEmpty ? 0.4 : 1)
-            }
+            .buttonStyle(.plain)
+            .disabled(sending || client == nil || strategy.isEmpty)
+            .opacity(client == nil || strategy.isEmpty ? 0.4 : 1)
+            Text(message ?? (client == nil ? C.needsLogin : String(format: C.detailFormat, strategy.count, Int(C.bandSeconds))))
+                .font(.caption)
+                .foregroundStyle(BrandColors.dim)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .brandCard()
         .confirmationDialog(C.confirmTitle, isPresented: $confirming, titleVisibility: .visible) {
             Button(C.confirmAction) { send() }
             Button(RacesConstants.cancel, role: .cancel) {}

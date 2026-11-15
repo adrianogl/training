@@ -12,7 +12,6 @@ enum TrainerText {
     static let emptyTitle = "Nenhum plano ainda"
     static let emptyBody = "O treinador monta duas semanas de treino por distância, com a estrutura da sua semana, e revê o plano a cada semana e depois de treinos fora do previsto."
     static let upcoming = "Semanas"
-    static let weeksLabel = "Até a prova"
     static let askButton = "Pedir readequação"
     static let updatedBanner = "Plano atualizado"
     static let updatedAction = "ver o que mudou ›"
@@ -149,7 +148,6 @@ enum TrainerText {
     static let textPlaceholder = "Ex.: fechar o longão de 18 km sem parar"
     static let deadlineToggle = "Tem prazo"
     static let deadlineLabel = "Prazo"
-    static let weekGridTitle = "Semana"
     static let pacesTitle = "Paces do seu histórico"
     static func paceSource(_ name: String, pace: Double, source: TrainerPaceSource?, runs: Int?, work: String) -> String? {
         guard source == .work, let runs else { return nil }

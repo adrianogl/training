@@ -3,6 +3,7 @@ import SwiftUI
 struct ScoreSummaryCard: View {
     let value: Int
     let rows: [ScoreRowData]
+    var framed = true
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = WorkoutDetailConstants
@@ -45,7 +46,7 @@ struct ScoreSummaryCard: View {
                 FlowChips(items: reasons.map { ($0.text, $0.full ? BrandColors.accent : BrandColors.attention) })
             }
         }
-        .brandCard(fillsHeight: true)
+        .brandCard(framed: framed, fillsHeight: true)
     }
 
     private func color(_ row: ScoreRowData) -> Color {

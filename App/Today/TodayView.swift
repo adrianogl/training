@@ -67,9 +67,15 @@ struct TodayView: View {
             .navigationDestination(for: TodayRoute.self) { route in
                 switch route {
                 case .readiness:
-                    if let model { ReadinessDetailView(model: model) }
+                    if let model { ReadinessDetailView(model: model, recovery: model.recoveryEstimate(trainer: trainerWorkouts)) }
                 case .workout(let id):
                     WorkoutDetailView(activityId: id)
+                case .week:
+                    if let model { TodayWeekDetailView(model: model, trainer: trainerWorkouts, goal: weeklyGoal) }
+                case .lastRun:
+                    if let model, let lastRun = model.lastRun {
+                        LastRunDetailView(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
+                    }
                 }
             }
         }
@@ -106,56 +112,72 @@ struct TodayView: View {
     @ViewBuilder
     private func cards(_ model: TodayModel) -> some View {
         let spacing = TodayConstants.rowSpacing
-        VStack(alignment: .leading, spacing: spacing) {
-            if let days = model.summary.raceCountdownDays {
-                row(weights: TodayConstants.topRowWeights) {
-                    ReadinessHeroCard(model: model)
-                    RaceCountdownCard(model: model, days: days)
+        if sizeClass == .regular {
+            ProportionalHStack(weights: [1, 1], spacing: spacing) {
+                VStack(alignment: .leading, spacing: spacing) {
+                    nowBlock(model)
+                    todayBlock(model)
                 }
-            } else {
-                ReadinessHeroCard(model: model)
-            }
-            TrainerTodayCard(
-                trainer: app.trainer, score: model.summary.readiness?.score ?? model.fallbackScore,
-                factor: TrainerModel.lowestFactor(model.summary.readiness)
-            )
-            if !model.goals.isEmpty {
-                GoalsCard(snapshots: model.goals)
-            }
-            if let plan = model.todayPlan {
-                TodayPlanCard(plan: plan, verdict: model.summary.verdict)
-            }
-            if let overload = model.overload {
-                OverloadCard(alert: overload)
-            }
-            if let report = model.weeklyReport(trainer: trainerWorkouts) {
-                WeeklyReportCard(report: report)
-            }
-            if let run = model.recoveryRun {
-                RecoveryCard(
-                    estimate: RecoveryEstimator.estimate(run: run, readiness: model.summary.readiness?.score, sessions: model.plannedSessions(trainer: trainerWorkouts), now: .now)
-                )
-            }
-            WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal, planned: model.planned)
-            VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal, planned: model.plannedWeeks)
-            row(weights: [1, 1]) {
-                if let lastRun = model.lastRun {
-                    LastRunCard(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
+                .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: spacing) {
+                    weekBlock(model)
+                    outlookBlock(model)
                 }
-                PredictionsCard(predictions: model.summary.predictions)
+                .fixedSize(horizontal: false, vertical: true)
             }
-            SectionLabel(TodayConstants.trendTitle)
-            FitnessCard(model: model).id(TodayConstants.endAnchor)
+        } else {
+            VStack(alignment: .leading, spacing: spacing) {
+                nowBlock(model)
+                todayBlock(model)
+                weekBlock(model)
+                outlookBlock(model)
+            }
         }
     }
 
     @ViewBuilder
-    private func row<Content: View>(weights: [Double], @ViewBuilder content: () -> Content) -> some View {
-        if sizeClass == .regular {
-            ProportionalHStack(weights: weights, spacing: TodayConstants.rowSpacing) { content() }
-        } else {
-            VStack(spacing: TodayConstants.rowSpacing) { content() }
+    private func nowBlock(_ model: TodayModel) -> some View {
+        blockLabel(TodayConstants.blockNow, first: true)
+        ReadinessHeroCard(model: model, overload: model.overload, recovery: model.recoveryEstimate(trainer: trainerWorkouts))
+    }
+
+    @ViewBuilder
+    private func todayBlock(_ model: TodayModel) -> some View {
+        if let pick = workoutPick(model) {
+            blockLabel(TodayConstants.blockToday)
+            TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick)
         }
+    }
+
+    @ViewBuilder
+    private func weekBlock(_ model: TodayModel) -> some View {
+        blockLabel(TodayConstants.blockWeek, first: sizeClass == .regular)
+        TodayWeekCard(report: model.shownWeekReport(trainer: trainerWorkouts), isClosed: model.shownWeek.isClosed, series: model.volumeSeries)
+        if let lastRun = model.lastRun {
+            LastRunCompactCard(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
+        }
+    }
+
+    @ViewBuilder
+    private func outlookBlock(_ model: TodayModel) -> some View {
+        blockLabel(TodayConstants.blockOutlook)
+        TodayOutlookCard(model: model).id(TodayConstants.endAnchor)
+    }
+
+    private func blockLabel(_ text: String, first: Bool = false) -> some View {
+        SectionHeader(text)
+            .padding(.top, first ? -TodayConstants.blockLabelTopInset : 0)
+            .padding(.bottom, -TodayConstants.blockLabelBottomInset)
+    }
+
+    private func workoutPick(_ model: TodayModel) -> TodayWorkoutPick? {
+        let trainer = app.trainer
+        return TodayWorkoutPicker.pick(
+            garminToday: model.todayPlan,
+            trainerToday: trainer.row(for: model.today.iso),
+            garminTomorrow: model.tomorrowPlan,
+            trainerTomorrow: trainer.row(for: model.today.adding(days: 1).iso)
+        )
     }
 
     private static func debugScrollsToEnd(defaults: UserDefaults = .standard) -> Bool {

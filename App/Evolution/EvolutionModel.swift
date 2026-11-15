@@ -29,24 +29,19 @@ import TrainingCore
     private(set) var isLoaded = false
     private(set) var isLoadingCards = false
     private(set) var isStale = false
-    var horizon = ProjectionHorizon.untilRace
 
     init(
-        container: ModelContainer, today: Day, period: MetricPeriod = C.defaultPeriod, horizon: ProjectionHorizon = .untilRace,
-        snapshots: ScreenSnapshotStore? = nil
+        container: ModelContainer, today: Day, period: MetricPeriod = C.defaultPeriod, snapshots: ScreenSnapshotStore? = nil
     ) {
         self.container = container
         self.today = today
         self.period = period
-        self.horizon = horizon
         self.snapshots = snapshots
     }
 
-    static func restored(
-        container: ModelContainer, horizon: ProjectionHorizon, snapshots: ScreenSnapshotStore
-    ) async -> EvolutionModel? {
+    static func restored(container: ModelContainer, snapshots: ScreenSnapshotStore) async -> EvolutionModel? {
         guard let snapshot = await snapshots.read(EvolutionSnapshot.self, for: .evolution) else { return nil }
-        let model = EvolutionModel(container: container, today: snapshot.today, period: snapshot.period, horizon: horizon, snapshots: snapshots)
+        let model = EvolutionModel(container: container, today: snapshot.today, period: snapshot.period, snapshots: snapshots)
         model.apply(snapshot.overview)
         model.cardData = snapshot.cards
         model.isStale = true
@@ -93,24 +88,6 @@ import TrainingCore
 
     var indicators: [IndicatorDumbbellData] {
         EvolutionText.dumbbells(overall: overall, outlook: outlook)
-    }
-
-    var highlight: RacePredictionContent {
-        RacePredictionContent(
-            race: outlook,
-            today: today,
-            countdownDays: raceContext.countdownDays,
-            priority: raceContext.priority,
-            historyDays: C.periodDays[period],
-            projectionDays: projectionDays
-        )
-    }
-
-    var projectionDays: Int? {
-        switch horizon {
-        case .untilRace: raceContext.countdownDays == nil ? C.horizonCapDays : nil
-        case .sixMonths, .oneYear: C.horizonDays[horizon]
-        }
     }
 
     var heatmapColumns: [[HeatmapCell]] {

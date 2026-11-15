@@ -13,6 +13,13 @@ enum WeeklyReportBuilder {
         }
     }
 
+    static func shownWeek(today: Day, calendar: Calendar = .current) -> ShownWeek {
+        guard let week = reportWeek(today: today, calendar: calendar) else {
+            return ShownWeek(start: today.weekStart, isCurrent: true, isClosed: false)
+        }
+        return ShownWeek(start: week.start, isCurrent: week.isCurrent, isClosed: true)
+    }
+
     static func report(
         start: Day,
         isCurrent: Bool,

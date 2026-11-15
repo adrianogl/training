@@ -5,8 +5,19 @@ import os
 
 enum RacesConstants {
     static let logger = Logger(subsystem: "trAIning", category: "Races")
-    static let title = "Provas"
-    static let goalTileTitle = "Meta vs. previsão"
+    static let title = "Provas e metas"
+    static let targetTitle = "Prova-alvo"
+    static let predictionLabel = "previsão"
+    static let goalsTitle = "Metas"
+    static let priorityFormat = "prova %@"
+    static let targetDaysFontSize: Double = 26
+    static let targetClockFontSize: Double = 15
+    static let heroClockFontSize: Double = 28
+    static let shortDateFormat = "%02d/%02d"
+    static let goalGapFormat = "%@ da meta"
+    static let readySection = "Estou pronto?"
+    static let taperSection = "Semana da prova"
+    static let raceDaySection = "No dia"
     static let daysLabel = "dias"
     static let eveShort = "véspera"
     static let resultShort = "resultado"
@@ -20,15 +31,14 @@ enum RacesConstants {
     static let upcomingTitle = "Próximas"
     static let completedTitle = "Concluídas"
     static let candidatesTitle = "Parece prova?"
-    static let confirmCandidate = "Foi prova"
-    static let declineCandidate = "Não foi"
+    static let confirmCandidate = "É prova"
+    static let declineCandidate = "Não é"
     static let candidateHeartRateUnit = "bpm"
     static let emptyList = "Nenhuma prova cadastrada. Toque em + para cadastrar a primeira."
     static let addRace = "Nova prova"
     static let editRace = "Editar"
     static let prBadge = "PR"
     static let noResult = "sem resultado"
-    static let today = "hoje"
     static let blockAnchor = "prova-bloco"
     static let endAnchor = "prova-fim"
 

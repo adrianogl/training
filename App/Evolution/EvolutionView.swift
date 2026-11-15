@@ -10,6 +10,7 @@ struct EvolutionView: View {
     @SceneStorage(NavigationRestorationConstants.evolutionPathKey) private var pathData = Data()
     @State private var appliedRestoration = false
     @State private var showsChat = false
+    @SceneStorage(EvolutionConstants.groupStorageKey) private var selectedGroupTitle = EvolutionConstants.metricGroups.first?.title ?? ""
 
     @State private var path: [MetricKind] = []
 
@@ -48,6 +49,7 @@ struct EvolutionView: View {
                 .brandRefreshable { await app.syncNow(.pull) }
                 .onChange(of: model?.isLoaded) { _, loaded in
                     guard loaded == true, let anchor = Self.debugScrollAnchor() else { return }
+                    if anchor == EvolutionConstants.metricsAnchor { selectedGroupTitle = EvolutionConstants.predictionsGroupTitle }
                     Task {
                         try? await Task.sleep(for: .milliseconds(600))
                         proxy.scrollTo(anchor, anchor: .top)
@@ -79,13 +81,12 @@ struct EvolutionView: View {
         .task(id: app.dataToken) {
             await Task.yield()
             if model == nil {
-                model = await EvolutionModel.restored(container: app.container, horizon: Self.initialHorizon(), snapshots: app.snapshots)
+                model = await EvolutionModel.restored(container: app.container, snapshots: app.snapshots)
             }
             let loaded = EvolutionModel(
                 container: app.container,
                 today: Day.today(),
                 period: model?.period ?? EvolutionConstants.defaultPeriod,
-                horizon: model?.horizon ?? Self.initialHorizon(),
                 snapshots: app.snapshots
             )
             await loaded.load()
@@ -98,23 +99,21 @@ struct EvolutionView: View {
     @ViewBuilder
     private func content(_ model: EvolutionModel) -> some View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-            AskIntelligenceButton(title: WorkoutChatConstants.askEvolution) { showsChat = true }
             if sizeClass != .regular {
                 periodPicker(model)
             }
-            row(weights: [1, 1]) {
-                OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
-                RacePredictionCard(content: model.highlight, horizon: Binding(get: { model.horizon }, set: { model.horizon = $0 }))
-                    .id(EvolutionConstants.highlightAnchor)
-            }
-            IndicatorsCard(indicators: model.indicators)
-            SectionLabel(EvolutionConstants.metricsTitle)
+            SectionHeader(EvolutionConstants.summaryTitle)
+            OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
+            SectionHeader(EvolutionConstants.metricsTitle).id(EvolutionConstants.metricsAnchor)
+            groupChips
             groups(model)
+            SectionHeader(EvolutionConstants.historyTitle)
             row(weights: [1, 1]) {
-                ZoneWeeksCard(weeks: model.zoneWeeks)
                 RecordsCard(records: model.records, now: .now)
+                ZoneWeeksCard(weeks: model.zoneWeeks)
             }
             HeatmapCard(columns: model.heatmapColumns)
+            AskIntelligenceButton(title: WorkoutChatConstants.askEvolution) { showsChat = true }
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }
     }
@@ -143,16 +142,32 @@ struct EvolutionView: View {
         if model.cardData.isEmpty && model.isLoadingCards {
             ProgressView(EvolutionConstants.loadingCards).frame(maxWidth: .infinity).padding(.top, 12)
         } else {
-            let groups = EvolutionConstants.metricGroups
-            let pairs = stride(from: 0, to: groups.count, by: 2).map { Array(groups[$0..<min($0 + 2, groups.count)]) }
-            VStack(spacing: TodayConstants.rowSpacing) {
-                ForEach(pairs, id: \.first?.id) { pair in
-                    row(weights: [1, 1]) {
-                        ForEach(pair) { group in MetricGroupCard(group: group, data: model.cardData) }
+            if let group = MetricGroup.selected(selectedGroupTitle) {
+                MetricGroupCard(group: group, data: model.cardData)
+                    .opacity(model.isLoadingCards ? 0.5 : 1)
+            }
+        }
+    }
+
+    private var groupChips: some View {
+        let selected = MetricGroup.selected(selectedGroupTitle)?.title
+        return ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: EvolutionConstants.groupChipSpacing) {
+                ForEach(EvolutionConstants.metricGroups) { group in
+                    let isSelected = group.title == selected
+                    Button { selectedGroupTitle = group.title } label: {
+                        Text(group.title)
+                            .font(.footnote)
+                            .foregroundStyle(isSelected ? BrandColors.accent : BrandColors.text.opacity(0.85))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(isSelected ? BrandColors.accentGlow : BrandColors.track, in: Capsule())
+                            .overlay(Capsule().strokeBorder(isSelected ? BrandColors.accent.opacity(0.5) : BrandColors.cardBorder, lineWidth: 1))
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
             }
-            .opacity(model.isLoadingCards ? 0.5 : 1)
         }
     }
 
@@ -176,20 +191,12 @@ struct EvolutionView: View {
     private static func debugScrollAnchor(defaults: UserDefaults = .standard) -> String? {
         #if DEBUG
         switch defaults.string(forKey: AppConstants.evolutionScrollDefaultsKey) {
-        case "destaque": return EvolutionConstants.highlightAnchor
+        case "destaque": return EvolutionConstants.metricsAnchor
         case .some: return EvolutionConstants.endAnchor
         case .none: return nil
         }
         #else
         return nil
-        #endif
-    }
-
-    private static func initialHorizon(defaults: UserDefaults = .standard) -> ProjectionHorizon {
-        #if DEBUG
-        return defaults.string(forKey: AppConstants.evolutionHorizonDefaultsKey).flatMap(ProjectionHorizon.init(rawValue:)) ?? .untilRace
-        #else
-        return .untilRace
         #endif
     }
 }
