@@ -48,6 +48,7 @@ struct RootView: View {
             ForEach(AppSection.allCases) { item in
                 Tab(item.title, systemImage: item.systemImage, value: item) {
                     screen(for: item)
+                        .toolbarVisibility(AppConstants.moreSections.contains(item) ? .hidden : .automatic, for: .navigationBar)
                 }
             }
         }
