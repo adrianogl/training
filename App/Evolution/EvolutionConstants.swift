@@ -2,6 +2,8 @@ import Foundation
 import Insights
 
 enum EvolutionConstants {
+    static let markerLabelGapShare = 0.3
+    static let markerLabelMaxWidth: CGFloat = 150
     static let title = "Evolução"
     static let overallTitle = "Estado geral"
     static let verdictBetter = "Melhor que há 3 meses"
