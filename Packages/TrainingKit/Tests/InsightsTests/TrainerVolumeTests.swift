@@ -104,8 +104,8 @@ import WorkoutAnalysis
             context: context, firstIndex: 1, firstStart: monday, state: state, adjustment: TrainerSkeletonAdjustment()
         )
 
-        let top = TrainerEngineConstants.thresholdStages.last.map(TrainerEngineText.stageLabel)
-        let first = TrainerEngineConstants.thresholdStages.first.map(TrainerEngineText.stageLabel)
+        let top = TrainerEngineConstants.thresholdBlocks.last.map(TrainerEngineText.stageLabel)
+        let first = TrainerEngineConstants.thresholdBlocks.first.map(TrainerEngineText.stageLabel)
         let topIndex = weeks.firstIndex { $0.thresholdFocus == top }
         let restart = weeks.firstIndex { $0.index > 9 && $0.thresholdFocus == first && !$0.isRecovery }
         let topAt = try #require(topIndex)

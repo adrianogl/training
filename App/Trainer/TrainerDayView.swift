@@ -44,6 +44,9 @@ struct TrainerDayView: View {
         VStack(alignment: .leading, spacing: 8) {
             SectionLabel(TrainerText.whyTitle).padding(.vertical, 0)
             Text(workout.rationale).font(.footnote).foregroundStyle(BrandColors.text)
+            if let method = workout.method {
+                Text(TrainerText.methodLine(method)).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.dim)
+            }
             numbers(workout)
         }
         .brandCard()

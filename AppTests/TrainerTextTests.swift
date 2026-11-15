@@ -24,8 +24,21 @@ import TrainingCore
     @Test func buildsStepRowsByDistance() {
         let workout = TrainerStoreTests.plan().workouts[0]
         let rows = TrainerText.stepRows(workout)
-        #expect(rows.map(\.title) == ["Aquecimento", "3× Limiar", "Recuperação"])
-        #expect(rows.map(\.detail) == ["3 km", "2 km · 4:14–4:20/km", "400 m · trote"])
+        #expect(rows.map(\.title) == ["Aquecimento", "3× Limiar", "Trote"])
+        #expect(rows.map(\.detail) == ["3 km", "2 km · 4:14–4:20/km", "400 m"])
+    }
+
+    @Test func showsTheMethodLineAndTheRepetitionStep() {
+        #expect(TrainerText.methodLine(.cruiseIntervals) == "Método: Cruise intervals (Daniels)")
+        #expect(TrainerText.methodLine(.racePace) == "Método: Ritmo específico (Canova, Pfitzinger)")
+        var workout = TrainerStoreTests.plan().workouts[0]
+        workout.steps = [
+            TrainerStep(kind: .work, repeats: 3, meters: 200, paceLow: 219, paceHigh: 225, method: .repetition),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 200),
+        ]
+        let rows = TrainerText.stepRows(workout)
+        #expect(rows.map(\.title) == ["3× Repetição R", "Trote"])
+        #expect(rows[1].detail == "200 m")
     }
 
     @Test func interleavesRepeatsInShape() {

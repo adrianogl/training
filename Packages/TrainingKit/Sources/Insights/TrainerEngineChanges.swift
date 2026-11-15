@@ -9,12 +9,14 @@ extension TrainerEngine {
         guard workout.kind != .off else { return T.offTitle }
         let pace = workout.paceLow.flatMap { low in workout.paceHigh.map { T.paceRange(low, $0) } }
         let suffix = pace.map { " a \($0)" } ?? ""
-        if workout.kind == .threshold || workout.kind == .vo2max,
-           let work = workout.steps.first(where: { $0.kind == .work }) {
+        let main = workout.steps.filter { $0.kind == .work && $0.method != .repetition }
+        if workout.kind == .threshold || workout.kind == .vo2max, !main.isEmpty {
             let recovery = workout.steps.first(where: { $0.kind == .recovery }).map { step in
                 step.restSeconds.map { ", \(T.restSummary($0))" } ?? ", rec. \(Int(step.meters)) m"
             } ?? ""
-            return "\(work.repeats) × \(T.distance(work.meters))\(suffix)\(recovery)"
+            let blocks = main.map { TrainerQualityBlock(repeats: $0.repeats, meters: $0.meters) }
+            let label = blocks.count == 1 ? "\(blocks[0].repeats) × \(T.distance(blocks[0].meters))" : T.sessionLabel(blocks)
+            return "\(label)\(suffix)\(recovery)"
         }
         return "\(T.kilometers(workout.totalMeters))\(suffix)"
     }

@@ -108,7 +108,7 @@ extension TrainerEngine {
                 let day = week.start.adding(days: weekday - 1)
                 guard let workout = workouts.first(where: { $0.day == day }) else {
                     return total + estimatedMeters(
-                        weekday: weekday, day: day, week: week, structure: structure, target: target, history: history, today: today
+                        weekday: weekday, day: day, week: week, weeks: weeks, structure: structure, target: target, history: history, today: today
                     )
                 }
                 return total + workout.totalMeters
@@ -118,7 +118,7 @@ extension TrainerEngine {
     }
 
     private static func estimatedMeters(
-        weekday: Int, day: Day, week: TrainerWeek, structure: [Int: TrainerDayKind], target: TrainerTarget,
+        weekday: Int, day: Day, week: TrainerWeek, weeks: [TrainerWeek], structure: [Int: TrainerDayKind], target: TrainerTarget,
         history: TrainerHistory, today: Day
     ) -> Double {
         let kind = structure[weekday] ?? .off
@@ -128,9 +128,9 @@ extension TrainerEngine {
         }
         switch kind {
         case .long: return week.longMeters
-        case .threshold, .vo2max: return qualityMeters(qualityStage(kind, week: week, lowered: false))
-        case .easy: return easyShare(week: week, structure: structure, history: history, today: today).meters
-        case .optionalEasy: return easyShare(week: week, structure: structure, history: history, today: today).optional
+        case .threshold, .vo2max: return qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
+        case .easy: return easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today).meters
+        case .optionalEasy: return easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today).optional
         case .off, .race: return 0
         }
     }

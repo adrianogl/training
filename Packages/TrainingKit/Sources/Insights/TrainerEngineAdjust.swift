@@ -13,6 +13,11 @@ extension TrainerEngine {
             return plan
         case .request(let request) where request.category == .goalChanged || request.category == .other:
             return recreate(plan, history: history, today: today, now: now, request: request)
+        case .lightWeek(let day):
+            guard day >= today.weekStart, plan.weeks.contains(where: { $0.start == day }) else { return plan }
+            var toggled = plan
+            if let at = toggled.lightWeeks.firstIndex(of: day) { toggled.lightWeeks.remove(at: at) } else { toggled.lightWeeks.append(day) }
+            return adjustSkeleton(toggled, history: history, today: today, now: now, trigger: trigger)
         default:
             return adjustSkeleton(plan, history: history, today: today, now: now, trigger: trigger)
         }
@@ -31,7 +36,7 @@ extension TrainerEngine {
         let fresh = build(
             target: plan.target, structure: plan.structure, strength: plan.strength, history: history, today: today,
             offset: keptWeeks.count,
-            startMeters: volumes.start, peakMeters: volumes.peak
+            startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: plan.lightWeeks
         )
         let merged = plan.workouts.filter { $0.day < today } + fresh.workouts
         let freshWeeks = withPlannedMeters(
@@ -86,6 +91,8 @@ extension TrainerEngine {
             found.lowReadiness = value.category == .fatigue
         case .strengthChanged:
             break
+        case .lightWeek(let day):
+            rebuildFrom = plan.weeks.first { $0.start == day }?.index ?? rebuildFrom
         case .created:
             return plan
         }
@@ -103,7 +110,7 @@ extension TrainerEngine {
         let context = skeletonContext(
             target: plan.target, datedWeeks: plan.target.date == nil ? nil : plan.weeks.count,
             openTotal: max(plan.weeks.count, rebuildFrom + C.openHorizonWeeks - 1),
-            peakVolume: volumes.peak
+            peakVolume: volumes.peak, lightWeeks: plan.lightWeeks
         )
         let firstStart = plan.weeks.first { $0.index == rebuildFrom }?.start ?? kept.last?.start.adding(days: C.daysPerWeek) ?? today.weekStart
         let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: volumes.start)
@@ -148,6 +155,14 @@ extension TrainerEngine {
             }
         }
         if trigger == .strengthChanged { sentences.append(T.strengthSummary) }
+        if case .lightWeek(let day) = trigger, let marked = weeks.first(where: { $0.start == day }) {
+            let flipped = zip(plan.weeks, weeks).filter { $0.0.isRecovery != $0.1.isRecovery && $0.1.start != day && $0.1.index >= rebuildFrom }
+            let text = plan.lightWeeks.contains(day)
+                ? T.lightWeekMarked(day, meters: marked.targetMeters, displaced: flipped.filter { !$0.1.isRecovery }.map { $0.0.start })
+                : T.lightWeekCleared(day, meters: marked.targetMeters, added: flipped.filter { $0.1.isRecovery }.map { $0.1.start })
+            reasons.volume = text
+            sentences.append(text)
+        }
         if found.lowReadiness {
             let text = found.readiness.map { T.lowReadiness($0, weekly: isWeekEnded(trigger)) } ?? T.fatigueSummary
             reasons.volume = text

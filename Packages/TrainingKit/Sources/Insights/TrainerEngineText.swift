@@ -25,13 +25,32 @@ enum TrainerEngineText {
 
     static func restSummary(_ seconds: Double) -> String { "parado \(restClock(seconds))" }
 
-    static func restRule(kind: TrainerDayKind, seconds: Double) -> String {
-        let reason = kind == .threshold ? "1 min para cada 5 min de bloco" : "um pouco menos que o tempo do tiro"
-        return "Descanso de \(restClock(seconds)) parado, \(reason)."
+    static func methodTitle(_ method: TrainerMethod) -> String {
+        switch method {
+        case .cruiseIntervals: "Cruise intervals"
+        case .tempo: "Tempo run"
+        case .intervals: "Intervalado em pace I"
+        case .repetition: "Repetições em pace R"
+        case .racePace: "Ritmo específico"
+        case .goalPace: "Extensão do ritmo específico"
+        }
+    }
+
+    static func methodSource(_ method: TrainerMethod) -> String {
+        switch method {
+        case .racePace: "Canova, Pfitzinger"
+        case .goalPace: "Canova"
+        default: "Daniels"
+        }
+    }
+
+    static func methodLabel(_ method: TrainerMethod) -> String {
+        let base = "\(methodTitle(method)) (\(methodSource(method)))"
+        return method == .cruiseIntervals ? "\(base) com volume de limiar do método norueguês" : base
     }
 
     static func distance(_ meters: Double) -> String {
-        meters >= 2_000 ? kilometers(meters) : "\(Int(meters.rounded())) m"
+        meters >= 1_000 ? kilometers(meters) : "\(Int(meters.rounded())) m"
     }
 
     static func pace(_ seconds: Double) -> String {
@@ -65,14 +84,21 @@ enum TrainerEngineText {
         "\(weekday(day)) \(date(day))"
     }
 
-    static func stageLabel(_ stage: TrainerQualityStage) -> String {
-        "\(stage.repeats) × \(distance(stage.meters))"
+    static func stageLabel(_ blockMeters: Double) -> String {
+        blockMeters > 0 ? "Blocos de \(kilometers(blockMeters))" : "Contínuo"
     }
 
-    static func title(kind: TrainerDayKind, meters: Double, stage: TrainerQualityStage? = nil) -> String {
-        switch kind {
-        case .threshold: "Limiar \(stage.map(stageLabel) ?? kilometers(meters))"
-        case .vo2max: "VO2 máx \(stage.map(stageLabel) ?? kilometers(meters))"
+    static func sessionLabel(_ blocks: [TrainerQualityBlock]) -> String {
+        blocks.map { $0.repeats > 1 ? "\($0.repeats) × \(distance($0.meters))" : distance($0.meters) }.joined(separator: " + ")
+    }
+
+    static func title(kind: TrainerDayKind, meters: Double, session: TrainerQualitySession? = nil) -> String {
+        let label = session.map { sessionLabel($0.blocks) }
+        let thresholdName = session?.method == .racePace ? "Ritmo de prova" : "Limiar"
+        let vo2Name = session?.method == .goalPace ? "Pace-alvo" : "VO2 máx"
+        return switch kind {
+        case .threshold: "\(thresholdName) \(label ?? kilometers(meters))"
+        case .vo2max: "\(vo2Name) \(label ?? kilometers(meters))"
         case .long: "Longão \(kilometers(meters))"
         case .optionalEasy: "Rodagem opcional \(kilometers(meters))"
         case .race: "Prova \(kilometers(meters))"
@@ -96,8 +122,9 @@ enum TrainerEngineText {
         "\(kilometers(week.plannedMeters)), longão \(kilometers(week.longMeters))"
     }
 
-    static func createdSummary(weeks: Int, target: String, phases: String) -> String {
-        "Plano de \(weeks) semanas para \(target): \(phases). O detalhe treino a treino cobre os próximos 15 dias."
+    static func createdSummary(weeks: Int, target: String, phases: String, goal: String? = nil) -> String {
+        let text = "Plano de \(weeks) semanas para \(target): \(phases). O detalhe treino a treino cobre os próximos 15 dias."
+        return goal.map { "\(text) \($0)" } ?? text
     }
 
     static func createdSkeleton(weeks: Int) -> String {
@@ -221,25 +248,85 @@ enum TrainerEngineText {
         }
     }
 
+    static func methodRule(_ session: TrainerQualitySession, restSeconds: Double) -> String {
+        let label = sessionLabel(session.blocks)
+        let volume = kilometers(session.blocks.reduce(0) { $0 + Double($1.repeats) * $1.meters })
+        let rest = restClock(restSeconds)
+        switch session.method {
+        case .cruiseIntervals:
+            let shape = session.blocks.count > 1 ? "Pirâmide \(label)" : "Cruise intervals de \(distance(session.blocks[0].meters))"
+            return "\(shape) (Daniels), 60 s parado por km de bloco. Volume de \(volume) em blocos, como no método norueguês."
+        case .tempo:
+            return "Tempo run de \(label) (Daniels), \(rest) parado entre os blocos: 60 s por km de bloco, no máximo 4 min. Volume de \(volume)."
+        case .intervals:
+            return "Intervalado em pace I (Daniels): \(label), descanso de \(rest) parado, 0,7 da duração do tiro. Fecha com 3 × 200 m em pace R (Daniels), com 200 m de trote entre eles."
+        case .racePace:
+            return "Ritmo específico (Canova, Pfitzinger): \(label) no pace da prova, descanso de \(rest) parado. Entra no lugar do limiar uma semana sim, outra não, e cresce até cerca de 70% da prova em contínuo."
+        case .repetition:
+            return "Repetições em pace R (Daniels)."
+        case .goalPace:
+            return "Extensão do ritmo específico (Canova): \(label) no pace-alvo."
+        }
+    }
+
     static func qualityRationale(
-        kind: TrainerDayKind, title: String, week: TrainerWeek, previous: TrainerWorkout?, previousStatus: TrainerDayStatus?,
-        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, legs: String? = nil
+        kind: TrainerDayKind, title: String, session: TrainerQualitySession, week: TrainerWeek, previousStatus: TrainerDayStatus?,
+        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, legs: String? = nil, goal: TrainerGoalPaceNote? = nil
     ) -> String {
+        if let goal { return goalPaceRationale(title: title, session: session, restSeconds: restSeconds, note: goal, legs: legs) }
         let name = kindName(kind)
         let warmup = legs.map { " \(legsWarmup($0))" } ?? ""
         if let miss {
             return "\(name) uma etapa abaixo. Descanso de \(restClock(restSeconds)) parado, 1 min a mais porque o último ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. \(basis)\(warmup)"
         }
-        let rule = restRule(kind: kind, seconds: restSeconds)
-        if let previous, previousStatus == .done {
-            if previous.title == title {
-                return "\(name) com os mesmos \(title.dropFirst(name.count + 1)) do último treino, porque ele saiu no alvo e a progressão sobe a cada duas semanas. \(rule) \(basis)\(warmup)"
-            }
-            return "\(name) sobe para \(title.dropFirst(name.count + 1)), porque o último treino saiu no alvo. \(rule) \(basis)\(warmup)"
-        }
+        let rule = methodRule(session, restSeconds: restSeconds)
         let phase = phaseName(week.phase)
-        let recovery = week.isRecovery ? " Semana de recuperação, uma etapa abaixo." : ""
-        return "\(title) na semana \(week.index) (\(phase)).\(recovery) \(rule) \(basis)\(warmup)"
+        let recovery = week.isRecovery ? " Semana de recuperação, volume menor." : ""
+        let done = previousStatus == .done ? " O último treino saiu no alvo." : ""
+        return "\(title) na semana \(week.index) (\(phase)).\(recovery)\(done) \(rule) \(basis)\(warmup)"
+    }
+
+    static func goalPaceRationale(
+        title: String, session: TrainerQualitySession, restSeconds: Double, note: TrainerGoalPaceNote, legs: String?
+    ) -> String {
+        let blocks = sessionLabel(session.blocks)
+        let rest = session.blocks[0].repeats > 1 ? ", \(restClock(restSeconds)) parado" : ""
+        var text = "Pace-alvo \(blocks) a \(pace(note.pace))\(rest)."
+        switch note.previousClosed {
+        case true?: text += " O anterior fechou no alvo, então o bloco cresce."
+        case false?: text += " O anterior não fechou no alvo, então a sessão repete."
+        case nil: text += " Primeira sessão no pace-alvo: a progressão só sobe quando a anterior fecha no alvo."
+        }
+        if let shortfall = note.shortfall { text += " \(shortfall)" }
+        if let legs { text += " \(legsWarmup(legs))" }
+        return text
+    }
+
+    static func goalPaceShortfall(reached: Double, target: Double) -> String {
+        "No ritmo da progressão, o pace-alvo chega a \(kilometers(reached)) até o prazo, abaixo dos \(kilometers(target)) da meta."
+    }
+
+    static func goalPaceLong(meters: Double, from: Double, to: Double) -> String {
+        "Últimos \(kilometers(meters)) progressivos, do pace do longão (\(pace(from))/km) até \(pace(to))/km, o pace-alvo mais 18 s."
+    }
+
+    static func thresholdNeed(current: Double, goal: Double, meters: Double, needed: Double) -> String {
+        "Hoje seu limiar é \(pace(current)); \(pace(goal)) por \(kilometers(meters)) pede ~\(pace(needed))."
+    }
+
+    static func lightWeekMarked(_ start: Day, meters: Double, displaced: [Day]) -> String {
+        var text = "Semana de \(date(start)) marcada como leve: \(kilometers(meters))."
+        if let first = displaced.first {
+            let days = displaced.map(date).joined(separator: ", ")
+            text += displaced.count == 1 ? " A recuperação de \(date(first)) virou semana normal." : " As recuperações de \(days) viraram semanas normais."
+        }
+        return text
+    }
+
+    static func lightWeekCleared(_ start: Day, meters: Double, added: [Day]) -> String {
+        var text = "Semana de \(date(start)) voltou ao normal: \(kilometers(meters))."
+        if !added.isEmpty { text += " Recuperação automática em \(added.map(date).joined(separator: ", "))." }
+        return text
     }
 
     static func legsNote(_ name: String) -> String { "pernas de ontem (\(name))" }

@@ -9,11 +9,12 @@ public enum TrainerEngine {
 
     public static func create(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
-        history: TrainerHistory, today: Day, now: Date, startMeters: Double? = nil, peakMeters: Double? = nil
+        history: TrainerHistory, today: Day, now: Date, startMeters: Double? = nil, peakMeters: Double? = nil,
+        lightWeeks: [Day] = []
     ) -> TrainerPlan {
         let plan = build(
             target: target, structure: structure, strength: strength, history: history, today: today, offset: 0,
-            startMeters: startMeters, peakMeters: peakMeters
+            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks
         )
         let first = TrainerChange(
             kind: .skeleton, title: T.skeletonLabel, after: T.weeksLabel(plan.weeks.count), reason: T.createdSkeleton(weeks: plan.weeks.count)
@@ -22,7 +23,8 @@ public enum TrainerEngine {
         let version = TrainerVersion(
             number: 1, createdAt: now, trigger: .created,
             summary: T.createdSummary(
-                weeks: plan.weeks.count, target: target.name, phases: T.phasesList(plan.weeks.map(\.phase))
+                weeks: plan.weeks.count, target: target.name, phases: T.phasesList(plan.weeks.map(\.phase)),
+                goal: goalPaceSummary(target: target, paces: plan.paces)
             ),
             changes: [first] + weekChanges
         )
@@ -33,7 +35,7 @@ public enum TrainerEngine {
 
     static func build(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
-        history: TrainerHistory, today: Day, offset: Int, startMeters: Double?, peakMeters: Double?
+        history: TrainerHistory, today: Day, offset: Int, startMeters: Double?, peakMeters: Double?, lightWeeks: [Day] = []
     ) -> TrainerPlan {
         let volume = startMeters ?? averageWeeklyMeters(history: history, today: today)
         let peak = max(volume, peakMeters ?? defaultPeak(from: volume))
@@ -44,7 +46,7 @@ public enum TrainerEngine {
         }
         let context = skeletonContext(
             target: target, datedWeeks: datedWeeks.map { $0 + offset }, openTotal: offset + C.openHorizonWeeks,
-            peakVolume: peak
+            peakVolume: peak, lightWeeks: lightWeeks
         )
         let state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
         let weeks = buildWeeks(
@@ -57,7 +59,8 @@ public enum TrainerEngine {
         return TrainerPlan(
             target: target, structure: structure, paces: paces,
             weeks: withPlannedMeters(weeks, workouts: workouts, structure: structure, target: target, history: history, today: today),
-            workouts: workouts, versions: [], strength: strength, startMeters: startMeters, peakMeters: peakMeters
+            workouts: workouts, versions: [], strength: strength, startMeters: startMeters, peakMeters: peakMeters,
+            lightWeeks: lightWeeks
         )
     }
 }

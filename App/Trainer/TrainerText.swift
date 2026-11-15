@@ -37,6 +37,16 @@ enum TrainerText {
     static let skippedStatus = "pulado"
     static let todayStatus = "hoje"
     static let trot = "trote"
+    static let goalPaceLabel = "Pace-alvo"
+    static let trotTitle = "Trote"
+    static let methodPrefix = "Método"
+    static let paceDistanceTarget = "Pace por distância"
+    static let distanceLabel = "Distância-alvo"
+    static let lightWeeksTitle = "Semanas leves"
+    static let lightWeeksHint = "Uma semana leve vira recuperação e o ciclo de 4 semanas recomeça a partir dela."
+    static let markLight = "Marcar como semana leve"
+    static let unmarkLight = "Desmarcar semana leve"
+    static let lightCell = "semana leve"
     static let restStepTitle = "Descanso parado"
     static let whyTitle = "Por que este treino"
     static let numbersTitle = "Números"
@@ -216,8 +226,17 @@ enum TrainerText {
         return "planejado \(kilometersNumber(plannedMeters)) km"
     }
 
+    static func methodLine(_ method: TrainerMethod) -> String {
+        "\(methodPrefix): \(method.title) (\(method.source))"
+    }
+
+    static func paceGoalName(pace: Int, kilometers: Int) -> String {
+        "\(WorkoutFormat.clock(Double(pace)))/km até \(kilometers) km"
+    }
+
     static func goalCaption(plan: TrainerPlan, weeks: Int?) -> String {
         var parts: [String] = []
+        if let pace = plan.target.goalPace, plan.target.kind == .paceDistance { parts.append("meta \(WorkoutFormat.clock(pace))/km") }
         if let seconds = plan.target.goalSeconds { parts.append(String(format: goalFormat, WorkoutFormat.clock(seconds))) }
         if let weeks { parts.append("\(weeks) \(weeks == 1 ? "semana" : "semanas")") }
         parts.append("versão \(plan.versions.last?.number ?? 1)")
@@ -246,6 +265,9 @@ enum TrainerText {
             if let rest = step.restSeconds {
                 return TrainerStepRow(id: index, kind: step.kind, title: restStepTitle, detail: restClock(rest))
             }
+            if step.kind == .recovery && step.meters > 0 && step.paceLow == nil {
+                return TrainerStepRow(id: index, kind: step.kind, title: trotTitle, detail: distance(step.meters))
+            }
             var detail = distance(step.meters)
             if let range = paceRange(low: step.paceLow, high: step.paceHigh) {
                 detail += " · \(range)"
@@ -264,13 +286,22 @@ enum TrainerText {
         case .steady: return "Ritmo constante"
         case .work:
             let name: String
-            switch workout.kind {
-            case .threshold: name = "Limiar"
-            case .vo2max: name = "VO2 máx"
-            case .long: name = "Longão"
-            default: name = "Trabalho"
+            switch step.method {
+            case .repetition: name = "Repetição R"
+            case .goalPace: name = "Pace-alvo"
+            case .racePace: name = "Ritmo de prova"
+            default: name = kindStepName(workout.kind)
             }
             return step.repeats > 1 ? "\(step.repeats)× \(name)" : name
+        }
+    }
+
+    static func kindStepName(_ kind: TrainerDayKind) -> String {
+        switch kind {
+        case .threshold: "Limiar"
+        case .vo2max: "VO2 máx"
+        case .long: "Longão"
+        default: "Trabalho"
         }
     }
 
@@ -337,6 +368,7 @@ enum TrainerText {
         case .workout(_, let day): "depois do treino de \(C.weekdayFull[weekday(day)])"
         case .request: "pedido por você"
         case .strengthChanged: "treinos de força atualizados"
+        case .lightWeek(let day): "semana de \(dayMonth(day)) alterada"
         }
     }
 

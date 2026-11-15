@@ -1,9 +1,16 @@
 import Foundation
 import TrainingCore
 
-struct TrainerQualityStage: Equatable {
+struct TrainerQualityBlock: Equatable {
     var repeats: Int
     var meters: Double
+}
+
+struct TrainerQualitySession: Equatable {
+    var kind: TrainerDayKind
+    var method: TrainerMethod
+    var blocks: [TrainerQualityBlock]
+    var closing: Bool
 }
 
 struct TrainerSkeletonContext {
@@ -12,6 +19,7 @@ struct TrainerSkeletonContext {
     var openEnded: Bool
     var longCap: Double
     var peakVolume: Double
+    var lightWeeks: [Day] = []
 }
 
 struct TrainerSkeletonState {
@@ -21,6 +29,7 @@ struct TrainerSkeletonState {
     var weeksAtStage: Int
     var started: Bool
     var returning = false
+    var lastRecovery: Int?
 }
 
 struct TrainerSkeletonAdjustment {
@@ -67,4 +76,10 @@ struct TrainerStrengthKind {
     var group: TrainerStrengthGroup
     var load: TrainerStrengthLoad
     var matched: Bool
+}
+
+struct TrainerGoalPaceNote {
+    var pace: Double
+    var previousClosed: Bool?
+    var shortfall: String?
 }
