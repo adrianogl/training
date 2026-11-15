@@ -6,7 +6,7 @@ import WorkoutAnalysis
 let monday = Day(year: 2026, month: 11, day: 9)
 let now = Date(timeIntervalSince1970: 1_800_000_000)
 let halfMarathon = TrainerTarget(kind: .race, name: "Meia", date: monday.adding(days: 12 * 7 + 5), distanceMeters: 21_097.5, goalSeconds: 5_700)
-let raceDay = halfMarathon.date
+let raceDay = halfMarathon.date!
 
 func makeHistory() -> TrainerHistory {
     var runs: [TrainerRun] = []
