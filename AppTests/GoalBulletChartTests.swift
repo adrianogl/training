@@ -25,6 +25,19 @@ import Testing
         #expect((positions.raceDay ?? 0) >= TodayConstants.bulletLabelInset)
     }
 
+    @Test func rulerTicksFollowTheSpan() {
+        #expect(GoalBulletLayout.ticks(fastest: 2_390, slowest: 2_435).map(\.text) == ["40:00", "40:15", "40:30"])
+        #expect(GoalBulletLayout.ticks(fastest: 5_880, slowest: 6_330).map(\.text) == ["1:38", "1:40", "1:42", "1:44"])
+    }
+
+    @Test func gapTextSaysHowFarTheRaceDayIs() {
+        #expect(GoalBulletLayout.gapText(raceDay: 2_420, goal: 2_400) == "faltam 20 s no dia")
+        #expect(GoalBulletLayout.gapText(raceDay: 6_070, goal: 5_940) == "faltam 2:10 no dia")
+        #expect(GoalBulletLayout.gapText(raceDay: 2_390, goal: 2_400) == "10 s abaixo da meta no dia")
+        #expect(GoalBulletLayout.gapText(raceDay: 2_400, goal: 2_400) == "na meta no dia")
+        #expect(GoalBulletLayout.gapText(raceDay: nil, goal: 2_400) == nil)
+    }
+
     @Test func weeksLeftUsesSingularAndSkipsZero() {
         #expect(TodayText.weeksLeft(days: 9) == "1 semana e 2 dias de treino")
         #expect(TodayText.weeksLeft(days: 14) == "2 semanas de treino")

@@ -48,7 +48,7 @@ struct TodayOutlookCard: View {
                     .foregroundStyle(BrandColors.race)
             }
             Text(TodayText.weeksLeft(days: days)).font(.caption).foregroundStyle(BrandColors.dim)
-            GoalBulletChart(today: race.today, raceDay: race.raceDay?.mid, goal: race.goalSeconds)
+            GoalBulletChart(today: race.today, raceDay: race.raceDay?.mid, goal: race.goalSeconds, showsGap: true)
         }
     }
 

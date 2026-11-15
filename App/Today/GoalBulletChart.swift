@@ -10,63 +10,97 @@ struct GoalBulletChart: View {
 
     private typealias C = TodayConstants
 
+    var showsGap = false
+
     var body: some View {
         let values = [today, raceDay, goal].compactMap { $0 }
         if let low = values.min(), let high = values.max() {
-            let span = max(high - low, C.bulletMinimumSpan)
+            let span = max(high - low, C.bulletRulerSpan)
             let padding = span * C.bulletPaddingRatio
             let fastest = (low + high) / 2 - span / 2 - padding
             let slowest = (low + high) / 2 + span / 2 + padding
-            GeometryReader { proxy in
-                let width = proxy.size.width
-                let x = { (seconds: Double) in (slowest - seconds) / (slowest - fastest) * width }
-                let trackY = 26.0
-                ZStack(alignment: .topLeading) {
-                    Capsule().fill(BrandColors.track)
-                        .frame(width: width, height: C.bulletTrackHeight)
-                        .position(x: width / 2, y: trackY)
-                    if let today, let raceDay {
-                        Capsule().fill(BrandColors.race.opacity(0.35))
-                            .frame(width: abs(x(raceDay) - x(today)), height: C.bulletTrackHeight)
-                            .position(x: (x(raceDay) + x(today)) / 2, y: trackY)
-                    }
-                    if let goal {
-                        Capsule().fill(BrandColors.accent)
-                            .frame(width: 3, height: 30)
-                            .position(x: x(goal), y: trackY)
-                        label("\(C.bulletGoal) \(WorkoutFormat.clock(goal))", color: BrandColors.accent, weight: .bold)
-                            .position(x: clamp(x(goal), width), y: 4)
-                    }
-                    if let today {
-                        Circle().fill(BrandColors.text).frame(width: 12, height: 12).position(x: x(today), y: trackY)
-                    }
-                    if let raceDay {
-                        Circle().fill(BrandColors.race).frame(width: 14, height: 14).position(x: x(raceDay), y: trackY)
-                    }
-                    let labels = Self.labelPositions(today: today.map(x), raceDay: raceDay.map(x), width: width)
-                    if let today, let raceDay, WorkoutFormat.clock(today) == WorkoutFormat.clock(raceDay) {
-                        valueLabel("\(todayLabel) \(C.bulletAnd) \(raceDayLabel)", WorkoutFormat.clock(raceDay), color: BrandColors.race)
-                            .position(x: clamp(x(raceDay), width), y: 60)
-                    } else {
-                        if let today, let position = labels.today {
-                            valueLabel(todayLabel, WorkoutFormat.clock(today), color: BrandColors.text)
-                                .position(x: position, y: 60)
-                        }
-                        if let raceDay, let position = labels.raceDay {
-                            valueLabel(raceDayLabel, WorkoutFormat.clock(raceDay), color: BrandColors.race)
-                                .position(x: position, y: 60)
-                        }
-                    }
+            VStack(alignment: .leading, spacing: 4) {
+                GeometryReader { proxy in
+                    let width = proxy.size.width
+                    let x = { (seconds: Double) in (slowest - seconds) / (slowest - fastest) * width }
+                    ruler(width: width, x: x, fastest: fastest, slowest: slowest)
+                }
+                .frame(height: C.bulletRulerHeight)
+                if showsGap, let gap = GoalBulletLayout.gapText(raceDay: raceDay, goal: goal) {
+                    Text(gap).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
                 }
             }
-            .frame(height: C.bulletHeight)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(accessibilityText)
         }
     }
 
-    private func label(_ text: String, color: Color, weight: Font.Weight = .regular) -> some View {
-        Text(text).font(.caption.weight(weight)).foregroundStyle(color).fixedSize()
+    @ViewBuilder
+    private func ruler(width: Double, x: @escaping (Double) -> Double, fastest: Double, slowest: Double) -> some View {
+        let trackY = C.bulletRulerTrackY
+        let todayBelow = today.flatMap { value in goal.map { abs(x(value) - x($0)) < C.bulletLabelGap } } ?? false
+        ZStack(alignment: .topLeading) {
+            Capsule().fill(BrandColors.track)
+                .frame(width: width, height: 4)
+                .position(x: width / 2, y: trackY)
+            ForEach(GoalBulletLayout.ticks(fastest: fastest, slowest: slowest), id: \.seconds) { tick in
+                Rectangle().fill(BrandColors.line)
+                    .frame(width: 1, height: C.bulletTickHeight)
+                    .position(x: x(tick.seconds), y: trackY)
+                if goal.map({ abs(x($0) - x(tick.seconds)) >= C.bulletTickGoalGap }) ?? true {
+                    Text(tick.text).font(.caption2).foregroundStyle(BrandColors.dim).fixedSize()
+                        .position(x: clamp(x(tick.seconds), width), y: C.bulletTickLabelY)
+                }
+            }
+            if let today, let raceDay {
+                Capsule().fill(BrandColors.race.opacity(0.35))
+                    .frame(width: abs(x(raceDay) - x(today)), height: 4)
+                    .position(x: (x(raceDay) + x(today)) / 2, y: trackY)
+            }
+            if let goal {
+                RoundedRectangle(cornerRadius: 2).fill(BrandColors.accent)
+                    .frame(width: 4, height: 24)
+                    .position(x: x(goal), y: trackY)
+                valueLabel(C.bulletGoal, WorkoutFormat.clock(goal), color: BrandColors.accent)
+                    .position(x: clamp(x(goal), width), y: C.bulletAboveY)
+            }
+            if let today {
+                Circle().fill(BrandColors.text).frame(width: 12, height: 12)
+                    .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 2))
+                    .position(x: x(today), y: trackY)
+            }
+            if let raceDay {
+                Circle().fill(BrandColors.race).frame(width: 14, height: 14)
+                    .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 2))
+                    .position(x: x(raceDay), y: trackY)
+            }
+            labels(width: width, x: x, todayBelow: todayBelow)
+        }
+    }
+
+    @ViewBuilder
+    private func labels(width: Double, x: (Double) -> Double, todayBelow: Bool) -> some View {
+        if todayBelow, let today, let raceDay, WorkoutFormat.clock(today) == WorkoutFormat.clock(raceDay) {
+            valueLabel("\(todayLabel) \(C.bulletAnd) \(raceDayLabel)", WorkoutFormat.clock(raceDay), color: BrandColors.race)
+                .position(x: clamp(x(raceDay), width), y: C.bulletBelowY)
+        } else if todayBelow {
+            let positions = Self.labelPositions(today: today.map(x), raceDay: raceDay.map(x), width: width)
+            if let today, let position = positions.today {
+                valueLabel(todayLabel, WorkoutFormat.clock(today), color: BrandColors.text).position(x: position, y: C.bulletBelowY)
+            }
+            if let raceDay, let position = positions.raceDay {
+                valueLabel(raceDayLabel, WorkoutFormat.clock(raceDay), color: BrandColors.race).position(x: position, y: C.bulletBelowY)
+            }
+        } else {
+            if let today {
+                valueLabel(todayLabel, WorkoutFormat.clock(today), color: BrandColors.text)
+                    .position(x: clamp(x(today), width), y: C.bulletAboveY)
+            }
+            if let raceDay {
+                valueLabel(raceDayLabel, WorkoutFormat.clock(raceDay), color: BrandColors.race)
+                    .position(x: clamp(x(raceDay), width), y: C.bulletBelowY)
+            }
+        }
     }
 
     private func valueLabel(_ title: String, _ value: String, color: Color) -> some View {
