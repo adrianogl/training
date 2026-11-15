@@ -19,9 +19,8 @@ struct TrainerTodayCard: View {
                         Text(TrainerText.todayDone).font(.caption).foregroundStyle(BrandColors.accent)
                     }
                 }
-                Text(row.workout.title).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
-                if row.workout.kind != .off {
-                    Text(TrainerText.todayWorkoutLine(row.workout)).font(.caption).foregroundStyle(BrandColors.dim)
+                VStack(alignment: .leading, spacing: 2) {
+                    TrainerDayLineView(line: TrainerText.dayLine(row.workout, strength: row.strength, longStage: row.longStage), titleFont: .footnote)
                 }
                 if let suggestion {
                     Text(TrainerText.readinessSuggestionText(suggestion)).font(.footnote).foregroundStyle(BrandColors.text)

@@ -476,7 +476,12 @@ import TrainingCore
             }
         } ?? []
         return TrainerDayRow(
-            workout: workout, status: result.status, run: result.run, isChanged: changedDays.contains(workout.day), strength: lines
+            workout: workout, status: result.status, run: result.run, isChanged: changedDays.contains(workout.day), strength: lines,
+            longStage: workout.day == nextLongDay ? plan?.longStage : nil
         )
+    }
+
+    private var nextLongDay: Day? {
+        plan?.workouts.filter { $0.kind == .long && $0.day >= currentDay }.map(\.day).min()
     }
 }

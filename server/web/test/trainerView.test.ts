@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { stepRows } from '../src/trainerSteps'
-import { defaultDay, goalCaption, parseTrainerPlan, strengthTags, triggerText, weekCells } from '../src/trainerView'
-import type { TrainerStep, TrainerWorkout } from '../src/types'
+import { dayLine, defaultDay, goalCaption, parseTrainerPlan, strengthTags, triggerText, weekCells } from '../src/trainerView'
+import type { TrainerPlan, TrainerStep, TrainerWorkout } from '../src/types'
 
 const step = (overrides: Partial<TrainerStep>): TrainerStep => ({ kind: 'work', repeats: 1, meters: 1000, restSeconds: null, paceLow: null, paceHigh: null, method: null, ...overrides })
 const workout = (kind: TrainerWorkout['kind'], steps: TrainerStep[]): TrainerWorkout => ({
@@ -135,5 +135,58 @@ describe('estrutura do treino', () => {
       ['Pausa parada · água e gel', '1:00', false, true],
     ])
     expect(rows(workout('long', [block, pause, step({ kind: 'steady', meters: 6000, paceLow: 340, paceHigh: 340 })])).map((row) => row[0])).toEqual(['Longão', 'Pausa parada · água e gel', 'Longão'])
+  })
+})
+
+describe('linha do dia', () => {
+  const plan = { strength: [{ weekday: 3, name: 'Full body' }], longStage: 1 } as unknown as TrainerPlan
+  const line = (value: TrainerWorkout) => {
+    const result = dayLine(plan, value)
+    return [result.title, result.detail, ...result.tags.map((tag) => tag.text)]
+  }
+  const make = (kind: TrainerWorkout['kind'], totalMeters: number, steps: TrainerStep[], overrides: Partial<TrainerWorkout> = {}): TrainerWorkout => ({
+    ...workout(kind, steps), totalMeters, note: 'só se a prontidão ≥ 60', ...overrides,
+  })
+
+  it('rodagem mostra só o pace', () => {
+    expect(line(make('easy', 10000, [], { paceLow: 290, paceHigh: 304 }))).toEqual(['Rodagem · 10 km', '4:50–5:04/km'])
+  })
+
+  it('limiar mostra blocos e pace sem descanso', () => {
+    const steps = [step({ kind: 'warmup', meters: 3000 }), step({ repeats: 8, meters: 1000, paceLow: 243, paceHigh: 249 }), step({ kind: 'recovery', repeats: 7, meters: 0, restSeconds: 60 })]
+    expect(line(make('threshold', 11000, steps, { paceLow: 243, paceHigh: 249 }))).toEqual(['Limiar · 11 km', '8 × 1 km a 4:03–4:09'])
+  })
+
+  it('VO2 com fecho mostra a etiqueta do fecho', () => {
+    const steps = [
+      step({ kind: 'warmup', meters: 3000 }),
+      step({ repeats: 3, meters: 1500, paceLow: 233, paceHigh: 239, method: 'intervals' }),
+      step({ kind: 'recovery', repeats: 2, meters: 0, restSeconds: 240 }),
+      step({ repeats: 3, meters: 200, paceLow: 219, paceHigh: 225, method: 'repetition' }),
+    ]
+    expect(line(make('vo2max', 8500, steps, { paceLow: 233, paceHigh: 239 }))).toEqual(['VO2 máx · 8,5 km', '3 × 1,5 km a 3:53–3:59', '+ 3 × 200 m'])
+  })
+
+  it('séries diferentes ficam na mesma linha', () => {
+    const steps = [step({ repeats: 3, meters: 1500, paceLow: 233, paceHigh: 239 }), step({ kind: 'recovery', repeats: 2, meters: 0, restSeconds: 240 }), step({ repeats: 2, meters: 1000, paceLow: 233, paceHigh: 239 })]
+    expect(line(make('vo2max', 10500, steps, { paceLow: 233, paceHigh: 239 }))[1]).toBe('3 × 1,5 km + 2 × 1 km a 3:53–3:59')
+  })
+
+  it('longão contínuo mostra só o pace', () => {
+    expect(line(make('long', 21000, [step({ kind: 'steady', meters: 21000 })], { paceLow: 268, paceHigh: 282 }))).toEqual(['Longão · 21 km', '4:28–4:42/km'])
+  })
+
+  it('longão em blocos mostra blocos, etapa e editado', () => {
+    const steps: TrainerStep[] = []
+    for (let index = 0; index < 4; index += 1) {
+      steps.push(step({ kind: 'steady', meters: 2000, paceLow: 273, paceHigh: 287 }), step({ kind: 'steady', meters: 2000, paceLow: 268, paceHigh: 282 }), step({ kind: 'recovery', meters: 0, restSeconds: 60 }))
+    }
+    steps.push(step({ kind: 'steady', meters: 5000, paceLow: 268, paceHigh: 282 }))
+    expect(line(make('long', 21000, steps, { edited: true }))).toEqual(['Longão · 21 km', '4 × 4 km + 5 km a 4:28–4:47', 'etapa 1 de 6', 'editado'])
+  })
+
+  it('rodagem opcional com força e folga', () => {
+    expect(line(make('optionalEasy', 7000, [], { day: '2026-11-18', paceLow: 290, paceHigh: 304 }))).toEqual(['Rodagem · 7 km', '4:50–5:04/km', 'opcional', '+ Full body'])
+    expect(line(make('off', 0, [], { day: '2026-11-18', edited: true }))).toEqual(['Folga', '', '+ Full body'])
   })
 })

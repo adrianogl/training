@@ -24,6 +24,40 @@ struct TrainerStrengthTag: View {
     }
 }
 
+struct TrainerDayTagView: View {
+    let tag: TrainerDayTag
+
+    var body: some View {
+        let color = tag.style == .strength ? BrandColors.strength : BrandColors.dim
+        Text(tag.text)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 1)
+            .overlay(Capsule().strokeBorder(color.opacity(0.45), lineWidth: 1))
+    }
+}
+
+struct TrainerDayLineView: View {
+    let line: TrainerDayLine
+    let titleFont: Font
+
+    var body: some View {
+        Text(line.title)
+            .font(titleFont.weight(.semibold))
+            .foregroundStyle(BrandColors.text)
+        if !line.detail.isEmpty {
+            Text(line.detail).font(.caption).foregroundStyle(BrandColors.dim)
+        }
+        if !line.tags.isEmpty {
+            HStack(spacing: 6) {
+                ForEach(line.tags) { TrainerDayTagView(tag: $0) }
+            }
+            .padding(.top, 2)
+        }
+    }
+}
+
 struct TrainerDayRowView: View {
     let row: TrainerDayRow
     let isToday: Bool
@@ -42,21 +76,8 @@ struct TrainerDayRowView: View {
             }
             .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
             kindBar(workout.kind)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(workout.title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(BrandColors.text)
-                let summary = TrainerText.summaryLine(workout)
-                if !summary.isEmpty || !row.strength.isEmpty {
-                    HStack(spacing: 6) {
-                        if !summary.isEmpty {
-                            Text(summary)
-                                .font(.caption)
-                                .foregroundStyle(BrandColors.dim)
-                        }
-                        ForEach(row.strength) { TrainerStrengthTag(line: $0) }
-                    }
-                }
+            VStack(alignment: .leading, spacing: 2) {
+                TrainerDayLineView(line: TrainerText.dayLine(workout, strength: row.strength, longStage: row.longStage), titleFont: .subheadline)
             }
             Spacer(minLength: 6)
             if let status = TrainerText.status(for: row) {

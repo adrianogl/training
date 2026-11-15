@@ -41,8 +41,27 @@ struct TrainerDayRow: Identifiable, Equatable {
     let run: TrainerRun?
     let isChanged: Bool
     var strength: [TrainerStrengthLine] = []
+    var longStage: Int?
 
     var id: String { workout.id }
+}
+
+enum TrainerDayTagStyle: Equatable {
+    case plain
+    case strength
+}
+
+struct TrainerDayTag: Identifiable, Equatable {
+    let text: String
+    let style: TrainerDayTagStyle
+
+    var id: String { text }
+}
+
+struct TrainerDayLine: Equatable {
+    let title: String
+    let detail: String
+    let tags: [TrainerDayTag]
 }
 
 struct TrainerStrengthLine: Identifiable, Equatable {

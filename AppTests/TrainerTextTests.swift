@@ -91,8 +91,8 @@ import TrainingCore
     @Test func labelsEditedWorkoutsAndTriggers() {
         var workout = TrainerStoreTests.plan().workouts[0]
         workout.edited = true
-        #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .planned, run: nil, isChanged: true))?.text == "editado")
-        #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .today, run: nil, isChanged: false))?.text == "hoje · editado")
+        #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .planned, run: nil, isChanged: false)) == nil)
+        #expect(TrainerText.status(for: TrainerDayRow(workout: workout, status: .today, run: nil, isChanged: false))?.text == "hoje")
         #expect(TrainerText.triggerText(.edited(TrainerEdit())) == "plano editado por você")
         #expect(TrainerText.triggerText(.edited(TrainerEdit(days: [workout.day]))) == "treino editado por você")
     }
@@ -107,5 +107,99 @@ import TrainingCore
         #expect(TrainerText.previewLines(changes) == ["Pace do limiar: 4:06/km → 4:02/km", "Semana 3"])
         #expect(TrainerText.editTotal(total: 11_000, warmup: 3_000) == "Total: 11 km com 3 km de aquecimento.")
         #expect(TrainerText.editTotal(total: 8_500, warmup: nil) == "Total: 8,5 km.")
+    }
+
+    private static let day = Day(iso: "2026-11-17")!
+
+    private static func workout(
+        _ kind: TrainerDayKind, meters: Double, steps: [TrainerStep] = [], low: Double? = nil, high: Double? = nil,
+        method: TrainerMethod? = nil, edited: Bool = false
+    ) -> TrainerWorkout {
+        TrainerWorkout(
+            day: day, kind: kind, title: "", totalMeters: meters, steps: steps, paceLow: low, paceHigh: high,
+            note: "só se a prontidão ≥ 60", rationale: "", method: method, edited: edited
+        )
+    }
+
+    private func texts(_ line: TrainerDayLine) -> [String] {
+        [line.title, line.detail] + line.tags.map(\.text)
+    }
+
+    @Test func buildsTheEasyDayLine() {
+        let line = TrainerText.dayLine(Self.workout(.easy, meters: 10_000, low: 290, high: 304))
+        #expect(texts(line) == ["Rodagem · 10 km", "4:50–5:04/km"])
+    }
+
+    @Test func buildsTheThresholdDayLine() {
+        let steps = [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 8, meters: 1_000, paceLow: 243, paceHigh: 249),
+            TrainerStep(kind: .recovery, repeats: 7, meters: 0, restSeconds: 60),
+        ]
+        let line = TrainerText.dayLine(Self.workout(.threshold, meters: 11_000, steps: steps, low: 243, high: 249))
+        #expect(texts(line) == ["Limiar · 11 km", "8 × 1 km a 4:03–4:09"])
+    }
+
+    @Test func buildsTheVo2DayLineWithTheClosingRepetitions() {
+        let steps = [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 3, meters: 1_500, paceLow: 233, paceHigh: 239, method: .intervals),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 240),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 240),
+            TrainerStep(kind: .work, repeats: 3, meters: 200, paceLow: 219, paceHigh: 225, method: .repetition),
+        ]
+        let line = TrainerText.dayLine(Self.workout(.vo2max, meters: 8_500, steps: steps, low: 233, high: 239, method: .intervals))
+        #expect(texts(line) == ["VO2 máx · 8,5 km", "3 × 1,5 km a 3:53–3:59", "+ 3 × 200 m"])
+    }
+
+    @Test func buildsTheMixedSeriesDayLine() {
+        let steps = [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 3, meters: 1_500, paceLow: 233, paceHigh: 239),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 240),
+            TrainerStep(kind: .work, repeats: 2, meters: 1_000, paceLow: 233, paceHigh: 239),
+        ]
+        let line = TrainerText.dayLine(Self.workout(.vo2max, meters: 10_500, steps: steps, low: 233, high: 239))
+        #expect(line.detail == "3 × 1,5 km + 2 × 1 km a 3:53–3:59")
+    }
+
+    @Test func buildsTheContinuousLongRunLine() {
+        let line = TrainerText.dayLine(Self.workout(.long, meters: 21_000, steps: [TrainerStep(kind: .steady, meters: 21_000)], low: 268, high: 282), longStage: 3)
+        #expect(texts(line) == ["Longão · 21 km", "4:28–4:42/km"])
+    }
+
+    @Test func buildsTheLongRunInBlocksLine() {
+        var steps: [TrainerStep] = []
+        for _ in 0..<4 {
+            steps.append(TrainerStep(kind: .steady, meters: 2_000, paceLow: 273, paceHigh: 287))
+            steps.append(TrainerStep(kind: .steady, meters: 2_000, paceLow: 268, paceHigh: 282))
+            steps.append(TrainerStep(kind: .recovery, meters: 0, restSeconds: 60))
+        }
+        steps.append(TrainerStep(kind: .steady, meters: 5_000, paceLow: 268, paceHigh: 282))
+        let line = TrainerText.dayLine(Self.workout(.long, meters: 21_000, steps: steps, low: 268, high: 282, edited: true), longStage: 1)
+        #expect(texts(line) == ["Longão · 21 km", "4 × 4 km + 5 km a 4:28–4:47", "etapa 1 de 6", "editado"])
+    }
+
+    @Test func buildsTheOptionalDayLineWithStrength() {
+        let strength = [TrainerStrengthLine(id: UUID(), name: "Full body", isDone: false)]
+        let line = TrainerText.dayLine(Self.workout(.optionalEasy, meters: 7_000, low: 290, high: 304), strength: strength)
+        #expect(texts(line) == ["Rodagem · 7 km", "4:50–5:04/km", "opcional", "+ Full body"])
+        #expect(line.tags.map(\.style) == [.plain, .strength])
+    }
+
+    @Test func buildsTheRestDayLine() {
+        let line = TrainerText.dayLine(Self.workout(.off, meters: 0, edited: true))
+        #expect(texts(line) == ["Folga", ""])
+    }
+
+    @Test func namesTheRacePaceAndGoalPaceSessions() {
+        let steps = [TrainerStep(kind: .work, repeats: 1, meters: 5_000, paceLow: 281, paceHigh: 287, method: .racePace)]
+        #expect(TrainerText.dayLine(Self.workout(.threshold, meters: 8_000, steps: steps, low: 281, high: 287, method: .racePace)).title == "Ritmo de prova · 8 km")
+        #expect(TrainerText.dayLine(Self.workout(.vo2max, meters: 8_000, steps: steps, low: 281, high: 287, method: .goalPace)).title == "Pace-alvo · 8 km")
+        #expect(TrainerText.dayLine(Self.workout(.race, meters: 21_097.5, low: 281, high: 287)).title == "Prova · 21,1 km")
+    }
+
+    @Test func showsOnlyTheTotalInTheWeekCaption() {
+        #expect(TrainerText.weekCaption(plannedMeters: 67_500) == "67,5 km")
     }
 }

@@ -1770,6 +1770,33 @@ h2 {
   min-width: 0;
 }
 
+.trainer-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.trainer-chip {
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--dim);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.trainer-chip.strength {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+.trainer-status {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .trainer-tag {
   color: var(--accent);
   font-size: 12px;

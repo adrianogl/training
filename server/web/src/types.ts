@@ -558,6 +558,17 @@ export interface TrainerPlan {
   longStage: number
 }
 
+export interface TrainerDayTag {
+  text: string
+  strength: boolean
+}
+
+export interface TrainerDayLine {
+  title: string
+  detail: string
+  tags: TrainerDayTag[]
+}
+
 export interface TrainerStepRow {
   id: number
   kind: TrainerStepKind
