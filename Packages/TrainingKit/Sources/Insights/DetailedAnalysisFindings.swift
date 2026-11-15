@@ -2,6 +2,7 @@ import FITReader
 import Foundation
 import Metrics
 import TrainingCore
+import WorkoutAnalysis
 
 private typealias C = DetailedAnalysisConstants
 private typealias K = DetailedEvidenceKey

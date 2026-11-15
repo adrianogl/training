@@ -4,6 +4,7 @@ import Metrics
 import Storage
 import SwiftData
 import TrainingCore
+import WorkoutAnalysis
 
 public struct ReportBuilder {
     let context: ModelContext
@@ -93,6 +94,7 @@ public struct ReportBuilder {
                 efforts.append(Effort(distance: ReportConstants.split1kMeters, seconds: seconds, day: runDay, kind: .split1k))
             }
         }
+        efforts += try trainingEfforts(from: all)
         let byId = Dictionary(all.map { ($0.activityId, $0) }, uniquingKeysWith: { first, _ in first })
         for race in try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil })) {
             guard let id = race.resultActivityId, let activity = byId[id], let seconds = activity.duration, seconds > 0 else { continue }
@@ -100,6 +102,19 @@ public struct ReportBuilder {
             efforts.append(Effort(distance: distance, seconds: seconds, day: day(of: activity.start), kind: .race))
         }
         return efforts
+    }
+
+    private func trainingEfforts(from all: [ActivityRecord]) throws -> [Effort] {
+        let raceKms = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil })).map { $0.distance / ReportConstants.metersPerKilometer }
+        var sessions: [RunKind: [TrainingSession]] = [:]
+        for run in all where run.hasStart && ActivityTypeKey.isRun(run.typeKey) {
+            let kind = classifyRun(run, longGoalKm: nil, raceGoalKms: raceKms)
+            guard kind == .tempo || kind == .intervals, let work = workPace(run) else { continue }
+            sessions[kind, default: []].append(TrainingSession(day: day(of: run.start), work: work))
+        }
+        return [TrainingEffortConstants.threshold, TrainingEffortConstants.interval].compactMap { rule in
+            trainingEffort(rule, sessions: sessions[rule.runKind] ?? [], today: today)
+        }
     }
 
     public static func isContinuous(_ run: ActivityRecord) -> Bool {

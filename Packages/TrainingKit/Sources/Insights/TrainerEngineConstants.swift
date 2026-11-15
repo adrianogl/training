@@ -7,6 +7,7 @@ enum TrainerEngineConstants {
     static let metersPerKilometer = 1_000.0
     static let daysPerWeek = 7
     static let paceWindowDays = 90
+    static let workPaceRuns = 4
     static let volumeWindowDays = 28
     static let volumeWindowWeeks = 4.0
     static let longWindowDays = 30
@@ -26,8 +27,8 @@ enum TrainerEngineConstants {
     static let longCaps: [(upTo: Double, cap: Double)] = [
         (7_500, 14_000), (15_000, 16_000), (30_000, 22_000), (.infinity, 32_000),
     ]
-    static let weeklyGrowth = 0.08
-    static let maximumGrowth = 0.10
+    static let weeklyGrowth = 0.03
+    static let peakVolumeShare = 1.10
     static let longStep = 2_000.0
     static let recoveryEvery = 4
     static let recoveryVolumeShare = 0.8
@@ -41,7 +42,6 @@ enum TrainerEngineConstants {
     static let openHorizonWeeks = 12
     static let openPhaseWeeks = 4
     static let warmupMeters = 3_000.0
-    static let heavyLegsWarmupMeters = 4_000.0
     static let slowStartMeters = 5_000.0
     static let slowStartSeconds = 10.0
     static let strengthWindowDays = 28
@@ -50,9 +50,12 @@ enum TrainerEngineConstants {
     static let upperWords = ["superior", "upper", "braco", "peito", "costas"]
     static let fullBodyWords = ["full"]
     static let coreWords = ["core", "abdom"]
-    static let cooldownMeters = 2_000.0
-    static let recoveryMeters = 400.0
-    static let extraRecoveryMeters = 200.0
+    static let thresholdRestShare = 0.2
+    static let vo2RestShare = 0.9
+    static let thresholdMinimumRestSeconds = 60.0
+    static let vo2MinimumRestSeconds = 120.0
+    static let restStepSeconds = 30.0
+    static let extraRestSeconds = 60.0
     static let thresholdStages = [
         TrainerQualityStage(repeats: 3, meters: 2_000), TrainerQualityStage(repeats: 4, meters: 2_000),
         TrainerQualityStage(repeats: 3, meters: 3_000), TrainerQualityStage(repeats: 4, meters: 3_000),
@@ -62,11 +65,13 @@ enum TrainerEngineConstants {
         TrainerQualityStage(repeats: 5, meters: 1_200), TrainerQualityStage(repeats: 6, meters: 1_200),
     ]
     static let stagesAtLevel = 2
-    static let minimumEasyMeters = 5_000.0
-    static let maximumEasyMeters = 12_000.0
-    static let optionalMeters = 5_000.0
-    static let optionalLargeMeters = 6_000.0
-    static let optionalLargeWeekMeters = 40_000.0
+    static let minimumEasyMeters = 6_000.0
+    static let maximumEasyMeters = 14_000.0
+    static let fallbackEasyMeters = 8_000.0
+    static let easyWindowDays = 42
+    static let halfKilometer = 500.0
+    static let optionalEasyShare = 0.7
+    static let optionalMinimumMeters = 5_000.0
     static let optionalReadiness = 60
     static let raceWeekEasyMeters = 5_000.0
     static let doneShare = 0.9

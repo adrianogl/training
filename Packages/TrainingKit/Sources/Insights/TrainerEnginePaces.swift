@@ -1,6 +1,7 @@
 import Foundation
 import Metrics
 import TrainingCore
+import WorkoutAnalysis
 
 private typealias C = TrainerEngineConstants
 
@@ -16,14 +17,38 @@ extension TrainerEngine {
         let allPaces = runs.map { $0.seconds / $0.meters * C.metersPerKilometer }
         let easy = median(easyPaces) ?? median(allPaces) ?? C.fallbackEasyPace
         let long = median(paces(of: .long)) ?? easy - C.longBelowEasy
-        let threshold = history.predictions[C.thresholdPredictionMeters].map {
-            $0 / (C.thresholdPredictionMeters / C.metersPerKilometer) + C.thresholdAbovePrediction
-        } ?? median(tempoPaces) ?? easy - C.thresholdBelowEasy
-        let vo2 = history.predictions[C.vo2PredictionMeters].map { $0 / (C.vo2PredictionMeters / C.metersPerKilometer) }
-            ?? threshold - C.vo2BelowThreshold
+        func workPaces(of kind: RunKind) -> [Double] {
+            runs.filter { $0.kind == kind && ($0.workPaceSeconds ?? 0) > 0 }
+                .sorted { $0.day > $1.day }
+                .prefix(C.workPaceRuns)
+                .compactMap(\.workPaceSeconds)
+        }
+        let thresholdWork = workPaces(of: .tempo)
+        let vo2Work = workPaces(of: .intervals)
+        let threshold: Double
+        let thresholdSource: TrainerPaceSource
+        if let middle = median(thresholdWork) {
+            (threshold, thresholdSource) = (middle, .work)
+        } else if let predicted = history.predictions[C.thresholdPredictionMeters] {
+            (threshold, thresholdSource) = (predicted / (C.thresholdPredictionMeters / C.metersPerKilometer) + C.thresholdAbovePrediction, .prediction)
+        } else if let middle = median(tempoPaces) {
+            (threshold, thresholdSource) = (middle, .history)
+        } else {
+            (threshold, thresholdSource) = (easy - C.thresholdBelowEasy, .fallback)
+        }
+        let vo2: Double
+        let vo2Source: TrainerPaceSource
+        if let middle = median(vo2Work) {
+            (vo2, vo2Source) = (middle, .work)
+        } else if let predicted = history.predictions[C.vo2PredictionMeters] {
+            (vo2, vo2Source) = (predicted / (C.vo2PredictionMeters / C.metersPerKilometer), .prediction)
+        } else {
+            (vo2, vo2Source) = (threshold - C.vo2BelowThreshold, .fallback)
+        }
         return TrainerPaces(
             easy: easy, long: long, threshold: threshold, vo2max: vo2, race: nil,
-            easyRuns: easyPaces.count, thresholdRuns: tempoPaces.count, vo2Runs: paces(of: .intervals).count
+            easyRuns: easyPaces.count, thresholdRuns: tempoPaces.count, vo2Runs: paces(of: .intervals).count,
+            thresholdSource: thresholdSource, vo2Source: vo2Source, thresholdWorkRuns: thresholdWork.count, vo2WorkRuns: vo2Work.count
         )
     }
 

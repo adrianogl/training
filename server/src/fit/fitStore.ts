@@ -9,6 +9,8 @@ import { readZip } from './fitReader.js'
 import type { FitSummary, RunMetrics } from './fitTypes.js'
 import { decoupling, hillIndex, thresholdPace, zone2Pace } from './runMetrics.js'
 import { zonesFor } from '../analysis/workoutAnalysis.js'
+import { runShape } from './runShape.js'
+import { workPace } from '../analysis/workPace.js'
 
 type KeyedEnv = GarminEnv & { dataKey: Buffer }
 
@@ -25,6 +27,8 @@ export function runMetrics(summary: FitSummary): RunMetrics {
     thresholdPace: info?.thresholdHeartRate != null ? thresholdPace([summary.samples], info.thresholdHeartRate) : null,
     decoupling: decoupling(summary.samples),
     hillIndex: hillIndex(summary.samples),
+    workPace: workPace(summary.structure),
+    shape: runShape(summary.structure),
   }
 }
 

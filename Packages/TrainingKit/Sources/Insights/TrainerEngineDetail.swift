@@ -1,4 +1,5 @@
 import Foundation
+import Metrics
 import TrainingCore
 
 private typealias C = TrainerEngineConstants
@@ -12,23 +13,43 @@ extension TrainerEngine {
         return stages[lowered ? max(0, index - 1) : index]
     }
 
-    static func qualityMeters(_ stage: TrainerQualityStage, recovery: Double = C.recoveryMeters, warmup: Double = C.warmupMeters) -> Double {
-        warmup + Double(stage.repeats) * stage.meters + Double(stage.repeats - 1) * recovery + C.cooldownMeters
+    static func qualityMeters(_ stage: TrainerQualityStage) -> Double {
+        C.warmupMeters + Double(stage.repeats) * stage.meters
     }
 
-    static func easyShare(week: TrainerWeek, structure: [Int: TrainerDayKind]) -> TrainerEasyShare {
-        let kinds = (1...C.daysPerWeek).compactMap { structure[$0] }
-        let easyCount = kinds.filter { $0 == .easy }.count
-        var fixed = 0.0
-        if kinds.contains(.long) { fixed += week.longMeters }
-        for kind in [TrainerDayKind.threshold, .vo2max] {
-            let count = kinds.filter { $0 == kind }.count
-            fixed += Double(count) * qualityMeters(qualityStage(kind, week: week, lowered: false))
+    static func restSeconds(kind: TrainerDayKind, stage: TrainerQualityStage, paces: TrainerPaces, lowered: Bool) -> Double {
+        let isThreshold = kind == .threshold
+        let blockSeconds = stage.meters / C.metersPerKilometer * (isThreshold ? paces.threshold : paces.vo2max)
+        let share = isThreshold ? C.thresholdRestShare : C.vo2RestShare
+        let minimum = isThreshold ? C.thresholdMinimumRestSeconds : C.vo2MinimumRestSeconds
+        let rounded = (max(blockSeconds * share, minimum) / C.restStepSeconds).rounded() * C.restStepSeconds
+        return rounded + (lowered ? C.extraRestSeconds : 0)
+    }
+
+    static func easyBase(history: TrainerHistory, today: Day) -> (meters: Double, fromHistory: Bool) {
+        let since = today.adding(days: -C.easyWindowDays)
+        let distances = history.runs
+            .filter { $0.kind == .easy && $0.meters > 0 && $0.day >= since && $0.day <= today }
+            .map(\.meters)
+        guard let middle = median(distances) else { return (C.fallbackEasyMeters, false) }
+        return (min(max(roundHalfKilometers(middle), C.minimumEasyMeters), C.maximumEasyMeters), true)
+    }
+
+    static func easyShare(week: TrainerWeek, structure: [Int: TrainerDayKind], history: TrainerHistory, today: Day) -> TrainerEasyShare {
+        let base = easyBase(history: history, today: today)
+        let kinds = (1...C.daysPerWeek).map { structure[$0] ?? .off }
+        let quality = kinds.reduce(0.0) { total, kind in
+            guard kind == .threshold || kind == .vo2max else { return total }
+            return total + qualityMeters(qualityStage(kind, week: week, lowered: false))
         }
-        let remaining = week.targetMeters - fixed
-        guard easyCount > 0 else { return TrainerEasyShare(meters: C.minimumEasyMeters, remaining: remaining) }
-        let each = roundKilometers(remaining / Double(easyCount))
-        return TrainerEasyShare(meters: min(max(each, C.minimumEasyMeters), C.maximumEasyMeters), remaining: remaining)
+        let longMeters = kinds.contains(.long) ? week.longMeters : 0
+        let easyCount = Double(kinds.filter { $0 == .easy }.count)
+        let optionalCount = Double(kinds.filter { $0 == .optionalEasy }.count)
+        let weight = easyCount + optionalCount * C.optionalEasyShare
+        let raw = weight > 0 ? (week.targetMeters - longMeters - quality) / weight : 0
+        let easy = min(max(roundHalfKilometers(raw), C.minimumEasyMeters), C.maximumEasyMeters)
+        let optional = min(max(roundHalfKilometers(raw * C.optionalEasyShare), C.optionalMinimumMeters), C.maximumEasyMeters)
+        return TrainerEasyShare(meters: easy, optional: optional, base: base.meters, fromHistory: base.fromHistory)
     }
 
     static func missedQuality(
@@ -67,21 +88,19 @@ extension TrainerEngine {
     }
 
     static func qualityWorkout(
-        day: Day, kind: TrainerDayKind, stage: TrainerQualityStage, recovery: Double, warmup: Double = C.warmupMeters,
-        paces: TrainerPaces, note: String? = nil, rationale: String
+        day: Day, kind: TrainerDayKind, stage: TrainerQualityStage, restSeconds: Double, paces: TrainerPaces, note: String? = nil, rationale: String
     ) -> TrainerWorkout {
         let pace = kind == .threshold ? paces.threshold : paces.vo2max
         let work = band(pace, C.qualityBand)
         let easy = band(paces.easy, C.easyBand)
         let steps = [
-            TrainerStep(kind: .warmup, meters: warmup, paceLow: easy.low, paceHigh: easy.high),
+            TrainerStep(kind: .warmup, meters: C.warmupMeters, paceLow: easy.low, paceHigh: easy.high),
             TrainerStep(kind: .work, repeats: stage.repeats, meters: stage.meters, paceLow: work.low, paceHigh: work.high),
-            TrainerStep(kind: .recovery, repeats: stage.repeats - 1, meters: recovery),
-            TrainerStep(kind: .cooldown, meters: C.cooldownMeters, paceLow: easy.low, paceHigh: easy.high),
+            TrainerStep(kind: .recovery, repeats: stage.repeats - 1, meters: 0, restSeconds: restSeconds),
         ]
         return TrainerWorkout(
             day: day, kind: kind, title: T.title(kind: kind, meters: 0, stage: stage),
-            totalMeters: qualityMeters(stage, recovery: recovery, warmup: warmup), steps: steps,
+            totalMeters: qualityMeters(stage), steps: steps,
             paceLow: work.low, paceHigh: work.high, note: note, rationale: rationale
         )
     }
@@ -136,33 +155,33 @@ extension TrainerEngine {
                 let lowered = loweredKinds[kind].map { $0 < day } ?? false
                 if lowered { loweredKinds[kind] = nil }
                 let stage = qualityStage(kind, week: week, lowered: lowered)
-                let recovery = C.recoveryMeters + (lowered ? C.extraRecoveryMeters : 0)
+                let restSeconds = restSeconds(kind: kind, stage: stage, paces: paces, lowered: lowered)
                 let legs = sessions(before: day, in: strength).first(where: isLegHeavy)
                 let previous = past.last { $0.kind == kind && $0.day < day }
                 let previousStatus = previous.map { status(of: $0, history: history, today: today).status }
                 let basis = kind == .threshold
-                    ? T.thresholdBasis(predicted: history.predictions[C.thresholdPredictionMeters], runs: paces.thresholdRuns)
-                    : T.vo2Basis(predicted: history.predictions[C.vo2PredictionMeters])
+                    ? T.thresholdBasis(paces, predicted: history.predictions[C.thresholdPredictionMeters])
+                    : T.vo2Basis(paces, predicted: history.predictions[C.vo2PredictionMeters])
                 let title = T.title(kind: kind, meters: 0, stage: stage)
                 let miss = lowered ? missedQuality(kind, past: past, history: history, today: today) : nil
                 let rationale = T.qualityRationale(
                     kind: kind, title: title, week: week, previous: previous, previousStatus: previousStatus,
-                    miss: miss, basis: basis, recovery: recovery, legs: legs?.name
+                    miss: miss, basis: basis, restSeconds: restSeconds, legs: legs?.name
                 )
                 workout = qualityWorkout(
-                    day: day, kind: kind, stage: stage, recovery: recovery,
-                    warmup: legs == nil ? C.warmupMeters : C.heavyLegsWarmupMeters, paces: paces,
+                    day: day, kind: kind, stage: stage, restSeconds: restSeconds,
+                    paces: paces,
                     note: legs.map { T.legsNote($0.name) }, rationale: rationale
                 )
             case .optionalEasy:
-                let meters = week.targetMeters >= C.optionalLargeWeekMeters ? C.optionalLargeMeters : C.optionalMeters
+                let meters = easyShare(week: week, structure: structure, history: history, today: today).optional
                 workout = easyWorkout(
                     day: day, kind: .optionalEasy, meters: meters, paces: paces, note: T.optionalNote,
-                    rationale: T.optionalRationale(week: week)
+                    rationale: T.optionalRationale(meters: meters)
                 )
             case .easy:
-                let share = easyShare(week: week, structure: structure)
-                workout = easyWorkout(day: day, meters: share.meters, paces: paces, rationale: T.easyRationale(share: share, week: week))
+                let share = easyShare(week: week, structure: structure, history: history, today: today)
+                workout = easyWorkout(day: day, meters: share.meters, paces: paces, rationale: T.easyRationale(share))
             }
             workouts.append(workout)
         }

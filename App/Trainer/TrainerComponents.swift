@@ -152,16 +152,17 @@ struct TrainerShapeChart: View {
     let bars: [TrainerShapeBar]
 
     var body: some View {
-        let total = max(bars.map(\.meters).reduce(0, +), 1)
+        let total = max(bars.filter { !$0.isRest }.map(\.meters).reduce(0, +), 1)
+        let restBars = Double(bars.filter(\.isRest).count)
         GeometryReader { proxy in
             let spacing = TrainerConstants.shapeSpacing * Double(max(bars.count - 1, 0))
-            let width = max(proxy.size.width - spacing, 1)
+            let width = max(proxy.size.width - spacing - restBars * TrainerConstants.shapeRestWidth, 1)
             HStack(alignment: .bottom, spacing: TrainerConstants.shapeSpacing) {
                 ForEach(bars) { bar in
                     RoundedRectangle(cornerRadius: 2)
                         .fill(TrainerConstants.color(for: bar.kind))
                         .frame(
-                            width: max(width * bar.meters / total, TrainerConstants.shapeMinimumWidth),
+                            width: bar.isRest ? TrainerConstants.shapeRestWidth : max(width * bar.meters / total, TrainerConstants.shapeMinimumWidth),
                             height: proxy.size.height * TrainerConstants.shapeHeight(for: bar.kind)
                         )
                 }

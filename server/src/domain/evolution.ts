@@ -154,7 +154,7 @@ export function weekTotals(activities: ActivitySummary[], from: string, today: s
   return weeks
 }
 
-export function buildEvolution(days: HealthDay[], activities: ActivitySummary[], today: string, periodDays: number, results: RaceResult[] = [], metrics: Map<number, RunMetrics> = new Map()): Evolution {
+export function buildEvolution(days: HealthDay[], activities: ActivitySummary[], today: string, periodDays: number, results: RaceResult[] = [], metrics: Map<number, RunMetrics> = new Map(), training: Effort[] = []): Evolution {
   const from = addDays(today, 1 - periodDays)
   const runs = activities.filter(isRun)
   const daily = (pick: (day: HealthDay) => number | null | undefined): SeriesPoint[] =>
@@ -184,7 +184,7 @@ export function buildEvolution(days: HealthDay[], activities: ActivitySummary[],
     }
   }
   const latestBand = [...days].reverse().find((day) => day.hrv?.balancedLow != null && day.hrv?.balancedUpper != null)?.hrv
-  const allEfforts = [...efforts(activities), ...raceEfforts(activities, results)]
+  const allEfforts = [...efforts(activities), ...training, ...raceEfforts(activities, results)]
   const predictionFrom = addDays(from, -1)
   const predictionList = PREDICTION.distances.map((distance) => {
     const current = predict(distance.meters, allEfforts, today)

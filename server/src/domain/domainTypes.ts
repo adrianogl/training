@@ -81,7 +81,9 @@ export interface TodaySummary {
   focus: LoadFocus | null
 }
 
-export type EffortKind = 'race' | 'split5k' | 'split1k'
+export type EffortKind = 'race' | 'split5k' | 'split1k' | 'threshold' | 'interval'
+
+export type RunKind = 'intervals' | 'tempo' | 'race' | 'long' | 'easy'
 
 export interface Effort {
   distance: number

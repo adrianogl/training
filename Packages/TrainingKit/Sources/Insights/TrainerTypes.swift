@@ -1,5 +1,6 @@
 import Foundation
 import TrainingCore
+import WorkoutAnalysis
 
 public enum TrainerDayKind: String, Codable, Sendable, CaseIterable {
     case easy
@@ -30,13 +31,15 @@ public struct TrainerStep: Codable, Sendable, Equatable {
     public var kind: TrainerStepKind
     public var repeats: Int
     public var meters: Double
+    public var restSeconds: Double?
     public var paceLow: Double?
     public var paceHigh: Double?
 
-    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, paceLow: Double? = nil, paceHigh: Double? = nil) {
+    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil) {
         self.kind = kind
         self.repeats = repeats
         self.meters = meters
+        self.restSeconds = restSeconds
         self.paceLow = paceLow
         self.paceHigh = paceHigh
     }
@@ -181,6 +184,13 @@ public struct TrainerTarget: Codable, Sendable, Equatable {
     }
 }
 
+public enum TrainerPaceSource: String, Codable, Sendable, Equatable {
+    case work
+    case prediction
+    case history
+    case fallback
+}
+
 public struct TrainerPaces: Codable, Sendable, Equatable {
     public var easy: Double
     public var long: Double
@@ -190,8 +200,12 @@ public struct TrainerPaces: Codable, Sendable, Equatable {
     public var easyRuns: Int
     public var thresholdRuns: Int
     public var vo2Runs: Int
+    public var thresholdSource: TrainerPaceSource?
+    public var vo2Source: TrainerPaceSource?
+    public var thresholdWorkRuns: Int?
+    public var vo2WorkRuns: Int?
 
-    public init(easy: Double, long: Double, threshold: Double, vo2max: Double, race: Double? = nil, easyRuns: Int = 0, thresholdRuns: Int = 0, vo2Runs: Int = 0) {
+    public init(easy: Double, long: Double, threshold: Double, vo2max: Double, race: Double? = nil, easyRuns: Int = 0, thresholdRuns: Int = 0, vo2Runs: Int = 0, thresholdSource: TrainerPaceSource? = nil, vo2Source: TrainerPaceSource? = nil, thresholdWorkRuns: Int? = nil, vo2WorkRuns: Int? = nil) {
         self.easy = easy
         self.long = long
         self.threshold = threshold
@@ -200,6 +214,10 @@ public struct TrainerPaces: Codable, Sendable, Equatable {
         self.easyRuns = easyRuns
         self.thresholdRuns = thresholdRuns
         self.vo2Runs = vo2Runs
+        self.thresholdSource = thresholdSource
+        self.vo2Source = vo2Source
+        self.thresholdWorkRuns = thresholdWorkRuns
+        self.vo2WorkRuns = vo2WorkRuns
     }
 }
 
@@ -289,8 +307,9 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var versions: [TrainerVersion]
     public var processedActivityIds: [Int64]
     public var strength: [TrainerStrengthSession]
+    public var weeklyMeters: Double?
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = []) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], weeklyMeters: Double? = nil) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -299,10 +318,11 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.versions = versions
         self.processedActivityIds = processedActivityIds
         self.strength = strength
+        self.weeklyMeters = weeklyMeters
     }
 
     private enum CodingKeys: String, CodingKey {
-        case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength
+        case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, weeklyMeters
     }
 
     public init(from decoder: Decoder) throws {
@@ -315,7 +335,8 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             workouts: try container.decode([TrainerWorkout].self, forKey: .workouts),
             versions: try container.decode([TrainerVersion].self, forKey: .versions),
             processedActivityIds: try container.decodeIfPresent([Int64].self, forKey: .processedActivityIds) ?? [],
-            strength: try container.decodeIfPresent([TrainerStrengthSession].self, forKey: .strength) ?? []
+            strength: try container.decodeIfPresent([TrainerStrengthSession].self, forKey: .strength) ?? [],
+            weeklyMeters: try container.decodeIfPresent(Double.self, forKey: .weeklyMeters)
         )
     }
 }
@@ -331,8 +352,9 @@ public struct TrainerRun: Sendable, Equatable {
     public var pauses: Int?
     public var activeOnTarget: Int?
     public var activeTotal: Int?
+    public var workPaceSeconds: Double?
 
-    public init(activityId: Int64, day: Day, meters: Double, seconds: Double, kind: RunKind, averageHeartRate: Double? = nil, fadeKm: Int? = nil, pauses: Int? = nil, activeOnTarget: Int? = nil, activeTotal: Int? = nil) {
+    public init(activityId: Int64, day: Day, meters: Double, seconds: Double, kind: RunKind, averageHeartRate: Double? = nil, fadeKm: Int? = nil, pauses: Int? = nil, activeOnTarget: Int? = nil, activeTotal: Int? = nil, workPaceSeconds: Double? = nil) {
         self.activityId = activityId
         self.day = day
         self.meters = meters
@@ -343,6 +365,7 @@ public struct TrainerRun: Sendable, Equatable {
         self.pauses = pauses
         self.activeOnTarget = activeOnTarget
         self.activeTotal = activeTotal
+        self.workPaceSeconds = workPaceSeconds
     }
 }
 

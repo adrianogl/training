@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import TrainingCore
+import WorkoutAnalysis
 @testable import Insights
 
 @Suite struct TrainerEngineStrengthTests {
@@ -86,14 +87,15 @@ import TrainingCore
         #expect(sessions.first?.group == .fullBody)
     }
 
-    @Test func heavyLegsTheDayBeforeQualityAddOneKilometerToTheWarmup() throws {
+    @Test func warmupStaysAtThreeKilometersAfterHeavyLegs() throws {
         let plan = createPlan(strength: [mmii])
 
         let vo2 = try workout(plan, 3)
-        #expect(vo2.steps.first?.kind == .warmup && vo2.steps.first?.meters == 4_000)
-        #expect(vo2.totalMeters == 12_600)
+        #expect(vo2.steps.first?.kind == .warmup && vo2.steps.first?.meters == 3_000)
+        #expect(vo2.totalMeters == 8_000)
         #expect(vo2.note == "pernas de ontem (MMII)")
         #expect(vo2.rationale.contains("MMII"))
+        #expect(vo2.rationale.contains("aquecimento continua em 3 km"))
         let threshold = try workout(plan, 1)
         #expect(threshold.steps.first?.meters == 3_000)
         #expect(threshold.note == nil)
@@ -167,15 +169,15 @@ import TrainingCore
         let version = try #require(adjusted.versions.last)
         #expect(version.trigger == .strengthChanged)
         let change = try #require(version.changes.first { $0.kind == .changed && $0.title.hasPrefix("VO2") })
-        #expect(change.before == "aquecimento 3 km")
-        #expect(change.after == "aquecimento 4 km")
+        #expect(change.before == "sem observação")
+        #expect(change.after == "pernas de ontem (MMII)")
         #expect(change.reason.contains("MMII"))
-        #expect(try workout(adjusted, 3).steps.first?.meters == 4_000)
+        #expect(try workout(adjusted, 3).steps.first?.meters == 3_000)
         #expect(adjusted.strength == [mmii])
         #expect(adjusted.weeks.map(\.targetMeters) == plan.weeks.map(\.targetMeters))
     }
 
-    @Test func removingTheStrengthRestoresTheWarmup() throws {
+    @Test func removingTheStrengthRemovesTheLegsNote() throws {
         let plan = createPlan(strength: [mmii])
         var edited = plan
         edited.strength = []
@@ -183,8 +185,8 @@ import TrainingCore
         let adjusted = TrainerEngine.adjust(edited, history: baseHistory(), today: monday, now: now, trigger: .strengthChanged)
 
         let change = try #require(adjusted.versions.last?.changes.first { $0.title.hasPrefix("VO2") })
-        #expect(change.before == "aquecimento 4 km")
-        #expect(change.after == "aquecimento 3 km")
+        #expect(change.before == "pernas de ontem (MMII)")
+        #expect(change.after == "sem observação")
         #expect(!change.reason.isEmpty)
     }
 
@@ -207,7 +209,7 @@ import TrainingCore
         #expect(decoded.workouts == plan.workouts)
     }
 
-    @Test func plannedMetersIsTheSumOfTheRequiredWorkouts() throws {
+    @Test func plannedMetersIsTheSumOfAllWorkoutsWithTheOptionalOne() throws {
         let plan = createPlan(strength: [mmii, fullBody])
         let pain = TrainerRequest(category: .pain, text: "dor no joelho", from: monday.adding(days: 1), until: monday.adding(days: 4))
         let adjusted = TrainerEngine.adjust(plan, history: baseHistory(), today: monday, now: now, trigger: .request(pain))
@@ -216,11 +218,11 @@ import TrainingCore
             for week in candidate.weeks.prefix(2) {
                 let items = candidate.workouts.filter { $0.day.weekStart == week.start }
                 #expect(items.count == 7)
-                let sum = items.filter { $0.kind != .optionalEasy }.reduce(0.0) { $0 + $1.totalMeters }
+                let sum = items.reduce(0.0) { $0 + $1.totalMeters }
                 #expect(week.plannedMeters == sum)
             }
         }
-        #expect(plan.weeks[0].plannedMeters > plan.weeks[0].targetMeters)
+        #expect(plan.weeks[0].plannedMeters >= plan.weeks[0].targetMeters - 1_500)
         #expect(plan.weeks[0].targetMeters == 42_000)
     }
 
@@ -228,10 +230,10 @@ import TrainingCore
         let plan = createPlan(strength: [])
         let week = plan.weeks[4]
 
-        let easy = TrainerEngine.easyShare(week: week, structure: plan.structure).meters
+        let share = TrainerEngine.easyShare(week: week, structure: plan.structure, history: baseHistory(), today: monday)
         let quality = TrainerEngine.qualityMeters(TrainerEngine.qualityStage(.threshold, week: week, lowered: false))
             + TrainerEngine.qualityMeters(TrainerEngine.qualityStage(.vo2max, week: week, lowered: false))
-        #expect(week.plannedMeters == week.longMeters + quality + 2 * easy)
+        #expect(week.plannedMeters == week.longMeters + quality + 2 * share.meters + share.optional)
     }
 
     @Test func strengthStatusMarksTheDoneSession() {

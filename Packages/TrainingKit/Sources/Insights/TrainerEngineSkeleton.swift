@@ -8,18 +8,22 @@ extension TrainerEngine {
         (meters / C.metersPerKilometer).rounded() * C.metersPerKilometer
     }
 
+    static func roundHalfKilometers(_ meters: Double) -> Double {
+        (meters / C.halfKilometer).rounded() * C.halfKilometer
+    }
+
     static func longCap(for target: TrainerTarget) -> Double {
         guard let meters = target.distanceMeters else { return C.fallbackLongCap }
         return C.longCaps.first { meters <= $0.upTo }?.cap ?? C.fallbackLongCap
     }
 
-    static func skeletonContext(target: TrainerTarget, datedWeeks: Int?, openTotal: Int) -> TrainerSkeletonContext {
+    static func skeletonContext(target: TrainerTarget, datedWeeks: Int?, openTotal: Int, baseVolume: Double) -> TrainerSkeletonContext {
         let cap = longCap(for: target)
         guard let datedWeeks else {
-            return TrainerSkeletonContext(total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap)
+            return TrainerSkeletonContext(total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, baseVolume: baseVolume)
         }
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
-        return TrainerSkeletonContext(total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap)
+        return TrainerSkeletonContext(total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, baseVolume: baseVolume)
     }
 
     static func phase(of index: Int, in context: TrainerSkeletonContext) -> TrainerPhase {
@@ -33,11 +37,14 @@ extension TrainerEngine {
         return .specific
     }
 
-    static func initialState(history: TrainerHistory, today: Day, longCap: Double) -> TrainerSkeletonState {
+    public static func averageWeeklyMeters(history: TrainerHistory, today: Day) -> Double {
         let weekly = history.runs
             .filter { $0.day >= today.weekStart.adding(days: -C.volumeWindowDays) && $0.day < today.weekStart }
             .reduce(0.0) { $0 + $1.meters } / C.volumeWindowWeeks
-        let volume = weekly > 0 ? roundKilometers(weekly) : C.fallbackWeeklyMeters
+        return weekly > 0 ? roundKilometers(weekly) : C.fallbackWeeklyMeters
+    }
+
+    static func initialState(history: TrainerHistory, today: Day, longCap: Double, volume: Double) -> TrainerSkeletonState {
         let longest = history.runs
             .filter { $0.kind == .long && $0.day > today.adding(days: -C.longWindowDays) && $0.day <= today }
             .map(\.meters).max() ?? 0
@@ -81,11 +88,11 @@ extension TrainerEngine {
             if phase == .taper {
                 let position = max(0, index - (context.total - context.taperWeeks) - 1)
                 let share = C.taperShares[min(position, C.taperShares.count - 1)]
-                volume = roundKilometers(state.volume * share)
+                volume = roundKilometers(context.baseVolume * share)
                 long = roundKilometers(state.long * share)
                 stage = max(0, state.stage - 1)
             } else if recovery {
-                volume = roundKilometers(state.volume * C.recoveryVolumeShare)
+                volume = roundKilometers(context.baseVolume * C.recoveryVolumeShare)
                 long = roundKilometers(state.long * C.recoveryLongShare)
                 stage = max(0, state.stage - 1)
             } else {
@@ -100,7 +107,7 @@ extension TrainerEngine {
                     state.weeksAtStage = min(C.stagesAtLevel, state.weeksAtStage + 1)
                     holdPending = false
                 } else {
-                    state.volume = roundKilometers(state.volume * (1 + min(C.weeklyGrowth, C.maximumGrowth)))
+                    state.volume = min(roundKilometers(state.volume * (1 + C.weeklyGrowth)), roundKilometers(context.baseVolume * C.peakVolumeShare))
                     state.long = min(state.long + C.longStep, context.longCap)
                     if state.weeksAtStage >= C.stagesAtLevel {
                         state.stage = min(state.stage + 1, C.thresholdStages.count - 1)

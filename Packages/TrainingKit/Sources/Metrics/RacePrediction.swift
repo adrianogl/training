@@ -9,7 +9,7 @@ public func predict(distance: Double, efforts: [Effort], on: Day) -> Double? {
     var weighted = 0.0
     var totalWeight = 0.0
     for effort in bestEfforts(efforts, for: distance, on: on) {
-        guard let weight = predictionWeight(effort, on: on) else { continue }
+        guard let weight = predictionWeight(effort, on: on, target: distance) else { continue }
         weighted += weight * riegel(seconds: effort.seconds, from: effort.distance, to: distance)
         totalWeight += weight
     }
@@ -18,7 +18,7 @@ public func predict(distance: Double, efforts: [Effort], on: Day) -> Double? {
 
 public func bestEfforts(_ efforts: [Effort], for distance: Double, on: Day) -> [Effort] {
     var best: [EffortKind: (effort: Effort, predicted: Double)] = [:]
-    for effort in efforts where predictionWeight(effort, on: on) != nil {
+    for effort in efforts where predictionWeight(effort, on: on, target: distance) != nil {
         let predicted = riegel(seconds: effort.seconds, from: effort.distance, to: distance)
         if let current = best[effort.kind],
            !replaces(effort, predicted: predicted, current: current.effort, currentPredicted: current.predicted, target: distance) {
@@ -45,12 +45,13 @@ private func distanceGap(_ distance: Double, _ target: Double) -> Double {
     abs(log(distance / target))
 }
 
-private func predictionWeight(_ effort: Effort, on: Day) -> Double? {
+private func predictionWeight(_ effort: Effort, on: Day, target: Double) -> Double? {
     guard effort.distance > 0, effort.seconds > 0 else { return nil }
     let age = Double(effort.day.days(until: on))
     let window = effort.kind == .race ? RaceConstants.raceEffortWindowDays : RaceConstants.effortWindowDays
     guard age >= 0, age < window else { return nil }
-    let weight = (RaceConstants.kindWeight[effort.kind] ?? 0) * (1 - age / window)
+    let endurance = RaceConstants.distanceWeightFactors.first { target >= $0.minimumMeters }?.factors[effort.kind] ?? 1
+    let weight = (RaceConstants.kindWeight[effort.kind] ?? 0) * endurance * (1 - age / window)
     return weight > 0 ? weight : nil
 }
 

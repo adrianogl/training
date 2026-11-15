@@ -14,6 +14,7 @@ struct TrainerNewPlanView: View {
     @State private var structure = TrainerEngine.defaultStructure
     @State private var strength: [TrainerStrengthSession] = []
     @State private var strengthLoaded = false
+    @State private var weeklyKilometers: Int?
 
     private var model: TrainerModel { app.trainer }
 
@@ -27,6 +28,7 @@ struct TrainerNewPlanView: View {
                     }
                     .pickerStyle(.segmented)
                     targetCard
+                    volumeCard
                     weekCard
                     pacesCard
                     Button(mode == .race ? TrainerText.createButton : TrainerText.createTextButton) { create() }
@@ -48,11 +50,31 @@ struct TrainerNewPlanView: View {
         .task {
             await model.load()
             if raceId == nil { raceId = model.raceOptions().first?.id }
+            if weeklyKilometers == nil { weeklyKilometers = averageKilometers }
             if !strengthLoaded {
                 strengthLoaded = true
                 strength = model.previewStrength()
             }
         }
+    }
+
+    private var averageKilometers: Int {
+        Int((model.previewWeeklyMeters() / TrainerConstants.metersPerKilometer).rounded())
+    }
+
+    private var volumeCard: some View {
+        let kilometers = weeklyKilometers ?? averageKilometers
+        return VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(TrainerText.weeklyTitle).padding(.vertical, 0)
+            Stepper(
+                TrainerText.weeklyValue(kilometers),
+                value: Binding(get: { kilometers }, set: { weeklyKilometers = $0 }),
+                in: TrainerConstants.weeklyKilometersRange
+            )
+            Text(TrainerText.weeklyAverage(averageKilometers)).font(.footnote).foregroundStyle(BrandColors.dim)
+            Text(TrainerText.weeklyHint).font(.caption2).foregroundStyle(BrandColors.dim)
+        }
+        .brandCard()
     }
 
     private var races: [TrainerRaceOption] { model.raceOptions() }
@@ -170,8 +192,23 @@ struct TrainerNewPlanView: View {
                 paceTile(paces.threshold, TrainerText.paceThreshold, runs: paces.thresholdRuns)
                 paceTile(paces.vo2max, TrainerText.paceVo2, runs: paces.vo2Runs)
             }
+            ForEach(sourceLines(paces), id: \.self) { line in
+                Text(line).font(.caption2).foregroundStyle(BrandColors.dim)
+            }
         }
         .brandCard()
+    }
+
+    private func sourceLines(_ paces: TrainerPaces) -> [String] {
+        [
+            TrainerText.paceSource(
+                TrainerText.thresholdName, pace: paces.threshold, source: paces.thresholdSource, runs: paces.thresholdWorkRuns,
+                work: TrainerText.thresholdRuns
+            ),
+            TrainerText.paceSource(
+                TrainerText.vo2Name, pace: paces.vo2max, source: paces.vo2Source, runs: paces.vo2WorkRuns, work: TrainerText.vo2Runs
+            ),
+        ].compactMap { $0 }
     }
 
     private func paceTile(_ seconds: Double, _ label: String, runs: Int) -> some View {
@@ -192,7 +229,10 @@ struct TrainerNewPlanView: View {
     private func create() {
         guard let target = target() else { return }
         Task {
-            await model.createPlan(target: target, structure: structure, strength: strength)
+            await model.createPlan(
+                target: target, structure: structure, strength: strength,
+                weeklyMeters: Double(weeklyKilometers ?? averageKilometers) * TrainerConstants.metersPerKilometer
+            )
             dismiss()
         }
     }

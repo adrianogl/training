@@ -45,3 +45,9 @@ export const ANALYSIS = {
   ownActiveBlocksNotice: 'A estrutura mudou; pace e FC são a média dos blocos ativos de cada treino.',
   chartPointLimit: 400,
 } as const
+
+export const WORK_PACE = {
+  metersPerKilometer: 1000,
+  minimumLapMeters: 200,
+  maximumLapPace: 480,
+} as const

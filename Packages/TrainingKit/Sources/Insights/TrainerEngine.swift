@@ -9,9 +9,11 @@ public enum TrainerEngine {
 
     public static func create(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
-        history: TrainerHistory, today: Day, now: Date
+        history: TrainerHistory, today: Day, now: Date, weeklyMeters: Double? = nil
     ) -> TrainerPlan {
-        let plan = build(target: target, structure: structure, strength: strength, history: history, today: today, offset: 0)
+        let plan = build(
+            target: target, structure: structure, strength: strength, history: history, today: today, offset: 0, weeklyMeters: weeklyMeters
+        )
         let first = TrainerChange(
             kind: .skeleton, title: T.skeletonLabel, after: T.weeksLabel(plan.weeks.count), reason: T.createdSkeleton(weeks: plan.weeks.count)
         )
@@ -30,17 +32,19 @@ public enum TrainerEngine {
 
     static func build(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
-        history: TrainerHistory, today: Day, offset: Int
+        history: TrainerHistory, today: Day, offset: Int, weeklyMeters: Double?
     ) -> TrainerPlan {
+        let volume = weeklyMeters ?? averageWeeklyMeters(history: history, today: today)
         var paces = paces(history: history, today: today)
         paces.race = racePace(target)
         let datedWeeks = target.date.flatMap { date -> Int? in
             date >= today ? today.weekStart.days(until: date.weekStart) / C.daysPerWeek + 1 : nil
         }
         let context = skeletonContext(
-            target: target, datedWeeks: datedWeeks.map { $0 + offset }, openTotal: offset + C.openHorizonWeeks
+            target: target, datedWeeks: datedWeeks.map { $0 + offset }, openTotal: offset + C.openHorizonWeeks,
+            baseVolume: volume
         )
-        let state = initialState(history: history, today: today, longCap: context.longCap)
+        let state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
         let weeks = buildWeeks(
             context: context, firstIndex: offset + 1, firstStart: today.weekStart, state: state, adjustment: TrainerSkeletonAdjustment()
         )
@@ -50,8 +54,8 @@ public enum TrainerEngine {
         )
         return TrainerPlan(
             target: target, structure: structure, paces: paces,
-            weeks: withPlannedMeters(weeks, workouts: workouts, structure: structure, target: target, from: today.weekStart),
-            workouts: workouts, versions: [], strength: strength
+            weeks: withPlannedMeters(weeks, workouts: workouts, structure: structure, target: target, history: history, today: today),
+            workouts: workouts, versions: [], strength: strength, weeklyMeters: weeklyMeters
         )
     }
 }

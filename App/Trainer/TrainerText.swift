@@ -37,6 +37,7 @@ enum TrainerText {
     static let skippedStatus = "pulado"
     static let todayStatus = "hoje"
     static let trot = "trote"
+    static let restStepTitle = "Descanso parado"
     static let whyTitle = "Por que este treino"
     static let numbersTitle = "Números"
     static let doneTitle = "O que você fez"
@@ -74,6 +75,18 @@ enum TrainerText {
     static let deadlineLabel = "Prazo"
     static let weekGridTitle = "Semana"
     static let pacesTitle = "Paces do seu histórico"
+    static func paceSource(_ name: String, pace: Double, source: TrainerPaceSource?, runs: Int?, work: String) -> String? {
+        guard source == .work, let runs else { return nil }
+        return "\(name) \(WorkoutFormat.clock(pace))/km, a mediana dos blocos dos seus últimos \(runs) \(work)."
+    }
+    static let thresholdName = "Limiar"
+    static let vo2Name = "VO2"
+    static let thresholdRuns = "limiares"
+    static let vo2Runs = "treinos de VO2"
+    static let weeklyTitle = "Km por semana"
+    static let weeklyHint = "A rodagem opcional conta no volume."
+    static func weeklyAverage(_ kilometers: Int) -> String { "Sua média das últimas 4 semanas: \(kilometers) km" }
+    static func weeklyValue(_ kilometers: Int) -> String { "\(kilometers) km" }
     static let paceEasy = "rodagem"
     static let paceThreshold = "limiar"
     static let paceVo2 = "VO2 máx"
@@ -222,6 +235,9 @@ enum TrainerText {
 
     static func stepRows(_ workout: TrainerWorkout) -> [TrainerStepRow] {
         workout.steps.enumerated().map { index, step in
+            if let rest = step.restSeconds {
+                return TrainerStepRow(id: index, kind: step.kind, title: restStepTitle, detail: restClock(rest))
+            }
             var detail = distance(step.meters)
             if let range = paceRange(low: step.paceLow, high: step.paceHigh) {
                 detail += " · \(range)"
@@ -250,10 +266,15 @@ enum TrainerText {
         }
     }
 
+    static func restClock(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
     static func shapeBars(_ steps: [TrainerStep]) -> [TrainerShapeBar] {
         var bars: [TrainerShapeBar] = []
-        func append(_ kind: TrainerStepKind, _ meters: Double) {
-            bars.append(TrainerShapeBar(id: bars.count, kind: kind, meters: meters))
+        func append(_ kind: TrainerStepKind, _ meters: Double, isRest: Bool = false) {
+            bars.append(TrainerShapeBar(id: bars.count, kind: kind, meters: meters, isRest: isRest))
         }
         var index = 0
         while index < steps.count {
@@ -262,11 +283,11 @@ enum TrainerText {
             if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery {
                 for repeatIndex in 0..<step.repeats {
                     append(.work, step.meters)
-                    if repeatIndex < step.repeats - 1 { append(.recovery, next.meters) }
+                    if repeatIndex < step.repeats - 1 { append(.recovery, next.meters, isRest: next.restSeconds != nil) }
                 }
                 index += 2
             } else {
-                for _ in 0..<max(step.repeats, 1) { append(step.kind, step.meters) }
+                for _ in 0..<max(step.repeats, 1) { append(step.kind, step.meters, isRest: step.restSeconds != nil) }
                 index += 1
             }
         }

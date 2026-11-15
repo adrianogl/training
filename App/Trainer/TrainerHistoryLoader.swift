@@ -78,7 +78,8 @@ enum TrainerHistoryLoader {
             fadeKm: fadeKm,
             pauses: pauses,
             activeOnTarget: onTarget,
-            activeTotal: total
+            activeTotal: total,
+            workPaceSeconds: workPace(record)?.pace
         )
     }
 
