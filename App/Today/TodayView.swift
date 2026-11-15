@@ -1,3 +1,4 @@
+import Insights
 import SwiftData
 import SwiftUI
 import TrainingCore
@@ -42,6 +43,8 @@ struct TodayView: View {
                     }
                     if let model, model.isLoaded, !app.showsSkeleton {
                         cards(model)
+                    } else if app.showsSkeleton {
+                        FirstSyncView()
                     } else {
                         SkeletonCards(heights: SkeletonConstants.todayHeights)
                     }
@@ -50,6 +53,7 @@ struct TodayView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
+            .brandRefreshable { await app.syncNow(.pull) }
             .onChange(of: model?.isLoaded) { _, loaded in
                 guard loaded == true, Self.debugScrollsToEnd() else { return }
                 Task {
@@ -59,7 +63,6 @@ struct TodayView: View {
             }
             }
             .background(BrandBackground())
-            .refreshable { await app.syncNow(.pull) }
             .toolbarVisibility(.hidden, for: .navigationBar)
             .navigationDestination(for: TodayRoute.self) { route in
                 switch route {
@@ -83,7 +86,7 @@ struct TodayView: View {
             await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
             if let sunday = WeeklyReportBuilder.nextSunday(after: .now) {
-                await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: loaded.currentWeekReport.notification, at: sunday)
+                await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: loaded.currentWeekReport(trainer: app.trainer.plan?.workouts ?? []).notification, at: sunday)
             }
             await loaded.refreshSentence()
         }
@@ -97,6 +100,8 @@ struct TodayView: View {
             await model.loadPlannedHistory(client: app.garminAccount.client)
         }
     }
+
+    private var trainerWorkouts: [TrainerWorkout] { app.trainer.plan?.workouts ?? [] }
 
     @ViewBuilder
     private func cards(_ model: TodayModel) -> some View {
@@ -123,20 +128,19 @@ struct TodayView: View {
             if let overload = model.overload {
                 OverloadCard(alert: overload)
             }
-            if let report = model.weeklyReport {
+            if let report = model.weeklyReport(trainer: trainerWorkouts) {
                 WeeklyReportCard(report: report)
             }
             if let run = model.recoveryRun {
                 RecoveryCard(
-                    estimate: RecoveryEstimator.estimate(run: run, readiness: model.summary.readiness?.score, planned: model.planned.values.flatMap { $0 }, now: .now),
-                    now: .now
+                    estimate: RecoveryEstimator.estimate(run: run, readiness: model.summary.readiness?.score, sessions: model.plannedSessions(trainer: trainerWorkouts), now: .now)
                 )
             }
             WeekCalendarCard(runs: model.weekRuns, today: model.today, goal: weeklyGoal, planned: model.planned)
             VolumeHistoryCard(week: model.summary.week, goal: weeklyGoal, planned: model.plannedWeeks)
             row(weights: [1, 1]) {
                 if let lastRun = model.lastRun {
-                    LastRunCard(lastRun: lastRun)
+                    LastRunCard(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
                 }
                 PredictionsCard(predictions: model.summary.predictions)
             }

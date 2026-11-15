@@ -3,12 +3,16 @@ import SwiftUI
 struct Logo: View {
     var showsTagline: Bool
     var showsIcon = true
+    var showsIconPlaceholder = false
     var fontSize = BrandConstants.logoFontSize
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: showsIcon && !showsIconPlaceholder ? 12 : 0) {
             if showsIcon {
                 AIIcon(size: BrandConstants.logoIconSize)
+                    .frame(width: showsIconPlaceholder ? 0 : BrandConstants.logoIconSize, alignment: .leading)
+                    .opacity(showsIconPlaceholder ? 0 : 1)
+                    .clipped()
             }
             VStack(alignment: .leading, spacing: 2) {
                 wordmark
@@ -19,6 +23,7 @@ struct Logo: View {
                 }
             }
         }
+        .animation(.smooth(duration: BrandRefreshConstants.slideSeconds), value: showsIconPlaceholder)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("trAIning")
     }

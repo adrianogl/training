@@ -19,6 +19,17 @@ struct LastRunSummary: Equatable, Sendable, Codable {
     let evolutionOnDevice: Bool
     let notice: String?
     let score: Int?
+    var day: Day? = nil
+    var kind: SessionKind? = nil
+    var place: String? = nil
+    var durationText: String? = nil
+    var elevationGain: Double? = nil
+    var splits: [LastRunSplit]? = nil
+    var fadeKm: Int? = nil
+    var zoneShares: [Double]? = nil
+    var heartRateHigh: Bool? = nil
+    var similar: [LastRunSimilar]? = nil
+    var reading: String? = nil
 }
 
 struct ReadinessDay: Equatable, Sendable, Codable {

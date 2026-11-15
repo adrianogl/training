@@ -3,10 +3,11 @@ import SwiftUI
 struct SyncStatusPill: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(BrandRefreshCoordinator.self) private var refresh: BrandRefreshCoordinator?
     @State private var showsFinished = false
 
     var body: some View {
-        let content = SyncStatusPillText.content(for: model.syncStatus, showsFinished: showsFinished)
+        let content = refresh?.state.isActive == true ? nil : SyncStatusPillText.content(for: model.syncStatus, showsFinished: showsFinished)
         Group {
             if let content {
                 pill(content)
@@ -47,7 +48,7 @@ struct SyncStatusPill: View {
     private func icon(_ kind: SyncStatusPillKind) -> some View {
         switch kind {
         case .syncing:
-            ProgressView().controlSize(.mini)
+            BrandLoader(size: .mini)
         case .updated:
             Image(systemName: "checkmark").font(.caption2.weight(.bold)).foregroundStyle(BrandColors.accent)
         case .failed:

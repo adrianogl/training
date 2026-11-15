@@ -3,7 +3,7 @@ import SwiftUI
 struct RefreshingLabel: View {
     var body: some View {
         HStack(spacing: ScreenSnapshotConstants.refreshingSpacing) {
-            ProgressView().controlSize(.mini)
+            BrandLoader(size: .mini)
             Text(ScreenSnapshotConstants.refreshingLabel)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(BrandColors.dim)

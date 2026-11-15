@@ -13,6 +13,8 @@ enum BrandColors {
     static let line = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.09, darkOpacity: 0.10)
     static let iconBase = Color(hex: 0x0B0E12)
     static let iconAccent = Color(hex: 0xC8F05A)
+    static let loaderFill = Color(hex: 0x1A2410)
+    static let loaderEdge = Color(hex: 0x3C5214)
     static let shareTop = Color(hex: 0x10141A)
     static let checkerLight = Color(hex: 0x2A2D33)
     static let checkerDark = Color(hex: 0x1D2025)

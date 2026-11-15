@@ -26,6 +26,7 @@ import WorkoutAnalysis
     private(set) var currentRuns: [ReportRun] = []
     private(set) var signals: [DailySignal] = []
     private(set) var planned: [Day: [PlannedWorkout]] = [:]
+    private(set) var reportPlanned: [Day: [PlannedWorkout]] = [:]
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var garminReadiness: GarminReadinessScore?
     private(set) var goals: [GoalSnapshot] = []
@@ -101,6 +102,14 @@ import WorkoutAnalysis
         }
         guard !Task.isCancelled else { return }
         planned = Dictionary(grouping: workouts) { Day(iso: $0.day) ?? today }
+        guard let report = WeeklyReportBuilder.reportWeek(today: today), !report.isCurrent else { return }
+        let previous = try? await PlannedWorkouts.fetch(client: client, from: report.start, through: report.start.adding(days: 6))
+        guard !Task.isCancelled, let previous else { return }
+        reportPlanned = Dictionary(grouping: previous) { Day(iso: $0.day) ?? report.start }
+    }
+
+    func plannedSessions(trainer: [TrainerWorkout] = []) -> [PlannedSession] {
+        PlannedSessions.merge(garmin: (Array(planned.values) + Array(reportPlanned.values)).flatMap { $0 }, trainer: trainer)
     }
 
     func loadPlannedHistory(client: GarminAccountClient?, defaults: UserDefaults = .standard) async {
@@ -245,18 +254,30 @@ import WorkoutAnalysis
         }
     }
 
-    var weeklyReport: WeeklyReport? {
+    func weeklyReport(trainer: [TrainerWorkout] = []) -> WeeklyReport? {
         guard let week = WeeklyReportBuilder.reportWeek(today: today) else { return nil }
-        return WeeklyReportBuilder.report(start: week.start, isCurrent: week.isCurrent, runs: reportRuns, plannedKm: plannedWeeks[week.start], race: race)
+        return WeeklyReportBuilder.report(
+            start: week.start, isCurrent: week.isCurrent, runs: reportRuns, plannedKm: plannedWeeks[week.start], race: race,
+            sessions: plannedSessions(trainer: trainer), today: today
+        )
     }
 
-    var currentWeekReport: WeeklyReport {
-        WeeklyReportBuilder.report(start: today.weekStart, isCurrent: true, runs: currentRuns, plannedKm: plannedWeeks[today.weekStart], race: race)
+    func currentWeekReport(trainer: [TrainerWorkout] = []) -> WeeklyReport {
+        WeeklyReportBuilder.report(
+            start: today.weekStart, isCurrent: true, runs: currentRuns, plannedKm: plannedWeeks[today.weekStart], race: race,
+            sessions: plannedSessions(trainer: trainer), today: today
+        )
     }
 
-    private var race: (name: String, days: Int)? {
+    func lastRunPlannedKm(trainer: [TrainerWorkout] = []) -> Double? {
+        guard let day = lastRun?.day else { return nil }
+        let km = plannedSessions(trainer: trainer).filter { $0.day == day }.reduce(0) { $0 + $1.kilometers }
+        return km > 0 ? km : nil
+    }
+
+    private var race: ReportRace? {
         guard let name = raceName, let days = summary.raceCountdownDays else { return nil }
-        return (name, days)
+        return WeeklyReportBuilder.race(name: name, days: days, today: today, predictionSeconds: summary.race.raceDay?.mid ?? summary.race.today)
     }
 
     nonisolated private static func reportRuns(context: ModelContext, start: Day) -> [ReportRun] {
@@ -264,21 +285,33 @@ import WorkoutAnalysis
         let upper = start.adding(days: 7).chartDate
         let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= lower && $0.start < upper })
         return ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) }.map { record in
-            ReportRun(title: record.workoutName ?? record.name, kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer, score: record.scoreValue)
+            ReportRun(
+                title: record.workoutName ?? record.name,
+                kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer,
+                score: record.scoreValue,
+                day: record.localDay ?? Day.today(now: record.start).iso,
+                kind: LastRunBuilder.kind(of: record),
+                paceSeconds: LastRunBuilder.paceSeconds(record)
+            )
         }
     }
 
     nonisolated private static func recoveryRun(context: ModelContext) -> RecoveryRun? {
-        var descriptor = FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)])
-        descriptor.fetchLimit = RecoveryConstants.recentRunsForHour * 3
+        let since = Date.now.addingTimeInterval(-Double(RecoveryConstants.hourWindowDays) * RecoveryConstants.secondsPerDay)
+        let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= since }, sortBy: [SortDescriptor(\.start, order: .reverse)])
         let runs = ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) && $0.hasStart }
         guard let last = runs.first else { return nil }
+        let hours = RecoveryEstimator.typicalHours(runs.map(\.start))
         return RecoveryRun(
             title: last.workoutName ?? last.name,
             end: last.start.addingTimeInterval(last.duration ?? last.movingDuration ?? 0),
             aerobicEffect: last.aerobicTrainingEffect,
             anaerobicEffect: last.anaerobicTrainingEffect,
-            typicalHour: RecoveryEstimator.typicalHour(runs.prefix(RecoveryConstants.recentRunsForHour).map(\.start))
+            typicalHour: hours.weekday,
+            weekendHour: hours.weekend,
+            kind: LastRunBuilder.kind(of: last),
+            kilometers: last.distance.map { $0 / WorkoutConstants.metersPerKilometer },
+            averageHeartRate: last.averageHR.map { Int($0.rounded()) }
         )
     }
 
@@ -325,19 +358,62 @@ import WorkoutAnalysis
             ? WorkoutReading.resolve(stored: record.narrativeData, assessment: analysis.assessment, blocks: analysis.blocks, evolution: analysis.evolution)
             : nil
         let kilometers = record.distance.map { $0 / WorkoutConstants.metersPerKilometer }
-        let seconds = record.movingDuration ?? record.duration
+        let similar = LastRunBuilder.similar(to: record, among: records)
+        let detailed = detailedAnalysis(record: record, history: records, daily: [])
+        let dayIso = record.localDay ?? Day.today(now: record.start).iso
+        let readiness = readinessScore(context: context, day: dayIso)
+        let kind = LastRunBuilder.kind(of: record)
+        let paceSeconds = LastRunBuilder.paceSeconds(record)
+        let zoneTotal = record.zoneSeconds.reduce(0, +)
         return LastRunSummary(
             activityId: id,
             title: record.workoutName ?? record.name,
             dateText: WorkoutListModel.dateText(record.start),
             kilometers: kilometers,
-            paceSeconds: kilometers.flatMap { km in km > 0 ? seconds.map { $0 / km } : nil },
+            paceSeconds: paceSeconds,
             averageHeartRate: record.averageHR.map { Int($0.rounded()) },
             evolution: reading?.evolution,
             evolutionOnDevice: reading?.evolutionOnDevice ?? false,
             notice: hasComparison ? analysis.comparisonNotice : nil,
-            score: record.scoreValue ?? analysis.score?.value
+            score: record.scoreValue ?? analysis.score?.value,
+            day: Day(iso: dayIso),
+            kind: kind,
+            place: record.locationName,
+            durationText: LastRunBuilder.duration(seconds: record.movingDuration ?? record.duration),
+            elevationGain: record.elevationGain,
+            splits: detailed?.splits.map { LastRunSplit(km: $0.km, paceSeconds: $0.paceSeconds, heartRate: $0.heartRate) },
+            fadeKm: detailed?.fadeKm,
+            zoneShares: zoneTotal > 0 ? record.zoneSeconds.map { $0 / zoneTotal } : nil,
+            heartRateHigh: LastRunBuilder.isHeartRateHigh(current: record.averageHR, similar: similar.compactMap(\.averageHR)),
+            similar: similar.map(similarRun),
+            reading: LastRunBuilder.reading(
+                kind: kind,
+                paceSeconds: paceSeconds,
+                averageHeartRate: record.averageHR.map { Int($0.rounded()) },
+                fadeKm: detailed?.fadeKm,
+                readiness: readiness,
+                reference: similar.first.map {
+                    LastRunReference(dateText: LastRunBuilder.shortDate($0.start), paceSeconds: LastRunBuilder.paceSeconds($0), averageHeartRate: $0.averageHR.map { Int($0.rounded()) })
+                }
+            )
         )
+    }
+
+    nonisolated private static func similarRun(_ record: ActivityRecord) -> LastRunSimilar {
+        LastRunSimilar(
+            activityId: record.activityId,
+            dateText: LastRunBuilder.dateText(record.start),
+            kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer,
+            elevationGain: record.elevationGain,
+            paceSeconds: LastRunBuilder.paceSeconds(record),
+            averageHeartRate: record.averageHR.map { Int($0.rounded()) }
+        )
+    }
+
+    nonisolated private static func readinessScore(context: ModelContext, day: String) -> Int? {
+        var descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == day })
+        descriptor.fetchLimit = 1
+        return (try? context.fetch(descriptor))?.first?.readinessScore
     }
 
     nonisolated private static func comparisonRecords(context: ModelContext, around record: ActivityRecord) -> [ActivityRecord] {

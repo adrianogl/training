@@ -129,7 +129,7 @@ struct ShareStudioView: View {
                 Image(uiImage: staticPreview).resizable().scaledToFit().frame(width: width)
                     .background { if isSticker { CheckerboardView() } }
             } else {
-                ProgressView()
+                BrandLoader(size: .regular)
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: ShareConstants.previewCornerRadius, style: .continuous))
@@ -157,7 +157,7 @@ struct ShareStudioView: View {
         VStack(spacing: 10) {
             if exporting {
                 HStack(spacing: 8) {
-                    ProgressView()
+                    BrandLoader(size: .mini)
                     Text(C.generating).foregroundStyle(BrandColors.dim)
                 }
                 .frame(maxWidth: .infinity)

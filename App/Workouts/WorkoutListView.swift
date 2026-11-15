@@ -153,7 +153,7 @@ struct WorkoutListView: View {
                     }
                 }
                 if weeks.isEmpty && model.showsSkeleton {
-                    SkeletonCards(heights: SkeletonConstants.workoutHeights)
+                    FirstSyncView()
                 } else if weeks.isEmpty {
                     Text(WorkoutConstants.emptyList)
                         .foregroundStyle(BrandColors.dim)
@@ -187,6 +187,7 @@ struct WorkoutListView: View {
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.bottom, 24)
         }
+        .brandRefreshable { await model.syncNow(.pull) }
         .background(BrandBackground())
         .onScrollPhaseChange { _, phase in
             if phase == .interacting { userScrolled = true }
@@ -194,7 +195,6 @@ struct WorkoutListView: View {
         .onAppear { scrollToLatest(proxy) }
         .onChange(of: weeks.first?.id) { scrollToLatest(proxy) }
         .onChange(of: visibility.visible.map(\.id)) { scrollToLatest(proxy) }
-        .refreshable { await model.syncNow(.pull) }
         .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
         }
     }

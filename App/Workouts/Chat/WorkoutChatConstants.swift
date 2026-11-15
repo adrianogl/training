@@ -7,7 +7,7 @@ enum WorkoutChatConstants {
     static let unavailable = "Ative a Apple Intelligence nos Ajustes do aparelho para conversar sobre o treino."
     static let placeholder = "Pergunte sobre este treino"
     static let onDevice = "Apple Intelligence · no aparelho"
-    static let thinking = "Pensando…"
+    static let thinking = "pensando…"
     static let failed = "Não consegui responder agora. Tente de novo."
     static let unverified = "Confira: a resposta cita números que não estão nos dados do treino."
     static let today = "hoje"

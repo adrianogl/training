@@ -40,7 +40,7 @@ struct AccountPrimaryButton: View {
         Button(action: action) {
             ZStack {
                 Text(title).opacity(isWorking ? 0 : 1)
-                if isWorking { ProgressView().tint(BrandColors.onAccent) }
+                if isWorking { BrandLoader(size: .mini) }
             }
             .font(.headline)
             .foregroundStyle(BrandColors.onAccent)

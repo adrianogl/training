@@ -52,7 +52,12 @@ struct TrainerNewPlanView: View {
                         lightWeeksCard
                         pacesCard
                     }
-                    Button(primaryTitle) { create() }
+                    Button { create() } label: {
+                        HStack(spacing: 8) {
+                            if model.isWorking { BrandLoader(size: .mini) }
+                            Text(primaryTitle)
+                        }
+                    }
                         .buttonStyle(TrainerPrimaryButtonStyle())
                         .disabled(!canCreate || model.isWorking)
                         .opacity(canCreate ? 1 : 0.5)

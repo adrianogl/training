@@ -35,6 +35,8 @@ struct EvolutionView: View {
                         .padding(.bottom, 14)
                         if let model, model.isLoaded, !app.showsSkeleton {
                             content(model)
+                        } else if app.showsSkeleton {
+                            FirstSyncView()
                         } else {
                             SkeletonCards(heights: SkeletonConstants.evolutionHeights)
                         }
@@ -43,6 +45,7 @@ struct EvolutionView: View {
                     .padding(.top, 8)
                     .padding(.bottom, 24)
                 }
+                .brandRefreshable { await app.syncNow(.pull) }
                 .onChange(of: model?.isLoaded) { _, loaded in
                     guard loaded == true, let anchor = Self.debugScrollAnchor() else { return }
                     Task {
@@ -52,7 +55,6 @@ struct EvolutionView: View {
                 }
             }
             .background(BrandBackground())
-            .refreshable { await app.syncNow(.pull) }
             .toolbarVisibility(.hidden, for: .navigationBar)
             .navigationDestination(for: MetricKind.self) { kind in
                 if let model {
