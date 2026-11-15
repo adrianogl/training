@@ -36,4 +36,6 @@ enum SyncFailure: Equatable {
     }
 
     var suggestsNewKey: Bool { self == .invalidKey }
+
+    var needsKeyHelp: Bool { self == .missingKey || self == .invalidKey }
 }
