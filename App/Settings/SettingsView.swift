@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Query private var syncStates: [SyncState]
     @State private var pastedKey = ""
     @State private var keyMessage: String?
+    @State private var showsKeyHelp = false
     @State private var confirmsDelete = false
     @State private var deleteMessage: String?
     @AppStorage(BackgroundConstants.noticeEnabledDefaultsKey) private var noticeEnabled = BackgroundConstants.defaultNoticeEnabled
@@ -146,6 +147,7 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
         .navigationTitle(group.title)
+        .sheet(isPresented: $showsKeyHelp) { GarminKeyHelpView() }
     }
 
     private var keySection: some View {
@@ -161,7 +163,12 @@ struct SettingsView: View {
         } header: {
             Text("Chave da Personal API")
         } footer: {
-            Text(model.hasKey ? "Há uma chave guardada no Keychain deste aparelho." : "Nenhuma chave guardada neste aparelho.")
+            VStack(alignment: .leading, spacing: 6) {
+                Text(model.hasKey ? "Há uma chave guardada no Keychain deste aparelho." : "Nenhuma chave guardada neste aparelho.")
+                Button(GarminKeyHelpConstants.openLink) { showsKeyHelp = true }
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(BrandColors.accent)
+            }
         }
     }
 
@@ -183,7 +190,7 @@ struct SettingsView: View {
                 Label("Conectado em \(date.formatted(date: .omitted, time: .shortened))", systemImage: "checkmark.circle.fill")
                     .foregroundStyle(BrandColors.accent)
             case .failed(let failure):
-                FailureView(failure: failure)
+                FailureView(failure: failure) { showsKeyHelp = true }
             }
         }
     }
@@ -201,7 +208,7 @@ struct SettingsView: View {
                 }
             }
             if case .failed(let failure) = model.syncStatus {
-                FailureView(failure: failure)
+                FailureView(failure: failure) { showsKeyHelp = true }
             }
             LabeledContent("Último sync", value: lastSyncText)
         }
