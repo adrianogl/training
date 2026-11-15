@@ -26,6 +26,8 @@ enum BrandColors {
     static let fitness = Color(light: 0x2F6FD6, dark: 0x7FB2FF)
     static let form = Color(light: 0xA27F00, dark: 0xE8C547)
     static let rest = Color(light: 0xCC3B33, dark: 0xE5534B)
+    static let strength = Color(light: 0x7B5CD6, dark: 0xB59CFF)
+    static let strengthGlow = Color(light: 0x7B5CD6, dark: 0xB59CFF, lightOpacity: 0.15, darkOpacity: 0.15)
     static let marker = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.35, darkOpacity: 0.35)
     static let neutralBar = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.30, darkOpacity: 0.35)
     static let track = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.07, darkOpacity: 0.06)

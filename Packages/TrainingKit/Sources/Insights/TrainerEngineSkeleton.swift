@@ -1,0 +1,130 @@
+import Foundation
+import TrainingCore
+
+private typealias C = TrainerEngineConstants
+
+extension TrainerEngine {
+    static func roundKilometers(_ meters: Double) -> Double {
+        (meters / C.metersPerKilometer).rounded() * C.metersPerKilometer
+    }
+
+    static func longCap(for target: TrainerTarget) -> Double {
+        guard let meters = target.distanceMeters else { return C.fallbackLongCap }
+        return C.longCaps.first { meters <= $0.upTo }?.cap ?? C.fallbackLongCap
+    }
+
+    static func skeletonContext(target: TrainerTarget, datedWeeks: Int?, openTotal: Int) -> TrainerSkeletonContext {
+        let cap = longCap(for: target)
+        guard let datedWeeks else {
+            return TrainerSkeletonContext(total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap)
+        }
+        let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
+        return TrainerSkeletonContext(total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap)
+    }
+
+    static func phase(of index: Int, in context: TrainerSkeletonContext) -> TrainerPhase {
+        let span = context.openEnded ? C.openHorizonWeeks : context.total - context.taperWeeks
+        if !context.openEnded && index > span { return .taper }
+        let position = context.openEnded ? (index - 1) % C.openHorizonWeeks + 1 : index
+        let base = Int((C.baseShare * Double(span)).rounded())
+        let build = Int((C.buildShare * Double(span)).rounded())
+        if position <= base { return .base }
+        if position <= base + build { return .build }
+        return .specific
+    }
+
+    static func initialState(history: TrainerHistory, today: Day, longCap: Double) -> TrainerSkeletonState {
+        let weekly = history.runs
+            .filter { $0.day >= today.weekStart.adding(days: -C.volumeWindowDays) && $0.day < today.weekStart }
+            .reduce(0.0) { $0 + $1.meters } / C.volumeWindowWeeks
+        let volume = weekly > 0 ? roundKilometers(weekly) : C.fallbackWeeklyMeters
+        let longest = history.runs
+            .filter { $0.kind == .long && $0.day > today.adding(days: -C.longWindowDays) && $0.day <= today }
+            .map(\.meters).max() ?? 0
+        let long = min(roundKilometers(max(longest, C.minimumLongMeters)), longCap)
+        return TrainerSkeletonState(volume: volume, long: long, stage: 0, weeksAtStage: 0, started: false)
+    }
+
+    static func derivedState(from weeks: [TrainerWeek]) -> TrainerSkeletonState? {
+        let progression = weeks.filter { !$0.isRecovery && $0.phase != .taper }
+        guard let last = progression.last else { return nil }
+        let stage = stageIndex(of: last.thresholdFocus, in: C.thresholdStages)
+        var level = 0
+        for week in progression.reversed() where stageIndex(of: week.thresholdFocus, in: C.thresholdStages) == stage {
+            level += 1
+        }
+        return TrainerSkeletonState(
+            volume: last.targetMeters, long: last.longMeters, stage: stage,
+            weeksAtStage: min(level, C.stagesAtLevel), started: true
+        )
+    }
+
+    static func stageIndex(of label: String, in stages: [TrainerQualityStage]) -> Int {
+        stages.firstIndex { TrainerEngineText.stageLabel($0) == label } ?? 0
+    }
+
+    static func buildWeeks(
+        context: TrainerSkeletonContext, firstIndex: Int, firstStart: Day,
+        state initial: TrainerSkeletonState, adjustment: TrainerSkeletonAdjustment
+    ) -> [TrainerWeek] {
+        guard firstIndex <= context.total else { return [] }
+        var state = initial
+        var holdPending = adjustment.holdProgression
+        var weeks: [TrainerWeek] = []
+        for index in firstIndex...context.total {
+            let first = index == firstIndex
+            let phase = phase(of: index, in: context)
+            let recovery = index % C.recoveryEvery == 0 && phase != .taper
+            var volume: Double
+            var long: Double
+            var stage: Int
+            if phase == .taper {
+                let position = max(0, index - (context.total - context.taperWeeks) - 1)
+                let share = C.taperShares[min(position, C.taperShares.count - 1)]
+                volume = roundKilometers(state.volume * share)
+                long = roundKilometers(state.long * share)
+                stage = max(0, state.stage - 1)
+            } else if recovery {
+                volume = roundKilometers(state.volume * C.recoveryVolumeShare)
+                long = roundKilometers(state.long * C.recoveryLongShare)
+                stage = max(0, state.stage - 1)
+            } else {
+                if !state.started {
+                    state.started = true
+                    state.weeksAtStage = 1
+                } else if first, let scale = adjustment.volumeScale {
+                    state.volume = roundKilometers(state.volume * scale)
+                    state.weeksAtStage = min(C.stagesAtLevel, state.weeksAtStage + 1)
+                    holdPending = false
+                } else if holdPending {
+                    state.weeksAtStage = min(C.stagesAtLevel, state.weeksAtStage + 1)
+                    holdPending = false
+                } else {
+                    state.volume = roundKilometers(state.volume * (1 + min(C.weeklyGrowth, C.maximumGrowth)))
+                    state.long = min(state.long + C.longStep, context.longCap)
+                    if state.weeksAtStage >= C.stagesAtLevel {
+                        state.stage = min(state.stage + 1, C.thresholdStages.count - 1)
+                        state.weeksAtStage = 1
+                    } else {
+                        state.weeksAtStage += 1
+                    }
+                }
+                if first, let cap = adjustment.longCap { state.long = min(state.long, cap) }
+                volume = state.volume
+                long = state.long
+                stage = state.stage
+            }
+            if first && (phase == .taper || recovery) {
+                if let scale = adjustment.volumeScale { volume = roundKilometers(volume * scale) }
+                if let cap = adjustment.longCap { long = min(long, cap) }
+            }
+            weeks.append(TrainerWeek(
+                index: index, start: firstStart.adding(days: (index - firstIndex) * C.daysPerWeek), phase: phase,
+                isRecovery: recovery, plannedMeters: volume, targetMeters: volume, longMeters: long,
+                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdStages[stage]),
+                vo2Focus: TrainerEngineText.stageLabel(C.vo2Stages[stage])
+            ))
+        }
+        return weeks
+    }
+}

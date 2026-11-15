@@ -23,6 +23,7 @@ import TrainingCore
     let remoteSync: RemoteSyncModel
     let garminAccount: GarminAccountModel
     let account: AccountModel
+    let trainer: TrainerModel
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
@@ -52,6 +53,7 @@ import TrainingCore
         watchTokenStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.watchTokenKeychainAccount),
         garminSessionStore: any APIKeyStore = KeychainKeyStore(account: AppConstants.garminSessionKeychainAccount),
         remoteDefaults: UserDefaults = .standard,
+        trainerStore: TrainerStore = TrainerStore(),
         remoteBaseURL: URL = AppConstants.remoteSyncBaseURL,
         autoSyncEnabled: Bool = true,
         makeNarrator: @escaping @MainActor () -> any Narrator = { Narrative.makeNarrator() },
@@ -86,6 +88,7 @@ import TrainingCore
             makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
         )
         self.account = AccountModel(transport: transport, baseURL: remoteBaseURL)
+        self.trainer = TrainerModel(container: container, store: trainerStore)
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
         account.legacyKey = { [weak self] in self?.remoteSync.legacyBearer() }
         garminAccount.link = { [weak self] in
@@ -245,6 +248,7 @@ import TrainingCore
                     Self.runPostSyncWork(container: container, today: day)
                 }.value
                 self?.syncStatus = .finished(.now)
+                self?.trainer.scheduleAutoAdjust()
                 self?.finishedSummary = summary.map { ($0, day) }
                 processed = trigger.runsInBackground ? nil : report.processedActivityIds
                 if trigger != .background { self?.markNew(report.processedActivityIds) }
