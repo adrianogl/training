@@ -4,6 +4,8 @@ import TrainingCore
 private typealias C = TrainerEngineConstants
 
 extension TrainerEngine {
+    public static let cycleLowReadiness = C.cycleLowReadiness
+
     public static func cycleReview(plan: TrainerPlan, history: TrainerHistory, today: Day) -> TrainerCycleReview? {
         guard let window = cycleWindow(plan: plan, history: history, today: today) else { return nil }
         let first = window.first

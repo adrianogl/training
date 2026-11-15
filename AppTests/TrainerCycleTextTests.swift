@@ -50,6 +50,13 @@ import TrainingCore
         #expect(TrainerCycleText.banner(early, dated: true) == "Você encerrou o ciclo. Veja a análise das 3 semanas concluídas.")
     }
 
+    @Test func bannersWithOneWeek() {
+        let early = Self.review(.keep, start: 1, peak: 1, suggestedStart: 1, suggestedPeak: 1, weeks: 1, endedEarly: true)
+        let closed = Self.review(.keep, start: 1, peak: 1, suggestedStart: 1, suggestedPeak: 1, weeks: 1)
+        #expect(TrainerCycleText.banner(early, dated: false) == "Você encerrou o ciclo. Veja a análise da 1 semana concluída.")
+        #expect(TrainerCycleText.banner(closed, dated: false) == "Fechou 1 semana. Veja como foi e o volume sugerido.")
+    }
+
     @Test func verdictTitles() {
         #expect(TrainerCycleText.verdictTitle(.increase) == "Aumentar o volume")
         #expect(TrainerCycleText.verdictTitle(.keep) == "Manter o volume")
@@ -79,6 +86,45 @@ import TrainingCore
 
     @Test func endMessage() {
         #expect(TrainerCycleText.endMessage(weeks: 5) == "A análise vai usar as 5 semanas já concluídas. O plano atual para de gerar treinos.")
+        #expect(TrainerCycleText.endMessage(weeks: 1) == "A análise vai usar a 1 semana já concluída. O plano atual para de gerar treinos.")
+    }
+
+    @Test func screenLines() {
+        let review = Self.review(.increase, start: 60_000, peak: 80_000, suggestedStart: 64_000, suggestedPeak: 86_000)
+        #expect(TrainerCycleText.volumeDone(review) == "0 de 0 km")
+        #expect(TrainerCycleText.count(TrainerCycleCount(done: 9, total: 12)) == "9 de 12")
+        #expect(TrainerCycleText.longest(24_000) == "Maior longão feito: 24 km")
+        #expect(TrainerCycleText.goal(5_700) == "meta 1:35:00")
+        #expect(TrainerCycleText.raceDifference(seconds: 5_628, goal: 5_700) == "1:12 abaixo da meta")
+        #expect(TrainerCycleText.raceDifference(seconds: 5_772, goal: 5_700) == "1:12 acima da meta")
+        #expect(TrainerCycleText.readinessCaption(72.4) == "72 no início")
+        #expect(TrainerCycleText.lowReadinessCaption(60) == "abaixo de 60")
+        #expect(TrainerCycleText.longsMissedCaption(1) == "de 1 longão")
+        #expect(TrainerCycleText.longsMissedCaption(12) == "de 12 longões")
+        let change = TrainerCycleChange(meters: 10_000, first: 2_460, last: 2_412)
+        #expect(TrainerCycleText.predictionTitle(10_000) == "Previsão 10 km")
+        #expect(TrainerCycleText.predictionCaption(change) == "era 41:00 no início")
+        #expect(TrainerCycleText.predictionDelta(change) == "−0:48")
+        #expect(TrainerCycleText.predictionDelta(TrainerCycleChange(meters: 5_000, first: 1_200, last: 1_230)) == "+0:30")
+        #expect(TrainerCycleText.predictionDelta(TrainerCycleChange(meters: 5_000, first: 1_200, last: 1_200)) == "sem mudança")
+    }
+
+    @Test func resultLines() {
+        var review = Self.review(.increase, start: 60_000, peak: 80_000, suggestedStart: 64_000, suggestedPeak: 86_000)
+        review.weeks = [TrainerCycleWeek(index: 0, start: Self.day, doneMeters: 806_000, plannedMeters: 833_000)]
+        #expect(TrainerCycleText.resultValue(review, goalMeters: nil) == "806 de 833 km")
+        #expect(TrainerCycleText.resultCaption(review, goalMeters: nil) == "97% do previsto")
+        review.predictions = [
+            TrainerCycleChange(meters: 5_000, first: 1_200, last: 1_180),
+            TrainerCycleChange(meters: 10_000, first: 2_460, last: 2_412),
+        ]
+        #expect(TrainerCycleText.resultValue(review, goalMeters: nil) == "40:12")
+        #expect(TrainerCycleText.resultCaption(review, goalMeters: nil) == "previsão 10 km · 806 de 833 km")
+        #expect(TrainerCycleText.resultValue(review, goalMeters: 5_000) == "19:40")
+        review.raceSeconds = 5_628
+        review.goalSeconds = 5_700
+        #expect(TrainerCycleText.resultValue(review, goalMeters: 21_097.5) == "1:33:48")
+        #expect(TrainerCycleText.resultCaption(review, goalMeters: 21_097.5) == "meta 1:35:00")
     }
 
     @Test func summaryLines() {

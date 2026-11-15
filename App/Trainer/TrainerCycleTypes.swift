@@ -13,3 +13,16 @@ struct TrainerCycleSummary: Codable, Equatable, Identifiable {
 
     var id: String { last.iso }
 }
+
+struct TrainerCycleEditor: Identifiable {
+    let isEditing: Bool
+    let start: Int?
+    let peak: Int?
+
+    var id: String { "\(isEditing)-\(start ?? 0)-\(peak ?? 0)" }
+
+    var volumes: (start: Int, peak: Int)? {
+        guard let start, let peak else { return nil }
+        return (start, peak)
+    }
+}

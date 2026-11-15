@@ -10,12 +10,16 @@ struct TrainerPlanHeaderCard: View {
     let weekProgress: String?
     let onToggleLight: (Day) -> Void
     let onSelect: (Day) -> Void
+    var cycle: TrainerCycleReview?
     @State private var showsPastBoards = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            goal
-            if let latest = boards.first {
+            TrainerPlanGoalRow(plan: plan, weeksToTarget: weeksToTarget, weekProgress: weekProgress)
+            if let cycle {
+                Divider()
+                result(cycle)
+            } else if let latest = boards.first {
                 Divider()
                 scoreboard(latest)
             }
@@ -26,24 +30,24 @@ struct TrainerPlanHeaderCard: View {
         .brandCard()
     }
 
-    private var goal: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Text(TrainerText.goalGlyph(plan.target))
-                .font(.system(size: 15, weight: .heavy))
-                .foregroundStyle(BrandColors.race)
-                .frame(width: TrainerConstants.goalIconSize, height: TrainerConstants.goalIconSize)
-                .background(BrandColors.raceGlow, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(TrainerText.targetTitle(plan.target)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(TrainerText.goalCaption(plan: plan, weeks: weeksToTarget)).font(.caption).foregroundStyle(BrandColors.dim)
-                if let line = TrainerEngine.goalPaceSummary(target: plan.target, paces: plan.paces) {
-                    Text(line).font(.caption).foregroundStyle(BrandColors.dim)
-                }
+    private func result(_ review: TrainerCycleReview) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(TrainerCycleText.resultTitle)
+                .font(.caption.weight(.medium))
+                .tracking(1)
+                .textCase(.uppercase)
+                .foregroundStyle(BrandColors.dim)
+            HStack(alignment: .firstTextBaseline, spacing: 14) {
+                Text(TrainerCycleText.resultValue(review, goalMeters: plan.target.distanceMeters))
+                    .font(BrandFonts.number(18))
+                    .foregroundStyle(BrandColors.text)
+                Text(TrainerCycleText.resultCaption(review, goalMeters: plan.target.distanceMeters))
+                    .font(.footnote)
+                    .foregroundStyle(BrandColors.dim)
             }
-            Spacer(minLength: 6)
-            if let weekProgress {
-                Text(weekProgress).font(.caption).foregroundStyle(BrandColors.dim)
-            }
+            Text(TrainerCycleText.suggestionLine(review, dated: plan.target.date != nil))
+                .font(.footnote)
+                .foregroundStyle(TrainerCycleConstants.color(for: review.verdict))
         }
     }
 
@@ -82,6 +86,33 @@ struct TrainerPlanHeaderCard: View {
                         Text(TrainerText.scoreboardRow(board)).font(.caption).foregroundStyle(BrandColors.dim).monospacedDigit()
                     }
                 }
+            }
+        }
+    }
+}
+
+struct TrainerPlanGoalRow: View {
+    let plan: TrainerPlan
+    var weeksToTarget: Int?
+    var weekProgress: String?
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(TrainerText.goalGlyph(plan.target))
+                .font(.system(size: 15, weight: .heavy))
+                .foregroundStyle(BrandColors.race)
+                .frame(width: TrainerConstants.goalIconSize, height: TrainerConstants.goalIconSize)
+                .background(BrandColors.raceGlow, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(TrainerText.targetTitle(plan.target)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                Text(TrainerText.goalCaption(plan: plan, weeks: weeksToTarget)).font(.caption).foregroundStyle(BrandColors.dim)
+                if let line = TrainerEngine.goalPaceSummary(target: plan.target, paces: plan.paces) {
+                    Text(line).font(.caption).foregroundStyle(BrandColors.dim)
+                }
+            }
+            Spacer(minLength: 6)
+            if let weekProgress {
+                Text(weekProgress).font(.caption).foregroundStyle(BrandColors.dim)
             }
         }
     }

@@ -66,6 +66,11 @@ import TrainingCore
         return currentDay > date || cycleReview != nil
     }
 
+    var finishedWeekCount: Int {
+        let now = currentDay
+        return plan?.weeks.filter { $0.start.adding(days: TrainerConstants.weekdayCount) <= now }.count ?? 0
+    }
+
     func endCycle() async {
         guard var current = plan, current.endedOn == nil else { return }
         isWorking = true
