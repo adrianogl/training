@@ -13,15 +13,16 @@ export interface RaceContext {
   activities: ActivitySummary[]
   laps: Map<number, Lap[]>
   weather: Map<string, { weather: Weather | null; note: WeatherNote }>
+  trainingEfforts?: Effort[]
 }
 
 export function racePoints(race: RaceItem): GpxPoint[] {
   return race.gpxData ? gpxPoints(Buffer.from(race.gpxData, 'base64').toString('utf8')) : []
 }
 
-export function allEfforts(races: StoredRace[], activities: ActivitySummary[]): Effort[] {
+export function allEfforts(races: StoredRace[], activities: ActivitySummary[], training: Effort[] = []): Effort[] {
   const results = races.flatMap(({ race }) => (race?.resultActivityId ? [{ activityId: race.resultActivityId }] : []))
-  return [...splitEfforts(activities), ...raceEfforts(activities, results)]
+  return [...splitEfforts(activities), ...training, ...raceEfforts(activities, results)]
 }
 
 export function weeklyKm(activities: ActivitySummary[]): Map<string, number> {
@@ -44,7 +45,7 @@ const lockedView = (id: string): RaceView => ({
 
 export function buildRaceViews(races: StoredRace[], context: RaceContext): RaceView[] {
   const { today, activities } = context
-  const efforts = allEfforts(races, activities)
+  const efforts = allEfforts(races, activities, context.trainingEfforts)
   const weeks = weeklyKm(activities)
   const byId = new Map(activities.map((activity) => [activity.id, activity]))
   return races.map(({ id, race }) => {

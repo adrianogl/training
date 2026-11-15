@@ -2,7 +2,7 @@ import FITReader
 import Foundation
 import Storage
 import Testing
-@testable import Insights
+@testable import WorkoutAnalysis
 
 @Suite struct WorkoutKindClassifierTests {
     private func record(_ name: String, meters: Double, workoutName: String? = nil, structure: WorkoutStructure? = nil) -> ActivityRecord {

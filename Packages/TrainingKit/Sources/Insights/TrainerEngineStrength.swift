@@ -98,24 +98,28 @@ extension TrainerEngine {
     }
 
     static func withPlannedMeters(
-        _ weeks: [TrainerWeek], workouts: [TrainerWorkout], structure: [Int: TrainerDayKind], target: TrainerTarget, from start: Day
+        _ weeks: [TrainerWeek], workouts: [TrainerWorkout], structure: [Int: TrainerDayKind], target: TrainerTarget,
+        history: TrainerHistory, today: Day
     ) -> [TrainerWeek] {
         weeks.map { week in
-            guard week.start >= start else { return week }
+            guard week.start >= today.weekStart else { return week }
             var result = week
             result.plannedMeters = (1...C.daysPerWeek).reduce(0.0) { total, weekday in
                 let day = week.start.adding(days: weekday - 1)
                 guard let workout = workouts.first(where: { $0.day == day }) else {
-                    return total + estimatedMeters(weekday: weekday, day: day, week: week, structure: structure, target: target)
+                    return total + estimatedMeters(
+                        weekday: weekday, day: day, week: week, structure: structure, target: target, history: history, today: today
+                    )
                 }
-                return total + (workout.kind == .optionalEasy ? 0 : workout.totalMeters)
+                return total + workout.totalMeters
             }
             return result
         }
     }
 
     private static func estimatedMeters(
-        weekday: Int, day: Day, week: TrainerWeek, structure: [Int: TrainerDayKind], target: TrainerTarget
+        weekday: Int, day: Day, week: TrainerWeek, structure: [Int: TrainerDayKind], target: TrainerTarget,
+        history: TrainerHistory, today: Day
     ) -> Double {
         let kind = structure[weekday] ?? .off
         if let raceDay = target.date, raceDay.weekStart == week.start {
@@ -125,8 +129,9 @@ extension TrainerEngine {
         switch kind {
         case .long: return week.longMeters
         case .threshold, .vo2max: return qualityMeters(qualityStage(kind, week: week, lowered: false))
-        case .easy: return easyShare(week: week, structure: structure).meters
-        case .optionalEasy, .off, .race: return 0
+        case .easy: return easyShare(week: week, structure: structure, history: history, today: today).meters
+        case .optionalEasy: return easyShare(week: week, structure: structure, history: history, today: today).optional
+        case .off, .race: return 0
         }
     }
 }

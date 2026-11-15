@@ -1,7 +1,7 @@
 import TrainingCore
 
 public enum EffortKind: String, Codable, Sendable {
-    case race, split5k, split1k
+    case race, split5k, split1k, threshold, interval
 }
 
 public struct Effort: Codable, Sendable, Equatable {

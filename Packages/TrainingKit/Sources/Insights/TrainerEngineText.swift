@@ -18,6 +18,18 @@ enum TrainerEngineText {
         return String(format: "%.1f", km).replacingOccurrences(of: ".", with: ",") + " km"
     }
 
+    static func restClock(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
+    static func restSummary(_ seconds: Double) -> String { "parado \(restClock(seconds))" }
+
+    static func restRule(kind: TrainerDayKind, seconds: Double) -> String {
+        let reason = kind == .threshold ? "1 min para cada 5 min de bloco" : "um pouco menos que o tempo do tiro"
+        return "Descanso de \(restClock(seconds)) parado, \(reason)."
+    }
+
     static func distance(_ meters: Double) -> String {
         meters >= 2_000 ? kilometers(meters) : "\(Int(meters.rounded())) m"
     }
@@ -184,40 +196,52 @@ enum TrainerEngineText {
         "Mais tempo de \(date(from)) a \(date(until)): a rodagem opcional vira obrigatória."
     }
 
-    static func thresholdBasis(predicted: Double?, runs: Int) -> String {
-        if let predicted { return "Pace do 10 km previsto em \(clock(predicted)) mais 8 s/km." }
-        return "Pace pela mediana de \(runs) limiares dos últimos 90 dias."
+    static func thresholdBasis(_ paces: TrainerPaces, predicted: Double?) -> String {
+        let history = "Pace pela mediana de \(paces.thresholdRuns) limiares dos últimos 90 dias."
+        switch paces.thresholdSource {
+        case .work:
+            return "Pace de \(pace(paces.threshold))/km, a mediana dos blocos dos seus últimos \(paces.thresholdWorkRuns ?? 0) limiares."
+        case .fallback:
+            return "Pace 60 s/km abaixo da rodagem, sem limiares recentes."
+        case .prediction, .history, nil:
+            return predicted.map { "Pace do 10 km previsto em \(clock($0)) mais 8 s/km." } ?? history
+        }
     }
 
-    static func vo2Basis(predicted: Double?) -> String {
-        if let predicted { return "Pace do 5 km previsto em \(clock(predicted))." }
-        return "Pace 15 s/km abaixo do limiar, sem previsão de 5 km."
+    static func vo2Basis(_ paces: TrainerPaces, predicted: Double?) -> String {
+        switch paces.vo2Source {
+        case .work:
+            return "Pace de \(pace(paces.vo2max))/km, a mediana dos blocos dos seus últimos \(paces.vo2WorkRuns ?? 0) treinos de VO2."
+        case .prediction, .history, .fallback, nil:
+            return predicted.map { "Pace do 5 km previsto em \(clock($0))." } ?? "Pace 15 s/km abaixo do limiar, sem previsão de 5 km."
+        }
     }
 
     static func qualityRationale(
         kind: TrainerDayKind, title: String, week: TrainerWeek, previous: TrainerWorkout?, previousStatus: TrainerDayStatus?,
-        miss: TrainerQualityMiss?, basis: String, recovery: Double, legs: String? = nil
+        miss: TrainerQualityMiss?, basis: String, restSeconds: Double, legs: String? = nil
     ) -> String {
         let name = kindName(kind)
         let warmup = legs.map { " \(legsWarmup($0))" } ?? ""
         if let miss {
-            return "\(name) uma etapa abaixo, porque o último ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. Recuperação de \(Int(recovery)) m. \(basis)\(warmup)"
+            return "\(name) uma etapa abaixo. Descanso de \(restClock(restSeconds)) parado, 1 min a mais porque o último ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. \(basis)\(warmup)"
         }
+        let rule = restRule(kind: kind, seconds: restSeconds)
         if let previous, previousStatus == .done {
             if previous.title == title {
-                return "\(name) com os mesmos \(title.dropFirst(name.count + 1)) do último treino, porque ele saiu no alvo e a progressão sobe a cada duas semanas. \(basis)\(warmup)"
+                return "\(name) com os mesmos \(title.dropFirst(name.count + 1)) do último treino, porque ele saiu no alvo e a progressão sobe a cada duas semanas. \(rule) \(basis)\(warmup)"
             }
-            return "\(name) sobe para \(title.dropFirst(name.count + 1)), porque o último treino saiu no alvo. \(basis)\(warmup)"
+            return "\(name) sobe para \(title.dropFirst(name.count + 1)), porque o último treino saiu no alvo. \(rule) \(basis)\(warmup)"
         }
         let phase = phaseName(week.phase)
         let recovery = week.isRecovery ? " Semana de recuperação, uma etapa abaixo." : ""
-        return "\(title) na semana \(week.index) (\(phase)).\(recovery) \(basis)\(warmup)"
+        return "\(title) na semana \(week.index) (\(phase)).\(recovery) \(rule) \(basis)\(warmup)"
     }
 
     static func legsNote(_ name: String) -> String { "pernas de ontem (\(name))" }
 
     static func legsWarmup(_ name: String) -> String {
-        "Aquecimento de \(kilometers(TrainerEngineConstants.heavyLegsWarmupMeters)) em vez de \(kilometers(TrainerEngineConstants.warmupMeters)): ontem teve \(name), com as pernas cansadas."
+        "Ontem teve \(name), com as pernas cansadas. O aquecimento continua em \(kilometers(TrainerEngineConstants.warmupMeters))."
     }
 
     static let noNote = "sem observação"
@@ -259,12 +283,15 @@ enum TrainerEngineText {
         return text
     }
 
-    static func easyRationale(share: TrainerEasyShare, week: TrainerWeek) -> String {
-        "Rodagem de \(kilometers(share.meters)): divide os \(kilometers(max(share.remaining, 0))) que sobram do alvo de \(kilometers(week.targetMeters)) da semana depois do longão e da qualidade, entre 5 e 12 km."
+    static func easyRationale(_ share: TrainerEasyShare) -> String {
+        let weeks = TrainerEngineConstants.easyWindowDays / TrainerEngineConstants.daysPerWeek
+        let text = "Rodagem de \(kilometers(share.meters))."
+        guard share.fromHistory else { return text }
+        return "\(text) Suas rodagens das últimas \(weeks) semanas ficam em \(kilometers(share.base))."
     }
 
-    static func optionalRationale(week: TrainerWeek) -> String {
-        "Rodagem opcional de \(week.targetMeters >= TrainerEngineConstants.optionalLargeWeekMeters ? "6" : "5") km. Só entra se a prontidão da manhã estiver em 60 ou mais."
+    static func optionalRationale(meters: Double) -> String {
+        "Rodagem opcional de \(kilometers(meters)), 70% da rodagem da semana, e conta no volume. Só entra se a prontidão da manhã estiver em 60 ou mais."
     }
 
     static func raceRationale(target: TrainerTarget, pace: Double?) -> String {

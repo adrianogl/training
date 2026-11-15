@@ -33,6 +33,17 @@ import TrainingCore
         #expect(bars.map(\.kind) == [.warmup, .work, .recovery, .work, .recovery, .work])
     }
 
+    @Test func showsRestStepAsStandingByTime() {
+        var workout = TrainerStoreTests.plan().workouts[0]
+        workout.steps[2] = TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 90)
+        let rows = TrainerText.stepRows(workout)
+        #expect(rows[2].title == "Descanso parado")
+        #expect(rows[2].detail == "1:30")
+        let bars = TrainerText.shapeBars(workout.steps)
+        #expect(bars.filter(\.isRest).count == 2)
+        #expect(bars.filter(\.isRest).allSatisfy { $0.kind == .recovery && $0.meters == 0 })
+    }
+
     @Test func formatsDatesAndWeeks() {
         let day = Day(iso: "2026-11-17")!
         #expect(TrainerText.weekdayShort(day) == "ter")

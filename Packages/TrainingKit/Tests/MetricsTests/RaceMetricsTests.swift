@@ -192,3 +192,40 @@ private func total(_ p: [KmPlan], _ distance: Double) -> Double {
     let marathon = Effort(distance: 42_195, seconds: 11_600, day: today.adding(days: -100), kind: .race)
     #expect(bestEfforts([slower, faster, marathon], for: 10_000, on: today) == [faster])
 }
+
+@Test func thresholdAndIntervalEffortsEnterThePredictionWithTheirWeights() {
+    let threshold = Effort(distance: 10_000, seconds: 2_400, day: today.adding(days: -15), kind: .threshold)
+    let interval = Effort(distance: 5_000, seconds: 1_170, day: today.adding(days: -30), kind: .interval)
+    let window = RaceConstants.effortWindowDays
+    let wThreshold = 1.0 * (1 - 15.0 / window)
+    let wInterval = 0.4 * (1 - 30.0 / window)
+    let expected = (wThreshold * riegel(seconds: 2_400, from: 10_000, to: 5_000) + wInterval * 1_170) / (wThreshold + wInterval)
+    let p = predict(distance: 5_000, efforts: [threshold, interval], on: today)
+    #expect(p != nil && abs(p! - expected) < 1e-6)
+}
+
+@Test func intervalOnlyCountsForFiveKilometers() {
+    let threshold = Effort(distance: 10_000, seconds: 2_400, day: today, kind: .threshold)
+    let interval = Effort(distance: 5_000, seconds: 1_170, day: today, kind: .interval)
+    for target in [10_000.0, 21_097.5] {
+        let p = predict(distance: target, efforts: [threshold, interval], on: today)
+        #expect(p != nil && abs(p! - riegel(seconds: 2_400, from: 10_000, to: target)) < 1e-6)
+    }
+}
+
+@Test func thresholdWeightIsHalvedForTheMarathon() {
+    let threshold = Effort(distance: 10_000, seconds: 2_400, day: today, kind: .threshold)
+    let race = Effort(distance: 21_097.5, seconds: 5_600, day: today, kind: .race)
+    let target = 42_195.0
+    let expected = (0.5 * riegel(seconds: 2_400, from: 10_000, to: target) + riegel(seconds: 5_600, from: 21_097.5, to: target)) / 1.5
+    let p = predict(distance: target, efforts: [threshold, race], on: today)
+    #expect(p != nil && abs(p! - expected) < 1e-6)
+}
+
+@Test func thresholdWeightMatchesRaceAndIsNotHalvedForTheHalfMarathon() {
+    let threshold = Effort(distance: 10_000, seconds: 2_400, day: today, kind: .threshold)
+    let race = Effort(distance: 10_000, seconds: 2_700, day: today, kind: .race)
+    let p = predict(distance: 21_097.5, efforts: [threshold, race], on: today)
+    let expected = (riegel(seconds: 2_400, from: 10_000, to: 21_097.5) + riegel(seconds: 2_700, from: 10_000, to: 21_097.5)) / 2
+    #expect(p != nil && abs(p! - expected) < 1e-6)
+}

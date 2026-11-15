@@ -34,8 +34,8 @@ let package = Package(
         .target(name: "Projections", dependencies: ["TrainingCore"]),
         .target(name: "Storage", dependencies: ["TrainingCore"]),
         .target(name: "Sync", dependencies: ["TrainingCore", "GarminAPI", "FITReader", "Metrics", "Projections", "Storage"]),
-        .target(name: "Reports", dependencies: ["TrainingCore", "FITReader", "Metrics", "Storage"]),
-        .target(name: "WorkoutAnalysis", dependencies: ["TrainingCore", "FITReader"]),
+        .target(name: "Reports", dependencies: ["TrainingCore", "FITReader", "Metrics", "Storage", "WorkoutAnalysis"]),
+        .target(name: "WorkoutAnalysis", dependencies: ["TrainingCore", "FITReader", "Storage"]),
         .target(name: "Narrative", dependencies: ["WorkoutAnalysis", "Metrics"]),
         .target(name: "Insights", dependencies: [
             "TrainingCore", "FITReader", "Metrics", "Projections", "Storage", "Sync", "Reports", "WorkoutAnalysis", "Narrative",
@@ -48,12 +48,12 @@ let package = Package(
         .testTarget(name: "MetricsTests", dependencies: ["Metrics"]),
         .testTarget(name: "ProjectionsTests", dependencies: ["Projections"]),
         .testTarget(name: "StorageTests", dependencies: ["Storage"]),
-        .testTarget(name: "WorkoutAnalysisTests", dependencies: ["WorkoutAnalysis", "FITReader", "TrainingCore"]),
+        .testTarget(name: "WorkoutAnalysisTests", dependencies: ["WorkoutAnalysis", "FITReader", "TrainingCore", "Storage"]),
         .testTarget(name: "NarrativeTests", dependencies: ["Narrative", "WorkoutAnalysis", "Metrics"]),
         .testTarget(name: "InsightsTests", dependencies: [
             "Insights", "TrainingCore", "FITReader", "Metrics", "Projections", "Storage", "Reports", "Narrative", "Sync",
         ]),
-        .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore"]),
+        .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore", "WorkoutAnalysis"]),
         .testTarget(name: "RemoteSyncTests", dependencies: ["RemoteSync", "Storage", "GarminAPI", "Metrics"]),
         .testTarget(name: "trainingctlTests", dependencies: ["trainingctl", "Sync"]),
         .testTarget(name: "SyncTests", dependencies: [

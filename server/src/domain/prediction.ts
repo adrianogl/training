@@ -2,7 +2,7 @@ import { addDays } from '../garminSync.js'
 import { PREDICTION } from './domainConstants.js'
 import type { Effort, EffortKind } from './domainTypes.js'
 
-const KIND_ORDER: EffortKind[] = ['race', 'split1k', 'split5k']
+const KIND_ORDER: EffortKind[] = ['race', 'split1k', 'split5k', 'threshold', 'interval']
 
 export function daysBetween(from: string, to: string): number {
   return Math.round((new Date(`${to}T12:00:00Z`).getTime() - new Date(`${from}T12:00:00Z`).getTime()) / 86_400_000)
@@ -12,7 +12,7 @@ export function riegel(seconds: number, from: number, to: number, exponent: numb
   return seconds * (to / from) ** exponent
 }
 
-function weight(effort: Effort, on: string): number | null {
+function weight(effort: Effort, on: string, target: number): number | null {
   if (effort.distance <= 0 || effort.seconds <= 0) {
     return null
   }
@@ -21,7 +21,8 @@ function weight(effort: Effort, on: string): number | null {
   if (age < 0 || age >= window) {
     return null
   }
-  const value = PREDICTION.kindWeight[effort.kind] * (1 - age / window)
+  const endurance = PREDICTION.distanceWeightFactors.find((entry) => target >= entry.minimumMeters)?.factors[effort.kind] ?? 1
+  const value = PREDICTION.kindWeight[effort.kind] * endurance * (1 - age / window)
   return value > 0 ? value : null
 }
 
@@ -49,7 +50,7 @@ function replaces(effort: Effort, predicted: number, current: Effort, currentPre
 export function bestEfforts(efforts: Effort[], distance: number, on: string): Effort[] {
   const best = new Map<EffortKind, { effort: Effort; predicted: number }>()
   for (const effort of efforts) {
-    if (weight(effort, on) === null) {
+    if (weight(effort, on, distance) === null) {
       continue
     }
     const predicted = riegel(effort.seconds, effort.distance, distance)
@@ -68,7 +69,7 @@ export function predict(distance: number, efforts: Effort[], on: string): number
   let weighted = 0
   let total = 0
   for (const effort of bestEfforts(efforts, distance, on)) {
-    const value = weight(effort, on)
+    const value = weight(effort, on, distance)
     if (value === null) {
       continue
     }

@@ -20,9 +20,12 @@ enum TrainerConstants {
     static let shapeHeight: CGFloat = 44
     static let shapeSpacing: CGFloat = 2
     static let shapeMinimumWidth: CGFloat = 3
+    static let shapeRestWidth: CGFloat = 6
     static let changeSymbolSize: CGFloat = 24
     static let goalIconSize: CGFloat = 38
     static let weekdayCount = 7
+    static let metersPerKilometer = 1_000.0
+    static let weeklyKilometersRange = 10...150
     static let editableKinds: [TrainerDayKind] = [.easy, .threshold, .vo2max, .optionalEasy, .long, .off]
     static let weekdayShort = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
     static let weekdayFull = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]

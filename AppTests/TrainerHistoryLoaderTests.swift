@@ -1,9 +1,11 @@
+import FITReader
 import Foundation
 import Insights
 import Storage
 import SwiftData
 import Testing
 import TrainingCore
+import WorkoutAnalysis
 @testable import trAIning
 
 @Suite struct TrainerHistoryLoaderTests {
@@ -73,5 +75,67 @@ import TrainingCore
         #expect(history.runs.isEmpty)
         #expect(history.readiness.isEmpty)
         #expect(history.strength.isEmpty)
+    }
+
+    private static func vo2Structure() -> WorkoutStructure {
+        let steps = [
+            PrescribedStep(index: 0, intensity: .warmup, duration: .distance(meters: 1_000), target: .open),
+            PrescribedStep(index: 1, intensity: .active, duration: .distance(meters: 50), target: .open),
+            PrescribedStep(index: 2, intensity: .recovery, duration: .distance(meters: 100), target: .open),
+            PrescribedStep(index: 3, intensity: .active, duration: .repeatSteps(fromIndex: 1, count: 4), target: .open),
+            PrescribedStep(index: 4, intensity: .active, duration: .distance(meters: 1_000), target: .open),
+            PrescribedStep(index: 5, intensity: .rest, duration: .open, target: .open),
+            PrescribedStep(index: 6, intensity: .active, duration: .repeatSteps(fromIndex: 4, count: 5), target: .open),
+            PrescribedStep(index: 7, intensity: .cooldown, duration: .distance(meters: 1_000), target: .open),
+        ]
+        var laps: [LapSummary] = []
+        var offset = 0.0
+        func lap(_ step: Int, _ intensity: StepIntensity, seconds: Double, distance: Double) {
+            laps.append(LapSummary(
+                stepIndex: step, intensity: intensity, startOffset: offset, timerSeconds: seconds, distance: distance,
+                avgSpeed: distance / seconds, avgHeartRate: 160
+            ))
+            offset += seconds
+        }
+        for _ in 0..<3 { lap(0, .warmup, seconds: 360, distance: 1_000) }
+        for _ in 0..<4 {
+            lap(1, .active, seconds: 13, distance: 50)
+            lap(2, .recovery, seconds: 40, distance: 100)
+        }
+        for seconds in [227.0, 227, 228, 232, 227] {
+            lap(4, .active, seconds: seconds, distance: 1_000)
+            lap(5, .rest, seconds: 30, distance: 60)
+        }
+        lap(7, .cooldown, seconds: 380, distance: 1_000)
+        return WorkoutStructure(prescription: WorkoutPrescription(name: "VO2", steps: steps), laps: laps)
+    }
+
+    @Test func workPaceUsesOnlyTheActiveBlocks() throws {
+        let structure = Self.vo2Structure()
+        let pace = try #require(workPace(blocks: buildBlocks(structure, zones: nil))?.pace)
+        #expect(abs(pace - 228.2) < 0.5)
+    }
+
+    @Test func workPaceIgnoresWarmupAndStoppedLaps() throws {
+        let record = F.run(id: 9, daysAgo: 2, meters: 12_000, workoutName: "VO2", structure: Self.vo2Structure())
+        let pace = try #require(workPace(record)?.pace)
+        #expect(abs(pace - 228.2) < 0.5)
+    }
+
+    @Test func workPaceIsNilWithoutPrescription() {
+        let record = F.run(id: 10, daysAgo: 2, meters: 5_000, structure: F.freeStructure(kilometers: 5))
+        #expect(workPace(record) == nil)
+    }
+
+    @Test func workPaceDropsLapsSlowerThanEightMinutes() {
+        let blocks = [WorkoutBlock(
+            kind: .active, ordinal: 1, label: "Ativo", prescribed: nil,
+            laps: [
+                LapSummary(intensity: .active, startOffset: 0, timerSeconds: 600, distance: 1_000),
+                LapSummary(intensity: .active, startOffset: 600, timerSeconds: 240, distance: 1_000),
+            ],
+            seconds: 840, distance: 2_000, avgSpeed: nil, avgHeartRate: nil, maxHeartRate: nil, dominantZone: nil, status: .noTarget
+        )]
+        #expect(workPace(blocks: blocks)?.pace == 240)
     }
 }

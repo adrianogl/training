@@ -11,7 +11,9 @@ extension TrainerEngine {
         let suffix = pace.map { " a \($0)" } ?? ""
         if workout.kind == .threshold || workout.kind == .vo2max,
            let work = workout.steps.first(where: { $0.kind == .work }) {
-            let recovery = workout.steps.first(where: { $0.kind == .recovery }).map { ", rec. \(Int($0.meters)) m" } ?? ""
+            let recovery = workout.steps.first(where: { $0.kind == .recovery }).map { step in
+                step.restSeconds.map { ", \(T.restSummary($0))" } ?? ", rec. \(Int(step.meters)) m"
+            } ?? ""
             return "\(work.repeats) × \(T.distance(work.meters))\(suffix)\(recovery)"
         }
         return "\(T.kilometers(workout.totalMeters))\(suffix)"
@@ -20,7 +22,8 @@ extension TrainerEngine {
     static func sameContent(_ old: TrainerWorkout, _ new: TrainerWorkout) -> Bool {
         let low = abs((old.paceLow ?? 0) - (new.paceLow ?? 0))
         let high = abs((old.paceHigh ?? 0) - (new.paceHigh ?? 0))
-        return old.title == new.title && old.totalMeters == new.totalMeters && old.note == new.note
+        let sameRest = old.steps.map(\.restSeconds) == new.steps.map(\.restSeconds)
+        return old.title == new.title && old.totalMeters == new.totalMeters && old.note == new.note && sameRest
             && low < C.paceChangeSeconds && high < C.paceChangeSeconds
     }
 
@@ -30,18 +33,13 @@ extension TrainerEngine {
 
     static func legsAffected(_ workout: TrainerWorkout) -> Bool {
         switch workout.kind {
-        case .threshold, .vo2max: workout.steps.first { $0.kind == .warmup }.map { $0.meters > C.warmupMeters } ?? false
+        case .threshold, .vo2max: workout.note != nil
         case .long: workout.steps.count > 1
         default: false
         }
     }
 
     static func describeChange(_ old: TrainerWorkout, _ new: TrainerWorkout) -> (before: String, after: String) {
-        let oldWarmup = old.steps.first { $0.kind == .warmup }?.meters
-        let newWarmup = new.steps.first { $0.kind == .warmup }?.meters
-        if let oldWarmup, let newWarmup, oldWarmup != newWarmup, old.title == new.title {
-            return ("aquecimento \(T.kilometers(oldWarmup))", "aquecimento \(T.kilometers(newWarmup))")
-        }
         let before = describe(old)
         let after = describe(new)
         guard before == after, old.note != new.note else { return (before, after) }

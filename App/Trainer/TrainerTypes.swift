@@ -70,6 +70,7 @@ struct TrainerShapeBar: Identifiable, Equatable {
     let id: Int
     let kind: TrainerStepKind
     let meters: Double
+    var isRest = false
 }
 
 struct TrainerWeekCell: Identifiable, Equatable {

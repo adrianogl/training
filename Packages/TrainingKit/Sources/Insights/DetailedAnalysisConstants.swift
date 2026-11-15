@@ -1,3 +1,5 @@
+import WorkoutAnalysis
+
 enum DetailedAnalysisConstants {
     static let windowDays = 90
     static let maxSimilar = 8

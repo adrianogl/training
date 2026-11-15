@@ -77,9 +77,23 @@ export interface FitSummary {
 
 export type FitMessage = Record<string, unknown>
 
+export interface WorkPace {
+  seconds: number
+  meters: number
+}
+
+export interface RunShape {
+  name: string | null
+  hasRepeats: boolean
+  hasHardActiveStep: boolean
+  hasRepeatedActiveLaps: boolean
+}
+
 export interface RunMetrics {
   zone2Pace: number | null
   thresholdPace: number | null
   decoupling: number | null
   hillIndex: number | null
+  workPace?: WorkPace | null
+  shape?: RunShape
 }

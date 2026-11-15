@@ -11,6 +11,7 @@ struct TrainerSkeletonContext {
     var taperWeeks: Int
     var openEnded: Bool
     var longCap: Double
+    var baseVolume: Double
 }
 
 struct TrainerSkeletonState {
@@ -56,7 +57,9 @@ struct TrainerChangeReasons {
 
 struct TrainerEasyShare {
     var meters: Double
-    var remaining: Double
+    var optional: Double
+    var base: Double
+    var fromHistory: Bool
 }
 
 struct TrainerStrengthKind {

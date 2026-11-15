@@ -10,6 +10,7 @@ import { longCandidates, longGoalProgress, timeGoalProgress } from './domain/goa
 import { allEfforts } from './domain/raceView.js'
 import { readStoredFits } from './fit/fitStore.js'
 import { readRaces } from './races.js'
+import { readTrainingEfforts } from './trainingEffortStore.js'
 import { limitsFromEnv } from './limits.js'
 import type { GarminEnv, GoalItem } from './types.js'
 
@@ -20,7 +21,8 @@ export function goalsRoute(request: Request, sql: Sql, env: GarminEnv = garminEn
     const active = goals.filter((goal) => !goal.archived).sort((a, b) => a.createdAt.localeCompare(b.createdAt))
     const archived = goals.filter((goal) => goal.archived).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     const activities = active.length === 0 ? [] : await readActivitiesSince(sql, key, accountId, addDays(today, -GOAL_PROGRESS.historyDays))
-    const efforts = active.some((goal) => goal.kind === 'time') ? allEfforts(await readRaces(sql, key, accountId), activities) : []
+    const races = await readRaces(sql, key, accountId)
+    const efforts = active.some((goal) => goal.kind === 'time') ? allEfforts(races, activities, await readTrainingEfforts(sql, key, accountId, activities, races, today)) : []
     const candidates = new Map(active.filter((goal) => goal.kind === 'continuousLong').map((goal) => [goal.id, longCandidates(goal, activities)]))
     const ids = [...new Set([...candidates.values()].flat().map((run) => run.id))]
     const fits = ids.length === 0 ? new Map() : await readStoredFits(sql, key, accountId, ids)

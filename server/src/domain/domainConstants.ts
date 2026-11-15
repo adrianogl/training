@@ -1,3 +1,5 @@
+import type { EffortKind } from './domainTypes.js'
+
 export const READINESS = {
   weights: { hrv: 0.35, sleep: 0.25, bodyBattery: 0.2, load: 0.2 },
   hrvLowEdgeScore: 60,
@@ -31,7 +33,11 @@ export const PREDICTION = {
   riegelExponent: 1.06,
   effortWindowDays: 150,
   raceEffortWindowDays: 365,
-  kindWeight: { race: 1, split5k: 0.7, split1k: 0.3 },
+  kindWeight: { race: 1, threshold: 1, split5k: 0.7, interval: 0.4, split1k: 0.3 },
+  distanceWeightFactors: [
+    { minimumMeters: 42_000, factors: { interval: 0, threshold: 0.5 } },
+    { minimumMeters: 5_001, factors: { interval: 0 } },
+  ] as { minimumMeters: number; factors: Partial<Record<EffortKind, number>> }[],
   sameRaceDistanceLogTolerance: 0.1,
   distances: [
     { key: 'prediction5k', meters: 5000, label: '5 km' },
@@ -126,4 +132,27 @@ export const GOAL_PROGRESS = {
   historyDays: 365,
   timeMatchLow: 0.99,
   timeMatchHigh: 1.05,
+} as const
+
+export const TRAINING_EFFORT = {
+  sessions: 4,
+  windowDays: 90,
+  metersPerKilometer: 1000,
+  threshold: { runKind: 'tempo', effortKind: 'threshold', minimumMeters: 5000, distance: 10_000, paceOffset: -7 },
+  interval: { runKind: 'intervals', effortKind: 'interval', minimumMeters: 3000, distance: 5000, paceOffset: 4 },
+} as const
+
+export const RUN_KIND = {
+  raceWords: ['prova', 'teste'],
+  intervalWords: ['tiro', 'intervalad'],
+  longWords: ['longao', 'longo', 'long run'],
+  tempoWords: ['ritmo', 'tempo', 'limiar', 'progressiv'],
+  easyWords: ['regenerativ', 'rodagem', 'leve'],
+  tempoZone: 4,
+  longShare: 0.7,
+  longMinimumMeters: 14_000,
+  raceLow: 0.99,
+  raceHigh: 1.05,
+  intervalActiveLaps: 3,
+  intervalRecoveryLaps: 2,
 } as const
