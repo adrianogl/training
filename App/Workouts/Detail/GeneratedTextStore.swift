@@ -4,7 +4,7 @@ import Foundation
 struct GeneratedTextStore {
     let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = AccountScope.current.defaults) {
         self.defaults = defaults
     }
 

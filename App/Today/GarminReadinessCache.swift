@@ -3,13 +3,13 @@ import GarminAPI
 import TrainingCore
 
 enum GarminReadinessCache {
-    static func cached(day: Day, defaults: UserDefaults = .standard) -> GarminReadinessScore? {
+    static func cached(day: Day, defaults: UserDefaults = AccountScope.current.defaults) -> GarminReadinessScore? {
         let stored = defaults.data(forKey: AppConstants.garminReadinessDefaultsKey)
             .flatMap { try? JSONDecoder().decode(GarminReadinessScore.self, from: $0) }
         return stored?.day == day.iso ? stored : nil
     }
 
-    static func refresh(client: GarminAccountClient?, day: Day, defaults: UserDefaults = .standard) async -> GarminReadinessScore? {
+    static func refresh(client: GarminAccountClient?, day: Day, defaults: UserDefaults = AccountScope.current.defaults) async -> GarminReadinessScore? {
         guard let client else { return cached(day: day, defaults: defaults) }
         do {
             guard let score = try await GarminReadiness.fetch(client: client, day: day) else { return cached(day: day, defaults: defaults) }

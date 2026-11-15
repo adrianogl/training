@@ -13,7 +13,7 @@ struct SettingsView: View {
     @AppStorage(BackgroundConstants.noticeEnabledDefaultsKey) private var noticeEnabled = BackgroundConstants.defaultNoticeEnabled
     @AppStorage(WorkoutNoticeConstants.enabledKey) private var workoutNoticeEnabled = WorkoutNoticeConstants.defaultEnabled
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
-    @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
+    @AppStorage(AppConstants.appearanceDefaultsKey, store: .standard) private var appearance = AppearanceOption.system.rawValue
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: SettingsGroup = SettingsView.initialGroup()
     var embedded = false

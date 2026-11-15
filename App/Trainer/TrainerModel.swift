@@ -27,7 +27,7 @@ import TrainingCore
 
     init(
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = AccountScope.current.defaults
     ) {
         self.container = container
         self.store = store

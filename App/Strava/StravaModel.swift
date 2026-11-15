@@ -22,7 +22,7 @@ import TrainingCore
 
     init(
         container: ModelContainer,
-        defaults: UserDefaults = .standard,
+        defaults: UserDefaults = AccountScope.current.defaults,
         authenticator: any StravaWebAuthenticating = StravaWebAuthenticator(),
         now: @escaping @Sendable () -> Date = { .now }
     ) {
@@ -95,11 +95,6 @@ import TrainingCore
         } catch {
             message = C.statusFailed
         }
-    }
-
-    func reset() {
-        status = .disconnected
-        message = nil
     }
 
     func send(activityId: Int64) async -> StravaSendResult {

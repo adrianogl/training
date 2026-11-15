@@ -7,16 +7,10 @@ struct TrainerStore: Sendable {
     nonisolated(unsafe) let defaults: UserDefaults
     let now: @Sendable () -> Date
 
-    init(url: URL = TrainerStore.defaultURL(), defaults: UserDefaults = .standard, now: @escaping @Sendable () -> Date = { .now }) {
+    init(url: URL = AccountScope.current.trainerURL, defaults: UserDefaults = AccountScope.current.defaults, now: @escaping @Sendable () -> Date = { .now }) {
         self.url = url
         self.defaults = defaults
         self.now = now
-    }
-
-    static func defaultURL() -> URL {
-        let support = (try? FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true))
-            ?? FileManager.default.temporaryDirectory
-        return support.appending(path: TrainerConstants.storeFileName)
     }
 
     var seenVersion: Int {

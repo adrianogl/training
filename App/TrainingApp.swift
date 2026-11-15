@@ -3,32 +3,29 @@ import UserNotifications
 
 @main
 struct TrainingApp: App {
-    @State private var model: AppModel
+    @State private var session: AppSession
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
 
     init() {
-        let model = AppModel.live()
-        _model = State(initialValue: model)
+        let session = AppSession.live()
+        _session = State(initialValue: session)
         UNUserNotificationCenter.current().delegate = NotificationRouter.shared
-        BackgroundSync.register(model: model)
-        WorkoutFinishNotifier.shared.start(model: model)
+        BackgroundSync.register { session.model }
     }
 
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environment(model)
-                .modelContainer(model.container)
+            SessionRootView(session: session)
                 .preferredColorScheme(AppearanceOption(rawValue: appearance)?.colorScheme)
                 .tint(BrandColors.accent)
         }
         .onChange(of: scenePhase, initial: true) { _, phase in
             switch phase {
-            case .active where model.autoSyncEnabled:
-                Task { await model.appBecameActive() }
+            case .active:
+                session.model?.activate()
             case .background:
-                model.enteredBackground()
+                session.model?.enteredBackground()
             default:
                 break
             }

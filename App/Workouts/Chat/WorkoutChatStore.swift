@@ -1,15 +1,15 @@
 import Foundation
 
 actor WorkoutChatStore {
-    static let shared = WorkoutChatStore()
-    static let races = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.raceFolderName))
-    static let evolution = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.evolutionFolderName))
-    static let planned = WorkoutChatStore(folder: URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.plannedFolderName))
+    static var shared: WorkoutChatStore { AccountScope.current.chats.workouts }
+    static var races: WorkoutChatStore { AccountScope.current.chats.races }
+    static var evolution: WorkoutChatStore { AccountScope.current.chats.evolution }
+    static var planned: WorkoutChatStore { AccountScope.current.chats.planned }
 
     private let folder: URL
     private var counts: [Int64: Int]?
 
-    init(folder: URL = URL.applicationSupportDirectory.appending(path: WorkoutChatConstants.folderName)) {
+    init(folder: URL) {
         self.folder = folder
     }
 

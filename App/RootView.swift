@@ -4,8 +4,6 @@ import SwiftUI
 struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var showsIntro = !RootView.isTestHost
     @SceneStorage(NavigationRestorationConstants.sectionKey) private var sectionRaw = AppSection.today.rawValue
     @SceneStorage(NavigationRestorationConstants.sidebarKey) private var sidebarRaw = AppSection.today.rawValue
     @SceneStorage(NavigationRestorationConstants.todayPathKey) private var todayPathData = Data()
@@ -19,17 +17,10 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if !model.account.isSignedIn && !Self.isTestHost {
-                AccountGateView(model: model.account)
-            } else if sizeClass == .regular {
+            if sizeClass == .regular {
                 splitView
             } else {
                 tabView
-            }
-        }
-        .overlay {
-            if showsIntro {
-                IntroView().transition(.opacity)
             }
         }
         .onAppear(perform: applyRestoration)
@@ -48,11 +39,6 @@ struct RootView: View {
         }
         .task(id: model.account.token) {
             await model.strava.refreshStatus()
-        }
-        .task {
-            guard showsIntro else { return }
-            try? await Task.sleep(for: reduceMotion ? AppConstants.introReducedMotionDuration : AppConstants.introDuration)
-            withAnimation(.easeOut(duration: AppConstants.introFadeSeconds)) { showsIntro = false }
         }
         .onOpenURL { url in
             if model.strava.handles(url) {
@@ -145,10 +131,6 @@ struct RootView: View {
 
     private static func visibility(for section: AppSection) -> NavigationSplitViewVisibility {
         AppConstants.sidebarCollapsedSections.contains(section) ? .detailOnly : .all
-    }
-
-    private static var isTestHost: Bool {
-        ProcessInfo.processInfo.environment[AppConstants.testHostEnvironmentVariable] != nil
     }
 
     private static func initialTodayPath(defaults: UserDefaults = .standard) -> [TodayRoute] {

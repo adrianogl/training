@@ -11,7 +11,7 @@ import TrainingCore
     private let defaults: UserDefaults
     private let calendar: Calendar
 
-    init(scheduler: any NotificationScheduling = UserNotificationScheduler(), defaults: UserDefaults = .standard, calendar: Calendar = .current) {
+    init(scheduler: any NotificationScheduling = UserNotificationScheduler(), defaults: UserDefaults = AccountScope.current.defaults, calendar: Calendar = .current) {
         self.scheduler = scheduler
         self.defaults = defaults
         self.calendar = calendar
