@@ -82,4 +82,21 @@ import Testing
         let none = NavigationRestoration.validPrefix([TodayRoute.workout(2)]) { _ in false }
         #expect(none.isEmpty)
     }
+
+    @Test func mirroredStatePushesAndPopsWithoutRevertingToPreviousValue() {
+        var live: [TodayRoute] = []
+        var stored = Data()
+        func mutate(_ change: (inout [TodayRoute]) -> Void) {
+            change(&live)
+            stored = NavigationRestoration.encode(live)
+        }
+        mutate { $0.append(.readiness) }
+        #expect(live == [.readiness])
+        mutate { $0.append(.workout(5)) }
+        #expect(live == [.readiness, .workout(5)])
+        mutate { $0.removeLast() }
+        #expect(live == [.readiness])
+        let restored: [TodayRoute] = NavigationRestoration.decodePath(stored)
+        #expect(restored == live)
+    }
 }
