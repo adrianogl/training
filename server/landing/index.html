@@ -329,6 +329,12 @@ footer .footer-note { flex-basis: 100%; font-size: 12px; }
 .plan-change { margin-top: 14px; font-size: 14px; color: var(--ink-2); }
 .plan-change s { color: var(--dim); }
 .plan-change ins { text-decoration: none; color: var(--lime); font-weight: 600; }
+.methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 44px; }
+.methods div { padding: 20px; border-radius: 20px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.methods b { color: var(--ink); font-size: 16px; }
+.methods span { color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.methods cite { color: var(--dim); font-size: 13px; font-style: normal; margin-top: auto; padding-top: 6px; }
+.methods-note { color: var(--dim); font-size: 13px; margin-top: 14px; max-width: 72ch; }
 .features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 44px; }
 .feature { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 8px; opacity: clamp(0, calc((var(--p) - var(--d)) * 5), 1); transform: translateY(calc(18px - clamp(0, calc((var(--p) - var(--d)) * 5), 1) * 18px)); }
 .feature svg { width: 26px; height: 26px; }
@@ -377,6 +383,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   .hero-grid { padding-block: 88px 8px; }
   .charts { grid-template-columns: minmax(0, 1fr); }
   .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .methods { grid-template-columns: minmax(0, 1fr); }
   .about, .ask, .ask-form .pair { grid-template-columns: minmax(0, 1fr); }
   .nav-ask { display: none; }
   .free-band { grid-template-columns: minmax(0, 1fr); padding: 24px; }
@@ -676,14 +683,26 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div style="color: var(--dim); font-size: 14px">Meia de exemplo · versão 2 do plano</div>
         <div class="plan-days">
           <div><span class="d">seg</span><span><b>Rodagem 11,5 km</b> · 5:20–5:35/km</span></div>
-          <div><span class="d">ter</span><span><b>Limiar 3 × 2 km</b> · 4:02–4:08/km · parado 1:30</span></div>
+          <div><span class="d">ter</span><span><b>Limiar 4 × 2 km</b> · 4:02–4:08/km · parado 2:00</span></div>
           <div><span class="d">qua</span><span><b>Rodagem 11,5 km</b> · + MMII</span></div>
-          <div><span class="d">qui</span><span><b>VO2 5 × 1000 m</b> · 3:45–3:51/km · parado 3:30</span></div>
+          <div><span class="d">qui</span><span><b>VO2 5 × 1 km + 3 × 200 m</b> · 3:45–3:51/km · parado 2:30</span></div>
           <div><span class="d">sex</span><span><b>Rodagem opcional 8 km</b></span></div>
           <div><span class="d">sáb</span><span><b>Longão 20 km</b> · começa mais devagar</span></div>
         </div>
         <div class="plan-change">Longão <s>22 km</s> → <ins>20 km</ins>: o último parou no km 12,7.</div>
       </div>
+    </div>
+    <div class="wrap">
+      <p class="eyebrow" style="margin-top: 56px">Os métodos por trás</p>
+      <div class="methods">
+        <div><b>Limiar em blocos que crescem</b><span>Blocos de 1 km a 4 km até o contínuo, com 1 min parado por km de bloco e 8 a 12 km em blocos por treino.</span><cite>Cruise intervals e tempo run: Jack Daniels, Daniels' Running Formula (<a href="https://vdoto2.com/LearnMore/TrainingDefinitions" target="_blank" rel="noopener">VDOT O2</a>). Volume abaixo do limiar: <a href="https://doi.org/10.3390/ijerph20053782" target="_blank" rel="noopener">Casado, Foster, Bakken e Tjelta (2023)</a>, método norueguês.</cite></div>
+        <div><b>VO2 máx com fecho de velocidade</b><span>Tiros de 1 a 1,5 km com descanso parado de cerca de 70% do tiro, e 3 × 200 m mais rápidos no fim.</span><cite>Pace I e pace R: Jack Daniels, Daniels' Running Formula (<a href="https://vdoto2.com/LearnMore/TrainingDefinitions" target="_blank" rel="noopener">VDOT O2</a>).</cite></div>
+        <div><b>Ritmo específico da prova</b><span>Na fase final de meia e maratona, blocos no pace da prova que crescem até perto de 70% da distância.</span><cite>Renato Canova, Marathon Training: A Scientific Approach. Pete Pfitzinger e Scott Douglas, Advanced Marathoning.</cite></div>
+        <div><b>Volume em ondas</b><span>Sobe cerca de 5% por semana até o pico, com uma semana mais leve a cada quatro e polimento antes da prova.</span><cite>Periodização com semanas de recuperação e polimento: Pfitzinger e Douglas, Advanced Marathoning.</cite></div>
+        <div><b>Previsão de prova</b><span>Provas, melhores trechos e blocos de limiar viram um tempo equivalente, levado a cada distância.</span><cite>Fórmula de Peter Riegel, <a href="https://www.jstor.org/stable/27850427" target="_blank" rel="noopener">Athletic Records and Human Endurance (1981)</a>. Equivalência de pace pela tabela VDOT de Jack Daniels.</cite></div>
+        <div><b>Feito a partir dos seus treinos</b><span>Os formatos e os descansos seguem o padrão dos seus últimos treinos de qualidade, e os paces saem dos seus blocos.</span><cite>Calculado no aparelho com os dados do Garmin.</cite></div>
+      </div>
+      <p class="methods-note">O treinador beta é um teste e não substitui um treinador. Dor que persiste é caso para médico ou fisioterapeuta.</p>
     </div>
   </section>
 
