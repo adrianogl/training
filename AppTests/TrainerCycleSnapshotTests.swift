@@ -8,7 +8,7 @@ import TrainingCore
 @MainActor
 @Suite struct TrainerCycleSnapshotTests {
     private static let day = Day(iso: "2026-08-03")!
-    private static let output = URL(filePath: "/private/tmp/claude-501/-Users-adriano-Code-pessoal-training/0b2bedee-e957-4b69-96b3-5609af9c73c0/scratchpad/shots", directoryHint: .isDirectory)
+    private static let output = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"].map { URL(filePath: $0, directoryHint: .isDirectory) }
 
     private static func review(_ verdict: TrainerCycleVerdict, readiness: Bool = true) -> TrainerCycleReview {
         let planned: [Double] = [52, 56, 60, 48, 64, 68, 72, 58, 76, 80, 84, 62, 70, 50, 34]
@@ -50,7 +50,8 @@ import TrainingCore
         }
     }
 
-    private static func render(_ name: String, _ view: some View) throws {
+    @discardableResult
+    private static func render(_ name: String, _ view: some View) throws -> CGSize {
         let content = view
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.vertical, 16)
@@ -60,21 +61,37 @@ import TrainingCore
         let renderer = ImageRenderer(content: content)
         renderer.scale = 2
         let image = try #require(renderer.uiImage)
-        #expect(image.size.width > 0)
-        guard FileManager.default.fileExists(atPath: output.path()), let data = image.pngData() else { return }
-        try data.write(to: output.appending(path: "\(name).png"))
+        #expect(image.size.width == 390)
+        if let output, FileManager.default.fileExists(atPath: output.path()), let data = image.pngData() {
+            try data.write(to: output.appending(path: "\(name).png"))
+        }
+        return image.size
     }
 
     @Test func analysisWithIncrease() throws {
-        try Self.render("analysis-increase", TrainerCycleContent(
+        let size = try Self.render("analysis-increase", TrainerCycleContent(
             plan: TrainerStoreTests.plan(), review: Self.review(.increase), ended: true, onSuggestion: {}, onOther: {}
         ))
+        #expect(size.height > size.width * 3)
     }
 
     @Test func analysisWithDecrease() throws {
-        try Self.render("analysis-decrease", TrainerCycleContent(
+        let size = try Self.render("analysis-decrease", TrainerCycleContent(
             plan: TrainerStoreTests.plan(), review: Self.review(.decrease, readiness: false), ended: false, onSuggestion: {}, onOther: {}
         ))
+        #expect(size.height > size.width * 3)
+    }
+
+    @Test func analysisWithoutWeeksIsShorter() throws {
+        var empty = Self.review(.keep)
+        empty.weeks = []
+        let full = try Self.render("analysis-full", TrainerCycleContent(
+            plan: TrainerStoreTests.plan(), review: Self.review(.keep), ended: true, onSuggestion: {}, onOther: {}
+        ))
+        let short = try Self.render("analysis-no-weeks", TrainerCycleContent(
+            plan: TrainerStoreTests.plan(), review: empty, ended: true, onSuggestion: {}, onOther: {}
+        ))
+        #expect(short.height < full.height)
     }
 
     @Test func headerWhenEnded() throws {
@@ -84,7 +101,7 @@ import TrainingCore
             title: "Meia de Floripa", first: Self.day, last: Self.day, verdict: .increase,
             beforePeakMeters: 76_000, afterPeakMeters: 84_000, resultSeconds: 5_712
         )
-        try Self.render("trainer-ended", VStack(alignment: .leading, spacing: 10) {
+        let size = try Self.render("trainer-ended", VStack(alignment: .leading, spacing: 10) {
             TrainerCycleBanner(review: review, dated: true)
             TrainerPlanHeaderCard(
                 plan: plan, boards: [], cells: Self.cells(), weeksToTarget: nil, weekProgress: nil,
@@ -95,5 +112,6 @@ import TrainingCore
             SectionHeader(TrainerCycleText.previousTitle)
             TrainerCycleSummaryRow(summary: summary)
         })
+        #expect(size.height > size.width)
     }
 }

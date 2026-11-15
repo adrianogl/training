@@ -16,7 +16,7 @@ extension TrainerEngine {
         let reference = min(today, last)
         let workouts = plan.workouts.filter { $0.day >= first && $0.day <= reference }
         let longs = workouts.filter { $0.kind == .long }
-        let volumes = volumes(of: plan, history: history, today: today)
+        let volumes = cycleVolumes(weeks, plan: plan, history: history, today: today)
         let review = TrainerCycleReview(
             first: first, last: last, endedEarly: window.endedEarly,
             weeks: weeks.compactMap { cycleWeek($0, plan: plan, history: history) },
@@ -39,6 +39,15 @@ extension TrainerEngine {
             suggestedStartMeters: volumes.start, suggestedPeakMeters: volumes.peak
         )
         return judged(review, goalMeters: plan.target.distanceMeters)
+    }
+
+    private static func cycleVolumes(
+        _ weeks: [TrainerWeek], plan: TrainerPlan, history: TrainerHistory, today: Day
+    ) -> (start: Double, peak: Double) {
+        guard let first = weeks.first, let peak = weeks.map(\.targetMeters).max() else {
+            return volumes(of: plan, history: history, today: today)
+        }
+        return (first.targetMeters, max(first.targetMeters, peak))
     }
 
     private static func judged(_ review: TrainerCycleReview, goalMeters: Double?) -> TrainerCycleReview {

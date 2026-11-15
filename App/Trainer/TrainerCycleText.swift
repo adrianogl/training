@@ -23,6 +23,7 @@ enum TrainerCycleText {
     static let previousTitle = "Ciclos anteriores"
     static let ruleTitle = "Como a sugestão é decidida"
     static let ruleSubtitle = "Volume cumprido, prontidão e forma"
+    static let unavailable = "A análise deste ciclo não está mais disponível."
     static let noReadiness = "Sem dados de prontidão neste ciclo"
     static let chartDone = "feito"
     static let chartPlanned = "previsto"
@@ -183,18 +184,24 @@ enum TrainerCycleText {
         WorkoutFormat.clock(seconds)
     }
 
-    static func resultValue(_ review: TrainerCycleReview, goalMeters: Double?) -> String {
+    static func resultValue(_ review: TrainerCycleReview, goalMeters: Double?) -> String? {
         if let seconds = review.raceSeconds { return WorkoutFormat.clock(seconds) }
         if let prediction = referencePrediction(review, goalMeters: goalMeters) { return WorkoutFormat.clock(prediction.last) }
-        return volumeDone(review)
+        return review.weeks.isEmpty ? nil : volumeDone(review)
     }
 
-    static func resultCaption(_ review: TrainerCycleReview, goalMeters: Double?) -> String {
-        if review.raceSeconds != nil { return review.goalSeconds.map(goal) ?? volumeDone(review) }
+    static func resultCaption(_ review: TrainerCycleReview, goalMeters: Double?) -> String? {
+        let volume = review.weeks.isEmpty ? nil : volumeDone(review)
+        if review.raceSeconds != nil { return review.goalSeconds.map(goal) ?? volume }
         if let prediction = referencePrediction(review, goalMeters: goalMeters) {
-            return "\(predictionTitle(prediction.meters).lowercased()) · \(volumeDone(review))"
+            let title = predictionTitle(prediction.meters).lowercased()
+            return volume.map { "\(title) · \($0)" } ?? title
         }
-        return volumeShare(review)
+        return volume == nil ? nil : volumeShare(review)
+    }
+
+    static func chartLabel(_ review: TrainerCycleReview) -> String {
+        "\(volumeDone(review)), \(volumeShare(review))"
     }
 
     private static func referencePrediction(_ review: TrainerCycleReview, goalMeters: Double?) -> TrainerCycleChange? {

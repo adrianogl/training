@@ -7,7 +7,7 @@ struct TrainerCycleBanner: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("✓").foregroundStyle(BrandColors.accent)
+            Text("✓").foregroundStyle(BrandColors.accent).accessibilityHidden(true)
             (Text(TrainerCycleText.bannerTitle).fontWeight(.bold).foregroundStyle(BrandColors.accent)
                 + Text(" \(TrainerCycleText.banner(review, dated: dated))").foregroundStyle(BrandColors.text))
                 .font(.footnote)

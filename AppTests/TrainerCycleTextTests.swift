@@ -127,6 +127,24 @@ import TrainingCore
         #expect(TrainerCycleText.resultCaption(review, goalMeters: 21_097.5) == "meta 1:35:00")
     }
 
+    @Test func resultWithoutWeeksLeavesVolumeOut() {
+        var review = Self.review(.keep, start: 60_000, peak: 80_000, suggestedStart: 60_000, suggestedPeak: 80_000, weeks: 0)
+        #expect(TrainerCycleText.resultValue(review, goalMeters: nil) == nil)
+        #expect(TrainerCycleText.resultCaption(review, goalMeters: nil) == nil)
+        review.predictions = [TrainerCycleChange(meters: 10_000, first: 2_460, last: 2_412)]
+        #expect(TrainerCycleText.resultValue(review, goalMeters: nil) == "40:12")
+        #expect(TrainerCycleText.resultCaption(review, goalMeters: nil) == "previsão 10 km")
+        review.raceSeconds = 5_628
+        review.goalSeconds = nil
+        #expect(TrainerCycleText.resultCaption(review, goalMeters: nil) == nil)
+    }
+
+    @Test func chartLabel() {
+        var review = Self.review(.keep, start: 1, peak: 1, suggestedStart: 1, suggestedPeak: 1, weeks: 0)
+        review.weeks = [TrainerCycleWeek(index: 0, start: Self.day, doneMeters: 806_000, plannedMeters: 833_000)]
+        #expect(TrainerCycleText.chartLabel(review) == "806 de 833 km, 97% do previsto")
+    }
+
     @Test func summaryLines() {
         func summary(_ verdict: TrainerCycleVerdict, after: Double, result: Double?) -> TrainerCycleSummary {
             TrainerCycleSummary(title: "t", first: Self.day, last: Self.day, verdict: verdict, beforePeakMeters: 80_000, afterPeakMeters: after, resultSeconds: result)

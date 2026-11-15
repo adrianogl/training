@@ -3,6 +3,7 @@ import SwiftUI
 
 struct TrainerCycleView: View {
     @Environment(AppModel.self) private var app
+    @Environment(\.dismiss) private var dismiss
     @State private var editor: TrainerCycleEditor?
 
     private var model: TrainerModel { app.trainer }
@@ -18,15 +19,29 @@ struct TrainerCycleView: View {
                 .padding(.horizontal, BrandConstants.screenPadding)
                 .padding(.top, 8)
                 .padding(.bottom, 24)
+            } else {
+                Text(TrainerCycleText.unavailable)
+                    .font(.footnote)
+                    .foregroundStyle(BrandColors.dim)
+                    .brandCard()
+                    .padding(.horizontal, BrandConstants.screenPadding)
+                    .padding(.top, 8)
             }
         }
         .background(BrandBackground())
         .navigationTitle(TrainerCycleText.analysisTitle)
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $editor) { editor in
+        .sheet(item: $editor, onDismiss: leaveWhenGone) { editor in
             TrainerNewPlanView(isEditing: editor.isEditing, suggestedVolumes: editor.volumes)
         }
         .onAppear { model.markCycleSeen() }
+        .onChange(of: model.cycleReview == nil) { _, gone in
+            if gone, editor == nil { dismiss() }
+        }
+    }
+
+    private func leaveWhenGone() {
+        if model.cycleReview == nil { dismiss() }
     }
 
     private func open(suggested: Bool) {
@@ -54,10 +69,12 @@ struct TrainerCycleContent: View {
                 SectionHeader(TrainerCycleText.raceTitle)
                 TrainerCycleRaceCard(seconds: seconds, goal: review.goalSeconds)
             }
-            SectionHeader(TrainerCycleText.volumeTitle)
-            TrainerCycleVolumeCard(review: review)
-            SectionHeader(TrainerCycleText.keyTitle)
-            TrainerCycleKeyCard(review: review)
+            if !review.weeks.isEmpty {
+                SectionHeader(TrainerCycleText.volumeTitle)
+                TrainerCycleVolumeCard(review: review)
+                SectionHeader(TrainerCycleText.keyTitle)
+                TrainerCycleKeyCard(review: review)
+            }
             SectionHeader(TrainerCycleText.bodyTitle)
             TrainerCycleBodyCard(review: review)
             if !review.predictions.isEmpty {

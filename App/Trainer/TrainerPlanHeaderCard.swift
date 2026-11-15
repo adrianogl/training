@@ -37,13 +37,13 @@ struct TrainerPlanHeaderCard: View {
                 .tracking(1)
                 .textCase(.uppercase)
                 .foregroundStyle(BrandColors.dim)
-            HStack(alignment: .firstTextBaseline, spacing: 14) {
-                Text(TrainerCycleText.resultValue(review, goalMeters: plan.target.distanceMeters))
-                    .font(BrandFonts.number(18))
-                    .foregroundStyle(BrandColors.text)
-                Text(TrainerCycleText.resultCaption(review, goalMeters: plan.target.distanceMeters))
-                    .font(.footnote)
-                    .foregroundStyle(BrandColors.dim)
+            if let value = TrainerCycleText.resultValue(review, goalMeters: plan.target.distanceMeters) {
+                HStack(alignment: .firstTextBaseline, spacing: 14) {
+                    Text(value).font(BrandFonts.number(18)).foregroundStyle(BrandColors.text)
+                    if let caption = TrainerCycleText.resultCaption(review, goalMeters: plan.target.distanceMeters) {
+                        Text(caption).font(.footnote).foregroundStyle(BrandColors.dim)
+                    }
+                }
             }
             Text(TrainerCycleText.suggestionLine(review, dated: plan.target.date != nil))
                 .font(.footnote)

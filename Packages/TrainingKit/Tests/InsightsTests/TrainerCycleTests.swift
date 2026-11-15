@@ -65,6 +65,25 @@ import WorkoutAnalysis
         #expect(review.weeks.count == 12)
     }
 
+    @Test func editingVolumesAfterTheBlockKeepsTheSuggestion() throws {
+        let plan = makeOpenPlan(weeks: 26)
+        let today = monday.adding(days: 7 * 25)
+        let done = history(plan, done: 1.0)
+        let before = try #require(TrainerEngine.cycleReview(plan: plan, history: done, today: today))
+        let edit = TrainerEngine.makeEdit(
+            for: plan, target: plan.target, startMeters: before.suggestedStartMeters, peakMeters: before.suggestedPeakMeters,
+            structure: plan.structure, strength: plan.strength, longMode: plan.longMode, paceOverrides: plan.paceOverrides,
+            history: done, today: today
+        )
+        let edited = TrainerEngine.adjust(plan, history: done, today: today, now: now, trigger: .edited(edit))
+        #expect(edited.startMeters == before.suggestedStartMeters)
+        let after = try #require(TrainerEngine.cycleReview(plan: edited, history: done, today: today))
+        #expect(after.currentStartMeters == before.currentStartMeters)
+        #expect(after.currentPeakMeters == before.currentPeakMeters)
+        #expect(after.suggestedStartMeters == before.suggestedStartMeters)
+        #expect(after.suggestedPeakMeters == before.suggestedPeakMeters)
+    }
+
     @Test func openPlanHasNoReviewBeforeTwelveWeeks() {
         let plan = makeOpenPlan(weeks: 12)
         #expect(TrainerEngine.cycleReview(plan: plan, history: history(plan), today: monday.adding(days: 7 * 11 + 3)) == nil)

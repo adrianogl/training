@@ -15,6 +15,7 @@ struct TrainerCycleSuggestionCard: View {
                 Image(systemName: TrainerCycleConstants.symbol(for: review.verdict))
                     .font(.system(size: 15, weight: .bold))
                     .foregroundStyle(color)
+                    .accessibilityHidden(true)
                     .frame(width: TrainerCycleConstants.iconSize, height: TrainerCycleConstants.iconSize)
                     .background(
                         color.opacity(TrainerCycleConstants.iconFillOpacity),
@@ -75,6 +76,8 @@ struct TrainerCycleVolumeCard: View {
                 Text(TrainerCycleText.volumeShare(review)).font(.footnote).foregroundStyle(BrandColors.dim)
             }
             TrainerCycleChart(weeks: review.weeks)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(TrainerCycleText.chartLabel(review))
             HStack(spacing: 12) {
                 legend(BrandColors.accentFill, TrainerCycleText.chartDone)
                 legend(BrandColors.track, TrainerCycleText.chartPlanned)
