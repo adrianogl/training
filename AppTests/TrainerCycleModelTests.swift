@@ -178,8 +178,90 @@ private final class TrainerClock: @unchecked Sendable {
         #expect(summary.last == review.last)
         #expect(summary.verdict == review.verdict)
         #expect(summary.beforePeakMeters == review.currentPeakMeters)
-        #expect(summary.afterPeakMeters == review.suggestedPeakMeters)
+        #expect(summary.afterPeakMeters == 80_000)
         #expect(summary.resultSeconds == review.raceSeconds)
+    }
+
+    @Test func archivedSummaryKeepsTheVolumeOfTheCreatedPlan() async throws {
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
+        await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(16).adding(days: 1)
+        let review = try #require(model.cycleReview)
+        #expect(review.suggestedPeakMeters != 55_000)
+        await Self.createHalf(model, start: 45_000, peak: 55_000)
+        let summary = try #require(model.cycleSummaries.first)
+        #expect(summary.beforePeakMeters == review.currentPeakMeters)
+        #expect(summary.afterPeakMeters == 55_000)
+        let before = TrainerText.kilometersNumber(review.currentPeakMeters)
+        #expect(TrainerCycleText.summaryLine(summary) == "Diminuiu de \(before) para 55 km")
+    }
+
+    @Test func endedCycleStopsAdjustingThePlan() async throws {
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
+        await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(6).adding(days: 2)
+        await model.endCycle()
+        clock.day = Self.mondayPlusWeeks(7)
+        await model.autoAdjust()
+        await model.load()
+        #expect(model.plan?.versions.count == 1)
+        #expect(model.cycleReview?.endedEarly == true)
+    }
+
+    @Test func runningPlanStillAdjustsAfterAWeek() async throws {
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
+        await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(7)
+        await model.autoAdjust()
+        #expect((model.plan?.versions.count ?? 0) > 1)
+    }
+
+    @Test func endedCycleLeavesTheTodayCard() async throws {
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
+        await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(6).adding(days: 1)
+        #expect(model.todayRow(for: clock.day) != nil)
+        #expect(model.readinessSuggestion(score: 20, factor: nil) != nil)
+        await model.endCycle()
+        #expect(model.todayRow(for: clock.day) == nil)
+        #expect(model.todayRow(for: clock.day.adding(days: 1)) == nil)
+        #expect(model.readinessSuggestion(score: 20, factor: nil) == nil)
+        #expect(model.row(for: clock.day.iso) != nil)
+    }
+
+    @Test func endedCycleOffersItsOwnVolumes() async throws {
+        let model = try Self.makeModel(today: Self.mondayPlusWeeks(6))
+        await Self.createHalf(model)
+        await model.endCycle()
+        let review = try #require(model.cycleReview)
+        let volumes = try #require(model.cycleVolumes())
+        #expect(volumes.start == Int((review.currentStartMeters / 1_000).rounded()))
+        #expect(volumes.peak == Int((review.currentPeakMeters / 1_000).rounded()))
+    }
+
+    @Test func cycleReviewFollowsTheDay() async throws {
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
+        await Self.createHalf(model)
+        #expect(model.cycleReview == nil)
+        clock.day = Self.mondayPlusWeeks(16).adding(days: 1)
+        #expect(model.cycleReview?.endedEarly == false)
+    }
+
+    @Test func cycleReviewFollowsThePlan() async throws {
+        let clock = TrainerClock(Self.monday)
+        let model = try Self.makeModel(clock: clock)
+        await Self.createHalf(model)
+        clock.day = Self.mondayPlusWeeks(6)
+        #expect(model.cycleReview == nil)
+        await model.endCycle()
+        #expect(model.cycleReview?.endedEarly == true)
+        model.deletePlan()
+        #expect(model.cycleReview == nil)
     }
 
     @Test func extendedHistoryStaysOutOfThePlanHistory() async throws {

@@ -84,6 +84,41 @@ import WorkoutAnalysis
         #expect(after.suggestedPeakMeters == before.suggestedPeakMeters)
     }
 
+    @Test func endingAnOpenPlanEarlyReviewsOnlyTheCurrentBlock() throws {
+        var plan = makeOpenPlan(weeks: 26)
+        plan.endedOn = monday.adding(days: 7 * 19 + 2)
+        let review = try #require(TrainerEngine.cycleReview(plan: plan, history: history(plan, done: 1.0), today: plan.endedOn!))
+        #expect(review.first == monday.adding(days: 7 * 12))
+        #expect(review.last == monday.adding(days: 7 * 19 - 1))
+        #expect(review.weeks.map(\.index) == Array(13...19))
+        #expect(review.endedEarly)
+    }
+
+    @Test func endingADatedPlanOnRaceDayKeepsTheWholePlanAndTheRace() throws {
+        var plan = makePlan()
+        plan.endedOn = raceDay
+        let review = try #require(TrainerEngine.cycleReview(
+            plan: plan, history: history(plan, done: 1.0, raceSeconds: 5_628), today: raceDay
+        ))
+        #expect(review.first == plan.weeks.first?.start)
+        #expect(review.last == plan.weeks.last?.start.adding(days: 6))
+        #expect(review.weeks.count == plan.weeks.count)
+        #expect(review.raceSeconds == 5_628)
+        #expect(!review.endedEarly)
+    }
+
+    @Test func endingADatedPlanAfterTheRaceKeepsTheWholePlan() throws {
+        var plan = makePlan()
+        plan.endedOn = raceDay.adding(days: 3)
+        let review = try #require(TrainerEngine.cycleReview(
+            plan: plan, history: history(plan, done: 1.0, raceSeconds: 5_628), today: raceDay.adding(days: 3)
+        ))
+        #expect(review.last == plan.weeks.last?.start.adding(days: 6))
+        #expect(review.weeks.count == plan.weeks.count)
+        #expect(review.raceSeconds == 5_628)
+        #expect(!review.endedEarly)
+    }
+
     @Test func openPlanHasNoReviewBeforeTwelveWeeks() {
         let plan = makeOpenPlan(weeks: 12)
         #expect(TrainerEngine.cycleReview(plan: plan, history: history(plan), today: monday.adding(days: 7 * 11 + 3)) == nil)

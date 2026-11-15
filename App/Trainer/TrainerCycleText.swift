@@ -46,6 +46,7 @@ enum TrainerCycleText {
     static func banner(_ review: TrainerCycleReview, dated: Bool) -> String {
         let count = review.weeks.count
         if review.endedEarly {
+            if count == 0 { return "Você encerrou o ciclo antes de fechar uma semana." }
             let weeks = count == 1 ? "da 1 semana concluída" : "das \(count) semanas concluídas"
             return "Você encerrou o ciclo. Veja a análise \(weeks)."
         }
@@ -116,10 +117,12 @@ enum TrainerCycleText {
         let before = km(summary.beforePeakMeters)
         let after = km(summary.afterPeakMeters)
         var line: String
-        switch summary.verdict {
-        case .increase: line = "Aumentou de \(before) para \(after) km"
-        case .keep: line = "Manteve \(before) km"
-        case .decrease: line = "Diminuiu de \(before) para \(after) km"
+        if before == after {
+            line = "Manteve \(before) km"
+        } else if summary.afterPeakMeters > summary.beforePeakMeters {
+            line = "Aumentou de \(before) para \(after) km"
+        } else {
+            line = "Diminuiu de \(before) para \(after) km"
         }
         if let seconds = summary.resultSeconds { line += " · \(WorkoutFormat.clock(seconds))" }
         return line

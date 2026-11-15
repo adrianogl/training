@@ -115,15 +115,21 @@ extension TrainerEngine {
         plan: TrainerPlan, history: TrainerHistory, today: Day
     ) -> (first: Day, last: Day, endedEarly: Bool)? {
         guard let start = plan.weeks.map(\.start).min(), let lastStart = plan.weeks.map(\.start).max() else { return nil }
+        let length = C.openHorizonWeeks * C.daysPerWeek
+        let wholePlan = (start, lastStart.adding(days: C.daysPerWeek - 1), false)
         if let ended = plan.endedOn {
-            return (start, ended.weekStart.adding(days: -1), true)
+            let last = ended.weekStart.adding(days: -1)
+            if let date = plan.target.date {
+                return ended >= date ? wholePlan : (start, last, true)
+            }
+            let block = max(0, start.days(until: last)) / length
+            return (start.adding(days: block * length), last, true)
         }
         if let date = plan.target.date {
             let raced = today == date && history.runs.contains { $0.day == date }
             guard today > date || raced else { return nil }
-            return (start, lastStart.adding(days: C.daysPerWeek - 1), false)
+            return wholePlan
         }
-        let length = C.openHorizonWeeks * C.daysPerWeek
         let closed = start.days(until: today) / length
         guard closed > 0 else { return nil }
         let first = start.adding(days: (closed - 1) * length)

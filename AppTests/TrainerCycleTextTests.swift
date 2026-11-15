@@ -57,6 +57,12 @@ import TrainingCore
         #expect(TrainerCycleText.banner(closed, dated: false) == "Fechou 1 semana. Veja como foi e o volume sugerido.")
     }
 
+    @Test func bannerWithoutAClosedWeek() {
+        let early = Self.review(.keep, start: 1, peak: 1, suggestedStart: 1, suggestedPeak: 1, weeks: 0, endedEarly: true)
+        #expect(TrainerCycleText.banner(early, dated: true) == "Você encerrou o ciclo antes de fechar uma semana.")
+        #expect(TrainerCycleText.banner(early, dated: false) == "Você encerrou o ciclo antes de fechar uma semana.")
+    }
+
     @Test func verdictTitles() {
         #expect(TrainerCycleText.verdictTitle(.increase) == "Aumentar o volume")
         #expect(TrainerCycleText.verdictTitle(.keep) == "Manter o volume")
@@ -152,5 +158,8 @@ import TrainingCore
         #expect(TrainerCycleText.summaryLine(summary(.increase, after: 86_000, result: nil)) == "Aumentou de 80 para 86 km")
         #expect(TrainerCycleText.summaryLine(summary(.keep, after: 80_000, result: nil)) == "Manteve 80 km")
         #expect(TrainerCycleText.summaryLine(summary(.decrease, after: 72_000, result: 5_628)) == "Diminuiu de 80 para 72 km · 1:33:48")
+        #expect(TrainerCycleText.summaryLine(summary(.increase, after: 55_000, result: nil)) == "Diminuiu de 80 para 55 km")
+        #expect(TrainerCycleText.summaryLine(summary(.decrease, after: 90_000, result: nil)) == "Aumentou de 80 para 90 km")
+        #expect(TrainerCycleText.summaryLine(summary(.increase, after: 80_000, result: nil)) == "Manteve 80 km")
     }
 }

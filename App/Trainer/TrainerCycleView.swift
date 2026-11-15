@@ -45,7 +45,7 @@ struct TrainerCycleView: View {
     }
 
     private func open(suggested: Bool) {
-        let volumes = suggested ? model.suggestedVolumes() : nil
+        let volumes = suggested ? model.suggestedVolumes() : model.cycleEnded ? model.cycleVolumes() : nil
         editor = TrainerCycleEditor(isEditing: !model.cycleEnded, start: volumes?.start, peak: volumes?.peak)
     }
 }
