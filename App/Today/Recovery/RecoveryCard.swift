@@ -1,54 +1,202 @@
 import SwiftUI
+import TrainingCore
 
 struct RecoveryCard: View {
     let estimate: RecoveryEstimate
-    let now: Date
 
+    @Environment(\.horizontalSizeClass) private var sizeClass
     private typealias C = RecoveryConstants
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.title).padding(.top, 0).padding(.bottom, 0)
-            GeometryReader { proxy in
-                Capsule().fill(BrandColors.track)
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(estimate.progress >= 1 ? BrandColors.accentFill : BrandColors.attention)
-                            .frame(width: proxy.size.width * estimate.progress)
-                    }
-            }
-            .frame(height: 10)
-            HStack {
-                Text(String(format: C.sinceFormat, estimate.title)).font(.caption).foregroundStyle(BrandColors.dim).lineLimit(1)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                SectionLabel(C.title).padding(.top, 0).padding(.bottom, 0)
                 Spacer()
-                Text(status).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
-            }
-            if let next = estimate.next {
-                HStack {
-                    Text(next.title).font(.subheadline).foregroundStyle(BrandColors.text).lineLimit(1)
-                    Spacer()
-                    Text(String(format: C.afterFormat, next.gapHours)).font(BrandFonts.number(14)).foregroundStyle(BrandColors.dim)
-                    Text(next.enough ? C.enough : C.short)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(next.enough ? BrandColors.accent : BrandColors.attention)
-                        .padding(.horizontal, 8).padding(.vertical, 2)
-                        .background((next.enough ? BrandColors.accentFill : BrandColors.attention).opacity(0.15), in: Capsule())
+                if sizeClass == .regular {
+                    Text(C.subtitle).font(.caption).foregroundStyle(BrandColors.dim)
                 }
-                Text(next.enough
-                    ? String(format: C.enoughNoteFormat, next.title, next.gapHours)
-                    : String(format: C.shortNoteFormat, next.title, next.gapHours, estimate.hours))
-                    .font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(alignment: .top, spacing: 12) {
+                source
+                Spacer(minLength: 8)
+                remaining
+            }
+            timeline
+            if !estimate.upcoming.isEmpty {
+                VStack(spacing: 8) {
+                    ForEach(estimate.upcoming) { row($0) }
+                }
+            }
+            if let advice = estimate.advice {
+                Divider().overlay(BrandColors.line)
+                Text(advice).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
     }
 
-    private var status: String {
-        let remaining = Int((estimate.readyAt.timeIntervalSince(now) / 3_600).rounded())
-        guard remaining > 0 else { return C.readyNow }
-        let day = estimate.readyAt.formatted(.dateTime.weekday(.abbreviated).locale(WorkoutConstants.locale))
-        let when = String(format: C.whenFormat, day, Calendar.current.component(.hour, from: estimate.readyAt))
-        return String(format: C.readyFormat, remaining, when)
+    private var source: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            (Text(C.afterPrefix + sourceArticle + " ").foregroundStyle(BrandColors.dim) + Text(sourceName).bold().foregroundStyle(BrandColors.text))
+                .font(.subheadline)
+            Text(sourceDetail).font(.caption).foregroundStyle(BrandColors.dim)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var remaining: some View {
+        VStack(alignment: .trailing, spacing: 2) {
+            if estimate.remainingHours > 0 {
+                (Text(String(format: C.hoursRemainingFormat, estimate.remainingHours)).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
+                    + Text(" " + C.hoursRemainingUnit).font(.caption).foregroundStyle(BrandColors.dim))
+                (Text(C.readyCaption + " ").foregroundStyle(BrandColors.dim) + Text(dayHour(estimate.readyAt)).bold().foregroundStyle(BrandColors.accent))
+                    .font(.caption)
+            } else {
+                Text(C.readyNow).font(BrandFonts.number(24)).foregroundStyle(BrandColors.accent)
+                Text(C.readyCaption).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+        }
+        .multilineTextAlignment(.trailing)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var timeline: some View {
+        let events = placedEvents
+        let height = C.timelineHeight + C.markerRowHeight + (events.map(\.row).max().map { Double($0 + 1) * C.eventRowHeight } ?? 0)
+        return GeometryReader { proxy in
+            let width = proxy.size.width
+            ZStack(alignment: .topLeading) {
+                Capsule().fill(BrandColors.track).frame(height: C.timelineHeight)
+                Capsule()
+                    .fill(estimate.progress >= 1 ? BrandColors.accentFill : BrandColors.attention)
+                    .frame(width: max(width * estimate.position(of: estimate.now), C.timelineHeight), height: C.timelineHeight)
+                pin(x: width * estimate.position(of: estimate.now), color: BrandColors.text, label: C.nowLabel, width: width)
+                if estimate.remainingHours > 0 {
+                    pin(x: width * estimate.position(of: estimate.readyAt), color: BrandColors.accent, label: String(format: C.readyLabelFormat, dayHour(estimate.readyAt)), width: width)
+                }
+                ForEach(events, id: \.next.id) { event in
+                    let x = width * estimate.position(of: event.next.start)
+                    Circle()
+                        .fill(color(event.next.kind))
+                        .frame(width: C.eventDotSize, height: C.eventDotSize)
+                        .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 1.5))
+                        .offset(x: x - C.eventDotSize / 2, y: (C.timelineHeight - C.eventDotSize) / 2)
+                    eventLabel(event.next)
+                        .frame(width: C.labelWidth)
+                        .offset(x: clamp(x - C.labelWidth / 2, width: width), y: C.timelineHeight + C.markerRowHeight + Double(event.row) * C.eventRowHeight)
+                }
+            }
+        }
+        .frame(height: height)
+        .accessibilityHidden(true)
+    }
+
+    private func pin(x: Double, color: Color, label: String, width: Double) -> some View {
+        ZStack(alignment: .topLeading) {
+            Rectangle().fill(color).frame(width: 2, height: C.timelineHeight + 8).offset(x: x - 1, y: -4)
+            Text(label)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(color)
+                .frame(width: C.labelWidth)
+                .offset(x: clamp(x - C.labelWidth / 2, width: width), y: C.timelineHeight + 6)
+        }
+    }
+
+    private func eventLabel(_ next: RecoveryNext) -> some View {
+        VStack(spacing: 0) {
+            Text(name(next)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(1).minimumScaleFactor(0.8)
+            Text(dayHour(next.start)).font(.caption2).foregroundStyle(BrandColors.dim)
+        }
+    }
+
+    private func row(_ next: RecoveryNext) -> some View {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 2).fill(color(next.kind)).frame(width: 4, height: 34)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(String(format: C.eventFormat, name(next), dayHour(next.start))).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                Text(next.detail).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            chip(next.status)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(name(next)), \(dayHour(next.start)), \(next.detail), \(C.statusLabels[next.status] ?? "")")
+    }
+
+    private func chip(_ status: RecoveryStatus) -> some View {
+        let tint = status == .early ? BrandColors.rest : (status == .almost ? BrandColors.attention : BrandColors.accent)
+        return Text(C.statusLabels[status] ?? "")
+            .font(.caption.weight(.bold))
+            .foregroundStyle(tint)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 2)
+            .background(tint.opacity(0.15), in: Capsule())
+    }
+
+    private struct PlacedEvent {
+        let next: RecoveryNext
+        let row: Int
+    }
+
+    private var placedEvents: [PlacedEvent] {
+        var placed: [PlacedEvent] = []
+        for next in estimate.upcoming {
+            let x = estimate.position(of: next.start)
+            let crowded = placed.contains { abs(estimate.position(of: $0.next.start) - x) * nominalWidth < C.labelWidth && $0.row == 0 }
+            placed.append(PlacedEvent(next: next, row: crowded ? 1 : 0))
+        }
+        return placed
+    }
+
+    private var nominalWidth: Double {
+        sizeClass == .regular ? C.eventSpreadWide : C.eventSpreadCompact
+    }
+
+    private func clamp(_ x: Double, width: Double) -> Double {
+        min(max(x, 0), max(width - C.labelWidth, 0))
+    }
+
+    private func color(_ kind: SessionKind) -> Color {
+        switch kind {
+        case .easy: BrandColors.fitness
+        case .threshold, .intervals: BrandColors.attention
+        case .long, .race: BrandColors.race
+        }
+    }
+
+    private func name(_ next: RecoveryNext) -> String {
+        guard let km = next.kilometers, !next.title.lowercased().contains("km") else { return next.title }
+        return String(format: C.nextKilometersFormat, next.title, TodayText.decimal(km, fractionDigits: km.rounded() == km ? 0 : 1))
+    }
+
+    private var sourceArticle: String {
+        estimate.kind.flatMap { C.kindArticle[$0] } ?? C.fallbackArticle
+    }
+
+    private var sourceName: String {
+        let day = Day.today(now: estimate.end)
+        let when = day == Day.today(now: estimate.now) ? C.todayWord : WeeklyReportBuilder.weekdayName(day)
+        return String(format: C.afterRunFormat, estimate.kind.flatMap { C.kindNoun[$0] } ?? C.fallbackNoun, when)
+    }
+
+    private var sourceDetail: String {
+        var parts: [String] = []
+        if let km = estimate.kilometers { parts.append(String(format: C.kmFormat, TodayText.decimal(km, fractionDigits: 1))) }
+        if let heartRate = estimate.averageHeartRate { parts.append(String(format: C.heartRateFormat, heartRate)) }
+        parts.append(String(format: C.finishedFormat, dayHour(estimate.end)))
+        return parts.joined(separator: " · ")
+    }
+
+    private func dayHour(_ date: Date) -> String {
+        let calendar = Calendar.current
+        let weekday = date.formatted(.dateTime.weekday(.abbreviated).locale(WorkoutConstants.locale))
+        let hour = calendar.component(.hour, from: date)
+        let minute = calendar.component(.minute, from: date)
+        let time = minute == 0 ? String(format: C.hourFormat, hour) : String(format: C.hourMinuteFormat, hour, minute)
+        return String(format: C.readyAtFormat, weekday, time)
     }
 }
