@@ -9,6 +9,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "email:preview": "vitest run --config vitest.preview.config.ts",
     "test:concurrency": "SYNC_TEST_POSTGRES_IMAGE=postgres:17-alpine vitest run",
     "build": "npm run migrate && rm -rf public && mkdir -p public && cp -R landing/. public/ && npm --prefix web ci && npm --prefix web run build"
   },

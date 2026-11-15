@@ -1,6 +1,7 @@
 import { deliver, withAdmin } from './adminRoutes.js'
 import { authEnvFromProcess } from './authRoutes.js'
 import { dataKeyFromEnv } from './cipher.js'
+import { inviteRequestMail } from './mailTemplates.js'
 import { EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_REQUEST, MAX_BODY_BYTES, NAME_MAX_LENGTH } from './constants.js'
 import type { Sql } from './db.js'
 import { createInvite } from './invites.js'
@@ -47,9 +48,15 @@ export async function inviteRequestRoute(request: Request, sql: Sql, env: AuthEn
     }
     await saveRequest(sql, dataKey, input, ipHash, now)
     if (env.mailer !== undefined) {
-      const text = INVITE_REQUEST.mailText(input.name, input.email, INVITE_REQUEST.watchNames[input.watch] ?? input.watch, input.message, `${env.appUrl}${INVITE_REQUEST.adminPath}`)
+      const content = inviteRequestMail({
+        name: input.name,
+        email: input.email,
+        watch: INVITE_REQUEST.watchNames[input.watch] ?? input.watch,
+        message: input.message,
+        link: `${env.appUrl}${INVITE_REQUEST.adminPath}`,
+      })
       for (const to of env.adminEmails) {
-        await env.mailer.send({ to, subject: INVITE_REQUEST.mailSubject, text }).catch(() => undefined)
+        await env.mailer.send({ to, ...content }).catch(() => undefined)
       }
     }
     return json(202, { received: true })

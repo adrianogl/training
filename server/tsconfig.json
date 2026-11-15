@@ -15,5 +15,5 @@
     "types": ["node"],
     "noEmit": true
   },
-  "include": ["api", "src", "scripts", "test", "vitest.config.ts"]
+  "include": ["api", "src", "scripts", "test", "vitest.config.ts", "vitest.preview.config.ts"]
 }

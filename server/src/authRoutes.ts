@@ -3,10 +3,6 @@ import {
   APP_CLIENT,
   AUTH_ROUTE,
   CLIENT_HEADER,
-  MAIL_RESET_SUBJECT,
-  MAIL_RESET_TEXT,
-  MAIL_VERIFY_SUBJECT,
-  MAIL_VERIFY_TEXT,
   MAX_BODY_BYTES,
   RESET_PATH,
   RESET_TOKEN_MINUTES,
@@ -18,6 +14,7 @@ import type { Sql } from './db.js'
 import { limitsFromEnv } from './limits.js'
 import { acceptInvite, pendingInvite } from './invites.js'
 import { mailerFromEnv } from './mailer.js'
+import { resetPasswordMail, verifyEmailMail } from './mailTemplates.js'
 import { hashPassword, verifyPassword } from './password.js'
 import { clientIpHash } from './rateLimit.js'
 import type { AuthEnv, EmailPurpose, User } from './types.js'
@@ -112,12 +109,8 @@ async function sendLink(sql: Sql, env: AuthEnv, user: User, purpose: EmailPurpos
       : new Date(now.getTime() + RESET_TOKEN_MINUTES * 60 * 1000)
   const token = await createEmailToken(sql, user.id, purpose, expires)
   const link = `${env.appUrl}${purpose === 'verify' ? VERIFY_PATH : RESET_PATH}?token=${token}`
-  const intro = purpose === 'verify' ? MAIL_VERIFY_TEXT : MAIL_RESET_TEXT
-  await env.mailer.send({
-    to: user.email,
-    subject: purpose === 'verify' ? MAIL_VERIFY_SUBJECT : MAIL_RESET_SUBJECT,
-    text: `${intro}\n\n${link}`,
-  })
+  const content = purpose === 'verify' ? verifyEmailMail(link) : resetPasswordMail(link)
+  await env.mailer.send({ to: user.email, ...content })
   return true
 }
 
