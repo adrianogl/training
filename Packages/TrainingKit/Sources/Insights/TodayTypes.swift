@@ -66,6 +66,7 @@ public struct TodaySummary: Sendable, Codable {
     public var lastRunId: Int64?
     public var readinessRaw: [ReadinessComponent: ReadinessRawValue]
     public var readinessFromYesterday: Bool
+    public var readinessHistory: [ReadinessDayScore]?
 
     public init(
         readiness: ReadinessBreakdown?,
@@ -79,7 +80,8 @@ public struct TodaySummary: Sendable, Codable {
         predictions: [Prediction],
         lastRunId: Int64?,
         readinessRaw: [ReadinessComponent: ReadinessRawValue] = [:],
-        readinessFromYesterday: Bool = false
+        readinessFromYesterday: Bool = false,
+        readinessHistory: [ReadinessDayScore]? = nil
     ) {
         self.readiness = readiness
         self.verdict = verdict
@@ -93,5 +95,16 @@ public struct TodaySummary: Sendable, Codable {
         self.lastRunId = lastRunId
         self.readinessRaw = readinessRaw
         self.readinessFromYesterday = readinessFromYesterday
+        self.readinessHistory = readinessHistory
+    }
+}
+
+public struct ReadinessDayScore: Sendable, Codable, Equatable {
+    public let day: Day
+    public let score: Int?
+
+    public init(day: Day, score: Int?) {
+        self.day = day
+        self.score = score
     }
 }
