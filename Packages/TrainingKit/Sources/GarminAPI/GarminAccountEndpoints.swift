@@ -35,6 +35,8 @@ public enum GarminAccountEndpoints {
     public static let invalidCredentialsStatus = "INVALID_USERNAME_PASSWORD"
     public static let calendarPathFormat = "/calendar-service/year/%d/month/%d"
     public static let coursesPath = "/course-service/course"
+    public static let paceBandsSummariesPath = "/course-service/pacebands/summaries"
+    public static let paceBandPathPrefix = "/course-service/pacebands/"
     public static let workoutPathPrefix = "/workout-service/workout/"
     public static let createWorkoutPath = "/workout-service/workout"
     public static let schedulePathPrefix = "/workout-service/schedule/"
