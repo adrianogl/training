@@ -36,10 +36,17 @@ enum RaceNoticeBuilder {
         let morning = RaceNotice(
             id: C.morningIdPrefix + id.uuidString,
             title: "Hoje é a \(name)",
-            text: "Largada \(startText). \(paceText(plan: plan, goalSeconds: goalSeconds, distance: distance))Coma até \(formatter.string(from: eat)) e abra o app para ver a prontidão.",
+            text: "Largada \(startText). \(paceText(plan: plan, goalSeconds: goalSeconds, distance: distance))\(waterText(plan))Coma até \(formatter.string(from: eat)) e abra o app para ver a prontidão.",
             date: wake
         )
         return [eve, morning]
+    }
+
+    static func waterText(_ plan: PaceProPlan?) -> String {
+        guard let water = plan?.water, !water.isEmpty else { return "" }
+        let points = water.map { TodayText.decimal($0 / 1_000, fractionDigits: 1) }
+        let list = points.count == 1 ? points[0] : points.dropLast().joined(separator: ", ") + " e " + points[points.count - 1]
+        return "Água no km \(list). "
     }
 
     static func paceText(plan: PaceProPlan?, goalSeconds: Double?, distance: Double) -> String {

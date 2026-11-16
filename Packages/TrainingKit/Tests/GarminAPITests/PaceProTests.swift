@@ -34,4 +34,11 @@ private let planJSON = """
         #expect(abs(seconds[0] - 237.259) < 0.001)
         #expect(abs(seconds[1] - 240.041) < 0.001)
     }
+
+    @Test func readsWaterPointsFromCourse() throws {
+        let json = #"{"courseId":1,"coursePoints":[{"name":"Água","coursePointType":"WATER","distance":3232.8},{"name":"Curva","coursePointType":"LEFT","distance":2000},{"name":"Água","coursePointType":"WATER","distance":1635.9}]}"#
+        #expect(try PacePro.parseWater(Data(json.utf8)) == [1635.9, 3232.8])
+        let summaries = try PacePro.parseSummaries(Data(#"[{"paceBandPk":9,"name":"X","courseId":530929657,"totalDistance":10004.58,"goalTime":2400,"createdDate":"2026-11-16T20:13:00.0"}]"#.utf8))
+        #expect(summaries.first?.courseId == 530929657)
+    }
 }

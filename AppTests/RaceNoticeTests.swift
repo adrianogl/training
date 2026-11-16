@@ -61,3 +61,25 @@ import TrainingCore
         #expect(comparison.verdict == "Terminou 20 s atrás da estratégia do app. Perdeu tempo entre o km 1 e o 2.")
     }
 }
+
+@Suite struct RaceWaterTests {
+    private let plan = PaceProPlan(
+        summary: PaceProSummary(id: 1, name: "Live Run XP 2026", distance: 10_005, goalSeconds: 2400, created: nil, courseId: 530929657),
+        splits: (1...10).map { PaceProSplit(distance: Double($0) * 1_000, time: Double($0) * 240) },
+        water: [1_635.9, 3_232.8, 4_822.2, 5_191.6, 6_780.4, 8_391.4]
+    )
+
+    @Test func morningNoticeListsWaterPoints() {
+        #expect(RaceNoticeBuilder.waterText(plan) == "Água no km 1,6, 3,2, 4,8, 5,2, 6,8 e 8,4. ")
+        #expect(RaceNoticeBuilder.waterText(nil) == "")
+    }
+
+    @Test func analysisMarksWaterKilometersAndExplainsStretch() throws {
+        let done = [237.0, 240, 243, 242, 244, 246, 244, 240, 238, 233]
+        let splits = done.enumerated().map { RaceSplit(index: $0.offset, distance: 1_000, pace: $0.element, planned: nil) }
+        let comparison = try #require(RacePlanComparisonBuilder.build(splits: splits, plan: plan))
+        #expect(comparison.rows.filter(\.hasWater).map { $0.index + 1 } == [2, 4, 5, 6, 7, 9])
+        #expect(comparison.verdict.contains("Perdeu tempo entre o km 3 e o 7."))
+        #expect(comparison.verdict.contains("Desses, os km 4, 5, 6 e 7 tiveram água, então até 3 s em cada um vêm do copo."))
+    }
+}

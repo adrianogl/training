@@ -81,7 +81,16 @@ struct RacePlanCard: View {
             }
             ForEach(comparison.rows) { row in
                 GridRow {
-                    Text("\(row.index + 1)").foregroundStyle(BrandColors.text)
+                    HStack(spacing: 4) {
+                        Text("\(row.index + 1)").foregroundStyle(BrandColors.text)
+                        if row.hasWater {
+                            Text(C.waterTag)
+                                .font(.system(size: 9.5, weight: .bold))
+                                .foregroundStyle(C.waterColor)
+                                .padding(.horizontal, 5)
+                                .background(C.waterColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+                        }
+                    }
                     Text(WorkoutFormat.clock(row.planned)).foregroundStyle(BrandColors.dim)
                     Text(WorkoutFormat.clock(row.done)).foregroundStyle(BrandColors.text)
                     Text(RacePlanComparisonBuilder.signedGap(row.delta)).foregroundStyle(color(row.delta))
