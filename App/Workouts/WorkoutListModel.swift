@@ -7,7 +7,7 @@ import WorkoutAnalysis
 enum WorkoutListModel {
     static func rows(records: [ActivityRecord]) -> [WorkoutRowData] {
         records
-            .filter { ActivityTypeKey.isRun($0.typeKey) }
+            .filter { ActivityTypeKey.isRun($0.typeKey) || ActivityTypeKey.isStrength($0.typeKey) }
             .sorted { $0.start > $1.start }
             .map(row)
     }
@@ -21,36 +21,32 @@ enum WorkoutListModel {
         }
         return order.map { start in
             let rows = grouped[start] ?? []
+            let runs = rows.filter { !$0.isStrength }
             return WorkoutWeek(
                 start: start,
-                kilometers: rows.reduce(0) { $0 + ($1.kilometers ?? 0) },
+                kilometers: runs.reduce(0) { $0 + ($1.kilometers ?? 0) },
                 rows: rows,
-                runCount: rows.count,
-                plannedKilometers: plannedKilometers[start]
+                runCount: runs.count,
+                plannedKilometers: plannedKilometers[start],
+                strengthCount: rows.count - runs.count
             )
         }
     }
 
-    static func filtered(_ weeks: [WorkoutWeek], records: [ActivityRecord], by filter: WorkoutKindFilter) -> [WorkoutWeek] {
+    static func filtered(_ weeks: [WorkoutWeek], by filter: WorkoutKindFilter) -> [WorkoutWeek] {
         guard filter != .all else { return weeks }
-        let byId = Dictionary(records.map { ($0.activityId, $0) }) { first, _ in first }
         return weeks.compactMap { week in
-            let rows = week.rows.filter { row in byId[row.activityId].map { matches(kind($0), filter: filter) } ?? false }
+            let rows = week.rows.filter { matches($0, filter: filter) }
             guard !rows.isEmpty else { return nil }
-            return WorkoutWeek(start: week.start, kilometers: week.kilometers, rows: rows, runCount: week.runCount, plannedKilometers: week.plannedKilometers)
+            return WorkoutWeek(start: week.start, kilometers: week.kilometers, rows: rows, runCount: week.runCount, plannedKilometers: week.plannedKilometers, strengthCount: week.strengthCount)
         }
     }
 
-    static func kind(_ record: ActivityRecord) -> SessionKind {
-        SessionKind(run: classifyRun(record, longGoalKm: nil, raceGoalKms: []))
-    }
-
-    static func matches(_ kind: SessionKind, filter: WorkoutKindFilter) -> Bool {
+    static func matches(_ row: WorkoutRowData, filter: WorkoutKindFilter) -> Bool {
         switch filter {
         case .all: true
-        case .quality: kind.isQuality
-        case .long: kind == .long
-        case .race: kind == .race
+        case .run: !row.isStrength
+        case .strength: row.isStrength
         }
     }
 
@@ -97,6 +93,12 @@ enum WorkoutListModel {
     }
 
     static func weekSummary(_ week: WorkoutWeek) -> String {
+        guard week.runCount > 0 else { return String(format: WorkoutConstants.weekStrengthOnlyFormat, week.strengthCount) }
+        let runs = runSummary(week)
+        return week.strengthCount > 0 ? String(format: WorkoutConstants.weekStrengthFormat, runs, week.strengthCount) : runs
+    }
+
+    private static func runSummary(_ week: WorkoutWeek) -> String {
         let km = TodayText.decimal(week.kilometers, fractionDigits: 1)
         if week.plannedProgress != nil, let planned = week.plannedKilometers {
             let plannedText = TodayText.decimal(planned, fractionDigits: 1)
@@ -126,7 +128,8 @@ enum WorkoutListModel {
             score: isRun ? record.scoreValue : nil,
             kilometers: distance.map { $0 / WorkoutConstants.metersPerKilometer },
             zoneShares: zoneShares(record.zoneSeconds),
-            weekStart: Day.today(now: record.start).weekStart
+            weekStart: Day.today(now: record.start).weekStart,
+            isStrength: ActivityTypeKey.isStrength(record.typeKey)
         )
     }
 

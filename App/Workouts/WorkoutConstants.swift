@@ -9,17 +9,18 @@ enum WorkoutConstants {
     static let weekSummarySingular = "%@ km · 1 corrida"
     static let weekPlannedFormat = "%@ de %@ km · %d corridas"
     static let weekPlannedSingular = "%@ de %@ km · 1 corrida"
+    static let weekStrengthFormat = "%@ · %d de força"
+    static let weekStrengthOnlyFormat = "%d de força"
     static let weekBarHeight: Double = 4
     static let emptyFilter = "Nenhum treino desse tipo."
     static let filterTitles: [WorkoutKindFilter: String] = [
         .all: "Todos",
-        .quality: "Qualidade",
-        .long: "Longões",
-        .race: "Provas",
+        .run: "Corrida",
+        .strength: "Força",
     ]
-    static let emptyList = "Nenhuma corrida ainda."
+    static let emptyList = "Nenhum treino ainda."
     static let listTitle = "Treinos"
-    static let selectWorkout = "Escolha uma corrida na lista."
+    static let selectWorkout = "Escolha um treino na lista."
     static let plannedTitle = "Planejados"
     static let plannedHeaderFormat = "%@ · %d"
     static let fromPlan = "do plano"

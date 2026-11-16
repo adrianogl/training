@@ -29,15 +29,19 @@ import Testing
 
         let rows = WorkoutListModel.rows(records: records)
 
-        try #require(rows.count == 2)
-        #expect(rows.map(\.activityId) == [3, 1])
+        try #require(rows.count == 3)
+        #expect(rows.map(\.activityId) == [3, 2, 1])
         #expect(rows[0].title == "Limiar 6 x 800 m")
         #expect(rows[0].paceText == "5:00 /km")
         #expect(rows[0].distanceText == "10,0 km")
         #expect(rows[0].durationText == "50:00")
-        #expect(rows[1].paceText == "5:50 /km")
-        #expect(rows[1].durationText == "46:40")
-        #expect(rows.map(\.hasPrescription) == [true, false])
+        #expect(rows[1].isStrength)
+        #expect(rows[1].paceText == nil)
+        #expect(rows[1].distanceText == nil)
+        #expect(rows[1].durationText == "40:00")
+        #expect(rows[2].paceText == "5:50 /km")
+        #expect(rows[2].durationText == "46:40")
+        #expect(rows.map(\.hasPrescription) == [true, false, false])
         #expect(rows[0].kilometers == 10)
     }
 
@@ -54,12 +58,14 @@ import Testing
         let weeks = WorkoutListModel.weeks(records: try context.fetch(FetchDescriptor<ActivityRecord>()))
 
         try #require(weeks.count == 2)
-        #expect(weeks[0].rows.map(\.activityId) == [2, 1])
+        #expect(weeks[0].rows.map(\.activityId) == [2, 4, 1])
         #expect(weeks[0].kilometers == 18)
+        #expect(weeks[0].runCount == 2)
+        #expect(weeks[0].strengthCount == 1)
         #expect(weeks[1].rows.map(\.activityId) == [3])
         #expect(WorkoutListModel.weekLabel(weeks[0].start) == "9–15 nov")
-        #expect(WorkoutListModel.weekSummary(weeks[0]) == "18,0 km · 2 corridas")
-        #expect(weeks[0].rows[1].zoneShares == [0.2, 0.8, 0, 0, 0])
+        #expect(WorkoutListModel.weekSummary(weeks[0]) == "18,0 km · 2 corridas · 1 de força")
+        #expect(weeks[0].rows[2].zoneShares == [0.2, 0.8, 0, 0, 0])
     }
 
     @Test func listShowsScoreOnlyForRuns() async throws {
@@ -78,7 +84,7 @@ import Testing
         let rows = WorkoutListModel.rows(records: records)
 
         #expect(rows.first { $0.activityId == 1 }?.score != nil)
-        #expect(!rows.contains { $0.activityId == 2 })
+        #expect(rows.first { $0.activityId == 2 }?.score == nil)
     }
 }
 
@@ -151,34 +157,27 @@ import Testing
         context.insert(ActivityRecord(activityId: 2, typeKey: "running", name: "Corrida", start: monday.addingTimeInterval(86_400), distance: 9_000, duration: 2_700, workoutName: "Limiar 3 x 2 km"))
         context.insert(ActivityRecord(activityId: 3, typeKey: "running", name: "Longão", start: monday.addingTimeInterval(5 * 86_400), distance: 18_000, duration: 6_000))
         context.insert(ActivityRecord(activityId: 4, typeKey: "running", name: "Prova 10 km", start: monday.addingTimeInterval(-2 * 86_400), distance: 10_000, duration: 2_700))
+        context.insert(ActivityRecord(activityId: 5, typeKey: "strength_training", name: "MMII", start: monday.addingTimeInterval(2 * 86_400), distance: 0, duration: 3_600))
         try context.save()
         return try context.fetch(FetchDescriptor<ActivityRecord>())
     }
 
-    @Test func matchesKindsToFilters() {
-        #expect(WorkoutListModel.matches(.threshold, filter: .quality))
-        #expect(WorkoutListModel.matches(.intervals, filter: .quality))
-        #expect(!WorkoutListModel.matches(.long, filter: .quality))
-        #expect(WorkoutListModel.matches(.long, filter: .long))
-        #expect(WorkoutListModel.matches(.race, filter: .race))
-        #expect(!WorkoutListModel.matches(.easy, filter: .race))
-        #expect(WorkoutKindFilter.allCases.allSatisfy { WorkoutListModel.matches(.easy, filter: $0) == ($0 == .all) })
-    }
-
-    @Test func filtersRowsAndKeepsWeekTotals() throws {
+    @Test func filtersRunsAndStrengthAndKeepsWeekTotals() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let records = try records(in: container)
         let weeks = WorkoutListModel.weeks(records: records)
 
-        #expect(WorkoutListModel.filtered(weeks, records: records, by: .all) == weeks)
+        #expect(WorkoutListModel.filtered(weeks, by: .all) == weeks)
 
-        let quality = WorkoutListModel.filtered(weeks, records: records, by: .quality)
-        try #require(quality.count == 1)
-        #expect(quality[0].rows.map(\.activityId) == [2])
-        #expect(quality[0].kilometers == 33)
-        #expect(quality[0].runCount == 3)
-        #expect(WorkoutListModel.filtered(weeks, records: records, by: .long).flatMap(\.rows).map(\.activityId) == [3])
-        #expect(WorkoutListModel.filtered(weeks, records: records, by: .race).flatMap(\.rows).map(\.activityId) == [4])
+        let strength = WorkoutListModel.filtered(weeks, by: .strength)
+        try #require(strength.count == 1)
+        #expect(strength[0].rows.map(\.activityId) == [5])
+        #expect(strength[0].rows[0].isStrength)
+        #expect(strength[0].rows[0].distanceText == nil)
+        #expect(strength[0].kilometers == 33)
+        #expect(strength[0].runCount == 3)
+        #expect(strength[0].strengthCount == 1)
+        #expect(Set(WorkoutListModel.filtered(weeks, by: .run).flatMap(\.rows).map(\.activityId)) == [1, 2, 3, 4])
     }
 
     @Test func sumsPlannedKilometersPerWeekOverCache() {
@@ -201,9 +200,10 @@ import Testing
         let weeks = WorkoutListModel.weeks(records: records, plannedKilometers: [Day(iso: "2026-11-09")!: 40])
 
         try #require(weeks.count == 2)
-        #expect(WorkoutListModel.weekSummary(weeks[0]) == "33,0 de 40,0 km · 3 corridas")
+        #expect(WorkoutListModel.weekSummary(weeks[0]) == "33,0 de 40,0 km · 3 corridas · 1 de força")
         #expect(weeks[0].plannedProgress == 33.0 / 40)
         #expect(weeks[1].plannedProgress == nil)
         #expect(WorkoutListModel.weekSummary(weeks[1]) == "10,0 km · 1 corrida")
+        #expect(WorkoutListModel.weekSummary(WorkoutWeek(start: weeks[0].start, kilometers: 0, rows: [], runCount: 0, strengthCount: 2)) == "2 de força")
     }
 }
