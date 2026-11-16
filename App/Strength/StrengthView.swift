@@ -6,6 +6,10 @@ struct StrengthView: View {
     @Environment(AppModel.self) private var app
     @State private var model = StrengthModel()
     @State private var path: [StrengthRoute] = []
+    @State private var rowWidth: CGFloat = 0
+    @Environment(\.horizontalSizeClass) private var sizeClass
+
+    private typealias C = StrengthConstants
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -23,14 +27,18 @@ struct StrengthView: View {
                             .font(.footnote)
                             .foregroundStyle(BrandColors.dim)
                     }
-                    SectionLabel(StrengthText.today)
-                    StrengthTodayCard(model: model)
-                    SectionLabel(StrengthText.week)
-                    StrengthWeekCard(model: model)
-                    SectionLabel(StrengthText.weekMuscles)
-                    StrengthMusclesCard(model: model)
-                    SectionLabel(StrengthText.history)
-                    StrengthHistoryCard(model: model)
+                    if sizeClass == .regular {
+                        wideContent
+                    } else {
+                        SectionLabel(StrengthText.today)
+                        StrengthTodayCard(model: model)
+                        SectionLabel(StrengthText.week)
+                        StrengthWeekCard(model: model)
+                        SectionLabel(StrengthText.weekMuscles)
+                        StrengthMusclesCard(model: model)
+                        SectionLabel(StrengthText.history)
+                        StrengthHistoryCard(model: model)
+                    }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
                 .padding(.top, 8)
@@ -56,6 +64,26 @@ struct StrengthView: View {
                 await load()
             }
         }
+    }
+
+    private var sideWidth: CGFloat {
+        max(0, (rowWidth - C.wideColumnSpacing) * C.wideSideShare)
+    }
+
+    private var wideContent: some View {
+        VStack(spacing: C.wideColumnSpacing) {
+            HStack(alignment: .top, spacing: C.wideColumnSpacing) {
+                StrengthTodayWideCard(model: model)
+                StrengthWeekListCard(model: model).frame(width: sideWidth)
+            }
+            HStack(alignment: .top, spacing: C.wideColumnSpacing) {
+                StrengthMusclesWideCard(model: model)
+                StrengthHistoryWideCard(model: model).frame(width: sideWidth)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { rowWidth = $0 }
+        .padding(.top, 6)
     }
 
     @discardableResult

@@ -19,10 +19,13 @@ public enum StrengthMuscles {
         return 1 + steps.filter { sets >= $0 }.count
     }
 
-    public static func isLegDay(_ categories: [String?]) -> Bool {
-        categories.contains { category in
-            category.map { !Set(C.primary[$0] ?? []).isDisjoint(with: C.legMuscles) } ?? false
-        }
+    public static func isLegDay(_ entries: [(category: String?, sets: Int)]) -> Bool {
+        let total = entries.reduce(0) { $0 + $1.sets }
+        guard total > 0 else { return false }
+        let legs = entries.filter { entry in
+            entry.category.map { !Set(C.primary[$0] ?? []).isDisjoint(with: C.legMuscles) } ?? false
+        }.reduce(0) { $0 + $1.sets }
+        return Double(legs) / Double(total) >= C.legDayShare
     }
 }
 

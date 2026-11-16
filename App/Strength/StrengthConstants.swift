@@ -30,6 +30,13 @@ enum StrengthConstants {
     ]
     static let volumeGroups: [MuscleGroup] = [.glutes, .quads, .hamstrings, .calves, .chest, .lats, .shoulders, .abs]
     static let secondsPerMinute = 60.0
+    static let groupTotalsLimit = 8
+    static let recentSessionsLimit = 3
+    static let wideMapHeight: CGFloat = 240
+    static let wideWeekMapHeight: CGFloat = 210
+    static let wideColumnSpacing: CGFloat = 14
+    static let wideSideShare: CGFloat = 5.0 / 12.0
+    static let wideMapColumn: CGFloat = 200
     static let syntheticIdFactor: Int64 = 100_000
     static let syntheticEpoch = Day(year: 2000, month: 1, day: 1)
 }

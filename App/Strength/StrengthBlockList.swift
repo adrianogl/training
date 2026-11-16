@@ -9,14 +9,25 @@ struct StrengthBlockList: View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
                 .padding(.bottom, 6)
-            ForEach(Array(blocks.enumerated()), id: \.offset) { index, block in
-                row(index + 1, block)
-            }
+            StrengthBlockRows(blocks: blocks)
         }
         .brandCard()
     }
+}
 
-    private func row(_ number: Int, _ block: StrengthBlock) -> some View {
+struct StrengthBlockRows: View {
+    let blocks: [StrengthBlock]
+    var showsFirstDivider = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(blocks.enumerated()), id: \.offset) { index, block in
+                row(index + 1, block, divider: showsFirstDivider || index > 0)
+            }
+        }
+    }
+
+    private func row(_ number: Int, _ block: StrengthBlock, divider: Bool) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Text("\(number)").font(.footnote.weight(.bold)).foregroundStyle(BrandColors.accent).frame(width: 18, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
@@ -36,6 +47,6 @@ struct StrengthBlockList: View {
             Spacer(minLength: 0)
         }
         .padding(.vertical, 8)
-        .overlay(alignment: .top) { Divider().overlay(BrandColors.line) }
+        .overlay(alignment: .top) { if divider { Divider().overlay(BrandColors.line) } }
     }
 }
