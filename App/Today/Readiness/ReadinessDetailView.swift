@@ -19,6 +19,11 @@ struct ReadinessDetailView: View {
                         .font(.footnote)
                         .foregroundStyle(BrandColors.dim)
                 }
+                if let history = model.summary.readinessHistory,
+                   history.compactMap(\.score).count >= ReadinessHistoryConstants.minimumScores {
+                    ReadinessHistoryChart(history: history)
+                        .padding(.top, 6)
+                }
                 group(TodayConstants.detailUp, .up, BrandColors.accent)
                 group(TodayConstants.detailDown, .down, BrandColors.attention)
                 group(TodayConstants.detailNoBaseline, .baseline, BrandColors.dim)

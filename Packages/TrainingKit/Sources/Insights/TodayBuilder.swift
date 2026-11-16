@@ -14,7 +14,7 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
     let race = try targetRace(in: context, today: today)
     let raceDay = race.flatMap { Day(iso: $0.day) }
     let records = Dictionary(
-        try fetchDaily(context, since: today.adding(days: -C.readinessHistoryDays), through: today),
+        try fetchDaily(context, since: today.adding(days: -(C.readinessHistoryDays + C.readinessChartDays)), through: today),
         uniquingKeysWith: { first, _ in first }
     )
     func input(on day: Day) -> ReadinessInput? {
@@ -46,7 +46,11 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
         predictions: builder.predictions(efforts),
         lastRunId: runs.last?.activityId,
         readinessRaw: readinessRaw(today: todayInput, history: history),
-        readinessFromYesterday: fromYesterday
+        readinessFromYesterday: fromYesterday,
+        readinessHistory: (0..<C.readinessChartDays).reversed().map { offset in
+            let day = readinessDay.adding(days: -offset)
+            return ReadinessDayScore(day: day, score: breakdown(on: day)?.score ?? records[day]?.readinessScore)
+        }
     )
 }
 
