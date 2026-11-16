@@ -106,3 +106,9 @@ struct WeeklyStrengthSummary: Equatable {
     let missed: [String]
     let titles: [Day: String]
 }
+
+struct StrengthLegDay: Equatable {
+    let title: String
+    let sets: Int
+    let legSets: Int
+}

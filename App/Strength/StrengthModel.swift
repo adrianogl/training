@@ -34,6 +34,16 @@ import TrainingCore
         Dictionary(weekWorkouts.compactMap { workout in Day(iso: workout.day).map { ($0, workout.title) } }) { first, _ in first }
     }
 
+    func legDay(before day: Day) -> StrengthLegDay? {
+        let yesterday = day.adding(days: -1)
+        for session in sessions where session.day == yesterday {
+            let entries = Self.entries(blocks(forSession: session.id))
+            guard StrengthMuscles.isLegDay(entries) else { continue }
+            return StrengthLegDay(title: StrengthText.shortTitle(session.title), sets: entries.reduce(0) { $0 + $1.sets }, legSets: StrengthMuscles.legSets(entries))
+        }
+        return nil
+    }
+
     func weekSummary(start: Day) -> WeeklyStrengthSummary? {
         let end = start.adding(days: 6)
         let planned = schedule.workouts(program, from: start, through: end)

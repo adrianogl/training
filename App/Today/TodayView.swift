@@ -149,14 +149,14 @@ struct TodayView: View {
     @ViewBuilder
     private func nowBlock(_ model: TodayModel) -> some View {
         blockLabel(TodayConstants.blockNow, first: true)
-        ReadinessHeroCard(model: model, overload: model.overload, recovery: model.recoveryEstimate(trainer: trainerWorkouts))
+        ReadinessHeroCard(model: model, overload: model.overload, recovery: model.recoveryEstimate(trainer: trainerWorkouts), legDay: strength.legDay(before: model.today))
     }
 
     @ViewBuilder
     private func todayBlock(_ model: TodayModel) -> some View {
         if let pick = workoutPick(model) {
             blockLabel(TodayConstants.blockToday)
-            TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick)
+            TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick, legDay: strength.legDay(before: model.today))
         }
         TodayStrengthCard(showsLabel: workoutPick(model) == nil) {
             blockLabel(TodayConstants.blockToday)

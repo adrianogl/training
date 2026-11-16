@@ -1,5 +1,6 @@
 import Insights
 import TrainingCore
+import WorkoutAnalysis
 
 enum StrengthText {
     static let title = "Força"
@@ -86,6 +87,32 @@ enum StrengthText {
             .split(whereSeparator: \.isWhitespace).joined(separator: " ")
         guard let first = stripped.first else { return name }
         return first.uppercased() + stripped.dropFirst()
+    }
+
+    static let legFactorTitle = "Força de pernas ontem"
+    static let legFactorNote = "não entra na nota"
+
+    static func legSentence(_ leg: StrengthLegDay) -> String {
+        "Pernas ainda carregadas do \(leg.title) de ontem."
+    }
+
+    static func legFactorDetail(_ leg: StrengthLegDay) -> String {
+        "\(leg.title) · \(leg.sets) séries, \(leg.legSets) de perna · \(legFactorNote)"
+    }
+
+    static func legIntervalsAdvice(_ leg: StrengthLegDay, slowPace: Double?, reps: Int?) -> String {
+        let pace = slowPace.map { " (\(WorkoutFormat.clock($0))/km)" } ?? ""
+        let fewer = reps.flatMap { $0 > 2 ? " Se sentir peso, faça \($0 - 1) tiros em vez de \($0)." : nil } ?? ""
+        return "Pernas do \(leg.title) de ontem: faça o aquecimento completo e segure o 1º tiro no topo da faixa\(pace).\(fewer)"
+    }
+
+    static func legTempoAdvice(_ leg: StrengthLegDay, slowPace: Double?) -> String {
+        let pace = slowPace.map { " (\(WorkoutFormat.clock($0))/km)" } ?? ""
+        return "Pernas do \(leg.title) de ontem: faça o aquecimento completo e comece o 1º bloco no topo da faixa\(pace)."
+    }
+
+    static func legLongAdvice(_ leg: StrengthLegDay) -> String {
+        "Pernas do \(leg.title) de ontem: comece os 3 primeiros km mais leve e só depois vá para o ritmo do longão."
     }
 
     static func missedLabel(_ title: String, day: Day) -> String {

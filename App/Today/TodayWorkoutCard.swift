@@ -7,6 +7,7 @@ struct TodayWorkoutCard: View {
     let model: TodayModel
     let trainer: TrainerModel
     let pick: TodayWorkoutPick
+    var legDay: StrengthLegDay?
 
     @State private var weather: [HourlyWeather] = []
     private typealias C = TodayConstants
@@ -21,6 +22,15 @@ struct TodayWorkoutCard: View {
             case nil: rest
             }
             if let suggestion { readiness(suggestion) }
+            if let advice = StrengthLegAdvice.text(pick.today, leg: legDay) {
+                Text(advice)
+                    .font(.footnote)
+                    .foregroundStyle(BrandColors.attention)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(BrandColors.attention.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
