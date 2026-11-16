@@ -4,7 +4,6 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Codable {
     case today
     case evolution
     case workouts
-    case strength
     case races
     case trainer
     case settings
@@ -17,7 +16,6 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Codable {
         case .today: "hoje"
         case .evolution: "evolucao"
         case .workouts: "treinos"
-        case .strength: "forca"
         case .races: "provas"
         case .trainer: "treinador"
         case .settings: "ajustes"
@@ -50,7 +48,6 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Codable {
         case .today: "Hoje"
         case .evolution: "Evolução"
         case .workouts: "Treinos"
-        case .strength: "Força"
         case .races: "Provas"
         case .trainer: "Treinador"
         case .settings: "Ajustes"
@@ -62,8 +59,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Codable {
         switch self {
         case .today: "sun.max"
         case .evolution: "chart.line.uptrend.xyaxis"
-        case .workouts: "figure.run"
-        case .strength: "dumbbell"
+        case .workouts: "list.bullet.clipboard"
         case .races: "flag.checkered"
         case .trainer: "figure.run.square.stack"
         case .settings: "gearshape"

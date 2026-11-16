@@ -6,6 +6,8 @@ struct TodayWeekCard: View {
     let report: WeeklyReport
     let isClosed: Bool
     let series: VolumeSeries
+    var strength: [Day: String] = [:]
+    var warnings: [String] = []
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     private typealias C = WeeklyReportConstants
@@ -27,7 +29,16 @@ struct TodayWeekCard: View {
                             .foregroundStyle((report.adherence ?? 0) >= TodayConstants.volumePercentGood ? BrandColors.accent : BrandColors.attention)
                     }
                 }
-                WeeklyDaysRow(days: report.days, compact: sizeClass != .regular)
+                WeeklyDaysRow(days: report.days, compact: sizeClass != .regular, strength: strength)
+                ForEach(warnings, id: \.self) { warning in
+                    HStack(alignment: .top, spacing: 8) {
+                        Text("!").font(.footnote.weight(.bold)).foregroundStyle(BrandColors.attention)
+                        Text(warning).font(.footnote).foregroundStyle(BrandColors.text)
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
                 if series.points.count > 1 {
                     sparkline
                 }

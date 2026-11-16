@@ -30,6 +30,7 @@ enum WorkoutConstants {
     static let plannedTag = "planejado"
     static let plannedBadge = "Planejado"
     static let strengthTag = "força"
+    static let programSource = " · professor no MFIT"
     static let strengthSetsFormat = "%d séries"
     static let newBadge = "novo"
     static let plannedKind = "Treino planejado"

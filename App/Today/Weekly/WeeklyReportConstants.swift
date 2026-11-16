@@ -1,4 +1,5 @@
 enum WeeklyReportConstants {
+    static let strengthShort = "força"
     static let notificationId = "weekly-report"
     static let notificationHour = 20
     static let sunday = 1

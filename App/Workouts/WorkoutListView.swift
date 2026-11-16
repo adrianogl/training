@@ -20,6 +20,7 @@ struct WorkoutListView: View {
     @State private var kindFilter: WorkoutKindFilter = .all
     @State private var strengthPlanned: [StrengthWorkout] = []
     @State private var strengthDoneDays: Set<String> = []
+    @State private var strengthProgram: MFITProgram?
 
     @State private var path: [WorkoutSelection] = []
     @State private var selection: WorkoutSelection?
@@ -73,7 +74,7 @@ struct WorkoutListView: View {
             chatCounts = await WorkoutChatStore.shared.questionCounts()
         }
         .task(id: model.mfitAccount.revision) {
-            guard model.mfitAccount.isSignedIn else { strengthPlanned = []; strengthDoneDays = []; return }
+            guard model.mfitAccount.isSignedIn else { strengthPlanned = []; strengthDoneDays = []; strengthProgram = nil; return }
             let today = Day.today()
             let store = StrengthProgramStore()
             applyStrength(store.load(), today: today)
@@ -109,6 +110,7 @@ struct WorkoutListView: View {
     }
 
     private func applyStrength(_ cache: StrengthProgramCache, today: Day) {
+        strengthProgram = cache.program
         strengthPlanned = StrengthSchedule().workouts(cache.program, from: today, through: today.adding(days: WorkoutConstants.plannedDays))
         strengthDoneDays = Set(cache.known.flatMap { $0.completions.map(\.day) })
     }
@@ -164,6 +166,14 @@ struct WorkoutListView: View {
                 SyncStatusPill()
                 if hasRuns {
                     WorkoutKindFilterBar(selection: $kindFilter)
+                }
+                if kindFilter == .strength, let program = strengthProgram {
+                    Text(StrengthText.programLabel(program.title, start: program.start.flatMap(Day.init(iso:)), end: program.end.flatMap(Day.init(iso:))) + WorkoutConstants.programSource)
+                        .font(BrandFonts.number(12))
+                        .foregroundStyle(BrandColors.dim)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .overlay(Capsule().strokeBorder(BrandColors.line))
                 }
                 if !plannedItems.isEmpty {
                     Button {

@@ -1,8 +1,10 @@
 import SwiftUI
+import TrainingCore
 
 struct WeeklyDaysRow: View {
     let days: [WeeklyDay]
     let compact: Bool
+    var strength: [Day: String] = [:]
 
     private typealias C = WeeklyReportConstants
 
@@ -25,6 +27,9 @@ struct WeeklyDaysRow: View {
             if !compact {
                 Text(day.label ?? " ").font(.system(size: 10.5)).foregroundStyle(BrandColors.dim).lineLimit(1)
             }
+            if !strength.isEmpty {
+                strengthChip(strength[day.day])
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 4)
@@ -34,6 +39,17 @@ struct WeeklyDaysRow: View {
         .opacity(day.state == .off ? C.offOpacity : 1)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibility(day))
+    }
+
+    private func strengthChip(_ title: String?) -> some View {
+        Text(title.map { compact ? C.strengthShort : StrengthText.shortTitle($0) } ?? " ")
+            .font(.system(size: 10, weight: .semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .foregroundStyle(BrandColors.strength)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 3)
+            .background(title == nil ? Color.clear : BrandColors.strength.opacity(0.14), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 
     private func bars(_ day: WeeklyDay, scale: Double) -> some View {
@@ -58,6 +74,7 @@ struct WeeklyDaysRow: View {
     private func accessibility(_ day: WeeklyDay) -> String {
         var parts = [day.weekday]
         if let label = day.label { parts.append(label) }
+        if let title = strength[day.day] { parts.append("força \(title)") }
         if let planned = day.plannedKm { parts.append("planejado \(TodayText.decimal(planned, fractionDigits: 1)) km") }
         switch day.state {
         case .missed: parts.append("não feito")

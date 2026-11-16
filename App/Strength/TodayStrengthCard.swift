@@ -5,7 +5,6 @@ import TrainingCore
 
 struct TodayStrengthCard<Label: View>: View {
     @Environment(AppModel.self) private var app
-    @Environment(\.openURL) private var openURL
     var showsLabel: Bool
     @ViewBuilder var label: () -> Label
     @State private var workout: StrengthWorkout?
@@ -14,8 +13,8 @@ struct TodayStrengthCard<Label: View>: View {
         Group {
             if let workout {
                 if showsLabel { label() }
-                Button {
-                    if let url = URL(string: "\(AppConstants.urlScheme)://\(AppSection.strength.path)") { openURL(url) }
+                NavigationLink {
+                    StrengthPlannedDetailView(workoutId: workout.id)
                 } label: {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {

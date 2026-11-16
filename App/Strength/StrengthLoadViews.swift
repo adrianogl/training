@@ -51,7 +51,9 @@ struct StrengthLoadsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if showsHeader {
-                NavigationLink(value: StrengthRoute.loads) {
+                NavigationLink {
+                    StrengthLoadsView(model: model)
+                } label: {
                     StrengthCardHeader(title: StrengthText.loadsTitle, link: model.loadSeries.isEmpty ? nil : StrengthText.seeAll)
                         .contentShape(Rectangle())
                 }
@@ -63,14 +65,18 @@ struct StrengthLoadsCard: View {
                 Text(StrengthText.loadsEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }
             ForEach(Array(model.loadSeries.prefix(StrengthConstants.loadsCardLimit).enumerated()), id: \.element.id) { index, series in
-                NavigationLink(value: StrengthRoute.load(series.key)) {
+                NavigationLink {
+                    StrengthLoadDetailView(model: model, key: series.key)
+                } label: {
                     StrengthLoadRow(series: series)
                 }
                 .buttonStyle(.plain)
                 .overlay(alignment: .top) { if index > 0 { Divider().overlay(BrandColors.line) } }
             }
             if !showsHeader && model.loadSeries.count > StrengthConstants.loadsCardLimit {
-                NavigationLink(value: StrengthRoute.loads) {
+                NavigationLink {
+                    StrengthLoadsView(model: model)
+                } label: {
                     Text(StrengthText.seeAll).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
@@ -95,7 +101,9 @@ struct StrengthLoadsView: View {
                         Text(StrengthText.loadsEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
                     ForEach(Array(model.loadSeries.enumerated()), id: \.element.id) { index, series in
-                        NavigationLink(value: StrengthRoute.load(series.key)) {
+                        NavigationLink {
+                            StrengthLoadDetailView(model: model, key: series.key)
+                        } label: {
                             StrengthLoadRow(series: series)
                         }
                         .buttonStyle(.plain)
