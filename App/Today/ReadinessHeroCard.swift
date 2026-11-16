@@ -5,6 +5,7 @@ struct ReadinessHeroCard: View {
     let model: TodayModel
     var overload: OverloadAlert?
     var recovery: RecoveryEstimate?
+    var legDay: StrengthLegDay?
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = TodayConstants
@@ -31,8 +32,9 @@ struct ReadinessHeroCard: View {
                             Text(model.summary.verdict.flatMap { C.verdictPhrases[$0] } ?? "")
                                 .font(.title3.weight(.semibold))
                                 .foregroundStyle(BrandColors.text)
-                            if !model.readinessSentence.isEmpty {
-                                Text(model.readinessSentence)
+                            let sentence = [model.readinessSentence, legDay.map(StrengthText.legSentence)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
+                            if !sentence.isEmpty {
+                                Text(sentence)
                                     .font(.subheadline)
                                     .foregroundStyle(BrandColors.text.opacity(0.85))
                                     .fixedSize(horizontal: false, vertical: true)
@@ -40,6 +42,7 @@ struct ReadinessHeroCard: View {
                         }
                     }
                     ReadinessDrivers(rows: model.factorRows)
+                    if let legDay { StrengthLegFactorRow(leg: legDay) }
                 } else if let score = model.fallbackScore {
                     HStack(alignment: .center, spacing: 18) {
                         ScoreGauge(score: score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
