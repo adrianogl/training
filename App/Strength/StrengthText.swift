@@ -9,14 +9,8 @@ enum StrengthText {
     static let week = "Semana"
     static let weekMuscles = "Músculos da semana"
     static let history = "Histórico"
-    static let fromCoach = "do seu professor · MFIT"
-    static let seeWorkout = "ver treino ›"
-    static let seeVolume = "volume por grupo ›"
-    static let seeSessions = "ver sessões ›"
-    static let noToday = "Sem força para hoje."
     static let noWeek = "Nenhum treino do MFIT nesta semana."
     static let noSessions = "Nenhuma sessão de força ainda. Elas aparecem quando você conclui o treino no MFIT ou grava a força no relógio."
-    static let signInHint = "Entre com a conta MFIT em Ajustes para ver o treino do professor."
     static let workoutTitle = "Treino de hoje"
     static let workoutSubtitle = "Montado pelo seu professor no MFIT"
     static let inOrder = "Na ordem do professor"
@@ -36,11 +30,11 @@ enum StrengthText {
     static let maxHR = "FC máx"
     static let sets = "séries"
     static let legend = ["poucas", "médio", "muitas séries"]
-    static let legendShort = ["poucas", "médio", "muitas"]
     static let off = "off"
     static let front = "frente"
-    static let rest = "Descanso"
-    static let upcoming = "Próximos"
+    static let section = "Força"
+    static let groupsTitle = "Séries por grupo · semana"
+    static let groupsLink = "6 semanas ›"
     static let loadsTitle = "Evolução de carga"
     static let loadsSubtitle = "Maior carga de cada dia · do MFIT"
     static let loadsEmpty = "Nenhuma carga registrada ainda. Registre o peso das séries no MFIT e ele aparece aqui."
@@ -50,10 +44,6 @@ enum StrengthText {
     static let currentLoad = "atual"
     static let recordLoad = "recorde"
     static let records = "Registros"
-    static let noUpcoming = "Nenhum treino de força nos próximos 14 dias."
-    static let perWeekShort = "por semana · 12 sem"
-    static let thisWeek = "nesta semana"
-    static let plannedSets = "séries planejadas"
     static let weekdays = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
     static let back = "costas"
 
@@ -68,10 +58,6 @@ enum StrengthText {
 
     static func countLabel(exercises: Int, sets: Int) -> String {
         "\(exercises) exercícios · \(sets) séries"
-    }
-
-    static func weekLabel(sessions: Int, sets: Int) -> String {
-        "\(sessions) sessões · \(sets) séries"
     }
 
     static func averageLabel(_ value: Double) -> String {
@@ -90,29 +76,6 @@ enum StrengthText {
 
     static func weekday(_ day: Day) -> String {
         weekdays[day.weekStart.days(until: day)]
-    }
-
-    static func runKindName(_ kind: TrainerDayKind) -> String {
-        switch kind {
-        case .easy, .optionalEasy: "Rodagem"
-        case .threshold: "Limiar"
-        case .vo2max: "VO2 máx"
-        case .long: "Longão"
-        case .race: "Prova"
-        case .off: "Descanso"
-        }
-    }
-
-    static func kilometers(_ meters: Double) -> String {
-        "\(Int((meters / 1_000).rounded())) km"
-    }
-
-    static func strengthChip(_ title: String) -> String {
-        "Força · \(title)"
-    }
-
-    static func todaySubtitle(exercises: Int, sets: Int) -> String {
-        "do seu professor · MFIT · \(countLabel(exercises: exercises, sets: sets))"
     }
 
     static func exerciseName(_ name: String) -> String {
@@ -136,18 +99,6 @@ enum StrengthText {
 
     static func loadsList(_ loads: [Double]) -> String {
         loads.map { weightLabel($0).replacingOccurrences(of: " kg", with: "") }.joined(separator: " · ") + " kg"
-    }
-
-    static func upcomingDay(_ iso: String) -> String {
-        Day(iso: iso).map(dayLabel) ?? iso
-    }
-
-    static func sessionLine(_ session: StrengthSession) -> String {
-        [dayLabel(session.day), session.effort.map { "esforço \($0)" }].compactMap { $0 }.joined(separator: " · ")
-    }
-
-    static func sessionStats(_ session: StrengthSession) -> String {
-        [session.minutes.map { "\($0) \(minutes)" }, session.averageHR.map { "\($0) \(bpm)" }].compactMap { $0 }.joined(separator: " · ")
     }
 
     static func runLabel(_ kind: TrainerDayKind, meters: Double) -> String {

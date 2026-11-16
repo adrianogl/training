@@ -14,8 +14,6 @@ enum StrengthConstants {
     static let viewWidth: CGFloat = 724
     static let viewHeight: CGFloat = 1448
     static let backOffset: CGFloat = 724
-    static let todayMapHeight: CGFloat = 150
-    static let weekMapHeight: CGFloat = 150
     static let detailMapHeight: CGFloat = 220
     static let freqHeight: CGFloat = 44
     static let sparkHeight: CGFloat = 26
@@ -31,19 +29,12 @@ enum StrengthConstants {
     static let volumeGroups: [MuscleGroup] = [.glutes, .quads, .hamstrings, .calves, .chest, .lats, .shoulders, .abs]
     static let secondsPerMinute = 60.0
     static let groupTotalsLimit = 8
-    static let upcomingDays = 14
+    static let evolutionGroupsLimit = 5
     static let loadsCardLimit = 3
     static let sparkWidth: CGFloat = 84
     static let sparkLineHeight: CGFloat = 26
     static let loadChartHeight: CGFloat = 200
     static let workoutColors: [Color] = [Color(light: 0x7B5CD6, dark: 0xB59CFF), Color(light: 0x1E9E90, dark: 0x5FD3C6), Color(light: 0xC27A12, dark: 0xF2B04A), Color(light: 0x4E6A00, dark: 0xC8F05A)]
-    static let upcomingLimit = 5
-    static let recentSessionsLimit = 3
-    static let wideMapHeight: CGFloat = 240
-    static let wideWeekMapHeight: CGFloat = 210
-    static let wideColumnSpacing: CGFloat = 14
-    static let wideSideShare: CGFloat = 5.0 / 12.0
-    static let wideMapColumn: CGFloat = 200
     static let syntheticIdFactor: Int64 = 100_000
     static let syntheticEpoch = Day(year: 2000, month: 1, day: 1)
 }

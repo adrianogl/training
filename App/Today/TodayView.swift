@@ -11,6 +11,7 @@ struct TodayView: View {
     @Binding var path: [TodayRoute]
     var openSettings: () -> Void = {}
     @State private var model: TodayModel?
+    @State private var strength = StrengthModel()
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -98,6 +99,10 @@ struct TodayView: View {
         }
         .task(id: app.dataToken) {
             await app.trainer.load()
+            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
+        }
+        .task(id: app.mfitAccount.revision) {
+            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
         }
         .task(id: app.garminAccount.isSignedIn) {
             guard let model, app.garminAccount.isSignedIn else { return }
@@ -155,7 +160,15 @@ struct TodayView: View {
     @ViewBuilder
     private func weekBlock(_ model: TodayModel) -> some View {
         blockLabel(TodayConstants.blockWeek, first: sizeClass == .regular)
-        TodayWeekCard(report: model.shownWeekReport(trainer: trainerWorkouts), isClosed: model.shownWeek.isClosed, series: model.volumeSeries)
+        let report = model.shownWeekReport(trainer: trainerWorkouts)
+        let isCurrentWeek = report.start == Day.today().weekStart
+        TodayWeekCard(
+            report: report,
+            isClosed: model.shownWeek.isClosed,
+            series: model.volumeSeries,
+            strength: isCurrentWeek ? strength.weekTitles : [:],
+            warnings: isCurrentWeek ? strength.warnings : []
+        )
         if let lastRun = model.lastRun {
             LastRunCompactCard(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
         }

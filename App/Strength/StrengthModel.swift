@@ -10,7 +10,6 @@ import TrainingCore
     var sessions: [StrengthSession] = []
     var program: MFITProgram?
     var weekWorkouts: [StrengthWorkout] = []
-    var upcoming: [StrengthWorkout] = []
     var loadSeries: [StrengthLoadSeries] = []
     var weekDays: [StrengthDay] = []
     var warnings: [String] = []
@@ -31,8 +30,8 @@ import TrainingCore
         apply(store.load())
     }
 
-    var todayWorkout: StrengthWorkout? {
-        weekWorkouts.first { $0.day == today().iso }
+    var weekTitles: [Day: String] {
+        Dictionary(weekWorkouts.compactMap { workout in Day(iso: workout.day).map { ($0, workout.title) } }) { first, _ in first }
     }
 
     var weeklyCounts: [Int] {
@@ -64,29 +63,12 @@ import TrainingCore
         Self.levels(blocks(forSession: id), scale: .session)
     }
 
-    var weekLevels: [MuscleGroup: Int] {
-        StrengthMuscles.sets(weekWorkouts.flatMap { Self.entries($0.blocks) }).mapValues { StrengthMuscles.level($0, scale: .week) }
-    }
-
     var weekGroupTotals: [StrengthGroupTotal] {
         let sets = StrengthMuscles.sets(weekWorkouts.flatMap { Self.entries($0.blocks) })
         return sets.filter { $0.value > 0 }
             .sorted { $0.value == $1.value ? $0.key.rawValue < $1.key.rawValue : $0.value > $1.value }
             .prefix(C.groupTotalsLimit)
             .map { StrengthGroupTotal(group: $0.key, sets: $0.value, level: StrengthMuscles.level($0.value, scale: .week)) }
-    }
-
-    var thisWeekSessions: Int {
-        let start = today().weekStart
-        return sessions.filter { start <= $0.day && $0.day <= start.adding(days: 6) }.count
-    }
-
-    var recentSessions: [StrengthSession] {
-        Array(sessions.prefix(C.recentSessionsLimit))
-    }
-
-    var weekSetCount: Int {
-        weekWorkouts.reduce(0) { $0 + $1.totalSets }
     }
 
     var volumeRows: [StrengthVolumeRow] {
@@ -121,7 +103,6 @@ import TrainingCore
         }
         let start = today().weekStart
         weekWorkouts = schedule.workouts(program, from: start, through: start.adding(days: 6))
-        upcoming = Array(schedule.workouts(program, from: today().adding(days: 1), through: today().adding(days: C.upcomingDays)).prefix(C.upcomingLimit))
         sessions = Self.sessions(records: Self.records(in: ModelContext(container)), known: Array(known.values))
         weekDays = Self.days(start: start, plan: plan, workouts: weekWorkouts)
         warnings = StrengthWeek.legWarnings(weekDays.map { day in
@@ -237,7 +218,6 @@ import TrainingCore
                 day: day,
                 run: run.map { StrengthText.runLabel($0.kind, meters: $0.totalMeters) },
                 runKind: run?.kind,
-                runKilometers: run.map { StrengthText.kilometers($0.totalMeters) },
                 strength: workouts.first { $0.day == day.iso }.map { StrengthText.shortTitle($0.title) }
             )
         }

@@ -13,6 +13,7 @@ struct EvolutionView: View {
     @SceneStorage(EvolutionConstants.groupStorageKey) private var selectedGroupTitle = EvolutionConstants.metricGroups.first?.title ?? ""
 
     @State private var path: [MetricKind] = []
+    @State private var strength = StrengthModel()
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -78,6 +79,9 @@ struct EvolutionView: View {
             if !debugPath.isEmpty { path = debugPath }
         }
         .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
+        .task(id: app.mfitAccount.revision) {
+            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
+        }
         .task(id: app.dataToken) {
             await Task.yield()
             if model == nil {
@@ -113,6 +117,16 @@ struct EvolutionView: View {
                 ZoneWeeksCard(weeks: model.zoneWeeks)
             }
             HeatmapCard(columns: model.heatmapColumns)
+            if app.mfitAccount.isSignedIn {
+                SectionHeader(StrengthText.section)
+                row(weights: [1, 1]) {
+                    StrengthLoadsCard(model: strength, showsHeader: true)
+                    VStack(spacing: TodayConstants.rowSpacing) {
+                        EvolutionStrengthGroupsCard(model: strength)
+                        EvolutionStrengthFrequencyCard(model: strength)
+                    }
+                }
+            }
             AskIntelligenceButton(title: WorkoutChatConstants.askEvolution) { showsChat = true }
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }

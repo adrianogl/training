@@ -9,15 +9,6 @@ struct BodyMapPart: Sendable {
     let paths: [String]
 }
 
-enum StrengthRoute: Hashable, Codable {
-    case workout(Int64)
-    case session(Int64)
-    case volume
-    case history
-    case loads
-    case load(String)
-}
-
 struct StrengthSession: Identifiable, Equatable, Sendable {
     let id: Int64
     let day: Day
@@ -73,7 +64,6 @@ struct StrengthDay: Identifiable, Equatable {
     let day: Day
     let run: String?
     let runKind: TrainerDayKind?
-    var runKilometers: String? = nil
     let strength: String?
 }
 

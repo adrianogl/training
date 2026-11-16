@@ -69,8 +69,8 @@ import Testing
     @Test func unknownSectionFallsBackToToday() {
         #expect(NavigationRestoration.section("inexistente", allowed: AppConstants.compactTabs) == .today)
         #expect(NavigationRestoration.section(AppSection.trainer.rawValue, allowed: AppConstants.compactTabs) == .today)
-        #expect(NavigationRestoration.section(AppSection.races.rawValue, allowed: AppConstants.compactTabs) == .today)
-        #expect(NavigationRestoration.section(AppSection.strength.rawValue, allowed: AppConstants.compactTabs) == .strength)
+        #expect(NavigationRestoration.section(AppSection.races.rawValue, allowed: AppConstants.compactTabs) == .races)
+        #expect(NavigationRestoration.section("forca", allowed: AppConstants.compactTabs) == .today)
     }
 
     @Test func missingRouteTruncatesPath() {

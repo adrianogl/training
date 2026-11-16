@@ -89,7 +89,6 @@ struct RootView: View {
         case .races: RaceListView()
         case .trainer: NavigationStack { TrainerView() }
         case .workouts: WorkoutListView()
-        case .strength: StrengthView()
         case .settings: SettingsView()
         case .more: MoreView(path: $morePath)
         }
