@@ -1,4 +1,5 @@
 import Charts
+import GarminAPI
 import SwiftUI
 import WorkoutAnalysis
 
@@ -10,6 +11,10 @@ struct CompletedRaceView: View {
     @State private var showsPicker = false
     @State private var showsShare = false
     @State private var showsChat = false
+    @State private var plan: PaceProPlan?
+    @State private var planSummaries: [PaceProSummary] = []
+    @State private var showsPlanPicker = false
+    @Environment(AppModel.self) private var app
 
     var body: some View {
         ScrollView {
@@ -20,6 +25,9 @@ struct CompletedRaceView: View {
                     if !summary.splits.isEmpty {
                         splitsCard
                     }
+                }
+                if summary.resultSeconds != nil, let comparison = RacePlanComparisonBuilder.build(splits: summary.splits, plan: plan) {
+                    RacePlanCard(comparison: comparison, resultSeconds: summary.resultSeconds, eveSeconds: summary.eveSeconds) { showsPlanPicker = true }
                 }
                 if summary.resultSeconds == nil {
                     VStack(alignment: .leading, spacing: 6) {
@@ -64,9 +72,25 @@ struct CompletedRaceView: View {
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: summary.info.id)
         }
+        .sheet(isPresented: $showsPlanPicker) {
+            RacePlanPickerSheet(summaries: planSummaries, selected: plan?.id) { id in
+                PaceProStore().setChoice(id, race: summary.info.id)
+                Task { await loadPlan() }
+            }
+        }
+        .task(id: summary.info.id) { await loadPlan() }
         .sheet(isPresented: $showsPicker) {
             ResultPickerSheet(raceId: summary.info.id, model: model)
         }
+    }
+
+    private func loadPlan() async {
+        let store = PaceProStore()
+        plan = store.cachedPlan(race: summary.info.id, distance: summary.info.distance)
+        planSummaries = store.load().summaries
+        guard let client = app.garminAccount.client else { return }
+        plan = await store.refresh(race: summary.info.id, distance: summary.info.distance, client: client)
+        planSummaries = store.load().summaries
     }
 
     private var header: some View {

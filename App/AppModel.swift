@@ -210,6 +210,7 @@ import TrainingCore
 
     func appBecameActive() async {
         await notifier.appOpened(now: .now)
+        await RaceNotices.refresh(container: container, client: garminAccount.client)
         let defaults = UserDefaults.standard
         if notifier.settings.enabled, !defaults.bool(forKey: BackgroundConstants.permissionRequestedDefaultsKey) {
             defaults.set(true, forKey: BackgroundConstants.permissionRequestedDefaultsKey)
