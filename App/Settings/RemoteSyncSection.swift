@@ -154,6 +154,7 @@ struct RemoteSyncSection: View {
                 Button(C.watchCopy) {
                     Task { await model.copyWatchToken() }
                 }
+                WatchCalendarRow()
                 Button(C.watchRegenerate) { confirmsRegenerate = true }
                     .disabled(model.isWorking)
                     .confirmationDialog(C.watchRegenerateTitle, isPresented: $confirmsRegenerate, titleVisibility: .visible) {

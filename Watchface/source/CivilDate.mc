@@ -20,21 +20,8 @@ module CivilDate {
         return era * 146097 + dayOfEra - 719468;
     }
 
-    function parseIsoDate(text) {
-        if (text == null || text.length() != 10) {
-            return null;
-        }
-        var year = text.substring(0, 4).toNumberWithBase(10);
-        var month = text.substring(5, 7).toNumberWithBase(10);
-        var day = text.substring(8, 10).toNumberWithBase(10);
-        if (year == null || month == null || day == null || month < 1 || month > 12 || day < 1 || day > 31) {
-            return null;
-        }
-        return { :year => year, :month => month, :day => day };
-    }
-
-    function daysUntil(target, todayInfo) {
-        return daysFromCivil(target[:year], target[:month], target[:day])
-            - daysFromCivil(todayInfo.year, todayInfo.month, todayInfo.day);
+    function daysBetween(fromInfo, toInfo) {
+        return daysFromCivil(toInfo.year, toInfo.month, toInfo.day)
+            - daysFromCivil(fromInfo.year, fromInfo.month, fromInfo.day);
     }
 }

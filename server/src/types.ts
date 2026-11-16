@@ -81,6 +81,11 @@ export interface Limits {
 
 export type PushOutcome = { status: 'ok'; result: PushResult } | { status: 'quota_exceeded' }
 
+export interface WatchEvent {
+  start: number
+  title: string
+}
+
 export interface WatchFace {
   vo2Delta?: number
   weekPlannedKm?: number
@@ -92,6 +97,7 @@ export interface WatchFace {
   raceDay?: string
   raceGoal?: number
   racePrediction?: number
+  events?: WatchEvent[]
 }
 
 export interface Readiness {

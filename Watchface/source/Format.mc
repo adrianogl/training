@@ -5,10 +5,6 @@ module Format {
         return Texts.WEEKDAYS[info.day_of_week - 1] + " " + info.day + " " + Texts.MONTHS[info.month - 1];
     }
 
-    function shortDate(day, month) {
-        return day + " " + Texts.MONTHS[month - 1];
-    }
-
     function hoursMinutes(clock) {
         return clock.hour.format("%02d") + ":" + clock.min.format("%02d");
     }
@@ -26,18 +22,6 @@ module Format {
         return text.substring(0, dot) + "," + text.substring(dot + 1, text.length());
     }
 
-    function kilometers(meters) {
-        return decimalComma(meters / 1000.0, "%.1f");
-    }
-
-    function duration(totalSeconds) {
-        var total = totalSeconds.toNumber();
-        var hours = total / 3600;
-        var minutes = (total % 3600) / 60;
-        var secs = total % 60;
-        return hours + ":" + minutes.format("%02d") + ":" + secs.format("%02d");
-    }
-
     function temperature(celsius) {
         return celsius.toNumber() + "°";
     }
@@ -46,17 +30,35 @@ module Format {
         return value.toNumber() + "%";
     }
 
-    function daysCountdown(days) {
-        if (days == 0) {
-            return Texts.RACE_TODAY;
-        }
-        if (days == 1) {
-            return "1 " + Texts.DAY;
-        }
-        return days + " " + Texts.DAYS;
-    }
-
     function isoDate(info) {
         return info.year.format("%04d") + "-" + info.month.format("%02d") + "-" + info.day.format("%02d");
+    }
+
+    function eventDay(eventInfo, todayInfo) {
+        var days = CivilDate.daysBetween(todayInfo, eventInfo);
+        if (days <= 0) {
+            return Texts.TODAY;
+        }
+        if (days == 1) {
+            return Texts.TOMORROW;
+        }
+        return Texts.WEEKDAYS[eventInfo.day_of_week - 1];
+    }
+
+    function eventTime(eventInfo) {
+        return eventInfo.hour.format("%02d") + ":" + eventInfo.min.format("%02d");
+    }
+
+    function timeUntil(seconds) {
+        var minutes = (seconds + 59) / 60;
+        if (minutes < 60) {
+            return Texts.IN + " " + minutes + " " + Texts.MINUTES;
+        }
+        var hours = minutes / 60;
+        var rest = minutes % 60;
+        if (rest == 0) {
+            return Texts.IN + " " + hours + " " + Texts.HOURS;
+        }
+        return Texts.IN + " " + hours + " " + Texts.HOURS + " " + rest.format("%02d");
     }
 }

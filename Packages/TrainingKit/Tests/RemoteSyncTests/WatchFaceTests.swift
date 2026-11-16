@@ -24,6 +24,24 @@ import Testing
         #expect(face.racePrediction == 6_000)
     }
 
+    @Test func keepsThreeValidEventsWithTrimmedTitles() {
+        let events = [
+            WatchEvent(start: 0, title: "Sem horário"),
+            WatchEvent(start: 1_794_908_700, title: ""),
+            WatchEvent(start: 1_794_908_700, title: String(repeating: "a", count: 50)),
+            WatchEvent(start: 1_794_910_000, title: "Daily MEF"),
+            WatchEvent(start: 1_794_920_000, title: "Refinamento"),
+            WatchEvent(start: 1_794_930_000, title: "Quarta"),
+        ]
+
+        let face = WatchFace(events: events)
+
+        #expect(face.events?.count == 3)
+        #expect(face.events?.first?.title.count == 40)
+        #expect(face.events?.last?.title == "Refinamento")
+        #expect(WatchFace(events: []).events == nil)
+    }
+
     @Test func readinessWithoutFaceOmitsKey() throws {
         let body = try String(decoding: JSONEncoder().encode(WatchReadiness(day: "2026-11-13", score: 62, verdict: "Moderado")), as: UTF8.self)
 

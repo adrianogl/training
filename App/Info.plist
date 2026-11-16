@@ -19,6 +19,8 @@
 		<key>UIImageName</key>
 		<string>LaunchIcon</string>
 	</dict>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>O app lê os próximos eventos da sua agenda para mostrar o horário e o título do próximo no mostrador do relógio.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

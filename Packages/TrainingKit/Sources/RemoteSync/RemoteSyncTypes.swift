@@ -92,6 +92,16 @@ public struct WatchReadiness: Codable, Equatable, Sendable {
     }
 }
 
+public struct WatchEvent: Codable, Equatable, Sendable {
+    public var start: Int
+    public var title: String
+
+    public init(start: Int, title: String) {
+        self.start = start
+        self.title = title
+    }
+}
+
 public struct WatchFace: Codable, Equatable, Sendable {
     public var vo2Delta: Double?
     public var weekPlannedKm: Double?
@@ -103,6 +113,7 @@ public struct WatchFace: Codable, Equatable, Sendable {
     public var raceDay: String?
     public var raceGoal: Int?
     public var racePrediction: Int?
+    public var events: [WatchEvent]?
 
     public init(
         vo2Delta: Double? = nil,
@@ -114,7 +125,8 @@ public struct WatchFace: Codable, Equatable, Sendable {
         raceName: String? = nil,
         raceDay: String? = nil,
         raceGoal: Int? = nil,
-        racePrediction: Int? = nil
+        racePrediction: Int? = nil,
+        events: [WatchEvent]? = nil
     ) {
         typealias C = RemoteSyncConstants
         self.vo2Delta = vo2Delta.map { min(max($0, -C.watchFaceVO2DeltaLimit), C.watchFaceVO2DeltaLimit) }
@@ -135,6 +147,11 @@ public struct WatchFace: Codable, Equatable, Sendable {
         self.raceDay = raceDay
         self.raceGoal = raceGoal.flatMap { (1...C.watchFaceRaceSecondsLimit).contains($0) ? $0 : nil }
         self.racePrediction = racePrediction.flatMap { (1...C.watchFaceRaceSecondsLimit).contains($0) ? $0 : nil }
+        let validEvents = (events ?? []).compactMap { event -> WatchEvent? in
+            guard (1...C.watchFaceEventStartLimit).contains(event.start), let title = Self.text(event.title) else { return nil }
+            return WatchEvent(start: event.start, title: title)
+        }
+        self.events = validEvents.isEmpty ? nil : Array(validEvents.prefix(C.watchFaceMaxEvents))
     }
 
     private static func text(_ value: String) -> String? {

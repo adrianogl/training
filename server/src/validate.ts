@@ -1,4 +1,6 @@
 import {
+  FACE_MAX_EVENT_START,
+  FACE_MAX_EVENTS,
   FACE_MAX_RACE_SECONDS,
   FACE_MAX_SHAPE_STEPS,
   FACE_MAX_SHAPE_WEIGHT,
@@ -21,7 +23,7 @@ import {
   WATCH_TOKEN_HASH_PATTERN,
 } from './constants.js'
 import { plainPayloadError } from './recordPayload.js'
-import type { BodyParseResult, IncomingRecord, ParseResult, Readiness, RecordFormat, RecordKind, WatchFace } from './types.js'
+import type { BodyParseResult, IncomingRecord, ParseResult, Readiness, RecordFormat, RecordKind, WatchEvent, WatchFace } from './types.js'
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -190,6 +192,16 @@ function isShape(value: unknown): value is number[][] {
       && isIntegerIn(step[1], 1, FACE_MAX_ZONE))
 }
 
+function isEvents(value: unknown): value is WatchEvent[] {
+  return Array.isArray(value)
+    && value.length > 0
+    && value.length <= FACE_MAX_EVENTS
+    && value.every((event) => isObject(event)
+      && Object.keys(event).every((key) => key === 'start' || key === 'title')
+      && isIntegerIn(event.start, 1, FACE_MAX_EVENT_START)
+      && isText(event.title))
+}
+
 function parseFace(value: unknown): WatchFace | undefined {
   if (!isObject(value)) {
     return undefined
@@ -205,6 +217,7 @@ function parseFace(value: unknown): WatchFace | undefined {
     ['raceDay', isDay],
     ['raceGoal', (field) => isIntegerIn(field, 1, FACE_MAX_RACE_SECONDS)],
     ['racePrediction', (field) => isIntegerIn(field, 1, FACE_MAX_RACE_SECONDS)],
+    ['events', isEvents],
   ]
   const face: Record<string, unknown> = {}
   for (const [key, check] of checks) {

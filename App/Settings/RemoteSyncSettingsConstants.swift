@@ -59,7 +59,7 @@ enum RemoteSyncSettingsConstants {
     static let watchNoPasscode = "Este aparelho não tem código de bloqueio, então o app não mostra nem copia o token. Ative o código em Ajustes do iPhone › Face ID e Código."
     static let watchRevealReason = "Mostrar o token do relógio"
     static let watchCopyReason = "Copiar o token do relógio"
-    static let watchNote = "O token só lê a nota de prontidão do dia. Ele não acessa provas nem a chave de sync."
+    static let watchNote = "O token só lê os dados do mostrador, como a prontidão do dia e os próximos eventos da agenda. Ele não acessa a chave de sync."
     static let pasteTitle = "Colar chave"
     static let pasteHint = "No outro aparelho, abra Ajustes › Sincronização entre aparelhos › Copiar chave e cole aqui."
     static let pastePlaceholder = "Chave de sync"

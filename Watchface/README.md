@@ -1,6 +1,6 @@
 # Mostrador trAIning (Forerunner 965)
 
-Mostrador Connect IQ com o layout Prontidão: anel de segundos, data, temperatura e umidade, bateria, hora com segundos, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta, treino de hoje com a estrutura colorida por zona e próxima prova com previsão e meta.
+Mostrador Connect IQ com a identidade do app: logo e data, temperatura e umidade, bateria, hora em Archivo com os segundos ao lado, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta e o próximo compromisso da agenda. No modo sempre ligado ficam só a data, a hora e o próximo compromisso.
 
 ## De onde vem cada dado
 
@@ -9,17 +9,21 @@ Mostrador Connect IQ com o layout Prontidão: anel de segundos, data, temperatur
 | Temperatura e umidade | `Weather.getCurrentConditions()` |
 | Bateria | `System.getSystemStats().battery` |
 | VO2max e km feitos na semana | complications do sistema (`Toybox.Complications`) |
-| Prontidão, variação do VO2 em 3 meses, km planejados e meta da semana, treino de hoje, prova com meta e previsão | servidor de sync do app trAIning, buscado em background a cada 15 min e guardado em `Application.Storage` |
-| Prova, meta semanal e previsão sem o app | configurações do mostrador no Garmin Connect e race predictor do relógio |
+| Prontidão, variação do VO2 em 3 meses, km planejados e meta da semana, próximos eventos da agenda | servidor de sync do app trAIning, buscado em background a cada 15 min e guardado em `Application.Storage` |
+| Meta semanal sem o app | configurações do mostrador no Garmin Connect |
 
-A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: abaixo de 40 descanso, de 40 a 69 moderado, a partir de 70 forte. O treino de hoje e os km planejados só aparecem se a nota for do dia. A prova e a previsão vêm do app quando ele manda; sem isso, o mostrador usa as configurações e o race predictor da Garmin.
+A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: abaixo de 40 descanso, de 40 a 69 moderado, a partir de 70 forte. Os km planejados só aparecem se a nota for do dia.
+
+O app lê o Calendário do iPhone (Ajustes › Sincronização › Relógio › Mostrar a agenda no relógio) e manda até 3 eventos dos próximos 7 dias, sem os de dia inteiro e os cancelados. O mostrador mostra o primeiro que ainda não começou: HOJE com quanto falta, AMANHÃ ou o dia da semana. O título desce de fonte e, se ainda não couber, é cortado na última palavra com reticências.
+
+A hora usa fontes bitmap da Archivo (OFL) em `resources/fonts`, só com os dígitos e os dois pontos: peso 900 na tela ativa e 700 no sempre ligado, para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
 
 ## Prontidão do app
 
 1. No app trAIning do iPhone, gerar o token em Ajustes › Sincronização › Relógio.
 2. No Garmin Connect do celular, abrir o mostrador e colar o token em Configurações › Token do relógio.
 
-O mostrador busca a nota e os dados do mostrador em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Quando a Garmin não registra o sono, o app manda a prontidão da própria Garmin; se nem ela existir, manda só prova, semana e treino, e a nota fica "--". Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
+O mostrador busca a nota e os dados do mostrador em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Quando a Garmin não registra o sono, o app manda a prontidão da própria Garmin; se nem ela existir, manda só a semana e a agenda, e a nota fica "--". Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
 
 ## Build
 

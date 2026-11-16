@@ -19,6 +19,8 @@ enum RemoteSyncConstants {
     static let watchFaceVO2DeltaLimit = 20.0
     static let watchFaceWeekKmLimit = 1_000.0
     static let watchFaceRaceSecondsLimit = 2 * 24 * 60 * 60
+    static let watchFaceMaxEvents = 3
+    static let watchFaceEventStartLimit = 4_102_444_800
     static let sinceQuery = "since"
     static let pushBatchSize = 100
     static let quotaExceededCode = "quota_exceeded"

@@ -338,8 +338,9 @@ import TrainingCore
             weather = await PlannedWeather.forecast(day: day, coordinate: coordinate)
         }
         let forecast = weather
+        let events = WatchCalendar.upcoming(now: .now)
         readiness.face = await Task.detached(priority: .utility) {
-            WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal, weather: forecast)
+            WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal, weather: forecast, events: events)
         }.value
         guard readiness.score != nil || readiness.face != nil else { return }
         latestWatchReadiness = readiness
