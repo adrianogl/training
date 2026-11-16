@@ -638,16 +638,25 @@ public struct TrainerHistory: Sendable, Equatable {
     public var predictions: [Double: Double]
     public var strength: [TrainerStrengthDone]
     public var predictionSeries: [Day: [Double: Double]]
+    public var hrv: [Day: Double]
+    public var restingHeartRate: [Day: Int]
+    public var sleepSeconds: [Day: Int]
+    public var dailyLoad: [Day: Double]
 
     public init(
         runs: [TrainerRun], readiness: [Day: Int] = [:], predictions: [Double: Double] = [:], strength: [TrainerStrengthDone] = [],
-        predictionSeries: [Day: [Double: Double]] = [:]
+        predictionSeries: [Day: [Double: Double]] = [:], hrv: [Day: Double] = [:], restingHeartRate: [Day: Int] = [:],
+        sleepSeconds: [Day: Int] = [:], dailyLoad: [Day: Double] = [:]
     ) {
         self.runs = runs
         self.readiness = readiness
         self.predictions = predictions
         self.strength = strength
         self.predictionSeries = predictionSeries
+        self.hrv = hrv
+        self.restingHeartRate = restingHeartRate
+        self.sleepSeconds = sleepSeconds
+        self.dailyLoad = dailyLoad
     }
 }
 
