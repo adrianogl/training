@@ -408,6 +408,13 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 .load-line b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .load-line small { margin-left: auto; color: var(--dim); font-size: 12px; }
 .heat span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; background: var(--c); }
+.race-steps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 10px; max-width: 46ch; }
+.race-steps li { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 10px 14px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.race-steps b { font-family: var(--display); font-stretch: 110%; font-size: 15px; color: var(--lime); }
+.race-steps span { color: var(--ink-2); font-size: 15px; line-height: 1.4; }
+.race-plan { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin: 14px 0 4px; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid var(--line); font-size: 14px; color: var(--ink-2); }
+.race-plan b { color: var(--amber); font-size: 18px; }
+.race-plan small { grid-column: 1 / -1; color: var(--dim); font-size: 12.5px; }
 @media (max-width: 860px) {
   .stage { position: relative; height: auto; overflow: visible; }
   .hero-grid, .pulse-grid, .split, .watch-grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
@@ -775,6 +782,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <p class="eyebrow">Provas</p>
         <h2 id="prova-title" class="display">Quanto falta para a meta.</h2>
         <p class="lede">A previsão sai das suas provas, dos melhores trechos e do pace dos blocos dos seus limiares, e é projetada até o dia da prova, com estratégia km a km ajustada pelo calor da largada, polimento e checklist.</p>
+        <ol class="race-steps"><li><b>Véspera</b><span>Hora de deitar para dormir 8 h e acordar 2 h antes da largada.</span></li><li><b>Manhã</b><span>O pace do seu Garmin Pace Pro e os pontos de água.</span></li><li><b>Depois</b><span>Plano × feito km a km, com o que foi do copo de água.</span></li></ol>
       </div>
       <div class="race">
         <div class="race-head"><span class="t">Meia de exemplo</span><span class="countdown num"><span data-from="60" data-to="15">15</span><small>dias</small></span></div>
@@ -785,6 +793,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
           <line x1="400" y1="0" x2="400" y2="160" stroke="#3a3f46" stroke-dasharray="3 5"></line>
           <text x="406" y="14" fill="#8a949f" font-size="11" font-family="Inter, sans-serif">hoje</text>
         </svg>
+        <div class="race-plan"><span>Plano × feito no Pace Pro</span><b class="num">+10 s</b><small>perdeu entre o km 3 e o 7 · 3 com água</small></div>
         <div class="race-meta"><div>Hoje<b class="num">1:41:10</b></div><div>No dia<b class="num" style="color: var(--amber)">1:40:20</b></div><div>Meta<b class="num">1:39:00</b></div></div>
       </div>
     </div>
@@ -797,7 +806,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div class="tags"><p class="eyebrow" style="margin: 0">Treinador</p><span class="tag"><i style="background: var(--amber)"></i>beta</span></div>
         <h2 id="treinador-title" class="display">Um plano até a prova, que explica o que mudou.</h2>
         <p class="lede">Você escolhe a prova ou escreve uma meta, e o km por semana. O plano vai até a prova com todas as semanas planejadas, por distância em km inteiro, e usa o pace dos blocos dos seus limiares e tiros.</p>
-        <p class="lede">Depois de cada semana, de um treino fora do planejado ou de um pedido seu, como viagem ou dor, ele readequa e mostra o motivo de cada mudança. O formato dos treinos muda de uma semana para outra e, no fim do ciclo, ele analisa o que você fez e sugere o volume do próximo. Os treinos de força aparecem no plano, sem tirar intensidade da corrida. É um teste: não vai para a lista de treinos nem para o relógio.</p>
+        <p class="lede">Depois de cada semana, de um treino fora do planejado ou de um pedido seu, como viagem ou dor, ele readequa e mostra o motivo de cada mudança. O formato dos treinos muda de uma semana para outra e, no fim do ciclo, ele analisa o que você fez e sugere o volume do próximo. A força vem do MFIT, do jeito que o professor passou, e o treinador tira o tiro ou o longão do dia seguinte à perna pesada. É um teste: não vai para a lista de treinos nem para o relógio.</p>
       </div>
       <div class="workout">
         <div class="t">Semana 2 de 13 · 70 km</div>
@@ -875,6 +884,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <h2 id="forca-title" class="display">A musculação do professor, junto da corrida.</h2>
         <p class="lede">O app lê direto do MFIT o programa que o professor montou, com o período, os blocos, as séries, o descanso e a carga. Depois da sessão, mostra a duração, a FC, o esforço e quais músculos trabalharam, no mapa do corpo.</p>
         <p class="lede">Na semana, os dias de força aparecem ao lado do plano de corrida, com aviso quando um tiro ou longão cai no dia seguinte à perna. Na Evolução, a carga de cada exercício vira uma curva, mesmo quando ele aparece em mais de um treino, ao lado das séries por grupo e da frequência.</p>
+        <p class="lede">Recorde de carga gera aviso. E, no dia seguinte à perna pesada, a prontidão e o treino do dia levam isso em conta.</p>
       </div>
       <div class="workout">
         <div class="t">MMII (quarta)</div>
@@ -944,7 +954,11 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div class="feature" style="--d:.05"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><b>Recuperação</b><span>Quando você estará pronto para o próximo treino forte.</span></div>
         <div class="feature" style="--d:.1"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg><b>Alerta de sobrecarga</b><span>Avisa quando a carga sobe rápido demais para o seu histórico.</span></div>
         <div class="feature" style="--d:.15"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg><b>Semana planejada</b><span>Feito e planejado lado a lado, com a meta de km da semana.</span></div>
-        <div class="feature" style="--d:.2"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"></path></svg><b>Relatório da semana</b><span>Domingo, um resumo do que foi bem e do que ajustar.</span></div>
+        <div class="feature" style="--d:.2"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"></path></svg><b>Relatório da semana</b><span>Domingo, um resumo do que foi bem e do que ajustar, com a força e os recordes da semana.</span></div>
+        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="8" height="8" rx="2"></rect><rect x="13" y="4" width="8" height="8" rx="2"></rect><rect x="3" y="14" width="18" height="6" rx="2"></rect></svg><b>Widgets</b><span>Prontidão, treino do dia e dias para a prova na tela bloqueada e na tela inicial.</span></div>
+        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 21V4M5 4h13l-2.5 4L18 12H5"></path></svg><b>Avisos da prova</b><span>Na véspera, a hora de deitar; na manhã, o pace do Pace Pro e os pontos de água.</span></div>
+        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"></path></svg><b>Recordes de carga</b><span>Aviso quando você bate a maior carga de um exercício, no MFIT ou no relógio.</span></div>
+        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"></path></svg><b>Força na prontidão</b><span>No dia seguinte à perna pesada, a prontidão e o treino do dia levam isso em conta.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><b>Zonas de FC</b><span>Tempo em cada zona, por treino e por semana, comparado com a regra 80/20.</span></div>
         <div class="feature" style="--d:.3"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg><b>Metas</b><span>10 km em 40 min ou longão sem pausas. O progresso aparece em Hoje, no site e na análise de cada treino.</span></div>
         <div class="feature" style="--d:.35"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><b>Percursos</b><span>Importa o percurso da prova do Garmin Connect para a estratégia.</span></div>
@@ -966,6 +980,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div><b>No computador</b>O site em training.aglv.dev/app, com os mesmos números.</div>
         <div><b>No relógio</b>O mostrador recebe a prontidão, a prova e o treino.</div>
         <div><b>Strava</b>O resumo do treino na descrição da atividade.</div>
+        <div><b>Widgets</b>Prontidão e treino do dia sem abrir o app.</div>
       </div>
     </div>
   </section>
