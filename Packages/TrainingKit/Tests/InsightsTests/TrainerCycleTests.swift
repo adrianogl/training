@@ -84,6 +84,25 @@ import WorkoutAnalysis
         #expect(after.suggestedPeakMeters == before.suggestedPeakMeters)
     }
 
+    @Test func calmFirstWeekOfTheBlockKeepsTheUnreducedStartVolume() throws {
+        let plan = makeOpenPlan(weeks: 26)
+        let today = monday.adding(days: 7 * 25)
+        let done = history(plan, done: 1.0)
+        let before = try #require(TrainerEngine.cycleReview(plan: plan, history: done, today: today))
+        var calm = plan
+        let index = try #require(calm.weeks.firstIndex { $0.start == before.first })
+        let full = calm.weeks[index].targetMeters
+        calm.weeks[index].baseMeters = full
+        calm.weeks[index].targetMeters = (full * 0.9 / 1_000).rounded() * 1_000
+        calm.weeks[index].calm = true
+        calm.calmWeeks = [before.first]
+        #expect(calm.weeks[index].targetMeters < full)
+        let review = try #require(TrainerEngine.cycleReview(plan: calm, history: done, today: today))
+        #expect(review.currentStartMeters == full)
+        #expect(review.currentStartMeters == before.currentStartMeters)
+        #expect(review.currentPeakMeters == before.currentPeakMeters)
+    }
+
     @Test func endingAnOpenPlanEarlyReviewsOnlyTheCurrentBlock() throws {
         var plan = makeOpenPlan(weeks: 26)
         plan.endedOn = monday.adding(days: 7 * 19 + 2)

@@ -14,6 +14,7 @@ extension TrainerEngineConstants {
     static let signalPerformanceHeartRate = 5.0
     static let signalPerformancePaceBand = 10.0
     static let signalPerformanceQualityStreak = 2
+    static let signalPerformanceQualityWindowDays = 14
     static let signalPerformanceWeekRuns = 2
     static let signalPerformanceBaselineRuns = 3
     static let signalCalmCount = 2

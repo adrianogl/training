@@ -44,10 +44,10 @@ extension TrainerEngine {
     private static func cycleVolumes(
         _ weeks: [TrainerWeek], plan: TrainerPlan, history: TrainerHistory, today: Day
     ) -> (start: Double, peak: Double) {
-        guard let first = weeks.first, let peak = weeks.map(\.targetMeters).max() else {
+        guard let first = weeks.first, let peak = weeks.map(\.skeletonMeters).max() else {
             return volumes(of: plan, history: history, today: today)
         }
-        return (first.targetMeters, max(first.targetMeters, peak))
+        return (first.skeletonMeters, max(first.skeletonMeters, peak))
     }
 
     private static func judged(_ review: TrainerCycleReview, goalMeters: Double?) -> TrainerCycleReview {

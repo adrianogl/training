@@ -47,7 +47,7 @@ public enum TrainerEngine {
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
         history: TrainerHistory, today: Day, offset: Int, startMeters: Double?, peakMeters: Double?, lightWeeks: [Day] = [],
         longMode: TrainerLongMode = .continuous, longStage: Int? = nil, paceOverrides: [TrainerPaceKind: Double] = [:],
-        earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = []
+        earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = [], lastRecovery: Int? = nil
     ) -> TrainerPlan {
         let volume = startMeters ?? averageWeeklyMeters(history: history, today: today)
         let peak = max(volume, peakMeters ?? defaultPeak(from: volume))
@@ -59,7 +59,8 @@ public enum TrainerEngine {
             target: target, datedWeeks: datedWeeks.map { $0 + offset }, openTotal: offset + C.openHorizonWeeks,
             peakVolume: peak, lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks
         )
-        let state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
+        var state = initialState(history: history, today: today, longCap: context.longCap, volume: volume)
+        state.lastRecovery = lastRecovery
         let sized = sizedWeeks(buildWeeks(
             context: context, firstIndex: offset + 1, firstStart: today.weekStart, state: state, adjustment: TrainerSkeletonAdjustment()
         ), paces: paces)

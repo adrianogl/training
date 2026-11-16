@@ -16,7 +16,13 @@ extension TrainerEngine {
         case .lightWeek(let day):
             guard day >= today.weekStart, plan.weeks.contains(where: { $0.start == day }) else { return plan }
             var toggled = plan
-            if let at = toggled.lightWeeks.firstIndex(of: day) { toggled.lightWeeks.remove(at: at) } else { toggled.lightWeeks.append(day) }
+            if toggled.earlyLightWeeks[day] != nil {
+                toggled.earlyLightWeeks[day] = nil
+            } else if let at = toggled.lightWeeks.firstIndex(of: day) {
+                toggled.lightWeeks.remove(at: at)
+            } else {
+                toggled.lightWeeks.append(day)
+            }
             return adjustSkeleton(toggled, history: history, today: today, now: now, trigger: trigger)
         case .edited(let edit):
             return edit.days.isEmpty ? applyEdit(plan, edit: edit, history: history, today: today, now: now) : plan
@@ -64,7 +70,8 @@ extension TrainerEngine {
             offset: keptWeeks.count,
             startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: source.lightWeeks,
             longMode: source.longMode, longStage: source.longStage, paceOverrides: source.paceOverrides,
-            earlyLightWeeks: source.earlyLightWeeks, calmWeeks: source.calmWeeks
+            earlyLightWeeks: source.earlyLightWeeks, calmWeeks: source.calmWeeks,
+            lastRecovery: keptWeeks.last { $0.isRecovery }?.index
         )
         let protected = protectingEdited(
             existing: plan.workouts, generated: fresh.workouts, history: history, keepDone: true, notify: notify

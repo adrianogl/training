@@ -318,3 +318,58 @@ import TrainingCore
         #expect(decodedCalm.calmWeeks == [week(2).start])
     }
 }
+
+extension TrainerSignalWeekTests {
+    @Test func editingAfterAnEarlyLightWeekKeepsTheThreeToOneCount() {
+        let adjusted = closing(6, [.hrv, .restingHeartRate])
+        let today = week(8).start
+        var overrides = adjusted.paceOverrides
+        overrides[.easy] = 340
+        let edited = TrainerEngine.adjust(
+            adjusted, history: makeHistory(), today: today, now: now, trigger: .edited(TrainerEdit(paceOverrides: overrides))
+        )
+        #expect(edited.versions.count == adjusted.versions.count + 1)
+        #expect(edited.weeks.filter(\.isRecovery).map(\.index) == [4, 7, 11])
+        #expect(edited.weeks[7].isRecovery == false)
+    }
+
+    @Test func recreatingAfterAnEarlyLightWeekKeepsTheThreeToOneCount() {
+        let adjusted = closing(6, [.hrv, .restingHeartRate])
+        let today = week(8).start
+        let request = TrainerRequest(category: .other, text: "recriar", from: today)
+        let recreated = TrainerEngine.adjust(adjusted, history: makeHistory(), today: today, now: now, trigger: .request(request))
+        #expect(recreated.versions.count == adjusted.versions.count + 1)
+        #expect(recreated.weeks.filter(\.isRecovery).map(\.index) == [4, 7, 11])
+        #expect(recreated.weeks[7].isRecovery == false)
+    }
+
+    @Test func togglingAnEarlyLightWeekUndoesTheAnticipation() {
+        let adjusted = closing(6, [.hrv, .restingHeartRate])
+        let start = week(7).start
+        #expect(adjusted.earlyLightWeeks[start] == .body)
+        let undone = TrainerEngine.adjust(adjusted, history: makeHistory(), today: start, now: now, trigger: .lightWeek(start))
+        #expect(undone.earlyLightWeeks.isEmpty)
+        #expect(undone.lightWeeks.isEmpty)
+        #expect(undone.weeks[6].isRecovery == false)
+        #expect(undone.weeks[6].lightKind == nil)
+        #expect(undone.weeks.filter(\.isRecovery).map(\.index) == plan.weeks.filter(\.isRecovery).map(\.index))
+    }
+
+    @Test func offTargetQualitiesBeforeALightWeekDoNotFireAgain() throws {
+        let adjusted = closing(6, [.load, .performance, .readiness])
+        let light = adjusted.weeks[6]
+        #expect(light.lightKind == .training)
+        let qualities = workouts(adjusted, week: 6).filter { $0.kind == .threshold || $0.kind == .vo2max }
+        try #require(qualities.count == 2)
+        var history = makeHistory()
+        history.runs += qualities.enumerated().map { index, workout in
+            TrainerRun(
+                activityId: Int64(700 + index), day: workout.day, meters: workout.totalMeters, seconds: workout.totalMeters / 1_000 * 300,
+                kind: workout.kind == .threshold ? .tempo : .intervals, activeOnTarget: 3, activeTotal: 5
+            )
+        }
+        #expect(TrainerEngine.signals(plan: adjusted, history: history, week: adjusted.weeks[5]).contains(.performance))
+        #expect(!workouts(adjusted, week: 7).contains { $0.kind == .threshold || $0.kind == .vo2max })
+        #expect(!TrainerEngine.signals(plan: adjusted, history: history, week: light).contains(.performance))
+    }
+}

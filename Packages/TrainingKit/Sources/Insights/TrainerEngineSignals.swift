@@ -24,7 +24,7 @@ extension TrainerEngine {
                 guard hasLoadData(history.dailyLoad, end: end), let ratio = acuteChronicRatio(dailyLoad: history.dailyLoad, on: end) else { return false }
                 return ratio > C.signalLoadRatio
             case .performance:
-                return qualityStreakOffTarget(plan: plan, history: history, end: end)
+                return qualityStreakOffTarget(plan: plan, history: history, start: week.start, end: end)
                     || easyHeartRateDrift(history: history, start: week.start, end: end)
             case .readiness:
                 let values = weekDays.compactMap { history.readiness[$0] }.map(Double.init)
@@ -50,15 +50,16 @@ extension TrainerEngine {
         return loaded.count >= C.signalLoadMinimumDays && beforeWeek.count >= C.signalLoadMinimumBaselineDays
     }
 
-    private static func qualityStreakOffTarget(plan: TrainerPlan, history: TrainerHistory, end: Day) -> Bool {
-        let qualities = plan.workouts
-            .filter { ($0.kind == .threshold || $0.kind == .vo2max) && $0.day <= end }
+    private static func qualityStreakOffTarget(plan: TrainerPlan, history: TrainerHistory, start: Day, end: Day) -> Bool {
+        let from = end.adding(days: 1 - C.signalPerformanceQualityWindowDays)
+        let counted = plan.workouts
+            .filter { ($0.kind == .threshold || $0.kind == .vo2max) && $0.day >= from && $0.day <= end }
             .sorted { $0.day < $1.day }
-        let counted: [TrainerDayStatus] = qualities
-            .map { status(of: $0, history: history, today: end).status }
-            .filter { $0 == .done || $0 == .offTarget }
-        let statuses = counted.suffix(C.signalPerformanceQualityStreak)
-        return statuses.count == C.signalPerformanceQualityStreak && statuses.allSatisfy { $0 == TrainerDayStatus.offTarget }
+            .map { (day: $0.day, status: status(of: $0, history: history, today: end).status) }
+            .filter { $0.status == .done || $0.status == .offTarget }
+        let streak = counted.suffix(C.signalPerformanceQualityStreak)
+        guard let latest = streak.last, latest.day >= start else { return false }
+        return streak.count == C.signalPerformanceQualityStreak && streak.allSatisfy { $0.status == .offTarget }
     }
 
     private static func easyHeartRateDrift(history: TrainerHistory, start: Day, end: Day) -> Bool {

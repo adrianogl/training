@@ -26,6 +26,7 @@ import TrainingCore
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
     @ObservationIgnored private var autoTask: Task<Void, Never>?
+    @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var loadedStamp: Date?
     @ObservationIgnored private var reviewCache: (day: Day, review: TrainerCycleReview?)?
     @ObservationIgnored var onChange: @MainActor () -> Void = {}
@@ -210,7 +211,7 @@ import TrainingCore
                 id: week.index,
                 title: "S\(week.index) · \(week.start.day)/\(week.start.month)",
                 kilometers: "\(TrainerText.kilometersNumber(week.plannedMeters)) km",
-                detail: plan.lightWeeks.contains(week.start)
+                detail: Self.isLight(week.start, in: plan)
                     ? TrainerText.lightCell
                     : week.isRecovery
                     ? "\(TrainerText.recoveryWeek) \(TrainerText.kilometersNumber(week.longMeters))"
@@ -221,7 +222,7 @@ import TrainingCore
                 isChanged: changedWeeks.contains(week.index),
                 isRace: false,
                 start: week.start,
-                isLight: plan.lightWeeks.contains(week.start)
+                isLight: Self.isLight(week.start, in: plan)
             )
         }
         if plan.target.kind == .race, let date = plan.target.date {
@@ -342,29 +343,53 @@ import TrainingCore
         }
     }
 
+    func cancelAutoAdjust() {
+        autoTask?.cancel()
+        autoTask = nil
+        resumeSettling()
+    }
+
     func settleAutoAdjust() async {
-        while let task = autoTask {
-            await task.value
-            if autoTask == task { autoTask = nil }
+        while !Task.isCancelled, let task = autoTask {
+            await withCheckedContinuation { continuation in
+                settleWaiters.append(continuation)
+                Task { @MainActor [weak self] in
+                    await task.value
+                    if self?.autoTask == task { self?.autoTask = nil }
+                    self?.resumeSettling()
+                }
+            }
         }
+    }
+
+    private func resumeSettling() {
+        let waiters = settleWaiters
+        settleWaiters = []
+        waiters.forEach { $0.resume() }
     }
 
     @discardableResult
     func autoAdjust() async -> [TrainerVersion] {
         reloadFromStore()
         guard plan != nil else { return [] }
-        history = await loadHistory()
+        let loaded = await loadHistory()
         guard !Task.isCancelled else { return [] }
+        history = loaded
         let cycle = await loadCycleHistory()
         guard !Task.isCancelled else { return [] }
         cycleHistory = cycle
         reloadFromStore()
+        guard !Task.isCancelled else { return [] }
         let created = applyPending()
         await notifySignals(created)
         return created
     }
 
-    func isLightWeek(_ start: Day) -> Bool { plan?.lightWeeks.contains(start) == true }
+    func isLightWeek(_ start: Day) -> Bool { plan.map { Self.isLight(start, in: $0) } == true }
+
+    private static func isLight(_ start: Day, in plan: TrainerPlan) -> Bool {
+        plan.lightWeeks.contains(start) || plan.earlyLightWeeks[start] != nil
+    }
 
     func toggleLightWeek(_ start: Day) async {
         guard let plan else { return }
