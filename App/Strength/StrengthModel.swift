@@ -86,10 +86,15 @@ import TrainingCore
     func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?) async -> Bool {
         hasMFIT = client != nil
         var fetchedProgram = client == nil
-        if let client, let fetched = try? await client.currentProgram(today: today().iso) {
-            apply(store.update(with: fetched))
-            fetchedProgram = true
-        } else if client == nil {
+        if let client {
+            do {
+                let fetched = try await client.currentProgram(today: today().iso)
+                apply(fetched.map(store.update(with:)) ?? store.clearProgram())
+                fetchedProgram = true
+            } catch {
+                fetchedProgram = false
+            }
+        } else {
             program = nil
         }
         let start = today().weekStart

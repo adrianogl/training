@@ -41,13 +41,26 @@ public struct MFITClient: Sendable {
 
     public func switchTeacher(_ id: Int64) async throws -> String {
         let data = try await send(C.switchTeacherPath + String(id), method: "POST", body: Data("{}".utf8))
-        let dto = try JSONDecoder().decode(MFITTokenDTO.self, from: data)
-        guard let token = dto.token ?? dto.data?.token, !token.isEmpty else { throw MFITError.missingToken }
+        let token = (try? JSONDecoder().decode(String.self, from: data))
+            ?? (try? JSONDecoder().decode(MFITTokenDTO.self, from: data)).flatMap { $0.token ?? $0.data?.token }
+        guard let token, !token.isEmpty else { throw MFITError.missingToken }
         return token
     }
 
-    public func hasPrograms() async throws -> Bool {
-        !(try JSONDecoder().decode([MFITProgramSummaryDTO].self, from: try await send(C.programsPath, method: "GET"))).isEmpty
+    public func latestProgramStart(today: String) async throws -> String? {
+        let summaries = try JSONDecoder().decode([MFITProgramSummaryDTO].self, from: try await send(C.programsPath, method: "GET"))
+        return Self.current(summaries, today: today).compactMap { MFITParser.day($0.dataInicio) ?? "" }.max()
+    }
+
+    public func tokenForActiveTeacher(today: String) async throws -> String {
+        var best: (token: String, start: String)? = try await latestProgramStart(today: today).map { (token, $0) }
+        for teacher in try await teachers() {
+            guard let candidate = try? await switchTeacher(teacher.id),
+                  let start = try? await MFITClient(token: candidate, transport: transport, baseURL: baseURL).latestProgramStart(today: today),
+                  best.map({ start > $0.start }) ?? true else { continue }
+            best = (candidate, start)
+        }
+        return best?.token ?? token
     }
 
     public func currentProgram(today: String) async throws -> MFITProgram? {
@@ -62,10 +75,13 @@ public struct MFITClient: Sendable {
     }
 
     static func pick(_ summaries: [MFITProgramSummaryDTO], today: String) -> MFITProgramSummaryDTO? {
-        let dated = summaries.map { (dto: $0, start: MFITParser.day($0.dataInicio), end: MFITParser.day($0.dataFim)) }
-        let current = dated.filter { ($0.start.map { $0 <= today } ?? true) && ($0.end.map { today <= $0 } ?? true) }
-        let pool = current.isEmpty ? dated : current
-        return pool.max { ($0.start ?? "") < ($1.start ?? "") }?.dto
+        current(summaries, today: today).max { (MFITParser.day($0.dataInicio) ?? "") < (MFITParser.day($1.dataInicio) ?? "") }
+    }
+
+    static func current(_ summaries: [MFITProgramSummaryDTO], today: String) -> [MFITProgramSummaryDTO] {
+        summaries.filter { summary in
+            (MFITParser.day(summary.dataInicio).map { $0 <= today } ?? true) && (MFITParser.day(summary.dataFim).map { today <= $0 } ?? true)
+        }
     }
 
     private func send(_ path: String, method: String, body: Data? = nil) async throws -> Data {

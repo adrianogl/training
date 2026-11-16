@@ -93,7 +93,7 @@ private func fixture(_ name: String) throws -> Data {
         ]
         #expect(MFITClient.pick(summaries, today: "2026-11-01")?.id == 1)
         #expect(MFITClient.pick(summaries, today: "2026-11-20")?.id == 2)
-        #expect(MFITClient.pick(summaries, today: "2027-01-10")?.id == 2)
+        #expect(MFITClient.pick(summaries, today: "2027-01-10") == nil)
     }
 
     @Test func signsInAndReportsInvalidLogin() async throws {
@@ -109,11 +109,54 @@ private func fixture(_ name: String) throws -> Data {
     }
 }
 
-@Suite struct MFITProgramsTests {
-    @Test func reportsWhetherTeacherHasPrograms() async throws {
-        let empty = FixtureTransport(routes: ["/v2/client/workout/all": (200, Data("[]".utf8))])
-        #expect(try await MFITClient(token: "t", transport: empty).hasPrograms() == false)
-        let full = FixtureTransport(routes: ["/v2/client/workout/all": (200, try fixture("all"))])
-        #expect(try await MFITClient(token: "t", transport: full).hasPrograms() == true)
+@Suite struct MFITTeacherTests {
+    private func programs(_ name: String, start: String, end: String) -> Data {
+        Data(#"[{"id":1,"nome":"\#(name)","dataInicio":"\#(start)","dataFim":"\#(end)"}]"#.utf8)
+    }
+
+    @Test func switchTeacherReadsPlainStringToken() async throws {
+        let transport = FixtureTransport(routes: ["/check/authenticate-to-user?id=7": (200, Data(#""novo.token.x""#.utf8))])
+        #expect(try await MFITClient(token: "t", transport: transport).switchTeacher(7) == "novo.token.x")
+        #expect(transport.sent.first?.httpMethod == "POST")
+    }
+
+    @Test func picksTeacherWithMostRecentCurrentProgram() async throws {
+        let transport = TokenRoutedTransport(
+            teachers: Data(#"[{"id":1,"name":"Jonathan"},{"id":2,"name":"Pedro"}]"#.utf8),
+            switches: [1: "jonathan", 2: "pedro"],
+            programs: [
+                "inicial": programs("Antigo", start: "Jan 5, 2026", end: "Dec 31, 2026"),
+                "jonathan": programs("Antigo", start: "Jan 5, 2026", end: "Dec 31, 2026"),
+                "pedro": programs("Treino 7", start: "Nov 13, 2026", end: "Dec 18, 2026"),
+            ]
+        )
+        let token = try await MFITClient(token: "inicial", transport: transport).tokenForActiveTeacher(today: "2026-11-17")
+        #expect(token == "pedro")
+    }
+}
+
+private final class TokenRoutedTransport: HTTPTransport {
+    let teachers: Data
+    let switches: [Int64: String]
+    let programs: [String: Data]
+
+    init(teachers: Data, switches: [Int64: String], programs: [String: Data]) {
+        self.teachers = teachers
+        self.switches = switches
+        self.programs = programs
+    }
+
+    func send(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        let url = request.url!
+        let token = request.value(forHTTPHeaderField: "authorization") ?? ""
+        let body: Data
+        if url.path.hasSuffix("check-users") {
+            body = teachers
+        } else if url.path.hasSuffix("authenticate-to-user"), let id = url.query?.split(separator: "=").last.flatMap({ Int64($0) }), let next = switches[id] {
+            body = Data("\"\(next)\"".utf8)
+        } else {
+            body = programs[token] ?? Data("[]".utf8)
+        }
+        return (body, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
     }
 }
