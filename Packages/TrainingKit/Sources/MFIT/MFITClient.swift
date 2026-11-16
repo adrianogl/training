@@ -74,6 +74,15 @@ public struct MFITClient: Sendable {
         return MFITParser.program(dto, sessions: sessions)
     }
 
+    public func loadRecords(workoutIds: [Int64]) async throws -> [MFITLoadRecord] {
+        var records: [MFITLoadRecord] = []
+        for id in workoutIds {
+            let progress = try JSONDecoder().decode([MFITProgressDTO].self, from: try await send(C.progressPath + String(id), method: "GET"))
+            records += MFITParser.loads(progress, workoutId: id)
+        }
+        return records
+    }
+
     static func pick(_ summaries: [MFITProgramSummaryDTO], today: String) -> MFITProgramSummaryDTO? {
         current(summaries, today: today).max { (MFITParser.day($0.dataInicio) ?? "") < (MFITParser.day($1.dataInicio) ?? "") }
     }
