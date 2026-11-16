@@ -86,6 +86,8 @@ import TrainingCore
     @discardableResult
     func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?) async -> Bool {
         hasMFIT = client != nil
+        let records = Self.records(in: ModelContext(container))
+        sessions = Self.sessions(records: records, known: Array(known.values))
         var fetchedProgram = client == nil
         if let client {
             do {
@@ -103,7 +105,7 @@ import TrainingCore
         }
         let start = today().weekStart
         weekWorkouts = schedule.workouts(program, from: start, through: start.adding(days: 6))
-        sessions = Self.sessions(records: Self.records(in: ModelContext(container)), known: Array(known.values))
+        sessions = Self.sessions(records: records, known: Array(known.values))
         weekDays = Self.days(start: start, plan: plan, workouts: weekWorkouts)
         warnings = StrengthWeek.legWarnings(weekDays.map { day in
             let workout = weekWorkouts.first { $0.day == day.day.iso }

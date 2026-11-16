@@ -8,6 +8,7 @@ import TrainingCore
 struct WorkoutListView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var availableWidth: CGFloat = 0
     @Query(sort: \ActivityRecord.start, order: .reverse) private var records: [ActivityRecord]
     @SceneStorage(NavigationRestorationConstants.workoutsPathKey) private var pathData = Data()
     @SceneStorage(NavigationRestorationConstants.workoutsSelectionKey) private var selectionData = Data()
@@ -34,6 +35,10 @@ struct WorkoutListView: View {
         NavigationRestoration.validPrefix(items, isValid: isRestorable)
     }
 
+    private var isSplit: Bool {
+        sizeClass == .regular && availableWidth >= WorkoutConstants.splitMinWidth
+    }
+
     var body: some View {
         let allWeeks = WorkoutListModel.weeks(records: records, plannedKilometers: plannedWeeks)
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
@@ -41,7 +46,7 @@ struct WorkoutListView: View {
         let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))
         let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned, doneStrengthDays: doneDays, filter: kindFilter)
         Group {
-            if sizeClass == .regular {
+            if isSplit {
                 HStack(spacing: 0) {
                     list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility, plannedItems: plannedItems)
                         .frame(width: WorkoutConstants.listWidth)
@@ -64,6 +69,7 @@ struct WorkoutListView: View {
                 }
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
         .onAppear(perform: applyRestoration)
         .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
         .onChange(of: selection) { _, value in selectionData = value.map { NavigationRestoration.encode($0) } ?? Data() }
@@ -232,7 +238,7 @@ struct WorkoutListView: View {
                     .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
                     ForEach(week.rows) { row in
                         link(.activity(row.activityId)) {
-                            WorkoutRow(row: row, isSelected: sizeClass == .regular && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
+                            WorkoutRow(row: row, isSelected: isSplit && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
                         }
                     }
                 }
@@ -248,7 +254,7 @@ struct WorkoutListView: View {
         .onAppear { scrollToLatest(proxy) }
         .onChange(of: weeks.first?.id) { scrollToLatest(proxy) }
         .onChange(of: plannedItems.map(\.id)) { scrollToLatest(proxy) }
-        .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
+        .toolbarVisibility(isSplit ? .automatic : .hidden, for: .navigationBar)
         }
     }
 
@@ -288,7 +294,7 @@ struct WorkoutListView: View {
 
     @ViewBuilder
     private func link<Label: View>(_ item: WorkoutSelection, @ViewBuilder label: () -> Label) -> some View {
-        if sizeClass == .regular {
+        if isSplit {
             Button { selection = item } label: { label() }
                 .buttonStyle(.plain)
         } else {
