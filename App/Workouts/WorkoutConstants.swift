@@ -2,6 +2,7 @@ import Foundation
 
 enum WorkoutConstants {
     static let listWidth: Double = 360
+    static let splitMinWidth: CGFloat = 1000
     static let weekRangeFormat = "%@–%@"
     static let weekDayFormat = "d"
     static let weekMonthFormat = "d MMM"

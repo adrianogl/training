@@ -15,6 +15,7 @@ struct RaceListView: View {
     @State private var goalSheet: GoalSheet?
     @State private var openedDebugRace = false
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var availableWidth: CGFloat = 0
 
     var embedded = false
     @State private var path: [RaceRoute] = []
@@ -38,9 +39,13 @@ struct RaceListView: View {
         (races.map(\.updatedAt) + goalRecords.map(\.updatedAt)).sorted()
     }
 
+    private var isSplit: Bool {
+        sizeClass == .regular && availableWidth >= WorkoutConstants.splitMinWidth
+    }
+
     var body: some View {
         Group {
-            if sizeClass == .regular {
+            if isSplit {
                 HStack(spacing: 0) {
                     listScroll
                         .frame(width: WorkoutConstants.listWidth)
@@ -70,6 +75,7 @@ struct RaceListView: View {
                 }
             }
         }
+        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: nil)
         }
@@ -131,7 +137,7 @@ struct RaceListView: View {
         }
         .brandRefreshable { await app.syncNow(.pull) }
         .background(BrandBackground())
-        .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
+        .toolbarVisibility(isSplit ? .automatic : .hidden, for: .navigationBar)
     }
 
     private var currentRoute: RaceRoute? {
@@ -154,7 +160,7 @@ struct RaceListView: View {
 
     @ViewBuilder
     private func link<Label: View>(_ route: RaceRoute, @ViewBuilder label: () -> Label) -> some View {
-        if sizeClass == .regular {
+        if isSplit {
             Button { selection = route } label: {
                 label()
                     .overlay {
