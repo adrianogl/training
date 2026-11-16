@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AIIcon: View {
+struct BrandIcon: View {
     var size: CGFloat
     var bordered = true
 
@@ -20,11 +20,7 @@ struct AIIcon: View {
                     shape.strokeBorder(BrandColors.iconAccent.opacity(BrandConstants.iconGlowOpacity), lineWidth: 1)
                 }
             }
-            .overlay(
-                Text(BrandConstants.logoHighlight)
-                    .font(.system(size: size * BrandConstants.iconFontRatio, weight: .black))
-                    .foregroundStyle(BrandColors.iconAccent)
-            )
+            .overlay(TrackGlyph(size: size))
             .frame(width: size, height: size)
             .shadow(color: BrandColors.iconAccent.opacity(0.18), radius: BrandConstants.iconGlowRadius)
             .accessibilityHidden(true)

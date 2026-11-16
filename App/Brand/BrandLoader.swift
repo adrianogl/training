@@ -27,41 +27,48 @@ struct BrandLoader: View {
 
     private func tile(start: Double, length: Double, glow: Double, dim: Double) -> some View {
         let metrics = size.metrics
-        let corner = metrics.side * BrandConstants.iconCornerRatio
-        let shape = RoundedRectangle(cornerRadius: corner, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: metrics.side * BrandConstants.iconCornerRatio, style: .continuous)
         return shape
             .fill(BrandColors.loaderFill)
             .overlay(shape.strokeBorder(BrandColors.loaderEdge, lineWidth: metrics.borderWidth))
-            .overlay(
-                Text(BrandConstants.logoHighlight)
-                    .font(.system(size: metrics.side * BrandLoaderConstants.fontRatio, weight: .black))
-                    .foregroundStyle(BrandColors.iconAccent)
-            )
+            .overlay(TrackGlyph(size: metrics.side, trackOpacity: TrackGlyphConstants.loaderTrackOpacity, showsRunner: false))
+            .overlay(alignment: .topLeading) { lap(start: start, length: length, dim: dim) }
             .frame(width: metrics.side, height: metrics.side)
             .shadow(color: BrandColors.iconAccent.opacity(glow), radius: metrics.glowRadius)
-            .overlay { ring(start: start, length: length, corner: corner + metrics.ringGap, dim: dim) }
     }
 
-    private func ring(start: Double, length: Double, corner: CGFloat, dim: Double) -> some View {
+    private func lap(start: Double, length: Double, dim: Double) -> some View {
         let metrics = size.metrics
+        let unit = metrics.side / TrackGlyphConstants.canvas
+        let track = TrackGlyphConstants.outer.scaled(by: unit)
+        let corner = track.height / 2
+        let runner = TrackGlyphConstants.runner.width * unit
+        let head = Self.point(on: track.size, corner: corner, at: start + length)
         let opacities = BrandLoaderConstants.shadowOpacities
         let lime = BrandColors.iconAccent
-        let gradient = LinearGradient(
-            stops: [
-                .init(color: lime.opacity(BrandLoaderConstants.tailOpacity), location: 0),
-                .init(color: lime, location: 0.5),
-                .init(color: lime.opacity(BrandLoaderConstants.tailOpacity), location: 1),
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-        return BrandLoaderRing(cornerRadius: corner, start: start, length: length)
-            .stroke(gradient, style: StrokeStyle(lineWidth: metrics.ringLineWidth, lineCap: .round))
-            .frame(width: metrics.side + metrics.ringGap * 2, height: metrics.side + metrics.ringGap * 2)
-            .opacity(BrandLoaderConstants.ringOpacity * dim)
-            .shadow(color: lime.opacity(opacities[0] * dim), radius: metrics.shadowRadii[0])
-            .shadow(color: lime.opacity(opacities[1] * dim), radius: metrics.shadowRadii[1])
-            .shadow(color: lime.opacity(opacities[2] * dim), radius: metrics.shadowRadii[2])
-            .allowsHitTesting(false)
+        return ZStack(alignment: .topLeading) {
+            BrandLoaderRing(cornerRadius: corner, start: start, length: length)
+                .stroke(lime, style: StrokeStyle(lineWidth: TrackGlyphConstants.outerLineWidth * unit, lineCap: .round))
+                .shadow(color: lime.opacity(opacities[0]), radius: metrics.shadowRadii[0])
+                .shadow(color: lime.opacity(opacities[1]), radius: metrics.shadowRadii[1])
+                .shadow(color: lime.opacity(opacities[2]), radius: metrics.shadowRadii[2])
+            if length > 0 {
+                Circle()
+                    .fill(BrandColors.iconRunner)
+                    .frame(width: runner, height: runner)
+                    .offset(x: head.x - runner / 2, y: head.y - runner / 2)
+            }
+        }
+        .frame(width: track.width, height: track.height, alignment: .topLeading)
+        .offset(x: track.minX, y: track.minY)
+        .opacity(BrandLoaderConstants.ringOpacity * dim)
+        .allowsHitTesting(false)
+    }
+
+    private static func point(on size: CGSize, corner: CGFloat, at fraction: Double) -> CGPoint {
+        let rect = CGRect(origin: .zero, size: size)
+        let wrapped = fraction.truncatingRemainder(dividingBy: 1)
+        let outline = BrandLoaderRing.outline(in: rect, cornerRadius: corner)
+        return outline.trimmedPath(from: 0, to: wrapped).currentPoint ?? CGPoint(x: rect.midX, y: rect.minY)
     }
 }

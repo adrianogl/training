@@ -79,7 +79,7 @@ struct BrandRefreshable: ViewModifier {
     @ViewBuilder
     private func glyph(landing: Bool, state: BrandRefreshState) -> some View {
         if landing {
-            AIIcon(size: BrandConstants.logoIconSize)
+            BrandIcon(size: BrandConstants.logoIconSize)
         } else {
             switch state.phase {
             case .idle, .pulling:

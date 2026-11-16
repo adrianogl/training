@@ -9,7 +9,7 @@ struct Logo: View {
     var body: some View {
         HStack(spacing: showsIcon && !showsIconPlaceholder ? 12 : 0) {
             if showsIcon {
-                AIIcon(size: BrandConstants.logoIconSize)
+                BrandIcon(size: BrandConstants.logoIconSize)
                     .frame(width: showsIconPlaceholder ? 0 : BrandConstants.logoIconSize, alignment: .leading)
                     .opacity(showsIconPlaceholder ? 0 : 1)
                     .clipped()

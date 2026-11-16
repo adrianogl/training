@@ -7,5 +7,8 @@
   </defs>
   <rect width="64" height="64" rx="16.6" fill="#0B0E12"/>
   <rect width="64" height="64" rx="16.6" fill="url(#g)"/>
-  <text x="32" y="42" text-anchor="middle" font-family="Barlow, Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#C8F05A">AI</text>
+  <g transform="scale(0.64)">
+    <rect x="15" y="26" width="70" height="48" rx="24" fill="none" stroke="#C8F05A" stroke-width="7"/>
+    <circle cx="76" cy="31" r="6" fill="#EDEFF2"/>
+  </g>
 </svg>

@@ -27,7 +27,7 @@ enum AppIconExport {
 
     static func launchIconPNG() -> Data? {
         let side = BrandConstants.launchIconPoints * BrandConstants.launchIconScale
-        let art = AIIcon(size: side * BrandConstants.launchIconArtRatio, bordered: false)
+        let art = BrandIcon(size: side * BrandConstants.launchIconArtRatio, bordered: false)
             .frame(width: side, height: side)
             .environment(\.colorScheme, .dark)
         let renderer = ImageRenderer(content: art)
@@ -49,9 +49,7 @@ private struct AppIconArt: View {
                 startRadius: 0,
                 endRadius: side * 0.7
             )
-            Text(BrandConstants.logoHighlight)
-                .font(.system(size: side * BrandConstants.iconFontRatio, weight: .black))
-                .foregroundStyle(BrandColors.iconAccent)
+            TrackGlyph(size: side)
         }
         .frame(width: side, height: side)
     }

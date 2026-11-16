@@ -3,7 +3,6 @@ import CoreGraphics
 struct BrandLoaderMetrics: Equatable {
     let side: CGFloat
     let ringGap: CGFloat
-    let ringLineWidth: CGFloat
     let traceLength: Double
     let borderWidth: CGFloat
     let glowRadius: CGFloat
