@@ -9,4 +9,5 @@ enum TrackGlyphConstants {
     static let innerLineWidth: CGFloat = 2.5
     static let innerOpacity = 0.35
     static let loaderTrackOpacity = 0.22
+    static let runnerRestFraction = 0.1388
 }
