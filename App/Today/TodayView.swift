@@ -93,12 +93,15 @@ struct TodayView: View {
             await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
             await scheduleWeeklyReport()
+            writeWidgetSnapshot()
             await loaded.refreshSentence()
+            writeWidgetSnapshot()
         }
         .task(id: app.dataToken) {
             await app.trainer.load()
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan, garmin: app.garminAccount.client)
             await scheduleWeeklyReport()
+            writeWidgetSnapshot()
             if app.mfitAccount.isSignedIn {
                 await app.trainer.syncStrength(TrainerMFITStrength.sessions(program: strength.program, schedule: StrengthSchedule()))
             }
@@ -115,6 +118,30 @@ struct TodayView: View {
     }
 
     private var trainerWorkouts: [TrainerWorkout] { app.trainer.activeWorkouts }
+
+    private func writeWidgetSnapshot() {
+        guard let model, model.isLoaded else { return }
+        let report = model.currentWeekReport(trainer: app.trainer.activeWorkouts)
+        var title: String?
+        var detail: String?
+        switch workoutPick(model)?.today {
+        case .garmin(let plan): title = plan.title; detail = PlanText.estimate(plan)
+        case .trainer(let row): title = row.workout.title; detail = "\(TodayText.decimal(row.workout.totalMeters / 1_000, fractionDigits: 1)) km"
+        case nil: break
+        }
+        WidgetSnapshotWriter.write(WidgetSnapshot(
+            score: model.summary.readiness?.score ?? model.fallbackScore,
+            verdict: model.summary.verdict.flatMap { TodayConstants.verdictPhrases[$0] },
+            readinessLine: WidgetSnapshotWriter.firstSentence(model.readinessSentence),
+            workoutTitle: title,
+            workoutDetail: detail,
+            strengthTitle: strength.weekWorkouts.first { $0.day == model.today.iso }.map { StrengthText.shortTitle($0.title) },
+            raceName: report.race?.name,
+            raceDays: report.race?.days,
+            weekText: report.plannedKm.map { "Semana: \(TodayText.decimal(report.doneKm, fractionDigits: 0)) de \(TodayText.decimal($0, fractionDigits: 0)) km" },
+            updatedAt: .now
+        ))
+    }
 
     private func scheduleWeeklyReport() async {
         guard let model, model.isLoaded, let sunday = WeeklyReportBuilder.nextSunday(after: .now) else { return }
