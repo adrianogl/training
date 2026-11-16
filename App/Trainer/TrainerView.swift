@@ -21,6 +21,7 @@ struct TrainerView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
+                    CompactLogoHeader()
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         Text(TrainerText.title).font(.largeTitle.weight(.bold)).foregroundStyle(BrandColors.text)
                         TrainerBetaBadge()

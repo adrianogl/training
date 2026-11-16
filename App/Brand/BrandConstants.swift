@@ -29,6 +29,8 @@ enum BrandConstants {
         CGPoint(x: 104, y: 4), CGPoint(x: 114, y: 24), CGPoint(x: 216, y: 24),
     ]
     static let introIconSeconds = 0.6
+    static let introLapDelay = 0.25
+    static let introLapSeconds = 1.1
     static let introPulseDelay = 0.35
     static let introPulseSeconds = 1.1
     static let introWordmarkDelay = 0.9

@@ -38,37 +38,7 @@ struct BrandLoader: View {
     }
 
     private func lap(start: Double, length: Double, dim: Double) -> some View {
-        let metrics = size.metrics
-        let unit = metrics.side / TrackGlyphConstants.canvas
-        let track = TrackGlyphConstants.outer.scaled(by: unit)
-        let corner = track.height / 2
-        let runner = TrackGlyphConstants.runner.width * unit
-        let head = Self.point(on: track.size, corner: corner, at: start + length)
-        let opacities = BrandLoaderConstants.shadowOpacities
-        let lime = BrandColors.iconAccent
-        return ZStack(alignment: .topLeading) {
-            BrandLoaderRing(cornerRadius: corner, start: start, length: length)
-                .stroke(lime, style: StrokeStyle(lineWidth: TrackGlyphConstants.outerLineWidth * unit, lineCap: .round))
-                .shadow(color: lime.opacity(opacities[0]), radius: metrics.shadowRadii[0])
-                .shadow(color: lime.opacity(opacities[1]), radius: metrics.shadowRadii[1])
-                .shadow(color: lime.opacity(opacities[2]), radius: metrics.shadowRadii[2])
-            if length > 0 {
-                Circle()
-                    .fill(BrandColors.iconRunner)
-                    .frame(width: runner, height: runner)
-                    .offset(x: head.x - runner / 2, y: head.y - runner / 2)
-            }
-        }
-        .frame(width: track.width, height: track.height, alignment: .topLeading)
-        .offset(x: track.minX, y: track.minY)
-        .opacity(BrandLoaderConstants.ringOpacity * dim)
-        .allowsHitTesting(false)
-    }
-
-    private static func point(on size: CGSize, corner: CGFloat, at fraction: Double) -> CGPoint {
-        let rect = CGRect(origin: .zero, size: size)
-        let wrapped = fraction.truncatingRemainder(dividingBy: 1)
-        let outline = BrandLoaderRing.outline(in: rect, cornerRadius: corner)
-        return outline.trimmedPath(from: 0, to: wrapped).currentPoint ?? CGPoint(x: rect.midX, y: rect.minY)
+        TrackLap(side: size.metrics.side, start: start, length: length, glowRadii: size.metrics.shadowRadii)
+            .opacity(BrandLoaderConstants.ringOpacity * dim)
     }
 }
