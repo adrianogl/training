@@ -32,8 +32,8 @@ struct WorkoutListView: View {
 
     var body: some View {
         let allWeeks = WorkoutListModel.weeks(records: records, plannedKilometers: plannedWeeks)
-        let weeks = WorkoutListModel.filtered(allWeeks, records: records, by: kindFilter)
-        let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows), from: Day.today().iso)
+        let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
+        let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
         Group {
             if sizeClass == .regular {
                 HStack(spacing: 0) {
@@ -118,7 +118,11 @@ struct WorkoutListView: View {
     private func destination(_ item: WorkoutSelection) -> some View {
         switch item {
         case .activity(let id):
-            WorkoutDetailView(activityId: id)
+            if records.contains(where: { $0.activityId == id && ActivityTypeKey.isStrength($0.typeKey) }) {
+                StrengthActivityDetailView(activityId: id)
+            } else {
+                WorkoutDetailView(activityId: id)
+            }
         case .planned(let id):
             if let plan = planned.first(where: { $0.id == id }) {
                 PlannedWorkoutDetailView(plan: plan, week: planned)
