@@ -68,6 +68,24 @@ public struct MFITProgram: Sendable, Equatable, Codable, Identifiable {
     }
 }
 
+public struct MFITLoadRecord: Sendable, Equatable, Codable {
+    public var exercise: String
+    public var key: String
+    public var day: String
+    public var loads: [Double]
+    public var workoutId: Int64
+
+    public init(exercise: String, key: String, day: String, loads: [Double], workoutId: Int64) {
+        self.exercise = exercise
+        self.key = key
+        self.day = day
+        self.loads = loads
+        self.workoutId = workoutId
+    }
+
+    public var top: Double { loads.max() ?? 0 }
+}
+
 public enum MFITError: Error, Equatable {
     case invalidLogin(String?)
     case unauthorized

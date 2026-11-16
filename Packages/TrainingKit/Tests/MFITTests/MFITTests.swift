@@ -160,3 +160,24 @@ private final class TokenRoutedTransport: HTTPTransport {
         return (body, HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!)
     }
 }
+
+@Suite struct MFITLoadTests {
+    @Test func readsLoadsPerExerciseAndDay() async throws {
+        let transport = FixtureTransport(routes: [
+            "/v2/client/workout/progress?id=2001": (200, try fixture("progress-2001")),
+            "/v2/client/workout/progress?id=2002": (200, Data("[]".utf8)),
+        ])
+        let records = try await MFITClient(token: "t", transport: transport).loadRecords(workoutIds: [2001, 2002])
+
+        #expect(records.map(\.exercise) == ["Supino Inclinado com Barra (PTP)", "supino reto no smith", "Crucifixo Máquina"])
+        #expect(records.map(\.top) == [14, 16, 39])
+        #expect(records.allSatisfy { $0.day == "2026-11-16" && $0.workoutId == 2001 })
+        #expect(records[0].key == "supino inclinado com barra")
+    }
+
+    @Test func exerciseKeyIgnoresCaseAccentsAndTags() {
+        #expect(MFITParser.exerciseKey("Flexão de braços no solo (PVP)") == MFITParser.exerciseKey("flexão de braços no solo "))
+        #expect(MFITParser.exerciseKey("Agachamento Livre ( TPH )") == "agachamento livre")
+        #expect(MFITParser.exerciseKey("Crucifixo Máquina") != MFITParser.exerciseKey("Crucifixo inverso máquina (PTP)"))
+    }
+}

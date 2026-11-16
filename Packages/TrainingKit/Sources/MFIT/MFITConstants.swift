@@ -7,6 +7,8 @@ public enum MFITConstants {
     static let switchTeacherPath = "/check/authenticate-to-user?id="
     static let programsPath = "/v2/client/workout/all"
     static let programPath = "/v2/client/workout/?id="
+    static let progressPath = "/v2/client/workout/progress?id="
+    static let parenthesisPattern = #"\([^)]*\)"#
     static let sessionPath = "/v2/client/workout/session?id="
     static let authorizationHeader = "authorization"
     static let contentType = "application/json"

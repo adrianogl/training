@@ -11,6 +11,7 @@ import TrainingCore
     var program: MFITProgram?
     var weekWorkouts: [StrengthWorkout] = []
     var upcoming: [StrengthWorkout] = []
+    var loadSeries: [StrengthLoadSeries] = []
     var weekDays: [StrengthDay] = []
     var warnings: [String] = []
     var isLoaded = false
@@ -108,6 +109,9 @@ import TrainingCore
             do {
                 let fetched = try await client.currentProgram(today: today().iso)
                 apply(fetched.map(store.update(with:)) ?? store.clearProgram())
+                if let ids = fetched?.workouts.map(\.id), let records = try? await client.loadRecords(workoutIds: ids) {
+                    apply(store.updateLoads(records, fetched: Set(ids)))
+                }
                 fetchedProgram = true
             } catch {
                 fetchedProgram = false
@@ -131,6 +135,32 @@ import TrainingCore
     private func apply(_ cache: StrengthProgramCache) {
         program = cache.program
         known = Dictionary(cache.known.map { ($0.id, $0) }) { first, _ in first }
+        loadSeries = Self.loadSeries(cache.loads, known: cache.known, current: cache.program?.workouts ?? [])
+    }
+
+    func loadSeries(key: String) -> StrengthLoadSeries? {
+        loadSeries.first { $0.key == key }
+    }
+
+    static func loadSeries(_ records: [MFITLoadRecord], known: [MFITWorkout], current: [MFITWorkout]) -> [StrengthLoadSeries] {
+        let titles = Dictionary(known.map { ($0.id, $0.title) }) { first, _ in first }
+        return Dictionary(grouping: records, by: \.key).compactMap { key, list -> StrengthLoadSeries? in
+            let byDay = Dictionary(grouping: list, by: \.day)
+            let points = byDay.keys.sorted().compactMap { iso -> StrengthLoadPoint? in
+                guard let day = Day(iso: iso), let entries = byDay[iso], let best = entries.max(by: { $0.top < $1.top }) else { return nil }
+                return StrengthLoadPoint(day: day, top: best.top, loads: best.loads, workout: titles[best.workoutId] ?? "")
+            }
+            guard let latest = list.max(by: { $0.day < $1.day }), !points.isEmpty else { return nil }
+            var workouts: [String] = []
+            let appearsIn = current.sorted { $0.order < $1.order }.filter { workout in
+                workout.blocks.contains { block in block.exercises.contains { MFITParser.exerciseKey($0.name) == key } }
+            }.map(\.title)
+            for title in appearsIn + list.compactMap({ titles[$0.workoutId] }) where !title.isEmpty && !workouts.contains(title) {
+                workouts.append(title)
+            }
+            return StrengthLoadSeries(key: key, name: StrengthText.exerciseName(latest.exercise), workouts: workouts, points: points)
+        }
+        .sorted { ($0.points.last?.day ?? .today(), $1.name) > ($1.points.last?.day ?? .today(), $0.name) }
     }
 
     private static func entries(_ blocks: [StrengthBlock]) -> [(category: String?, sets: Int)] {

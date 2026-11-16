@@ -121,6 +121,24 @@ public enum MFITParser {
         return Day(year: year, month: month, day: day).iso
     }
 
+    public static func exerciseKey(_ name: String) -> String {
+        let stripped = name.replacingOccurrences(of: C.parenthesisPattern, with: " ", options: .regularExpression)
+            .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR"))
+        return clean(stripped) ?? ""
+    }
+
+    static func loads(_ progress: [MFITProgressDTO], workoutId: Int64) -> [MFITLoadRecord] {
+        progress.flatMap { exercise -> [MFITLoadRecord] in
+            guard let name = clean(exercise.exerciseName) else { return [] }
+            return (exercise.dataView ?? []).compactMap { entry in
+                guard let date = entry.data else { return nil }
+                let loads = (entry.cargas ?? []).filter { $0 > 0 }
+                guard !loads.isEmpty else { return nil }
+                return MFITLoadRecord(exercise: name, key: exerciseKey(name), day: Day(year: date.year, month: date.month, day: date.day).iso, loads: loads, workoutId: workoutId)
+            }
+        }
+    }
+
     static func clean(_ text: String?) -> String? {
         guard let text else { return nil }
         let collapsed = text.split(whereSeparator: \.isWhitespace).joined(separator: " ")

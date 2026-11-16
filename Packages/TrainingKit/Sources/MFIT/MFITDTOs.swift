@@ -104,3 +104,19 @@ struct MFITLoginBody: Encodable {
     let mail: String
     let senha: String
 }
+
+struct MFITProgressDTO: Decodable {
+    struct DateDTO: Decodable {
+        let year: Int
+        let month: Int
+        let day: Int
+    }
+
+    struct EntryDTO: Decodable {
+        let data: DateDTO?
+        let cargas: [Double]?
+    }
+
+    let exerciseName: String?
+    let dataView: [EntryDTO]?
+}

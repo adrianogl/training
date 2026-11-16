@@ -100,3 +100,41 @@ import TrainingCore
         #expect(selection == .strength(5))
     }
 }
+
+@MainActor
+@Suite struct StrengthLoadSeriesTests {
+    private func workout(_ id: Int64, _ title: String, order: Int, exercise: String) -> MFITWorkout {
+        MFITWorkout(id: id, title: title, order: order, blocks: [StrengthBlock(exercises: [StrengthExercise(name: exercise, detail: nil, category: "SQUAT", exerciseKey: nil, reps: nil, seconds: nil)], sets: 3, restSeconds: 60)], completions: [])
+    }
+
+    private func record(_ name: String, _ day: String, _ loads: [Double], workout: Int64) -> MFITLoadRecord {
+        MFITLoadRecord(exercise: name, key: MFITParser.exerciseKey(name), day: day, loads: loads, workoutId: workout)
+    }
+
+    @Test func mergesSameExerciseAcrossWorkouts() throws {
+        let legs = workout(1, "MMII", order: 1, exercise: "Agachamento Livre ( TPH )")
+        let full = workout(2, "Full Body", order: 2, exercise: "agachamento livre")
+        let upper = workout(3, "Superiores", order: 0, exercise: "Supino")
+        let records = [
+            record("Agachamento Livre ( TPH )", "2026-11-18", [30, 34], workout: 1),
+            record("agachamento livre", "2026-11-20", [36], workout: 2),
+            record("Agachamento Livre ( TPH )", "2026-11-25", [32], workout: 1),
+            record("Supino", "2026-11-16", [14], workout: 3),
+        ]
+        let series = StrengthModel.loadSeries(records, known: [legs, full, upper], current: [legs, full, upper])
+
+        #expect(series.map(\.key) == ["agachamento livre", "supino"])
+        let squat = try #require(series.first)
+        #expect(squat.workouts == ["MMII", "Full Body"])
+        #expect(squat.points.map(\.top) == [34, 36, 32])
+        #expect(squat.points.map(\.workout) == ["MMII", "Full Body", "MMII"])
+        #expect(squat.current == 32)
+        #expect(squat.change == -2)
+        #expect(squat.record?.top == 36)
+        #expect(series[1].change == nil)
+        #expect(squat.name == "Agachamento Livre")
+        #expect(StrengthText.exerciseName("supino reto no smith ") == "Supino reto no smith")
+        #expect(StrengthText.changeLabel(-2) == "−2 kg")
+        #expect(StrengthText.loadsList([14, 14, 16.5]) == "14 · 14 · 16,5 kg")
+    }
+}

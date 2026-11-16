@@ -20,15 +20,25 @@ struct StrengthProgramStore: Sendable {
     }
 
     func clearProgram() -> StrengthProgramCache {
-        let cache = StrengthProgramCache(program: nil, known: load().known)
+        let current = load()
+        let cache = StrengthProgramCache(program: nil, known: current.known, loads: current.loads)
+        save(cache)
+        return cache
+    }
+
+    func updateLoads(_ records: [MFITLoadRecord], fetched workoutIds: Set<Int64>) -> StrengthProgramCache {
+        let current = load()
+        let kept = current.loads.filter { !workoutIds.contains($0.workoutId) }
+        let cache = StrengthProgramCache(program: current.program, known: current.known, loads: kept + records)
         save(cache)
         return cache
     }
 
     func update(with program: MFITProgram) -> StrengthProgramCache {
-        var known = Dictionary(load().known.map { ($0.id, $0) }) { first, _ in first }
+        let current = load()
+        var known = Dictionary(current.known.map { ($0.id, $0) }) { first, _ in first }
         for workout in program.workouts { known[workout.id] = workout }
-        let cache = StrengthProgramCache(program: program, known: known.values.sorted { $0.id < $1.id })
+        let cache = StrengthProgramCache(program: program, known: known.values.sorted { $0.id < $1.id }, loads: current.loads)
         save(cache)
         return cache
     }

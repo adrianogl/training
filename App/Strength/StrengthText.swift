@@ -41,6 +41,15 @@ enum StrengthText {
     static let front = "frente"
     static let rest = "Descanso"
     static let upcoming = "Próximos"
+    static let loadsTitle = "Evolução de carga"
+    static let loadsSubtitle = "Maior carga de cada dia · do MFIT"
+    static let loadsEmpty = "Nenhuma carga registrada ainda. Registre o peso das séries no MFIT e ele aparece aqui."
+    static let loadsNote = "Exercícios sem carga registrada, como prancha e flexão, não entram na lista."
+    static let seeAll = "ver todos ›"
+    static let firstRecord = "1º registro"
+    static let currentLoad = "atual"
+    static let recordLoad = "recorde"
+    static let records = "Registros"
     static let noUpcoming = "Nenhum treino de força nos próximos 14 dias."
     static let perWeekShort = "por semana · 12 sem"
     static let thisWeek = "nesta semana"
@@ -104,6 +113,29 @@ enum StrengthText {
 
     static func todaySubtitle(exercises: Int, sets: Int) -> String {
         "do seu professor · MFIT · \(countLabel(exercises: exercises, sets: sets))"
+    }
+
+    static func exerciseName(_ name: String) -> String {
+        let stripped = name.replacingOccurrences(of: #"\([^)]*\)"#, with: " ", options: .regularExpression)
+            .split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        guard let first = stripped.first else { return name }
+        return first.uppercased() + stripped.dropFirst()
+    }
+
+    static func changeLabel(_ change: Double) -> String {
+        (change >= 0 ? "+" : "−") + weightLabel(abs(change))
+    }
+
+    static func sinceLabel(_ day: Day) -> String {
+        "desde \(day.day)/\(day.month)"
+    }
+
+    static func recordLabel(_ day: Day) -> String {
+        "\(recordLoad) · \(day.day)/\(day.month)"
+    }
+
+    static func loadsList(_ loads: [Double]) -> String {
+        loads.map { weightLabel($0).replacingOccurrences(of: " kg", with: "") }.joined(separator: " · ") + " kg"
     }
 
     static func upcomingDay(_ iso: String) -> String {

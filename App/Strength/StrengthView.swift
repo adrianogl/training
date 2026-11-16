@@ -38,6 +38,8 @@ struct StrengthView: View {
                         StrengthUpcomingCard(model: model)
                         SectionLabel(StrengthText.weekMuscles)
                         StrengthMusclesCard(model: model)
+                        SectionLabel(StrengthText.loadsTitle)
+                        StrengthLoadsCard(model: model)
                         SectionLabel(StrengthText.history)
                         StrengthHistoryCard(model: model)
                     }
@@ -59,6 +61,8 @@ struct StrengthView: View {
                 case .session(let id): StrengthSessionView(model: model, sessionId: id)
                 case .volume: StrengthVolumeView(model: model)
                 case .history: StrengthHistoryView(model: model)
+                case .loads: StrengthLoadsView(model: model)
+                case .load(let key): StrengthLoadDetailView(model: model, key: key)
                 }
             }
             .task(id: app.mfitAccount.revision) {
@@ -83,7 +87,10 @@ struct StrengthView: View {
                 .frame(width: sideWidth)
             }
             HStack(alignment: .top, spacing: C.wideColumnSpacing) {
-                StrengthMusclesWideCard(model: model)
+                VStack(spacing: C.wideColumnSpacing) {
+                    StrengthMusclesWideCard(model: model)
+                    StrengthLoadsCard(model: model, showsHeader: true)
+                }
                 StrengthHistoryWideCard(model: model).frame(width: sideWidth)
             }
         }
