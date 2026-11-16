@@ -34,6 +34,39 @@ import TrainingCore
         Dictionary(weekWorkouts.compactMap { workout in Day(iso: workout.day).map { ($0, workout.title) } }) { first, _ in first }
     }
 
+    func weekSummary(start: Day) -> WeeklyStrengthSummary? {
+        let end = start.adding(days: 6)
+        let planned = schedule.workouts(program, from: start, through: end)
+        let done = sessions.filter { start <= $0.day && $0.day <= end }
+        guard !planned.isEmpty || !done.isEmpty else { return nil }
+        let doneBlocks = done.map { blocks(forSession: $0.id) }
+        let totals = StrengthMuscles.sets(doneBlocks.flatMap { Self.entries($0) })
+        let groups = totals.filter { $0.value > 0 }
+            .sorted { $0.value == $1.value ? $0.key.rawValue < $1.key.rawValue : $0.value > $1.value }
+            .prefix(C.reportGroupsLimit)
+            .map { StrengthGroupTotal(group: $0.key, sets: $0.value, level: StrengthMuscles.level($0.value, scale: .week)) }
+        let records = loadSeries.compactMap { series -> WeeklyStrengthRecord? in
+            guard let index = series.points.lastIndex(where: { start <= $0.day && $0.day <= end }), index > 0 else { return nil }
+            let earlier = series.points[..<index].map(\.top).max() ?? 0
+            let point = series.points[index]
+            return point.top > earlier ? WeeklyStrengthRecord(name: series.name, top: point.top, gain: point.top - earlier) : nil
+        }
+        let doneDays = Set(done.map(\.day.iso))
+        let missed = planned.filter { $0.day < today().iso && !doneDays.contains($0.day) }.compactMap { workout in
+            Day(iso: workout.day).map { StrengthText.missedLabel(workout.title, day: $0) }
+        }
+        let titles = Dictionary(planned.compactMap { workout in Day(iso: workout.day).map { ($0, workout.title) } }) { first, _ in first }
+        return WeeklyStrengthSummary(
+            done: done.count,
+            planned: planned.count,
+            sets: doneBlocks.reduce(0) { $0 + $1.reduce(0) { $0 + $1.sets * $1.exercises.count } },
+            groups: Array(groups),
+            records: records,
+            missed: missed,
+            titles: titles
+        )
+    }
+
     var weeklyCounts: [Int] {
         StrengthHistory.weeklyCounts(sessions.map(\.day), weeks: C.historyWeeks, today: today())
     }

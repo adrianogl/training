@@ -72,7 +72,7 @@ struct TodayView: View {
                 case .workout(let id):
                     WorkoutDetailView(activityId: id)
                 case .week:
-                    if let model { TodayWeekDetailView(model: model, trainer: trainerWorkouts, goal: weeklyGoal) }
+                    if let model { TodayWeekDetailView(model: model, trainer: trainerWorkouts, goal: weeklyGoal, strength: strength) }
                 case .lastRun:
                     if let model, let lastRun = model.lastRun {
                         LastRunDetailView(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
@@ -92,14 +92,13 @@ struct TodayView: View {
             await loaded.loadGarminReadiness(client: app.garminAccount.client)
             await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
-            if let sunday = WeeklyReportBuilder.nextSunday(after: .now) {
-                await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: loaded.currentWeekReport(trainer: app.trainer.activeWorkouts).notification, at: sunday)
-            }
+            await scheduleWeeklyReport()
             await loaded.refreshSentence()
         }
         .task(id: app.dataToken) {
             await app.trainer.load()
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan, garmin: app.garminAccount.client)
+            await scheduleWeeklyReport()
         }
         .task(id: app.mfitAccount.revision) {
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
@@ -113,6 +112,13 @@ struct TodayView: View {
     }
 
     private var trainerWorkouts: [TrainerWorkout] { app.trainer.activeWorkouts }
+
+    private func scheduleWeeklyReport() async {
+        guard let model, model.isLoaded, let sunday = WeeklyReportBuilder.nextSunday(after: .now) else { return }
+        let report = model.currentWeekReport(trainer: app.trainer.activeWorkouts)
+        let text = WeeklyReportBuilder.notification(report, strength: strength.weekSummary(start: report.start).map(StrengthText.reportNotification))
+        await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: text, at: sunday)
+    }
 
     @ViewBuilder
     private func cards(_ model: TodayModel) -> some View {

@@ -178,4 +178,12 @@ enum WeeklyReportBuilder {
     private static func km(_ value: Double) -> String {
         TodayText.decimal(value, fractionDigits: value.rounded() == value ? 0 : 1)
     }
+
+    static func notification(_ report: WeeklyReport, strength: String?) -> String {
+        guard let strength else { return report.notification }
+        guard let race = report.race else { return report.notification + " " + strength }
+        let raceText = String(format: C.raceFormat, race.name, race.days)
+        guard let range = report.notification.range(of: raceText, options: .backwards) else { return report.notification + " " + strength }
+        return report.notification.replacingCharacters(in: range, with: " " + strength + raceText)
+    }
 }

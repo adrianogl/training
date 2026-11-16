@@ -3,6 +3,7 @@ import TrainingCore
 
 struct WeeklyReportCard: View {
     let report: WeeklyReport
+    var strength: WeeklyStrengthSummary?
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     private typealias C = WeeklyReportConstants
@@ -20,9 +21,10 @@ struct WeeklyReportCard: View {
             } else {
                 progress
             }
-            WeeklyDaysRow(days: report.days, compact: !isWide)
+            WeeklyDaysRow(days: report.days, compact: !isWide, strength: strength?.titles ?? [:])
             if !isWide { metrics }
             tiles
+            if let strength { WeeklyStrengthBlock(summary: strength) }
             if !report.note.isEmpty {
                 Divider().overlay(BrandColors.line)
                 Text(report.note).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)

@@ -90,3 +90,19 @@ struct StrengthVolumeRow: Identifiable, Equatable {
     let group: MuscleGroup
     let weekly: [Double]
 }
+
+struct WeeklyStrengthRecord: Equatable {
+    let name: String
+    let top: Double
+    let gain: Double
+}
+
+struct WeeklyStrengthSummary: Equatable {
+    let done: Int
+    let planned: Int
+    let sets: Int
+    let groups: [StrengthGroupTotal]
+    let records: [WeeklyStrengthRecord]
+    let missed: [String]
+    let titles: [Day: String]
+}
