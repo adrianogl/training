@@ -77,10 +77,7 @@ struct RootView: View {
             }
             .safeAreaInset(edge: .bottom) { SidebarRaceCard() }
         } detail: {
-            screen(for: sidebarSelection ?? .today)
-        }
-        .onChange(of: sidebarSelection) { _, selection in
-            withAnimation { columnVisibility = Self.visibility(for: selection ?? .today) }
+            HStack(spacing: 0) { screen(for: sidebarSelection ?? .today) }
         }
     }
 
@@ -114,7 +111,6 @@ struct RootView: View {
         }
         let debugPath = Self.initialTodayPath()
         if !debugPath.isEmpty { todayPath = debugPath }
-        columnVisibility = Self.visibility(for: sidebarSelection ?? .today)
     }
 
     private func open(_ target: AppSection) {
@@ -127,10 +123,6 @@ struct RootView: View {
         } else {
             section = target
         }
-    }
-
-    private static func visibility(for section: AppSection) -> NavigationSplitViewVisibility {
-        AppConstants.sidebarCollapsedSections.contains(section) ? .detailOnly : .all
     }
 
     private static func initialTodayPath(defaults: UserDefaults = .standard) -> [TodayRoute] {
