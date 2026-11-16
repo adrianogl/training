@@ -40,6 +40,8 @@ enum StrengthText {
     static let off = "off"
     static let front = "frente"
     static let rest = "Descanso"
+    static let upcoming = "Próximos"
+    static let noUpcoming = "Nenhum treino de força nos próximos 14 dias."
     static let perWeekShort = "por semana · 12 sem"
     static let thisWeek = "nesta semana"
     static let plannedSets = "séries planejadas"
@@ -102,6 +104,10 @@ enum StrengthText {
 
     static func todaySubtitle(exercises: Int, sets: Int) -> String {
         "do seu professor · MFIT · \(countLabel(exercises: exercises, sets: sets))"
+    }
+
+    static func upcomingDay(_ iso: String) -> String {
+        Day(iso: iso).map(dayLabel) ?? iso
     }
 
     static func sessionLine(_ session: StrengthSession) -> String {

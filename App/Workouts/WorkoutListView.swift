@@ -1,4 +1,5 @@
 import GarminAPI
+import MFIT
 import Storage
 import SwiftData
 import SwiftUI
@@ -17,6 +18,8 @@ struct WorkoutListView: View {
     @State private var showsPlanned = false
     @State private var plannedWeeks: [Day: Double] = [:]
     @State private var kindFilter: WorkoutKindFilter = .all
+    @State private var strengthPlanned: [StrengthWorkout] = []
+    @State private var strengthDoneDays: Set<String> = []
 
     @State private var path: [WorkoutSelection] = []
     @State private var selection: WorkoutSelection?
@@ -34,10 +37,12 @@ struct WorkoutListView: View {
         let allWeeks = WorkoutListModel.weeks(records: records, plannedKilometers: plannedWeeks)
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
         let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
+        let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))
+        let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned, doneStrengthDays: doneDays, filter: kindFilter)
         Group {
             if sizeClass == .regular {
                 HStack(spacing: 0) {
-                    list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility)
+                    list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility, plannedItems: plannedItems)
                         .frame(width: WorkoutConstants.listWidth)
                     Divider().overlay(BrandColors.line)
                     NavigationStack {
@@ -53,7 +58,7 @@ struct WorkoutListView: View {
                 }
             } else {
                 NavigationStack(path: $path) {
-                    list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility)
+                    list(weeks, hasRuns: !allWeeks.isEmpty, visibility: visibility, plannedItems: plannedItems)
                         .navigationDestination(for: WorkoutSelection.self) { item in destination(item) }
                 }
             }
@@ -66,6 +71,15 @@ struct WorkoutListView: View {
         }
         .task(id: selection) {
             chatCounts = await WorkoutChatStore.shared.questionCounts()
+        }
+        .task(id: model.mfitAccount.revision) {
+            guard model.mfitAccount.isSignedIn else { strengthPlanned = []; strengthDoneDays = []; return }
+            let today = Day.today()
+            let store = StrengthProgramStore()
+            applyStrength(store.load(), today: today)
+            guard let client = model.mfitAccount.client,
+                  let fetched = try? await client.currentProgram(today: today.iso) as MFITProgram?? else { return }
+            applyStrength(fetched.map(store.update(with:)) ?? store.clearProgram(), today: today)
         }
         .task(id: model.garminAccount.isSignedIn) {
             #if DEBUG
@@ -92,6 +106,11 @@ struct WorkoutListView: View {
         guard !debugPath.isEmpty else { return }
         path = debugPath
         selection = debugPath.first
+    }
+
+    private func applyStrength(_ cache: StrengthProgramCache, today: Day) {
+        strengthPlanned = StrengthSchedule().workouts(cache.program, from: today, through: today.adding(days: WorkoutConstants.plannedDays))
+        strengthDoneDays = Set(cache.known.flatMap { $0.completions.map(\.day) })
     }
 
     private func updatePlannedWeeks() {
@@ -127,10 +146,12 @@ struct WorkoutListView: View {
             if let plan = planned.first(where: { $0.id == id }) {
                 PlannedWorkoutDetailView(plan: plan, week: planned)
             }
+        case .strength(let id):
+            StrengthPlannedDetailView(workoutId: id)
         }
     }
 
-    private func list(_ weeks: [WorkoutWeek], hasRuns: Bool, visibility: PlannedVisibility) -> some View {
+    private func list(_ weeks: [WorkoutWeek], hasRuns: Bool, visibility: PlannedVisibility, plannedItems: [WorkoutPlannedItem]) -> some View {
         let selected = current(weeks)
         let today = Day.today().iso
         return ScrollViewReader { proxy in
@@ -144,12 +165,12 @@ struct WorkoutListView: View {
                 if hasRuns {
                     WorkoutKindFilterBar(selection: $kindFilter)
                 }
-                if !visibility.visible.isEmpty {
+                if !plannedItems.isEmpty {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) { showsPlanned.toggle() }
                     } label: {
                         HStack(spacing: 6) {
-                            Text(String(format: WorkoutConstants.plannedHeaderFormat, WorkoutConstants.plannedTitle, visibility.visible.count))
+                            Text(String(format: WorkoutConstants.plannedHeaderFormat, WorkoutConstants.plannedTitle, plannedItems.count))
                                 .font(.caption)
                                 .foregroundStyle(BrandColors.dim)
                             Image(systemName: showsPlanned ? "chevron.up" : "chevron.down")
@@ -162,10 +183,8 @@ struct WorkoutListView: View {
                     .buttonStyle(.plain)
                     .padding(.top, 8)
                     if showsPlanned {
-                        ForEach(visibility.visible) { plan in
-                            link(.planned(plan.id)) {
-                                PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
-                            }
+                        ForEach(plannedItems) { item in
+                            plannedRow(item, today: today, selected: selected)
                         }
                     }
                 }
@@ -182,7 +201,7 @@ struct WorkoutListView: View {
                 }
                 ForEach(weeks) { week in
                     VStack(alignment: .leading, spacing: 10) {
-                        if week.id == weeks.first?.id && !visibility.visible.isEmpty && showsPlanned {
+                        if week.id == weeks.first?.id && !plannedItems.isEmpty && showsPlanned {
                             Text(WorkoutConstants.upcomingMarker)
                                 .font(.caption2)
                                 .foregroundStyle(BrandColors.dim)
@@ -218,8 +237,22 @@ struct WorkoutListView: View {
         }
         .onAppear { scrollToLatest(proxy) }
         .onChange(of: weeks.first?.id) { scrollToLatest(proxy) }
-        .onChange(of: visibility.visible.map(\.id)) { scrollToLatest(proxy) }
+        .onChange(of: plannedItems.map(\.id)) { scrollToLatest(proxy) }
         .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
+        }
+    }
+
+    @ViewBuilder
+    private func plannedRow(_ item: WorkoutPlannedItem, today: String, selected: WorkoutSelection?) -> some View {
+        switch item {
+        case .run(let plan):
+            link(.planned(plan.id)) {
+                PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
+            }
+        case .strength(let workout):
+            link(.strength(workout.id)) {
+                StrengthPlannedRow(workout: workout, isToday: workout.day == today, isSelected: selected == .strength(workout.id))
+            }
         }
     }
 

@@ -40,6 +40,26 @@ struct WorkoutWeek: Identifiable, Hashable {
 enum WorkoutSelection: Hashable, Codable {
     case activity(Int64)
     case planned(Int64)
+    case strength(Int64)
+}
+
+enum WorkoutPlannedItem: Identifiable {
+    case run(PlannedWorkout)
+    case strength(StrengthWorkout)
+
+    var id: String {
+        switch self {
+        case .run(let plan): "run-\(plan.id)"
+        case .strength(let workout): "strength-\(workout.id)-\(workout.day)"
+        }
+    }
+
+    var day: String {
+        switch self {
+        case .run(let plan): plan.day
+        case .strength(let workout): workout.day
+        }
+    }
 }
 
 struct PlannedVisibility: Equatable {

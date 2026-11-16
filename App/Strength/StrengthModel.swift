@@ -10,6 +10,7 @@ import TrainingCore
     var sessions: [StrengthSession] = []
     var program: MFITProgram?
     var weekWorkouts: [StrengthWorkout] = []
+    var upcoming: [StrengthWorkout] = []
     var weekDays: [StrengthDay] = []
     var warnings: [String] = []
     var isLoaded = false
@@ -116,6 +117,7 @@ import TrainingCore
         }
         let start = today().weekStart
         weekWorkouts = schedule.workouts(program, from: start, through: start.adding(days: 6))
+        upcoming = Array(schedule.workouts(program, from: today().adding(days: 1), through: today().adding(days: C.upcomingDays)).prefix(C.upcomingLimit))
         sessions = Self.sessions(records: Self.records(in: ModelContext(container)), known: Array(known.values))
         weekDays = Self.days(start: start, plan: plan, workouts: weekWorkouts)
         warnings = StrengthWeek.legWarnings(weekDays.map { day in
