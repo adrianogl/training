@@ -97,7 +97,7 @@ struct RaceListView: View {
                 }
                 HStack {
                     Text(RacesConstants.title)
-                        .font(.largeTitle.weight(.bold))
+                        .font(BrandFonts.largeTitle)
                         .foregroundStyle(BrandColors.text)
                     Spacer()
                     Button {

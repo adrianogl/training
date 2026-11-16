@@ -26,7 +26,7 @@ struct EvolutionView: View {
                         }
                         HStack(alignment: .firstTextBaseline) {
                             Text(EvolutionConstants.title)
-                                .font(.largeTitle.weight(.bold))
+                                .font(BrandFonts.largeTitle)
                                 .foregroundStyle(BrandColors.text)
                             if sizeClass == .regular, let model, model.isLoaded {
                                 Spacer()

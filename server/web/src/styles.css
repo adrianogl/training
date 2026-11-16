@@ -1,18 +1,18 @@
 :root {
-  --bg: #0b0d0a;
-  --panel: #11150d;
-  --card: #15181a;
-  --card-2: #1b1f22;
-  --line: #262a2e;
-  --line-2: #2e3338;
-  --text: #f2f2f0;
+  --bg: #0d1014;
+  --panel: #141920;
+  --card: #181e26;
+  --card-2: #202833;
+  --line: #262e38;
+  --line-2: #323b46;
+  --text: #e8ecef;
   --text-2: #c9cdd1;
-  --dim: #9ea3a8;
+  --dim: #8a949f;
   --accent: #c8f05a;
   --accent-hover: #e4ff1a;
-  --accent-bg: #1c2116;
+  --accent-bg: #1a2410;
   --accent-line: #4a5e1e;
-  --on-accent: #0b0d0a;
+  --on-accent: #0d1014;
   --danger: #ff8a80;
   --danger-line: #5a2a2a;
   --radius: 12px;
@@ -74,6 +74,8 @@ h2 {
 }
 
 .logo-word {
+  font-family: Archivo, Inter, system-ui, sans-serif;
+  font-stretch: 118%;
   font-weight: 800;
   letter-spacing: 3px;
   font-size: 16px;
@@ -550,7 +552,7 @@ h2 {
 .btn-whatsapp {
   border: 0;
   background: #25d366;
-  color: #0b0d0a;
+  color: #0d1014;
   font-weight: 700;
 }
 

@@ -1,15 +1,15 @@
 import SwiftUI
 
 enum BrandColors {
-    static let background = Color(light: 0xF3F4F0, dark: 0x07080A)
-    static let sidebar = Color(light: 0xEAECE6, dark: 0x0B0D10)
-    static let card = Color(light: 0xFFFFFF, dark: 0xFFFFFF, lightOpacity: 1, darkOpacity: 0.05)
+    static let background = Color(light: 0xF3F4F0, dark: 0x0D1014)
+    static let sidebar = Color(light: 0xEAECE6, dark: 0x141920)
+    static let card = Color(light: 0xFFFFFF, dark: 0x181E26)
     static let cardBorder = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.08, darkOpacity: 0.10)
     static let accent = Color(light: 0x4E6A00, dark: 0xC8F05A)
     static let accentFill = Color(light: 0x9CC421, dark: 0xC8F05A)
-    static let onAccent = Color(light: 0x0B0D10, dark: 0x0B0D10)
-    static let text = Color(light: 0x14181C, dark: 0xEDEFF2)
-    static let dim = Color(light: 0x5C636C, dark: 0x8A9099)
+    static let onAccent = Color(light: 0x0D1014, dark: 0x0D1014)
+    static let text = Color(light: 0x14181C, dark: 0xE8ECEF)
+    static let dim = Color(light: 0x5C636C, dark: 0x8A949F)
     static let line = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.09, darkOpacity: 0.10)
     static let iconBase = Color(hex: 0x0B0E12)
     static let iconAccent = Color(hex: 0xC8F05A)

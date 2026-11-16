@@ -31,7 +31,7 @@ struct Logo: View {
     private var wordmark: some View {
         let highlight = Text(BrandConstants.logoHighlight).foregroundStyle(BrandColors.accent)
         return Text("\(BrandConstants.logoPrefix)\(highlight)\(BrandConstants.logoSuffix)")
-            .font(.system(size: fontSize, weight: .heavy))
+            .font(BrandFonts.display(fontSize))
             .tracking(fontSize * BrandConstants.logoTracking / BrandConstants.logoFontSize)
             .foregroundStyle(BrandColors.text)
     }

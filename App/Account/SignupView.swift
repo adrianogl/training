@@ -14,7 +14,7 @@ struct SignupView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(C.signupTitle).font(.largeTitle.bold()).foregroundStyle(BrandColors.text)
+                Text(C.signupTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 Text(C.signupSubtitle).foregroundStyle(BrandColors.dim)
                 if model.legacyKey?() != nil {
                     Text(C.legacyNote).font(.footnote).foregroundStyle(BrandColors.accent)

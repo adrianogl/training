@@ -10,7 +10,7 @@ struct TrainerChangesView: View {
         let current = versions.first { $0.number == selected } ?? versions.first
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(TrainerText.changesTitle).font(.largeTitle.weight(.bold)).foregroundStyle(BrandColors.text)
+                Text(TrainerText.changesTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 if let current {
                     TrainerVersionCard(version: current)
                 }

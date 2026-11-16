@@ -14,11 +14,11 @@ struct ForgotPasswordView: View {
                 Image(systemName: "envelope.badge")
                     .font(.system(size: 44))
                     .foregroundStyle(BrandColors.accent)
-                Text(C.forgotSentTitle).font(.largeTitle.bold()).foregroundStyle(BrandColors.text)
+                Text(C.forgotSentTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 Text(C.forgotSentText).foregroundStyle(BrandColors.dim)
             } else {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(C.forgotTitle).font(.largeTitle.bold()).foregroundStyle(BrandColors.text)
+                    Text(C.forgotTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                     Text(C.forgotSubtitle).foregroundStyle(BrandColors.dim)
                 }
                 AccountField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
