@@ -81,6 +81,12 @@ enum WorkoutListModel {
         return PlannedVisibility(visible: visible.sorted { $0.day > $1.day }, fromPlanIds: fromPlan)
     }
 
+    static func plannedItems(runs: [PlannedWorkout], strength: [StrengthWorkout], doneStrengthDays: Set<String>, filter: WorkoutKindFilter) -> [WorkoutPlannedItem] {
+        let runItems = filter == .strength ? [] : runs.map(WorkoutPlannedItem.run)
+        let strengthItems = filter == .run ? [] : strength.filter { !doneStrengthDays.contains($0.day) }.map(WorkoutPlannedItem.strength)
+        return (runItems + strengthItems).sorted { $0.day == $1.day ? $0.id < $1.id : $0.day > $1.day }
+    }
+
     static func weekLabel(_ start: Day) -> String {
         let end = start.adding(days: 6)
         let formatter = DateFormatter()

@@ -80,3 +80,23 @@ import TrainingCore
         #expect(StrengthText.programLabel("Treino 7", start: Day(iso: "2026-11-13"), end: Day(iso: "2026-12-18")) == "Treino 7 · 13/11 a 18/12")
     }
 }
+
+@MainActor
+@Suite struct StrengthPlannedItemsTests {
+    private let run = PlannedWorkout(id: 1, day: "2026-11-17", title: "Limiar", estimatedSeconds: nil, estimatedMeters: 10_000, steps: [])
+    private func strength(_ id: Int64, _ day: String) -> StrengthWorkout {
+        StrengthWorkout(id: id, day: day, title: "Treino \(id)", blocks: [])
+    }
+
+    @Test func mixesRunsAndStrengthAndRespectsFilter() {
+        let items = WorkoutListModel.plannedItems(runs: [run], strength: [strength(10, "2026-11-16"), strength(11, "2026-11-18")], doneStrengthDays: ["2026-11-16"], filter: .all)
+        #expect(items.map(\.day) == ["2026-11-18", "2026-11-17"])
+        #expect(WorkoutListModel.plannedItems(runs: [run], strength: [strength(11, "2026-11-18")], doneStrengthDays: [], filter: .strength).map(\.id) == ["strength-11-2026-11-18"])
+        #expect(WorkoutListModel.plannedItems(runs: [run], strength: [strength(11, "2026-11-18")], doneStrengthDays: [], filter: .run).map(\.id) == ["run-1"])
+    }
+
+    @Test func strengthSelectionSurvivesRestoration() {
+        let selection: WorkoutSelection? = NavigationRestoration.decodeValue(NavigationRestoration.encode(WorkoutSelection.strength(5)))
+        #expect(selection == .strength(5))
+    }
+}

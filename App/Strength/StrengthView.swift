@@ -34,6 +34,8 @@ struct StrengthView: View {
                         StrengthTodayCard(model: model)
                         SectionLabel(StrengthText.week)
                         StrengthWeekCard(model: model)
+                        SectionLabel(StrengthText.upcoming)
+                        StrengthUpcomingCard(model: model)
                         SectionLabel(StrengthText.weekMuscles)
                         StrengthMusclesCard(model: model)
                         SectionLabel(StrengthText.history)
@@ -74,7 +76,11 @@ struct StrengthView: View {
         VStack(spacing: C.wideColumnSpacing) {
             HStack(alignment: .top, spacing: C.wideColumnSpacing) {
                 StrengthTodayWideCard(model: model)
-                StrengthWeekListCard(model: model).frame(width: sideWidth)
+                VStack(spacing: C.wideColumnSpacing) {
+                    StrengthWeekListCard(model: model)
+                    StrengthUpcomingCard(model: model, showsHeader: true)
+                }
+                .frame(width: sideWidth)
             }
             HStack(alignment: .top, spacing: C.wideColumnSpacing) {
                 StrengthMusclesWideCard(model: model)
