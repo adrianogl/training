@@ -13,7 +13,7 @@ struct IntroView: View {
         ZStack {
             BrandBackground()
             VStack(spacing: C.introSpacing) {
-                AIIcon(size: C.introIconSize)
+                BrandIcon(size: C.introIconSize)
                     .scaleEffect(showsIcon ? 1 : C.introIconStartScale)
                     .opacity(showsIcon ? 1 : 0)
                 PulseLine()

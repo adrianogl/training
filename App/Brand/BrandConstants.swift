@@ -10,7 +10,6 @@ enum BrandConstants {
     static let taglineFontSize: CGFloat = 12
     static let logoIconSize: CGFloat = 40
     static let iconCornerRatio: CGFloat = 0.26
-    static let iconFontRatio: CGFloat = 0.41
     static let iconGlowOpacity = 0.35
     static let iconGlowRadius: CGFloat = 14
     static let cardCornerRadius: CGFloat = 18

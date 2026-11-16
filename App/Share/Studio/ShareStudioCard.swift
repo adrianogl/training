@@ -92,7 +92,7 @@ struct ShareStudioCard: View {
             HStack {
                 if settings.fields.contains(.title) { title(color: BrandColors.text) }
                 Spacer(minLength: 0)
-                AIIcon(size: 28)
+                BrandIcon(size: 28)
             }
             ShareTrackView(track: track, coloring: settings.coloring, zoneFloors: source.zoneFloors, progress: progress, lineWidth: 7)
                 .frame(maxHeight: .infinity)
