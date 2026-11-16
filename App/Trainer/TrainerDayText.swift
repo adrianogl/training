@@ -18,7 +18,7 @@ extension TrainerText {
         )
     }
 
-    private static func dayName(_ workout: TrainerWorkout) -> String {
+    static func dayName(_ workout: TrainerWorkout) -> String {
         switch workout.kind {
         case .easy where workout.variant == .mediumLong: mediumLongName
         case .optionalEasy where workout.variant == .fartlek: fartlekName
