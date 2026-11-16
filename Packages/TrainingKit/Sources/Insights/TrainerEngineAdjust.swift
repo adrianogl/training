@@ -64,7 +64,7 @@ extension TrainerEngine {
             offset: keptWeeks.count,
             startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: source.lightWeeks,
             longMode: source.longMode, longStage: source.longStage, paceOverrides: source.paceOverrides,
-            earlyLightWeeks: source.earlyLightWeeks
+            earlyLightWeeks: source.earlyLightWeeks, calmWeeks: source.calmWeeks
         )
         let protected = protectingEdited(
             existing: plan.workouts, generated: fresh.workouts, history: history, keepDone: true, notify: notify
@@ -172,7 +172,7 @@ extension TrainerEngine {
         case .early(let kind):
             if let nextStart { working.earlyLightWeeks[nextStart] = kind }
         case .calm:
-            adjustment.volumeScale = C.signalCalmScale
+            if let nextStart, !working.calmWeeks.contains(nextStart) { working.calmWeeks.append(nextStart) }
         case nil:
             break
         }
@@ -182,7 +182,8 @@ extension TrainerEngine {
         let context = skeletonContext(
             target: plan.target, datedWeeks: plan.target.date == nil ? nil : plan.weeks.count,
             openTotal: max(plan.weeks.count, rebuildFrom + C.openHorizonWeeks - 1),
-            peakVolume: volumes.peak, lightWeeks: plan.lightWeeks, earlyLightWeeks: working.earlyLightWeeks
+            peakVolume: volumes.peak, lightWeeks: plan.lightWeeks, earlyLightWeeks: working.earlyLightWeeks,
+            calmWeeks: working.calmWeeks
         )
         let firstStart = plan.weeks.first { $0.index == rebuildFrom }?.start ?? kept.last?.start.adding(days: C.daysPerWeek) ?? today.weekStart
         let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: volumes.start)
@@ -194,12 +195,7 @@ extension TrainerEngine {
         ).dropFirst(kept.count))
         if let cap = adjustment.longCap, !waved.isEmpty { waved[0].longMeters = min(waved[0].longMeters, cap) }
         let rebuilt = longestLongs(waved, structure: plan.structure, target: plan.target, history: history, today: today, paces: paces)
-        let skeleton = labeledVo2(kept + rebuilt, from: rebuildFrom).map { week in
-            guard decision == .calm, week.index == rebuildFrom else { return week }
-            var calm = week
-            calm.calm = true
-            return calm
-        }
+        let skeleton = labeledVo2(kept + rebuilt, from: rebuildFrom)
 
         let active = activeRequests(of: plan, today: today)
         let requests = active + (request.map { shapesDetail($0.category) ? [$0] : [] } ?? [])

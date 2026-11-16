@@ -3,6 +3,10 @@ import TrainingCore
 
 private typealias C = TrainerEngineConstants
 
+extension TrainerWeek {
+    var skeletonMeters: Double { baseMeters ?? targetMeters }
+}
+
 extension TrainerEngine {
     static func signalDecision(plan: TrainerPlan, closed: TrainerWeek, signals: [TrainerSignal]) -> TrainerSignalDecision? {
         guard let next = plan.weeks.first(where: { $0.index == closed.index + 1 }), !next.isRecovery, next.phase != .taper

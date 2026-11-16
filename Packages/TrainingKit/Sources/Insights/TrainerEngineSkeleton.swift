@@ -32,19 +32,19 @@ extension TrainerEngine {
 
     static func skeletonContext(
         target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double, lightWeeks: [Day] = [],
-        earlyLightWeeks: [Day: TrainerLightKind] = [:]
+        earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = []
     ) -> TrainerSkeletonContext {
         let cap = longCap(for: target)
         guard let datedWeeks else {
             return TrainerSkeletonContext(
                 total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume, lightWeeks: lightWeeks,
-                earlyLightWeeks: earlyLightWeeks
+                earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks
             )
         }
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
         return TrainerSkeletonContext(
             total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume,
-            lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, generalWeeks: max(0, datedWeeks - blockWeeks(for: target))
+            lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks, generalWeeks: max(0, datedWeeks - blockWeeks(for: target))
         )
     }
 
@@ -89,7 +89,7 @@ extension TrainerEngine {
             level += 1
         }
         return TrainerSkeletonState(
-            volume: last.targetMeters, long: last.baseLongMeters ?? last.longMeters, stage: stage,
+            volume: last.skeletonMeters, long: last.baseLongMeters ?? last.longMeters, stage: stage,
             weeksAtStage: min(level, C.stagesAtLevel), started: true, returning: weeks.last?.isRecovery == true,
             lastRecovery: weeks.last { $0.isRecovery }?.index
         )
@@ -182,10 +182,14 @@ extension TrainerEngine {
                 if early == nil, let scale = adjustment.volumeScale { volume = roundKilometers(volume * scale) }
                 if let cap = adjustment.longCap { long = min(long, cap) }
             }
+            let calm = !recovery && phase != .taper && context.calmWeeks.contains(start)
+            let base = calm ? volume : nil
+            if calm { volume = roundKilometers(volume * C.signalCalmScale) }
             weeks.append(TrainerWeek(
                 index: index, start: start, phase: phase,
                 isRecovery: recovery, plannedMeters: volume, targetMeters: volume, longMeters: long,
-                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]), vo2Focus: "", lightKind: early
+                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]), vo2Focus: "", calm: calm, lightKind: early,
+                baseMeters: base
             ))
         }
         return weeks

@@ -211,7 +211,7 @@ extension TrainerEngine {
     static func sizedWeeks(_ weeks: [TrainerWeek], paces: TrainerPaces) -> [TrainerWeek] {
         weeks.map { week in
             var sized = week
-            sized.longMeters = sizedLong(week.longMeters, weekMeters: week.targetMeters, paces: paces)
+            sized.longMeters = sizedLong(week.longMeters, weekMeters: week.skeletonMeters, paces: paces)
             return sized
         }
     }

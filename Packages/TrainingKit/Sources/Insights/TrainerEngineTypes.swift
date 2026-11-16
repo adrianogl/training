@@ -22,6 +22,7 @@ struct TrainerSkeletonContext {
     var peakVolume: Double
     var lightWeeks: [Day] = []
     var earlyLightWeeks: [Day: TrainerLightKind] = [:]
+    var calmWeeks: [Day] = []
     var generalWeeks = 0
 }
 

@@ -93,7 +93,9 @@ import TrainingCore
         let next = adjusted.weeks[1]
         #expect(next.calm)
         #expect(!next.isRecovery)
-        #expect(next.targetMeters == rounded(week(1).targetMeters * 0.9))
+        #expect(next.targetMeters == rounded(plain(1).weeks[1].targetMeters * 0.9))
+        #expect(adjusted.weeks[2].targetMeters == plain(1).weeks[2].targetMeters)
+        #expect(adjusted.calmWeeks == [next.start])
         let generated = workouts(adjusted, week: 2)
         #expect(!generated.contains { $0.variant == .strides || $0.variant == .fartlek })
         let before = workouts(plain(1), week: 2)
@@ -105,8 +107,57 @@ import TrainingCore
         #expect(after.map(\.kind) == planned.map(\.kind))
         #expect(after.map(\.method) == planned.map(\.method))
         #expect(after.map(\.variant) == planned.map(\.variant))
-        #expect(after.first { $0.kind == .threshold }?.title == planned.first { $0.kind == .threshold }?.title)
+        #expect(after.map(\.title) == planned.map(\.title))
         #expect(adjusted.weeks[2].calm == false)
+    }
+
+    @Test func weekAfterTheCalmWeekKeepsThePlannedProgression() {
+        let adjusted = closing(1, [.sleep, .readiness])
+        let later = TrainerEngine.adjust(
+            adjusted, history: makeHistory(), today: week(3).start, now: now, trigger: .weekEnded(2)
+        )
+        let reference = TrainerEngine.adjust(
+            plain(1), history: makeHistory(), today: week(3).start, now: now, trigger: .weekEnded(2)
+        )
+        #expect(later.weeks[1].calm)
+        #expect(later.weeks[1].targetMeters == adjusted.weeks[1].targetMeters)
+        #expect(Array(later.weeks.dropFirst(2)) == Array(reference.weeks.dropFirst(2)))
+        #expect(later.weeks[2].targetMeters == plan.weeks[2].targetMeters)
+    }
+
+    @Test func recreatingThePlanKeepsTheCalmWeek() throws {
+        let adjusted = closing(1, [.sleep, .readiness])
+        let request = TrainerRequest(category: .other, text: "recriar", from: week(2).start)
+        let today = week(2).start
+        let recreated = TrainerEngine.adjust(adjusted, history: makeHistory(), today: today, now: now, trigger: .request(request))
+        let reference = TrainerEngine.adjust(plain(1), history: makeHistory(), today: today, now: now, trigger: .request(request))
+        let calm = recreated.weeks[1]
+        #expect(calm.calm)
+        #expect(calm.targetMeters == rounded(reference.weeks[1].targetMeters * 0.9))
+        #expect(recreated.weeks[2].targetMeters == reference.weeks[2].targetMeters)
+        let generated = workouts(recreated, week: 2)
+        #expect(!generated.contains { $0.variant == .strides || $0.variant == .fartlek })
+        #expect(workouts(reference, week: 2).contains { $0.variant == .strides })
+    }
+
+    @Test func calmWeekAfterGeneralWeeksIsReduced() {
+        let far = TrainerTarget(
+            kind: .race, name: "Meia", date: monday.adding(days: 25 * 7 + 5), distanceMeters: 21_097.5, goalSeconds: 5_700
+        )
+        let general = TrainerEngine.create(
+            target: far, structure: TrainerEngine.defaultStructure, strength: [], history: makeHistory(),
+            today: monday, now: now, startMeters: 60_000, peakMeters: 80_000
+        )
+        #expect(general.weeks[0].phase == .general && general.weeks[1].phase == .general)
+        let closed = general.weeks[0]
+        let today = closed.start.adding(days: 7)
+        let calm = TrainerEngine.adjust(
+            general, history: signalHistory(closed, [.sleep, .readiness]), today: today, now: now, trigger: .weekEnded(1)
+        )
+        let reference = TrainerEngine.adjust(general, history: makeHistory(), today: today, now: now, trigger: .weekEnded(1))
+        #expect(calm.weeks[1].calm)
+        #expect(calm.weeks[1].targetMeters == rounded(reference.weeks[1].targetMeters * 0.9))
+        #expect(calm.weeks[2].targetMeters == reference.weeks[2].targetMeters)
     }
 
     @Test func twoSignalsExplainTheLighterWeek() throws {
@@ -188,7 +239,8 @@ import TrainingCore
         #expect(!next.isRecovery)
         #expect(next.lightKind == nil)
         #expect(next.calm)
-        #expect(next.targetMeters == rounded(week(5).targetMeters * 0.9))
+        #expect(next.targetMeters == rounded(plain(5).weeks[5].targetMeters * 0.9))
+        #expect(adjusted.weeks[6].targetMeters == plain(5).weeks[6].targetMeters)
         #expect(adjusted.earlyLightWeeks.isEmpty)
         #expect(adjusted.versions.last?.summary.hasPrefix("Semana mais leve: HRV e FC de repouso fora do seu normal.") == true)
     }
@@ -199,7 +251,7 @@ import TrainingCore
         let next = adjusted.weeks[10]
         #expect(!next.isRecovery)
         #expect(next.calm)
-        #expect(next.targetMeters == rounded(week(10).targetMeters * 0.9))
+        #expect(next.targetMeters == rounded(plain(10).weeks[10].targetMeters * 0.9))
         #expect(adjusted.earlyLightWeeks.isEmpty)
     }
 
@@ -237,14 +289,17 @@ import TrainingCore
         let data = try JSONEncoder().encode(plan)
         var object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         object.removeValue(forKey: "earlyLightWeeks")
+        object.removeValue(forKey: "calmWeeks")
         var weeks = try #require(object["weeks"] as? [[String: Any]])
         for index in weeks.indices {
             weeks[index].removeValue(forKey: "calm")
             weeks[index].removeValue(forKey: "lightKind")
+            weeks[index].removeValue(forKey: "baseMeters")
         }
         object["weeks"] = weeks
         let decoded = try JSONDecoder().decode(TrainerPlan.self, from: JSONSerialization.data(withJSONObject: object))
         #expect(decoded.earlyLightWeeks.isEmpty)
+        #expect(decoded.calmWeeks.isEmpty)
         #expect(decoded.weeks.allSatisfy { !$0.calm && $0.lightKind == nil })
         #expect(decoded == plan)
     }
@@ -257,6 +312,9 @@ import TrainingCore
         let decoded = try JSONDecoder().decode(TrainerPlan.self, from: data)
         #expect(decoded == adjusted)
         let calm = closing(1, [.sleep, .readiness])
-        #expect(try JSONDecoder().decode(TrainerPlan.self, from: JSONEncoder().encode(calm)).weeks[1].calm)
+        let decodedCalm = try JSONDecoder().decode(TrainerPlan.self, from: JSONEncoder().encode(calm))
+        #expect(decodedCalm == calm)
+        #expect(decodedCalm.weeks[1].calm)
+        #expect(decodedCalm.calmWeeks == [week(2).start])
     }
 }

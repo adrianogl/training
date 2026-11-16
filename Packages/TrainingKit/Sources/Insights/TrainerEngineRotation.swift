@@ -161,7 +161,7 @@ extension TrainerEngine {
         let easyDays = Double(kinds.filter { $0 == .easy }.count)
         let optionalDays = Double(kinds.filter { $0 == .optionalEasy }.count)
         let optional = isFartlekWeek(week, weeks: weeks) ? max(fartlekMinimumMeters(), easyMinimum(paces: paces)) : easyMinimum(paces: paces)
-        return week.targetMeters - quality - easyDays * easyMinimum(paces: paces) - optionalDays * optional
+        return week.skeletonMeters - quality - easyDays * easyMinimum(paces: paces) - optionalDays * optional
     }
 
     static func wavedLongs(
@@ -174,11 +174,11 @@ extension TrainerEngine {
         func room(_ week: TrainerWeek) -> Double {
             floorKilometers(longRoom(week: week, weeks: weeks, structure: structure, target: target, paces: paces))
         }
-        func floored(_ week: TrainerWeek) -> Bool { week.targetMeters >= C.longFloorWeekMeters }
+        func floored(_ week: TrainerWeek) -> Bool { week.skeletonMeters >= C.longFloorWeekMeters }
         func longest(_ week: TrainerWeek) -> (wave: Double, room: Double) {
             let wave = min(max(week.longMeters, min(
                 roundKilometers(week.longMeters * C.longestGrowth), roundKilometers(longCap(for: target) * C.longestOverRaceCap),
-                floorKilometers(week.targetMeters * C.longestWeekShare), timeCap
+                floorKilometers(week.skeletonMeters * C.longestWeekShare), timeCap
             )), C.longCeilingMeters)
             return (wave, min(max(week.longMeters, min(wave, room(week))), C.longCeilingMeters))
         }

@@ -520,6 +520,7 @@ export interface TrainerWeek {
   longMeters: number
   calm?: boolean
   lightKind?: TrainerLightKind
+  baseMeters?: number
 }
 
 export interface TrainerTarget {
@@ -574,6 +575,7 @@ export interface TrainerPlan {
   strength: TrainerStrength[]
   lightWeeks: string[]
   earlyLightWeeks?: Record<string, TrainerLightKind>
+  calmWeeks?: string[]
   endedOn?: string
   longMode: 'continuous' | 'blocks'
   longStage: number
