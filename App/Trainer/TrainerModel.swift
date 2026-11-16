@@ -61,6 +61,15 @@ import TrainingCore
 
     private var isActive: Bool { plan?.endedOn == nil }
 
+    var hasActivePlan: Bool { plan != nil && isActive }
+
+    var activeWorkouts: [TrainerWorkout] {
+        guard let plan else { return [] }
+        if let endedOn = plan.endedOn { return plan.workouts.filter { $0.day <= endedOn } }
+        if let date = plan.target.date, currentDay > date { return plan.workouts.filter { $0.day <= date } }
+        return plan.workouts
+    }
+
     func todayRow(for day: Day) -> TrainerDayRow? {
         guard isActive else { return nil }
         return row(for: day.iso)
