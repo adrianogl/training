@@ -108,3 +108,12 @@ private func fixture(_ name: String) throws -> Data {
         }
     }
 }
+
+@Suite struct MFITProgramsTests {
+    @Test func reportsWhetherTeacherHasPrograms() async throws {
+        let empty = FixtureTransport(routes: ["/v2/client/workout/all": (200, Data("[]".utf8))])
+        #expect(try await MFITClient(token: "t", transport: empty).hasPrograms() == false)
+        let full = FixtureTransport(routes: ["/v2/client/workout/all": (200, try fixture("all"))])
+        #expect(try await MFITClient(token: "t", transport: full).hasPrograms() == true)
+    }
+}

@@ -9,7 +9,6 @@ import Observation
     private(set) var isSignedIn: Bool
     private(set) var isWorking = false
     private(set) var message: String?
-    private(set) var teachers: [MFITTeacher] = []
     private(set) var revision = 0
     @ObservationIgnored private let store: any APIKeyStore
     @ObservationIgnored private let makeTransport: @Sendable () -> any HTTPTransport
@@ -33,8 +32,8 @@ import Observation
             let token = try await MFITClient.signIn(email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, transport: makeTransport())
             try store.save(token)
             isSignedIn = true
+            await adoptTeacherWithProgram()
             revision += 1
-            await loadTeachers()
         } catch MFITError.invalidLogin(let text) {
             message = text ?? C.invalidCredentials
         } catch {
@@ -42,28 +41,20 @@ import Observation
         }
     }
 
-    func loadTeachers() async {
-        guard let client else { teachers = []; return }
-        teachers = (try? await client.teachers()) ?? teachers
-    }
-
-    func select(_ teacher: Int64) async {
-        guard let client else { return }
-        isWorking = true
-        defer { isWorking = false }
-        do {
-            try store.save(try await client.switchTeacher(teacher))
-            message = nil
-            revision += 1
-        } catch {
-            message = C.switchFailed
+    func adoptTeacherWithProgram() async {
+        guard let client, (try? await client.hasPrograms()) == false else { return }
+        for teacher in (try? await client.teachers()) ?? [] {
+            guard let token = try? await client.switchTeacher(teacher.id) else { continue }
+            let candidate = MFITClient(token: token, transport: makeTransport())
+            guard (try? await candidate.hasPrograms()) == true else { continue }
+            try? store.save(token)
+            return
         }
     }
 
     func signOut() {
         try? store.delete()
         isSignedIn = false
-        teachers = []
         message = nil
         revision += 1
     }
