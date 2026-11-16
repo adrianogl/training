@@ -16,6 +16,7 @@ struct RaceListView: View {
     @State private var openedDebugRace = false
     @Environment(\.horizontalSizeClass) private var sizeClass
 
+    var embedded = false
     @State private var path: [RaceRoute] = []
     @State private var selection: RaceRoute?
     @State private var appliedRestoration = false
@@ -57,6 +58,10 @@ struct RaceListView: View {
                         }
                     }
                 }
+            } else if embedded {
+                listScroll
+                    .navigationDestination(for: RaceRoute.self) { route in destination(route) }
+                    .navigationDestination(for: Int64.self) { activityId in WorkoutDetailView(activityId: activityId) }
             } else {
                 NavigationStack(path: $path) {
                     listScroll

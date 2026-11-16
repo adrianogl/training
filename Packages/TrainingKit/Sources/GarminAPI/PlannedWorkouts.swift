@@ -22,11 +22,7 @@ public enum PlannedWorkouts {
         for day in [first, last] where !months.contains(where: { $0 == (day.year, day.month) }) {
             months.append((day.year, day.month))
         }
-        var items: [CalendarDTO.Item] = []
-        for (year, month) in months {
-            let path = String(format: GarminAccountEndpoints.calendarPathFormat, year, month - 1)
-            items += try JSONDecoder().decode(CalendarDTO.self, from: try await client.get(path)).calendarItems
-        }
+        let items = try await calendarItems(client: client, months: months)
         let runs = runItems(items, from: first, through: last).compactMap { item in
             item.workoutId.flatMap { id in item.date.map { (id: id, day: $0, title: item.title) } }
         }
@@ -43,10 +39,23 @@ public enum PlannedWorkouts {
         }
     }
 
+    static func calendarItems(client: GarminAccountClient, months: [(Int, Int)]) async throws -> [CalendarDTO.Item] {
+        var items: [CalendarDTO.Item] = []
+        for (year, month) in months {
+            let path = String(format: GarminAccountEndpoints.calendarPathFormat, year, month - 1)
+            items += try JSONDecoder().decode(CalendarDTO.self, from: try await client.get(path)).calendarItems
+        }
+        return items
+    }
+
     static func runItems(_ items: [CalendarDTO.Item], from first: Day, through last: Day) -> [CalendarDTO.Item] {
+        workoutItems(items, sport: runSport, from: first, through: last)
+    }
+
+    static func workoutItems(_ items: [CalendarDTO.Item], sport: String, from first: Day, through last: Day) -> [CalendarDTO.Item] {
         var seen = Set<Int64>()
         return items.filter { item in
-            guard item.itemType == workoutItem, item.sportTypeKey == runSport,
+            guard item.itemType == workoutItem, item.sportTypeKey == sport,
                   let iso = item.date, let day = Day(iso: iso), first <= day, day <= last,
                   let id = item.workoutId, !seen.contains(id)
             else { return false }

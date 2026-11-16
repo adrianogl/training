@@ -92,4 +92,7 @@ final class StepDTO: Decodable {
     let zoneNumber: Int?
     let numberOfIterations: Int?
     let workoutSteps: [StepDTO]?
+    let description: String?
+    let category: String?
+    let exerciseName: String?
 }

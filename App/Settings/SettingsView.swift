@@ -118,6 +118,7 @@ struct SettingsView: View {
         case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
         case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
         case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
+        case .licenses: LicensesConstants.summary
         }
     }
 
@@ -143,6 +144,8 @@ struct SettingsView: View {
                 workoutNoticeSection
             case .appearance:
                 appearanceSection
+            case .licenses:
+                LicensesSection()
             case .data:
                 dataSection
                 if let storeError = model.storeError {

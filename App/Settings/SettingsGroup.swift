@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
-    case account, garmin, strava, watch, devices, notice, appearance, data
+    case account, garmin, strava, watch, devices, notice, appearance, data, licenses
 
     var id: String { rawValue }
 
@@ -9,7 +9,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         switch self {
         case .account, .garmin, .strava, .watch, .devices: .connections
         case .notice: .notices
-        case .appearance, .data: .app
+        case .appearance, .data, .licenses: .app
         }
     }
 
@@ -23,6 +23,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         case .notice: "Avisos"
         case .appearance: "Aparência"
         case .data: "Dados locais"
+        case .licenses: "Licenças"
         }
     }
 
@@ -36,6 +37,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         case .notice: "bell.fill"
         case .appearance: "circle.lefthalf.filled"
         case .data: "internaldrive.fill"
+        case .licenses: "doc.text.fill"
         }
     }
 
@@ -49,6 +51,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         case .notice: Color(hex: 0xE0682B)
         case .appearance: Color(hex: 0x5C636C)
         case .data: Color(hex: 0x8A9099)
+        case .licenses: Color(hex: 0x3A4350)
         }
     }
 }

@@ -68,7 +68,7 @@ import TrainingCore
         #expect(SettingsSection.allCases.map(\.title) == ["Conta e conexões", "Avisos", "App"])
         #expect(SettingsSection.connections.groups == [.account, .garmin, .strava, .watch, .devices])
         #expect(SettingsSection.notices.groups == [.notice])
-        #expect(SettingsSection.app.groups == [.appearance, .data])
+        #expect(SettingsSection.app.groups == [.appearance, .data, .licenses])
         #expect(SettingsGroup(rawValue: "goals") == nil)
     }
 }
