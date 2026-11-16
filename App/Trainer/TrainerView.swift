@@ -159,7 +159,7 @@ struct TrainerView: View {
             HStack(spacing: 8) {
                 Text("⟳").foregroundStyle(BrandColors.accent)
                 (Text(TrainerText.updatedBanner).fontWeight(.bold).foregroundStyle(BrandColors.accent)
-                    + Text(" \(TrainerText.triggerText(version.trigger))").foregroundStyle(BrandColors.text))
+                    + Text(" \(TrainerText.triggerText(version))").foregroundStyle(BrandColors.text))
                     .font(.footnote)
                 Spacer(minLength: 6)
                 Text(TrainerText.updatedAction).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)

@@ -16,7 +16,13 @@ extension TrainerEngine {
         case .lightWeek(let day):
             guard day >= today.weekStart, plan.weeks.contains(where: { $0.start == day }) else { return plan }
             var toggled = plan
-            if let at = toggled.lightWeeks.firstIndex(of: day) { toggled.lightWeeks.remove(at: at) } else { toggled.lightWeeks.append(day) }
+            if toggled.earlyLightWeeks[day] != nil {
+                toggled.earlyLightWeeks[day] = nil
+            } else if let at = toggled.lightWeeks.firstIndex(of: day) {
+                toggled.lightWeeks.remove(at: at)
+            } else {
+                toggled.lightWeeks.append(day)
+            }
             return adjustSkeleton(toggled, history: history, today: today, now: now, trigger: trigger)
         case .edited(let edit):
             return edit.days.isEmpty ? applyEdit(plan, edit: edit, history: history, today: today, now: now) : plan
@@ -63,7 +69,9 @@ extension TrainerEngine {
             target: source.target, structure: source.structure, strength: source.strength, history: history, today: today,
             offset: keptWeeks.count,
             startMeters: volumes.start, peakMeters: volumes.peak, lightWeeks: source.lightWeeks,
-            longMode: source.longMode, longStage: source.longStage, paceOverrides: source.paceOverrides
+            longMode: source.longMode, longStage: source.longStage, paceOverrides: source.paceOverrides,
+            earlyLightWeeks: source.earlyLightWeeks, calmWeeks: source.calmWeeks,
+            lastRecovery: keptWeeks.last { $0.isRecovery }?.index
         )
         let protected = protectingEdited(
             existing: plan.workouts, generated: fresh.workouts, history: history, keepDone: true, notify: notify
@@ -119,6 +127,7 @@ extension TrainerEngine {
         var request: TrainerRequest?
         var checkedDay: Day?
         var longScope: [TrainerWorkout] = []
+        var decision: TrainerSignalDecision?
         switch trigger {
         case .weekEnded(let index):
             guard let week = plan.weeks.first(where: { $0.index == index }) else { return plan }
@@ -127,6 +136,8 @@ extension TrainerEngine {
                 workouts: plan.workouts.filter { days.contains($0.day) }, plan: plan, history: history, today: today,
                 readinessDays: days, weekly: true
             )
+            found.signals = signals(plan: plan, history: history, week: week)
+            decision = signalDecision(plan: plan, closed: week, signals: found.signals)
             longScope = plan.workouts.filter { days.contains($0.day) }
             rebuildFrom = index + 1
             processed += history.runs.filter { days.contains($0.day) }.map(\.activityId)
@@ -163,13 +174,23 @@ extension TrainerEngine {
             adjustment.longCap = found.longReduced ? planned - C.longReduceMeters : planned
         }
         if found.lowReadiness { adjustment.volumeScale = C.readinessScale }
+        let nextStart = plan.weeks.first { $0.index == rebuildFrom }?.start
+        switch decision {
+        case .early(let kind):
+            if let nextStart { working.earlyLightWeeks[nextStart] = kind }
+        case .calm:
+            if let nextStart, !working.calmWeeks.contains(nextStart) { working.calmWeeks.append(nextStart) }
+        case nil:
+            break
+        }
 
         let kept = plan.weeks.filter { $0.index < rebuildFrom }
         let volumes = chosenVolumes(plan, history: history, today: today)
         let context = skeletonContext(
             target: plan.target, datedWeeks: plan.target.date == nil ? nil : plan.weeks.count,
             openTotal: max(plan.weeks.count, rebuildFrom + C.openHorizonWeeks - 1),
-            peakVolume: volumes.peak, lightWeeks: plan.lightWeeks
+            peakVolume: volumes.peak, lightWeeks: plan.lightWeeks, earlyLightWeeks: working.earlyLightWeeks,
+            calmWeeks: working.calmWeeks
         )
         let firstStart = plan.weeks.first { $0.index == rebuildFrom }?.start ?? kept.last?.start.adding(days: C.daysPerWeek) ?? today.weekStart
         let state = derivedState(from: kept) ?? initialState(history: history, today: today, longCap: context.longCap, volume: volumes.start)
@@ -246,9 +267,14 @@ extension TrainerEngine {
             sentences.append(text)
         }
         if found.lowReadiness {
-            let text = found.readiness.map { T.lowReadiness($0, weekly: isWeekEnded(trigger)) } ?? T.fatigueSummary
+            let text = found.readiness.map { T.lowReadiness($0) } ?? T.fatigueSummary
             reasons.volume = text
             sentences.append(text)
+        }
+        if let decision {
+            let text = T.signalWeek(found.signals, early: decision != .calm)
+            reasons.volume = text
+            sentences.insert(text, at: 0)
         }
         if let request, shapesDetail(request.category) || request.category == .fatigue {
             sentences = [T.requestSummary(request, until: end(of: request))]
@@ -260,7 +286,7 @@ extension TrainerEngine {
 
         let oldWindow = plan.workouts.filter { $0.day >= today }
         var changes = groupingDistant(workoutChanges(old: oldWindow, new: window, reasons: reasons), today: today, weeks: weeks)
-        let held = adjustment.holdProgression || adjustment.volumeScale != nil
+        let held = adjustment.holdProgression || adjustment.volumeScale != nil || decision != nil
         if let change = skeletonChange(old: plan.weeks, new: weeks, reasons: reasons, held: held) { changes.insert(change, at: 0) }
         changes += closing.changes
         changes += protected.notices
@@ -280,11 +306,6 @@ extension TrainerEngine {
         return { day in
             day >= request.from && (!shapesDetail(request.category) || day <= end(of: request))
         }
-    }
-
-    private static func isWeekEnded(_ trigger: TrainerTrigger) -> Bool {
-        if case .weekEnded = trigger { return true }
-        return false
     }
 
     private static func weekEndedText(_ trigger: TrainerTrigger) -> String? {

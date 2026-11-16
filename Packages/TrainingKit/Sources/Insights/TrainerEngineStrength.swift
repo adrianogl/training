@@ -67,7 +67,7 @@ extension TrainerEngine {
                 let day = week.start.adding(days: weekday - 1)
                 guard let workout = workouts.first(where: { $0.day == day }) else {
                     return total + estimatedMeters(
-                        weekday: weekday, day: day, week: week, weeks: weeks, structure: weekStructure(structure, index: week.index),
+                        weekday: weekday, day: day, week: week, weeks: weeks, structure: weekStructure(structure, week: week),
                         target: target, history: history, today: today, paces: paces
                     )
                 }

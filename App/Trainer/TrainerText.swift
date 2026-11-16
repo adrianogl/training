@@ -15,6 +15,8 @@ enum TrainerText {
     static let askButton = "Pedir readequação"
     static let updatedBanner = "Plano atualizado"
     static let updatedAction = "ver o que mudou ›"
+    static let signalPrefixes = ["Semana mais leve: ", "Semana leve antecipada: "]
+    static let signalSuffix = "fora do seu normal."
     static let deleteMenu = "Apagar plano"
     static let deleteTitle = "Apagar o plano do treinador?"
     static let deleteConfirm = "Apagar plano"
@@ -561,6 +563,18 @@ enum TrainerText {
         case .readiness(_, let score): "prontidão \(score)"
         case .edited(let edit): edit.days.isEmpty ? "plano editado por você" : "treino editado por você"
         }
+    }
+
+    static func triggerText(_ version: TrainerVersion) -> String {
+        signalReason(version) ?? triggerText(version.trigger)
+    }
+
+    static func signalReason(_ version: TrainerVersion) -> String? {
+        guard case .weekEnded = version.trigger,
+              signalPrefixes.contains(where: version.summary.hasPrefix),
+              let end = version.summary.range(of: signalSuffix)
+        else { return nil }
+        return String(version.summary[..<end.upperBound])
     }
 
     static func versionTitle(_ version: TrainerVersion) -> String {

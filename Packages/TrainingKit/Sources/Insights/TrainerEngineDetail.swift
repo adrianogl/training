@@ -80,7 +80,7 @@ extension TrainerEngine {
 
     static func goalPaceSession(step: Int, week: TrainerWeek, distance: Double) -> TrainerQualitySession {
         var block = goalPaceBlock(step: step, distance: distance)
-        let cap = week.targetMeters * C.goalPaceBlockShare
+        let cap = week.skeletonMeters * C.goalPaceBlockShare
         if block.repeats > 1 && Double(block.repeats) * block.meters > cap {
             block.repeats = max(1, Int(cap / block.meters))
         }
@@ -137,11 +137,11 @@ extension TrainerEngine {
             return goalPaceSession(step: goalStep ?? ordinal / C.goalPaceEvery, week: week, distance: target.distanceMeters ?? 0)
         }
         if kind == .vo2max {
-            return cappedQuality(vo2Session(week: week, weeks: weeks, lowered: lowered), weekMeters: week.targetMeters)
+            return cappedQuality(vo2Session(week: week, weeks: weeks, lowered: lowered), weekMeters: week.skeletonMeters)
         }
         if !lowered, let session = racePaceSession(week: week, weeks: weeks, target: target) { return session }
-        if !lowered, let session = rotatedThreshold(week: week, weeks: weeks) { return cappedQuality(session, weekMeters: week.targetMeters) }
-        return cappedQuality(thresholdSession(week: week, lowered: lowered), weekMeters: week.targetMeters)
+        if !lowered, let session = rotatedThreshold(week: week, weeks: weeks) { return cappedQuality(session, weekMeters: week.skeletonMeters) }
+        return cappedQuality(thresholdSession(week: week, lowered: lowered), weekMeters: week.skeletonMeters)
     }
 
     static func qualityMeters(_ session: TrainerQualitySession) -> Double {
@@ -346,7 +346,8 @@ extension TrainerEngine {
             let day = today.adding(days: offset)
             guard let week = weeks.first(where: { $0.start == day.weekStart }) else { continue }
             let weekday = week.start.days(until: day) + 1
-            let weekStructure = weekStructure(structure, index: week.index)
+            let plannedKinds = weekStructure(structure, index: week.index)
+            let weekStructure = weekStructure(structure, week: week)
             var kind = weekStructure[weekday] ?? .off
             let isRaceWeek = target.date.map { $0.weekStart == week.start } ?? false
             if isRaceWeek, let raceDay = target.date {
@@ -441,7 +442,8 @@ extension TrainerEngine {
                 let meters = easyMeters(weekday: weekday, share: share)
                 if weekday == share.mediumLongDay {
                     workout = mediumLongWorkout(day: day, meters: meters, week: week, paces: paces)
-                } else if weekday == share.firstDay && !week.isRecovery {
+                } else if week.lightKind == .training && C.qualityKinds.contains(plannedKinds[weekday] ?? .off)
+                    || weekday == share.firstDay && !week.isRecovery && !week.calm {
                     workout = stridesWorkout(day: day, meters: meters, paces: paces, rationale: T.easyRationale(share, meters: meters))
                 } else {
                     workout = easyWorkout(day: day, meters: meters, paces: paces, rationale: T.easyRationale(share, meters: meters))

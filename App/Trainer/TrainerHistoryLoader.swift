@@ -12,7 +12,9 @@ enum TrainerHistoryLoader {
     nonisolated static func load(container: ModelContainer, today: Day, since: Day? = nil) -> TrainerHistory {
         let context = ModelContext(container)
         let lower = min(today.adding(days: -C.historyDays), since ?? today)
-        let runs = fetchRuns(context: context, from: lower, today: today)
+        let activities = fetchActivities(context: context, from: lower, today: today)
+        let runs = activities.filter { ActivityTypeKey.isRun($0.typeKey) }
+        let daily = dailyRecords(context: context, from: lower)
         let raceKms = ((try? context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))) ?? [])
             .map { $0.distance / 1_000 }
         let inputs = WorkoutAnalysisContext.inputs(records: runs, in: context)
@@ -22,19 +24,29 @@ enum TrainerHistoryLoader {
         }
         return TrainerHistory(
             runs: trainerRuns,
-            readiness: readiness(context: context, from: lower),
+            readiness: series(daily) { $0.readinessScore },
             predictions: predictions(context: context, today: today),
             strength: fetchStrength(context: context, today: today),
-            predictionSeries: predictionSeries(context: context, today: today, since: since)
+            predictionSeries: predictionSeries(context: context, today: today, since: since),
+            hrv: series(daily) { $0.hrvLastNight },
+            restingHeartRate: series(daily) { $0.restingHR },
+            sleepSeconds: series(daily) { $0.sleepSeconds },
+            dailyLoad: dailyLoad(activities)
         )
     }
 
-    private nonisolated static func fetchRuns(context: ModelContext, from first: Day, today: Day) -> [ActivityRecord] {
+    private nonisolated static func fetchActivities(context: ModelContext, from first: Day, today: Day) -> [ActivityRecord] {
         let lower = date(of: first)
         let upper = date(of: today.adding(days: 1))
         var descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= lower && $0.start < upper })
         descriptor.sortBy = [SortDescriptor(\.start)]
-        return ((try? context.fetch(descriptor)) ?? []).filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
+        return ((try? context.fetch(descriptor)) ?? []).filter(\.hasStart)
+    }
+
+    private nonisolated static func dailyLoad(_ activities: [ActivityRecord]) -> [Day: Double] {
+        activities.reduce(into: [:]) { result, record in
+            if let load = record.activityTrainingLoad { result[runDay(record), default: 0] += load }
+        }
     }
 
     private nonisolated static func fetchStrength(context: ModelContext, today: Day) -> [TrainerStrengthDone] {
@@ -88,11 +100,14 @@ enum TrainerHistoryLoader {
         )
     }
 
-    private nonisolated static func readiness(context: ModelContext, from first: Day) -> [Day: Int] {
+    private nonisolated static func dailyRecords(context: ModelContext, from first: Day) -> [DailyRecord] {
         let lower = first.iso
-        let descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.readinessScore != nil && $0.day >= lower })
-        return ((try? context.fetch(descriptor)) ?? []).reduce(into: [:]) { result, record in
-            if let score = record.readinessScore, let day = Day(iso: record.day) { result[day] = score }
+        return (try? context.fetch(FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day >= lower }))) ?? []
+    }
+
+    private nonisolated static func series<Value>(_ records: [DailyRecord], _ value: (DailyRecord) -> Value?) -> [Day: Value] {
+        records.reduce(into: [:]) { result, record in
+            if let found = value(record), let day = Day(iso: record.day) { result[day] = found }
         }
     }
 

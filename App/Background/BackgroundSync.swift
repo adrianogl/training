@@ -45,14 +45,19 @@ enum BackgroundSync {
     @MainActor private static func handle(_ task: BGTask, model: AppModel) {
         schedule(readinessComplete: false)
         nonisolated(unsafe) let task = task
-        task.expirationHandler = { @Sendable in
-            Task { @MainActor in model.cancelSync() }
-        }
-        Task {
+        let work = Task {
             await WorkoutFinishNotifier.shared.refresh(model: model)
             let succeeded = await model.syncNow(.background)
+            await model.trainer.settleAutoAdjust()
             schedule(readinessComplete: model.todayReadinessComplete)
-            task.setTaskCompleted(success: succeeded)
+            task.setTaskCompleted(success: succeeded && !Task.isCancelled)
+        }
+        task.expirationHandler = { @Sendable in
+            Task { @MainActor in
+                work.cancel()
+                model.cancelSync()
+                model.trainer.cancelAutoAdjust()
+            }
         }
     }
 }

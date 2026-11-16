@@ -102,12 +102,37 @@ import WorkoutAnalysis
         #expect(!history.runs.contains { $0.activityId == 20 })
     }
 
+    @Test func loadsBodySeriesFromDailyRecords() throws {
+        let container = try Self.container()
+        let context = ModelContext(container)
+        context.insert(DailyRecord(day: Self.today.adding(days: -2).iso, restingHR: 48, hrvLastNight: 62.5, sleepSeconds: 27_000))
+        context.insert(DailyRecord(day: Self.today.adding(days: -4).iso, hrvLastNight: 58))
+        context.insert(DailyRecord(day: Self.today.adding(days: -200).iso, restingHR: 55, hrvLastNight: 70, sleepSeconds: 30_000))
+        try context.save()
+        let history = TrainerHistoryLoader.load(container: container, today: Self.today)
+        #expect(history.hrv == [Self.today.adding(days: -2): 62.5, Self.today.adding(days: -4): 58])
+        #expect(history.restingHeartRate == [Self.today.adding(days: -2): 48])
+        #expect(history.sleepSeconds == [Self.today.adding(days: -2): 27_000])
+    }
+
+    @Test func dailyLoadSumsEveryActivityOfTheDay() throws {
+        let history = TrainerHistoryLoader.load(container: try Self.container(), today: Self.today)
+        #expect(history.dailyLoad == [
+            Self.today.adding(days: -1): 80,
+            Self.today.adding(days: -2): 160,
+            Self.today.adding(days: -3): 80,
+            Self.today.adding(days: -9): 80,
+        ])
+    }
+
     @Test func emptyStoreGivesEmptyHistory() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let history = TrainerHistoryLoader.load(container: container, today: Self.today)
         #expect(history.runs.isEmpty)
         #expect(history.readiness.isEmpty)
         #expect(history.strength.isEmpty)
+        #expect(history.hrv.isEmpty)
+        #expect(history.dailyLoad.isEmpty)
     }
 
     private static func vo2Structure() -> WorkoutStructure {

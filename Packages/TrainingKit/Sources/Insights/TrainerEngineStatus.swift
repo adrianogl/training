@@ -70,8 +70,8 @@ extension TrainerEngine {
         }
         let values = readinessDays.compactMap { history.readiness[$0] }.map(Double.init)
         result.readiness = values.isEmpty ? nil : values.reduce(0, +) / Double(values.count)
-        if let value = result.readiness {
-            result.lowReadiness = weekly ? value < C.readinessWeek : value < Double(C.readinessTrigger)
+        if let value = result.readiness, !weekly {
+            result.lowReadiness = value < Double(C.readinessTrigger)
         }
         return result
     }

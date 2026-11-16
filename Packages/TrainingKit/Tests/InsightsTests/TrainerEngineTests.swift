@@ -440,7 +440,7 @@ import WorkoutAnalysis
         #expect(lowered.reason.contains("1 de 3"))
     }
 
-    @Test func lowReadinessWeekCutsTheNextWeekVolume() {
+    @Test func lowReadinessWeekAloneKeepsTheNextWeekVolume() {
         let plan = createPlan()
         let days = (0..<7).map { monday.adding(days: $0) }
         let history = baseHistory(readiness: Dictionary(uniqueKeysWithValues: days.map { ($0, 50) }))
@@ -448,8 +448,8 @@ import WorkoutAnalysis
 
         let adjusted = TrainerEngine.adjust(plan, history: history, today: nextMonday, now: now, trigger: .weekEnded(1))
 
-        #expect(adjusted.weeks[1].targetMeters == (plan.weeks[0].targetMeters * 0.9 / 1_000).rounded() * 1_000)
-        #expect(adjusted.versions.last?.summary.contains("prontidão") == true)
+        #expect(adjusted.weeks[1].targetMeters == plan.weeks[1].targetMeters)
+        #expect(adjusted.versions.last?.summary.contains("segue o esqueleto") == true)
     }
 
     @Test func goodWeekKeepsTheSkeleton() {

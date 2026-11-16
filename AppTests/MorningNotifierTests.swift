@@ -9,6 +9,7 @@ import Testing
 actor FakeNotificationScheduler: NotificationScheduling {
     private(set) var scheduled: [String: (text: String, at: Date?)] = [:]
     private(set) var delivered: [String] = []
+    private(set) var headers: [String: (title: String?, link: String)] = [:]
 
     func pending() async -> [String] {
         scheduled.filter { $0.value.at != nil }.map(\.key)
@@ -17,6 +18,11 @@ actor FakeNotificationScheduler: NotificationScheduling {
     func schedule(id: String, text: String, at: Date?) async {
         scheduled[id] = (text, at)
         if at == nil { delivered.append(id) }
+    }
+
+    func schedule(id: String, title: String?, text: String, link: String, at: Date?) async {
+        await schedule(id: id, text: text, at: at)
+        headers[id] = (title, link)
     }
 
     func cancel(id: String) async {

@@ -98,7 +98,7 @@ extension TrainerEngine {
     }
 
     static func isFartlekWeek(_ week: TrainerWeek, weeks: [TrainerWeek]) -> Bool {
-        isProgressionWeek(week) && progressionOrdinal(of: week, in: weeks) % C.fartlekEvery == 1
+        !week.calm && isProgressionWeek(week) && progressionOrdinal(of: week, in: weeks) % C.fartlekEvery == 1
     }
 
     static func fartlekMinimumMeters() -> Double {
@@ -154,14 +154,14 @@ extension TrainerEngine {
     }
 
     static func longRoom(week: TrainerWeek, weeks: [TrainerWeek], structure: [Int: TrainerDayKind], target: TrainerTarget, paces: TrainerPaces) -> Double {
-        let kinds = weekStructure(structure, index: week.index).values
+        let kinds = weekStructure(structure, week: week).values
         let quality = kinds.filter(C.qualityKinds.contains).reduce(0.0) { total, kind in
             total + qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
         }
         let easyDays = Double(kinds.filter { $0 == .easy }.count)
         let optionalDays = Double(kinds.filter { $0 == .optionalEasy }.count)
         let optional = isFartlekWeek(week, weeks: weeks) ? max(fartlekMinimumMeters(), easyMinimum(paces: paces)) : easyMinimum(paces: paces)
-        return week.targetMeters - quality - easyDays * easyMinimum(paces: paces) - optionalDays * optional
+        return week.skeletonMeters - quality - easyDays * easyMinimum(paces: paces) - optionalDays * optional
     }
 
     static func wavedLongs(
@@ -174,11 +174,11 @@ extension TrainerEngine {
         func room(_ week: TrainerWeek) -> Double {
             floorKilometers(longRoom(week: week, weeks: weeks, structure: structure, target: target, paces: paces))
         }
-        func floored(_ week: TrainerWeek) -> Bool { week.targetMeters >= C.longFloorWeekMeters }
+        func floored(_ week: TrainerWeek) -> Bool { week.skeletonMeters >= C.longFloorWeekMeters }
         func longest(_ week: TrainerWeek) -> (wave: Double, room: Double) {
             let wave = min(max(week.longMeters, min(
                 roundKilometers(week.longMeters * C.longestGrowth), roundKilometers(longCap(for: target) * C.longestOverRaceCap),
-                floorKilometers(week.targetMeters * C.longestWeekShare), timeCap
+                floorKilometers(week.skeletonMeters * C.longestWeekShare), timeCap
             )), C.longCeilingMeters)
             return (wave, min(max(week.longMeters, min(wave, room(week))), C.longCeilingMeters))
         }

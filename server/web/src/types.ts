@@ -509,6 +509,8 @@ export type TrainerVariant =
   | 'fastFinish'
   | 'racePaceLong'
 
+export type TrainerLightKind = 'body' | 'training'
+
 export interface TrainerWeek {
   index: number
   start: string
@@ -516,6 +518,9 @@ export interface TrainerWeek {
   isRecovery: boolean
   plannedMeters: number
   longMeters: number
+  calm?: boolean
+  lightKind?: TrainerLightKind
+  baseMeters?: number
 }
 
 export interface TrainerTarget {
@@ -569,6 +574,8 @@ export interface TrainerPlan {
   versions: TrainerVersion[]
   strength: TrainerStrength[]
   lightWeeks: string[]
+  earlyLightWeeks?: Record<string, TrainerLightKind>
+  calmWeeks?: string[]
   endedOn?: string
   longMode: 'continuous' | 'blocks'
   longStage: number

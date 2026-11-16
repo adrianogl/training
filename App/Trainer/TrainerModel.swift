@@ -24,19 +24,22 @@ import TrainingCore
     @ObservationIgnored private let store: TrainerStore
     @ObservationIgnored private let today: @Sendable () -> Day
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
     @ObservationIgnored private var autoTask: Task<Void, Never>?
+    @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var loadedStamp: Date?
     @ObservationIgnored private var reviewCache: (day: Day, review: TrainerCycleReview?)?
     @ObservationIgnored var onChange: @MainActor () -> Void = {}
 
     init(
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
-        defaults: UserDefaults = AccountScope.current.defaults
+        defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil
     ) {
         self.container = container
         self.store = store
         self.today = today
         self.defaults = defaults
+        self.signalNotifier = signalNotifier ?? TrainerSignalNotifier(defaults: defaults)
         self.keptReadinessDay = defaults.string(forKey: TrainerConstants.readinessKeptDefaultsKey)
         self.seenVersion = store.seenVersion
         self.seenCycleEnd = store.seenCycleEnd
@@ -217,7 +220,7 @@ import TrainingCore
                 id: week.index,
                 title: "S\(week.index) · \(week.start.day)/\(week.start.month)",
                 kilometers: "\(TrainerText.kilometersNumber(week.plannedMeters)) km",
-                detail: plan.lightWeeks.contains(week.start)
+                detail: Self.isLight(week.start, in: plan)
                     ? TrainerText.lightCell
                     : week.isRecovery
                     ? "\(TrainerText.recoveryWeek) \(TrainerText.kilometersNumber(week.longMeters))"
@@ -228,7 +231,7 @@ import TrainingCore
                 isChanged: changedWeeks.contains(week.index),
                 isRace: false,
                 start: week.start,
-                isLight: plan.lightWeeks.contains(week.start)
+                isLight: Self.isLight(week.start, in: plan)
             )
         }
         if plan.target.kind == .race, let date = plan.target.date {
@@ -339,7 +342,7 @@ import TrainingCore
         isLoaded = true
         fillMissingWeeks()
         migrateStrength()
-        applyPending()
+        await notifySignals(applyPending())
     }
 
     func scheduleAutoAdjust() {
@@ -349,19 +352,53 @@ import TrainingCore
         }
     }
 
-    func autoAdjust() async {
-        reloadFromStore()
-        guard plan != nil else { return }
-        history = await loadHistory()
-        guard !Task.isCancelled else { return }
-        let cycle = await loadCycleHistory()
-        guard !Task.isCancelled else { return }
-        cycleHistory = cycle
-        reloadFromStore()
-        applyPending()
+    func cancelAutoAdjust() {
+        autoTask?.cancel()
+        autoTask = nil
+        resumeSettling()
     }
 
-    func isLightWeek(_ start: Day) -> Bool { plan?.lightWeeks.contains(start) == true }
+    func settleAutoAdjust() async {
+        while !Task.isCancelled, let task = autoTask {
+            await withCheckedContinuation { continuation in
+                settleWaiters.append(continuation)
+                Task { @MainActor [weak self] in
+                    await task.value
+                    if self?.autoTask == task { self?.autoTask = nil }
+                    self?.resumeSettling()
+                }
+            }
+        }
+    }
+
+    private func resumeSettling() {
+        let waiters = settleWaiters
+        settleWaiters = []
+        waiters.forEach { $0.resume() }
+    }
+
+    @discardableResult
+    func autoAdjust() async -> [TrainerVersion] {
+        reloadFromStore()
+        guard plan != nil else { return [] }
+        let loaded = await loadHistory()
+        guard !Task.isCancelled else { return [] }
+        history = loaded
+        let cycle = await loadCycleHistory()
+        guard !Task.isCancelled else { return [] }
+        cycleHistory = cycle
+        reloadFromStore()
+        guard !Task.isCancelled else { return [] }
+        let created = applyPending()
+        await notifySignals(created)
+        return created
+    }
+
+    func isLightWeek(_ start: Day) -> Bool { plan.map { Self.isLight(start, in: $0) } == true }
+
+    private static func isLight(_ start: Day, in plan: TrainerPlan) -> Bool {
+        plan.lightWeeks.contains(start) || plan.earlyLightWeeks[start] != nil
+    }
 
     func toggleLightWeek(_ start: Day) async {
         guard let plan else { return }
@@ -541,14 +578,21 @@ import TrainingCore
         store.markStrengthMigrated()
     }
 
-    private func applyPending() {
-        guard var current = plan, current.endedOn == nil else { return }
+    private func applyPending() -> [TrainerVersion] {
+        guard var current = plan, current.endedOn == nil else { return [] }
         let triggers = TrainerEngine.pendingTriggers(current, history: history, today: currentDay)
-        guard !triggers.isEmpty else { return }
+        guard !triggers.isEmpty else { return [] }
+        let previous = current.versions.last?.number ?? 0
         for trigger in triggers {
             current = TrainerEngine.adjust(current, history: history, today: currentDay, now: .now, trigger: trigger)
         }
         persist(current)
+        return current.versions.filter { $0.number > previous }
+    }
+
+    private func notifySignals(_ created: [TrainerVersion]) async {
+        guard !created.isEmpty, let plan else { return }
+        await signalNotifier.notify(created, plan: plan)
     }
 
     private func persist(_ next: TrainerPlan) {
