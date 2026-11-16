@@ -2,6 +2,7 @@ import Foundation
 import GarminAPI
 import MFIT
 import Observation
+import TrainingCore
 
 @MainActor @Observable final class MFITAccountModel {
     private typealias C = MFITAccountConstants
@@ -32,6 +33,7 @@ import Observation
             let token = try await MFITClient.signIn(email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, transport: makeTransport())
             try store.save(token)
             isSignedIn = true
+            AccountScope.current.defaults.removeObject(forKey: C.teacherCheckedKey)
             await adoptTeacherWithProgram()
             revision += 1
         } catch MFITError.invalidLogin(let text) {
@@ -41,15 +43,11 @@ import Observation
         }
     }
 
-    func adoptTeacherWithProgram() async {
-        guard let client, (try? await client.hasPrograms()) == false else { return }
-        for teacher in (try? await client.teachers()) ?? [] {
-            guard let token = try? await client.switchTeacher(teacher.id) else { continue }
-            let candidate = MFITClient(token: token, transport: makeTransport())
-            guard (try? await candidate.hasPrograms()) == true else { continue }
-            try? store.save(token)
-            return
-        }
+    func adoptTeacherWithProgram(defaults: UserDefaults = AccountScope.current.defaults) async {
+        guard let client, !defaults.bool(forKey: C.teacherCheckedKey) else { return }
+        guard let token = try? await client.tokenForActiveTeacher(today: Day.today().iso) else { return }
+        if token != client.token { try? store.save(token) }
+        defaults.set(true, forKey: C.teacherCheckedKey)
     }
 
     func signOut() {

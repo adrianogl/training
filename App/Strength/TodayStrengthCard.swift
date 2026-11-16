@@ -33,13 +33,15 @@ struct TodayStrengthCard<Label: View>: View {
             }
         }
         .task(id: app.mfitAccount.revision) {
+            await app.mfitAccount.adoptTeacherWithProgram()
             guard let client = app.mfitAccount.client else { workout = nil; return }
             let today = Day.today()
             let store = StrengthProgramStore()
             let schedule = StrengthSchedule()
             workout = schedule.workouts(store.load().program, from: today, through: today).first
-            guard let fetched = try? await client.currentProgram(today: today.iso) else { return }
-            workout = schedule.workouts(store.update(with: fetched).program, from: today, through: today).first
+            guard let fetched = try? await client.currentProgram(today: today.iso) as MFITProgram?? else { return }
+            let cache = fetched.map(store.update(with:)) ?? store.clearProgram()
+            workout = schedule.workouts(cache.program, from: today, through: today).first
         }
     }
 }

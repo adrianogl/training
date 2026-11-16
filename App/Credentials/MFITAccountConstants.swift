@@ -13,6 +13,7 @@ enum MFITAccountConstants {
     static let failed = "Não conectou ao MFIT. Tente de novo mais tarde."
     static let statusSignedIn = "conta conectada"
     static let statusSignedOut = "sem conta"
+    static let teacherCheckedKey = "mfitTeacherChecked"
     static let summary = "Treinos de força do professor"
     static let daysTitle = "Dias dos treinos"
     static let daysFooter = "O MFIT não diz o dia de cada treino. Por padrão o 1º fica na segunda, o 2º na quarta e o 3º na sexta."
