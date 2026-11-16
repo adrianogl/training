@@ -46,6 +46,10 @@ public struct MFITClient: Sendable {
         return token
     }
 
+    public func hasPrograms() async throws -> Bool {
+        !(try JSONDecoder().decode([MFITProgramSummaryDTO].self, from: try await send(C.programsPath, method: "GET"))).isEmpty
+    }
+
     public func currentProgram(today: String) async throws -> MFITProgram? {
         let summaries = try JSONDecoder().decode([MFITProgramSummaryDTO].self, from: try await send(C.programsPath, method: "GET"))
         guard let chosen = Self.pick(summaries, today: today) else { return nil }

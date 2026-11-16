@@ -51,7 +51,10 @@ struct StrengthView: View {
                 case .history: StrengthHistoryView(model: model)
                 }
             }
-            .task(id: app.mfitAccount.revision) { await load() }
+            .task(id: app.mfitAccount.revision) {
+                await app.mfitAccount.adoptTeacherWithProgram()
+                await load()
+            }
         }
     }
 

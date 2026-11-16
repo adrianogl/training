@@ -17,14 +17,6 @@ struct MFITAccountSection: View {
                 LabeledContent(C.sectionTitle) {
                     Text(C.connected).foregroundStyle(BrandColors.accent)
                 }
-                if model.teachers.count > 1 {
-                    Picker(C.teacher, selection: teacherBinding) {
-                        ForEach(model.teachers) { teacher in
-                            Text(teacher.name).tag(Optional(teacher.id))
-                        }
-                    }
-                    .disabled(model.isWorking)
-                }
                 Button(C.signOut, role: .destructive) { model.signOut() }
             } else {
                 TextField(C.emailPlaceholder, text: $email)
@@ -51,7 +43,6 @@ struct MFITAccountSection: View {
             Text(C.footer)
         }
         .task(id: model.revision) {
-            await model.loadTeachers()
             reloadProgram()
         }
         if model.isSignedIn, let program, !program.workouts.isEmpty {
@@ -70,16 +61,6 @@ struct MFITAccountSection: View {
                 Text(C.daysFooter)
             }
         }
-    }
-
-    private var teacherBinding: Binding<Int64?> {
-        Binding(
-            get: { program?.teacherId },
-            set: { id in
-                guard let id, id != program?.teacherId else { return }
-                Task { await model.select(id) }
-            }
-        )
     }
 
     private func dayBinding(_ workout: MFITWorkout) -> Binding<Int> {
