@@ -41,9 +41,16 @@ struct SettingsView: View {
 
     private var groupList: some View {
         List {
-            CompactLogoHeader()
+            if sizeClass != .regular {
+                VStack(alignment: .leading, spacing: 0) {
+                    CompactLogoHeader()
+                    Text(AppSection.settings.title)
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(BrandColors.text)
+                }
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
+            }
             ForEach(SettingsSection.allCases) { section in
                 Section(section.title) {
                     ForEach(section.groups) { group in
@@ -61,7 +68,9 @@ struct SettingsView: View {
         }
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
-        .navigationTitle("Ajustes")
+        .navigationTitle(AppSection.settings.title)
+        .toolbarTitleDisplayMode(.inline)
+        .toolbar(removing: .title)
     }
 
     private func groupRow(_ group: SettingsGroup) -> some View {
