@@ -333,6 +333,12 @@ footer .footer-note { flex-basis: 100%; font-size: 12px; }
 .plan-days div { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; color: var(--ink-2); }
 .plan-days b { color: var(--ink); font-weight: 600; }
 .plan-days .d { color: var(--dim); font-size: 13px; }
+.cycle-split { margin-top: 96px; }
+.cycle-verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: var(--lime-deep); color: var(--lime); font-weight: 700; font-size: 16px; }
+.cycle-verdict span { color: var(--ink-2); font-weight: 500; font-size: 14px; }
+.cycle-bars { display: flex; align-items: flex-end; gap: 5px; height: 72px; margin: 20px 0 12px; }
+.cycle-bars i { flex: 1; border-radius: 3px; background: var(--lime); transform-origin: bottom; transform: scaleY(clamp(0, calc((var(--p) - var(--d)) * 5), 1)); }
+.cycle-bars i.low { background: var(--amber); }
 .plan-change { margin-top: 14px; font-size: 14px; color: var(--ink-2); }
 .plan-change s { color: var(--dim); }
 .plan-change ins { text-decoration: none; color: var(--lime); font-weight: 600; }
@@ -697,6 +703,28 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
           <div><span class="d">sáb</span><span><b>Longão 20 km</b> · final progressivo</span></div>
         </div>
         <div class="plan-change">Longão <s>22 km</s> → <ins>20 km</ins>: o último parou no km 12,7.</div>
+      </div>
+    </div>
+    <div class="wrap split cycle-split">
+      <div>
+        <p class="eyebrow">Fim do ciclo</p>
+        <h2 class="display">Terminou o ciclo? Ele diz o volume do próximo.</h2>
+        <p class="lede">Depois da prova, a cada 12 semanas num plano sem data ou quando você encerra antes, o treinador analisa o ciclo inteiro: o volume feito semana a semana contra o previsto, os longões e os treinos de qualidade, a prontidão no começo e no fim e quanto a previsão mudou.</p>
+        <p class="lede">Com isso ele sugere aumentar o volume em até 8%, manter ou diminuir 10%, e mostra os motivos. Pelo botão da análise, o próximo plano já abre com o volume sugerido, e o ciclo que terminou fica guardado com o resultado.</p>
+      </div>
+      <div class="workout">
+        <div class="t">Ciclo concluído</div>
+        <div style="color: var(--dim); font-size: 14px">Meia de exemplo · 13 semanas · <span class="num" style="color: var(--ink)">1:33:48</span>, 1:12 abaixo da meta</div>
+        <div class="cycle-verdict">↑ Aumentar o volume <span>pico 80 → 86 km · início 60 → 64 km</span></div>
+        <div class="cycle-bars" role="img" aria-label="Volume feito por semana: 96% do previsto, uma semana abaixo de 80%"><i style="height:75%; --d:0.00"></i><i style="height:79%; --d:0.03"></i><i style="height:80%; --d:0.06"></i><i style="height:69%; --d:0.09"></i><i style="height:82%; --d:0.12"></i><i class="low" style="height:65%; --d:0.15"></i><i style="height:88%; --d:0.18"></i><i style="height:71%; --d:0.21"></i><i style="height:90%; --d:0.24"></i><i style="height:92%; --d:0.27"></i><i style="height:98%; --d:0.30"></i><i style="height:69%; --d:0.33"></i><i style="height:50%; --d:0.36"></i></div>
+        <div class="legend"><span style="--c: var(--lime)">feito</span><span style="--c: var(--amber)">abaixo de 80%</span></div>
+        <div class="plan-days">
+          <div><span class="d">volume</span><span><b>96% do previsto</b> · 1 semana abaixo de 80%</span></div>
+          <div><span class="d">treinos</span><span><b>11 de 11 longões</b> · 21 de 22 qualidades no alvo</span></div>
+          <div><span class="d">corpo</span><span><b>Prontidão 72 → 75</b> · nenhuma semana leve extra</span></div>
+          <div><span class="d">forma</span><span><b>10 km 41:00 → 39:42</b> · meia 1:35:10 → 1:32:55</span></div>
+        </div>
+        <div class="plan-change">Próximo plano: <ins>pico 86 km</ins>, já preenchido no formulário.</div>
       </div>
     </div>
     <div class="wrap">
