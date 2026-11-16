@@ -99,7 +99,7 @@ struct TodayView: View {
         }
         .task(id: app.dataToken) {
             await app.trainer.load()
-            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
+            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan, garmin: app.garminAccount.client)
         }
         .task(id: app.mfitAccount.revision) {
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)

@@ -80,7 +80,7 @@ struct EvolutionView: View {
         }
         .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
         .task(id: app.mfitAccount.revision) {
-            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
+            await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan, garmin: app.garminAccount.client)
         }
         .task(id: app.dataToken) {
             await Task.yield()

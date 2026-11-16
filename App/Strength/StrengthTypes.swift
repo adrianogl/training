@@ -24,11 +24,13 @@ struct StrengthProgramCache: Codable, Sendable {
     let program: MFITProgram?
     let known: [MFITWorkout]
     var loads: [MFITLoadRecord] = []
+    var watchProcessed: [Int64] = []
 
-    init(program: MFITProgram?, known: [MFITWorkout], loads: [MFITLoadRecord] = []) {
+    init(program: MFITProgram?, known: [MFITWorkout], loads: [MFITLoadRecord] = [], watchProcessed: [Int64] = []) {
         self.program = program
         self.known = known
         self.loads = loads
+        self.watchProcessed = watchProcessed
     }
 
     init(from decoder: Decoder) throws {
@@ -36,6 +38,7 @@ struct StrengthProgramCache: Codable, Sendable {
         program = try container.decodeIfPresent(MFITProgram.self, forKey: .program)
         known = try container.decodeIfPresent([MFITWorkout].self, forKey: .known) ?? []
         loads = try container.decodeIfPresent([MFITLoadRecord].self, forKey: .loads) ?? []
+        watchProcessed = try container.decodeIfPresent([Int64].self, forKey: .watchProcessed) ?? []
     }
 }
 
@@ -45,6 +48,7 @@ struct StrengthLoadPoint: Identifiable, Equatable {
     let top: Double
     let loads: [Double]
     let workout: String
+    var fromWatch = false
 }
 
 struct StrengthLoadSeries: Identifiable, Equatable {
@@ -57,6 +61,13 @@ struct StrengthLoadSeries: Identifiable, Equatable {
     var current: Double { points.last?.top ?? 0 }
     var change: Double? { points.count > 1 ? current - (points.first?.top ?? current) : nil }
     var record: StrengthLoadPoint? { points.max { $0.top == $1.top ? $0.day > $1.day : $0.top < $1.top } }
+
+    var previousBest: Double? { points.dropLast().map(\.top).max() }
+
+    var isNewRecord: Bool {
+        guard let previousBest, let last = points.last else { return false }
+        return last.top > previousBest
+    }
 }
 
 struct StrengthDay: Identifiable, Equatable {
