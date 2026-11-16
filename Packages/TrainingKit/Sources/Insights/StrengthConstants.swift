@@ -3,6 +3,7 @@ enum StrengthConstants {
     static let sessionLevels: [Double] = [5, 10]
     static let weekLevels: [Double] = [7, 15]
     static let legDayShare = 0.5
+    static let upperMuscles: Set<MuscleGroup> = [.chest, .shoulders, .biceps, .triceps, .forearms, .lats, .traps]
     static let legMuscles: Set<MuscleGroup> = [.glutes, .quads, .hamstrings, .calves, .adductors]
     static let runsAfterLegs: Set<TrainerDayKind> = [.threshold, .vo2max, .long]
     static let primary: [String: [MuscleGroup]] = [

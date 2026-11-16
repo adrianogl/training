@@ -14,6 +14,7 @@ struct TrainerView: View {
     @State private var highlightedWeek: String?
     @State private var tab: TrainerTab = .plan
     @State private var showsAdjustments = false
+    @AppStorage(TrainerMFITConstants.keptDefaultsKey, store: AccountScope.current.defaults) private var keptSwaps = ""
 
     private var model: TrainerModel { app.trainer }
 
@@ -82,6 +83,10 @@ struct TrainerView: View {
         .task(id: app.garminAccount.isSignedIn) {
             await model.loadExternal(client: app.garminAccount.client)
         }
+        .task(id: app.mfitAccount.revision) {
+            guard app.mfitAccount.isSignedIn else { return }
+            await model.syncStrength(TrainerMFITStrength.sessions(program: StrengthProgramStore().load().program, schedule: StrengthSchedule()))
+        }
     }
 
     private var emptyState: some View {
@@ -96,6 +101,13 @@ struct TrainerView: View {
 
     @ViewBuilder
     private func planContent(_ plan: TrainerPlan, proxy: ScrollViewProxy) -> some View {
+        if let swap = model.legSwapSuggestion(kept: Set(keptSwaps.split(separator: ",").map(String.init))) {
+            TrainerLegSwapCard(swap: swap) {
+                model.applyLegSwap(swap)
+            } onKeep: {
+                keptSwaps = (keptSwaps.split(separator: ",").map(String.init) + [swap.quality.day.iso]).joined(separator: ",")
+            }
+        }
         if model.showsCycleBanner, let review = model.cycleReview {
             cycleBanner(review, dated: plan.target.date != nil)
         }

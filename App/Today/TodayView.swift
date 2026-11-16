@@ -99,6 +99,9 @@ struct TodayView: View {
             await app.trainer.load()
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan, garmin: app.garminAccount.client)
             await scheduleWeeklyReport()
+            if app.mfitAccount.isSignedIn {
+                await app.trainer.syncStrength(TrainerMFITStrength.sessions(program: strength.program, schedule: StrengthSchedule()))
+            }
         }
         .task(id: app.mfitAccount.revision) {
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
