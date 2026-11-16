@@ -1,0 +1,99 @@
+import MFIT
+import SwiftUI
+
+struct MFITAccountSection: View {
+    let model: MFITAccountModel
+    @State private var email = ""
+    @State private var password = ""
+    @State private var program: MFITProgram?
+    @State private var days: [Int64: Int] = [:]
+
+    private typealias C = MFITAccountConstants
+    private let schedule = StrengthSchedule()
+
+    var body: some View {
+        Section {
+            if model.isSignedIn {
+                LabeledContent(C.sectionTitle) {
+                    Text(C.connected).foregroundStyle(BrandColors.accent)
+                }
+                if model.teachers.count > 1 {
+                    Picker(C.teacher, selection: teacherBinding) {
+                        ForEach(model.teachers) { teacher in
+                            Text(teacher.name).tag(Optional(teacher.id))
+                        }
+                    }
+                    .disabled(model.isWorking)
+                }
+                Button(C.signOut, role: .destructive) { model.signOut() }
+            } else {
+                TextField(C.emailPlaceholder, text: $email)
+                    .textContentType(.username)
+                    .keyboardType(.emailAddress)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                SecureField(C.passwordPlaceholder, text: $password)
+                    .textContentType(.password)
+                Button(model.isWorking ? C.signingIn : C.signIn) {
+                    Task {
+                        await model.signIn(email: email, password: password)
+                        password = ""
+                    }
+                }
+                .disabled(model.isWorking || email.isEmpty || password.isEmpty)
+            }
+            if let message = model.message {
+                Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
+            }
+        } header: {
+            Text(C.sectionTitle)
+        } footer: {
+            Text(C.footer)
+        }
+        .task(id: model.revision) {
+            await model.loadTeachers()
+            reloadProgram()
+        }
+        if model.isSignedIn, let program, !program.workouts.isEmpty {
+            Section {
+                ForEach(program.workouts) { workout in
+                    Picker(workout.title, selection: dayBinding(workout)) {
+                        Text(C.noDay).tag(StrengthConstants.noWeekday)
+                        ForEach(C.weekdayNames.indices, id: \.self) { index in
+                            Text(C.weekdayNames[index]).tag(index)
+                        }
+                    }
+                }
+            } header: {
+                Text(C.daysTitle)
+            } footer: {
+                Text(C.daysFooter)
+            }
+        }
+    }
+
+    private var teacherBinding: Binding<Int64?> {
+        Binding(
+            get: { program?.teacherId },
+            set: { id in
+                guard let id, id != program?.teacherId else { return }
+                Task { await model.select(id) }
+            }
+        )
+    }
+
+    private func dayBinding(_ workout: MFITWorkout) -> Binding<Int> {
+        Binding(
+            get: { days[workout.id] ?? StrengthConstants.noWeekday },
+            set: { value in
+                schedule.setWeekday(value == StrengthConstants.noWeekday ? nil : value, for: workout)
+                days[workout.id] = value
+            }
+        )
+    }
+
+    private func reloadProgram() {
+        program = StrengthProgramStore().load().program
+        days = Dictionary(uniqueKeysWithValues: (program?.workouts ?? []).map { ($0.id, schedule.weekday(for: $0) ?? StrengthConstants.noWeekday) })
+    }
+}

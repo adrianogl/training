@@ -17,14 +17,7 @@ struct StrengthWorkoutView: View {
                         BodyMapLegend()
                     }
                     .brandCard()
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(StrengthText.inOrder).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
-                            .padding(.bottom, 6)
-                        ForEach(Array(workout.blocks.enumerated()), id: \.offset) { index, block in
-                            blockRow(index + 1, block)
-                        }
-                    }
-                    .brandCard()
+                    StrengthBlockList(title: StrengthText.inOrder, blocks: workout.blocks)
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
                 .padding(.bottom, 24)
@@ -33,24 +26,6 @@ struct StrengthWorkoutView: View {
         .background(BrandBackground())
         .navigationTitle(StrengthText.workoutTitle)
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func blockRow(_ number: Int, _ block: StrengthBlock) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Text("\(number)").font(.footnote.weight(.bold)).foregroundStyle(BrandColors.accent).frame(width: 18, alignment: .leading)
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(Array(block.exercises.enumerated()), id: \.offset) { _, exercise in
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                        Text(StrengthText.setsLabel(block.sets, detail: exercise.detail)).font(.caption).foregroundStyle(BrandColors.dim)
-                    }
-                }
-                Text(StrengthText.restLabel(block.restSeconds)).font(.caption2).foregroundStyle(BrandColors.dim)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, 8)
-        .overlay(alignment: .top) { Divider().overlay(BrandColors.line) }
     }
 }
 
@@ -68,24 +43,18 @@ struct StrengthSessionView: View {
                         stat(session.minutes, StrengthText.minutes)
                         stat(session.averageHR, StrengthText.averageHR)
                         stat(session.maxHR, StrengthText.maxHR)
-                        stat(model.sets[sessionId]?.count, StrengthText.sets)
+                        stat(session.effort, StrengthText.effort)
                     }
-                    let results = model.results(for: session)
-                    if results.isEmpty {
-                        Text(StrengthText.noSets).font(.footnote).foregroundStyle(BrandColors.dim).brandCard()
+                    let blocks = model.blocks(forSession: sessionId)
+                    if blocks.isEmpty {
+                        Text(StrengthText.noWorkout).font(.footnote).foregroundStyle(BrandColors.dim).brandCard()
                     } else {
                         VStack(spacing: 6) {
                             BodyMapView(levels: model.levels(forSession: sessionId), height: StrengthConstants.detailMapHeight)
                             Text(StrengthText.workedMuscles).font(.caption).foregroundStyle(BrandColors.dim)
                         }
                         .brandCard()
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(StrengthText.doneVsPlanned).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
-                                .padding(.bottom, 6)
-                            ForEach(results) { result in resultRow(result) }
-                            Text(StrengthText.repsNote).font(.caption2).foregroundStyle(BrandColors.dim).padding(.top, 6)
-                        }
-                        .brandCard()
+                        StrengthBlockList(title: StrengthText.sessionWorkout, blocks: blocks)
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
@@ -106,22 +75,6 @@ struct StrengthSessionView: View {
         .padding(8)
         .background(BrandColors.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(BrandColors.cardBorder))
-    }
-
-    private func resultRow(_ result: StrengthExerciseResult) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(result.name).font(.subheadline).foregroundStyle(BrandColors.text)
-                Spacer()
-                Text(StrengthText.doneLabel(done: result.done, planned: result.planned))
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(result.done >= result.planned ? BrandColors.accent : BrandColors.attention)
-            }
-            Text(result.reps.map { $0.map { "\($0)" } ?? "—" }.joined(separator: " · "))
-                .font(.caption).foregroundStyle(BrandColors.dim)
-        }
-        .padding(.vertical, 6)
-        .overlay(alignment: .top) { Divider().overlay(BrandColors.line) }
     }
 }
 

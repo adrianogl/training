@@ -1,0 +1,207 @@
+{
+ "id": 2003,
+ "nome": "Full Body",
+ "exercs": [
+  {
+   "order": 0,
+   "exercises": [
+    {
+     "name": "Combinado",
+     "isCombinado": true,
+     "exerciseGroup": {
+      "nome": "Combinado"
+     },
+     "series": [
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Oblíquo Alternando com Wall Ball",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Abdômen"
+        }
+       }
+      },
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Prancha Copenhagen",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Abdômen"
+        }
+       }
+      },
+      {
+       "tipo": 5,
+       "obs": "30 abdominais    + prancha copenhagen 30 segundos cada lado ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 30 segundos de recuperação",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 1,
+   "exercises": [
+    {
+     "name": "remada curvada aberta na polia baixa",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Dorsal"
+     },
+     "series": [
+      {
+       "tipo": 0
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries de 10 rep com 60 segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 2,
+   "exercises": [
+    {
+     "name": "Pulley frente aberto ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Dorsal"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "4 séries de 12 rep com 60 segundos de recuperação "
+      },
+      {
+       "tipo": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 3,
+   "exercises": [
+    {
+     "name": "Terra Sumô com ponto zero ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Global "
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "10 rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 60 segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 4,
+   "exercises": [
+    {
+     "name": "remada baixa pegada neutra ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Dorsal"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "10 rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 60  segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 5,
+   "exercises": [
+    {
+     "name": "Combinado",
+     "isCombinado": true,
+     "exerciseGroup": {
+      "nome": "Combinado"
+     },
+     "series": [
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Crucifixo inverso máquina (PTP) ",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Dorsal"
+        }
+       }
+      },
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "flexão de braços no solo ",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Peitoral"
+        }
+       }
+      },
+      {
+       "tipo": 5,
+       "obs": "crucifixo inverso 10 rep + falha na flexão ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3  séries com 60 segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

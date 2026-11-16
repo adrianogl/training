@@ -1,28 +1,32 @@
 import Foundation
 import GarminAPI
 import Insights
+import MFIT
 import Storage
 import SwiftData
 import TrainingCore
 
 @MainActor @Observable final class StrengthModel {
     var sessions: [StrengthSession] = []
+    var program: MFITProgram?
     var weekWorkouts: [StrengthWorkout] = []
-    var sets: [Int64: [StrengthSet]] = [:]
     var weekDays: [StrengthDay] = []
     var warnings: [String] = []
     var isLoaded = false
-    var hasGarminAccount = false
+    var hasMFIT = false
 
-    @ObservationIgnored private let store: StrengthSetStore
+    @ObservationIgnored private var known: [Int64: MFITWorkout] = [:]
+    @ObservationIgnored private let store: StrengthProgramStore
+    @ObservationIgnored private let schedule: StrengthSchedule
     @ObservationIgnored private let today: () -> Day
 
     private typealias C = StrengthConstants
 
-    init(store: StrengthSetStore = StrengthSetStore(), today: @escaping () -> Day = { Day.today() }) {
+    init(store: StrengthProgramStore = StrengthProgramStore(), schedule: StrengthSchedule = StrengthSchedule(), today: @escaping () -> Day = { Day.today() }) {
         self.store = store
+        self.schedule = schedule
         self.today = today
-        self.sets = store.load()
+        apply(store.load())
     }
 
     var todayWorkout: StrengthWorkout? {
@@ -38,36 +42,32 @@ import TrainingCore
     }
 
     func workout(id: Int64) -> StrengthWorkout? {
-        weekWorkouts.first { $0.id == id }
+        if let scheduled = weekWorkouts.first(where: { $0.id == id }) { return scheduled }
+        return known[id].map { StrengthWorkout(id: $0.id, day: "", title: $0.title, blocks: $0.blocks) }
     }
 
     func session(id: Int64) -> StrengthSession? {
         sessions.first { $0.id == id }
     }
 
+    func blocks(forSession id: Int64) -> [StrengthBlock] {
+        session(id: id)?.workoutId.flatMap { known[$0]?.blocks } ?? []
+    }
+
     func levels(for workout: StrengthWorkout) -> [MuscleGroup: Int] {
-        let entries = workout.blocks.flatMap { block in block.exercises.map { (category: $0.category, sets: block.sets) } }
-        return StrengthMuscles.sets(entries).mapValues { StrengthMuscles.level($0, scale: .session) }
+        Self.levels(workout.blocks, scale: .session)
     }
 
     func levels(forSession id: Int64) -> [MuscleGroup: Int] {
-        let entries = (sets[id] ?? []).map { (category: $0.category, sets: 1) }
-        return StrengthMuscles.sets(entries).mapValues { StrengthMuscles.level($0, scale: .session) }
+        Self.levels(blocks(forSession: id), scale: .session)
     }
 
     var weekLevels: [MuscleGroup: Int] {
-        weekSets.mapValues { StrengthMuscles.level($0, scale: .week) }
+        StrengthMuscles.sets(weekWorkouts.flatMap { Self.entries($0.blocks) }).mapValues { StrengthMuscles.level($0, scale: .week) }
     }
 
     var weekSetCount: Int {
         weekWorkouts.reduce(0) { $0 + $1.totalSets }
-    }
-
-    private var weekSets: [MuscleGroup: Double] {
-        let entries = weekWorkouts.flatMap { workout in
-            workout.blocks.flatMap { block in block.exercises.map { (category: $0.category, sets: block.sets) } }
-        }
-        return StrengthMuscles.sets(entries)
     }
 
     var volumeRows: [StrengthVolumeRow] {
@@ -76,46 +76,22 @@ import TrainingCore
             let first = start.adding(days: 7 * index)
             let last = first.adding(days: 6)
             let entries = sessions.filter { first <= $0.day && $0.day <= last }
-                .flatMap { session in (sets[session.id] ?? []).map { (category: $0.category, sets: 1) } }
+                .flatMap { session in Self.entries(blocks(forSession: session.id)) }
             return StrengthMuscles.sets(entries)
         }
         return C.volumeGroups.map { group in StrengthVolumeRow(group: group, weekly: perWeek.map { $0[group] ?? 0 }) }
     }
 
-    func results(for session: StrengthSession) -> [StrengthExerciseResult] {
-        let done = sets[session.id] ?? []
-        guard let planned = plannedWorkout(for: session) else {
-            let grouped = Dictionary(grouping: done) { $0.exerciseKey ?? $0.category ?? "" }
-            return grouped.keys.sorted().map { key in
-                let list = grouped[key] ?? []
-                return StrengthExerciseResult(name: StrengthWorkouts.displayName(key), planned: list.count, done: list.count, reps: list.map(\.reps))
-            }
+    func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?) async {
+        hasMFIT = client != nil
+        if let client, let fetched = try? await client.currentProgram(today: today().iso) {
+            apply(store.update(with: fetched))
+        } else if client == nil {
+            program = nil
         }
-        return planned.blocks.flatMap { block in
-            block.exercises.map { exercise in
-                let category = exercise.category
-                let matching = done.filter { $0.category == category && ($0.exerciseKey == nil || exercise.exerciseKey == nil || $0.exerciseKey == exercise.exerciseKey) }
-                return StrengthExerciseResult(name: exercise.name, planned: block.sets, done: min(matching.count, block.sets), reps: matching.prefix(block.sets).map(\.reps))
-            }
-        }
-    }
-
-    @ObservationIgnored private var templates: [String: StrengthWorkout] = [:]
-
-    private func plannedWorkout(for session: StrengthSession) -> StrengthWorkout? {
-        weekWorkouts.first { $0.title == session.title } ?? templates[session.title]
-    }
-
-    func load(container: ModelContainer, client: GarminAccountClient?, plan: TrainerPlan?) async {
-        sessions = Self.sessions(in: ModelContext(container))
-        hasGarminAccount = client != nil
         let start = today().weekStart
-        if let client {
-            if let workouts = try? await StrengthWorkouts.fetch(client: client, from: start, through: start.adding(days: 6)) {
-                weekWorkouts = workouts
-                for workout in workouts { templates[workout.title] = workout }
-            }
-        }
+        weekWorkouts = schedule.workouts(program, from: start, through: start.adding(days: 6))
+        sessions = Self.sessions(records: Self.records(in: ModelContext(container)), known: Array(known.values))
         weekDays = Self.days(start: start, plan: plan, workouts: weekWorkouts)
         warnings = StrengthWeek.legWarnings(weekDays.map { day in
             let workout = weekWorkouts.first { $0.day == day.day.iso }
@@ -123,34 +99,77 @@ import TrainingCore
             return StrengthWeekDay(day: day.day, run: day.runKind, legs: StrengthMuscles.isLegDay(categories))
         })
         isLoaded = true
-        if let client { await backfillSets(client: client) }
     }
 
-    private func backfillSets(client: GarminAccountClient) async {
-        let since = today().adding(days: -7 * C.setsBackfillWeeks)
-        let missing = sessions.filter { $0.day >= since && sets[$0.id] == nil }.prefix(C.maxBackfillPerLoad)
-        guard !missing.isEmpty else { return }
-        for session in missing {
-            guard let fetched = try? await ExerciseSets.fetch(client: client, activityId: session.id) else { continue }
-            sets[session.id] = fetched
-        }
-        store.save(sets)
+    private func apply(_ cache: StrengthProgramCache) {
+        program = cache.program
+        known = Dictionary(cache.known.map { ($0.id, $0) }) { first, _ in first }
     }
 
-    nonisolated private static func sessions(in context: ModelContext) -> [StrengthSession] {
-        let key = StrengthConstants.typeKey
+    private static func entries(_ blocks: [StrengthBlock]) -> [(category: String?, sets: Int)] {
+        blocks.flatMap { block in block.exercises.map { (category: $0.category, sets: block.sets) } }
+    }
+
+    private static func levels(_ blocks: [StrengthBlock], scale: StrengthScale) -> [MuscleGroup: Int] {
+        StrengthMuscles.sets(entries(blocks)).mapValues { StrengthMuscles.level($0, scale: scale) }
+    }
+
+    struct Record: Sendable {
+        let id: Int64
+        let day: Day
+        let name: String
+        let seconds: Double?
+        let averageHR: Double?
+        let maxHR: Double?
+    }
+
+    nonisolated static func records(in context: ModelContext) -> [Record] {
+        let key = C.typeKey
         let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.typeKey == key }, sortBy: [SortDescriptor(\.start, order: .reverse)])
         return ((try? context.fetch(descriptor)) ?? []).compactMap { record in
             guard let day = record.localDay.flatMap(Day.init(iso:)) else { return nil }
+            return Record(id: record.activityId, day: day, name: record.name, seconds: record.duration, averageHR: record.averageHR, maxHR: record.maxHR)
+        }
+    }
+
+    static func sessions(records: [Record], known: [MFITWorkout]) -> [StrengthSession] {
+        let completions = known.flatMap { workout in workout.completions.map { (workout: workout, completion: $0) } }
+        var used: Set<String> = []
+        var result: [StrengthSession] = records.map { record in
+            let sameDay = completions.filter { $0.completion.day == record.day.iso }
+            let byTitle: (MFITWorkout) -> Bool = { $0.title.caseInsensitiveCompare(StrengthText.shortTitle(record.name).trimmingCharacters(in: .whitespaces)) == .orderedSame }
+            let match = sameDay.first { byTitle($0.workout) } ?? sameDay.first
+            let workout = match?.workout ?? known.first(where: byTitle)
+            if let match { used.insert(key(match.workout, match.completion)) }
             return StrengthSession(
-                id: record.activityId,
-                day: day,
-                title: record.name,
-                minutes: record.duration.map { Int(($0 / StrengthConstants.secondsPerMinute).rounded()) },
+                id: record.id,
+                day: record.day,
+                title: workout?.title ?? record.name,
+                minutes: record.seconds.map { Int(($0 / C.secondsPerMinute).rounded()) } ?? match?.completion.minutes,
                 averageHR: record.averageHR.map { Int($0.rounded()) },
-                maxHR: record.maxHR.map { Int($0.rounded()) }
+                maxHR: record.maxHR.map { Int($0.rounded()) },
+                workoutId: workout?.id,
+                effort: match?.completion.effort
             )
         }
+        for entry in completions where !used.contains(key(entry.workout, entry.completion)) {
+            guard let day = Day(iso: entry.completion.day) else { continue }
+            result.append(StrengthSession(
+                id: -(entry.workout.id &* C.syntheticIdFactor &+ Int64(C.syntheticEpoch.days(until: day))),
+                day: day,
+                title: entry.workout.title,
+                minutes: entry.completion.minutes,
+                averageHR: nil,
+                maxHR: nil,
+                workoutId: entry.workout.id,
+                effort: entry.completion.effort
+            ))
+        }
+        return result.sorted { $0.day > $1.day }
+    }
+
+    private static func key(_ workout: MFITWorkout, _ completion: MFITCompletion) -> String {
+        "\(workout.id)-\(completion.day)"
     }
 
     private static func days(start: Day, plan: TrainerPlan?, workouts: [StrengthWorkout]) -> [StrengthDay] {

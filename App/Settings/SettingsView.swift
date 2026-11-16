@@ -100,6 +100,9 @@ struct SettingsView: View {
         case .garmin:
             let signedIn = model.garminAccount.isSignedIn
             return (signedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut, signedIn)
+        case .mfit:
+            let signedIn = model.mfitAccount.isSignedIn
+            return (signedIn ? MFITAccountConstants.statusSignedIn : MFITAccountConstants.statusSignedOut, signedIn)
         case .strava:
             let connected = model.strava.status.connected
             return (connected ? StravaConstants.statusConnected : StravaConstants.statusDisconnected, connected)
@@ -112,6 +115,7 @@ struct SettingsView: View {
         switch group {
         case .account: model.account.user.map { "\($0.name) · \($0.email)" } ?? AccountConstants.accountTitle
         case .garmin: model.hasKey ? "sync \(lastSyncText)" : "sem chave da API"
+        case .mfit: MFITAccountConstants.summary
         case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
         case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
@@ -133,6 +137,8 @@ struct SettingsView: View {
                 keySection
                 connectionSection
                 syncSection
+            case .mfit:
+                MFITAccountSection(model: model.mfitAccount)
             case .strava:
                 StravaSection(model: model.strava)
             case .devices:

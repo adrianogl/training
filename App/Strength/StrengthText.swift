@@ -4,27 +4,27 @@ import TrainingCore
 enum StrengthText {
     static let title = "Força"
     static let today = "Força de hoje"
-    static let todaySource = "Força · do seu professor"
+    static let todaySource = "Força · do seu professor no MFIT"
     static let open = "abrir ›"
     static let week = "Semana"
     static let weekMuscles = "Músculos da semana"
     static let history = "Histórico"
-    static let fromCoach = "do seu professor · no relógio"
+    static let fromCoach = "do seu professor · MFIT"
     static let seeWorkout = "ver treino ›"
     static let seeVolume = "volume por grupo ›"
     static let seeSessions = "ver sessões ›"
-    static let noToday = "Sem força agendada para hoje."
-    static let noWeek = "Nenhuma força agendada nesta semana."
-    static let noSessions = "Nenhuma sessão de força ainda. Elas chegam da Garmin depois que o relógio sincroniza."
-    static let signInHint = "Entre com a conta Garmin em Ajustes para ver o treino do professor."
+    static let noToday = "Sem força para hoje."
+    static let noWeek = "Nenhum treino do MFIT nesta semana."
+    static let noSessions = "Nenhuma sessão de força ainda. Elas aparecem quando você conclui o treino no MFIT ou grava a força no relógio."
+    static let signInHint = "Entre com a conta MFIT em Ajustes para ver o treino do professor."
     static let workoutTitle = "Treino de hoje"
-    static let workoutSubtitle = "Montado pelo seu professor · já está no relógio"
+    static let workoutSubtitle = "Montado pelo seu professor no MFIT"
     static let inOrder = "Na ordem do professor"
     static let sessionTitle = "Sessão"
-    static let doneVsPlanned = "Feito × planejado"
+    static let sessionWorkout = "Treino do professor"
     static let workedMuscles = "O que você trabalhou"
-    static let repsNote = "Repetições contadas pelo relógio; podem faltar."
-    static let noSets = "As séries desta sessão ainda não chegaram da Garmin."
+    static let effort = "esforço"
+        static let noWorkout = "Esta sessão não casou com nenhum treino do MFIT."
     static let volumeTitle = "Volume por grupo"
     static let volumeSubtitle = "Séries por semana · o número é a semana passada"
     static let historyTitle = "Sessões de força"
@@ -46,8 +46,8 @@ enum StrengthText {
         return "descanso \(Int(seconds)) s"
     }
 
-    static func setsLabel(_ block: Int, detail: String?) -> String {
-        "\(block) × \(detail ?? "")"
+    static func setsLabel(_ block: Int, detail: String?, weight: Double?) -> String {
+        [detail.map { "\(block) × \($0)" } ?? "\(block) séries", weight.map(weightLabel)].compactMap { $0 }.joined(separator: " · ")
     }
 
     static func countLabel(exercises: Int, sets: Int) -> String {
@@ -62,8 +62,14 @@ enum StrengthText {
         String(format: "%.1f", value).replacingOccurrences(of: ".", with: ",")
     }
 
-    static func doneLabel(done: Int, planned: Int) -> String {
-        "\(done) de \(planned)"
+    static func weightLabel(_ kilograms: Double) -> String {
+        let text = kilograms == kilograms.rounded() ? String(Int(kilograms)) : String(format: "%.1f", kilograms).replacingOccurrences(of: ".", with: ",")
+        return "\(text) kg"
+    }
+
+    static func programLabel(_ title: String, start: Day?, end: Day?) -> String {
+        guard let start, let end else { return title }
+        return "\(title) · \(start.day)/\(start.month) a \(end.day)/\(end.month)"
     }
 
     static func weekday(_ day: Day) -> String {

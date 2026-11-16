@@ -23,6 +23,7 @@ import TrainingCore
     let autoSyncEnabled: Bool
     let remoteSync: RemoteSyncModel
     let garminAccount: GarminAccountModel
+    let mfitAccount: MFITAccountModel
     let account: AccountModel
     let strava: StravaModel
     let trainer: TrainerModel
@@ -57,6 +58,7 @@ import TrainingCore
         remoteKeyStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.remoteSyncKeychainAccount),
         watchTokenStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.watchTokenKeychainAccount),
         garminSessionStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.garminSessionKeychainAccount),
+        mfitTokenStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.mfitTokenKeychainAccount),
         remoteDefaults: UserDefaults = AccountScope.current.defaults,
         trainerStore: TrainerStore = TrainerStore(),
         snapshots: ScreenSnapshotStore = ScreenSnapshotStore(),
@@ -94,6 +96,10 @@ import TrainingCore
         )
         self.garminAccount = GarminAccountModel(
             store: KeychainGarminSessionStore(keychain: garminSessionStore),
+            makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
+        )
+        self.mfitAccount = MFITAccountModel(
+            store: mfitTokenStore,
             makeTransport: { URLSessionTransport(session: URLSession(configuration: .ephemeral)) }
         )
         self.account = account ?? AccountModel(transport: transport, baseURL: remoteBaseURL)
@@ -153,6 +159,7 @@ import TrainingCore
                 remoteKeyStore: scope.keyStore(AppConstants.remoteSyncKeychainAccount),
                 watchTokenStore: scope.keyStore(AppConstants.watchTokenKeychainAccount),
                 garminSessionStore: scope.keyStore(AppConstants.garminSessionKeychainAccount),
+                mfitTokenStore: scope.keyStore(AppConstants.mfitTokenKeychainAccount),
                 remoteDefaults: scope.defaults,
                 trainerStore: TrainerStore(url: scope.trainerURL, defaults: scope.defaults),
                 snapshots: ScreenSnapshotStore(directory: scope.snapshotsFolder),

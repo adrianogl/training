@@ -1,6 +1,7 @@
 import Foundation
 import GarminAPI
 import Insights
+import MFIT
 import TrainingCore
 
 struct BodyMapPart: Sendable {
@@ -22,6 +23,13 @@ struct StrengthSession: Identifiable, Equatable, Sendable {
     let minutes: Int?
     let averageHR: Int?
     let maxHR: Int?
+    var workoutId: Int64?
+    var effort: Int?
+}
+
+struct StrengthProgramCache: Codable, Sendable {
+    let program: MFITProgram?
+    let known: [MFITWorkout]
 }
 
 struct StrengthDay: Identifiable, Equatable {
@@ -36,12 +44,4 @@ struct StrengthVolumeRow: Identifiable, Equatable {
     var id: MuscleGroup { group }
     let group: MuscleGroup
     let weekly: [Double]
-}
-
-struct StrengthExerciseResult: Identifiable, Equatable {
-    var id: String { name }
-    let name: String
-    let planned: Int
-    let done: Int
-    let reps: [Int?]
 }

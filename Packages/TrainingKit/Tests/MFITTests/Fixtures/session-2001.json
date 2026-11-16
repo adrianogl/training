@@ -1,0 +1,220 @@
+{
+ "id": 2001,
+ "nome": "Superiores ",
+ "exercs": [
+  {
+   "order": 0,
+   "exercises": [
+    {
+     "name": "Panturrilha unilateral no leg 45 ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Panturrilha"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "15 rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 30 segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 1,
+   "exercises": [
+    {
+     "name": "Combinado",
+     "isCombinado": true,
+     "exerciseGroup": {
+      "nome": "Combinado"
+     },
+     "series": [
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Prancha Copenhagen",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Abdômen"
+        }
+       }
+      },
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Oblíquo Alternando com Wall Ball",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Abdômen"
+        }
+       }
+      },
+      {
+       "tipo": 5,
+       "obs": "prancha conpenhagen 30 segundos cada lado + Oblíquo 20 rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 30 á 45  segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 2,
+   "exercises": [
+    {
+     "name": "Supino Inclinado com Barra (PTP) ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Peitoral"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "3 séries de 10 rep com 60  segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "14"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 3,
+   "exercises": [
+    {
+     "name": "supino reto no smith ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Peitoral"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "10 rep boa carga ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 60 segundos de recuperação ",
+       "carga": "0"
+      },
+      {
+       "tipo": 0,
+       "carga": "16"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 4,
+   "exercises": [
+    {
+     "name": "Crucifixo Máquina",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Peitoral"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "10 parciais/10 completas",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "4  séries com 60  segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "39"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 5,
+   "exercises": [
+    {
+     "name": "Combinado",
+     "isCombinado": true,
+     "exerciseGroup": {
+      "nome": "Combinado"
+     },
+     "series": [
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Tríceps Francês bilateral com halter ",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Tríceps"
+        }
+       }
+      },
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Flexão de braços no solo (PVP)",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Peitoral"
+        }
+       }
+      },
+      {
+       "tipo": 5,
+       "obs": "tríceps 10  rep + falha na flexão ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "4 séries com 60    segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

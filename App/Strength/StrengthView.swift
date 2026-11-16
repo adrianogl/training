@@ -1,5 +1,6 @@
 import Insights
 import SwiftUI
+import TrainingCore
 
 struct StrengthView: View {
     @Environment(AppModel.self) private var app
@@ -17,6 +18,11 @@ struct StrengthView: View {
                     Text(StrengthText.title)
                         .font(BrandFonts.largeTitle)
                         .foregroundStyle(BrandColors.text)
+                    if let program = model.program {
+                        Text(StrengthText.programLabel(program.title, start: program.start.flatMap(Day.init(iso:)), end: program.end.flatMap(Day.init(iso:))))
+                            .font(.footnote)
+                            .foregroundStyle(BrandColors.dim)
+                    }
                     SectionLabel(StrengthText.today)
                     StrengthTodayCard(model: model)
                     SectionLabel(StrengthText.week)
@@ -41,11 +47,11 @@ struct StrengthView: View {
                 }
             }
             .refreshable { await load() }
-            .task(id: app.garminAccount.isSignedIn) { await load() }
+            .task(id: app.mfitAccount.revision) { await load() }
         }
     }
 
     private func load() async {
-        await model.load(container: app.container, client: app.garminAccount.client, plan: app.trainer.plan)
+        await model.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
     }
 }

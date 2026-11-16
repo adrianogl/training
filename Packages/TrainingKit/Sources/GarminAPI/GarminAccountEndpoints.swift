@@ -39,5 +39,4 @@ public enum GarminAccountEndpoints {
     public static let createWorkoutPath = "/workout-service/workout"
     public static let schedulePathPrefix = "/workout-service/schedule/"
     public static let trainingReadinessPathPrefix = "/metrics-service/metrics/trainingreadiness/"
-    public static let exerciseSetsPathFormat = "/activity-service/activity/%lld/exerciseSets"
 }

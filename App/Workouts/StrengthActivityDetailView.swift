@@ -8,7 +8,7 @@ struct StrengthActivityDetailView: View {
     var body: some View {
         StrengthSessionView(model: model, sessionId: activityId)
             .task(id: activityId) {
-                await model.load(container: app.container, client: app.garminAccount.client, plan: app.trainer.plan)
+                await model.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
             }
     }
 }
