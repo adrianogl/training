@@ -21,6 +21,7 @@ struct TrainerSkeletonContext {
     var longCap: Double
     var peakVolume: Double
     var lightWeeks: [Day] = []
+    var earlyLightWeeks: [Day: TrainerLightKind] = [:]
     var generalWeeks = 0
 }
 
@@ -57,6 +58,12 @@ struct TrainerFindings {
     var misses: [TrainerQualityMiss] = []
     var readiness: Double?
     var lowReadiness = false
+    var signals: [TrainerSignal] = []
+}
+
+enum TrainerSignalDecision: Equatable {
+    case early(TrainerLightKind)
+    case calm
 }
 
 struct TrainerChangeReasons {

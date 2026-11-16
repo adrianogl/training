@@ -182,7 +182,7 @@ extension TrainerEngine {
         _ weeks: [TrainerWeek], structure: [Int: TrainerDayKind], target: TrainerTarget, history: TrainerHistory, today: Day, paces: TrainerPaces
     ) -> [TrainerWeek] {
         weeks.map { week in
-            let kinds = weekStructure(structure, index: week.index)
+            let kinds = weekStructure(structure, week: week)
             guard kinds.values.contains(.long) else { return week }
             let longest = longestOtherRun(week: week, weeks: weeks, structure: kinds, target: target, history: history, today: today, paces: paces)
             guard longest > week.longMeters else { return week }

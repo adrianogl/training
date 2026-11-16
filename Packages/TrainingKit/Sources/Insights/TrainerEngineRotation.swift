@@ -98,7 +98,7 @@ extension TrainerEngine {
     }
 
     static func isFartlekWeek(_ week: TrainerWeek, weeks: [TrainerWeek]) -> Bool {
-        isProgressionWeek(week) && progressionOrdinal(of: week, in: weeks) % C.fartlekEvery == 1
+        !week.calm && isProgressionWeek(week) && progressionOrdinal(of: week, in: weeks) % C.fartlekEvery == 1
     }
 
     static func fartlekMinimumMeters() -> Double {
@@ -154,7 +154,7 @@ extension TrainerEngine {
     }
 
     static func longRoom(week: TrainerWeek, weeks: [TrainerWeek], structure: [Int: TrainerDayKind], target: TrainerTarget, paces: TrainerPaces) -> Double {
-        let kinds = weekStructure(structure, index: week.index).values
+        let kinds = weekStructure(structure, week: week).values
         let quality = kinds.filter(C.qualityKinds.contains).reduce(0.0) { total, kind in
             total + qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
         }

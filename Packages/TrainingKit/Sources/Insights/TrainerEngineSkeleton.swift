@@ -31,18 +31,20 @@ extension TrainerEngine {
     }
 
     static func skeletonContext(
-        target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double, lightWeeks: [Day] = []
+        target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double, lightWeeks: [Day] = [],
+        earlyLightWeeks: [Day: TrainerLightKind] = [:]
     ) -> TrainerSkeletonContext {
         let cap = longCap(for: target)
         guard let datedWeeks else {
             return TrainerSkeletonContext(
-                total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume, lightWeeks: lightWeeks
+                total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume, lightWeeks: lightWeeks,
+                earlyLightWeeks: earlyLightWeeks
             )
         }
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
         return TrainerSkeletonContext(
             total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume,
-            lightWeeks: lightWeeks, generalWeeks: max(0, datedWeeks - blockWeeks(for: target))
+            lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, generalWeeks: max(0, datedWeeks - blockWeeks(for: target))
         )
     }
 
@@ -119,7 +121,8 @@ extension TrainerEngine {
             let first = index == firstIndex
             let phase = phase(of: index, in: context)
             let start = firstStart.adding(days: (index - firstIndex) * C.daysPerWeek)
-            let recovery = phase != .taper && (context.lightWeeks.contains(start) || index - lastRecovery >= C.recoveryEvery)
+            let early = phase == .taper ? nil : context.earlyLightWeeks[start]
+            let recovery = phase != .taper && (context.lightWeeks.contains(start) || early != nil || index - lastRecovery >= C.recoveryEvery)
             if recovery { lastRecovery = index }
             var volume: Double
             var long: Double
@@ -131,7 +134,7 @@ extension TrainerEngine {
                 long = roundKilometers(state.long * share)
                 stage = max(0, state.stage - 1)
             } else if recovery {
-                volume = roundKilometers(state.volume * C.recoveryVolumeShare)
+                volume = roundKilometers(state.volume * lightVolumeShare(early))
                 state.returning = true
                 long = roundKilometers(state.long * C.recoveryLongShare)
                 stage = max(0, state.stage - 1)
@@ -176,13 +179,13 @@ extension TrainerEngine {
                 stage = state.stage
             }
             if first && (phase == .taper || recovery) {
-                if let scale = adjustment.volumeScale { volume = roundKilometers(volume * scale) }
+                if early == nil, let scale = adjustment.volumeScale { volume = roundKilometers(volume * scale) }
                 if let cap = adjustment.longCap { long = min(long, cap) }
             }
             weeks.append(TrainerWeek(
                 index: index, start: start, phase: phase,
                 isRecovery: recovery, plannedMeters: volume, targetMeters: volume, longMeters: long,
-                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]), vo2Focus: ""
+                thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]), vo2Focus: "", lightKind: early
             ))
         }
         return weeks

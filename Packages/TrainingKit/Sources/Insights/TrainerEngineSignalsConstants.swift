@@ -16,4 +16,11 @@ extension TrainerEngineConstants {
     static let signalPerformanceQualityStreak = 2
     static let signalPerformanceWeekRuns = 2
     static let signalPerformanceBaselineRuns = 3
+    static let signalCalmCount = 2
+    static let signalEarlyCount = 3
+    static let signalCalmScale = 0.9
+    static let signalEarlyMinimumGap = 3
+    static let signalEarlyRaceDays = 21
+    static let signalBodyVolumeShare = 0.75
+    static let signalTrainingVolumeShare = 0.85
 }

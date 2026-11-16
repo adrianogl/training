@@ -10,3 +10,7 @@ public enum TrainerSignal: String, Codable, Sendable, CaseIterable {
         }
     }
 }
+
+public enum TrainerLightKind: String, Codable, Sendable {
+    case body, training
+}

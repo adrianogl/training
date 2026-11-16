@@ -174,10 +174,12 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
     public var thresholdFocus: String
     public var vo2Focus: String
     public var baseLongMeters: Double?
+    public var calm: Bool
+    public var lightKind: TrainerLightKind?
 
     public var id: Int { index }
 
-    public init(index: Int, start: Day, phase: TrainerPhase, isRecovery: Bool, plannedMeters: Double, targetMeters: Double? = nil, longMeters: Double, thresholdFocus: String, vo2Focus: String, baseLongMeters: Double? = nil) {
+    public init(index: Int, start: Day, phase: TrainerPhase, isRecovery: Bool, plannedMeters: Double, targetMeters: Double? = nil, longMeters: Double, thresholdFocus: String, vo2Focus: String, baseLongMeters: Double? = nil, calm: Bool = false, lightKind: TrainerLightKind? = nil) {
         self.index = index
         self.start = start
         self.phase = phase
@@ -188,10 +190,12 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
         self.thresholdFocus = thresholdFocus
         self.vo2Focus = vo2Focus
         self.baseLongMeters = baseLongMeters
+        self.calm = calm
+        self.lightKind = lightKind
     }
 
     private enum CodingKeys: String, CodingKey {
-        case index, start, phase, isRecovery, plannedMeters, targetMeters, longMeters, thresholdFocus, vo2Focus, baseLongMeters
+        case index, start, phase, isRecovery, plannedMeters, targetMeters, longMeters, thresholdFocus, vo2Focus, baseLongMeters, calm, lightKind
     }
 
     public init(from decoder: Decoder) throws {
@@ -207,7 +211,9 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
             longMeters: try container.decode(Double.self, forKey: .longMeters),
             thresholdFocus: try container.decode(String.self, forKey: .thresholdFocus),
             vo2Focus: try container.decode(String.self, forKey: .vo2Focus),
-            baseLongMeters: try container.decodeIfPresent(Double.self, forKey: .baseLongMeters)
+            baseLongMeters: try container.decodeIfPresent(Double.self, forKey: .baseLongMeters),
+            calm: try container.decodeIfPresent(Bool.self, forKey: .calm) ?? false,
+            lightKind: try container.decodeIfPresent(TrainerLightKind.self, forKey: .lightKind)
         )
     }
 
@@ -223,6 +229,8 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
         try container.encode(thresholdFocus, forKey: .thresholdFocus)
         try container.encode(vo2Focus, forKey: .vo2Focus)
         try container.encodeIfPresent(baseLongMeters, forKey: .baseLongMeters)
+        if calm { try container.encode(calm, forKey: .calm) }
+        try container.encodeIfPresent(lightKind, forKey: .lightKind)
     }
 }
 
@@ -518,6 +526,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var startMeters: Double?
     public var peakMeters: Double?
     public var lightWeeks: [Day]
+    public var earlyLightWeeks: [Day: TrainerLightKind]
     public var longMode: TrainerLongMode
     public var longStage: Int
     public var longStageStreak: Int
@@ -526,7 +535,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var dayPreference: TrainerDayPreference
     public var endedOn: Day?
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil, endedOn: Day? = nil) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], earlyLightWeeks: [Day: TrainerLightKind] = [:], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil, endedOn: Day? = nil) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -538,6 +547,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.startMeters = startMeters
         self.peakMeters = peakMeters
         self.lightWeeks = lightWeeks
+        self.earlyLightWeeks = earlyLightWeeks
         self.longMode = longMode
         self.longStage = longStage
         self.longStageStreak = longStageStreak
@@ -549,7 +559,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
 
     private enum CodingKeys: String, CodingKey {
         case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters, lightWeeks
-        case longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference, endedOn
+        case earlyLightWeeks, longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference, endedOn
     }
 
     public init(from decoder: Decoder) throws {
@@ -558,6 +568,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         let start = try container.decodeIfPresent(Double.self, forKey: .startMeters) ?? legacyMeters
         let peak = try container.decodeIfPresent(Double.self, forKey: .peakMeters)
             ?? legacyMeters.map { TrainerEngineConstants.legacyPeak(from: $0) }
+        let early = try container.decodeIfPresent([String: TrainerLightKind].self, forKey: .earlyLightWeeks) ?? [:]
         self.init(
             target: try container.decode(TrainerTarget.self, forKey: .target),
             structure: try container.decode([Int: TrainerDayKind].self, forKey: .structure),
@@ -569,6 +580,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             strength: try container.decodeIfPresent([TrainerStrengthSession].self, forKey: .strength) ?? [],
             startMeters: start, peakMeters: peak,
             lightWeeks: try container.decodeIfPresent([Day].self, forKey: .lightWeeks) ?? [],
+            earlyLightWeeks: Dictionary(uniqueKeysWithValues: early.compactMap { key, kind in Day(iso: key).map { ($0, kind) } }),
             longMode: try container.decodeIfPresent(TrainerLongMode.self, forKey: .longMode) ?? .continuous,
             longStage: try container.decodeIfPresent(Int.self, forKey: .longStage) ?? 1,
             longStageStreak: try container.decodeIfPresent(Int.self, forKey: .longStageStreak) ?? 0,
@@ -592,6 +604,9 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         try container.encodeIfPresent(startMeters, forKey: .startMeters)
         try container.encodeIfPresent(peakMeters, forKey: .peakMeters)
         try container.encode(lightWeeks, forKey: .lightWeeks)
+        if !earlyLightWeeks.isEmpty {
+            try container.encode(Dictionary(uniqueKeysWithValues: earlyLightWeeks.map { ($0.key.iso, $0.value) }), forKey: .earlyLightWeeks)
+        }
         try container.encode(longMode, forKey: .longMode)
         try container.encode(longStage, forKey: .longStage)
         try container.encode(longStageStreak, forKey: .longStageStreak)

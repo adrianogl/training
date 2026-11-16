@@ -232,9 +232,8 @@ enum TrainerEngineText {
         "O \(kindName(miss.kind).lowercased()) de \(date(miss.day)) ficou fora do alvo em \(miss.total - miss.onTarget) de \(miss.total) trechos. O próximo desce uma etapa e a recuperação sobe 200 m."
     }
 
-    static func lowReadiness(_ value: Double, weekly: Bool) -> String {
-        let label = weekly ? "A prontidão média da semana foi \(Int(value.rounded()))" : "A prontidão no dia do treino foi \(Int(value.rounded()))"
-        return "\(label). O volume da próxima semana cai 10%."
+    static func lowReadiness(_ value: Double) -> String {
+        "A prontidão no dia do treino foi \(Int(value.rounded())). O volume da próxima semana cai 10%."
     }
 
     static func weekClosed(_ index: Int) -> String {
@@ -554,5 +553,24 @@ extension TrainerEngineText {
         swapped
             ? "Prontidão \(score): rodagem leve hoje e o treino forte amanhã."
             : "Prontidão \(score): rodagem leve hoje, o resto da semana fica como está."
+    }
+}
+
+extension TrainerEngineText {
+    static func signalWeek(_ signals: [TrainerSignal], early: Bool) -> String {
+        let names = signals.map(signalName)
+        let list = names.count > 1 ? "\(names.dropLast().joined(separator: ", ")) e \(names[names.count - 1])" : names.joined()
+        return "\(early ? "Semana leve antecipada" : "Semana mais leve"): \(list) fora do seu normal."
+    }
+
+    static func signalName(_ signal: TrainerSignal) -> String {
+        switch signal {
+        case .hrv: "HRV"
+        case .restingHeartRate: "FC de repouso"
+        case .sleep: "sono"
+        case .load: "carga"
+        case .performance: "desempenho"
+        case .readiness: "prontidão"
+        }
     }
 }
