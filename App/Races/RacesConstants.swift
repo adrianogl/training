@@ -27,7 +27,6 @@ enum RacesConstants {
     static let selectRace = "Escolha uma prova na lista."
     static let pairWeights: [Double] = [1, 1]
     static let strategyBarsHeight: Double = 120
-    static let strategyColumns = 2
     static let upcomingTitle = "Próximas"
     static let completedTitle = "Concluídas"
     static let candidatesTitle = "Parece prova?"

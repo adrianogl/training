@@ -1,4 +1,4 @@
-import Foundation
+import SwiftUI
 
 enum RacePlanConstants {
     static let cacheFileName = "pacepro.json"
@@ -23,4 +23,7 @@ enum RacePlanConstants {
     static let evenTolerance = 2.0
     static let strayTolerance = 1.0
     static let finishTolerance = 3.0
+    static let waterAllowance = 3.0
+    static let waterTag = "água"
+    static let waterColor = Color(light: 0x2F6FD6, dark: 0x7FB2FF)
 }

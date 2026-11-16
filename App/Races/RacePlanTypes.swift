@@ -12,6 +12,7 @@ struct RacePlanRow: Identifiable, Equatable {
     let planned: Double
     let done: Double
     let cumulative: Double
+    var hasWater = false
 
     var delta: Double { done - planned }
 }

@@ -16,23 +16,27 @@ public struct PaceProSummary: Sendable, Equatable, Codable, Identifiable {
     public var distance: Double
     public var goalSeconds: Double?
     public var created: String?
+    public var courseId: Int64?
 
-    public init(id: Int64, name: String, distance: Double, goalSeconds: Double?, created: String?) {
+    public init(id: Int64, name: String, distance: Double, goalSeconds: Double?, created: String?, courseId: Int64? = nil) {
         self.id = id
         self.name = name
         self.distance = distance
         self.goalSeconds = goalSeconds
         self.created = created
+        self.courseId = courseId
     }
 }
 
 public struct PaceProPlan: Sendable, Equatable, Codable, Identifiable {
     public var summary: PaceProSummary
     public var splits: [PaceProSplit]
+    public var water: [Double]?
 
-    public init(summary: PaceProSummary, splits: [PaceProSplit]) {
+    public init(summary: PaceProSummary, splits: [PaceProSplit], water: [Double]? = nil) {
         self.summary = summary
         self.splits = splits
+        self.water = water
     }
 
     public var id: Int64 { summary.id }
@@ -54,6 +58,7 @@ struct PaceBandSummaryDTO: Decodable {
     let totalDistance: Double?
     let goalTime: Double?
     let createdDate: String?
+    let courseId: Int64?
 }
 
 struct PaceBandSplitDTO: Decodable {
@@ -64,4 +69,13 @@ struct PaceBandSplitDTO: Decodable {
 struct PaceBandDTO: Decodable {
     let paceBandSummary: PaceBandSummaryDTO?
     let paceBandSplits: [PaceBandSplitDTO]?
+}
+
+struct CourseDTO: Decodable {
+    struct Point: Decodable {
+        let coursePointType: String?
+        let distance: Double?
+    }
+
+    let coursePoints: [Point]?
 }

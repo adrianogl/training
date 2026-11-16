@@ -1,6 +1,8 @@
 import Foundation
 
 public enum PacePro {
+    static let waterType = "WATER"
+
     public static func summaries(client: GarminAccountClient) async throws -> [PaceProSummary] {
         let data = try await client.get(GarminAccountEndpoints.paceBandsSummariesPath)
         return try parseSummaries(data)
@@ -8,6 +10,17 @@ public enum PacePro {
 
     public static func plan(id: Int64, client: GarminAccountClient) async throws -> PaceProPlan? {
         try parsePlan(try await client.get(GarminAccountEndpoints.paceBandPathPrefix + String(id)))
+    }
+
+    public static func water(courseId: Int64, client: GarminAccountClient) async throws -> [Double] {
+        try parseWater(try await client.get(GarminAccountEndpoints.coursesPath + "/" + String(courseId)))
+    }
+
+    static func parseWater(_ data: Data) throws -> [Double] {
+        try JSONDecoder().decode(CourseDTO.self, from: data).coursePoints?
+            .filter { $0.coursePointType == waterType }
+            .compactMap(\.distance)
+            .sorted() ?? []
     }
 
     static func parseSummaries(_ data: Data) throws -> [PaceProSummary] {
@@ -25,7 +38,7 @@ public enum PacePro {
     }
 
     private static func summary(_ dto: PaceBandSummaryDTO) -> PaceProSummary {
-        PaceProSummary(id: dto.paceBandPk, name: dto.name ?? "", distance: dto.totalDistance ?? 0, goalSeconds: dto.goalTime, created: dto.createdDate)
+        PaceProSummary(id: dto.paceBandPk, name: dto.name ?? "", distance: dto.totalDistance ?? 0, goalSeconds: dto.goalTime, created: dto.createdDate, courseId: dto.courseId)
     }
 
     public static func match(_ summaries: [PaceProSummary], distance: Double) -> PaceProSummary? {

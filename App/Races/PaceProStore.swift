@@ -47,7 +47,9 @@ struct PaceProStore: Sendable {
         var cache = load()
         if let summaries = try? await PacePro.summaries(client: client) { cache.summaries = summaries }
         guard let id = selectedId(race: race, distance: distance, summaries: cache.summaries) else { save(cache); return nil }
-        if let plan = try? await PacePro.plan(id: id, client: client) {
+        if var plan = try? await PacePro.plan(id: id, client: client) {
+            let courseId = plan.summary.courseId ?? cache.summaries.first { $0.id == id }?.courseId
+            if let courseId { plan.water = try? await PacePro.water(courseId: courseId, client: client) }
             cache.plans.removeAll { $0.id == id }
             cache.plans.append(plan)
         }

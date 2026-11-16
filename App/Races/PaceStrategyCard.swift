@@ -6,7 +6,6 @@ import WorkoutAnalysis
 struct PaceStrategyCard: View {
     let model: NextRaceModel
     @State private var editing: PaceEditTarget?
-    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -108,19 +107,8 @@ struct PaceStrategyCard: View {
         .frame(height: RacesConstants.strategyBarsHeight)
     }
 
-    @ViewBuilder
     private var table: some View {
-        if sizeClass == .regular {
-            let size = Int((Double(model.strategy.count) / Double(RacesConstants.strategyColumns)).rounded(.up))
-            HStack(alignment: .top, spacing: 18) {
-                ForEach(0..<RacesConstants.strategyColumns, id: \.self) { column in
-                    let slice = Array(model.strategy.dropFirst(column * size).prefix(size))
-                    tableColumn(slice)
-                }
-            }
-        } else {
-            tableColumn(model.strategy)
-        }
+        tableColumn(model.strategy)
     }
 
     private func tableColumn(_ plans: [KmPlan]) -> some View {

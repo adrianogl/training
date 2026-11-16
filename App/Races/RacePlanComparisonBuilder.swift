@@ -11,12 +11,13 @@ enum RacePlanComparisonBuilder {
             return splits.map { seconds.indices.contains($0.index) ? seconds[$0.index] : nil }
         } ?? splits.map(\.planned)
         var cumulative = 0.0
+        let waterKm = Set((plan?.water ?? []).map { max(Int(($0 / 1_000).rounded(.up)) - 1, 0) })
         let rows: [RacePlanRow] = zip(splits, planned).compactMap { split, pace in
             guard let pace, split.distance >= 500 else { return nil }
             let factor = split.distance / 1_000
             let row = (planned: pace * factor, done: split.pace * factor)
             cumulative += row.done - row.planned
-            return RacePlanRow(index: split.index, planned: row.planned, done: row.done, cumulative: cumulative)
+            return RacePlanRow(index: split.index, planned: row.planned, done: row.done, cumulative: cumulative, hasWater: waterKm.contains(split.index))
         }
         guard !rows.isEmpty else { return nil }
         return RacePlanComparison(
@@ -40,11 +41,20 @@ enum RacePlanComparisonBuilder {
             let first = rows[stretch.lowerBound].index + 1
             let last = rows[stretch.upperBound].index + 1
             parts.append(first == last ? "Perdeu tempo no km \(first)." : "Perdeu tempo entre o km \(first) e o \(last).")
+            let water = rows[stretch].filter(\.hasWater).map { $0.index + 1 }
+            if let sentence = waterSentence(water) { parts.append(sentence) }
         }
         if let final = rows.last, final.delta <= -C.finishTolerance {
             parts.append("No fim, o km \(final.index + 1) saiu em \(WorkoutFormat.clock(final.done)), à frente do plano.")
         }
         return parts.joined(separator: " ")
+    }
+
+    static func waterSentence(_ km: [Int]) -> String? {
+        guard let last = km.last else { return nil }
+        guard km.count > 1 else { return "O km \(last) teve água, então até \(Int(C.waterAllowance)) s vêm do copo." }
+        let list = km.dropLast().map(String.init).joined(separator: ", ") + " e \(last)"
+        return "Desses, os km \(list) tiveram água, então até \(Int(C.waterAllowance)) s em cada um vêm do copo."
     }
 
     static func gapText(_ seconds: Double) -> String {
@@ -61,7 +71,7 @@ enum RacePlanComparisonBuilder {
         var best: ClosedRange<Int>?
         var start: Int?
         for (offset, row) in rows.enumerated() {
-            if row.delta > C.strayTolerance {
+            if row.delta > C.strayTolerance + (row.hasWater ? C.waterAllowance : 0) || (row.hasWater && row.delta > C.strayTolerance && start != nil) {
                 if start == nil { start = offset }
                 let current = start!...offset
                 if best.map({ current.count > $0.count }) ?? true { best = current }
