@@ -36,6 +36,11 @@ struct StrengthView: View {
                 .padding(.top, 8)
                 .padding(.bottom, 24)
             }
+            .brandRefreshable {
+                let synced = await app.syncNow(.pull)
+                let loaded = await load()
+                return synced && loaded
+            }
             .background(BrandBackground())
             .toolbarVisibility(.hidden, for: .navigationBar)
             .navigationDestination(for: StrengthRoute.self) { route in
@@ -46,12 +51,12 @@ struct StrengthView: View {
                 case .history: StrengthHistoryView(model: model)
                 }
             }
-            .refreshable { await load() }
             .task(id: app.mfitAccount.revision) { await load() }
         }
     }
 
-    private func load() async {
+    @discardableResult
+    private func load() async -> Bool {
         await model.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan)
     }
 }

@@ -82,10 +82,13 @@ import TrainingCore
         return C.volumeGroups.map { group in StrengthVolumeRow(group: group, weekly: perWeek.map { $0[group] ?? 0 }) }
     }
 
-    func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?) async {
+    @discardableResult
+    func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?) async -> Bool {
         hasMFIT = client != nil
+        var fetchedProgram = client == nil
         if let client, let fetched = try? await client.currentProgram(today: today().iso) {
             apply(store.update(with: fetched))
+            fetchedProgram = true
         } else if client == nil {
             program = nil
         }
@@ -99,6 +102,7 @@ import TrainingCore
             return StrengthWeekDay(day: day.day, run: day.runKind, legs: StrengthMuscles.isLegDay(categories))
         })
         isLoaded = true
+        return fetchedProgram
     }
 
     private func apply(_ cache: StrengthProgramCache) {
