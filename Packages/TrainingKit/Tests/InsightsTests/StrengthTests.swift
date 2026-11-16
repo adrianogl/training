@@ -22,10 +22,12 @@ import TrainingCore
         #expect(StrengthMuscles.level(15, scale: .week) == 3)
     }
 
-    @Test func legDayNeedsAPrimaryLegMuscle() {
-        #expect(StrengthMuscles.isLegDay(["SQUAT"]))
-        #expect(StrengthMuscles.isLegDay(["CALF_RAISE", "BENCH_PRESS"]))
-        #expect(!StrengthMuscles.isLegDay(["BENCH_PRESS", "ROW", "PLANK"]))
+    @Test func legDayNeedsMostSetsOnLegs() {
+        #expect(StrengthMuscles.isLegDay([("SQUAT", 3)]))
+        #expect(StrengthMuscles.isLegDay([("HIP_RAISE", 4), ("LEG_CURL", 3), ("PLANK", 3)]))
+        #expect(!StrengthMuscles.isLegDay([("CALF_RAISE", 3), ("BENCH_PRESS", 6), ("TRICEPS_EXTENSION", 4)]))
+        #expect(!StrengthMuscles.isLegDay([("DEADLIFT", 3), ("ROW", 6), ("PULL_UP", 4)]))
+        #expect(!StrengthMuscles.isLegDay([]))
     }
 
     @Test func weeklyCountsCoverTheLastWeeksEndingThisWeek() {

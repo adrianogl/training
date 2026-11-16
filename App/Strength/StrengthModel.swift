@@ -66,6 +66,23 @@ import TrainingCore
         StrengthMuscles.sets(weekWorkouts.flatMap { Self.entries($0.blocks) }).mapValues { StrengthMuscles.level($0, scale: .week) }
     }
 
+    var weekGroupTotals: [StrengthGroupTotal] {
+        let sets = StrengthMuscles.sets(weekWorkouts.flatMap { Self.entries($0.blocks) })
+        return sets.filter { $0.value > 0 }
+            .sorted { $0.value == $1.value ? $0.key.rawValue < $1.key.rawValue : $0.value > $1.value }
+            .prefix(C.groupTotalsLimit)
+            .map { StrengthGroupTotal(group: $0.key, sets: $0.value, level: StrengthMuscles.level($0.value, scale: .week)) }
+    }
+
+    var thisWeekSessions: Int {
+        let start = today().weekStart
+        return sessions.filter { start <= $0.day && $0.day <= start.adding(days: 6) }.count
+    }
+
+    var recentSessions: [StrengthSession] {
+        Array(sessions.prefix(C.recentSessionsLimit))
+    }
+
     var weekSetCount: Int {
         weekWorkouts.reduce(0) { $0 + $1.totalSets }
     }
@@ -103,8 +120,7 @@ import TrainingCore
         weekDays = Self.days(start: start, plan: plan, workouts: weekWorkouts)
         warnings = StrengthWeek.legWarnings(weekDays.map { day in
             let workout = weekWorkouts.first { $0.day == day.day.iso }
-            let categories = workout?.blocks.flatMap { $0.exercises.map(\.category) } ?? []
-            return StrengthWeekDay(day: day.day, run: day.runKind, legs: StrengthMuscles.isLegDay(categories))
+            return StrengthWeekDay(day: day.day, run: day.runKind, legs: StrengthMuscles.isLegDay(Self.entries(workout?.blocks ?? [])))
         })
         isLoaded = true
         return fetchedProgram
@@ -189,6 +205,7 @@ import TrainingCore
                 day: day,
                 run: run.map { StrengthText.runLabel($0.kind, meters: $0.totalMeters) },
                 runKind: run?.kind,
+                runKilometers: run.map { StrengthText.kilometers($0.totalMeters) },
                 strength: workouts.first { $0.day == day.iso }.map { StrengthText.shortTitle($0.title) }
             )
         }

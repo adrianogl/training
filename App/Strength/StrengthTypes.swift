@@ -37,7 +37,15 @@ struct StrengthDay: Identifiable, Equatable {
     let day: Day
     let run: String?
     let runKind: TrainerDayKind?
+    var runKilometers: String? = nil
     let strength: String?
+}
+
+struct StrengthGroupTotal: Identifiable, Equatable {
+    var id: MuscleGroup { group }
+    let group: MuscleGroup
+    let sets: Double
+    let level: Int
 }
 
 struct StrengthVolumeRow: Identifiable, Equatable {
