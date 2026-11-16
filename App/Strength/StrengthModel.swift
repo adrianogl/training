@@ -84,7 +84,7 @@ import TrainingCore
     }
 
     @discardableResult
-    func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?) async -> Bool {
+    func load(container: ModelContainer, client: MFITClient?, plan: TrainerPlan?, garmin: GarminAccountClient? = nil) async -> Bool {
         hasMFIT = client != nil
         let records = Self.records(in: ModelContext(container))
         sessions = Self.sessions(records: records, known: Array(known.values))
@@ -112,7 +112,21 @@ import TrainingCore
             return StrengthWeekDay(day: day.day, run: day.runKind, legs: StrengthMuscles.isLegDay(Self.entries(workout?.blocks ?? [])))
         })
         isLoaded = true
+        if let garmin { await importWatchLoads(garmin) }
+        await StrengthRecordNotifier.notify(loadSeries, today: today())
         return fetchedProgram
+    }
+
+    private func importWatchLoads(_ garmin: GarminAccountClient) async {
+        let processed = Set(store.load().watchProcessed)
+        let since = today().adding(days: -7 * C.watchLoadsWeeks)
+        let pending = sessions.filter { $0.id > 0 && $0.workoutId != nil && $0.day >= since && !processed.contains($0.id) }.prefix(C.watchLoadsPerLoad)
+        for session in pending {
+            guard let workoutId = session.workoutId, let workout = known[workoutId],
+                  let sets = try? await ExerciseSets.fetch(client: garmin, activityId: session.id) else { continue }
+            let records = StrengthWatchLoads.records(sets: sets, blocks: workout.blocks, workoutId: workoutId, day: session.day.iso)
+            apply(store.addWatchLoads(records, activity: session.id))
+        }
     }
 
     private func apply(_ cache: StrengthProgramCache) {
@@ -131,7 +145,7 @@ import TrainingCore
             let byDay = Dictionary(grouping: list, by: \.day)
             let points = byDay.keys.sorted().compactMap { iso -> StrengthLoadPoint? in
                 guard let day = Day(iso: iso), let entries = byDay[iso], let best = entries.max(by: { $0.top < $1.top }) else { return nil }
-                return StrengthLoadPoint(day: day, top: best.top, loads: best.loads, workout: titles[best.workoutId] ?? "")
+                return StrengthLoadPoint(day: day, top: best.top, loads: best.loads, workout: titles[best.workoutId] ?? "", fromWatch: best.fromWatch == true)
             }
             guard let latest = list.max(by: { $0.day < $1.day }), !points.isEmpty else { return nil }
             var workouts: [String] = []

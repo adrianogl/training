@@ -9,15 +9,18 @@ struct StrengthLoadRow: View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(series.name).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(2)
-                StrengthWorkoutTags(series: series)
+                HStack(spacing: 4) {
+                    StrengthWorkoutTags(series: series)
+                    if series.isNewRecord { StrengthRecordBadge() }
+                }
             }
             Spacer(minLength: 6)
-            StrengthSparkline(values: series.points.map(\.top))
+            StrengthSparkline(values: series.points.map(\.top), marksRecord: series.isNewRecord)
             VStack(alignment: .trailing, spacing: 1) {
                 Text(StrengthText.weightLabel(series.current)).font(BrandFonts.number(17)).foregroundStyle(BrandColors.text)
                 Text(series.change.map(StrengthText.changeLabel) ?? StrengthText.firstRecord)
                     .font(.caption2)
-                    .foregroundStyle(series.change == nil ? BrandColors.dim : BrandColors.accent)
+                    .foregroundStyle((series.change ?? 0) > 0 ? BrandColors.accent : (series.change ?? 0) < 0 ? BrandColors.attention : BrandColors.dim)
             }
             .frame(width: 70, alignment: .trailing)
         }
@@ -154,6 +157,7 @@ struct StrengthLoadDetailContent: View {
                 }
                 if let record = series.record {
                     stat(StrengthText.weightLabel(record.top), StrengthText.recordLabel(record.day))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(StrengthConstants.recordGold, lineWidth: series.isNewRecord ? 1.5 : 0))
                 }
             }
             chart(series).brandCard()
@@ -162,9 +166,13 @@ struct StrengthLoadDetailContent: View {
                 ForEach(Array(series.points.reversed().enumerated()), id: \.element.id) { index, point in
                     HStack(spacing: 10) {
                         Text(StrengthText.dayLabel(point.day)).font(.caption).foregroundStyle(BrandColors.dim).frame(width: 74, alignment: .leading)
-                        Text(point.workout).font(.caption.weight(.semibold)).foregroundStyle(color(point.workout, in: series))
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(point.workout).font(.caption.weight(.semibold)).foregroundStyle(color(point.workout, in: series))
+                            Text(point.fromWatch ? StrengthText.fromWatch : StrengthText.fromMFIT).font(.caption2).foregroundStyle(BrandColors.dim)
+                        }
                         Spacer()
                         Text(StrengthText.loadsList(point.loads)).font(BrandFonts.number(14)).foregroundStyle(BrandColors.text)
+                        if series.isNewRecord && point.id == series.points.last?.id { StrengthRecordBadge() }
                     }
                     .padding(.vertical, 8)
                     .overlay(alignment: .top) { if index > 0 { Divider().overlay(BrandColors.line) } }
@@ -182,6 +190,15 @@ struct StrengthLoadDetailContent: View {
             PointMark(x: .value("Dia", point.day.chartDate), y: .value("Carga", point.top))
                 .foregroundStyle(color(point.workout, in: series))
                 .symbolSize(70)
+            if series.isNewRecord && point.id == series.points.last?.id {
+                PointMark(x: .value("Dia", point.day.chartDate), y: .value("Carga", point.top))
+                    .symbol(Circle().strokeBorder(lineWidth: 2))
+                    .foregroundStyle(StrengthConstants.recordGold)
+                    .symbolSize(320)
+                    .annotation(position: .top, alignment: .trailing) {
+                        Text("\(StrengthText.recordBadge) \(StrengthText.weightLabel(point.top))").font(.caption2.weight(.bold)).foregroundStyle(StrengthConstants.recordGold)
+                    }
+            }
         }
         .chartYScale(domain: .automatic(includesZero: false))
         .chartYAxis { AxisMarks(position: .leading) }
@@ -205,3 +222,15 @@ struct StrengthLoadDetailContent: View {
     }
 }
 
+
+struct StrengthRecordBadge: View {
+    var body: some View {
+        Text(StrengthText.recordBadge)
+            .font(.system(size: 9.5, weight: .heavy))
+            .textCase(.uppercase)
+            .foregroundStyle(Color.black.opacity(0.85))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 1.5)
+            .background(StrengthConstants.recordGold, in: Capsule())
+    }
+}

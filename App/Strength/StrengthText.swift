@@ -44,6 +44,9 @@ enum StrengthText {
     static let currentLoad = "atual"
     static let recordLoad = "recorde"
     static let records = "Registros"
+    static let recordBadge = "recorde"
+    static let fromWatch = "relógio"
+    static let fromMFIT = "MFIT"
     static let weekdays = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"]
     static let back = "costas"
 
@@ -85,8 +88,20 @@ enum StrengthText {
         return first.uppercased() + stripped.dropFirst()
     }
 
+    static func recordTitle(_ name: String) -> String {
+        "Recorde no \(name.prefix(1).lowercased() + name.dropFirst())"
+    }
+
+    static func recordText(_ series: StrengthLoadSeries, today: Day) -> String {
+        guard let last = series.points.last else { return "" }
+        let when = last.day == today ? "de hoje" : "de \(last.day.day)/\(last.day.month)"
+        let workout = last.workout.isEmpty ? "" : " na \(last.workout) \(when)"
+        guard let best = series.points.dropLast().max(by: { $0.top < $1.top }) else { return weightLabel(last.top) + workout + "." }
+        return "\(weightLabel(last.top))\(workout), \(weightLabel(last.top - best.top)) acima do recorde anterior (\(weightLabel(best.top)), \(best.day.day)/\(best.day.month))."
+    }
+
     static func changeLabel(_ change: Double) -> String {
-        (change >= 0 ? "+" : "−") + weightLabel(abs(change))
+        (change > 0 ? "+" : change < 0 ? "−" : "±") + weightLabel(abs(change))
     }
 
     static func sinceLabel(_ day: Day) -> String {

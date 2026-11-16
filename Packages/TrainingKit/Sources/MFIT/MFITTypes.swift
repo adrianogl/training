@@ -74,13 +74,15 @@ public struct MFITLoadRecord: Sendable, Equatable, Codable {
     public var day: String
     public var loads: [Double]
     public var workoutId: Int64
+    public var fromWatch: Bool?
 
-    public init(exercise: String, key: String, day: String, loads: [Double], workoutId: Int64) {
+    public init(exercise: String, key: String, day: String, loads: [Double], workoutId: Int64, fromWatch: Bool? = nil) {
         self.exercise = exercise
         self.key = key
         self.day = day
         self.loads = loads
         self.workoutId = workoutId
+        self.fromWatch = fromWatch
     }
 
     public var top: Double { loads.max() ?? 0 }

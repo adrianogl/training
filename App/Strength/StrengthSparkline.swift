@@ -3,6 +3,7 @@ import SwiftUI
 struct StrengthSparkline: View {
     let values: [Double]
     var color: Color = BrandColors.accent
+    var marksRecord = false
 
     var body: some View {
         Canvas { context, size in
@@ -20,6 +21,9 @@ struct StrengthSparkline: View {
             context.stroke(path, with: .color(color), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             if let last = points.last {
                 context.fill(Path(ellipseIn: CGRect(x: last.x - 3, y: last.y - 3, width: 6, height: 6)), with: .color(color))
+                if marksRecord {
+                    context.stroke(Path(ellipseIn: CGRect(x: last.x - 6, y: last.y - 6, width: 12, height: 12)), with: .color(StrengthConstants.recordGold), lineWidth: 1.6)
+                }
             }
         }
         .frame(width: StrengthConstants.sparkWidth, height: StrengthConstants.sparkLineHeight)

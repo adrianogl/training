@@ -51,3 +51,34 @@ public struct StrengthWorkout: Sendable, Equatable, Codable, Identifiable {
         blocks.reduce(0) { $0 + $1.sets * $1.exercises.count }
     }
 }
+
+public struct StrengthSet: Sendable, Equatable, Codable {
+    public var category: String?
+    public var exerciseKey: String?
+    public var reps: Int?
+    public var weight: Double?
+
+    public init(category: String?, exerciseKey: String?, reps: Int?, weight: Double?) {
+        self.category = category
+        self.exerciseKey = exerciseKey
+        self.reps = reps
+        self.weight = weight
+    }
+}
+
+struct ExerciseSetsDTO: Decodable {
+    struct Exercise: Decodable {
+        let category: String?
+        let name: String?
+    }
+
+    struct Set: Decodable {
+        let exercises: [Exercise]?
+        let repetitionCount: Int?
+        let weight: Double?
+        let setType: String?
+        let startTime: String?
+    }
+
+    let exerciseSets: [Set]?
+}

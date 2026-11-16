@@ -31,6 +31,12 @@ enum StrengthConstants {
     static let groupTotalsLimit = 8
     static let evolutionGroupsLimit = 5
     static let loadsCardLimit = 3
+    static let watchLoadsWeeks = 8
+    static let watchLoadsPerLoad = 8
+    static let recordNoticeDays = 2
+    static let recordLink = "training://evolucao"
+    static let recordNotifiedKey = "strengthRecordsNotified"
+    static let recordGold = Color(hex: 0xF2C94C)
     static let sparkWidth: CGFloat = 84
     static let sparkLineHeight: CGFloat = 26
     static let loadChartHeight: CGFloat = 200
