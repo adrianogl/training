@@ -19,6 +19,15 @@ public enum StrengthMuscles {
         return 1 + steps.filter { sets >= $0 }.count
     }
 
+    public static func upperShare(_ entries: [(category: String?, sets: Int)]) -> Double {
+        let total = entries.reduce(0) { $0 + $1.sets }
+        guard total > 0 else { return 0 }
+        let upper = entries.filter { entry in
+            entry.category.map { !Set(C.primary[$0] ?? []).isDisjoint(with: C.upperMuscles) } ?? false
+        }.reduce(0) { $0 + $1.sets }
+        return Double(upper) / Double(total)
+    }
+
     public static func legSets(_ entries: [(category: String?, sets: Int)]) -> Int {
         entries.filter { entry in
             entry.category.map { !Set(C.primary[$0] ?? []).isDisjoint(with: C.legMuscles) } ?? false

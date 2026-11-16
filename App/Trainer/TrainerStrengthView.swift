@@ -6,6 +6,7 @@ struct TrainerStrengthView: View {
     @State private var editing: TrainerStrengthDraft?
 
     private var model: TrainerModel { app.trainer }
+    private var fromMFIT: Bool { app.mfitAccount.isSignedIn && StrengthProgramStore().load().program != nil }
 
     var body: some View {
         ScrollView {
@@ -14,25 +15,31 @@ struct TrainerStrengthView: View {
                     HStack {
                         SectionLabel(TrainerText.strengthWeekTitle).padding(.vertical, 0)
                         Spacer()
-                        Text(TrainerText.strengthSource).font(.caption).foregroundStyle(BrandColors.dim)
+                        Text(fromMFIT ? TrainerMFITConstants.source : TrainerText.strengthSource).font(.caption).foregroundStyle(fromMFIT ? BrandColors.strength : BrandColors.dim)
                     }
                     let rows = model.strengthRows()
                     if rows.isEmpty {
                         Text(TrainerText.strengthEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
                     ForEach(rows) { row in
-                        Button { editing = TrainerStrengthDraft(session: row.session, isNew: false) } label: {
+                        if fromMFIT {
                             sessionRow(row)
+                        } else {
+                            Button { editing = TrainerStrengthDraft(session: row.session, isNew: false) } label: {
+                                sessionRow(row)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
-                    Button(TrainerText.strengthAdd) {
-                        editing = TrainerStrengthDraft(session: newSession(), isNew: true)
+                    if !fromMFIT {
+                        Button(TrainerText.strengthAdd) {
+                            editing = TrainerStrengthDraft(session: newSession(), isNew: true)
+                        }
+                        .buttonStyle(TrainerSecondaryButtonStyle())
                     }
-                    .buttonStyle(TrainerSecondaryButtonStyle())
                 }
                 .brandCard()
-                Text(TrainerText.strengthNote).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
+                Text(fromMFIT ? TrainerMFITText.note : TrainerText.strengthNote).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
             }
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.top, 8)
@@ -58,7 +65,7 @@ struct TrainerStrengthView: View {
                 .frame(maxHeight: .infinity)
             VStack(alignment: .leading, spacing: 1) {
                 Text(row.session.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(row.caption).font(.caption).foregroundStyle(BrandColors.dim)
+                Text(fromMFIT ? TrainerMFITStrength.caption(row.session) : row.caption).font(.caption).foregroundStyle(BrandColors.dim)
             }
             Spacer(minLength: 6)
         }

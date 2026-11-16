@@ -309,6 +309,22 @@ import TrainingCore
         markSeen()
     }
 
+    func syncStrength(_ sessions: [TrainerStrengthSession]) async {
+        guard let plan, !sessions.isEmpty, !TrainerMFITStrength.same(sessions, plan.strength) else { return }
+        await saveStrength(sessions)
+    }
+
+    func legSwapSuggestion(kept: Set<String>) -> TrainerLegSwap? {
+        guard let plan else { return nil }
+        return TrainerLegSwapFinder.find(plan: plan, today: currentDay, kept: kept)
+    }
+
+    func applyLegSwap(_ swap: TrainerLegSwap) {
+        guard let plan else { return }
+        persist(TrainerLegSwapFinder.apply(swap, to: plan, now: .now))
+        markSeen()
+    }
+
     func previewWeeklyMeters() -> Double {
         TrainerEngine.averageWeeklyMeters(history: history, today: currentDay)
     }
