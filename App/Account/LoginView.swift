@@ -11,7 +11,7 @@ struct LoginView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(C.loginTitle).font(.largeTitle.bold()).foregroundStyle(BrandColors.text)
+                Text(C.loginTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 Text(C.loginSubtitle).foregroundStyle(BrandColors.dim)
             }
             AccountField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)

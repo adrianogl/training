@@ -134,7 +134,7 @@ struct WorkoutListView: View {
             LazyVStack(alignment: .leading, spacing: 10) {
                 CompactLogoHeader()
                 Text(WorkoutConstants.listTitle)
-                    .font(.largeTitle.weight(.bold))
+                    .font(BrandFonts.largeTitle)
                     .foregroundStyle(BrandColors.text)
                 SyncStatusPill()
                 if hasRuns {

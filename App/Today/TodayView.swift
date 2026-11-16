@@ -32,7 +32,7 @@ struct TodayView: View {
                             .padding(.top, 6)
                     }
                     Text(TodayConstants.todayTitle)
-                        .font(.largeTitle.weight(.bold))
+                        .font(BrandFonts.largeTitle)
                         .foregroundStyle(BrandColors.text)
                         .padding(.bottom, 14)
                     if let storeError = app.storeError {

@@ -9,7 +9,7 @@ struct MoreView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     CompactLogoHeader()
                     Text(AppSection.more.title)
-                        .font(.largeTitle.weight(.bold))
+                        .font(BrandFonts.largeTitle)
                         .foregroundStyle(BrandColors.text)
                         .padding(.bottom, 14)
                     VStack(spacing: 0) {

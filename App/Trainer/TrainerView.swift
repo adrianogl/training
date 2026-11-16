@@ -23,7 +23,7 @@ struct TrainerView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     CompactLogoHeader()
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(TrainerText.title).font(.largeTitle.weight(.bold)).foregroundStyle(BrandColors.text)
+                        Text(TrainerText.title).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                         TrainerBetaBadge()
                     }
                     if let plan = model.plan {

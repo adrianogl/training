@@ -45,7 +45,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     CompactLogoHeader()
                     Text(AppSection.settings.title)
-                        .font(.largeTitle.weight(.bold))
+                        .font(BrandFonts.largeTitle)
                         .foregroundStyle(BrandColors.text)
                 }
                 .listRowBackground(Color.clear)
