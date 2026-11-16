@@ -15,22 +15,6 @@ module Settings {
         return read("WeeklyGoalKm", Defaults.WEEKLY_GOAL_KM);
     }
 
-    function raceName() {
-        return read("RaceName", "");
-    }
-
-    function raceDate() {
-        return read("RaceDate", "");
-    }
-
-    function raceGoal() {
-        return read("RaceGoal", "");
-    }
-
-    function raceDistanceKm() {
-        return read("RaceDistance", Defaults.RACE_DISTANCE_KM);
-    }
-
     function watchToken() {
         var token = read("watchToken", "");
         if (token.length() == 0) {

@@ -17,13 +17,8 @@ class FaceData {
     var weekPlannedKm = null;
     var weekGoalKm = null;
     var readiness = null;
-    var workout = null;
-    var workoutShape = null;
-    var workoutTip = null;
-    var raceName = null;
-    var raceDate = null;
-    var raceGoal = null;
-    var racePredictionSeconds = null;
+    var eventStart = null;
+    var eventTitle = null;
 
     function initialize() {
     }
@@ -52,9 +47,6 @@ class FaceData {
         readiness = null;
         vo2Delta = null;
         weekPlannedKm = null;
-        workout = null;
-        workoutShape = null;
-        workoutTip = null;
         var today = Format.isoDate(Gregorian.info(Time.now(), Time.FORMAT_SHORT));
         var day = Application.Storage.getValue(StorageKeys.READINESS_DAY);
         var isToday = day instanceof String && day.equals(today);
@@ -72,55 +64,30 @@ class FaceData {
         }
         if (isToday) {
             weekPlannedKm = number(face[ReadinessBridge.WEEK_PLANNED_KM]);
-            var name = face[ReadinessBridge.WORKOUT];
-            var shape = face[ReadinessBridge.WORKOUT_SHAPE];
-            if (name instanceof String) {
-                workout = name;
-            }
-            if (shape instanceof Array) {
-                workoutShape = shape;
-            }
-            var tip = face[ReadinessBridge.WORKOUT_TIP];
-            if (tip instanceof String) {
-                workoutTip = tip;
-            }
         }
-        readRace(face);
+        readNextEvent(face[ReadinessBridge.EVENTS]);
     }
 
-    private function readRace(face) {
-        var name = face[ReadinessBridge.RACE_NAME];
-        var date = null;
-        if (face[ReadinessBridge.RACE_DAY] instanceof String) {
-            date = CivilDate.parseIsoDate(face[ReadinessBridge.RACE_DAY]);
-        }
-        if (name instanceof String && date != null) {
-            raceName = name;
-            raceDate = date;
-            var goal = number(face[ReadinessBridge.RACE_GOAL]);
-            raceGoal = goal == null ? null : Format.duration(goal);
-            racePredictionSeconds = number(face[ReadinessBridge.RACE_PREDICTION]);
+    private function readNextEvent(events) {
+        eventStart = null;
+        eventTitle = null;
+        if (!(events instanceof Array)) {
             return;
         }
-        raceName = Settings.raceName();
-        raceDate = CivilDate.parseIsoDate(Settings.raceDate());
-        raceGoal = Settings.raceGoal();
-        if (raceGoal.length() == 0) {
-            raceGoal = null;
+        var now = Time.now().value();
+        for (var i = 0; i < events.size(); i++) {
+            var event = events[i];
+            if (!(event instanceof Dictionary)) {
+                continue;
+            }
+            var start = number(event[ReadinessBridge.EVENT_START]);
+            var title = event[ReadinessBridge.EVENT_TITLE];
+            if (start != null && start > now && title instanceof String && title.length() > 0) {
+                eventStart = start.toNumber();
+                eventTitle = title;
+                return;
+            }
         }
-        racePredictionSeconds = readRacePrediction();
-    }
-
-    private function readRacePrediction() {
-        var type = RacePredictors.BY_DISTANCE_KM[Settings.raceDistanceKm()];
-        if (type == null) {
-            return null;
-        }
-        var seconds = complicationValue(type);
-        if (seconds == null || seconds <= 0) {
-            return null;
-        }
-        return seconds;
     }
 
     private function number(value) {

@@ -26,6 +26,7 @@ const face = {
   raceDay: '2026-12-28',
   raceGoal: 5880,
   racePrediction: 5970,
+  events: [{ start: 1_794_908_700, title: 'Daily MEF' }],
 }
 
 function tokenHash(token: string): string {
@@ -239,6 +240,12 @@ describe('PUT /api/v1/watch/readiness', () => {
     ['shape com 25 passos', { workoutShape: Array.from({ length: 25 }, () => [1, 1]) }],
     ['dia da prova inválido', { raceDay: '2026-02-30' }],
     ['meta fracionária', { raceGoal: 5880.5 }],
+    ['eventos vazios', { events: [] }],
+    ['quatro eventos', { events: Array.from({ length: 4 }, () => ({ start: 1_794_908_700, title: 'Daily' })) }],
+    ['evento sem título', { events: [{ start: 1_794_908_700 }] }],
+    ['título com 41', { events: [{ start: 1_794_908_700, title: 'a'.repeat(41) }] }],
+    ['início fracionário', { events: [{ start: 1.5, title: 'Daily' }] }],
+    ['campo extra no evento', { events: [{ start: 1_794_908_700, title: 'Daily', local: 'Teams' }] }],
   ])('400 invalid_face: %s', async (_name, invalid) => {
     const response = await putReadiness({ ...readiness, face: invalid })
 
