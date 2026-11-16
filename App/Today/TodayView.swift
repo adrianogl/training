@@ -147,6 +147,9 @@ struct TodayView: View {
             blockLabel(TodayConstants.blockToday)
             TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick)
         }
+        TodayStrengthCard(showsLabel: workoutPick(model) == nil) {
+            blockLabel(TodayConstants.blockToday)
+        }
     }
 
     @ViewBuilder

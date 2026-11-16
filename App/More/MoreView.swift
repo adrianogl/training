@@ -29,6 +29,7 @@ struct MoreView: View {
             .toolbarVisibility(.hidden, for: .navigationBar)
             .navigationDestination(for: AppSection.self) { item in
                 switch item {
+                case .races: RaceListView(embedded: true)
                 case .trainer: TrainerView()
                 case .settings: SettingsView(embedded: true)
                 default: EmptyView()
