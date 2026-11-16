@@ -56,7 +56,7 @@ struct TodayWorkoutCard: View {
         switch pick.today ?? pick.tomorrow {
         case .garmin: String(format: C.workoutTitleFormat, C.planTitle, C.workoutSourceGarmin)
         case .trainer: String(format: C.workoutTitleFormat, C.planTitle, C.workoutSourceTrainer)
-        case nil: trainer.plan == nil ? C.planTitle : String(format: C.workoutTitleFormat, C.planTitle, C.workoutSourceTrainer)
+        case nil: !trainer.hasActivePlan ? C.planTitle : String(format: C.workoutTitleFormat, C.planTitle, C.workoutSourceTrainer)
         }
     }
 
@@ -64,7 +64,7 @@ struct TodayWorkoutCard: View {
         switch pick.today ?? pick.tomorrow {
         case .trainer: true
         case .garmin: false
-        case nil: trainer.plan != nil
+        case nil: trainer.hasActivePlan
         }
     }
 

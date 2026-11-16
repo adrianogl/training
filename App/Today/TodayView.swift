@@ -92,7 +92,7 @@ struct TodayView: View {
             await loaded.loadPlanned(client: app.garminAccount.client)
             await loaded.loadPlannedHistory(client: app.garminAccount.client)
             if let sunday = WeeklyReportBuilder.nextSunday(after: .now) {
-                await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: loaded.currentWeekReport(trainer: app.trainer.plan?.workouts ?? []).notification, at: sunday)
+                await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: loaded.currentWeekReport(trainer: app.trainer.activeWorkouts).notification, at: sunday)
             }
             await loaded.refreshSentence()
         }
@@ -107,7 +107,7 @@ struct TodayView: View {
         }
     }
 
-    private var trainerWorkouts: [TrainerWorkout] { app.trainer.plan?.workouts ?? [] }
+    private var trainerWorkouts: [TrainerWorkout] { app.trainer.activeWorkouts }
 
     @ViewBuilder
     private func cards(_ model: TodayModel) -> some View {
