@@ -36,7 +36,7 @@ final class AccountScope: Sendable {
     var storeURL: URL { supportFolder.appending(path: AppConstants.storeFileName) }
 
     var trainerURL: URL { supportFolder.appending(path: TrainerConstants.storeFileName) }
-    var strengthSetsURL: URL { supportFolder.appending(path: StrengthConstants.setsFileName) }
+    var strengthProgramURL: URL { supportFolder.appending(path: StrengthConstants.programFileName) }
 
     var snapshotsFolder: URL { cachesFolder.appending(path: ScreenSnapshotConstants.directoryName, directoryHint: .isDirectory) }
 

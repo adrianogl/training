@@ -1,0 +1,205 @@
+{
+ "id": 2002,
+ "nome": "MMII",
+ "exercs": [
+  {
+   "order": 0,
+   "exercises": [
+    {
+     "name": "ponte dinâmica com dumbell ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Abdômen"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "45 segundos ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 45 á 60 segundos de recuperação"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 1,
+   "exercises": [
+    {
+     "name": "Elevação pélvica uni explosiva na caixa ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Global "
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "15 rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "4 séries com 60  segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 2,
+   "exercises": [
+    {
+     "name": "Elevação Pélvica Máquina (PTP) ",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Inferiores"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "30 segundos cada perna ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com 60   segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 3,
+   "exercises": [
+    {
+     "name": "Mesa flexora unilateral (PTP)",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Inferiores"
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "12  rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com  45 segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 4,
+   "exercises": [
+    {
+     "name": "Cadeira extensora unilateral (PTP)",
+     "isCombinado": false,
+     "exerciseGroup": {
+      "nome": "Quadriceps "
+     },
+     "series": [
+      {
+       "tipo": 5,
+       "obs": "8 rep (boa carga) ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries com  90 segundos de recuperação ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "order": 5,
+   "exercises": [
+    {
+     "name": "Combinado",
+     "isCombinado": true,
+     "exerciseGroup": {
+      "nome": "Combinado"
+     },
+     "series": [
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Panturrilha Máquina sentado (PTP)",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Panturrilha"
+        }
+       }
+      },
+      {
+       "tipo": 6,
+       "exercicio": {
+        "name": "Agachamento Livre ( TPH ) ",
+        "isCombinado": false,
+        "exerciseGroup": {
+         "nome": "Outros"
+        }
+       }
+      },
+      {
+       "tipo": 5,
+       "obs": "panturrilha máquina 8 á 12 rep (trabalhar com uma boa carga) + agachamento livre 30 rep ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 5,
+       "obs": "3 séries sem intervalo ",
+       "carga": "0",
+       "repeticao": ""
+      },
+      {
+       "tipo": 0,
+       "carga": "",
+       "repeticao": ""
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

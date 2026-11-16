@@ -1,4 +1,5 @@
 import GarminAPI
+import MFIT
 import SwiftUI
 import TrainingCore
 
@@ -31,10 +32,14 @@ struct TodayStrengthCard<Label: View>: View {
                 .buttonStyle(.plain)
             }
         }
-        .task(id: app.garminAccount.isSignedIn) {
-            guard let client = app.garminAccount.client else { workout = nil; return }
+        .task(id: app.mfitAccount.revision) {
+            guard let client = app.mfitAccount.client else { workout = nil; return }
             let today = Day.today()
-            workout = (try? await StrengthWorkouts.fetch(client: client, from: today, through: today))?.first
+            let store = StrengthProgramStore()
+            let schedule = StrengthSchedule()
+            workout = schedule.workouts(store.load().program, from: today, through: today).first
+            guard let fetched = try? await client.currentProgram(today: today.iso) else { return }
+            workout = schedule.workouts(store.update(with: fetched).program, from: today, through: today).first
         }
     }
 }

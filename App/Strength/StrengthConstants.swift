@@ -1,14 +1,16 @@
 import CoreGraphics
 import Insights
 import SwiftUI
+import TrainingCore
 
 enum StrengthConstants {
-    static let setsFileName = "strength-sets.json"
     static let typeKey = "strength_training"
+    static let programFileName = "strength-mfit.json"
+    static let weekdaysDefaultsKey = "strengthWeekdays"
+    static let defaultWeekdays = [0, 2, 4]
+    static let noWeekday = -1
     static let historyWeeks = 12
     static let volumeWeeks = 6
-    static let setsBackfillWeeks = 6
-    static let maxBackfillPerLoad = 12
     static let viewWidth: CGFloat = 724
     static let viewHeight: CGFloat = 1448
     static let backOffset: CGFloat = 724
@@ -28,4 +30,6 @@ enum StrengthConstants {
     ]
     static let volumeGroups: [MuscleGroup] = [.glutes, .quads, .hamstrings, .calves, .chest, .lats, .shoulders, .abs]
     static let secondsPerMinute = 60.0
+    static let syntheticIdFactor: Int64 = 100_000
+    static let syntheticEpoch = Day(year: 2000, month: 1, day: 1)
 }

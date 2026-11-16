@@ -1,0 +1,34 @@
+{
+ "id": 1001,
+ "idUser": 18970,
+ "nome": "Treino 7",
+ "dataInicio": "Nov 13, 2026",
+ "dataFim": "Dec 18, 2026",
+ "workouts": [
+  {
+   "id": 2001,
+   "nome": "Superiores ",
+   "ordenacao": 1,
+   "feedback": [
+    {
+     "dataExecucao": "2026-11-16T17:04:59Z",
+     "workoutStartTime": "2026-11-16T16:18:54Z",
+     "workoutEndTime": "2026-11-16T17:04:59Z",
+     "borgNota": 3
+    }
+   ]
+  },
+  {
+   "id": 2002,
+   "nome": "MMII",
+   "ordenacao": 2,
+   "feedback": []
+  },
+  {
+   "id": 2003,
+   "nome": "Full Body",
+   "ordenacao": 5,
+   "feedback": []
+  }
+ ]
+}

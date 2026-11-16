@@ -25,7 +25,7 @@ struct StrengthTodayCard: View {
             }
             .buttonStyle(.plain)
         } else {
-            Text(model.hasGarminAccount ? StrengthText.noToday : StrengthText.signInHint)
+            Text(model.hasMFIT ? StrengthText.noToday : StrengthText.signInHint)
                 .font(.footnote)
                 .foregroundStyle(BrandColors.dim)
                 .brandCard()

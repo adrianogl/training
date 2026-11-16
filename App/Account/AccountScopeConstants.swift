@@ -14,6 +14,7 @@ enum AccountScopeConstants {
         AppConstants.remoteSyncKeychainAccount,
         AppConstants.watchTokenKeychainAccount,
         AppConstants.garminSessionKeychainAccount,
+        AppConstants.mfitTokenKeychainAccount,
     ]
 
     static var legacySupportItems: [String] {

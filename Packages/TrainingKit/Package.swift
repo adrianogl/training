@@ -17,6 +17,7 @@ let package = Package(
         .library(name: "Narrative", targets: ["Narrative"]),
         .library(name: "Insights", targets: ["Insights"]),
         .library(name: "RemoteSync", targets: ["RemoteSync"]),
+        .library(name: "MFIT", targets: ["MFIT"]),
     ],
     dependencies: [
         .package(url: "https://github.com/garmin/fit-swift-sdk.git", from: "21.221.0"),
@@ -41,6 +42,7 @@ let package = Package(
             "TrainingCore", "FITReader", "Metrics", "Projections", "Storage", "Sync", "Reports", "WorkoutAnalysis", "Narrative",
         ]),
         .target(name: "RemoteSync", dependencies: ["Storage", "GarminAPI", "Metrics"]),
+        .target(name: "MFIT", dependencies: ["TrainingCore", "GarminAPI"]),
         .executableTarget(name: "trainingctl", dependencies: ["TrainingCore", "GarminAPI", "Storage", "Sync", "Reports"]),
         .testTarget(name: "TrainingCoreTests", dependencies: ["TrainingCore"]),
         .testTarget(name: "GarminAPITests", dependencies: ["GarminAPI"], resources: [.copy("Fixtures")]),
@@ -54,6 +56,7 @@ let package = Package(
             "Insights", "TrainingCore", "FITReader", "Metrics", "Projections", "Storage", "Reports", "Narrative", "Sync",
         ]),
         .testTarget(name: "ReportsTests", dependencies: ["Reports", "Storage", "Metrics", "TrainingCore", "WorkoutAnalysis"]),
+        .testTarget(name: "MFITTests", dependencies: ["MFIT", "GarminAPI", "TrainingCore"], resources: [.copy("Fixtures")]),
         .testTarget(name: "RemoteSyncTests", dependencies: ["RemoteSync", "Storage", "GarminAPI", "Metrics"]),
         .testTarget(name: "trainingctlTests", dependencies: ["trainingctl", "Sync"]),
         .testTarget(name: "SyncTests", dependencies: [
