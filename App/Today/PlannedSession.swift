@@ -74,7 +74,7 @@ enum PlannedSessions {
         let covered = Set(fromGarmin.map(\.day))
         let fromTrainer = trainer.compactMap { workout -> PlannedSession? in
             guard !covered.contains(workout.day), let kind = SessionKind(trainer: workout.kind) else { return nil }
-            return PlannedSession(day: workout.day, title: workout.title, kilometers: workout.totalMeters / C.metersPerKilometer, kind: kind)
+            return PlannedSession(day: workout.day, title: TrainerText.dayName(workout), kilometers: workout.totalMeters / C.metersPerKilometer, kind: kind)
         }
         return (fromGarmin + fromTrainer).sorted { $0.day < $1.day }
     }
