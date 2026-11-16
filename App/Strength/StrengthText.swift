@@ -88,6 +88,30 @@ enum StrengthText {
         return first.uppercased() + stripped.dropFirst()
     }
 
+    static func missedLabel(_ title: String, day: Day) -> String {
+        "Faltou o \(shortTitle(title)) de \(MFITAccountConstants.weekdayNames[day.weekStart.days(until: day)])"
+    }
+
+    static func reportSessions(_ summary: WeeklyStrengthSummary) -> String {
+        summary.planned > 0 ? "\(summary.done) de \(summary.planned)" : "\(summary.done)"
+    }
+
+    static func reportDetail(_ summary: WeeklyStrengthSummary) -> String {
+        "\(summary.planned > 0 ? "sessões do MFIT" : "sessões") · \(summary.sets) séries"
+    }
+
+    static func reportRecord(_ record: WeeklyStrengthRecord) -> String {
+        "\(record.name) \(weightLabel(record.top)), +\(weightLabel(record.gain))"
+    }
+
+    static func reportNotification(_ summary: WeeklyStrengthSummary) -> String {
+        var text = "Força: \(reportSessions(summary)) sessões, \(summary.sets) séries"
+        if let record = summary.records.first {
+            text += " e recorde no \(record.name.prefix(1).lowercased() + record.name.dropFirst()) (\(weightLabel(record.top)))"
+        }
+        return text + "."
+    }
+
     static func recordTitle(_ name: String) -> String {
         "Recorde no \(name.prefix(1).lowercased() + name.dropFirst())"
     }

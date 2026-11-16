@@ -30,6 +30,7 @@ enum StrengthConstants {
     static let secondsPerMinute = 60.0
     static let groupTotalsLimit = 8
     static let evolutionGroupsLimit = 5
+    static let reportGroupsLimit = 3
     static let loadsCardLimit = 3
     static let watchLoadsWeeks = 8
     static let watchLoadsPerLoad = 8
