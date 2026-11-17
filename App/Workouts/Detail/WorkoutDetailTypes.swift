@@ -154,3 +154,9 @@ struct ZoneMark: Equatable, Identifiable {
     let bpm: Int
     let position: Double
 }
+
+struct KilometerElevation: Equatable {
+    let climb: Int
+    let descent: Int
+    let flatPace: String
+}

@@ -21,8 +21,13 @@ struct BlocksSection: View {
                     row(position: position, block: blocks[position])
                     ForEach(Array((kilometers[position] ?? []).enumerated()), id: \.offset) { kmIndex, kilometer in
                         let rowBars = kilometerBars[position] ?? []
-                        line(kilometer, bar: rowBars.indices.contains(kmIndex) ? rowBars[kmIndex] : nil, indent: WorkoutDetailConstants.kilometerIndent)
-                            .padding(.vertical, 5)
+                        VStack(alignment: .leading, spacing: 2) {
+                            line(kilometer, bar: rowBars.indices.contains(kmIndex) ? rowBars[kmIndex] : nil, indent: WorkoutDetailConstants.kilometerIndent)
+                            if let elevation = KilometerElevationBuilder.elevation(kilometer) {
+                                elevationLine(elevation)
+                            }
+                        }
+                        .padding(.vertical, 5)
                     }
                 }
             }
@@ -35,7 +40,7 @@ struct BlocksSection: View {
 
     private func row(position: Int, block: WorkoutBlock) -> some View {
         let bar = bars.indices.contains(position) ? bars[position] : nil
-        let canExpand = block.laps.count > 1 || (showsTarget && block.prescribed != nil)
+        let canExpand = blocks.count > 1 && (block.laps.count > 1 || (showsTarget && block.prescribed != nil))
         return VStack(alignment: .leading, spacing: 6) {
             line(block, bar: bar, indent: 0)
             if expanded.contains(position) {
@@ -53,6 +58,17 @@ struct BlocksSection: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(canExpand ? .isButton : [])
+    }
+
+    private func elevationLine(_ elevation: KilometerElevation) -> some View {
+        HStack(spacing: 8) {
+            Text(String(format: WorkoutDetailConstants.climbFormat, elevation.climb)).fontWeight(.semibold).foregroundStyle(BrandColors.fitness)
+            Text(String(format: WorkoutDetailConstants.descentFormat, elevation.descent)).fontWeight(.semibold).foregroundStyle(BrandColors.dim)
+            Text(WorkoutDetailConstants.flatPaceLabel).foregroundStyle(BrandColors.dim)
+                + Text(" " + elevation.flatPace).fontWeight(.semibold).foregroundStyle(BrandColors.text)
+        }
+        .font(.caption2.monospacedDigit())
+        .padding(.leading, WorkoutDetailConstants.labelColumnWidth + 8)
     }
 
     private func sectionHeader(_ title: String, first: Bool) -> some View {
