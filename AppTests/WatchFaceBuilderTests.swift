@@ -1,3 +1,4 @@
+import Insights
 import GarminAPI
 import Testing
 import TrainingCore
@@ -46,5 +47,28 @@ import TrainingCore
 
         #expect((shape?.count ?? 0) <= WatchFaceConstants.shapeMaxSteps)
         #expect(shape?.allSatisfy { $0[1] == 5 } == true)
+    }
+
+    @Test func trainingStatusKeepsOnlyKnownKeys() {
+        #expect(WatchFaceBuilder.trainingStatusKey("MAINTAINING_2") == "MAINTAINING")
+        #expect(WatchFaceBuilder.trainingStatusKey("PRODUCTIVE_10") == "PRODUCTIVE")
+        #expect(WatchFaceBuilder.trainingStatusKey("NO_STATUS_1") == nil)
+        #expect(WatchFaceBuilder.trainingStatusKey(nil) == nil)
+    }
+
+    @Test func nextWeekShowsPhaseOrLightWeekWithKilometers() {
+        let start = Self.today.weekStart
+        var plan = TrainerStoreTests.plan()
+        plan.weeks = [
+            TrainerWeek(index: 1, start: start, phase: .base, isRecovery: false, plannedMeters: 52_000, longMeters: 16_000, thresholdFocus: "", vo2Focus: ""),
+            TrainerWeek(index: 2, start: start.adding(days: 7), phase: .build, isRecovery: false, plannedMeters: 58_400, longMeters: 18_000, thresholdFocus: "", vo2Focus: ""),
+        ]
+        var light = plan
+        light.weeks[1].isRecovery = true
+
+        #expect(WatchFaceBuilder.nextWeekText(plan: plan, today: Self.today) == "Construção · 58 km")
+        #expect(WatchFaceBuilder.nextWeekText(plan: light, today: Self.today) == "Semana leve · 58 km")
+        #expect(WatchFaceBuilder.nextWeekText(plan: plan, today: start.adding(days: 7)) == nil)
+        #expect(WatchFaceBuilder.nextWeekText(plan: nil, today: Self.today) == nil)
     }
 }
