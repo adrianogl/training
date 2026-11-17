@@ -112,6 +112,25 @@ enum WorkoutDetailConstants {
     static let blocksHeaderHeartRate = "FC"
     static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace, .climbSlower, .descentFaster]
     static let scoreGaugeSize: Double = 120
+    static let aboveExpectedTitle = "Acima do esperado"
+    static let aboveExpectedSymbol = "chart.line.uptrend.xyaxis"
+    static let aboveExpectedToday = "hoje"
+    static let aboveExpectedBeforeFormat = "últimos %d"
+    static let aboveExpectedTitles: [AboveExpectedKind: String] = [
+        .heartRateAtPace: "FC no mesmo ritmo",
+        .recoveryDrop: "Queda de FC na recuperação",
+    ]
+    static let aboveExpectedUnit = "bpm"
+    static let aboveExpectedReplaces: [AboveExpectedKind: FindingKind] = [
+        .heartRateAtPace: .lowerHeartRateThanBefore,
+        .recoveryDrop: .goodRecovery,
+    ]
+    static let aboveExpectedLabelWidth: Double = 70
+    static let aboveExpectedValueWidth: Double = 58
+    static let aboveExpectedBarHeight: Double = 8
+    static let aboveExpectedCornerRadius: Double = 16
+    static let aboveExpectedBorderWidth: Double = 1.5
+    static let aboveExpectedTint = 0.09
     static let compactScoreGaugeSize: Double = 104
     static let scorePartNameWidth: Double = 76
     static let scorePartBarHeight: Double = 8

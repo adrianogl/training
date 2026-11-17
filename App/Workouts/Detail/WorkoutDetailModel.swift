@@ -41,6 +41,8 @@ import WorkoutAnalysis
     private(set) var chatContext: WorkoutChatContext?
     private(set) var score: WorkoutScore?
     private(set) var scoreRows: [ScoreRowData] = []
+    private(set) var perfectLine: String?
+    private(set) var aboveExpected: [AboveExpectedSignal] = []
     private(set) var trainingEffect: TrainingEffectData?
 
     init(activityId: Int64, context: ModelContext) {
@@ -82,6 +84,8 @@ import WorkoutAnalysis
 
         score = analysis.score
         scoreRows = analysis.score.map(ScoreRows.rows) ?? []
+        perfectLine = analysis.score.flatMap { ScoreRows.perfectLine($0, blocks: analysis.blocks) }
+        aboveExpected = analysis.aboveExpected
         assessment = analysis.assessment
         comparison = analysis.comparison
         comparisonRows = analysis.comparisonRows
@@ -121,7 +125,14 @@ import WorkoutAnalysis
     }
 
     var analysisSummary: WorkoutAnalysisSummary {
-        WorkoutFeedback.summary(assessment: assessment, blocks: blocks, workoutName: workoutName)
+        WorkoutFeedback.summary(assessment: Self.movingAboveExpected(assessment, signals: aboveExpected), blocks: blocks, workoutName: workoutName)
+    }
+
+    private static func movingAboveExpected(_ assessment: WorkoutAssessment, signals: [AboveExpectedSignal]) -> WorkoutAssessment {
+        let moved = Set(signals.compactMap { WorkoutDetailConstants.aboveExpectedReplaces[$0.kind] })
+        var result = assessment
+        result.positives.removeAll { moved.contains($0.kind) }
+        return result
     }
 
     private static func shareInput(

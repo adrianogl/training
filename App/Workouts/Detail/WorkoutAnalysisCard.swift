@@ -1,10 +1,12 @@
 import Narrative
 import SwiftUI
+import WorkoutAnalysis
 
 struct WorkoutAnalysisCard: View {
     let summary: WorkoutAnalysisSummary
     let activityId: Int64
     let goalEntries: [WorkoutGoalEntry]
+    var aboveExpected: [AboveExpectedSignal] = []
     var framed = true
     @State private var showsAll = false
     @State private var coach: String?
@@ -20,6 +22,9 @@ struct WorkoutAnalysisCard: View {
             if !summary.feedback.isEmpty || summary.next != nil {
                 feedback
                 Divider().overlay(BrandColors.line)
+            }
+            if !aboveExpected.isEmpty {
+                AboveExpectedGroup(signals: aboveExpected)
             }
             if summary.entries.isEmpty {
                 Text(C.analysisNone).font(.subheadline).foregroundStyle(BrandColors.dim)
