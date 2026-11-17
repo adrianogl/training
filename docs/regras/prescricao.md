@@ -180,3 +180,8 @@ Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: 
 - **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
 - **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.
 - **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.
+
+## Força nos avisos
+
+- **Aviso da manhã:** depois da prontidão, cita a força do dia de qualquer fonte: "Força: MMII." para o MFIT e "Força: mobilidade e core, 25 min." para o treinador. Quando uma regra mudou o treino do treinador (dia de qualidade, recuperação, prova ou prontidão), vira "Força ajustada:". Dia sem força ou nos 3 dias antes da prova não cita nada (`MorningStrengthText`).
+- **Relatório de domingo:** o bloco de força mostra as sessões feitas contra as planejadas por fonte, como "MFIT 3 de 3 · Treinador 1 de 2", quando a semana tem dias do treinador (`StrengthTally`).

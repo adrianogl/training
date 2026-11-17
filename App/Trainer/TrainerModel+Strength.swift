@@ -22,6 +22,11 @@ extension TrainerModel {
         StrengthGenerator.alternatives(for: exerciseId, in: workout, context: StrengthContext(pain: TrainerStrengthPrefsStore().load().pain))
     }
 
+    func strengthTally(weekStart: Day) -> [StrengthSourceTally] {
+        guard let plan else { return [] }
+        return StrengthTally.week(start: weekStart, sessions: plan.strength, doneDays: Set(history.strength.map(\.day)))
+    }
+
     func suggestedStrength() -> [TrainerStrengthSession] {
         guard let plan else { return [] }
         let structure = Dictionary(plan.workouts.filter { $0.day.weekStart == currentDay.weekStart }.map { ($0.day.weekStart.days(until: $0.day) + 1, $0.kind) }, uniquingKeysWith: { first, _ in first })

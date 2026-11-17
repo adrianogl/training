@@ -98,6 +98,19 @@ public struct GeneratedStrengthWorkout: Codable, Sendable, Equatable {
     public var exercises: [GeneratedExercise]
     public var adjustments: [StrengthAdjustment]
 
+    public init(
+        weekday: Int, group: TrainerStrengthGroup, intensity: TrainerStrengthIntensity, minutes: Int, place: StrengthPlace,
+        exercises: [GeneratedExercise], adjustments: [StrengthAdjustment]
+    ) {
+        self.weekday = weekday
+        self.group = group
+        self.intensity = intensity
+        self.minutes = minutes
+        self.place = place
+        self.exercises = exercises
+        self.adjustments = adjustments
+    }
+
     public var estimatedMinutes: Double {
         exercises.reduce(0) { $0 + $1.estimatedSeconds } / 60
     }
