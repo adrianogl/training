@@ -31,7 +31,7 @@ struct BlocksSection: View {
                     }
                 }
             }
-            if showsTarget {
+            if showsTarget || hasFlat {
                 legend.padding(.top, 10)
             }
         }
@@ -178,19 +178,35 @@ struct BlocksSection: View {
         .padding(.leading, 4)
     }
 
+    private var hasFlat: Bool {
+        kilometerBars.values.contains { $0.contains { $0.flat != nil } }
+    }
+
     private var legend: some View {
-        HStack(spacing: 14) {
-            HStack(spacing: 5) {
-                RoundedRectangle(cornerRadius: 3)
-                    .strokeBorder(BrandColors.band, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
-                    .frame(width: 14, height: 8)
-                Text("faixa prescrita")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 14) {
+                if showsTarget {
+                    HStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 3)
+                            .strokeBorder(BrandColors.band, style: StrokeStyle(lineWidth: 1.5, dash: [3, 2]))
+                            .frame(width: 14, height: 8)
+                        Text(WorkoutDetailConstants.legendTarget)
+                    }
+                }
+                HStack(spacing: 5) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(BrandColors.zones[4])
+                        .frame(width: 14, height: 8)
+                    Text(WorkoutDetailConstants.legendActual)
+                }
             }
-            HStack(spacing: 5) {
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(BrandColors.zones[4])
-                    .frame(width: 14, height: 8)
-                Text("o que você fez (cor = zona de FC)")
+            if hasFlat {
+                HStack(spacing: 5) {
+                    Capsule()
+                        .strokeBorder(BrandColors.text, lineWidth: 1.5)
+                        .frame(width: 14, height: 10)
+                    Text(WorkoutDetailConstants.legendFlat)
+                }
             }
         }
         .font(.caption2)

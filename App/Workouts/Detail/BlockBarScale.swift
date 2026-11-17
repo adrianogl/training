@@ -5,14 +5,14 @@ import WorkoutAnalysis
 
 enum BlockBarScale {
     static func bars(_ blocks: [WorkoutBlock], zones: HeartRateZones?) -> [BlockBar] {
-        let raw = blocks.map { block -> (metric: BlockMetric, band: ClosedRange<Double>?, actual: ClosedRange<Double>?) in
+        let raw = blocks.map { block -> (metric: BlockMetric, band: ClosedRange<Double>?, actual: ClosedRange<Double>?, flat: ClosedRange<Double>?) in
             let metric = metric(block)
-            return (metric, band(block, metric: metric, zones: zones), actual(block, metric: metric))
+            return (metric, band(block, metric: metric, zones: zones), actual(block, metric: metric), metric == .speed ? flatSpeed(block) : nil)
         }
         let domains = Dictionary(grouping: raw, by: \.metric).mapValues { items in
             let targeted = items.filter { $0.band != nil }
             let source = targeted.isEmpty ? items : targeted
-            return domain(source.flatMap { [$0.band, $0.actual].compactMap { $0 } }, padding: targeted.isEmpty ? WorkoutDetailConstants.barDomainPadding : WorkoutDetailConstants.targetDomainPadding)
+            return domain(source.flatMap { [$0.band, $0.actual, $0.flat].compactMap { $0 } }, padding: targeted.isEmpty ? WorkoutDetailConstants.barDomainPadding : WorkoutDetailConstants.targetDomainPadding)
         }
         return zip(blocks, raw).map { block, item in
             let domain = domains[item.metric] ?? 0...1
@@ -20,7 +20,8 @@ enum BlockBarScale {
                 metric: item.metric,
                 band: item.band.map { normalize($0, in: domain) },
                 actual: item.actual.map { widen(normalize($0, in: domain)) },
-                valueText: valueText(block, metric: item.metric)
+                valueText: valueText(block, metric: item.metric),
+                flat: item.flat.map { widen(normalize($0, in: domain)) }
             )
         }
     }
@@ -79,6 +80,15 @@ enum BlockBarScale {
         }
         guard let low = values.min(), let high = values.max() else { return nil }
         return low...high
+    }
+
+    static func flatSpeed(_ block: WorkoutBlock) -> ClosedRange<Double>? {
+        guard block.laps.count == 1, let lap = block.laps.first, hasElevation(lap), lap.distance > 0, lap.timerSeconds > 0,
+              let flat = flatPace(lap) else { return nil }
+        let speed = lap.avgSpeed ?? lap.distance / lap.timerSeconds
+        guard speed > 0, abs(flat - WorkoutConstants.metersPerKilometer / speed) >= WorkoutDetailConstants.flatMinimumGap else { return nil }
+        let flatSpeed = WorkoutConstants.metersPerKilometer / flat
+        return flatSpeed...flatSpeed
     }
 
     private static func valueText(_ block: WorkoutBlock, metric: BlockMetric) -> String? {

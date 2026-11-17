@@ -23,6 +23,10 @@ enum WorkoutDetailConstants {
     static let climbFormat = "↑%d m"
     static let descentFormat = "↓%d m"
     static let flatPaceLabel = "no plano"
+    static let flatMinimumGap = 2.0
+    static let legendTarget = "faixa prescrita"
+    static let legendActual = "o que você fez (cor = zona de FC)"
+    static let legendFlat = "no plano, descontado o desnível"
     static let valueColumnWidth: CGFloat = 52
     static let barHeight: CGFloat = 8
     static let bandHeight: CGFloat = 14
