@@ -140,6 +140,7 @@ struct TrainerView: View {
             TrainerCompareView(weeks: compareWeeks, weekIndex: { model.weekIndex(of: $0.start) })
         } else {
             planBody(plan)
+                .syncSkeleton(model.isAdjusting, height: SkeletonConstants.trainerWeekHeight)
         }
     }
 
