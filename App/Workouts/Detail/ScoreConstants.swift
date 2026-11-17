@@ -16,6 +16,9 @@ enum ScoreConstants {
     static let perfectSymbol = "star.fill"
     static let perfectSymbolSize: CGFloat = 12
     static let perfectInlineSize: CGFloat = 17
+    static let perfectCaption = "perfeito"
+    static let perfectBadgeRatio: CGFloat = 0.76
+    static let perfectSymbolRatio: CGFloat = 0.44
     static let perfectBorderWidth: CGFloat = 1.5
     static let perfectGlowHeight = 0.7
     static let shineDuration = 1.1

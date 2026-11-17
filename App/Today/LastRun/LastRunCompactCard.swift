@@ -40,6 +40,7 @@ struct LastRunCompactCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .brandCard()
+            .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
         }
         .buttonStyle(.plain)
     }

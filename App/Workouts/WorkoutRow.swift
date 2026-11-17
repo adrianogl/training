@@ -6,8 +6,6 @@ struct WorkoutRow: View {
     var hasChat = false
     var isFromPlan = false
     var isNew = false
-    @State private var shineTrigger = 0
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -53,49 +51,14 @@ struct WorkoutRow: View {
             }
         }
         .brandCard()
+        .perfectScoreCard(score: row.score, activityId: row.activityId)
         .overlay {
-            if isPerfect {
-                LinearGradient(colors: [BrandColors.accentGlow, .clear], startPoint: .top, endPoint: UnitPoint(x: 0.5, y: ScoreConstants.perfectGlowHeight))
-                    .clipShape(cardShape)
-                    .allowsHitTesting(false)
-                shine
-            }
-        }
-        .overlay {
-            if isSelected || isPerfect {
-                cardShape.strokeBorder(BrandColors.accentFill, lineWidth: isSelected ? 2 : ScoreConstants.perfectBorderWidth)
+            if isSelected {
+                RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
+                    .strokeBorder(BrandColors.accentFill, lineWidth: 2)
             }
         }
         .contentShape(Rectangle())
-        .onAppear {
-            guard isPerfect, !reduceMotion, ScoreCelebration.claimFirstTime(.row, activityId: row.activityId) else { return }
-            shineTrigger += 1
-        }
-    }
-
-    private var isPerfect: Bool { (row.score ?? 0) >= ScoreConstants.perfectScore }
-
-    private var cardShape: RoundedRectangle {
-        RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
-    }
-
-    private var shine: some View {
-        GeometryReader { proxy in
-            LinearGradient(
-                colors: [.clear, .white.opacity(ScoreConstants.shineOpacity), .clear],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
-            .frame(width: proxy.size.width * ScoreConstants.shineWidth)
-            .rotationEffect(.degrees(ScoreConstants.shineAngle))
-            .keyframeAnimator(initialValue: -1.0, trigger: shineTrigger) { content, position in
-                content.offset(x: position * proxy.size.width)
-            } keyframes: { _ in
-                LinearKeyframe(1.2, duration: ScoreConstants.shineDuration, timingCurve: .easeOut)
-            }
-        }
-        .clipShape(cardShape)
-        .allowsHitTesting(false)
     }
 
     private var badges: some View {
