@@ -372,8 +372,17 @@ import TrainingCore
         }
         let forecast = weather
         let events = WatchCalendar.upcoming(now: .now)
+        var status: String?
+        if let client = garminAccount.client {
+            status = WatchFaceBuilder.trainingStatusKey(try? await TrainingStatus.phrase(client: client, day: day))
+        }
+        let trainingStatus = status
+        let nextWeek = WatchFaceBuilder.nextWeekText(plan: trainer.plan, today: day)
         readiness.face = await Task.detached(priority: .utility) {
-            WatchFaceBuilder.face(context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal, weather: forecast, events: events)
+            WatchFaceBuilder.face(
+                context: ModelContext(container), summary: summary, today: day, planned: planned, weeklyGoalKm: weeklyGoal,
+                weather: forecast, events: events, trainingStatus: trainingStatus, nextWeek: nextWeek
+            )
         }.value
         guard readiness.score != nil || readiness.face != nil else { return }
         latestWatchReadiness = readiness

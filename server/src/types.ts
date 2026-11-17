@@ -90,6 +90,8 @@ export interface WatchFace {
   vo2Delta?: number
   weekPlannedKm?: number
   weekGoalKm?: number
+  trainingStatus?: string
+  nextWeek?: string
   workout?: string
   workoutShape?: number[][]
   workoutTip?: string

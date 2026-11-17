@@ -217,6 +217,8 @@ function parseFace(value: unknown): WatchFace | undefined {
     ['vo2Delta', (field) => isNumberIn(field, -FACE_MAX_VO2_DELTA, FACE_MAX_VO2_DELTA)],
     ['weekPlannedKm', (field) => isNumberIn(field, 0, FACE_MAX_WEEK_KM)],
     ['weekGoalKm', (field) => isNumberIn(field, 0, FACE_MAX_WEEK_KM)],
+    ['trainingStatus', isText],
+    ['nextWeek', isText],
     ['workout', isText],
     ['workoutShape', isShape],
     ['workoutTip', isText],
