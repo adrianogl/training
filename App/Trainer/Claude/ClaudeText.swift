@@ -50,6 +50,7 @@ enum ClaudeText {
     static let inboxTitle = "O Claude enviou treinos"
     static let inboxCountFormat = "%d dia(s) · %d válido(s) · %d recusado(s)"
     static let review = "Revisar e aplicar"
+    static let replacesNote = "Troca o treino do MFIT só neste dia e tira o do professor do Garmin."
     static let discard = "Descartar"
 
     static func codeCommand(token: String) -> String {
@@ -91,13 +92,14 @@ enum ClaudeText {
         case .nearRace: "força nos 3 dias antes da prova"
         case .durationOff(let estimated, let planned): "\(estimated) min estimados para \(planned) marcados"
         case .loadJump(let id): "carga de \"\(id)\" mais de 5% acima da última"
+        case .replacesMFIT: "substitui o treino do MFIT neste dia"
         }
     }
 
     static let instructions = """
     Você é o treinador de força de um corredor. Monte os treinos de força dos dias listados em "dias_do_treinador" dentro do período, usando o contexto abaixo.
     - Use só exercícios do "catalogo", pelo "id". Respeite o "local" de cada dia (academia, casa ou só peso do corpo).
-    - Não monte nada nos dias do MFIT: eles são do professor. Complemente o que ele já trabalha.
+    - Os dias do MFIT são do professor: complemente o que ele já trabalha. Se precisar trocar o treino do professor num dia (por exemplo, perto da prova), monte o treino desse dia com \"substitui_mfit\": true; o app troca o treino do professor só naquela data e tira o dele do Garmin.
     - Siga as "regras". Periodize ao longo do período: progressão de carga e volume, semanas mais leves e redução perto da prova.
     - A corrida só é conhecida para as primeiras semanas; nas outras, mantenha o padrão da semana conhecida.
     - Responda apenas com o JSON no formato de "formato_da_resposta", sem texto antes ou depois. Em "porque", explique em uma frase a escolha do dia.
@@ -126,6 +128,7 @@ enum ClaudeText {
           "minutos": 25,
           "local": "gym | home | bodyweight",
           "porque": "uma frase",
+          "substitui_mfit": false,
           "exercicios": [
             { "id": "id do catálogo", "series": 3, "reps": 10, "descanso": 30 },
             { "id": "id do catálogo", "series": 3, "segundos": 30, "descanso": 30 },

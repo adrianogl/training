@@ -1,3 +1,4 @@
+import GarminAPI
 import Insights
 import SwiftUI
 import TrainingCore
@@ -61,6 +62,7 @@ struct TrainerStrengthView: View {
         .sheet(item: $claudeImport) { state in
             ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure) {
                 ClaudeStrengthStore().apply(state.results, summary: state.summary)
+                unscheduleReplacedMFIT(state.results)
                 if let inbox, state.id == inboxPreview?.id {
                     ClaudeMailbox().markSeen(inbox)
                     self.inbox = nil
@@ -77,6 +79,17 @@ struct TrainerStrengthView: View {
         }
         guard let race = try? targetRace(in: app.container.mainContext, today: model.currentDay), let day = Day(iso: race.day) else { return nil }
         return ClaudeRaceTarget(name: race.name, day: day)
+    }
+
+    private func unscheduleReplacedMFIT(_ results: [ClaudeDayResult]) {
+        let days = results.filter { $0.isValid && $0.replacesMFIT }.compactMap(\.day)
+        guard !days.isEmpty, let client = app.garminAccount.client else { return }
+        let created = Set(TrainerSendStore().records().values.map(\.workoutId))
+        Task {
+            for day in days {
+                _ = try? await GarminPlannedUpload.unscheduleStrength(client: client, on: day, keeping: created)
+            }
+        }
     }
 
     private func refreshClaude() {

@@ -19,7 +19,7 @@ struct ClaudeStrengthStore {
         var stored = load()
         for result in results where result.isValid {
             guard let day = result.day, let workout = result.workout else { continue }
-            stored[day.iso] = ClaudeStoredWorkout(workout: workout, why: result.why, summary: summary)
+            stored[day.iso] = ClaudeStoredWorkout(workout: workout, why: result.why, summary: summary, replacesMFIT: result.replacesMFIT)
         }
         write(stored)
     }

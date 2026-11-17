@@ -6,12 +6,28 @@ extension TrainerModel {
     var strengthSessions: [TrainerStrengthSession] { plan?.strength ?? standaloneStrength }
 
     func trainerSessions(on day: Day) -> [TrainerStrengthSession] {
+        if let override = claudeOverride(on: day) { return [override] }
         let weekday = day.weekStart.days(until: day) + 1
         return strengthSessions.filter { $0.source == .trainer && $0.weekday == weekday }
     }
 
+    func claudeOverride(on day: Day) -> TrainerStrengthSession? {
+        guard let stored = ClaudeStrengthStore().workout(on: day), stored.overridesMFIT else { return nil }
+        let workout = stored.workout
+        let id = UUID(uuidString: ClaudeConstants.overrideIdPrefix + day.iso.replacingOccurrences(of: "-", with: "")) ?? UUID()
+        return TrainerStrengthSession(
+            id: id, weekday: workout.weekday, group: workout.group,
+            legLoad: StrengthSessions.legLoad(group: workout.group, intensity: workout.intensity), name: TrainerStrengthText.focusName(workout.group),
+            source: .trainer, intensity: workout.intensity, minutes: workout.minutes, place: workout.place
+        )
+    }
+
+    func replacesMFIT(on day: Day) -> Bool {
+        claudeOverride(on: day) != nil
+    }
+
     func strengthWorkout(sessionId: UUID, day: Day) -> GeneratedStrengthWorkout? {
-        guard let session = strengthSessions.first(where: { $0.id == sessionId }) else { return nil }
+        guard let session = strengthSessions.first(where: { $0.id == sessionId }) ?? claudeOverride(on: day).flatMap({ $0.id == sessionId ? $0 : nil }) else { return nil }
         let context = TrainerStrengthContextBuilder.context(
             day: day, plan: plan, externalKind: externalWorkouts.first { $0.day == day }.map(ExternalDayKind.kind),
             readiness: day == currentDay ? history.readiness[day] : nil,

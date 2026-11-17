@@ -17,10 +17,11 @@ public struct ClaudeStrengthDay: Codable, Sendable, Equatable {
     public var minutes: Int?
     public var place: StrengthPlace?
     public var why: String?
+    public var replacesMFIT: Bool?
     public var exercises: [ClaudeStrengthExercise]
 
     enum CodingKeys: String, CodingKey {
-        case day = "dia", focus = "foco", minutes = "minutos", place = "local", why = "porque", exercises = "exercicios"
+        case day = "dia", focus = "foco", minutes = "minutos", place = "local", why = "porque", replacesMFIT = "substitui_mfit", exercises = "exercicios"
     }
 }
 
@@ -46,7 +47,7 @@ public enum ClaudeIssue: Sendable, Equatable, Hashable {
     case invalidDate, pastDay, outOfPeriod, mfitDay, notTrainerDay
     case unknownExercise(String), wrongPlace(String), painRegion(String), doseOutOfRange(String)
     case noExercises, tooManyExercises, heavyLegsBeforeQuality, nearRace
-    case durationOff(estimated: Int, planned: Int), loadJump(String)
+    case durationOff(estimated: Int, planned: Int), loadJump(String), replacesMFIT
 }
 
 public struct ClaudeValidationContext: Sendable {
@@ -83,6 +84,7 @@ public struct ClaudeDayResult: Sendable, Equatable {
     public var workout: GeneratedStrengthWorkout?
     public var errors: [ClaudeIssue]
     public var warnings: [ClaudeIssue]
+    public var replacesMFIT = false
 
     public var isValid: Bool { errors.isEmpty && workout != nil }
 

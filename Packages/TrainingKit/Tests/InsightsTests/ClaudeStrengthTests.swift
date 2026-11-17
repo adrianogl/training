@@ -127,3 +127,31 @@ import TrainingCore
         #expect(result.adjustments == [.pain([.calfAchilles])])
     }
 }
+
+@Suite struct ClaudeReplacesMFITTests {
+    private let mobility = #"{ "id": "mobilidade-90-90", "series": 2, "reps": 8, "descanso": 15 }, { "id": "prancha", "series": 3, "segundos": 30, "descanso": 30 }"#
+
+    private func context() -> ClaudeValidationContext {
+        let tuesday = TrainerStrengthSession(weekday: 2, group: .core, legLoad: .light, name: "Mob", source: .trainer, intensity: .light, minutes: 25, place: .home)
+        let monday = Day(iso: "2026-11-23")!
+        return ClaudeValidationContext(
+            today: Day(iso: "2026-11-22")!, first: monday, last: monday.adding(days: 6), trainerSessions: [tuesday],
+            mfitWeekdays: [1, 3, 5], runKinds: [:], raceDay: nil, pain: [], lastLoads: [:]
+        )
+    }
+
+    private func response(replaces: Bool?) throws -> ClaudeStrengthResponse {
+        let flag = replaces.map { #", "substitui_mfit": \#($0)"# } ?? ""
+        return try ClaudeStrengthParser.parse(#"{ "versao": 1, "treinos": [{ "dia": "2026-11-25", "foco": "core", "minutos": 10, "local": "bodyweight"\#(flag), "exercicios": [\#(mobility)] }] }"#)
+    }
+
+    @Test func mfitDayNeedsTheFlag() throws {
+        let blocked = ClaudeStrengthValidator.validate(try response(replaces: nil), context: context())[0]
+        #expect(blocked.errors == [.mfitDay])
+        let allowed = ClaudeStrengthValidator.validate(try response(replaces: true), context: context())[0]
+        #expect(allowed.errors.isEmpty)
+        #expect(allowed.replacesMFIT)
+        #expect(allowed.warnings.contains(.replacesMFIT))
+        #expect(allowed.workout?.place == .bodyweight)
+    }
+}

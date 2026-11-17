@@ -131,6 +131,23 @@ public enum GarminPlannedUpload {
         return created.workoutId
     }
 
+    @discardableResult
+    public static func unscheduleStrength(client: GarminAccountClient, on day: Day, keeping created: Set<Int64>) async throws -> Int {
+        let path = String(format: GarminAccountEndpoints.calendarPathFormat, day.year, day.month - 1)
+        let items = try JSONDecoder().decode(CalendarDTO.self, from: try await client.get(path)).calendarItems
+        let scheduled = items.filter { item in
+            item.itemType == PlannedWorkouts.workoutItem && item.sportTypeKey == strengthSport && item.date == day.iso
+                && item.id != nil && !(item.workoutId.map(created.contains) ?? false)
+        }
+        for item in scheduled {
+            guard let id = item.id else { continue }
+            _ = try await client.delete(GarminAccountEndpoints.schedulePathPrefix + String(id))
+        }
+        return scheduled.count
+    }
+
+    static let strengthSport = "strength_training"
+
     public static func delete(client: GarminAccountClient, workoutId: Int64) async throws {
         do {
             _ = try await client.delete(GarminAccountEndpoints.workoutPathPrefix + String(workoutId))

@@ -97,4 +97,15 @@ private final class PlannedStore: GarminSessionStore {
             try await GarminPlannedUpload.delete(client: client, workoutId: 5)
         }
     }
+
+    @Test func unschedulesOnlyStrengthOnThatDayNotCreatedByTheApp() async throws {
+        let calendar = #"{"calendarItems": [{"id": 900, "itemType": "workout", "date": "2026-11-25", "workoutId": 1, "sportTypeKey": "strength_training"}, {"id": 901, "itemType": "workout", "date": "2026-11-25", "workoutId": 2, "sportTypeKey": "running"}, {"id": 902, "itemType": "workout", "date": "2026-11-26", "workoutId": 3, "sportTypeKey": "strength_training"}, {"id": 903, "itemType": "workout", "date": "2026-11-25", "workoutId": 4, "sportTypeKey": "strength_training"}]}"#
+        let stub = StubTransport([.ok(calendar), .ok("")])
+        let client = GarminAccountClient(transport: stub, store: PlannedStore())
+        let removed = try await GarminPlannedUpload.unscheduleStrength(client: client, on: Day(iso: "2026-11-25")!, keeping: [4])
+        #expect(removed == 1)
+        #expect(stub.requests.map { $0.httpMethod ?? "" } == ["GET", "DELETE"])
+        #expect(stub.requests.last?.url?.path == "/workout-service/schedule/900")
+        #expect(stub.requests.first?.url?.path == "/calendar-service/year/2026/month/10")
+    }
 }
