@@ -27,6 +27,22 @@ import TrainingCore
         #expect(friday == ShownWeek(start: Day(iso: "2026-11-09")!, isCurrent: true, isClosed: false))
     }
 
+    @Test func doneGarminPlansLeaveToday() {
+        let plans = [Self.plan("Limiar"), Self.plan("Regenerativo")]
+        #expect(TodayWorkoutPicker.pending(plans, doneTitles: []).map(\.title) == ["Limiar", "Regenerativo"])
+        #expect(TodayWorkoutPicker.pending(plans, doneTitles: ["limiar"]).map(\.title) == ["Regenerativo"])
+        #expect(TodayWorkoutPicker.pending(plans, doneTitles: ["Corrida da manhã"]).map(\.title) == ["Regenerativo"])
+        #expect(TodayWorkoutPicker.pending(plans, doneTitles: ["Limiar", "Regenerativo"]).isEmpty)
+    }
+
+    @Test func doneTrainerRunLeavesToday() {
+        let planned = Self.row(.threshold)
+        let done = TrainerDayRow(workout: planned.workout, status: .done, run: TrainerRun(activityId: 9, day: Self.today, meters: 12_000, seconds: 3_600, kind: .tempo), isChanged: false)
+        let pick = TodayWorkoutPicker.pick(garminToday: nil, trainerToday: done, garminTomorrow: nil, trainerTomorrow: Self.row(.easy, day: Self.today.adding(days: 1)))
+        #expect(pick?.today == nil)
+        #expect(pick?.tomorrow != nil)
+    }
+
     @Test func garminPlanWinsOverTrainer() {
         let strength = [TrainerStrengthLine(id: UUID(), name: "Superiores", isDone: false)]
         let pick = TodayWorkoutPicker.pick(garminToday: Self.plan("Intervalado"), trainerToday: Self.row(.threshold, strength: strength), garminTomorrow: nil, trainerTomorrow: nil)

@@ -14,14 +14,15 @@ extension ZoneRulerData {
         let floors = activityFloors.count == WorkoutDetailConstants.zoneCount ? activityFloors : watchZones?.floors ?? []
         guard floors.count == WorkoutDetailConstants.zoneCount else { return nil }
         let watch = ZoneBar(floors: floors, seconds: Array(watchSeconds.prefix(WorkoutDetailConstants.zoneCount)))
+        let divergence = zoneDivergence(watchZone5Floor: floors.last, thresholdHeartRate: thresholdHeartRate)
         let threshold = thresholdHeartRate.flatMap { heartRate in
-            thresholdSeconds.isEmpty ? nil : ZoneBar(floors: thresholdZones(thresholdHeartRate: heartRate).floors, seconds: thresholdSeconds)
+            thresholdSeconds.isEmpty || divergence == nil ? nil : ZoneBar(floors: thresholdZones(thresholdHeartRate: heartRate).floors, seconds: thresholdSeconds)
         }
         guard watch.hasTime || threshold != nil else { return nil }
         return ZoneRulerData(
             watch: watch,
             threshold: threshold,
-            divergence: zoneDivergence(watchZone5Floor: floors.last, thresholdHeartRate: thresholdHeartRate),
+            divergence: divergence,
             thresholdHeartRate: thresholdHeartRate
         )
     }

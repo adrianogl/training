@@ -78,7 +78,9 @@ import WorkoutAnalysis
         isLoaded = true
     }
 
-    var todayPlan: PlannedWorkout? { planned[today]?.first }
+    var todayPlan: PlannedWorkout? {
+        TodayWorkoutPicker.pending(planned[today] ?? [], doneTitles: (weekRuns[today] ?? []).map(\.title)).first
+    }
 
     var fallbackScore: Int? {
         summary.readiness == nil ? garminReadiness?.score : nil

@@ -99,7 +99,7 @@ struct TodayWorkoutCard: View {
 
     private var rest: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(TrainerText.restTitle).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
+            Text(model.weekRuns[model.today]?.isEmpty == false ? C.runDoneTitle : TrainerText.restTitle).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
             strengthChips
             switch pick.tomorrow {
             case .garmin(let plan):

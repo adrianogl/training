@@ -134,6 +134,18 @@ import TrainingCore
         #expect(close.note == nil)
     }
 
+    @Test func syncedZonesShowOnlyTheWatchBar() throws {
+        let synced = try #require(ZoneRulerData.make(
+            watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 173, thresholdSeconds: thresholdSeconds
+        ))
+        let diverging = try #require(ZoneRulerData.make(
+            watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 170, thresholdSeconds: thresholdSeconds
+        ))
+        #expect(synced.threshold == nil)
+        #expect(synced.thresholdTitle == nil)
+        #expect(diverging.threshold != nil)
+    }
+
     @Test func rulerNeedsWatchZonesAndTime() {
         #expect(ZoneRulerData.make(watchZones: nil, watchSeconds: watchSeconds, thresholdHeartRate: 170, thresholdSeconds: thresholdSeconds) == nil)
         #expect(ZoneRulerData.make(watchZones: watchZones, watchSeconds: [], thresholdHeartRate: nil, thresholdSeconds: []) == nil)

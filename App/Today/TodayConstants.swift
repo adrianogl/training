@@ -193,6 +193,7 @@ enum TodayConstants {
     static let workoutNothingTomorrow = "Nada planejado para amanhã."
     static let workoutReadinessFormat = "prontidão %d"
     static let workoutBestTimeTitle = "Melhor horário amanhã"
+    static let runDoneTitle = "Corrida de hoje feita"
     static let planEstimateFormat = "%@ km · ~%@"
     static let planStepNames: [PlannedStepKind: String] = [
         .warmup: "Aquecimento", .active: "Bloco", .recovery: "Recuperação", .cooldown: "Desaquecimento", .rest: "Descanso", .other: "Passo",
