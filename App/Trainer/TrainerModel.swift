@@ -352,6 +352,15 @@ import TrainingCore
         TrainerEngine.weeksToPeak(startMeters: start, peakMeters: peak)
     }
 
+    var easyPaceBand: PaceBand? {
+        TrainerEngine.easyPaceBand(plan: plan, history: history, today: currentDay)
+    }
+
+    func timeEstimate(_ workout: TrainerWorkout, run: TrainerRun?) -> RunTimeRange? {
+        guard run == nil, workout.day >= currentDay else { return nil }
+        return TrainerEngine.timeEstimate(workout, fallback: easyPaceBand)
+    }
+
     func previewPaces() -> TrainerPaces {
         TrainerEngine.paces(history: history, today: currentDay)
     }
@@ -667,7 +676,7 @@ import TrainingCore
         }
         return TrainerDayRow(
             workout: workout, status: result.status, run: result.run, isChanged: changedDays.contains(workout.day), strength: lines,
-            longStage: workout.day == nextLongDay ? plan?.longStage : nil
+            longStage: workout.day == nextLongDay ? plan?.longStage : nil, estimate: timeEstimate(workout, run: result.run)
         )
     }
 

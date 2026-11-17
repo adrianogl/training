@@ -44,6 +44,7 @@ struct TrainerDayRow: Identifiable, Equatable {
     let isChanged: Bool
     var strength: [TrainerStrengthLine] = []
     var longStage: Int?
+    var estimate: RunTimeRange?
 
     var id: String { workout.id }
 }

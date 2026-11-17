@@ -19,7 +19,7 @@ struct TodayWorkoutCard: View {
             header
             switch pick.today {
             case .garmin(let plan): garmin(plan, showsAdvice: suggestion == nil)
-            case .trainer(let row): TrainerDayLineView(line: TrainerText.dayLine(row.workout, strength: row.strength, longStage: row.longStage), titleFont: .title3)
+            case .trainer(let row): TrainerDayLineView(line: TrainerText.dayLine(row.workout, strength: row.strength, longStage: row.longStage, estimate: row.estimate), titleFont: .title3)
             case nil: rest
             }
             if let suggestion { readiness(suggestion) }
@@ -48,7 +48,7 @@ struct TodayWorkoutCard: View {
             Spacer()
             switch pick.today {
             case .garmin(let plan):
-                if let estimate = PlanText.estimate(plan) {
+                if let estimate = PlanText.estimate(plan, fallback: trainer.easyPaceBand) {
                     Text(estimate).font(.caption).foregroundStyle(BrandColors.dim)
                 }
             case .trainer(let row):
@@ -105,12 +105,12 @@ struct TodayWorkoutCard: View {
             case .garmin(let plan):
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(C.workoutTomorrowPrefix): \(plan.title)").font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    if let estimate = PlanText.estimate(plan) {
+                    if let estimate = PlanText.estimate(plan, fallback: trainer.easyPaceBand) {
                         Text(estimate).font(.caption).foregroundStyle(BrandColors.dim)
                     }
                 }
             case .trainer(let row):
-                let line = TrainerText.dayLine(row.workout, strength: row.strength, longStage: row.longStage)
+                let line = TrainerText.dayLine(row.workout, strength: row.strength, longStage: row.longStage, estimate: row.estimate)
                 VStack(alignment: .leading, spacing: 2) {
                     TrainerDayLineView(line: TrainerDayLine(title: "\(C.workoutTomorrowPrefix): \(line.title)", detail: line.detail, tags: line.tags), titleFont: .footnote)
                 }

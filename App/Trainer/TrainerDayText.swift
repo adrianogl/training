@@ -8,11 +8,11 @@ extension TrainerText {
     static let fartlekName = "Fartlek"
     static let blockSeparator = " + "
 
-    static func dayLine(_ workout: TrainerWorkout, strength: [TrainerStrengthLine] = [], longStage: Int? = nil) -> TrainerDayLine {
+    static func dayLine(_ workout: TrainerWorkout, strength: [TrainerStrengthLine] = [], longStage: Int? = nil, estimate: RunTimeRange? = nil) -> TrainerDayLine {
         guard workout.kind != .off else { return TrainerDayLine(title: restTitle, detail: "", tags: tags(workout, strength: strength, stage: nil)) }
         let pauses = TrainerEngine.plannedPauses(of: workout) > 0
         return TrainerDayLine(
-            title: "\(dayName(workout)) · \(distance(workout.totalMeters))",
+            title: ["\(dayName(workout))", distance(workout.totalMeters), estimate.map(RunTimeText.range)].compactMap { $0 }.joined(separator: " · "),
             detail: dayDetail(workout, pauses: pauses),
             tags: tags(workout, strength: strength, stage: pauses ? longStage : nil)
         )

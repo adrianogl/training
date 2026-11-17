@@ -1,6 +1,7 @@
 import GarminAPI
 import Metrics
 import SwiftUI
+import TrainingCore
 import WorkoutAnalysis
 
 struct PlannedShape: View {
@@ -57,7 +58,12 @@ struct PlannedStepsList: View {
 }
 
 enum PlanText {
-    static func estimate(_ plan: PlannedWorkout) -> String? {
+    static func estimate(_ plan: PlannedWorkout, fallback: PaceBand?) -> String? {
+        if let range = PlannedTimeEstimate.total(plan, fallback: fallback) {
+            let time = RunTimeText.range(range)
+            guard let meters = plan.estimatedMeters, meters > 0 else { return time }
+            return String(format: RunTimeConstants.distanceAndTimeFormat, TodayText.decimal(meters / WorkoutConstants.metersPerKilometer, fractionDigits: 1), time)
+        }
         guard let meters = plan.estimatedMeters, let seconds = plan.estimatedSeconds else { return nil }
         return String(format: TodayConstants.planEstimateFormat, TodayText.decimal(meters / WorkoutConstants.metersPerKilometer, fractionDigits: 1), WorkoutFormat.clock(seconds))
     }

@@ -17,7 +17,7 @@ enum PlannedBriefingBuilder {
         let maxHeart = average(input.similar.compactMap(\.maxHeartRate))
         return PlannedBriefing(
             kind: kind,
-            stats: stats(plan, target: target, kilometers: kilometers, similar: input.similar, goal: timeGoal(kind, goals: input.goals)),
+            stats: stats(plan, target: target, kilometers: kilometers, similar: input.similar, goal: timeGoal(kind, goals: input.goals), estimate: input.completed == nil ? PlannedTimeEstimate.total(plan, fallback: input.easyBand) : nil),
             summary: summary(kind, plan: plan, target: target, kilometers: kilometers, input: input),
             tags: tags(input, kind: kind, target: target),
             phases: phases(kind, plan: plan, target: target, kilometers: kilometers, heart: heart),
@@ -70,11 +70,13 @@ enum PlannedBriefingBuilder {
         return nil
     }
 
-    private static func stats(_ plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, similar: [SimilarRun], goal: GoalSnapshot?) -> [BriefingStat] {
+    private static func stats(_ plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, similar: [SimilarRun], goal: GoalSnapshot?, estimate: RunTimeRange?) -> [BriefingStat] {
         var stats: [BriefingStat] = []
         if kilometers > 0 { stats.append(BriefingStat(value: "\(km(kilometers)) km", label: C.statDistance)) }
         stats.append(BriefingStat(value: target.map { "\(clock($0.fast))–\(clock($0.slow))" } ?? C.freePace, label: C.statPace))
-        if let target, kilometers > 0, kind(plan) != .intervals {
+        if let estimate {
+            stats.append(BriefingStat(value: RunTimeText.range(estimate), label: C.statTime))
+        } else if let target, kilometers > 0, kind(plan) != .intervals {
             stats.append(BriefingStat(value: "\(duration(kilometers * target.fast))–\(duration(kilometers * target.slow))", label: C.statTime))
         } else if let seconds = plan.estimatedSeconds {
             stats.append(BriefingStat(value: "~\(duration(seconds))", label: C.statTime))
@@ -164,7 +166,9 @@ enum PlannedBriefingBuilder {
                     ? TodayConstants.planStepNames[step.kind] ?? ""
                     : String(format: TodayConstants.planRepeatFormat, step.repeats)
                 let detail = step.children.isEmpty ? PlanText.detail(step) : step.children.map(PlanText.detail).joined(separator: " + ")
-                return BriefingPhase(when: name, length: nil, title: detail, detail: "")
+                let single = (step.children.isEmpty ? [step] : step.children).lazy.compactMap(PlannedTimeEstimate.single).first
+                let length = single.map { RunTimeText.step($0, repeated: !step.children.isEmpty) }
+                return BriefingPhase(when: name, length: length, title: detail, detail: "")
             }
         }
         let total = Int(kilometers.rounded())

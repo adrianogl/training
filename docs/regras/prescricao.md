@@ -29,6 +29,17 @@ Constantes: `Packages/TrainingKit/Sources/Insights/TrainerEngine*Constants.swift
 | Rodagem sem histórico | 6:00/km | `fallbackEasyPace` |
 | Mudança mínima para atualizar ritmo | 2 s/km | `paceChangeSeconds` |
 
+## Tempo estimado
+
+Treino de corrida prescrito e ainda não feito mostra o tempo mínimo e o máximo: na semana e no dia do treinador, no card do Hoje, na lista de Treinos e no detalhe do treino do Garmin. Treino feito mostra o tempo real.
+
+- Cada trecho é somado à parte: distância vezes o ritmo mais rápido da faixa dá o mínimo; vezes o mais lento, o máximo.
+- Trecho por tempo e descanso entram iguais nos dois lados.
+- Trote de recuperação sem ritmo usa a faixa do aquecimento. A distância do treino que não está em nenhum trecho (desaquecimento) também.
+- Trecho por distância sem ritmo (alvo por FC ou zona, subida) usa a faixa de rodagem: a do plano ou, sem plano, a da mediana das rodagens dos últimos 90 dias. O tempo aparece com "≈". Sem plano e sem corrida nesse período, o treino fica sem tempo.
+- Trecho sem fim definido (até apertar volta) não soma e marca o tempo com "≈".
+- O mínimo arredonda para baixo e o máximo para cima, no minuto. No detalhe do Garmin, cada tiro com distância e ritmo mostra o próprio tempo ("1:40–1:44 cada").
+
 ## Semana padrão
 
 Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sábado longão, domingo folga (`defaultStructure`). As trocas de dia evitam dois treinos fortes seguidos e qualidade a menos de 4 dias da prova (`raceQualityGapDays`).

@@ -77,7 +77,7 @@ struct TrainerDayView: View {
             if let method = workout.method {
                 Text(TrainerText.methodLine(method)).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.dim)
             }
-            numbers(workout)
+            numbers(workout, estimate: app.trainer.timeEstimate(workout, run: row.run))
         }
         .brandCard()
         if let run = row.run {
@@ -100,11 +100,12 @@ struct TrainerDayView: View {
         return heat.apply(to: workout, longPace: pace)
     }
 
-    private func numbers(_ workout: TrainerWorkout) -> some View {
+    private func numbers(_ workout: TrainerWorkout, estimate: RunTimeRange?) -> some View {
         var items = [(TrainerText.distance(workout.totalMeters), TrainerText.plannedLabel)]
         if let range = TrainerText.paceRange(low: workout.paceLow, high: workout.paceHigh) {
             items.append((range, TrainerText.paceLabel))
         }
+        if let estimate { items.append((RunTimeText.range(estimate), RunTimeConstants.label)) }
         if let note = workout.note, !note.isEmpty { items.append((note, TrainerText.notePrefix)) }
         return HStack(spacing: 8) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in

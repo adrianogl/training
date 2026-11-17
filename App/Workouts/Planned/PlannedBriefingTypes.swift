@@ -64,6 +64,7 @@ struct BriefingInput {
     let course: CourseSuggestion?
     let completed: CompletedCheck?
     var startHour: Int? = nil
+    var easyBand: PaceBand? = nil
     var goals: [GoalSnapshot] = []
 }
 

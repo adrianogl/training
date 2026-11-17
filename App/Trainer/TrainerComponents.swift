@@ -77,7 +77,7 @@ struct TrainerDayRowView: View {
             .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
             kindBar(workout.kind)
             VStack(alignment: .leading, spacing: 2) {
-                TrainerDayLineView(line: TrainerText.dayLine(workout, strength: row.strength, longStage: row.longStage), titleFont: .subheadline)
+                TrainerDayLineView(line: TrainerText.dayLine(workout, strength: row.strength, longStage: row.longStage, estimate: row.estimate), titleFont: .subheadline)
             }
             Spacer(minLength: 6)
             if let status = TrainerText.status(for: row) {

@@ -6,6 +6,7 @@ struct PlannedWorkoutRow: View {
     let plan: PlannedWorkout
     let isToday: Bool
     var isSelected = false
+    var fallback: PaceBand?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -23,10 +24,17 @@ struct PlannedWorkoutRow: View {
                         .background(isToday ? BrandColors.accentFill : BrandColors.track, in: Capsule())
                 }
                 Spacer(minLength: 8)
-                if let meters = plan.estimatedMeters {
-                    Text("\(TodayText.decimal(meters / WorkoutConstants.metersPerKilometer, fractionDigits: 1)) km")
-                        .font(BrandFonts.number(20))
-                        .foregroundStyle(BrandColors.dim)
+                VStack(alignment: .trailing, spacing: 2) {
+                    if let meters = plan.estimatedMeters {
+                        Text("\(TodayText.decimal(meters / WorkoutConstants.metersPerKilometer, fractionDigits: 1)) km")
+                            .font(BrandFonts.number(20))
+                            .foregroundStyle(BrandColors.dim)
+                    }
+                    if let range = PlannedTimeEstimate.total(plan, fallback: fallback) {
+                        Text(RunTimeText.range(range))
+                            .font(BrandFonts.number(15))
+                            .foregroundStyle(BrandColors.text)
+                    }
                 }
             }
             PlannedShape(steps: plan.steps).frame(height: 14)

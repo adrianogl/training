@@ -264,7 +264,7 @@ struct WorkoutListView: View {
         switch item {
         case .run(let plan):
             link(.planned(plan.id)) {
-                PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id))
+                PlannedWorkoutRow(plan: plan, isToday: plan.day == today, isSelected: selected == .planned(plan.id), fallback: model.trainer.easyPaceBand)
             }
         case .strength(let workout):
             link(.strength(workout.id)) {
