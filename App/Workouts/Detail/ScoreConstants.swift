@@ -8,7 +8,7 @@ enum ScoreConstants {
     static let strongThreshold = 80
     static let moderateThreshold = 60
     static let detailBadgeSize: CGFloat = 56
-    static let rowBadgeSize: CGFloat = 28
+    static let rowInlineSize: CGFloat = 20
     static let cardBadgeSize: CGFloat = 34
     static let partNames: [ScorePart: String] = [
         .execution: "Execução",
