@@ -52,8 +52,10 @@ export function parseResponse(text: string): StrengthResponse | { error: 'invali
   return body as StrengthResponse
 }
 
+const isObject = (value: unknown): boolean => typeof value === 'object' && value !== null && !Array.isArray(value)
+
 export function validateResponse(response: StrengthResponse, context: StrengthContext): DayReport[] {
-  return response.treinos.map((entry) => validateDay(entry, context))
+  return response.treinos.filter((entry): entry is ResponseDay => isObject(entry)).map((entry) => validateDay(entry, context))
 }
 
 function validateDay(entry: ResponseDay, context: StrengthContext): DayReport {
@@ -74,7 +76,7 @@ function validateDay(entry: ResponseDay, context: StrengthContext): DayReport {
 
   const place = entry.local ?? session?.local ?? 'gym'
   const allowed = STRENGTH.equipmentByPlace[place] ?? []
-  const exercises = Array.isArray(entry.exercicios) ? entry.exercicios : []
+  const exercises = Array.isArray(entry.exercicios) ? entry.exercicios.filter((item): item is ResponseExercise => isObject(item) && typeof item.id === 'string') : []
   if (exercises.length === 0) report.erros.push(ISSUE.noExercises)
   if (exercises.length > STRENGTH.maxExercises) report.erros.push(ISSUE.tooManyExercises)
   const catalog = new Map(context.catalogo.map((exercise) => [exercise.id, exercise]))

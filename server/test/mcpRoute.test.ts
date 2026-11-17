@@ -110,6 +110,25 @@ describe('MCP de força', () => {
     expect((await rpc({ jsonrpc: '2.0', id: 61, method: 'ping' })).status).toBe(429)
   })
 
+  it('recusa lote e mensagem nula', async () => {
+    const batch = await rpc([{ jsonrpc: '2.0', id: 1, method: 'ping' }, { jsonrpc: '2.0', id: 2, method: 'ping' }])
+    expect(batch.status).toBe(400)
+    expect(batch.body.error.message).toBe('batch_not_supported')
+    const empty = await rpc(null)
+    expect(empty.status).toBe(200)
+    expect(empty.body.error.code).toBe(-32600)
+  })
+
+  it('ignora treino ou exercício nulo sem quebrar', async () => {
+    await writeBlob(sql, key, accountId, 'strengthContext', JSON.stringify({ atualizado: 'x', texto: 'x', contexto: context }), now)
+    const nullDay = await call('validar_treinos', { json: '{"versao": 1, "treinos": [null]}' })
+    expect(nullDay.status).toBe(200)
+    expect(nullDay.body.result.content[0].text).toContain('0 dia(s)')
+    const nullExercise = await call('validar_treinos', { json: valid.replace('"exercicios":[', '"exercicios":[null,') })
+    expect(nullExercise.status).toBe(200)
+    expect(nullExercise.body.result.content[0].text).toContain('1 dia(s) sem erros')
+  })
+
   it('só aceita POST', async () => {
     const response = await mcpRoute(makeRequest('GET', '/mcp', { token: mcpToken }), sql, key)
     expect(response.status).toBe(405)

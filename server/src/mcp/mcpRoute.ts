@@ -32,6 +32,7 @@ function unauthorized(): Response {
 }
 
 async function handle(message: RpcMessage, sql: Sql, key: Buffer, accountId: string, now: Date): Promise<object | null> {
+  if (typeof message !== 'object' || message === null) return rpcError(null, JSON_RPC.invalidRequest, 'invalid_request')
   if (message.jsonrpc !== '2.0' || typeof message.method !== 'string') return rpcError(message.id, JSON_RPC.invalidRequest, 'invalid_request')
   const isNotification = message.id === undefined
   switch (message.method) {
@@ -82,17 +83,16 @@ export async function mcpRoute(request: Request, sql: Sql, dataKey: Buffer | und
       status = 400
       return Response.json(rpcError(null, JSON_RPC.parseError, 'parse_error'), { status })
     }
-    const messages = (Array.isArray(parsed) ? parsed : [parsed]) as RpcMessage[]
-    const replies: object[] = []
-    for (const message of messages) {
-      const reply = await handle(message, sql, dataKey, accountId, now())
-      if (reply !== null) replies.push(reply)
+    if (Array.isArray(parsed)) {
+      status = 400
+      return Response.json(rpcError(null, JSON_RPC.invalidRequest, 'batch_not_supported'), { status })
     }
-    if (replies.length === 0) {
+    const reply = await handle(parsed as RpcMessage, sql, dataKey, accountId, now())
+    if (reply === null) {
       status = 202
       return new Response(null, { status })
     }
-    return Response.json(Array.isArray(parsed) ? replies : replies[0])
+    return Response.json(reply)
   } catch (error) {
     status = 500
     console.error(JSON.stringify({ route: MCP.route, error: error instanceof Error ? error.name : 'unknown' }))
