@@ -31,6 +31,40 @@ enum ClaudeText {
     static let whyTitle = "Por que, segundo o Claude"
     static let close = "Fechar"
     static let estimatedFormat = "%d exercícios · %d min estimados"
+    static let mcpGenerateFailed = "Não deu para gerar o token. Confira a conexão e tente de novo."
+    static let mcpRevokeFailed = "Não deu para revogar o token. Confira a conexão e tente de novo."
+    static let settingsTitle = "Claude"
+    static let settingsIntro = "Deixa o Claude Desktop ou o Claude Code montarem seus treinos de força direto no trAIning. Você revisa e aplica no app."
+    static let generateToken = "Gerar token"
+    static let regenerateToken = "Gerar outro token"
+    static let revokeToken = "Revogar"
+    static let codeTitle = "Claude Code"
+    static let desktopTitle = "Claude Desktop"
+    static let copyCommand = "Copiar comando"
+    static let copyConfig = "Copiar configuração"
+    static let copiedShort = "Copiado."
+    static let tokenOnce = "O token aparece só agora. Se perder, gere outro."
+    static let activeSinceFormat = "Token ativo desde %@."
+    static let noToken = "Nenhum token ativo."
+    static let needsSync = "Ative a sincronização com o servidor em Ajustes para usar o Claude."
+    static let inboxTitle = "O Claude enviou treinos"
+    static let inboxCountFormat = "%d dia(s) · %d válido(s) · %d recusado(s)"
+    static let review = "Revisar e aplicar"
+    static let discard = "Descartar"
+
+    static func codeCommand(token: String) -> String {
+        "claude mcp add --transport http training \(ClaudeConstants.mcpURL) --header \"Authorization: Bearer \(token)\""
+    }
+
+    static func desktopConfig(token: String) -> String {
+        """
+        "training": {
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "\(ClaudeConstants.mcpURL)", "--header", "Authorization: Bearer \(token)"]
+        }
+        """
+    }
+
     static let errorsIntro = "O app recusou estes pontos. Corrija e devolva o JSON completo de novo, no mesmo formato:"
 
     static func periodName(_ period: ClaudeRequestPeriod, race: String?) -> String {

@@ -20,14 +20,14 @@ struct ClaudeContextInput {
     let race: ClaudeRaceTarget?
 }
 
-struct ClaudeContextPayload: Encodable {
-    struct Period: Encodable {
+struct ClaudeContextPayload: Codable, Equatable {
+    struct Period: Codable, Equatable {
         let inicio: String
         let fim: String
         let hoje: String
     }
 
-    struct TrainerDay: Encodable {
+    struct TrainerDay: Codable, Equatable {
         let dia_da_semana: String
         let foco: String
         let intensidade: String
@@ -35,28 +35,28 @@ struct ClaudeContextPayload: Encodable {
         let local: String
     }
 
-    struct MFITDay: Encodable {
+    struct MFITDay: Codable, Equatable {
         let dia_da_semana: String
         let padroes: [String]
     }
 
-    struct Run: Encodable {
+    struct Run: Codable, Equatable {
         let dia: String
         let tipo: String
         let nome: String
     }
 
-    struct Readiness: Encodable {
+    struct Readiness: Codable, Equatable {
         let dia: String
         let nota: Int
     }
 
-    struct Race: Encodable {
+    struct Race: Codable, Equatable {
         let nome: String
         let dia: String
     }
 
-    struct Exercise: Encodable {
+    struct Exercise: Codable, Equatable {
         let id: String
         let nome: String
         let padrao: String

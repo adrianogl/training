@@ -9,6 +9,7 @@ enum RemoteSyncConstants {
     static let accountPath = "api/v1/account"
     static let changesPath = "api/v1/changes"
     static let watchTokenPath = "api/v1/watch/token"
+    static let mcpTokenPath = "api/v1/mcp/token"
     static let watchReadinessPath = "api/v1/watch/readiness"
     static let watchVerdictMaxLength = 24
     static let watchScoreRange = 0...100

@@ -1,0 +1,17 @@
+export const ISSUE = {
+  invalidDate: 'data inválida',
+  pastDay: 'dia que já passou',
+  outOfPeriod: 'fora do período pedido',
+  mfitDay: 'dia do MFIT, não será aplicado',
+  notTrainerDay: 'não é um dia de força do treinador',
+  unknownExercise: (id: string) => `"${id}" não existe no catálogo`,
+  wrongPlace: (id: string) => `"${id}" não cabe no local do dia`,
+  painRegion: (id: string) => `"${id}" carrega uma região com dor marcada`,
+  doseOutOfRange: (id: string) => `"${id}" com séries, repetições, segundos ou descanso fora da faixa`,
+  noExercises: 'sem exercícios',
+  tooManyExercises: 'mais de 12 exercícios',
+  heavyLegsBeforeQuality: 'perna pesada nas 48 h antes de limiar, VO2 ou longão',
+  nearRace: 'força nos 3 dias antes da prova',
+  durationOff: (estimated: number, planned: number) => `${estimated} min estimados para ${planned} marcados`,
+  loadJump: (id: string) => `carga de "${id}" mais de 5% acima da última`,
+} as const

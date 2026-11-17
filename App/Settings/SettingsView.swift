@@ -118,6 +118,7 @@ struct SettingsView: View {
         case .mfit: MFITAccountConstants.summary
         case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
+        case .claude: model.remoteSync.mcpTokenCreatedAt == nil ? "Sem token" : "Token ativo"
         case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
         case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
         case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
@@ -147,6 +148,8 @@ struct SettingsView: View {
                 StravaSection(model: model.strava)
             case .watch:
                 RemoteSyncSection(model: model.remoteSync, part: .watch)
+            case .claude:
+                ClaudeSettingsSection(model: model.remoteSync)
             case .notice:
                 noticeSection
                 workoutNoticeSection

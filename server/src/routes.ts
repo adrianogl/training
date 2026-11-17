@@ -1,3 +1,4 @@
+import { replaceMcpToken, revokeMcpToken } from './mcpTokens.js'
 import { createAccount, deleteAccount } from './account.js'
 import { accountExists, accountIdFromAuthorization, resolveAccountId } from './auth.js'
 import {
@@ -6,6 +7,7 @@ import {
   UNLOGGED_STATUSES,
   WATCH_READINESS_ROUTE,
   WATCH_TOKEN_ROUTE,
+  MCP_TOKEN_ROUTE,
 } from './constants.js'
 import { dataKeyFromEnv } from './cipher.js'
 import { limitsFromEnv } from './limits.js'
@@ -180,6 +182,34 @@ export function putWatchTokenRoute(request: Request, sql: Sql): Promise<Response
     }
     const owned = await replaceWatchToken(sql, accountId, parsed.value)
     return { response: owned ? noContent() : failure(409, 'token_conflict') }
+  })
+}
+
+export function putMcpTokenRoute(request: Request, sql: Sql): Promise<Response> {
+  return handled(MCP_TOKEN_ROUTE, request, sql, async (accountId) => {
+    if (!(await accountExists(sql, accountId))) {
+      return { response: failure(401, 'unauthorized') }
+    }
+    const text = await readBody(request)
+    if (text === undefined) {
+      return { response: failure(413, 'body_too_large') }
+    }
+    const parsed = parseWatchTokenBody(text)
+    if (!parsed.ok) {
+      return { response: failure(400, parsed.error) }
+    }
+    const owned = await replaceMcpToken(sql, accountId, parsed.value)
+    return { response: owned ? noContent() : failure(409, 'token_conflict') }
+  })
+}
+
+export function deleteMcpTokenRoute(request: Request, sql: Sql): Promise<Response> {
+  return handled(MCP_TOKEN_ROUTE, request, sql, async (accountId) => {
+    if (!(await accountExists(sql, accountId))) {
+      return { response: failure(401, 'unauthorized') }
+    }
+    await revokeMcpToken(sql, accountId)
+    return { response: noContent() }
   })
 }
 
