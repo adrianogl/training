@@ -5,6 +5,7 @@ public enum RemoteRecordKind: String, Codable, Sendable {
     case decision
     case goal
     case trainer
+    case narrative
 }
 
 public struct RemoteRecord: Codable, Equatable, Sendable {
@@ -189,6 +190,7 @@ public struct RemoteSyncReport: Equatable, Sendable {
     public var tooLarge: [RemoteRecordKey] = []
     public var quotaExceeded = false
     public var trainerChanged = false
+    public var narrativesChanged = false
 }
 
 public struct RemoteTrainerState: Equatable, Sendable {
@@ -209,4 +211,23 @@ public protocol RemoteTrainerStore: Sendable {
     func markPending()
     func markPushed(updatedAt: Date)
     func apply(_ remote: RemoteTrainerState) -> Bool
+}
+
+public struct RemoteNarrative: Equatable, Sendable {
+    public var id: String
+    public var text: String
+    public var updatedAt: Date
+
+    public init(id: String, text: String, updatedAt: Date) {
+        self.id = id
+        self.text = text
+        self.updatedAt = updatedAt
+    }
+}
+
+public protocol RemoteNarrativeStore: Sendable {
+    func pendingNarratives() -> [RemoteNarrative]
+    func narrativeUpdatedAt(id: String) -> Date?
+    func markNarrativesPushed(_ narratives: [RemoteNarrative])
+    func apply(_ narrative: RemoteNarrative) -> Bool
 }

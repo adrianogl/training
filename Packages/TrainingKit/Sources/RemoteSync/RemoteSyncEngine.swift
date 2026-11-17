@@ -12,14 +12,16 @@ public actor RemoteSyncEngine {
     private let now: @Sendable () -> Date
     private let defaultsSuite: String?
     private let trainerStore: (any RemoteTrainerStore)?
+    private let narrativeStore: (any RemoteNarrativeStore)?
     private var current: Task<RemoteSyncReport, any Error>?
 
-    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, defaultsSuite: String? = nil, trainerStore: (any RemoteTrainerStore)? = nil, now: @escaping @Sendable () -> Date = { .now }) {
+    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, defaultsSuite: String? = nil, trainerStore: (any RemoteTrainerStore)? = nil, narrativeStore: (any RemoteNarrativeStore)? = nil, now: @escaping @Sendable () -> Date = { .now }) {
         self.container = container
         self.client = client
         self.key = keys.payload
         self.defaultsSuite = defaultsSuite
         self.trainerStore = trainerStore
+        self.narrativeStore = narrativeStore
         self.now = now
     }
 
@@ -52,6 +54,13 @@ public actor RemoteSyncEngine {
                 outgoing.tooLarge.append(RemoteRecordKey(kind: .trainer, id: C.trainerRecordId))
             }
         }
+        let narratives = narrativeStore?.pendingNarratives() ?? []
+        for narrative in narratives {
+            outgoing.records.append(RemoteRecord(
+                kind: .narrative, id: narrative.id, updatedAt: narrative.updatedAt, deleted: false,
+                payload: try RemotePayload.seal(narrative: narrative.text, id: narrative.id, key: key)
+            ))
+        }
         let push = try await pushAll(outgoing.records)
         let pages = try await pullAll(since: cursor)
 
@@ -59,13 +68,20 @@ public actor RemoteSyncEngine {
         if let trainerPending, push.accepted.contains(RemoteRecordKey(kind: .trainer, id: C.trainerRecordId)) {
             trainerStore?.markPushed(updatedAt: trainerPending.updatedAt)
         }
+        narrativeStore?.markNarrativesPushed(narratives.filter { push.accepted.contains(RemoteRecordKey(kind: .narrative, id: $0.id)) })
         var applied = 0
         var trainerChanged = false
+        var narrativesChanged = false
         for record in pages.records {
             if record.kind == .trainer {
                 if try applyTrainer(record) {
                     applied += 1
                     trainerChanged = true
+                }
+            } else if record.kind == .narrative {
+                if try applyNarrative(record) {
+                    applied += 1
+                    narrativesChanged = true
                 }
             } else if try apply(record, in: context) {
                 applied += 1
@@ -92,7 +108,8 @@ public actor RemoteSyncEngine {
             applied: applied,
             tooLarge: outgoing.tooLarge + push.rejected,
             quotaExceeded: push.quotaExceeded,
-            trainerChanged: trainerChanged
+            trainerChanged: trainerChanged,
+            narrativesChanged: narrativesChanged
         )
     }
 
@@ -227,6 +244,18 @@ public actor RemoteSyncEngine {
         }
     }
 
+    private func applyNarrative(_ record: RemoteRecord) throws -> Bool {
+        guard let narrativeStore else { return false }
+        switch RemoteMerge.action(remoteUpdatedAt: record.updatedAt, remoteDeleted: record.deleted, localUpdatedAt: narrativeStore.narrativeUpdatedAt(id: record.id)) {
+        case .insert, .replace:
+            guard let payload = record.payload else { throw RemoteSyncError.decoding }
+            let text = try RemotePayload.openNarrative(payload, id: record.id, key: key)
+            return narrativeStore.apply(RemoteNarrative(id: record.id, text: text, updatedAt: record.updatedAt))
+        case .delete, .keepLocal, .ignore:
+            return false
+        }
+    }
+
     private func racePayload(_ race: RaceRecord) throws -> String? {
         var item = RaceTransferItem(race)
         let payload = try RemotePayload.plain(race: item)
@@ -239,7 +268,7 @@ public actor RemoteSyncEngine {
 
     private func apply(_ record: RemoteRecord, in context: ModelContext) throws -> Bool {
         switch record.kind {
-        case .trainer: false
+        case .trainer, .narrative: false
         case .race: try applyRace(record, in: context)
         case .decision: try applyDecision(record, in: context)
         case .goal: try applyGoal(record, in: context)
@@ -350,7 +379,7 @@ public actor RemoteSyncEngine {
         case .goal:
             guard let id = UUID(uuidString: key.id), let local = try Self.goal(id, in: context), local.deletedAt != nil else { return }
             context.delete(local)
-        case .trainer:
+        case .trainer, .narrative:
             return
         }
     }

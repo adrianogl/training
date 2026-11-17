@@ -92,7 +92,8 @@ import TrainingCore
             watchTokenStore: watchTokenStore,
             defaults: remoteDefaults,
             defaultsSuite: scope.suiteName,
-            trainerStore: trainerStore
+            trainerStore: trainerStore,
+            narrativeStore: GeneratedTextStore(defaults: remoteDefaults)
         )
         self.garminAccount = GarminAccountModel(
             store: KeychainGarminSessionStore(keychain: garminSessionStore),

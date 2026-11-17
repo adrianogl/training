@@ -21,4 +21,15 @@ private struct FixedFeedback: FeedbackGenerator {
         #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: "Ótimo treino a 3:40/km.")) == nil)
         #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: "Ótimo treino!")) == nil)
     }
+
+    @Test func rejectsPaceRewrittenAsHours() async {
+        let paceFacts = ["Bloco de 12 km a 4:53/km, com a última volta em 4:59/km.", "Comece alguns segundos por km mais lento."]
+        let hours = "O bloco de 12 km saiu em 4 horas e 53 minutos, e a última volta em 4 horas e 59 minutos."
+        let split = "O bloco de 12 km saiu a 4 53 por km, e a última volta a 4:59/km."
+        let right = "O bloco de 12 km saiu a 4:53/km e a última volta a 4:59/km. Comece alguns segundos por km mais lento."
+
+        #expect(await CoachFeedback.rewrite(facts: paceFacts, generator: FixedFeedback(text: hours)) == nil)
+        #expect(await CoachFeedback.rewrite(facts: paceFacts, generator: FixedFeedback(text: split)) == nil)
+        #expect(await CoachFeedback.rewrite(facts: paceFacts, generator: FixedFeedback(text: right)) == right)
+    }
 }

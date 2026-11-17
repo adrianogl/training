@@ -52,11 +52,11 @@ struct WorkoutAnalysisCard: View {
         coach = nil
         timedOut = false
         let facts = summary.coachFacts
-        guard CoachFeedback.isAvailable else { return }
         if let cached = await CoachFeedbackCache.shared.cached(for: facts) {
             coach = cached
             return
         }
+        guard CoachFeedback.isAvailable else { return }
         isGenerating = true
         let timer = Task {
             try? await Task.sleep(for: .seconds(DetailedScreenConstants.coachTimeoutSeconds))

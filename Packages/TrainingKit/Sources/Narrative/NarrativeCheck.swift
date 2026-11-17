@@ -12,6 +12,7 @@ enum NarrativeCheck {
         return !sentence.isEmpty
             && !NarrativeConstants.forbiddenFragments.contains { sentence.contains($0) }
             && numbers(in: sentence) == numbers(in: template)
+            && !addsTimeUnit(sentence, source: template)
             && words.allSatisfy(hasWord)
             && (anyOf.isEmpty || anyOf.contains(where: hasWord))
             && !forbidden.contains { tokens.contains($0) }
@@ -80,6 +81,13 @@ enum NarrativeCheck {
     }
 
     static func numbers(in text: String) -> [String] {
-        text.matches(of: /\d+/).map { String($0.output) }.sorted()
+        text.matches(of: /\d+(?:[:.,]\d+)*/).map { String($0.output) }.sorted()
+    }
+
+    static func addsTimeUnit(_ text: String, source: String) -> Bool {
+        let available = Set(source.lowercased().split { !$0.isLetter }.map(String.init))
+        return text.lowercased().split { !$0.isLetter }.contains { word in
+            NarrativeConstants.timeUnitWords.contains(String(word)) && !available.contains(String(word))
+        }
     }
 }

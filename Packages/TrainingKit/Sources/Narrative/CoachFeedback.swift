@@ -59,5 +59,6 @@ public enum CoachFeedback {
             && sentences.count <= limits.maxSentences
             && !CoachFeedbackConstants.forbidden.contains { text.contains($0) }
             && Set(NarrativeCheck.numbers(in: text)).isSubset(of: Set(NarrativeCheck.numbers(in: source)))
+            && !NarrativeCheck.addsTimeUnit(text, source: source)
     }
 }
