@@ -1,4 +1,3 @@
 <properties>
-    <property id="WeeklyGoalKm" type="number">45</property>
     <property id="watchToken" type="string"></property>
 </properties>

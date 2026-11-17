@@ -11,10 +11,6 @@ module Settings {
         return value;
     }
 
-    function weeklyGoalKm() {
-        return read("WeeklyGoalKm", Defaults.WEEKLY_GOAL_KM);
-    }
-
     function watchToken() {
         var token = read("watchToken", "");
         if (token.length() == 0) {
