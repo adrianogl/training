@@ -32,4 +32,17 @@ import TrainingCore
         GoalDraftParser.apply(GoalValues(kind: .time, distanceKm: 10, targetSeconds: 2_380), to: goal, now: .now)
         #expect(goal.achievedAt == nil)
     }
+
+    @Test func paceTargetBecomesTimeForTheDistance() {
+        let draft = GoalDraft(kind: .time, distanceKm: 21.0975, targetMode: .pace, targetPace: "4:15")
+
+        #expect(GoalDraftParser.values(draft, today: today) == .success(GoalValues(kind: .time, distanceKm: 21.0975, targetSeconds: 5_380, deadline: nil, paceSecondsPerKm: nil)))
+        #expect(GoalDraftParser.derived(draft) == "1:29:40")
+        #expect(GoalDraftParser.values(GoalDraft(kind: .time, targetMode: .pace, targetPace: "1:00"), today: today) == .failure(.pace))
+    }
+
+    @Test func timeTargetShowsThePace() {
+        #expect(GoalDraftParser.derived(GoalDraft(kind: .time, distanceKm: 10, time: "40:00")) == "4:00 /km")
+        #expect(GoalDraftParser.derived(GoalDraft(kind: .time, distanceKm: 10, time: "x")) == nil)
+    }
 }
