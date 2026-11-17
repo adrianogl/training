@@ -324,6 +324,36 @@ footer .footer-note { flex-basis: 100%; font-size: 12px; }
 .rep .band { position: absolute; top: 0; bottom: 0; left: 38%; width: 22%; background: rgba(200, 240, 90, 0.12); border-left: 1px dashed #5e7a1e; border-right: 1px dashed #5e7a1e; }
 .rep .dot { position: absolute; top: 50%; width: 14px; height: 14px; border-radius: 50%; margin: -7px 0 0 -7px; left: calc(10% + (var(--x) - 10%) * clamp(0, calc((var(--p) - var(--d)) * 5), 1)); background: var(--c, var(--lime)); }
 .rep b { color: var(--ink); text-align: right; font-weight: 600; }
+.above-box { margin-top: 16px; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--sky); background: color-mix(in srgb, var(--sky) 8%, var(--card)); display: grid; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.above-box .t { color: var(--sky); font-weight: 700; font-size: 14px; }
+.above-box b { color: var(--ink); font-weight: 600; font-size: 14px; }
+.vs { display: grid; grid-template-columns: 70px minmax(0, 1fr) 70px; gap: 8px; align-items: center; color: var(--dim); }
+.vs .b { height: 8px; border-radius: 4px; background: var(--card-2); overflow: hidden; }
+.vs .b i { display: block; height: 100%; border-radius: 4px; background: var(--dim); }
+.vs.now .b i { background: var(--sky); }
+.vs .v { text-align: right; color: var(--ink); font-weight: 700; }
+.vs.now .v { color: var(--sky); }
+.km-rows { display: grid; margin-top: 14px; }
+.km-rows div { display: grid; grid-template-columns: 52px minmax(0, 1fr) 52px 66px; gap: 8px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 14px; color: var(--ink-2); }
+.km-rows .km-head { white-space: nowrap; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); border-top: 0; }
+.km-rows .km-head .eq { color: var(--dim); }
+.km-rows .up { color: var(--amber); }
+.score-line { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 14px; color: var(--dim); }
+.score-pill { padding: 2px 12px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-weight: 800; font-size: 16px; }
+.km-rows .p { text-align: right; }
+.km-rows .eq { text-align: right; color: var(--lime); font-weight: 700; }
+.src { display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 6px; vertical-align: 1px; }
+.src.src-mfit { color: var(--dim); background: var(--card-2); }
+.src.src-trainer { color: #b59cff; background: rgba(181, 156, 255, .15); }
+.send-cta { margin-top: 16px; text-align: center; font-weight: 700; font-size: 15px; padding: 10px; border-radius: 999px; background: var(--lime); color: #0b0d0a; }
+.trainer-day { display: grid; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+.trainer-day .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.trainer-day .t { font-family: var(--display); font-weight: 800; font-size: 18px; }
+.trainer-day .plan-days { margin-top: 0; }
+.trainer-day .plan-days div { grid-template-columns: 64px minmax(0, 1fr); }
+.trainer-day .plan-days .d { white-space: nowrap; }
+.day-banner { padding: 10px 12px; border-radius: 12px; border: 1.5px solid #b59cff; background: rgba(181, 156, 255, .10); font-size: 13px; color: var(--ink-2); }
+.day-banner b { display: block; color: #b59cff; }
 .verdict { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
 .verdict span { padding: 6px 10px; border-radius: 999px; background: var(--card-2); color: var(--ink-2); }
 
@@ -468,6 +498,10 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   :root .watch { filter: drop-shadow(0 34px 50px rgba(30,40,20,.3)); }
   :root .ipad-pro, :root .iphone { box-shadow: 0 0 0 1.5px #9aa0a8, 0 0 0 3px #c9cdd2, 0 4px 8px -2px rgba(30,40,20,.25); }
   :root .dev { box-shadow: 0 30px 60px -30px rgba(30,40,20,.5); }
+  :root :is(.send-cta, .score-pill) { background: #c6f05e; color: #10160a; box-shadow: inset 0 0 0 1px #9cc23a; }
+  :root .src.src-trainer, :root .day-banner b { color: #7b5cd6; }
+  :root .src.src-trainer { background: rgba(123, 92, 214, .12); }
+  :root .day-banner { border-color: #7b5cd6; background: rgba(123, 92, 214, .08); }
 }
 </style>
 
@@ -673,11 +707,25 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
           <div class="rep"><span>5º</span><div class="track"><div class="band"></div><i class="dot" style="--x:74%;--d:.45;--c:#ff8a4c"></i></div><b class="num">4:18</b></div>
         </div>
         <div class="verdict"><span>4 de 5 no alvo</span><span>FC média 168 bpm</span><span>Trote rápido nas recuperações 3 e 4</span></div>
+        <div class="above-box">
+          <span class="t">↗ Acima do esperado</span>
+          <b>FC no mesmo ritmo</b>
+          <div class="vs"><span>últimos 3</span><span class="b"><i style="width:100%"></i></span><span class="v num">168 bpm</span></div>
+          <div class="vs now"><span>hoje</span><span class="b"><i style="width:97%"></i></span><span class="v num">163 bpm</span></div>
+        </div>
+        <div class="km-rows" aria-label="Ritmo por km com subida e equivalente no plano">
+          <div class="km-head"><span>km</span><span>desnível</span><span class="p">pace</span><span class="eq">no plano</span></div>
+          <div><span>km 4</span><span class="up">↑ 18 m</span><span class="p num">5:02</span><span class="eq num">4:48</span></div>
+          <div><span>km 5</span><span>plano</span><span class="p num">4:51</span><span class="eq num">4:51</span></div>
+          <div><span>km 6</span><span class="up">↑ 11 m</span><span class="p num">4:58</span><span class="eq num">4:50</span></div>
+        </div>
+        <div class="score-line"><span>Nota do treino</span><span class="score-pill num">★ 100</span></div>
       </div>
       <div>
         <p class="eyebrow">Análise do treino</p>
         <h2 id="analise-title" class="display">Cada tiro contra o alvo.</h2>
-        <p class="lede">O arquivo FIT de cada treino é aberto bloco a bloco: o que foi prescrito, o que saiu, a zona de FC, as pausas, uma nota de 0 a 100 e a comparação com treinos parecidos e com as suas metas.</p>
+        <p class="lede">O arquivo FIT de cada treino é aberto bloco a bloco: o que foi prescrito, o que saiu, a zona de FC, as pausas, o ritmo equivalente no plano nos km com subida, uma nota de 0 a 100 e a comparação com treinos parecidos e com as suas metas.</p>
+        <p class="lede">A nota só fecha em 100 com tudo no alvo e mais eficiente que nos treinos iguais. O que passou do esperado, como FC menor no mesmo ritmo, ganha destaque.</p>
       </div>
     </div>
   </section>
@@ -834,20 +882,21 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div class="tags"><p class="eyebrow" style="margin: 0">Treinador</p><span class="tag"><i style="background: var(--amber)"></i>beta</span></div>
         <h2 id="treinador-title" class="display">Um plano até a prova, que explica o que mudou.</h2>
         <p class="lede">Você escolhe a prova ou escreve uma meta, e o km por semana. O plano vai até a prova com todas as semanas planejadas, por distância em km inteiro, e usa o pace dos blocos dos seus limiares e tiros.</p>
-        <p class="lede">Depois de cada semana, de um treino fora do planejado ou de um pedido seu, como viagem ou dor, ele readequa e mostra o motivo de cada mudança. O formato dos treinos muda de uma semana para outra e, no fim do ciclo, ele analisa o que você fez e sugere o volume do próximo. A força vem do MFIT, do jeito que o professor passou, e o treinador tira o tiro ou o longão do dia seguinte à perna pesada. É um teste: não vai para a lista de treinos nem para o relógio.</p>
+        <p class="lede">Depois de cada semana, de um treino fora do planejado ou de um pedido seu, como viagem ou dor, ele readequa e mostra o motivo de cada mudança. O formato dos treinos muda de uma semana para outra e, no fim do ciclo, ele analisa o que você fez e sugere o volume do próximo. A força pode vir do MFIT ou do próprio treinador, dia a dia, e ele tira o tiro ou o longão do dia seguinte à perna pesada. Os treinos dele vão para o relógio pelo botão Enviar ao Garmin: só força, só corrida ou os dois.</p>
       </div>
       <div class="workout">
         <div class="t">Semana 2 de 13 · 70 km</div>
         <div style="color: var(--dim); font-size: 14px">Meia de exemplo · versão 2 do plano</div>
         <div class="plan-days">
-          <div><span class="d">seg</span><span><b>Rodagem 11 km</b> · 5:20–5:35/km</span></div>
-          <div><span class="d">ter</span><span><b>Limiar 4 × 2 km</b> · 4:02–4:08/km · parado 2:00</span></div>
-          <div><span class="d">qua</span><span><b>Rodagem 11 km</b> · + MMII</span></div>
-          <div><span class="d">qui</span><span><b>VO2 5 × 1 km + 3 × 200 m</b> · 3:45–3:51/km · parado 2:30</span></div>
+          <div><span class="d">seg</span><span><b>Rodagem 11 km</b> · 5:20–5:35/km · + Superiores<span class="src src-mfit">MFIT</span></span></div>
+          <div><span class="d">ter</span><span><b>Limiar 4 × 2 km</b> · 4:02–4:08/km · parado 2:00 · + Mobilidade e core<span class="src src-trainer">treinador</span></span></div>
+          <div><span class="d">qua</span><span><b>Rodagem 11 km</b> · + MMII<span class="src src-mfit">MFIT</span></span></div>
+          <div><span class="d">qui</span><span><b>VO2 5 × 1 km + 3 × 200 m</b> · 3:45–3:51/km · parado 2:30 · + Mobilidade e core<span class="src src-trainer">treinador</span></span></div>
           <div><span class="d">sex</span><span><b>Rodagem opcional 9 km</b></span></div>
           <div><span class="d">sáb</span><span><b>Longão 20 km</b> · final progressivo</span></div>
         </div>
         <div class="plan-change">Longão <s>22 km</s> → <ins>20 km</ins>: o último parou no km 12,7.</div>
+        <div class="send-cta">Enviar ao Garmin…</div>
       </div>
     </div>
     <div class="wrap split cycle-split">
@@ -909,8 +958,9 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
     <div class="wrap split">
       <div>
         <p class="eyebrow">Força</p>
-        <h2 id="forca-title" class="display">A musculação do professor, junto da corrida.</h2>
+        <h2 id="forca-title" class="display">Do professor ou do treinador, junto da corrida.</h2>
         <p class="lede">O app lê direto do MFIT o programa que o professor montou, com o período, os blocos, as séries, o descanso e a carga. Depois da sessão, mostra a duração, a FC, o esforço e quais músculos trabalharam, no mapa do corpo.</p>
+        <p class="lede">Nos dias sem professor, o treinador monta a força: você escolhe o foco, a duração e onde vai treinar, e ele ajusta pelo treino de corrida do dia, pela prontidão, pela semana da prova e por qualquer dor que você marcar. Usa só exercícios que o relógio Garmin conhece, troca um exercício com um toque e sobe a carga quando você fecha todas as séries.</p>
         <p class="lede">Na semana, os dias de força aparecem ao lado do plano de corrida, com aviso quando um tiro ou longão cai no dia seguinte à perna. Na Evolução, a carga de cada exercício vira uma curva, mesmo quando ele aparece em mais de um treino, ao lado das séries por grupo e da frequência.</p>
         <p class="lede">Recorde de carga gera aviso. E, no dia seguinte à perna pesada, a prontidão e o treino do dia levam isso em conta.</p>
       </div>
@@ -930,6 +980,16 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
           <div><span class="d">qui</span><span><b>Limiar 4 × 2 km</b> · 4:02–4:08/km</span></div>
         </div>
         <div class="advice">Limiar no dia seguinte à força de pernas de quarta.</div>
+        <div class="trainer-day">
+          <div class="head"><span class="t">Mobilidade e core</span><span class="src src-trainer">treinador</span></div>
+          <div style="color: var(--dim); font-size: 14px">25 min · 7 exercícios · casa</div>
+          <div class="day-banner"><b>Dia de corrida forte</b>Foco marcado: pernas. Com limiar hoje, o treino ficou em mobilidade e core.</div>
+          <div class="plan-days">
+            <div><span class="d">2 × 8</span><span><b>Mobilidade de quadril 90/90</b> · cada lado</span></div>
+            <div><span class="d">3 × 10</span><span><b>Pallof press com elástico</b> · cada lado</span></div>
+            <div><span class="d">3 × 30 s</span><span><b>Prancha lateral</b></span></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -978,18 +1038,18 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <p class="eyebrow">E mais</p>
       <h2 id="mais-title" class="display" style="font-size: clamp(34px, 4.6vw, 64px); max-width: 18ch">O que um treinador olharia, todo dia.</h2>
       <div class="features">
-        <div class="feature" style="--d:.0"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"></path></svg><b>Avisos</b><span>A prontidão de manhã e a nota do treino logo depois que o relógio sincroniza.</span></div>
+        <div class="feature" style="--d:.0"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v4l-2 3h16l-2-3V9a6 6 0 0 0-6-6zM10 19a2 2 0 0 0 4 0"></path></svg><b>Avisos</b><span>A prontidão e a força do dia de manhã, e a nota do treino logo depois que o relógio sincroniza.</span></div>
         <div class="feature" style="--d:.05"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><b>Recuperação</b><span>Quando você estará pronto para o próximo treino forte.</span></div>
         <div class="feature" style="--d:.1"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg><b>Alerta de sobrecarga</b><span>Avisa quando a carga sobe rápido demais para o seu histórico.</span></div>
         <div class="feature" style="--d:.15"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg><b>Semana planejada</b><span>Feito e planejado lado a lado, com a meta de km da semana.</span></div>
-        <div class="feature" style="--d:.2"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"></path></svg><b>Relatório da semana</b><span>Domingo, um resumo do que foi bem e do que ajustar, com a força e os recordes da semana.</span></div>
+        <div class="feature" style="--d:.2"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16M7 16V9M12 16V5M17 16v-4"></path></svg><b>Relatório da semana</b><span>Domingo, um resumo do que foi bem e do que ajustar, com a força do professor e do treinador e os recordes da semana.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="8" height="8" rx="2"></rect><rect x="13" y="4" width="8" height="8" rx="2"></rect><rect x="3" y="14" width="18" height="6" rx="2"></rect></svg><b>Widgets</b><span>Prontidão, treino do dia e dias para a prova na tela bloqueada e na tela inicial.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 21V4M5 4h13l-2.5 4L18 12H5"></path></svg><b>Avisos da prova</b><span>Na véspera, a hora de deitar; na manhã, o pace do Pace Pro e os pontos de água.</span></div>
-        <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"></path></svg><b>Recordes de carga</b><span>Aviso quando você bate a maior carga de um exercício, no MFIT ou no relógio.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"></path></svg><b>Força na prontidão</b><span>No dia seguinte à perna pesada, a prontidão e o treino do dia levam isso em conta.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><b>Zonas de FC</b><span>Tempo em cada zona, por treino e por semana, comparado com a regra 80/20.</span></div>
         <div class="feature" style="--d:.3"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg><b>Metas</b><span>10 km em 40 min ou longão sem pausas. O progresso aparece em Hoje, no site e na análise de cada treino.</span></div>
         <div class="feature" style="--d:.35"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><b>Percursos</b><span>Importa o percurso da prova do Garmin Connect para a estratégia.</span></div>
+        <div class="feature" style="--d:.4"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="7" y="6" width="10" height="12" rx="3"></rect><path d="M9 6V3h6v3M9 18v3h6v-3M12 9v4l2 1"></path></svg><b>Envio ao Garmin</b><span>Os treinos do treinador no relógio: só força, só corrida ou os dois. O app só mexe no que ele mesmo criou.</span></div>
       </div>
     </div>
   </section>
@@ -1006,7 +1066,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <div class="everywhere-points">
         <div><b>iPhone e iPad</b>O app completo, com a conversa da Apple Intelligence.</div>
         <div><b>No computador</b>O site em training.aglv.dev/app, com os mesmos números.</div>
-        <div><b>No relógio</b>O mostrador mostra a prontidão, o VO2, a semana e o próximo compromisso da agenda.</div>
+        <div><b>No relógio</b>O mostrador mostra a prontidão, o VO2, a semana e o próximo compromisso da agenda, e os treinos do treinador chegam como treino agendado.</div>
         <div><b>Strava</b>O resumo do treino na descrição da atividade.</div>
         <div><b>Widgets</b>Prontidão e treino do dia sem abrir o app.</div>
       </div>
