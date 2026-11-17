@@ -57,7 +57,8 @@ public struct ReportBuilder {
             Prediction(
                 label: $0.label,
                 seconds: predict(distance: $0.meters, efforts: efforts, on: today),
-                yearAgoSeconds: predict(distance: $0.meters, efforts: efforts, on: today.adding(days: -ReportConstants.yearDays))
+                yearAgoSeconds: predict(distance: $0.meters, efforts: efforts, on: today.adding(days: -ReportConstants.yearDays)),
+                meters: $0.meters
             )
         }
     }

@@ -123,11 +123,9 @@ struct EvolutionView: View {
                 SectionHeader(StrengthText.section)
                 row(weights: [1, 1]) {
                     StrengthLoadsCard(model: strength, showsHeader: true)
-                    VStack(spacing: TodayConstants.rowSpacing) {
-                        EvolutionStrengthGroupsCard(model: strength)
-                        EvolutionStrengthFrequencyCard(model: strength)
-                    }
+                    EvolutionStrengthGroupsCard(model: strength)
                 }
+                EvolutionStrengthFrequencyCard(model: strength)
             }
             AskIntelligenceButton(title: WorkoutChatConstants.askEvolution) { showsChat = true }
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)

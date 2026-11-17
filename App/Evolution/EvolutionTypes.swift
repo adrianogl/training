@@ -43,9 +43,9 @@ struct MetricGroup: Identifiable, Sendable {
     let kinds: [MetricKind]
 
     var id: String { title }
-    var featured: MetricKind? { kinds.first }
+    var featured: MetricKind? { kinds.count.isMultiple(of: 2) ? nil : kinds.first }
     var pairs: [[MetricKind]] {
-        let rest = Array(kinds.dropFirst())
+        let rest = featured == nil ? kinds : Array(kinds.dropFirst())
         return stride(from: 0, to: rest.count, by: 2).map { Array(rest[$0..<min($0 + 2, rest.count)]) }
     }
 
