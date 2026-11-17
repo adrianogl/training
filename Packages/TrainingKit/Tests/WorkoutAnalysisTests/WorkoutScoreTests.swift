@@ -146,7 +146,7 @@ private func item(_ score: WorkoutScore?, _ part: ScorePart) -> ScoreItem? {
 
     #expect(item(score, .intent) == ScoreItem(part: .intent, points: 0, maximum: 0, reason: .noHeartRate))
     #expect(item(score, .cost) == ScoreItem(part: .cost, points: 0, maximum: 0, reason: .noHeartRate))
-    #expect(score?.value == 100)
+    #expect(score?.value == 95)
 }
 
 @Test func noZonesDropsIntent() {
@@ -161,6 +161,22 @@ private func item(_ score: WorkoutScore?, _ part: ScorePart) -> ScoreItem? {
     let score = scoreWorkout(blocks: intervalBlocks(), zones: zones, previous: [])
 
     #expect(item(score, .cost) == ScoreItem(part: .cost, points: 0, maximum: 0, reason: .noHistory))
+    #expect(score?.value == 95)
+}
+
+@Test func freeRunMuchMoreEfficientStopsAtNinetyFive() {
+    let current = [block(.active, step: nil, status: .noTarget, seconds: 1800, distance: 6000, heartRate: 140)]
+    let earlier = [block(.active, step: nil, status: .noTarget, seconds: 1800, distance: 6000, heartRate: 160)]
+    let score = scoreWorkout(blocks: current, zones: zones, previous: occurrences(earlier, count: 2))
+
+    #expect(item(score, .cost)?.points == 25)
+    #expect(score?.value == 95)
+}
+
+@Test func onlyAllThreePartsReachOneHundred() {
+    let score = scoreWorkout(blocks: intervalBlocks(sprintHeartRate: 160), zones: zones, previous: occurrences(intervalBlocks(sprintHeartRate: 170), count: 3))
+
+    #expect(score?.items.allSatisfy { $0.maximum > 0 } == true)
     #expect(score?.value == 100)
 }
 
@@ -178,7 +194,7 @@ private func item(_ score: WorkoutScore?, _ part: ScorePart) -> ScoreItem? {
     let score = scoreWorkout(blocks: intervalBlocks(), zones: zones, previous: occurrences(flat, count: 3))
 
     #expect(item(score, .cost) == ScoreItem(part: .cost, points: 0, maximum: 0, reason: .noHistory))
-    #expect(score?.value == 100)
+    #expect(score?.value == 95)
 }
 
 @Test func unevaluableWorkoutHasNoScore() {

@@ -41,13 +41,13 @@ enum ScoreStore {
         let wanted = ids.map(Set.init)
         let runs = records.filter { ActivityTypeKey.isRun($0.typeKey) }
         let runStarts = runs.map(\.start)
-        let named = Dictionary(grouping: records.filter { $0.workoutName != nil }) { $0.workoutName ?? "" }
+        let named = Dictionary(grouping: records.filter { $0.workoutName != nil }) { $0.workoutName.map(WorkoutTitle.comparisonKey) ?? "" }
         let watchZones = (try? runningZonesRecord(in: context)).flatMap(WorkoutAnalysisContext.zones(from:))
         let thresholdByDay = (try? thresholdHeartRates(on: runs.map(WorkoutAnalysisContext.day), in: context)) ?? [:]
         var inputs: WorkoutAnalysisInputs?
         var changed = false
         for record in runs where wanted?.contains(record.activityId) != false {
-            let pool = record.workoutName.flatMap { named[$0] } ?? window(before: record, runs: runs, starts: runStarts)
+            let pool = record.workoutName.flatMap { named[WorkoutTitle.comparisonKey($0)] } ?? window(before: record, runs: runs, starts: runStarts)
             let key = key(
                 record: record,
                 previous: WorkoutAnalysisContext.comparisonCandidates(of: record, in: pool),
