@@ -108,9 +108,11 @@ struct EvolutionView: View {
             }
             SectionHeader(EvolutionConstants.summaryTitle)
             OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
+                .syncSkeleton(app.isRefreshing, height: SkeletonConstants.overallHeight)
             SectionHeader(EvolutionConstants.metricsTitle).id(EvolutionConstants.metricsAnchor)
             groupChips
             groups(model)
+                .syncSkeleton(app.isRefreshing, height: SkeletonConstants.metricsHeight)
             SectionHeader(EvolutionConstants.historyTitle)
             row(weights: [1, 1]) {
                 RecordsCard(records: model.records, now: .now)

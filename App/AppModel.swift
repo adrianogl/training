@@ -143,6 +143,7 @@ import TrainingCore
     }
 
     var showsSkeleton: Bool { !hasLocalData && syncStatus.isRunning }
+    var isRefreshing: Bool { hasLocalData && syncStatus.isRunning }
 
     var dataToken: SyncDataToken {
         var finished: Date?

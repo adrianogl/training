@@ -14,6 +14,7 @@ import TrainingCore
     private(set) var seenVersion: Int
     private(set) var isLoaded = false
     private(set) var isWorking = false
+    private(set) var isAdjusting = false
     private(set) var saveFailed = false
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []
     private(set) var keptReadinessDay: String?
@@ -367,14 +368,17 @@ import TrainingCore
 
     func scheduleAutoAdjust() {
         autoTask?.cancel()
+        isAdjusting = true
         autoTask = Task { [weak self] in
             await self?.autoAdjust()
+            self?.isAdjusting = false
         }
     }
 
     func cancelAutoAdjust() {
         autoTask?.cancel()
         autoTask = nil
+        isAdjusting = false
         resumeSettling()
     }
 

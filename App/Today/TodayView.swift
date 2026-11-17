@@ -180,6 +180,7 @@ struct TodayView: View {
     private func nowBlock(_ model: TodayModel) -> some View {
         blockLabel(TodayConstants.blockNow, first: true)
         ReadinessHeroCard(model: model, overload: model.overload, recovery: model.recoveryEstimate(trainer: trainerWorkouts), legDay: strength.legDay(before: model.today))
+            .syncSkeleton(app.isRefreshing && model.summary.readinessFromYesterday && model.summary.readinessMissingNight != true, height: SkeletonConstants.readinessHeight)
     }
 
     @ViewBuilder
@@ -205,15 +206,19 @@ struct TodayView: View {
             strength: isCurrentWeek ? strength.weekTitles : [:],
             warnings: isCurrentWeek ? strength.warnings : []
         )
+        .syncSkeleton(app.isRefreshing, height: SkeletonConstants.weekHeight)
         if let lastRun = model.lastRun {
             LastRunCompactCard(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
+                .syncSkeleton(app.isRefreshing, height: SkeletonConstants.lastRunHeight)
         }
     }
 
     @ViewBuilder
     private func outlookBlock(_ model: TodayModel) -> some View {
         blockLabel(TodayConstants.blockOutlook)
-        TodayOutlookCard(model: model).id(TodayConstants.endAnchor)
+        TodayOutlookCard(model: model)
+            .syncSkeleton(app.isRefreshing, height: SkeletonConstants.outlookHeight)
+            .id(TodayConstants.endAnchor)
     }
 
     private func blockLabel(_ text: String, first: Bool = false) -> some View {

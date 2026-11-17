@@ -236,6 +236,9 @@ struct WorkoutListView: View {
                     }
                     .padding(.top, 8)
                     .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
+                    if model.isRefreshing && week.start == Day.today().weekStart {
+                        SkeletonCards(heights: [SkeletonConstants.workoutRowHeight])
+                    }
                     ForEach(week.rows) { row in
                         link(.activity(row.activityId)) {
                             WorkoutRow(row: row, isSelected: isSplit && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
