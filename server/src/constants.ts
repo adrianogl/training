@@ -1,4 +1,4 @@
-export const RECORD_KINDS = ['race', 'decision', 'goal', 'trainer', 'narrative'] as const
+export const RECORD_KINDS = ['race', 'decision', 'goal', 'trainer', 'narrative', 'preference', 'chat'] as const
 export const RECORD_FORMATS = ['sealed', 'plain'] as const
 export const RECORD_CONTEXT_PREFIX = 'record'
 export const PLAIN_LIMITS = { name: 200, priority: 16, city: 200, decision: 32, maxDistance: 1_000_000, maxSeconds: 7 * 24 * 3600 } as const
@@ -8,6 +8,8 @@ export const TOKEN_BYTES = 32
 export const MAX_ID_LENGTH = 128
 export const TRAINER_RECORD_ID = 'plan'
 export const NARRATIVE_ID_PATTERN = /^[0-9a-f]{64}$/
+export const PREFERENCE_ID_PATTERN = /^[A-Za-z][A-Za-z0-9.:-]{0,95}$/
+export const SEALED_ONLY_KINDS = ['narrative', 'preference', 'chat'] as const
 export const MAX_PAYLOAD_CHARS = 1024 * 1024
 export const MAX_BODY_BYTES = 4 * 1024 * 1024
 export const MAX_PUSH_RECORDS = 100

@@ -19,6 +19,8 @@ import {
   RECORD_KINDS,
   SINCE_PATTERN,
   NARRATIVE_ID_PATTERN,
+  PREFERENCE_ID_PATTERN,
+  SEALED_ONLY_KINDS,
   TRAINER_RECORD_ID,
   UPDATED_AT_PATTERN,
   WATCH_TOKEN_HASH_PATTERN,
@@ -59,6 +61,9 @@ function validateRecord(value: unknown): IncomingRecord | string {
   if (kind === 'narrative' && !NARRATIVE_ID_PATTERN.test(id)) {
     return 'invalid_id'
   }
+  if ((kind === 'preference' || kind === 'chat') && !PREFERENCE_ID_PATTERN.test(id)) {
+    return 'invalid_id'
+  }
   if (!isUpdatedAt(updatedAt)) {
     return 'invalid_updated_at'
   }
@@ -78,7 +83,7 @@ function validateRecord(value: unknown): IncomingRecord | string {
   if (format !== undefined && !RECORD_FORMATS.some((item) => item === format)) {
     return 'invalid_format'
   }
-  if (format === 'plain' && kind === 'narrative') {
+  if (format === 'plain' && SEALED_ONLY_KINDS.some((sealed) => sealed === kind)) {
     return 'invalid_format'
   }
   if (format === 'plain') {

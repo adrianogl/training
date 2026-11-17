@@ -1,3 +1,4 @@
+import UIKit
 import Foundation
 import GarminAPI
 import Insights
@@ -93,7 +94,11 @@ import TrainingCore
             defaults: remoteDefaults,
             defaultsSuite: scope.suiteName,
             trainerStore: trainerStore,
-            narrativeStore: GeneratedTextStore(defaults: remoteDefaults)
+            narrativeStore: GeneratedTextStore(defaults: remoteDefaults),
+            blobStores: [
+                PreferenceSyncStore(defaults: remoteDefaults),
+                ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
+            ]
         )
         self.garminAccount = GarminAccountModel(
             store: KeychainGarminSessionStore(keychain: garminSessionStore),
@@ -111,6 +116,10 @@ import TrainingCore
         remoteSync.trainerChanged = { [weak self] in
             self?.trainer.reloadFromStore()
             self?.trainer.scheduleAutoAdjust()
+        }
+        remoteSync.devicesChanged = { [weak self] kinds in
+            guard let self else { return }
+            if kinds.contains(.chat) { Task { await self.scope.chats.reload() } }
         }
         trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
         garminAccount.link = { [weak self] in
@@ -238,6 +247,11 @@ import TrainingCore
     func enteredBackground() {
         if runningTrigger?.runsInBackground != true { cancelSync() }
         BackgroundSync.schedule(readinessComplete: todayReadinessComplete)
+        let task = UIApplication.shared.beginBackgroundTask()
+        Task { [weak self] in
+            await self?.remoteSync.syncNow()
+            UIApplication.shared.endBackgroundTask(task)
+        }
     }
 
     @discardableResult
