@@ -1,4 +1,5 @@
 import Foundation
+import MFIT
 import RemoteSync
 import Testing
 @testable import trAIning
@@ -78,5 +79,24 @@ import Testing
         #expect(store.pendingBlobs().map(\.id) == ["workout.42"])
         let index = try JSONDecoder().decode([[Int64]].self, from: Data(contentsOf: folder.appending(path: WorkoutChatConstants.indexName)))
         #expect(index == [[42, 2]])
+    }
+
+    @Test func strengthCachesFromTwoDevicesKeepEveryLoad() {
+        let mfit = MFITLoadRecord(exercise: "Agachamento", key: "agachamento", day: "2026-11-16", loads: [60], workoutId: 7)
+        let watch = MFITLoadRecord(exercise: "Supino", key: "supino", day: "2026-11-17", loads: [40], workoutId: 8, fromWatch: true)
+        let iphone = StrengthProgramCache(program: nil, known: [], loads: [mfit], watchProcessed: [1])
+        let ipad = StrengthProgramCache(program: nil, known: [], loads: [mfit, watch], watchProcessed: [2])
+
+        let merged = StrengthSyncStore.merge(local: iphone, remote: ipad, remoteIsNewer: true)
+
+        #expect(merged.loads.map(\.key) == ["agachamento", "supino"])
+        #expect(merged.watchProcessed == [1, 2])
+    }
+
+    @Test func preferenceStoreLeavesStrengthToItsOwnStore() {
+        let store = PreferenceSyncStore(defaults: Self.defaults())
+
+        #expect(!store.handles(DeviceSyncConstants.strengthId))
+        #expect(store.handles(AppConstants.weeklyGoalDefaultsKey))
     }
 }

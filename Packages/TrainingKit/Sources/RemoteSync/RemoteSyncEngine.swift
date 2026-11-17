@@ -95,7 +95,7 @@ public actor RemoteSyncEngine {
                     applied += 1
                     trainerChanged = true
                 }
-            } else if let store = blobStores.first(where: { $0.kind == record.kind }) {
+            } else if let store = blobStores.first(where: { $0.kind == record.kind && $0.handles(record.id) }) {
                 if try applyBlob(record, store: store) {
                     applied += 1
                     changedKinds.insert(record.kind)

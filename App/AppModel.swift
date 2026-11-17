@@ -98,6 +98,7 @@ import TrainingCore
             blobStores: [
                 PreferenceSyncStore(defaults: remoteDefaults),
                 ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
+                StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
             ]
         )
         self.garminAccount = GarminAccountModel(

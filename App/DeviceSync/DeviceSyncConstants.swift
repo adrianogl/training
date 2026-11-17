@@ -3,6 +3,8 @@ import Foundation
 enum DeviceSyncConstants {
     static let preferenceStateKey = "deviceSync.preferences"
     static let chatStateKey = "deviceSync.chats"
+    static let strengthStateKey = "deviceSync.strength"
+    static let strengthId = "strengthProgram"
     static let chatIndexName = WorkoutChatConstants.indexName
     static let chatFileExtension = "json"
     static let plistValueKey = "v"
