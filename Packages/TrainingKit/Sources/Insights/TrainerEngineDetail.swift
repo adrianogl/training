@@ -320,6 +320,7 @@ extension TrainerEngine {
     }
 
     static func gelNote(history: TrainerHistory, meters: Double) -> String? {
+        guard meters >= C.gelMinimumMeters else { return nil }
         guard let fade = history.runs.filter({ $0.kind == .long && $0.fadeKm != nil }).max(by: { $0.day < $1.day })?.fadeKm
         else { return nil }
         let km = max(1, fade - C.gelBeforeFadeKm)

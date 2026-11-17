@@ -255,7 +255,7 @@ enum WorkoutFeedback {
         if let slowdown = facts[FindingFact.slowdown] {
             steps.append(String(format: C.nextSlowStartFormat, Int(slowdown.rounded())))
         }
-        if let kilometer = facts[FindingFact.pauseKilometer] {
+        if let kilometer = facts[FindingFact.pauseKilometer], (facts[FindingFact.targetDistance] ?? 0) >= C.gelMinimumMeters {
             steps.append(String(format: C.nextHydrateFormat, max(1, Int(kilometer))))
         }
         if facts[FindingFact.readiness] != nil {

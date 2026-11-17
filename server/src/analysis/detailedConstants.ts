@@ -18,6 +18,7 @@ export const DETAILED = {
   heavyWeekPercent: 20,
   hrAtPaceMinimumRuns: 3,
   gelKmBeforeFade: 1,
+  gelMinimumMeters: 15000,
   hardZoneIndex: 3,
   hardZoneShare: 0.5,
   longMinimumMeters: 14_000,

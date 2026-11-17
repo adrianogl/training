@@ -140,7 +140,7 @@ import WorkoutAnalysis
         return records.map { record in
             ResultOption(
                 activityId: record.activityId,
-                title: record.workoutName ?? record.name,
+                title: record.displayTitle,
                 dateText: WorkoutListModel.dateText(record.start),
                 distanceText: record.distance.map(WorkoutListModel.distanceText) ?? "—",
                 durationText: record.duration.map(WorkoutFormat.clock) ?? "—",

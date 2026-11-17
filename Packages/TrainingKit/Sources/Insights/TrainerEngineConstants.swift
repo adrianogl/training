@@ -144,6 +144,7 @@ enum TrainerEngineConstants {
     static let moreTimePeriodDays = 15
     static let returnSearchDays = 3
     static let gelBeforeFadeKm = 2
+    static let gelMinimumMeters = 15_000.0
     static let longStageCount = 6
     static let longStageShares: [[Double]] = [[0.2, 0.2, 0.2, 0.2], [0.25, 0.25, 0.25], [0.35, 0.35], [0.5], [0.7], []]
     static let longStageRests: [Double] = [60, 60, 60, 60, 30]

@@ -62,7 +62,7 @@ Quando um bloco fica incompleto, a análise procura a causa e cita só o que enc
 
 - **Queda de ritmo:** o primeiro km pelo menos 8 s/km mais lento que a média dos 3 primeiros km, e que continua lento até o fim, no equivalente no plano.
 - **FC subindo:** a FC média dos 3 últimos km pelo menos 3 bpm acima da dos 3 primeiros.
-- **Pausas:** quantas houve, em que km começou a primeira e o tempo parado.
+- **Pausas:** quantas houve, em que km começou a primeira e o tempo parado. A dica "beba água ou tome gel" só aparece em treino planejado de pelo menos 15 km.
 - **Prontidão:** abaixo de 50.
 - **Carga:** aguda/crônica acima de 1,5.
 
@@ -108,6 +108,7 @@ Arquivos: `Insights/DetailedAnalysis*.swift`, `server/src/analysis/detailed*.ts`
 | Completo / aceitável | 95% / 80% do planejado |
 | FC no mesmo ritmo | longão e rodagem, com pelo menos 3 treinos |
 | Limites da tela | até 5 itens e 3 recomendações |
+| Recomendação de gel | só em treino de pelo menos 15 km, feitos ou planejados, quando houve queda; o gel vai 1 km antes da queda |
 
 ## Texto gerado no aparelho
 

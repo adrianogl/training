@@ -107,6 +107,7 @@ O descanso é de 60 s, e de 30 s no último estágio. O longão avança de está
 | Calor de 28 °C ou mais | ritmo + 10 s/km e 1 km a menos de bloco | `heatStrong`, `heatStrongPaceOffset`, `heatBlockReduction` |
 | Treino feito | pelo menos 90% do prescrito | `doneShare` |
 | Longão falho | abaixo de 85% do prescrito; abaixo de 70%, o próximo longão fica 2 km menor | `longFailShare`, `longReduceShare`, `longReduceMeters` |
+| Gel no longão | só em longão de pelo menos 15 km, 2 km antes do km em que o último longão quebrou | `gelMinimumMeters`, `gelBeforeFadeKm` |
 
 ## Avaliação do ciclo
 

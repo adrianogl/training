@@ -26,7 +26,7 @@ enum WorkoutNotice {
     }
 
     static func content(record: ActivityRecord, score: Int?, opening: String?, goals: [GoalSnapshot] = []) -> WorkoutNoticeContent {
-        let name = record.workoutName ?? (record.name.isEmpty ? C.fallbackName : record.name)
+        let name = record.workoutName.map(WorkoutTitle.clean) ?? (record.name.isEmpty ? C.fallbackName : record.name)
         var title = score.map { String(format: C.titleScoreFormat, name, $0) } ?? name
         var body = opening ?? stats(record)
         if let goal = WorkoutNoticeGoals.evaluate(record: record, goals: goals) {
