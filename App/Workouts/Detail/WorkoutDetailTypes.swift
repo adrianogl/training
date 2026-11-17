@@ -37,6 +37,7 @@ struct BlockBar: Equatable {
     let band: ClosedRange<Double>?
     let actual: ClosedRange<Double>?
     let valueText: String?
+    var flat: ClosedRange<Double>? = nil
 }
 
 struct ScaledBars: Equatable {

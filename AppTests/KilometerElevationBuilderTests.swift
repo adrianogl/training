@@ -19,4 +19,14 @@ import WorkoutAnalysis
         #expect(KilometerElevationBuilder.elevation(Self.kilometer(pace: 286, climb: 2, descent: 1)) == nil)
         #expect(KilometerElevationBuilder.elevation(Self.kilometer(pace: 286, climb: nil, descent: nil)) == nil)
     }
+
+    @Test func barShowsFlatPaceOnlyWhenItMovesTheKilometer() {
+        let climb = Self.kilometer(pace: 316, climb: 30, descent: 6)
+        let near = Self.kilometer(pace: 303, climb: 2, descent: 5)
+        let bars = BlockBarScale.bars([climb, near], zones: nil)
+
+        #expect(BlockBarScale.flatSpeed(climb).map { (1_000 / $0.lowerBound).rounded() } == 290)
+        #expect(bars[0].flat != nil)
+        #expect(bars[1].flat == nil)
+    }
 }
