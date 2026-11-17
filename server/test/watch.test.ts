@@ -225,6 +225,13 @@ describe('PUT /api/v1/watch/readiness', () => {
     expect(withoutFace).toEqual([{ face: null }])
   })
 
+  it('grava o status de treino e a próxima semana do mostrador', async () => {
+    await putReadiness({ ...readiness, face: { ...face, trainingStatus: 'MAINTAINING', nextWeek: 'Construção · 58 km' } })
+    const stored = await sql<{ face: { trainingStatus?: string; nextWeek?: string } }>('select face from readiness')
+
+    expect(stored[0]?.face).toMatchObject({ trainingStatus: 'MAINTAINING', nextWeek: 'Construção · 58 km' })
+  })
+
   it('mantém a agenda anterior quando o aparelho não manda eventos e limpa com lista vazia', async () => {
     await putReadiness({ ...readiness, face })
     await putReadiness({ ...readiness, face: { ...face, events: undefined, vo2Delta: 2.5 } })
