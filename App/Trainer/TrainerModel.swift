@@ -315,8 +315,8 @@ import TrainingCore
     }
 
     func syncStrength(_ sessions: [TrainerStrengthSession]) async {
-        guard let plan, !sessions.isEmpty, !TrainerMFITStrength.same(sessions, plan.strength) else { return }
-        await saveStrength(sessions)
+        guard let plan, !sessions.isEmpty, !StrengthSessions.sameMFIT(sessions, plan.strength) else { return }
+        await saveStrength(StrengthSessions.merge(mfit: sessions, into: plan.strength))
     }
 
     func legSwapSuggestion(kept: Set<String>) -> TrainerLegSwap? {

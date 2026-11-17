@@ -11,14 +11,9 @@ enum TrainerMFITStrength {
             let entries = workout.blocks.flatMap { block in block.exercises.map { (category: $0.category, sets: block.sets) } }
             let legs = StrengthMuscles.isLegDay(entries)
             let group: TrainerStrengthGroup = legs ? .lower : StrengthMuscles.upperShare(entries) >= 0.5 ? .upper : .fullBody
-            return TrainerStrengthSession(id: Self.id(workout.id), weekday: weekday + 1, group: group, legLoad: legs ? .heavy : .light, name: workout.title)
+            return TrainerStrengthSession(id: Self.id(workout.id), weekday: weekday + 1, group: group, legLoad: legs ? .heavy : .light, name: workout.title, source: .mfit)
         }
         .sorted { $0.weekday < $1.weekday }
-    }
-
-    static func same(_ lhs: [TrainerStrengthSession], _ rhs: [TrainerStrengthSession]) -> Bool {
-        let key: (TrainerStrengthSession) -> String = { "\($0.weekday)|\($0.group.rawValue)|\($0.legLoad.rawValue)|\($0.name)" }
-        return lhs.map(key).sorted() == rhs.map(key).sorted()
     }
 
     static func caption(_ session: TrainerStrengthSession) -> String {

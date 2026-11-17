@@ -25,7 +25,8 @@ import TrainingCore
         #expect(sessions.map(\.group) == [.upper, .lower, .fullBody])
         #expect(sessions.map(\.legLoad) == [.light, .heavy, .light])
         #expect(sessions.map(\.name) == ["Superiores", "MMII", "Full Body"])
-        #expect(TrainerMFITStrength.same(sessions, TrainerMFITStrength.sessions(program: program, schedule: schedule)))
+        #expect(sessions.allSatisfy { $0.source == .mfit })
+        #expect(StrengthSessions.sameMFIT(sessions, TrainerMFITStrength.sessions(program: program, schedule: schedule)))
         #expect(TrainerMFITStrength.caption(sessions[1]) == "pernas · perna pesada")
     }
 
