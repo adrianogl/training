@@ -106,11 +106,7 @@ struct PlannedWorkoutDetailView: View {
                 if index + 1 < cards.count { card(cards[index + 1], briefing) }
             }
         }
-        triple {
-            if let course = briefing.course { courseCard(course) }
-            if !briefing.bestHours.isEmpty { hoursCard(briefing) }
-            if let tip = briefing.watchTip { watchCard(tip) }
-        }
+        if !briefing.bestHours.isEmpty { hoursCard(briefing) }
     }
 
     private enum Card {
@@ -314,24 +310,6 @@ struct PlannedWorkoutDetailView: View {
         PlanComparisonCard(rows: briefing.comparison, note: briefing.comparisonNote)
     }
 
-    private func courseCard(_ course: CourseSuggestion) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.course).padding(.top, 0).padding(.bottom, 0)
-            ElevationLine(values: course.profile).frame(height: C.profileHeight)
-            Text(course.laps > 1 ? String(format: C.courseLapsFormat, course.name, course.laps) : course.name)
-                .font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-            Text(courseDetail(course)).font(.caption).foregroundStyle(BrandColors.dim)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .brandCard()
-    }
-
-    private func courseDetail(_ course: CourseSuggestion) -> String {
-        var text = String(format: C.courseLapFormat, TodayText.decimal(course.lapKilometers, fractionDigits: 1))
-        if let gain = course.elevationGain { text += String(format: C.courseGainFormat, Int(gain.rounded())) }
-        return text + C.courseFooter
-    }
-
     private func hoursCard(_ briefing: PlannedBriefing) -> some View {
         let coolest = Set(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour))
         let perRow = briefing.bestHours.count > C.hoursPerRow ? C.hoursPerRowLong : max(briefing.bestHours.count, 1)
@@ -358,39 +336,8 @@ struct PlannedWorkoutDetailView: View {
         .brandCard()
     }
 
-    private func watchCard(_ tip: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.watch).padding(.top, 0).padding(.bottom, 0)
-            ZStack {
-                Circle().fill(Color.black).overlay(Circle().strokeBorder(Color(white: 0.2), lineWidth: 5))
-                VStack(spacing: 4) {
-                    Text(plan.title.uppercased()).font(.system(size: 9, weight: .bold)).foregroundStyle(Color(red: 0.89, green: 1, blue: 0.1)).lineLimit(1)
-                    PlannedShape(steps: plan.steps).frame(width: 80, height: 10)
-                    Text(tip).font(.system(size: 8, weight: .semibold)).foregroundStyle(Color(red: 1, green: 0.76, blue: 0.3)).lineLimit(2).multilineTextAlignment(.center)
-                }
-                .padding(18)
-            }
-            .frame(width: C.watchSize, height: C.watchSize)
-            .frame(maxWidth: .infinity)
-            .environment(\.colorScheme, .dark)
-            Text(C.watchFooter).font(.caption).foregroundStyle(BrandColors.dim)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .brandCard()
-    }
-
     @ViewBuilder
     private func pair<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if sizeClass == .regular {
-            HStack(alignment: .top, spacing: TodayConstants.rowSpacing) { content() }
-                .fixedSize(horizontal: false, vertical: true)
-        } else {
-            VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) { content() }
-        }
-    }
-
-    @ViewBuilder
-    private func triple<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         if sizeClass == .regular {
             HStack(alignment: .top, spacing: TodayConstants.rowSpacing) { content() }
                 .fixedSize(horizontal: false, vertical: true)

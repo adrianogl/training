@@ -14,16 +14,9 @@ enum PlannedViewConstants {
     static let compareScoreFormat = "%d de %d"
     static let planned = "plano"
     static let done = "feito"
-    static let course = "Percurso sugerido"
-    static let courseLapsFormat = "%@ · %d voltas"
-    static let courseLapFormat = "%@ km por volta"
-    static let courseGainFormat = ", +%d m"
-    static let courseFooter = ". Percurso salvo no Garmin."
     static let hours = "Melhor horário"
     static let hoursPerRow = 6
     static let hoursPerRowLong = 5
-    static let watch = "No relógio de manhã"
-    static let watchFooter = "Na manhã do treino, o mostrador mostra o treino e esta dica."
     static let tomorrow = "amanhã"
     static let phaseColumn: CGFloat = 76
     static let repLabelColumn: CGFloat = 70
