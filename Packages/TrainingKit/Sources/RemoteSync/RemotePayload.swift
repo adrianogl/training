@@ -59,6 +59,21 @@ public enum RemotePayload {
         return plaintext
     }
 
+    public static func seal(blob data: Data, kind: RemoteRecordKind, id: String, key: SymmetricKey) throws -> String {
+        guard let combined = try AES.GCM.seal(data, using: key, authenticating: context(kind, id)).combined else {
+            throw RemoteSyncError.tamperedPayload
+        }
+        return combined.base64EncodedString()
+    }
+
+    public static func openBlob(_ payload: String, kind: RemoteRecordKind, id: String, key: SymmetricKey) throws -> Data {
+        guard let combined = Data(base64Encoded: payload),
+              let box = try? AES.GCM.SealedBox(combined: combined),
+              let plaintext = try? AES.GCM.open(box, using: key, authenticating: context(kind, id))
+        else { throw RemoteSyncError.tamperedPayload }
+        return plaintext
+    }
+
     public static func seal(narrative text: String, id: String, key: SymmetricKey) throws -> String {
         guard let combined = try AES.GCM.seal(Data(text.utf8), using: key, authenticating: context(.narrative, id)).combined else {
             throw RemoteSyncError.tamperedPayload

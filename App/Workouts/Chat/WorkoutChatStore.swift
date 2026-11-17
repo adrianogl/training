@@ -30,6 +30,10 @@ actor WorkoutChatStore {
         }
     }
 
+    func reload() {
+        counts = nil
+    }
+
     func questionCounts() -> [Int64: Int] {
         loadCounts()
     }
