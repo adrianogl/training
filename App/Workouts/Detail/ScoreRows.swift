@@ -2,6 +2,18 @@ import Foundation
 import WorkoutAnalysis
 
 enum ScoreRows {
+    static func perfectLine(_ score: WorkoutScore, blocks: [WorkoutBlock]) -> String? {
+        guard score.value >= ScoreConstants.perfectScore else { return nil }
+        let targeted = blocks.filter { block in
+            guard block.kind == .active, let step = block.prescribed else { return false }
+            if case .open = step.target { return false }
+            return block.status != .noTarget
+        }.count
+        guard targeted > 0 else { return ScoreConstants.perfectLineAllTargets }
+        let noun = targeted == 1 ? ScoreConstants.perfectLineBlockSingular : ScoreConstants.perfectLineBlockPlural
+        return "\(targeted) de \(targeted) \(noun) \(ScoreConstants.perfectLineSuffix)"
+    }
+
     static func rows(_ score: WorkoutScore) -> [ScoreRowData] {
         score.items.compactMap { item in
             let name = ScoreConstants.partNames[item.part] ?? item.part.rawValue

@@ -153,7 +153,7 @@ struct WorkoutDetailView: View {
             if showsScore || model.trainingEffect != nil {
                 pair {
                     if let score = model.score, showsScore {
-                        ScoreSummaryCard(value: score.value, rows: model.scoreRows, framed: false)
+                        ScoreSummaryCard(value: score.value, rows: model.scoreRows, activityId: activityId, perfectLine: model.perfectLine, framed: false)
                     }
                     if let effect = model.trainingEffect {
                         TrainingEffectCard(effect: effect, framed: false)
@@ -165,7 +165,7 @@ struct WorkoutDetailView: View {
                 PlanComparisonCard(rows: comparison.comparison, note: comparison.comparisonNote, framed: false)
                 Divider().overlay(BrandColors.line)
             }
-            WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, framed: false)
+            WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, aboveExpected: model.aboveExpected, framed: false)
         }
         .brandCard()
     }

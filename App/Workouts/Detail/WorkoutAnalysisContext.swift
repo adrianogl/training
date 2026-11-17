@@ -23,6 +23,7 @@ struct WorkoutAnalysisContext {
     var comparisonNotice: String?
     var evolution: EvolutionFacts?
     var score: WorkoutScore?
+    var aboveExpected: [AboveExpectedSignal] = []
 
     nonisolated static func build(record: ActivityRecord, records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisContext {
         build(record: record, records: records, inputs: inputs(records: records, in: context))
@@ -65,6 +66,7 @@ struct WorkoutAnalysisContext {
             kilometers: analysis.kilometers,
             continuity: runContinuity(recordSamples)
         ))
+        analysis.aboveExpected = WorkoutAnalysis.aboveExpected(blocks, previous: previous.map(\.blocks))
         let current = WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
         guard let comparison = compare(current: current, previous: previous) else { return analysis }
         analysis.comparison = comparison

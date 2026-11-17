@@ -70,6 +70,19 @@ Quando um bloco fica incompleto, a análise procura a causa e cita só o que enc
 - **Prontidão:** abaixo de 50.
 - **Carga:** aguda/crônica acima de 1,5.
 
+## Acima do esperado
+
+Arquivo: `WorkoutAnalysis/AboveExpected.swift`. Constantes: `WorkoutAnalysis/AnalysisConstants.swift`. Testes: `WorkoutAnalysisTests/AboveExpectedTests.swift`.
+
+Compara o treino com a média dos treinos iguais usados na nota (até 4). Precisa de pelo menos 2 (`aboveExpectedMinimumComparisons`). Ritmo acima do alvo nunca conta aqui: continua em "corrigir".
+
+| Sinal | Quando aparece | Constante |
+| --- | --- | --- |
+| FC no mesmo ritmo | FC média dos blocos ativos pelo menos 3 bpm menor que a média dos treinos iguais, com velocidade igual ou até 2% menor | `aboveExpectedHeartRateMargin`, `sameSpeedTolerance` |
+| Queda de FC na recuperação | queda média do pico do bloco até a recuperação de pelo menos 25 bpm e 5 bpm maior que a média dos treinos iguais | `goodRecoveryDrop`, `aboveExpectedRecoveryMargin` |
+
+Quando um sinal aparece, o item equivalente sai do grupo "bom": "FC menor que antes" no primeiro, "Boa recuperação" no segundo.
+
 ## Subida e descida
 
 Arquivos: `WorkoutAnalysis/Elevation*.swift`, `server/src/analysis/elevation.ts`. Testes: `WorkoutAnalysisTests/ElevationPaceTests.swift`, `server/test/elevation.test.ts`.

@@ -10,6 +10,31 @@ enum ScoreConstants {
     static let detailBadgeSize: CGFloat = 56
     static let rowInlineSize: CGFloat = 20
     static let cardBadgeSize: CGFloat = 34
+    static let perfectScore = 100
+    static let perfectTitle = "Treino perfeito"
+    static let perfectAccessibility = "treino perfeito"
+    static let perfectSymbol = "star.fill"
+    static let perfectSymbolSize: CGFloat = 12
+    static let perfectInlineSize: CGFloat = 17
+    static let perfectBorderWidth: CGFloat = 1.5
+    static let perfectGlowHeight = 0.7
+    static let shineDuration = 1.1
+    static let shineWidth = 0.3
+    static let shineOpacity = 0.35
+    static let shineAngle = 15.0
+    static let fillDuration = 1.1
+    static let rippleDuration = 1.2
+    static let rippleSecondDelay = 0.25
+    static let rippleScale: CGFloat = 2.1
+    static let rippleOpacity = 0.8
+    static let rippleLineWidth: CGFloat = 3
+    static let celebratedRowsKey = "scoreCelebratedRows"
+    static let celebratedDetailsKey = "scoreCelebratedDetails"
+    static let celebrationMemory = 400
+    static let perfectLineAllTargets = "Tudo no alvo e mais eficiente que nos treinos iguais"
+    static let perfectLineBlockSingular = "bloco"
+    static let perfectLineBlockPlural = "blocos"
+    static let perfectLineSuffix = "no alvo e mais eficiente que nos treinos iguais"
     static let partNames: [ScorePart: String] = [
         .execution: "Execução",
         .intent: "Intenção",

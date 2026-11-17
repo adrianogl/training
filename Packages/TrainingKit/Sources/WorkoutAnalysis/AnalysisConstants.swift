@@ -28,6 +28,9 @@ public enum AnalysisConstants {
     static let driftMaxSpeedChange = 0.02
     static let goodRecoveryDrop = 25
     static let lowerHeartRateMargin = 3
+    static let aboveExpectedMinimumComparisons = 2
+    static let aboveExpectedHeartRateMargin = 3.0
+    static let aboveExpectedRecoveryMargin = 5.0
     static let sameSpeedTolerance = 0.02
     static let easyBlockZoneLimit = 3
     static let hardZone = 4
