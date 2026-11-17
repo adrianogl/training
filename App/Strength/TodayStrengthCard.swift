@@ -20,11 +20,34 @@ struct TodayStrengthCard<Label: View>: View {
                         HStack {
                             Text(StrengthText.todaySource).font(.caption).foregroundStyle(BrandColors.dim)
                             Spacer()
+                            TrainerStrengthSourceChip(source: .mfit)
                             Text(StrengthText.open).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
                         }
                         Text(workout.title).font(.headline).foregroundStyle(BrandColors.text)
                         Text(StrengthText.countLabel(exercises: workout.blocks.flatMap(\.exercises).count, sets: workout.totalSets))
                             .font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                    .brandCard()
+                }
+                .buttonStyle(.plain)
+            } else if let session = app.trainer.trainerSessions(on: Day.today()).first,
+                      let generated = app.trainer.strengthWorkout(sessionId: session.id, day: Day.today()) {
+                if showsLabel { label() }
+                NavigationLink {
+                    TrainerStrengthWorkoutView(iso: Day.today().iso, sessionId: session.id)
+                } label: {
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack {
+                            Text(TrainerStrengthText.todayTitle).font(.caption).foregroundStyle(BrandColors.dim)
+                            Spacer()
+                            TrainerStrengthSourceChip(source: .trainer)
+                            Text(StrengthText.open).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
+                        }
+                        Text(TrainerStrengthText.focusName(generated.group)).font(.headline).foregroundStyle(BrandColors.text)
+                        Text(TrainerStrengthText.meta(generated)).font(.caption).foregroundStyle(BrandColors.dim)
+                        if let adjustment = generated.adjustments.first {
+                            Text(TrainerStrengthText.adjustmentTitle(adjustment)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
+                        }
                     }
                     .brandCard()
                 }

@@ -73,6 +73,7 @@ struct TrainerView: View {
             case .changes: TrainerChangesView()
             case .strength: TrainerStrengthView()
             case .cycle: TrainerCycleView()
+            case .strengthDay(let iso, let id): TrainerStrengthWorkoutView(iso: iso, sessionId: id)
             }
         }
         .sheet(isPresented: $showsNewPlan) { TrainerNewPlanView() }

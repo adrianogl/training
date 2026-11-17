@@ -7,6 +7,7 @@ enum TrainerRoute: Hashable, Codable {
     case changes
     case strength
     case cycle
+    case strengthDay(String, UUID)
 }
 
 enum TrainerTab: String, CaseIterable, Identifiable {
@@ -69,6 +70,7 @@ struct TrainerStrengthLine: Identifiable, Equatable {
     let id: UUID
     let name: String
     let isDone: Bool
+    var source: TrainerStrengthSource = .mfit
 }
 
 struct TrainerStrengthRow: Identifiable, Equatable {

@@ -34,4 +34,10 @@ import Testing
         let bodyweight = StrengthCatalog.all.filter { $0.fits(.bodyweight) }
         #expect(bodyweight.allSatisfy { $0.equipment == .bodyweight })
     }
+
+    @Test func mapsGarminCategoriesToPatterns() {
+        #expect(StrengthCatalog.pattern(garminCategory: "SQUAT") == .squat)
+        #expect(StrengthCatalog.pattern(garminCategory: "calf_raise") == .calf)
+        #expect(StrengthCatalog.pattern(garminCategory: "UNKNOWN") == nil)
+    }
 }

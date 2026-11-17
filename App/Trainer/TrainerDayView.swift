@@ -50,7 +50,14 @@ struct TrainerDayView: View {
             Text(subtitle(workout)).font(.caption).foregroundStyle(BrandColors.dim)
             if !row.strength.isEmpty {
                 HStack(spacing: 8) {
-                    ForEach(row.strength) { TrainerStrengthTag(line: $0) }
+                    ForEach(row.strength) { line in
+                        if line.source == .trainer {
+                            NavigationLink(value: TrainerRoute.strengthDay(iso, line.id)) { TrainerStrengthTag(line: line) }
+                                .buttonStyle(.plain)
+                        } else {
+                            TrainerStrengthTag(line: line)
+                        }
+                    }
                 }
             }
         }

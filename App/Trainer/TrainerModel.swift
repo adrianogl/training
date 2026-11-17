@@ -647,7 +647,7 @@ import TrainingCore
         let result = TrainerEngine.status(of: workout, history: history, today: currentDay)
         let lines = plan.map { plan in
             TrainerEngine.strengthStatus(day: workout.day, plan: plan, history: history).map {
-                TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil)
+                TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil, source: $0.session.source)
             }
         } ?? []
         return TrainerDayRow(

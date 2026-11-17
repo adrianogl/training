@@ -57,6 +57,7 @@ public struct GeneratedExercise: Codable, Sendable, Equatable, Identifiable {
     public var weight: Double?
     public var perSide: Bool
     public var replacedName: String?
+    public var replacedId: String?
 
     public var id: String { exerciseId }
 

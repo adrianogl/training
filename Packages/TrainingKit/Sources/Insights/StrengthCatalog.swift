@@ -5,6 +5,10 @@ public enum StrengthCatalog {
 
     public static let all: [CatalogExercise] = lower + upper + core
 
+    public static func pattern(garminCategory: String) -> MovementPattern? {
+        StrengthCatalogConstants.patternByGarminCategory[garminCategory.uppercased()]
+    }
+
     static let lower: [CatalogExercise] = [
         CatalogExercise(id: "agachamento-livre", name: "Agachamento livre", category: "SQUAT", exerciseName: "BARBELL_BACK_SQUAT", pattern: .squat, focus: [.lower, .fullBody], equipment: .barbell, loads: [.knee, .lowerBack, .hip]),
         CatalogExercise(id: "leg-press", name: "Leg press", category: "SQUAT", exerciseName: "LEG_PRESS", pattern: .squat, focus: [.lower], equipment: .machine, loads: [.knee]),
