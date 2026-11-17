@@ -116,6 +116,7 @@ import TrainingCore
         self.strava = StravaModel(container: container, defaults: remoteDefaults)
         self.trainer = TrainerModel(container: container, store: trainerStore, defaults: remoteDefaults)
         self.snapshots = snapshots
+        remoteSync.accountToken = { [weak self] in self?.account.token }
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
         remoteSync.trainerChanged = { [weak self] in
             self?.trainer.reloadFromStore()

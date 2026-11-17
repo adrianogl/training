@@ -8,7 +8,7 @@ public actor RemoteSyncEngine {
     private typealias C = RemoteSyncConstants
     private let container: ModelContainer
     private let client: RemoteClient
-    private let key: SymmetricKey
+    private let key: SymmetricKey?
     private let now: @Sendable () -> Date
     private let defaultsSuite: String?
     private let trainerStore: (any RemoteTrainerStore)?
@@ -16,10 +16,10 @@ public actor RemoteSyncEngine {
     private let blobStores: [any RemoteBlobStore]
     private var current: Task<RemoteSyncReport, any Error>?
 
-    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys, defaultsSuite: String? = nil, trainerStore: (any RemoteTrainerStore)? = nil, narrativeStore: (any RemoteNarrativeStore)? = nil, blobStores: [any RemoteBlobStore] = [], now: @escaping @Sendable () -> Date = { .now }) {
+    public init(container: ModelContainer, client: RemoteClient, keys: RemoteKeys? = nil, defaultsSuite: String? = nil, trainerStore: (any RemoteTrainerStore)? = nil, narrativeStore: (any RemoteNarrativeStore)? = nil, blobStores: [any RemoteBlobStore] = [], now: @escaping @Sendable () -> Date = { .now }) {
         self.container = container
         self.client = client
-        self.key = keys.payload
+        self.key = keys?.payload
         self.defaultsSuite = defaultsSuite
         self.trainerStore = trainerStore
         self.narrativeStore = narrativeStore
@@ -60,15 +60,15 @@ public actor RemoteSyncEngine {
         for narrative in narratives {
             outgoing.records.append(RemoteRecord(
                 kind: .narrative, id: narrative.id, updatedAt: narrative.updatedAt, deleted: false,
-                payload: try RemotePayload.seal(narrative: narrative.text, id: narrative.id, key: key)
+                payload: try RemotePayload.plain(blob: Data(narrative.text.utf8)), format: .plain
             ))
         }
         let blobs = blobStores.map { store in (store, store.pendingBlobs()) }
         for (store, pending) in blobs {
             for blob in pending {
-                let payload = try RemotePayload.seal(blob: blob.data, kind: store.kind, id: blob.id, key: key)
+                let payload = try RemotePayload.plain(blob: blob.data)
                 if payload.utf8.count <= C.maxPayloadCharacters {
-                    outgoing.records.append(RemoteRecord(kind: store.kind, id: blob.id, updatedAt: blob.updatedAt, deleted: false, payload: payload))
+                    outgoing.records.append(RemoteRecord(kind: store.kind, id: blob.id, updatedAt: blob.updatedAt, deleted: false, payload: payload, format: .plain))
                 } else {
                     outgoing.tooLarge.append(RemoteRecordKey(kind: store.kind, id: blob.id))
                 }
@@ -90,6 +90,7 @@ public actor RemoteSyncEngine {
         var trainerChanged = false
         var narrativesChanged = false
         for record in pages.records {
+            if record.format != .plain, key == nil, record.payload != nil { continue }
             if record.kind == .trainer {
                 if try applyTrainer(record) {
                     applied += 1
@@ -258,7 +259,7 @@ public actor RemoteSyncEngine {
         switch RemoteMerge.action(remoteUpdatedAt: record.updatedAt, remoteDeleted: record.deleted, localUpdatedAt: trainerStore.updatedAt()) {
         case .insert, .replace:
             guard let payload = record.payload else { throw RemoteSyncError.decoding }
-            let data = record.format == .plain ? Data(payload.utf8) : try RemotePayload.openTrainer(payload, id: record.id, key: key)
+            let data = record.format == .plain ? Data(payload.utf8) : try RemotePayload.openTrainer(payload, id: record.id, key: try sealKey())
             return trainerStore.apply(RemoteTrainerState(data: data, updatedAt: record.updatedAt))
         case .delete:
             return trainerStore.apply(RemoteTrainerState(data: nil, updatedAt: record.updatedAt))
@@ -267,9 +268,14 @@ public actor RemoteSyncEngine {
         }
     }
 
+    private func sealKey() throws -> SymmetricKey {
+        guard let key else { throw RemoteSyncError.tamperedPayload }
+        return key
+    }
+
     private func applyBlob(_ record: RemoteRecord, store: any RemoteBlobStore) throws -> Bool {
         guard !record.deleted, let payload = record.payload else { return false }
-        let data = try RemotePayload.openBlob(payload, kind: record.kind, id: record.id, key: key)
+        let data = record.format == .plain ? try RemotePayload.decodeBlob(payload) : try RemotePayload.openBlob(payload, kind: record.kind, id: record.id, key: try sealKey())
         return store.apply(RemoteBlob(id: record.id, data: data, updatedAt: record.updatedAt))
     }
 
@@ -278,7 +284,9 @@ public actor RemoteSyncEngine {
         switch RemoteMerge.action(remoteUpdatedAt: record.updatedAt, remoteDeleted: record.deleted, localUpdatedAt: narrativeStore.narrativeUpdatedAt(id: record.id)) {
         case .insert, .replace:
             guard let payload = record.payload else { throw RemoteSyncError.decoding }
-            let text = try RemotePayload.openNarrative(payload, id: record.id, key: key)
+            let text = record.format == .plain
+                ? String(decoding: try RemotePayload.decodeBlob(payload), as: UTF8.self)
+                : try RemotePayload.openNarrative(payload, id: record.id, key: try sealKey())
             return narrativeStore.apply(RemoteNarrative(id: record.id, text: text, updatedAt: record.updatedAt))
         case .delete, .keepLocal, .ignore:
             return false
@@ -330,7 +338,7 @@ public actor RemoteSyncEngine {
 
     private func openGoal(_ record: RemoteRecord) throws -> GoalTransferItem {
         guard let payload = record.payload else { throw RemoteSyncError.decoding }
-        var item = record.format == .plain ? try RemotePayload.decodeGoal(payload) : try RemotePayload.openGoal(payload, id: record.id, key: key)
+        var item = record.format == .plain ? try RemotePayload.decodeGoal(payload) : try RemotePayload.openGoal(payload, id: record.id, key: try sealKey())
         item.updatedAt = record.updatedAt
         return item
     }
@@ -385,14 +393,14 @@ public actor RemoteSyncEngine {
 
     private func openRace(_ record: RemoteRecord) throws -> RaceTransferItem {
         guard let payload = record.payload else { throw RemoteSyncError.decoding }
-        var item = record.format == .plain ? try RemotePayload.decodeRace(payload) : try RemotePayload.openRace(payload, id: record.id, key: key)
+        var item = record.format == .plain ? try RemotePayload.decodeRace(payload) : try RemotePayload.openRace(payload, id: record.id, key: try sealKey())
         item.updatedAt = record.updatedAt
         return item
     }
 
     private func openDecision(_ record: RemoteRecord) throws -> RaceDecision {
         guard let payload = record.payload,
-              let decision = RaceDecision(rawValue: try (record.format == .plain ? RemotePayload.decodeDecision(payload) : RemotePayload.openDecision(payload, id: record.id, key: key)).decision)
+              let decision = RaceDecision(rawValue: try (record.format == .plain ? RemotePayload.decodeDecision(payload) : RemotePayload.openDecision(payload, id: record.id, key: try sealKey())).decision)
         else { throw RemoteSyncError.decoding }
         return decision
     }

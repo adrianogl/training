@@ -59,6 +59,16 @@ public enum RemotePayload {
         return plaintext
     }
 
+    public static func plain(blob data: Data) throws -> String {
+        try plain(RemoteBlobPayload(data: data.base64EncodedString()))
+    }
+
+    public static func decodeBlob(_ text: String) throws -> Data {
+        let payload: RemoteBlobPayload = try decode(text)
+        guard let data = Data(base64Encoded: payload.data) else { throw RemoteSyncError.decoding }
+        return data
+    }
+
     public static func seal(blob data: Data, kind: RemoteRecordKind, id: String, key: SymmetricKey) throws -> String {
         guard let combined = try AES.GCM.seal(data, using: key, authenticating: context(kind, id)).combined else {
             throw RemoteSyncError.tamperedPayload

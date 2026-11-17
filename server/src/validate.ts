@@ -20,7 +20,6 @@ import {
   SINCE_PATTERN,
   NARRATIVE_ID_PATTERN,
   PREFERENCE_ID_PATTERN,
-  SEALED_ONLY_KINDS,
   TRAINER_RECORD_ID,
   UPDATED_AT_PATTERN,
   WATCH_TOKEN_HASH_PATTERN,
@@ -81,9 +80,6 @@ function validateRecord(value: unknown): IncomingRecord | string {
     return 'payload_too_large'
   }
   if (format !== undefined && !RECORD_FORMATS.some((item) => item === format)) {
-    return 'invalid_format'
-  }
-  if (format === 'plain' && SEALED_ONLY_KINDS.some((sealed) => sealed === kind)) {
     return 'invalid_format'
   }
   if (format === 'plain') {

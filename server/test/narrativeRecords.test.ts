@@ -44,10 +44,10 @@ describe('registro do texto gerado', () => {
     expect(pushed).toEqual({ status: 400, body: { error: 'invalid_id' } })
   })
 
-  it('recusa o formato plain', async () => {
-    const pushed = await push(sql, [record({ kind: 'narrative', id, payload: '{}', format: 'plain' })])
+  it('aceita plain com o texto em base64', async () => {
+    const pushed = await push(sql, [record({ kind: 'narrative', id, payload: JSON.stringify({ data: 'dGV4dG8=' }), format: 'plain' })])
 
-    expect(pushed).toEqual({ status: 400, body: { error: 'invalid_format' } })
+    expect(pushed.status).toBe(200)
   })
 
   it('o texto mais novo vence', async () => {

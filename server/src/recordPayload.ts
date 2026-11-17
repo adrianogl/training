@@ -1,5 +1,5 @@
 import { open, seal } from './cipher.js'
-import { BASE64_PATTERN, DAY_PATTERN, GOALS, PLAIN_LIMITS, RECORD_CONTEXT_PREFIX, TRAINER_RECORD_ID } from './constants.js'
+import { BASE64_PATTERN, BLOB_KINDS, DAY_PATTERN, GOALS, PLAIN_LIMITS, RECORD_CONTEXT_PREFIX, TRAINER_RECORD_ID } from './constants.js'
 import type { IncomingRecord, RecordKind, StoredRecord } from './types.js'
 
 type Check = (value: unknown) => boolean
@@ -56,6 +56,10 @@ const TRAINER_FIELDS: Record<string, Check> = {
   versions: isArray,
 }
 
+const BLOB_FIELDS: Record<string, Check> = {
+  data: isBase64,
+}
+
 const DECISION_FIELDS: Record<string, Check> = {
   activityId: isInteger,
   decision: isText(PLAIN_LIMITS.decision),
@@ -75,9 +79,13 @@ export function plainPayloadError(kind: RecordKind, id: string, payload: string)
   if (value === undefined) {
     return 'invalid_plain_payload'
   }
-  const fields = kind === 'race' ? RACE_FIELDS : kind === 'goal' ? GOAL_FIELDS : kind === 'trainer' ? TRAINER_FIELDS : DECISION_FIELDS
+  const isBlob = BLOB_KINDS.some((blob) => blob === kind)
+  const fields = isBlob ? BLOB_FIELDS : kind === 'race' ? RACE_FIELDS : kind === 'goal' ? GOAL_FIELDS : kind === 'trainer' ? TRAINER_FIELDS : DECISION_FIELDS
   if (!Object.entries(fields).every(([name, check]) => check(value[name]))) {
     return 'invalid_plain_payload'
+  }
+  if (isBlob) {
+    return null
   }
   if (kind === 'trainer') {
     return id === TRAINER_RECORD_ID ? null : 'invalid_plain_payload'
