@@ -71,7 +71,10 @@ function validateDay(entry: ResponseDay, context: StrengthContext): DayReport {
   const mfitDays = new Set(context.mfit.map((item) => item.dia_da_semana))
   if (day <= context.periodo.hoje) report.erros.push(ISSUE.pastDay)
   else if (day < context.periodo.inicio || day > context.periodo.fim) report.erros.push(ISSUE.outOfPeriod)
-  else if (mfitDays.has(name)) report.erros.push(ISSUE.mfitDay)
+  else if (mfitDays.has(name)) {
+    if (entry.substitui_mfit === true) report.avisos.push(ISSUE.replacesMFIT)
+    else report.erros.push(ISSUE.mfitDay)
+  }
   else if (session === undefined) report.erros.push(ISSUE.notTrainerDay)
 
   const place = entry.local ?? session?.local ?? 'gym'

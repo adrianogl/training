@@ -37,7 +37,12 @@ public enum ClaudeStrengthValidator {
         } else if day < context.first || day > context.last {
             result.errors.append(.outOfPeriod)
         } else if context.mfitWeekdays.contains(weekday) {
-            result.errors.append(.mfitDay)
+            if entry.replacesMFIT == true {
+                result.replacesMFIT = true
+                result.warnings.append(.replacesMFIT)
+            } else {
+                result.errors.append(.mfitDay)
+            }
         } else if session == nil {
             result.errors.append(.notTrainerDay)
         }

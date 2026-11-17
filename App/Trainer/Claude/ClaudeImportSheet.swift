@@ -73,6 +73,9 @@ struct ClaudeImportSheet: View {
                     Text(String(format: ClaudeText.estimatedFormat, workout.exercises.count, Int(workout.estimatedMinutes.rounded())))
                         .font(.caption).foregroundStyle(BrandColors.dim)
                 }
+                if result.replacesMFIT, result.isValid {
+                    Text(ClaudeText.replacesNote).font(.caption.weight(.semibold)).foregroundStyle(ClaudeConstants.color)
+                }
                 ForEach(result.errors + result.warnings, id: \.self) { issue in
                     Text(ClaudeText.issue(issue)).font(.caption).foregroundStyle(result.errors.contains(issue) ? BrandColors.danger : BrandColors.attention)
                 }

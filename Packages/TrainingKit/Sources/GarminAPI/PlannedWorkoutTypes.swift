@@ -53,6 +53,7 @@ public struct PlannedWorkout: Sendable, Equatable, Identifiable {
 
 struct CalendarDTO: Decodable {
     struct Item: Decodable {
+        let id: Int64?
         let itemType: String?
         let date: String?
         let title: String?

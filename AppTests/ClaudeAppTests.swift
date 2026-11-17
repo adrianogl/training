@@ -48,3 +48,23 @@ import TrainingCore
         #expect(message.contains("\"x\" não existe no catálogo"))
     }
 }
+
+@Suite struct ClaudeReplacesMFITAppTests {
+    private let workout = GeneratedStrengthWorkout(weekday: 3, group: .core, intensity: .light, minutes: 10, place: .bodyweight, exercises: [], adjustments: [])
+
+    @Test func storesTheReplacementFlag() {
+        let store = ClaudeStrengthStore(defaults: UserDefaults(suiteName: "claude-replace-\(UUID())")!)
+        var result = ClaudeDayResult(rawDay: "2026-11-25", day: Day(iso: "2026-11-25"), why: nil, workout: workout, errors: [], warnings: [.replacesMFIT])
+        result.replacesMFIT = true
+        store.apply([result], summary: nil)
+        #expect(store.load(today: Day(iso: "2026-11-18")!)["2026-11-25"]?.overridesMFIT == true)
+    }
+
+    @Test func oldStoredWorkoutsStillDecode() throws {
+        let old = ClaudeStoredWorkout(workout: workout, why: "x", summary: nil)
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(old)) as? [String: Any] ?? [:]
+        json["replacesMFIT"] = nil
+        let decoded = try JSONDecoder().decode(ClaudeStoredWorkout.self, from: JSONSerialization.data(withJSONObject: json))
+        #expect(decoded.overridesMFIT == false)
+    }
+}

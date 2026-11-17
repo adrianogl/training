@@ -656,11 +656,15 @@ import TrainingCore
 
     private func row(_ workout: TrainerWorkout) -> TrainerDayRow {
         let result = TrainerEngine.status(of: workout, history: history, today: currentDay)
-        let lines = plan.map { plan in
+        var lines = plan.map { plan in
             TrainerEngine.strengthStatus(day: workout.day, plan: plan, history: history).map {
                 TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil, source: $0.session.source)
             }
         } ?? []
+        if let override = claudeOverride(on: workout.day) {
+            let done = history.strength.contains { $0.day == workout.day }
+            lines = [TrainerStrengthLine(id: override.id, name: override.name, isDone: done, source: .trainer)]
+        }
         return TrainerDayRow(
             workout: workout, status: result.status, run: result.run, isChanged: changedDays.contains(workout.day), strength: lines,
             longStage: workout.day == nextLongDay ? plan?.longStage : nil

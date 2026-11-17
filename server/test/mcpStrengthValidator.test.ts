@@ -57,6 +57,13 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
     expect(reports.map((item) => item.erros[0])).toEqual(['dia que já passou', 'fora do período pedido', 'dia do MFIT, não será aplicado', 'não é um dia de força do treinador'])
   })
 
+  it('aceita dia do MFIT só com substitui_mfit', () => {
+    const entry = { ...day('2026-11-25', mobility), substitui_mfit: true }
+    const [report] = validateResponse(response([entry]), context())
+    expect(report?.erros).toEqual([])
+    expect(report?.avisos).toContain('substitui o treino do MFIT neste dia')
+  })
+
   it('recusa exercício fora do catálogo, do local ou com dor', () => {
     const exercises = [
       { id: 'panturrilha-salto', series: 3, reps: 10, descanso: 30 },

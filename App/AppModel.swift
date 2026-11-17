@@ -490,7 +490,7 @@ import TrainingCore
 
     private func morningStrengthLine() -> String? {
         let day = Day.today()
-        let mfit = StrengthSchedule().workouts(StrengthProgramStore().load().program, from: day, through: day).first?.title
+        let mfit = trainer.replacesMFIT(on: day) ? nil : StrengthSchedule().workouts(StrengthProgramStore().load().program, from: day, through: day).first?.title
         let generated = trainer.trainerSessions(on: day).first.flatMap { trainer.strengthWorkout(sessionId: $0.id, day: day) }
         return MorningStrengthText.line(mfitTitle: mfit, trainer: generated)
     }

@@ -37,6 +37,7 @@ export interface ResponseDay {
   minutos?: number
   local?: string
   porque?: string
+  substitui_mfit?: boolean
   exercicios: ResponseExercise[]
 }
 

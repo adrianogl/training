@@ -11,7 +11,7 @@ struct TodayStrengthCard<Label: View>: View {
 
     var body: some View {
         Group {
-            if let workout {
+            if let workout, !app.trainer.replacesMFIT(on: Day.today()) {
                 if showsLabel { label() }
                 NavigationLink {
                     StrengthPlannedDetailView(workoutId: workout.id)

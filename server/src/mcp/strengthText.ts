@@ -14,4 +14,5 @@ export const ISSUE = {
   nearRace: 'força nos 3 dias antes da prova',
   durationOff: (estimated: number, planned: number) => `${estimated} min estimados para ${planned} marcados`,
   loadJump: (id: string) => `carga de "${id}" mais de 5% acima da última`,
+  replacesMFIT: 'substitui o treino do MFIT neste dia',
 } as const
