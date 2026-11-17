@@ -53,6 +53,8 @@ public struct LapSummary: Codable, Sendable, Equatable {
     public var avgSpeed: Double?
     public var avgHeartRate: Int?
     public var maxHeartRate: Int?
+    public var climb: Double?
+    public var descent: Double?
 
     public init(
         stepIndex: Int? = nil,
@@ -63,7 +65,9 @@ public struct LapSummary: Codable, Sendable, Equatable {
         distance: Double,
         avgSpeed: Double? = nil,
         avgHeartRate: Int? = nil,
-        maxHeartRate: Int? = nil
+        maxHeartRate: Int? = nil,
+        climb: Double? = nil,
+        descent: Double? = nil
     ) {
         self.stepIndex = stepIndex
         self.intensity = intensity
@@ -74,6 +78,8 @@ public struct LapSummary: Codable, Sendable, Equatable {
         self.avgSpeed = avgSpeed
         self.avgHeartRate = avgHeartRate
         self.maxHeartRate = maxHeartRate
+        self.climb = climb
+        self.descent = descent
     }
 }
 

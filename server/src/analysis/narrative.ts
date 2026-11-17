@@ -125,6 +125,23 @@ function incomplete(finding: Finding, label: string, blocks: WorkoutBlock[]): st
   return progress === null ? `${label} ${state}.` : `${label} ${state}: ${progress.done} de ${progress.target} (${progress.percent}%).`
 }
 
+function kilometerRange(facts: Record<string, number>): string {
+  const from = integer(facts.fromKilometer)
+  const to = integer(facts.toKilometer)
+  if (to <= from) return `km ${from}`
+  return `km ${from} ${to === from + 1 ? 'e' : 'a'} ${to}`
+}
+
+function elevationText(facts: Record<string, number>): string {
+  const climb = integer(facts.climb)
+  const descent = integer(facts.descent)
+  return [climb >= ANALYSIS.elevationMinimum ? `+${climb} m` : null, descent >= ANALYSIS.elevationMinimum ? `−${descent} m` : null]
+    .filter((part): part is string => part !== null)
+    .join(' e ')
+}
+
+const elevationSegment = (facts: Record<string, number>) => `${kilometerRange(facts)}: ${elevationText(facts)} a ${clockOf(facts.pace) ?? ''}${NARRATIVE.paceUnit}`
+
 export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
   const facts = finding.facts
   const label = labelOf(finding, blocks) ?? NARRATIVE.genericBlock
@@ -155,6 +172,12 @@ export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
       return `Treino forte num dia de prontidão baixa: ${integer(facts.readiness)} de 100.`
     case 'highAcuteChronic':
       return `Carga aguda:crônica alta: ${decimal(facts.ratio)}.`
+    case 'climbSlower':
+    case 'descentFaster': {
+      const plural = integer(facts.toKilometer) > integer(facts.fromKilometer)
+      const subject = `${plural ? 'Os' : 'O'} ${kilometerRange(facts)}`
+      return `${subject}, com ${elevationText(facts)}, ${plural ? 'saíram' : 'saiu'} a ${clockOf(facts.pace) ?? ''}${NARRATIVE.paceUnit}, o equivalente a ${clockOf(facts.flatPace) ?? ''}${NARRATIVE.paceUnit} no plano.`
+    }
   }
 }
 
@@ -186,7 +209,9 @@ export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): strin
     case 'steadyPace': {
       const fastest = clockOf(facts.fastestPace)
       const slowest = clockOf(facts.slowestPace)
-      return fastest === null || slowest === null ? null : `${D.lapsFrom} ${fastest} ${D.to} ${slowest} ${NARRATIVE.paceUnit}`
+      if (fastest === null || slowest === null) return null
+      const range = `${D.lapsFrom} ${fastest} ${D.to} ${slowest} ${NARRATIVE.paceUnit}`
+      return facts.flatAdjusted === 1 ? `${D.onLevel}, ${range}` : range
     }
     case 'lowerHeartRateThanBefore':
       if (facts.heartRate === undefined || facts.beforeHeartRate === undefined) return null
@@ -211,8 +236,14 @@ export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): strin
     case 'paceFade': {
       const last = clockOf(facts.lastPace)
       const middle = clockOf(facts.medianPace)
-      return last === null || middle === null ? null : `${D.lastLap} ${last} · ${D.median} ${middle} ${NARRATIVE.paceUnit}`
+      if (last === null || middle === null) return null
+      const raw = clockOf(facts.pace)
+      if (facts.flatAdjusted !== 1 || raw === null) return `${D.lastLap} ${last} · ${D.median} ${middle} ${NARRATIVE.paceUnit}`
+      return `${D.lastLap} ${raw} (+${integer(facts.lastClimb)} m) · ${D.onLevel} ${last} · ${D.medianOnLevel} ${middle} ${NARRATIVE.paceUnit}`
     }
+    case 'climbSlower':
+    case 'descentFaster':
+      return elevationSegment(facts)
     case 'cardiacDrift':
       return `FC ${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm · +${percent(facts.rise)}`
     case 'zoneAboveTarget':
@@ -231,7 +262,7 @@ export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
     case 'blockInTarget':
       return facts.inTarget === facts.total ? W.allInTarget : W.someInTarget
     case 'steadyPace':
-      return W.steadyPace
+      return facts.flatAdjusted === 1 ? W.steadyLevel : W.steadyPace
     case 'lowerHeartRateThanBefore':
       return W.lowerHeartRate
     case 'goodRecovery':
@@ -248,7 +279,11 @@ export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
     case 'stepIncomplete':
       return incompleteWhy(finding, blocks)
     case 'paceFade':
-      return W.paceFade
+      return facts.flatAdjusted === 1 ? W.paceFadeLevel : W.paceFade
+    case 'climbSlower':
+      return W.climb(clockOf(facts.flatPace) ?? '')
+    case 'descentFaster':
+      return W.descent(clockOf(facts.flatPace) ?? '')
     case 'cardiacDrift':
       return W.cardiacDrift
     case 'zoneAboveTarget':

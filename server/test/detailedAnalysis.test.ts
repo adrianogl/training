@@ -5,7 +5,7 @@ import type { KilometerPoint } from '../src/analysis/detailedTypes.js'
 import type { FitSummary } from '../src/fit/fitTypes.js'
 import { currentSpec, scenarioInput, scenarioRun } from './detailedScenario.js'
 
-const points = (paces: number[], heartRate: number | null = null): KilometerPoint[] => paces.map((paceSeconds, index) => ({ km: index + 1, paceSeconds, heartRate }))
+const points = (paces: number[], heartRate: number | null = null): KilometerPoint[] => paces.map((paceSeconds, index) => ({ km: index + 1, paceSeconds, levelPace: paceSeconds, climb: 0, descent: 0, heartRate }))
 
 describe('análise detalhada: longão de 20 km feito até 12,66 km', () => {
   const result = detailedAnalysis(scenarioInput())
@@ -117,7 +117,7 @@ describe('queda de pace e deriva da FC', () => {
 
   it('compara a velocidade por batimento da segunda metade com a da primeira', () => {
     expect(heartRateDrift(points([300, 300, 300, 300, 300], 150))).toBe(0)
-    const drift = heartRateDrift([{ km: 1, paceSeconds: 300, heartRate: 130 }, { km: 2, paceSeconds: 300, heartRate: 150 }, { km: 3, paceSeconds: 300, heartRate: 150 }, { km: 4, paceSeconds: 300, heartRate: 165 }, { km: 5, paceSeconds: 300, heartRate: 165 }])
+    const drift = heartRateDrift([{ km: 1, paceSeconds: 300, levelPace: 300, climb: 0, descent: 0, heartRate: 130 }, { km: 2, paceSeconds: 300, levelPace: 300, climb: 0, descent: 0, heartRate: 150 }, { km: 3, paceSeconds: 300, levelPace: 300, climb: 0, descent: 0, heartRate: 150 }, { km: 4, paceSeconds: 300, levelPace: 300, climb: 0, descent: 0, heartRate: 165 }, { km: 5, paceSeconds: 300, levelPace: 300, climb: 0, descent: 0, heartRate: 165 }])
     expect(drift).toBe(9.1)
     expect(heartRateDrift(points([300, 300, 300, 300], 150))).toBeNull()
   })

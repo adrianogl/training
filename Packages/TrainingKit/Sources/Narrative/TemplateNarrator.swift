@@ -72,6 +72,14 @@ public struct TemplateNarrator: Narrator {
             return "\(label) com desacoplamento: a FC subiu \(rise) (\(Format.integer(facts[FindingFact.fromHR])) → \(Format.integer(facts[FindingFact.toHR])) bpm) com o pace estável."
         case .zoneAboveTarget:
             return "\(label) em Z\(Format.integer(facts[FindingFact.zone])), acima do esperado para um bloco leve."
+        case .climbSlower, .descentFaster:
+            let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
+            let level = facts[FindingFact.flatPace].map { WorkoutFormat.clock($0) } ?? ""
+            let unit = NarrativeConstants.paceUnit
+            let plural = Format.integer(facts[FindingFact.toKilometer]) > Format.integer(facts[FindingFact.fromKilometer])
+            let subject = plural ? "Os \(Format.kilometerRange(facts))" : "O \(Format.kilometerRange(facts))"
+            let verb = plural ? "saíram" : "saiu"
+            return "\(subject), com \(Format.elevation(facts)), \(verb) a \(pace)\(unit), o equivalente a \(level)\(unit) no plano."
         case .hardOnLowReadiness:
             return "Treino forte num dia de prontidão baixa: \(Format.integer(facts[FindingFact.readiness])) de 100."
         case .highAcuteChronic:

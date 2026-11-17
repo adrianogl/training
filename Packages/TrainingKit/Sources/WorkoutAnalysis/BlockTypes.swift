@@ -58,6 +58,7 @@ struct TrackPoint {
     var t: Double
     var distance: Double
     var heartRate: Int?
+    var altitude: Double?
 }
 
 struct ExpectedStep {

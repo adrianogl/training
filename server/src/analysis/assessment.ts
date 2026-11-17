@@ -1,5 +1,6 @@
 import type { LapSummary } from '../fit/fitTypes.js'
 import { ANALYSIS } from './analysisConstants.js'
+import { flatPace, hasElevation } from './elevation.js'
 import type { AssessmentContext, BlockKilometers, BlockStatus, Finding, RunContinuity, WorkoutAssessment, WorkoutBlock } from './analysisTypes.js'
 
 const hasTarget = (block: WorkoutBlock) => block.prescribed !== null && block.prescribed.target.kind !== 'open'
@@ -10,6 +11,7 @@ function lapSpeed(lap: LapSummary): number {
 }
 
 const pace = (lap: LapSummary) => 1000 / lapSpeed(lap)
+const levelPace = (lap: LapSummary) => flatPace(lap) ?? pace(lap)
 
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b)
@@ -41,23 +43,91 @@ function blockInTarget(blocks: WorkoutBlock[]): Finding[] {
 
 function steadyPace(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[] {
   return eligibleForLapRules(blocks, kilometers).flatMap(({ position, laps }) => {
-    const paces = laps.map(pace)
+    const paces = laps.map(levelPace)
     const fastest = Math.min(...paces)
     const slowest = Math.max(...paces)
     const spread = slowest - fastest
-    return spread <= ANALYSIS.steadyPaceSpread ? [{ group: 'positive' as const, kind: 'steadyPace' as const, blockOrdinal: position, facts: { spread, fastestPace: fastest, slowestPace: slowest } }] : []
+    if (spread > ANALYSIS.steadyPaceSpread) return []
+    const facts: Record<string, number> = { spread, fastestPace: fastest, slowestPace: slowest }
+    if (laps.some(hasElevation)) facts.flatAdjusted = 1
+    return [{ group: 'positive' as const, kind: 'steadyPace' as const, blockOrdinal: position, facts }]
   })
 }
 
 function paceFade(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[] {
   return eligibleForLapRules(blocks, kilometers).flatMap(({ position, laps }) => {
-    const paces = laps.map(pace)
+    const paces = laps.map(levelPace)
     const last = paces.at(-1)
-    if (last === undefined) return []
+    const lastLap = laps.at(-1)
+    if (last === undefined || lastLap === undefined) return []
     const middle = median(paces)
     const fade = last - middle
-    return fade >= ANALYSIS.fadeThreshold ? [{ group: 'negative' as const, kind: 'paceFade' as const, blockOrdinal: position, facts: { fade, lastPace: last, medianPace: middle } }] : []
+    if (fade < ANALYSIS.fadeThreshold) return []
+    const facts: Record<string, number> = { fade, lastPace: last, medianPace: middle }
+    if (laps.some(hasElevation)) {
+      facts.flatAdjusted = 1
+      facts.pace = pace(lastLap)
+      facts.lastClimb = lastLap.climb ?? 0
+    }
+    return [{ group: 'negative' as const, kind: 'paceFade' as const, blockOrdinal: position, facts }]
   })
+}
+
+function elevationKind(lap: LapSummary): 'climbSlower' | 'descentFaster' | null {
+  const level = flatPace(lap)
+  if (!hasElevation(lap) || level === null) return null
+  const effect = pace(lap) - level
+  if (effect >= ANALYSIS.elevationEffectSeconds) return 'climbSlower'
+  if (effect <= -ANALYSIS.elevationEffectSeconds) return 'descentFaster'
+  return null
+}
+
+function elevationFinding(kind: 'climbSlower' | 'descentFaster', position: number, from: number, laps: LapSummary[]): Finding {
+  const distance = laps.reduce((sum, lap) => sum + lap.distance, 0) / ANALYSIS.metersPerKilometer
+  const weighted = (value: (lap: LapSummary) => number) => laps.reduce((sum, lap) => sum + (lap.distance * value(lap)) / ANALYSIS.metersPerKilometer, 0) / distance
+  return {
+    group: 'positive',
+    kind,
+    blockOrdinal: position,
+    facts: {
+      fromKilometer: from,
+      toKilometer: from + laps.length - 1,
+      climb: laps.reduce((sum, lap) => sum + (lap.climb ?? 0), 0),
+      descent: laps.reduce((sum, lap) => sum + (lap.descent ?? 0), 0),
+      pace: weighted(pace),
+      flatPace: weighted(levelPace),
+    },
+  }
+}
+
+function elevationPace(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[] {
+  const findings: Finding[] = []
+  for (const [position, rows] of [...kilometers.entries()].sort((a, b) => a[0] - b[0])) {
+    if (blocks[position]?.kind !== 'active') continue
+    const startKm = Math.round(blocks.slice(0, position).reduce((sum, block) => sum + block.distance, 0) / ANALYSIS.metersPerKilometer)
+    let segment: { kind: 'climbSlower' | 'descentFaster'; from: number; laps: LapSummary[] } | null = null
+    const close = () => {
+      if (segment !== null) findings.push(elevationFinding(segment.kind, position, segment.from, segment.laps))
+      segment = null
+    }
+    rows.forEach((row, index) => {
+      const lap = row.laps[0]
+      const kind = lap !== undefined && lap.distance >= ANALYSIS.fullLapMinimumDistance ? elevationKind(lap) : null
+      if (lap === undefined || kind === null) {
+        close()
+        return
+      }
+      const current = segment as { kind: 'climbSlower' | 'descentFaster'; from: number; laps: LapSummary[] } | null
+      if (current !== null && current.kind === kind) {
+        current.laps.push(lap)
+      } else {
+        close()
+        segment = { kind, from: startKm + index + 1, laps: [lap] }
+      }
+    })
+    close()
+  }
+  return findings
 }
 
 function cardiacDrift(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[] {
@@ -135,7 +205,7 @@ function slowdownFacts(kilometers: WorkoutBlock[]): Record<string, number> {
   })
   const baseline = ANALYSIS.baselineKilometers
   if (rows.length <= baseline) return {}
-  const paces = rows.map((row) => pace(row.lap))
+  const paces = rows.map((row) => levelPace(row.lap))
   const mean = (values: number[]) => values.reduce((sum, value) => sum + value, 0) / values.length
   const reference = mean(paces.slice(0, baseline))
   const facts: Record<string, number> = {}
@@ -209,6 +279,7 @@ export function assess(blocks: WorkoutBlock[], context: AssessmentContext): Work
     ...blockOffTarget(blocks),
     ...stepIncomplete(blocks, context),
     ...paceFade(blocks, context.kilometers),
+    ...elevationPace(blocks, context.kilometers),
     ...cardiacDrift(blocks, context.kilometers),
     ...zoneAboveTarget(blocks),
     ...hardOnLowReadiness(blocks, context.readinessScore),

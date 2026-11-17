@@ -32,7 +32,7 @@ private func trackPoints(_ samples: [FITSample]) -> [TrackPoint] {
             integrated += speed * max(0, sample.t - previous.t)
         }
         previous = sample
-        return TrackPoint(t: sample.t, distance: sample.distance ?? integrated, heartRate: sample.heartRate)
+        return TrackPoint(t: sample.t, distance: sample.distance ?? integrated, heartRate: sample.heartRate, altitude: sample.altitude)
     }
 }
 
@@ -45,6 +45,7 @@ private func split(_ points: [TrackPoint], start: Double, kind: BlockKind, presc
     var previousDistance = first.distance
     var seconds = 0.0
     var heartRates: [Int] = []
+    var elevation = ElevationCounter()
     func close(at point: TrackPoint) {
         rows.append(kilometer(
             ordinal: rows.count + 1,
@@ -53,6 +54,7 @@ private func split(_ points: [TrackPoint], start: Double, kind: BlockKind, presc
             seconds: seconds,
             distance: point.distance - startDistance,
             heartRates: heartRates,
+            elevation: elevation,
             prescribed: prescribed,
             zones: zones
         ))
@@ -63,12 +65,14 @@ private func split(_ points: [TrackPoint], start: Double, kind: BlockKind, presc
         previousTime = point.t
         previousDistance = point.distance
         if let heartRate = point.heartRate { heartRates.append(heartRate) }
+        elevation.add(point.altitude)
         guard point.distance - startDistance >= AnalysisConstants.kilometerSplitDistance else { continue }
         close(at: point)
         startTime = point.t
         startDistance = point.distance
         seconds = 0
         heartRates = []
+        elevation.restart()
     }
     if last.distance - startDistance >= AnalysisConstants.minimumPartialSplit {
         close(at: last)
@@ -87,13 +91,17 @@ private func kilometer(
     seconds: Double,
     distance: Double,
     heartRates: [Int],
+    elevation: ElevationCounter,
     prescribed: PrescribedStep?,
     zones: HeartRateZones?
 ) -> WorkoutBlock {
     let speed = seconds > 0 ? distance / seconds : nil
     let average = heartRates.isEmpty ? nil : Int((Double(heartRates.reduce(0, +)) / Double(heartRates.count)).rounded())
     let maximum = heartRates.max()
-    let lap = LapSummary(startOffset: start, timerSeconds: seconds, distance: distance, avgSpeed: speed, avgHeartRate: average, maxHeartRate: maximum)
+    let lap = LapSummary(
+        startOffset: start, timerSeconds: seconds, distance: distance, avgSpeed: speed, avgHeartRate: average, maxHeartRate: maximum,
+        climb: elevation.hasData ? elevation.climb : nil, descent: elevation.hasData ? elevation.descent : nil
+    )
     return WorkoutBlock(
         kind: kind,
         ordinal: ordinal,

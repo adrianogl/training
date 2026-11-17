@@ -46,7 +46,19 @@ public enum DetailedCoach {
             facts.append(String(format: T.heartRateRange, DetailedFormat.whole(first), DetailedFormat.whole(last)))
         }
         facts += [DetailedFindingKind.fadeKm, .hrDrift, .pauses, .repsConsistency].compactMap { analysis.finding($0)?.text }
-        return facts
+        return facts + elevationFacts(analysis.splits)
+    }
+
+    private static func elevationFacts(_ splits: [DetailedSplit]) -> [String] {
+        let marked = splits.filter { abs($0.paceSeconds - $0.levelPace) >= C.elevationEffectSeconds }
+        return marked.prefix(T.maxElevationFacts).map { split in
+            let uphill = split.paceSeconds > split.levelPace
+            return String(
+                format: uphill ? T.climbKm : T.descentKm,
+                split.km, DetailedFormat.whole(uphill ? split.climb : split.descent),
+                DetailedFormat.pace(split.paceSeconds), DetailedFormat.pace(split.levelPace)
+            )
+        }
     }
 
     private static func contextFacts(_ analysis: DetailedAnalysis) -> [String] {

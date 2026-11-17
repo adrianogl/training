@@ -104,10 +104,11 @@ private func completionFinding(_ context: DetailedContext) -> DetailedFinding? {
 
 private func fadeFinding(_ context: DetailedContext) -> DetailedFinding? {
     guard C.fadeKinds.contains(context.kind) else { return nil }
-    let paces = context.current.splits.map(\.paceSeconds)
+    let paces = context.current.splits.map(\.levelPace)
     guard let km = context.current.fadeKm, let baseline = median(Array(paces[0..<(km - 1)])) else { return nil }
     let slowdown = paces[km - 1] - baseline
-    var text = String(format: T.fadeText, km, DetailedFormat.whole(slowdown), km - 1, DetailedFormat.pace(baseline))
+    let leveled = context.current.splits.contains { $0.levelPace != $0.paceSeconds }
+    var text = String(format: leveled ? T.fadeLevelText : T.fadeText, km, DetailedFormat.whole(slowdown), km - 1, DetailedFormat.pace(baseline))
     var evidence = [
         DetailedEvidence(key: K.fadeKm, value: Double(km)),
         DetailedEvidence(key: K.baselinePace, value: baseline),

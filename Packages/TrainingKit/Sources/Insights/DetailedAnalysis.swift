@@ -25,7 +25,7 @@ struct PreparedRun {
         splits = detailedSplits(samples)
         continuity = runContinuity(samples)
         plannedMeters = Self.plannedMeters(record)
-        fadeKm = fadeKilometer(splits.map(\.paceSeconds))
+        fadeKm = fadeKilometer(splits.map(\.levelPace))
         startPace = openingPace(splits)
         drift = decoupling(splits)
         meters = record.distance ?? continuity?.totalMeters ?? 0

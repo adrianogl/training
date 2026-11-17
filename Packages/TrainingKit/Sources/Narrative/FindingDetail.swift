@@ -13,7 +13,8 @@ public enum FindingDetail {
             return inTargetValues(blocks)
         case .steadyPace:
             guard let fastest = clock(facts[FindingFact.fastestPace]), let slowest = clock(facts[FindingFact.slowestPace]) else { return nil }
-            return "\(C.lapsFrom) \(fastest) \(C.to) \(slowest) \(NarrativeConstants.paceUnit)"
+            let range = "\(C.lapsFrom) \(fastest) \(C.to) \(slowest) \(NarrativeConstants.paceUnit)"
+            return facts[FindingFact.flatAdjusted] == 1 ? "\(C.onLevel), \(range)" : range
         case .lowerHeartRateThanBefore:
             guard let now = facts[FindingFact.heartRate], let before = facts[FindingFact.beforeHeartRate] else { return nil }
             parts = ["\(Format.integer(now)) bpm \(C.versus) \(Format.integer(before)) bpm", Format.pace(metersPerSecond: facts[FindingFact.speed])]
@@ -27,7 +28,13 @@ public enum FindingDetail {
             return "\(progress.done) \(C.of) \(progress.target) · \(progress.percent)%"
         case .paceFade:
             guard let last = clock(facts[FindingFact.lastPace]), let middle = clock(facts[FindingFact.medianPace]) else { return nil }
-            return "\(C.lastLap) \(last) · \(C.median) \(middle) \(NarrativeConstants.paceUnit)"
+            guard facts[FindingFact.flatAdjusted] == 1, let raw = clock(facts[FindingFact.pace]) else {
+                return "\(C.lastLap) \(last) · \(C.median) \(middle) \(NarrativeConstants.paceUnit)"
+            }
+            let climb = "+\(Format.integer(facts[FindingFact.lastClimb])) m"
+            return "\(C.lastLap) \(raw) (\(climb)) · \(C.onLevel) \(last) · \(C.medianOnLevel) \(middle) \(NarrativeConstants.paceUnit)"
+        case .climbSlower, .descentFaster:
+            return Format.elevationSegment(facts)
         case .cardiacDrift:
             return "FC \(Format.integer(facts[FindingFact.fromHR])) → \(Format.integer(facts[FindingFact.toHR])) bpm · +\(Format.percent(facts[FindingFact.rise]))"
         case .zoneAboveTarget:
@@ -46,13 +53,15 @@ public enum FindingDetail {
         switch finding.kind {
         case .blockInTarget:
             return facts[FindingFact.inTarget] == facts[FindingFact.total] ? C.whyAllInTarget : C.whySomeInTarget
-        case .steadyPace: return C.whySteadyPace
+        case .steadyPace: return facts[FindingFact.flatAdjusted] == 1 ? C.whySteadyLevel : C.whySteadyPace
         case .lowerHeartRateThanBefore: return C.whyLowerHeartRate
         case .goodRecovery: return C.whyGoodRecovery
         case .blockOffTarget: return offTargetWhy(finding, blocks: blocks)
         case .stepIncomplete:
             return incompleteWhy(finding, blocks: blocks)
-        case .paceFade: return C.whyPaceFade
+        case .paceFade: return facts[FindingFact.flatAdjusted] == 1 ? C.whyPaceFadeLevel : C.whyPaceFade
+        case .climbSlower: return String(format: C.whyClimbFormat, clock(facts[FindingFact.flatPace]) ?? "")
+        case .descentFaster: return String(format: C.whyDescentFormat, clock(facts[FindingFact.flatPace]) ?? "")
         case .cardiacDrift: return C.whyCardiacDrift
         case .zoneAboveTarget: return C.whyZoneAbove
         case .hardOnLowReadiness: return C.whyLowReadiness

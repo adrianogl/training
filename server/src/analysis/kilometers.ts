@@ -2,6 +2,7 @@ import type { FitSample, LapSummary, PrescribedStep } from '../fit/fitTypes.js'
 import { ANALYSIS } from './analysisConstants.js'
 import type { BlockKilometers, BlockKind, HeartRateZones, TrackPoint, WorkoutBlock } from './analysisTypes.js'
 import { targetStatus, zoneOf } from './blocks.js'
+import { ElevationCounter } from './elevation.js'
 
 function trackPoints(samples: FitSample[]): TrackPoint[] {
   let integrated = 0
@@ -11,17 +12,20 @@ function trackPoints(samples: FitSample[]): TrackPoint[] {
     .map((sample) => {
       if (previous !== undefined && previous.speed !== null) integrated += previous.speed * Math.max(0, sample.t - previous.t)
       previous = sample
-      return { t: sample.t, distance: sample.distance ?? integrated, heartRate: sample.heartRate }
+      return { t: sample.t, distance: sample.distance ?? integrated, heartRate: sample.heartRate, altitude: sample.altitude }
     })
 }
 
 const isPause = (interval: number, distance: number) => interval > ANALYSIS.pauseGapSeconds && distance < interval * ANALYSIS.pauseMaximumSpeed
 
-function kilometer(ordinal: number, kind: BlockKind, start: number, seconds: number, distance: number, heartRates: number[], prescribed: PrescribedStep | null, zones: HeartRateZones | null): WorkoutBlock {
+function kilometer(ordinal: number, kind: BlockKind, start: number, seconds: number, distance: number, heartRates: number[], elevation: ElevationCounter, prescribed: PrescribedStep | null, zones: HeartRateZones | null): WorkoutBlock {
   const speed = seconds > 0 ? distance / seconds : null
   const average = heartRates.length === 0 ? null : Math.round(heartRates.reduce((sum, value) => sum + value, 0) / heartRates.length)
   const maximum = heartRates.length === 0 ? null : Math.max(...heartRates)
-  const lap: LapSummary = { stepIndex: null, intensity: null, trigger: null, startOffset: start, timerSeconds: seconds, distance, avgSpeed: speed, avgHeartRate: average, maxHeartRate: maximum }
+  const lap: LapSummary = {
+    stepIndex: null, intensity: null, trigger: null, startOffset: start, timerSeconds: seconds, distance, avgSpeed: speed, avgHeartRate: average, maxHeartRate: maximum,
+    climb: elevation.hasData ? elevation.climb : null, descent: elevation.hasData ? elevation.descent : null,
+  }
   return {
     kind, ordinal, label: `${ANALYSIS.labels.kilometer} ${ordinal}`, prescribed, laps: [lap], seconds, distance, avgSpeed: speed, avgHeartRate: average, maxHeartRate: maximum,
     dominantZone: average === null ? null : zoneOf(average, zones),
@@ -40,19 +44,22 @@ function split(points: TrackPoint[], start: number, kind: BlockKind, prescribed:
   let previousDistance = first.distance
   let seconds = 0
   let heartRates: number[] = []
-  const close = (point: TrackPoint) => rows.push(kilometer(rows.length + 1, kind, startTime, seconds, point.distance - startDistance, heartRates, prescribed, zones))
+  const elevation = new ElevationCounter()
+  const close = (point: TrackPoint) => rows.push(kilometer(rows.length + 1, kind, startTime, seconds, point.distance - startDistance, heartRates, elevation, prescribed, zones))
   for (const point of points) {
     const interval = point.t - previousTime
     if (!isPause(interval, point.distance - previousDistance)) seconds += Math.max(0, interval)
     previousTime = point.t
     previousDistance = point.distance
     if (point.heartRate !== null) heartRates.push(point.heartRate)
+    elevation.add(point.altitude)
     if (point.distance - startDistance < ANALYSIS.kilometerSplitDistance) continue
     close(point)
     startTime = point.t
     startDistance = point.distance
     seconds = 0
     heartRates = []
+    elevation.restart()
   }
   if (last.distance - startDistance >= ANALYSIS.minimumPartialSplit) close(last)
   return rows

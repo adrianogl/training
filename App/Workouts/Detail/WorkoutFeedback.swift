@@ -106,7 +106,9 @@ enum WorkoutFeedback {
         case .paceFade: text = "\(subject) \(C.fade)"
         case .goodRecovery: text = "\(subject) \(C.recovered)"
         case .lowerHeartRateThanBefore: text = "\(subject) \(C.lowerHeartRate)"
-        case .steadyPace: text = "\(subject) \(C.steady)"
+        case .steadyPace: text = "\(subject) \(first.facts[FindingFact.flatAdjusted] == 1 ? C.steadyLevel : C.steady)"
+        case .climbSlower: text = C.climbTitle
+        case .descentFaster: text = C.descentTitle
         case .blockInTarget:
             let inTarget = Int(first.facts[FindingFact.inTarget] ?? 0)
             let total = Int(first.facts[FindingFact.total] ?? 0)
@@ -171,6 +173,11 @@ enum WorkoutFeedback {
                 return String(format: C.whyHighestRecoveryFormat, BlockNaming.single(position, blocks: blocks).text, Int(bpm.rounded()))
             }
             return C.whySlowerGroup
+        case .climbSlower where group.findings.count > 1, .descentFaster where group.findings.count > 1:
+            let paces = group.findings.compactMap { $0.facts[FindingFact.flatPace] }
+            guard let low = paces.min(), let high = paces.max() else { return FindingDetail.why(first, blocks: blocks) }
+            let format = group.kind == .climbSlower ? C.whyClimbGroupFormat : C.whyDescentGroupFormat
+            return String(format: format, WorkoutFormat.clock(low), WorkoutFormat.clock(high))
         case .zoneAboveTarget:
             let base = FindingDetail.why(first, blocks: blocks)
             let slowedNext = positions(group).compactMap { position in
@@ -185,6 +192,10 @@ enum WorkoutFeedback {
 
     private static func feedback(_ entries: [AnalysisEntry], groups: [Group], blocks: [WorkoutBlock], run: IncompleteRun?) -> [String] {
         var paragraphs = [opening(blocks, run: run)].compactMap { $0 }
+        let elevation = zip(groups, entries).filter { C.elevationKinds.contains($0.0.kind) }.map(\.1)
+        if !elevation.isEmpty {
+            paragraphs.append(C.elevationLead + lowerFirst(sentences(elevation)))
+        }
         let fixes = zip(groups, entries).filter { $0.1.tag == .fix }
         if let run, run.hasSignal, let reason = fixes.first(where: { isRun($0.0, run) }) {
             paragraphs.append(reason.1.why)

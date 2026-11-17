@@ -47,6 +47,9 @@ enum NarrativePrompt {
             ]
         case .zoneAboveTarget:
             return ["Z\(Format.integer(facts[FindingFact.zone]))", "bloco leve"]
+        case .climbSlower, .descentFaster:
+            let level = facts[FindingFact.flatPace].map { WorkoutFormat.clock($0) } ?? ""
+            return [Format.elevationSegment(facts), "\(level)\(NarrativeConstants.paceUnit) no equivalente no plano"]
         case .hardOnLowReadiness:
             return ["treino forte", "prontidão \(Format.integer(facts[FindingFact.readiness])) de 100"]
         case .highAcuteChronic:

@@ -103,7 +103,7 @@ enum WorkoutDetailConstants {
     static let blocksHeaderPace = "pace no alvo · mais rápido →"
     static let blocksHeaderValue = "pace"
     static let blocksHeaderHeartRate = "FC"
-    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace]
+    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace, .climbSlower, .descentFaster]
     static let scoreGaugeSize: Double = 120
     static let compactScoreGaugeSize: Double = 104
     static let scorePartNameWidth: Double = 76

@@ -1,3 +1,4 @@
+import { flatPaceOf } from './elevation.js'
 import type { PrescribedStep } from '../fit/fitTypes.js'
 import { unroll } from './blocks.js'
 import { runContinuity } from './continuity.js'
@@ -41,16 +42,21 @@ export function kilometerPoints(run: DetailedRun): KilometerPoint[] {
   if (run.fit === null) return []
   return kilometerSplits(run.fit.samples, zonesFor(run.fit))
     .filter((block) => block.distance >= DETAILED.fullKilometerMeters && block.seconds > 0)
-    .map((block) => ({ km: block.ordinal, paceSeconds: round((block.seconds * DETAILED.metersPerKilometer) / block.distance), heartRate: block.avgHeartRate }))
+    .map((block) => {
+      const paceSeconds = round((block.seconds * DETAILED.metersPerKilometer) / block.distance)
+      const climb = block.laps[0]?.climb ?? 0
+      const descent = block.laps[0]?.descent ?? 0
+      return { km: block.ordinal, paceSeconds, levelPace: round(flatPaceOf(paceSeconds, block.distance, climb, descent)), climb, descent, heartRate: block.avgHeartRate }
+    })
 }
 
 export function fadeKilometer(splits: KilometerPoint[]): number | null {
   for (let index = DETAILED.fadeMinimumKm - 1; index < splits.length; index += 1) {
-    const baseline = median(splits.slice(0, index).map((point) => point.paceSeconds))
+    const baseline = median(splits.slice(0, index).map((point) => point.levelPace))
     const current = splits[index]
     const next = splits[index + 1]
-    if (baseline === null || current === undefined || current.paceSeconds - baseline < DETAILED.fadeSeconds) continue
-    if (next === undefined || next.paceSeconds - baseline >= DETAILED.fadeConfirmSeconds) return current.km
+    if (baseline === null || current === undefined || current.levelPace - baseline < DETAILED.fadeSeconds) continue
+    if (next === undefined || next.levelPace - baseline >= DETAILED.fadeConfirmSeconds) return current.km
   }
   return null
 }
@@ -65,7 +71,7 @@ export function heartRateDrift(splits: KilometerPoint[]): number | null {
 }
 
 export function startPace(splits: KilometerPoint[]): number | null {
-  return splits.length < DETAILED.startKilometers ? null : round(mean(splits.slice(0, DETAILED.startKilometers).map((point) => point.paceSeconds)) ?? 0)
+  return splits.length < DETAILED.startKilometers ? null : round(mean(splits.slice(0, DETAILED.startKilometers).map((point) => point.levelPace)) ?? 0)
 }
 
 function stepMeters(step: PrescribedStep): number | null {

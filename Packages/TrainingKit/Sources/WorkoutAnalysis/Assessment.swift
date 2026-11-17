@@ -8,6 +8,7 @@ public func assess(_ blocks: [WorkoutBlock], context: AssessmentContext) -> Work
         + blockOffTarget(blocks)
         + stepIncomplete(blocks, context: context)
         + paceFade(blocks, kilometers: context.kilometers)
+        + elevationPace(blocks, kilometers: context.kilometers)
         + cardiacDrift(blocks, kilometers: context.kilometers)
         + zoneAboveTarget(blocks)
         + hardOnLowReadiness(blocks, readiness: context.readinessScore)
@@ -31,31 +32,93 @@ private func blockInTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
 
 private func steadyPace(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
     eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
-        let paces = laps.map(pace)
+        let paces = laps.map(levelPace)
         guard let fastest = paces.min(), let slowest = paces.max() else { return nil }
         let spread = slowest - fastest
         guard spread <= AnalysisConstants.steadyPaceSpread else { return nil }
-        return Finding(group: .positive, kind: .steadyPace, blockOrdinal: position, facts: [
+        var facts = [
             FindingFact.spread: spread,
             FindingFact.fastestPace: fastest,
             FindingFact.slowestPace: slowest,
-        ])
+        ]
+        if laps.contains(where: hasElevation) { facts[FindingFact.flatAdjusted] = 1 }
+        return Finding(group: .positive, kind: .steadyPace, blockOrdinal: position, facts: facts)
     }
 }
 
 private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
     eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
-        let paces = laps.map(pace)
-        guard let last = paces.last else { return nil }
+        let paces = laps.map(levelPace)
+        guard let last = paces.last, let lastLap = laps.last else { return nil }
         let middle = median(paces)
         let fade = last - middle
         guard fade >= AnalysisConstants.fadeThreshold else { return nil }
-        return Finding(group: .negative, kind: .paceFade, blockOrdinal: position, facts: [
+        var facts = [
             FindingFact.fade: fade,
             FindingFact.lastPace: last,
             FindingFact.medianPace: middle,
-        ])
+        ]
+        if laps.contains(where: hasElevation) {
+            facts[FindingFact.flatAdjusted] = 1
+            facts[FindingFact.pace] = pace(lastLap)
+            facts[FindingFact.lastClimb] = lastLap.climb ?? 0
+        }
+        return Finding(group: .negative, kind: .paceFade, blockOrdinal: position, facts: facts)
     }
+}
+
+private func elevationPace(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
+    var findings: [Finding] = []
+    for (position, rows) in kilometers.sorted(by: { $0.key < $1.key }) where blocks.indices.contains(position) && blocks[position].kind == .active {
+        let startKm = blocks[..<position].reduce(0) { $0 + $1.distance } / AnalysisConstants.metersPerKilometer
+        var segment: (kind: FindingKind, from: Int, laps: [LapSummary])?
+        func close() {
+            guard let current = segment else { return }
+            findings.append(elevationFinding(current.kind, position: position, from: current.from, laps: current.laps))
+            segment = nil
+        }
+        for (index, row) in rows.enumerated() {
+            guard let lap = row.laps.first, lap.distance >= AnalysisConstants.fullLapMinimumDistance, let kind = elevationKind(lap) else {
+                close()
+                continue
+            }
+            let kilometer = Int(startKm.rounded()) + index + 1
+            if let current = segment, current.kind == kind {
+                segment?.laps.append(lap)
+            } else {
+                close()
+                segment = (kind, kilometer, [lap])
+            }
+        }
+        close()
+    }
+    return findings
+}
+
+private func elevationKind(_ lap: LapSummary) -> FindingKind? {
+    guard hasElevation(lap), let level = flatPace(lap) else { return nil }
+    let effect = pace(lap) - level
+    if effect >= AnalysisConstants.elevationEffectSeconds { return .climbSlower }
+    if effect <= -AnalysisConstants.elevationEffectSeconds { return .descentFaster }
+    return nil
+}
+
+private func elevationFinding(_ kind: FindingKind, position: Int, from: Int, laps: [LapSummary]) -> Finding {
+    let distance = laps.reduce(0) { $0 + $1.distance }
+    let seconds = laps.reduce(0) { $0 + $1.distance * pace($1) } / AnalysisConstants.metersPerKilometer
+    let level = laps.reduce(0) { $0 + $1.distance * levelPace($1) } / AnalysisConstants.metersPerKilometer
+    return Finding(group: .positive, kind: kind, blockOrdinal: position, facts: [
+        FindingFact.fromKilometer: Double(from),
+        FindingFact.toKilometer: Double(from + laps.count - 1),
+        FindingFact.climb: laps.reduce(0) { $0 + ($1.climb ?? 0) },
+        FindingFact.descent: laps.reduce(0) { $0 + ($1.descent ?? 0) },
+        FindingFact.pace: seconds / (distance / AnalysisConstants.metersPerKilometer),
+        FindingFact.flatPace: level / (distance / AnalysisConstants.metersPerKilometer),
+    ])
+}
+
+private func levelPace(_ lap: LapSummary) -> Double {
+    flatPace(lap) ?? pace(lap)
 }
 
 private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
@@ -164,7 +227,7 @@ private func slowdownFacts(_ kilometers: [WorkoutBlock]) -> [String: Double] {
     }
     let baseline = AnalysisConstants.baselineKilometers
     guard rows.count > baseline else { return [:] }
-    let paces = rows.map { pace($0.lap) }
+    let paces = rows.map { levelPace($0.lap) }
     let reference = paces.prefix(baseline).reduce(0, +) / Double(baseline)
     var facts: [String: Double] = [:]
     for index in baseline ..< rows.count {

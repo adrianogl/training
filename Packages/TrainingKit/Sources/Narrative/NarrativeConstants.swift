@@ -64,5 +64,7 @@ public enum NarrativeConstants {
         .zoneAboveTarget: "zona acima do esperado",
         .hardOnLowReadiness: "treino forte com prontidão baixa",
         .highAcuteChronic: "carga aguda:crônica alta",
+        .climbSlower: "ritmo mais lento na subida",
+        .descentFaster: "ritmo mais rápido na descida",
     ]
 }

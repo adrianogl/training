@@ -8,6 +8,7 @@ enum DetailedAnalysisText {
     static let completionAverage = " Nos %d treinos parecidos, a média foi %d%%."
 
     static let fadeTitle = "O pace caiu a partir do km %d"
+    static let fadeLevelText = "Descontado o desnível, a partir do km %d o pace ficou %d s/km mais lento que a mediana dos km 1 a %d (%@/km no plano)."
     static let fadeText = "A partir do km %d o pace ficou %d s/km mais lento que a mediana dos km 1 a %d (%@/km)."
     static let fadeSimilar = " Nos treinos parecidos, a queda costuma vir no km %d."
 
