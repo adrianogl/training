@@ -198,3 +198,13 @@ Arquivos: `Insights/ClaudeStrength*.swift`, `App/Trainer/Claude/*`. Testes: `Ins
 - **Erros que bloqueiam o dia:** data inválida, dia passado ou fora do período, dia do MFIT, dia sem força do treinador, exercício fora do catálogo ou do local, exercício em região com dor, séries fora de 1–6, reps fora de 1–30, segundos fora de 10–120, descanso fora de 0–240, mais de 12 exercícios, perna pesada (2 ou mais exercícios de agachamento, terra, unilateral ou pliometria com barra, máquina ou halter) nas 48 h antes de limiar, VO2 ou longão, e força nos 3 dias antes da prova.
 - **Avisos:** duração estimada a mais de 10 min dos minutos do dia; carga mais de 5% acima da última.
 - **Uso:** os dias aplicados substituem o gerador naquela data. Prontidão abaixo de 50 e semana da prova trocam pelo treino do gerador com o aviso; dor marcada depois tira os exercícios afetados. Mudar o foco de um dia na tela Força apaga os treinos do Claude desse dia da semana. "Voltar ao gerador" apaga o daquele dia. Treinos de dias passados são descartados.
+
+## MCP de força
+
+Arquivos: `server/src/mcp/*`, `server/src/mcpTokens.ts`, `App/Trainer/Claude/ClaudeSync*.swift`, `App/Trainer/Claude/ClaudeSettingsSection.swift`. Testes: `server/test/mcpRoute.test.ts`, `server/test/mcpStrengthValidator.test.ts`, `server/test/mcpTokens.test.ts`, `AppTests/ClaudeSyncTests.swift`.
+
+- **Conexão:** Ajustes › Claude gera um token só do MCP (32 bytes, o servidor guarda só o hash). Gerar outro invalida o anterior; revogar apaga. Endpoint `https://training.aglv.dev/mcp`, JSON-RPC por HTTP, `Authorization: Bearer <token>`.
+- **Ferramentas:** `contexto_forca` (pacote do app), `validar_treinos` (mesmas regras do app, com o catálogo do próprio contexto) e `salvar_treinos` (grava para o app revisar).
+- **Sincronização:** o app sobe o contexto como preferência `strengthContext` ao abrir a Força e quando os dias de força mudam, só se o conteúdo mudou. O servidor grava a resposta como preferência `strengthClaude`. O app mostra "O Claude enviou treinos", valida de novo em Swift e só aplica quando o atleta confirma.
+- **Limite:** 60 chamadas por minuto por token; corpo até 256 KB.
+- **Paridade:** `server/test/fixtures/strength-catalog.json` é gerado do catálogo Swift (`WRITE_FIXTURES=1 swift test --filter StrengthCatalogFixtureTests`); o teste em Swift falha se o catálogo mudar sem atualizar a fixture.

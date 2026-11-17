@@ -15,6 +15,8 @@ import SwiftData
     private(set) var hasWatchToken: Bool
     private(set) var watchMessage: String?
     private(set) var watchError: String?
+    private(set) var mcpTokenCreatedAt: Date?
+    private(set) var mcpError: String?
 
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let keyStore: any APIKeyStore
@@ -62,6 +64,7 @@ import SwiftData
         self.watchTokenStore = watchTokenStore
         self.defaults = defaults
         self.hasWatchToken = ((try? watchTokenStore.read()) ?? nil)?.isEmpty == false
+        self.mcpTokenCreatedAt = defaults.object(forKey: ClaudeConstants.mcpTokenCreatedKey) as? Date
         self.container = container
         self.keyStore = keyStore
         self.transport = transport
@@ -189,6 +192,42 @@ import SwiftData
         clipboard.copy(token)
         watchMessage = C.watchTokenCopied
         return true
+    }
+
+    func generateMcpToken() async -> String? {
+        mcpError = nil
+        guard let access = access() else { return nil }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            let token = WatchToken.generate()
+            guard let hash = WatchToken.hash(token) else { throw RemoteSyncError.invalidSyncKey }
+            try await access.client.putMcpToken(hash: hash)
+            let now = Date.now
+            defaults.set(now, forKey: ClaudeConstants.mcpTokenCreatedKey)
+            mcpTokenCreatedAt = now
+            return token
+        } catch {
+            C.logger.error("Falha ao gerar token do MCP: \(String(describing: error), privacy: .public)")
+            mcpError = ClaudeText.mcpGenerateFailed
+            return nil
+        }
+    }
+
+    func revokeMcpToken() async {
+        mcpError = nil
+        guard let access = access() else { return }
+        isWorking = true
+        defer { isWorking = false }
+        do {
+            try await access.client.deleteMcpToken()
+        } catch {
+            C.logger.error("Falha ao revogar token do MCP: \(String(describing: error), privacy: .public)")
+            mcpError = ClaudeText.mcpRevokeFailed
+            return
+        }
+        defaults.removeObject(forKey: ClaudeConstants.mcpTokenCreatedKey)
+        mcpTokenCreatedAt = nil
     }
 
     func revokeWatchToken() async {

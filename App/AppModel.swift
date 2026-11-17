@@ -100,6 +100,8 @@ import TrainingCore
                 PreferenceSyncStore(defaults: remoteDefaults),
                 ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
+                ClaudeContextSyncStore(defaults: remoteDefaults),
+                ClaudeInboxSyncStore(defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: watchTokenStore, defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.mfitTokenId, tokenStore: mfitTokenStore, defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.garminKeyId, tokenStore: keyStore, defaults: remoteDefaults),

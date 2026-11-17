@@ -1,0 +1,899 @@
+[
+  {
+    "equipamento" : "barbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "agachamento-livre",
+    "isometria" : false,
+    "nome" : "Agachamento livre",
+    "padrao" : "squat",
+    "regioes" : [
+      "hip",
+      "knee",
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "leg-press",
+    "isometria" : false,
+    "nome" : "Leg press",
+    "padrao" : "squat",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "agachamento-goblet",
+    "isometria" : false,
+    "nome" : "Agachamento goblet",
+    "padrao" : "squat",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "agachamento-peso-corpo",
+    "isometria" : false,
+    "nome" : "Agachamento com peso do corpo",
+    "padrao" : "squat",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "barbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "terra-romeno",
+    "isometria" : false,
+    "nome" : "Levantamento terra romeno",
+    "padrao" : "hinge",
+    "regioes" : [
+      "hip",
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "terra-romeno-halteres",
+    "isometria" : false,
+    "nome" : "Terra romeno com halteres",
+    "padrao" : "hinge",
+    "regioes" : [
+      "hip",
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "fullBody",
+      "lower"
+    ],
+    "id" : "terra-unilateral",
+    "isometria" : false,
+    "nome" : "Terra unilateral sem carga",
+    "padrao" : "singleLeg",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "barbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "elevacao-pelvica",
+    "isometria" : false,
+    "nome" : "Elevação pélvica com barra",
+    "padrao" : "hinge",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "fullBody",
+      "lower"
+    ],
+    "id" : "ponte-unilateral",
+    "isometria" : false,
+    "nome" : "Ponte de glúteo unilateral",
+    "padrao" : "hinge",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "mesa-flexora",
+    "isometria" : false,
+    "nome" : "Mesa flexora",
+    "padrao" : "hinge",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "bulgaro-halteres",
+    "isometria" : false,
+    "nome" : "Agachamento búlgaro",
+    "padrao" : "singleLeg",
+    "regioes" : [
+      "hip",
+      "knee"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "bulgaro-peso-corpo",
+    "isometria" : false,
+    "nome" : "Búlgaro com peso do corpo",
+    "padrao" : "singleLeg",
+    "regioes" : [
+      "hip",
+      "knee"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "afundo-reverso",
+    "isometria" : false,
+    "nome" : "Afundo reverso",
+    "padrao" : "singleLeg",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "subida-caixa",
+    "isometria" : false,
+    "nome" : "Subida na caixa com halteres",
+    "padrao" : "singleLeg",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "subida-degrau",
+    "isometria" : false,
+    "nome" : "Subida no degrau",
+    "padrao" : "singleLeg",
+    "regioes" : [
+      "knee"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "panturrilha-em-pe",
+    "isometria" : false,
+    "nome" : "Panturrilha em pé na máquina",
+    "padrao" : "calf",
+    "regioes" : [
+      "calfAchilles"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "panturrilha-sentado",
+    "isometria" : false,
+    "nome" : "Panturrilha sentado",
+    "padrao" : "calf",
+    "regioes" : [
+      "calfAchilles"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "panturrilha-halter",
+    "isometria" : false,
+    "nome" : "Panturrilha unilateral com halter",
+    "padrao" : "calf",
+    "regioes" : [
+      "calfAchilles"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "panturrilha-degrau",
+    "isometria" : false,
+    "nome" : "Panturrilha unilateral no degrau",
+    "padrao" : "calf",
+    "regioes" : [
+      "calfAchilles"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "cable",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "gluteo-polia",
+    "isometria" : false,
+    "nome" : "Glúteo na polia",
+    "padrao" : "hipStability",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "band",
+    "focos" : [
+      "core",
+      "lower"
+    ],
+    "id" : "caminhada-elastico",
+    "isometria" : false,
+    "nome" : "Caminhada lateral com elástico",
+    "padrao" : "hipStability",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "lower"
+    ],
+    "id" : "abducao-deitado",
+    "isometria" : false,
+    "nome" : "Abdução de quadril deitado",
+    "padrao" : "hipStability",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "lower"
+    ],
+    "id" : "copenhagen",
+    "isometria" : true,
+    "nome" : "Prancha Copenhagen",
+    "padrao" : "lateralCore",
+    "regioes" : [
+      "hip"
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "saltos-caixote",
+    "isometria" : false,
+    "nome" : "Saltos no caixote",
+    "padrao" : "plyo",
+    "regioes" : [
+      "calfAchilles",
+      "knee"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "fullBody",
+      "lower"
+    ],
+    "id" : "afundo-salto",
+    "isometria" : false,
+    "nome" : "Afundo alternado com salto",
+    "padrao" : "plyo",
+    "regioes" : [
+      "calfAchilles",
+      "knee"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "lower"
+    ],
+    "id" : "saltitos",
+    "isometria" : false,
+    "nome" : "Saltitos de tornozelo",
+    "padrao" : "plyo",
+    "regioes" : [
+      "calfAchilles"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "barbell",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "supino-inclinado",
+    "isometria" : false,
+    "nome" : "Supino inclinado com barra",
+    "padrao" : "horizontalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "supino-halteres",
+    "isometria" : false,
+    "nome" : "Supino com halteres",
+    "padrao" : "horizontalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "flexao",
+    "isometria" : false,
+    "nome" : "Flexão de braços",
+    "padrao" : "horizontalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "flexao-mao-solta",
+    "isometria" : false,
+    "nome" : "Flexão tirando as mãos do chão",
+    "padrao" : "horizontalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "flexao-diamante",
+    "isometria" : false,
+    "nome" : "Flexão diamante",
+    "padrao" : "horizontalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "flexao-pike",
+    "isometria" : false,
+    "nome" : "Flexão pike",
+    "padrao" : "verticalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "barbell",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "desenvolvimento-barra",
+    "isometria" : false,
+    "nome" : "Desenvolvimento com barra",
+    "padrao" : "verticalPush",
+    "regioes" : [
+      "lowerBack",
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "desenvolvimento-halteres",
+    "isometria" : false,
+    "nome" : "Desenvolvimento com halteres",
+    "padrao" : "verticalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "barra-fixa",
+    "isometria" : false,
+    "nome" : "Barra fixa aberta",
+    "padrao" : "verticalPull",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "cable",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "puxada-alta",
+    "isometria" : false,
+    "nome" : "Puxada alta",
+    "padrao" : "verticalPull",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "barbell",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "remada-curvada",
+    "isometria" : false,
+    "nome" : "Remada curvada supinada",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "cable",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "remada-sentado",
+    "isometria" : false,
+    "nome" : "Remada sentado na polia",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "fullBody",
+      "upper"
+    ],
+    "id" : "remada-serrote",
+    "isometria" : false,
+    "nome" : "Remada serrote com halter",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "band",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "remada-elastico",
+    "isometria" : false,
+    "nome" : "Remada com elástico",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "band",
+    "focos" : [
+      "core",
+      "upper"
+    ],
+    "id" : "abertura-elastico",
+    "isometria" : false,
+    "nome" : "Abertura de braços com elástico",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "remada-invertida",
+    "isometria" : false,
+    "nome" : "Remada invertida na mesa",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "upper"
+    ],
+    "id" : "ytw",
+    "isometria" : false,
+    "nome" : "Y, T e W deitado",
+    "padrao" : "horizontalPull",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "upper"
+    ],
+    "id" : "superman",
+    "isometria" : false,
+    "nome" : "Superman",
+    "padrao" : "hinge",
+    "regioes" : [
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "upper"
+    ],
+    "id" : "triceps-banco",
+    "isometria" : false,
+    "nome" : "Tríceps no banco",
+    "padrao" : "horizontalPush",
+    "regioes" : [
+      "shoulder"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "fullBody"
+    ],
+    "id" : "prancha",
+    "isometria" : true,
+    "nome" : "Prancha reta",
+    "padrao" : "antiExtension",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "fullBody"
+    ],
+    "id" : "prancha-lateral",
+    "isometria" : true,
+    "nome" : "Prancha lateral",
+    "padrao" : "lateralCore",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "dead-bug",
+    "isometria" : false,
+    "nome" : "Dead bug",
+    "padrao" : "antiExtension",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core",
+      "fullBody"
+    ],
+    "id" : "passaro-cao",
+    "isometria" : false,
+    "nome" : "Pássaro-cão",
+    "padrao" : "antiRotation",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "band",
+    "focos" : [
+      "core"
+    ],
+    "id" : "pallof-elastico",
+    "isometria" : false,
+    "nome" : "Pallof press com elástico",
+    "padrao" : "antiRotation",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "cable",
+    "focos" : [
+      "core"
+    ],
+    "id" : "pallof-polia",
+    "isometria" : false,
+    "nome" : "Pallof press na polia",
+    "padrao" : "antiRotation",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "core"
+    ],
+    "id" : "rodinha",
+    "isometria" : false,
+    "nome" : "Abdominal rodinha",
+    "padrao" : "antiExtension",
+    "regioes" : [
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "machine",
+    "focos" : [
+      "core"
+    ],
+    "id" : "infra-banco",
+    "isometria" : false,
+    "nome" : "Abdominal infra no banco",
+    "padrao" : "antiExtension",
+    "regioes" : [
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "elevacao-pernas",
+    "isometria" : false,
+    "nome" : "Elevação de pernas deitado",
+    "padrao" : "antiExtension",
+    "regioes" : [
+      "lowerBack"
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "dumbbell",
+    "focos" : [
+      "core",
+      "fullBody"
+    ],
+    "id" : "carregamento-unilateral",
+    "isometria" : true,
+    "nome" : "Caminhada com halter de um lado",
+    "padrao" : "lateralCore",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "mobilidade-90-90",
+    "isometria" : false,
+    "nome" : "Mobilidade de quadril 90/90",
+    "padrao" : "mobilityHip",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "flexor-quadril",
+    "isometria" : true,
+    "nome" : "Alongamento do flexor do quadril",
+    "padrao" : "mobilityHip",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "balanco-perna",
+    "isometria" : false,
+    "nome" : "Balanço de perna frente e trás",
+    "padrao" : "mobilityHip",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "mobilidade-tornozelo",
+    "isometria" : false,
+    "nome" : "Mobilidade de tornozelo na parede",
+    "padrao" : "mobilityAnkle",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "gato-camelo",
+    "isometria" : false,
+    "nome" : "Gato-camelo",
+    "padrao" : "mobilityThoracic",
+    "regioes" : [
+
+    ],
+    "unilateral" : false
+  },
+  {
+    "equipamento" : "bodyweight",
+    "focos" : [
+      "core"
+    ],
+    "id" : "rotacao-toracica",
+    "isometria" : false,
+    "nome" : "Rotação torácica em quatro apoios",
+    "padrao" : "mobilityThoracic",
+    "regioes" : [
+
+    ],
+    "unilateral" : true
+  }
+]

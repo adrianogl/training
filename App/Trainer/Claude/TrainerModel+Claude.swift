@@ -56,3 +56,29 @@ extension TrainerModel {
         ClaudeStrengthStore().workout(on: day) != nil
     }
 }
+
+extension TrainerModel {
+    @discardableResult
+    func publishClaudeContext(race: ClaudeRaceTarget?) -> Bool {
+        let input = claudeContextInput(.untilRace, race: race)
+        let envelope = ClaudeContextEnvelope(
+            atualizado: ISO8601DateFormatter().string(from: .now),
+            texto: ClaudeContextBuilder.text(input, extra: nil),
+            contexto: ClaudeContextBuilder.payload(input)
+        )
+        return ClaudeMailbox().publish(envelope)
+    }
+
+    func claudeInboxResults(_ inbox: ClaudeInbox, race: ClaudeRaceTarget?) -> ClaudeImportState {
+        do {
+            let response = try ClaudeStrengthParser.parse(inbox.json)
+            var context = claudeValidationContext(claudeContextInput(.untilRace, race: race))
+            context.first = currentDay.adding(days: 1)
+            return ClaudeImportState(summary: response.summary, results: ClaudeStrengthValidator.validate(response, context: context), failure: nil)
+        } catch ClaudeStrengthParseError.unsupportedVersion(let version) {
+            return ClaudeImportState(summary: nil, results: [], failure: String(format: ClaudeText.unsupportedFormat, version))
+        } catch {
+            return ClaudeImportState(summary: nil, results: [], failure: ClaudeText.invalidJSON)
+        }
+    }
+}

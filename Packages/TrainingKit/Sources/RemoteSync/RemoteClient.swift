@@ -44,6 +44,15 @@ public struct RemoteClient: Sendable {
         _ = try await send(method: "DELETE", path: C.watchTokenPath, accepted: [204])
     }
 
+    public func putMcpToken(hash: String) async throws {
+        let body = try RemoteJSON.encoder().encode(WatchTokenBody(tokenHash: hash))
+        _ = try await send(method: "PUT", path: C.mcpTokenPath, body: body, accepted: [204])
+    }
+
+    public func deleteMcpToken() async throws {
+        _ = try await send(method: "DELETE", path: C.mcpTokenPath, accepted: [204])
+    }
+
     public func putReadiness(_ readiness: WatchReadiness) async throws {
         let body = try RemoteJSON.encoder().encode(readiness)
         _ = try await send(method: "PUT", path: C.watchReadinessPath, body: body, accepted: [204])

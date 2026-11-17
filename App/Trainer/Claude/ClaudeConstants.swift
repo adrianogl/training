@@ -6,4 +6,12 @@ enum ClaudeConstants {
     static let symbol = "sparkles"
     static let readinessDays = 7
     static let fallbackWeeks = 12
+    static let contextBlobId = "strengthContext"
+    static let inboxBlobId = "strengthClaude"
+    static let outboxKey = "claudeContextOutbox"
+    static let contextSyncedKey = "claudeContextSynced"
+    static let inboxKey = "claudeInbox"
+    static let inboxSeenKey = "claudeInboxSeen"
+    static let mcpTokenCreatedKey = "claudeMcpTokenCreated"
+    static let mcpURL = "https://training.aglv.dev/mcp"
 }

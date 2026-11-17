@@ -60,6 +60,7 @@ export const FACE_MAX_EVENTS = 3
 export const FACE_MAX_EVENT_START = 4_102_444_800
 export const WATCH_READINESS_ROUTE = 'watch/readiness'
 export const WATCH_TOKEN_ROUTE = 'watch/token'
+export const MCP_TOKEN_ROUTE = 'mcp/token'
 export const AUTH_ROUTE = 'auth'
 export const PASSWORD_MIN_LENGTH = 10
 export const PASSWORD_MAX_LENGTH = 200

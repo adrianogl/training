@@ -34,11 +34,13 @@ import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaSta
 import {
   createAccountRoute,
   deleteAccountRoute,
+  deleteMcpTokenRoute,
   deleteWatchTokenRoute,
   getWatchReadinessRoute,
   pullChangesRoute,
   pushChangesRoute,
   putWatchReadinessRoute,
+  putMcpTokenRoute,
   putWatchTokenRoute,
 } from './routes.js'
 
@@ -48,6 +50,7 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   account: { POST: (request, sql) => createAccountRoute(request, sql), DELETE: deleteAccountRoute },
   changes: { GET: pullChangesRoute, POST: (request, sql) => pushChangesRoute(request, sql) },
   'watch/token': { PUT: putWatchTokenRoute, DELETE: deleteWatchTokenRoute },
+  'mcp/token': { PUT: putMcpTokenRoute, DELETE: deleteMcpTokenRoute },
   'watch/readiness': { GET: getWatchReadinessRoute, PUT: putWatchReadinessRoute },
   'auth/signup': { POST: (request, sql) => signupRoute(request, sql) },
   'auth/login': { POST: (request, sql) => loginRoute(request, sql) },

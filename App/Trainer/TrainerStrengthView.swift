@@ -10,6 +10,8 @@ struct TrainerStrengthView: View {
     @State private var showsSend = false
     @State private var showsClaudeRequest = false
     @State private var claudeImport: ClaudeImportState?
+    @State private var inbox: ClaudeInbox?
+    @State private var inboxPreview: ClaudeImportState?
 
     private var model: TrainerModel { app.trainer }
     private var sessions: [TrainerStrengthSession] { model.strengthSessions.sorted { $0.weekday < $1.weekday } }
@@ -20,6 +22,9 @@ struct TrainerStrengthView: View {
                 daysCard
                 if model.suggestedStrength() != sessions, sessions.contains(where: { $0.source == .trainer }) {
                     suggestionCard
+                }
+                if let inbox, let preview = inboxPreview {
+                    inboxCard(inbox, preview: preview)
                 }
                 if sessions.contains(where: { $0.source == .trainer }) {
                     claudeCard
@@ -56,8 +61,14 @@ struct TrainerStrengthView: View {
         .sheet(item: $claudeImport) { state in
             ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure) {
                 ClaudeStrengthStore().apply(state.results, summary: state.summary)
+                if let inbox, state.id == inboxPreview?.id {
+                    ClaudeMailbox().markSeen(inbox)
+                    self.inbox = nil
+                }
             }
         }
+        .task(id: app.remoteSync.lastSync) { refreshClaude() }
+        .onChange(of: sessions) { refreshClaude() }
     }
 
     private var raceTarget: ClaudeRaceTarget? {
@@ -66,6 +77,41 @@ struct TrainerStrengthView: View {
         }
         guard let race = try? targetRace(in: app.container.mainContext, today: model.currentDay), let day = Day(iso: race.day) else { return nil }
         return ClaudeRaceTarget(name: race.name, day: day)
+    }
+
+    private func refreshClaude() {
+        if model.publishClaudeContext(race: raceTarget) {
+            app.remoteSync.scheduleSync()
+        }
+        inbox = ClaudeMailbox().unseen()
+        inboxPreview = inbox.map { model.claudeInboxResults($0, race: raceTarget) }
+    }
+
+    private func inboxCard(_ inbox: ClaudeInbox, preview: ClaudeImportState) -> some View {
+        let valid = preview.results.filter(\.isValid).count
+        let shape = RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous)
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(ClaudeText.inboxTitle).font(.subheadline.weight(.bold)).foregroundStyle(ClaudeConstants.color)
+                Spacer()
+                Text(inbox.savedAt.formatted(.relative(presentation: .named))).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            if let summary = preview.summary {
+                Text("\"\(summary)\"").font(.footnote).foregroundStyle(BrandColors.text)
+            }
+            Text(String(format: ClaudeText.inboxCountFormat, preview.results.count, valid, preview.results.count - valid))
+                .font(.caption).foregroundStyle(BrandColors.dim)
+            Button(ClaudeText.review) { claudeImport = preview }
+                .buttonStyle(TrainerPrimaryButtonStyle())
+            Button(ClaudeText.discard) {
+                ClaudeMailbox().markSeen(inbox)
+                self.inbox = nil
+            }
+            .buttonStyle(TrainerSecondaryButtonStyle())
+        }
+        .padding(12)
+        .background(ClaudeConstants.color.opacity(TrainerStrengthConstants.bannerTint), in: shape)
+        .overlay(shape.strokeBorder(ClaudeConstants.color, lineWidth: TrainerStrengthConstants.bannerBorder))
     }
 
     private var claudeCard: some View {
