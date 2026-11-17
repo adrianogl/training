@@ -88,7 +88,6 @@ module ReadinessBands {
 }
 
 module Defaults {
-    const WEEKLY_GOAL_KM = 45;
     const KM_SCALE_MARGIN = 1.1;
 }
 

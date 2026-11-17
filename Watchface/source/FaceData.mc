@@ -63,9 +63,6 @@ class FaceData {
         }
         vo2Delta = number(face[ReadinessBridge.VO2_DELTA]);
         weekGoalKm = number(face[ReadinessBridge.WEEK_GOAL_KM]);
-        if (weekGoalKm == null) {
-            weekGoalKm = Settings.weeklyGoalKm();
-        }
         if (isToday) {
             weekPlannedKm = number(face[ReadinessBridge.WEEK_PLANNED_KM]);
         }

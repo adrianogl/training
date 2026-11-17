@@ -1,7 +1,4 @@
 <settings>
-    <setting propertyKey="@Properties.WeeklyGoalKm" title="@Strings.WeeklyGoalTitle">
-        <settingConfig type="numeric" min="1" max="300"/>
-    </setting>
     <setting propertyKey="@Properties.watchToken" title="@Strings.WatchTokenTitle" prompt="@Strings.WatchTokenPrompt">
         <settingConfig type="alphaNumeric"/>
     </setting>

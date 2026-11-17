@@ -1,6 +1,5 @@
 <strings>
     <string id="AppName">trAIning</string>
-    <string id="WeeklyGoalTitle">Meta semanal (km)</string>
     <string id="WatchTokenTitle">Token do relógio</string>
     <string id="WatchTokenPrompt">Gere no app trAIning em Ajustes › Sincronização › Relógio e cole aqui</string>
 </strings>

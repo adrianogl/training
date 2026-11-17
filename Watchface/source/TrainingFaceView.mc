@@ -338,17 +338,16 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (_data.weeklyRunMeters != null) {
             doneKm = _data.weeklyRunMeters.toFloat() / 1000.0;
         }
-        var goalKm = _data.weekGoalKm.toFloat();
-        var planKm = _data.weekPlannedKm;
-        var reference = goalKm;
-        if (planKm != null) {
-            planKm = planKm.toFloat();
-            reference = planKm;
+        var reference = null;
+        if (_data.weekPlannedKm != null && _data.weekPlannedKm > 0) {
+            reference = _data.weekPlannedKm.toFloat();
+        } else if (_data.weekGoalKm != null && _data.weekGoalKm > 0) {
+            reference = _data.weekGoalKm.toFloat();
         }
         var doneFont = font(:statValue);
         var done = Format.decimalComma(doneKm, "%.1f");
         var refFont = font(:statGoal);
-        var ref = "/" + Math.round(reference).toNumber();
+        var ref = reference == null ? "" : "/" + Math.round(reference).toNumber();
         var doneWidth = dc.getTextWidthInPixels(done, doneFont);
         var total = doneWidth + dc.getTextWidthInPixels(ref, refFont);
         var left = s(Layout.RIGHT_COLUMN) - total / 2;
@@ -356,38 +355,27 @@ class TrainingFaceView extends WatchUi.WatchFace {
         drawPx(dc, left + doneWidth, s(Layout.STAT_BASELINE), refFont, ref, Theme.DIM, Graphics.TEXT_JUSTIFY_LEFT);
         drawAt(dc, Layout.RIGHT_COLUMN, Layout.LABEL_BASELINE, font(:label), Texts.WEEK_KM, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
 
-        var scale = goalKm;
-        if (planKm != null && planKm > scale) {
-            scale = planKm;
+        if (reference == null) {
+            return;
         }
+        var scale = reference;
         if (doneKm > scale) {
             scale = doneKm;
         }
         scale = scale * Defaults.KM_SCALE_MARGIN;
-        if (scale <= 0) {
-            return;
-        }
         var barLeft = s(Layout.KM_BAR_LEFT);
         var barWidth = s(Layout.KM_BAR_WIDTH);
         var y = s(Layout.BAR_TOP);
         var height = max(2, s(Layout.BAR_HEIGHT));
         dc.setColor(Theme.LINE, Graphics.COLOR_TRANSPARENT);
         dc.fillRoundedRectangle(barLeft, y, barWidth, height, height / 2);
-        if (planKm != null && planKm > 0) {
-            dc.setColor(Theme.PLAN, Graphics.COLOR_TRANSPARENT);
-            dc.setPenWidth(1);
-            dc.drawRoundedRectangle(barLeft, y, max(height, (barWidth * planKm / scale).toNumber()), height, height / 2);
-        }
+        dc.setColor(Theme.PLAN, Graphics.COLOR_TRANSPARENT);
+        dc.setPenWidth(1);
+        dc.drawRoundedRectangle(barLeft, y, max(height, (barWidth * reference / scale).toNumber()), height, height / 2);
         var filled = (barWidth * doneKm / scale).toNumber();
         if (filled > 0) {
             dc.setColor(Theme.HARD, Graphics.COLOR_TRANSPARENT);
             dc.fillRoundedRectangle(barLeft, y, max(filled, height), height, height / 2);
-        }
-        if (goalKm > 0) {
-            var goalX = barLeft + (barWidth * goalKm / scale).toNumber();
-            dc.setColor(Theme.TXT, Graphics.COLOR_TRANSPARENT);
-            dc.setPenWidth(max(1, s(2)));
-            dc.drawLine(goalX, y - s(5), goalX, y + height + s(5));
         }
     }
 
