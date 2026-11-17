@@ -337,11 +337,19 @@ private struct NoGarminKey: APIKeyStore {
 @MainActor
 @Suite struct AppModelRemoteSyncTests {
     private static func app(remoteKey: String?, server: FakeSyncServer) throws -> AppModel {
-        AppModel(
+        let root = FileManager.default.temporaryDirectory.appending(path: "AppModelRemoteSync-\(UUID().uuidString)", directoryHint: .isDirectory)
+        let scope = AccountScope(
+            id: root.lastPathComponent, supportRoot: root.appending(path: "Support"), cachesRoot: root.appending(path: "Caches"),
+            keychain: { _ in MemoryKeyStore() }
+        )
+        return AppModel(
             container: try TrainingSchema.container(inMemory: true),
+            scope: scope,
             keyStore: NoGarminKey(),
             transport: server,
             remoteKeyStore: MemoryKeyStore(remoteKey),
+            watchTokenStore: MemoryKeyStore(),
+            remoteDefaults: scope.defaults,
             remoteBaseURL: URL(string: "https://sync.example.test")!,
             autoSyncEnabled: false
         )

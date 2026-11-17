@@ -99,6 +99,7 @@ import TrainingCore
                 PreferenceSyncStore(defaults: remoteDefaults),
                 ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
+                WatchTokenSyncStore(tokenStore: watchTokenStore, defaults: remoteDefaults),
             ]
         )
         self.garminAccount = GarminAccountModel(

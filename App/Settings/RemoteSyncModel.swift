@@ -398,6 +398,7 @@ import SwiftData
         status = report.quotaExceeded ? .failed(.quotaExceeded) : .idle
         if report.trainerChanged { trainerChanged?() }
         if !report.changedKinds.isEmpty { devicesChanged?(report.changedKinds) }
+        if report.changedKinds.contains(.preference) { hasWatchToken = currentWatchToken() != nil }
     }
 
     private func pendingCount() -> Int {

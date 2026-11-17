@@ -48,16 +48,34 @@ struct PreferenceSyncStore: RemoteBlobStore {
     func apply(_ blob: RemoteBlob) -> Bool {
         Self.lock.withLock {
             var state = loadState()
+            guard isTracked(blob.id), let value = decoded(blob.data) else { return false }
+            if C.unionKeys.contains(blob.id), let remote = value as? [Any] {
+                return applyUnion(remote, blob: blob, state: &state)
+            }
             if let local = state[blob.id], RemoteTimestamp.milliseconds(local.updatedAt) >= RemoteTimestamp.milliseconds(blob.updatedAt) {
                 return false
             }
-            guard isTracked(blob.id), let value = decoded(blob.data) else { return false }
             defaults.set(value, forKey: blob.id)
             let digest = encoded(defaults.object(forKey: blob.id)).map(Self.digest) ?? ""
             state[blob.id] = PreferenceSyncEntry(digest: digest, updatedAt: blob.updatedAt, pending: false)
             saveState(state)
             return true
         }
+    }
+
+    private func applyUnion(_ remote: [Any], blob: RemoteBlob, state: inout [String: PreferenceSyncEntry]) -> Bool {
+        let local = defaults.array(forKey: blob.id) ?? []
+        let merged = NSMutableOrderedSet(array: local)
+        merged.addObjects(from: remote)
+        let values = merged.array
+        guard !(values as NSArray).isEqual(to: local) else { return false }
+        defaults.set(values, forKey: blob.id)
+        let digest = encoded(defaults.object(forKey: blob.id)).map(Self.digest) ?? ""
+        let matchesRemote = (values as NSArray).isEqual(to: remote)
+        let stamp = Date(timeIntervalSince1970: Double(RemoteTimestamp.milliseconds(now())) / 1_000)
+        state[blob.id] = PreferenceSyncEntry(digest: digest, updatedAt: matchesRemote ? blob.updatedAt : max(stamp, blob.updatedAt), pending: !matchesRemote)
+        saveState(state)
+        return true
     }
 
     func handles(_ id: String) -> Bool {
