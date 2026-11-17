@@ -128,7 +128,7 @@ struct TodayView: View {
         var title: String?
         var detail: String?
         switch workoutPick(model)?.today {
-        case .garmin(let plan): title = plan.title; detail = PlanText.estimate(plan)
+        case .garmin(let plan): title = plan.title; detail = PlanText.estimate(plan, fallback: app.trainer.easyPaceBand)
         case .trainer(let row): title = row.workout.title; detail = "\(TodayText.decimal(row.workout.totalMeters / 1_000, fractionDigits: 1)) km"
         case nil: break
         }

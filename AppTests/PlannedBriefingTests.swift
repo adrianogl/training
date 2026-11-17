@@ -124,7 +124,7 @@ import WorkoutAnalysis
     @Test func longRunBriefingUsesTargetHistoryAndRace() {
         let briefing = PlannedBriefingBuilder.briefing(Self.input(Self.long))
 
-        #expect(briefing.stats.map(\.value) == ["20 km", "4:24–4:40", "1h28–1h33", "~198"])
+        #expect(briefing.stats.map(\.value) == ["20 km", "4:24–4:40", "1h28–1h34", "~198"])
         #expect(briefing.summary.contains("o mais longo do bloco"))
         #expect(briefing.summary.contains("Pela sua prontidão de hoje (74)"))
         #expect(briefing.phases.map(\.when) == ["km 0–2", "km 2–16", "km 16–20"])

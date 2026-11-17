@@ -56,7 +56,7 @@ struct PlannedWorkoutDetailView: View {
     private func rebuild() {
         let input = PlannedBriefingLoader.input(
             plan: plan, week: week, context: context, today: Day.today(),
-            weeklyGoalKm: weeklyGoal, weather: weather, course: course
+            weeklyGoalKm: weeklyGoal, weather: weather, course: course, easyBand: app.trainer.easyPaceBand
         )
         let built = PlannedBriefingBuilder.briefing(input)
         briefing = built

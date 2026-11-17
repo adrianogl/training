@@ -18,6 +18,7 @@ enum PlannedBriefingLoader {
         weeklyGoalKm: Int,
         weather: [HourlyWeather],
         course: CourseSuggestion?,
+        easyBand: PaceBand? = nil,
         now: Date = .now,
         calendar: Calendar = .current
     ) -> BriefingInput {
@@ -39,6 +40,7 @@ enum PlannedBriefingLoader {
             course: course,
             completed: completed(runs.first { $0.localDay == plan.day }),
             startHour: startHour(planDay: planDay, today: today, now: now, calendar: calendar),
+            easyBand: easyBand,
             goals: (try? goalSnapshots(context: context, today: today)) ?? []
         )
     }
