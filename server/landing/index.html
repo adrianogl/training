@@ -438,6 +438,37 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   .scene { --p: 1 !important; }
   .stage { position: relative; height: auto; padding-block: 64px; }
 }
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f3f6ee; --ink: #151a12; --ink-2: #384133; --dim: #616b5a; --line: #d6ddcb;
+    --card: #ffffff; --card-2: #eaf0e0; --lime: #4a7a12; --lime-deep: #e4f1c2;
+    --amber: #a86e00; --sky: #2c68c9; --ember: #c95a22; --rose: #bf3a32;
+    color-scheme: light;
+  }
+  :root :is(.ipad-pro, .iphone, .hero-watch, .watch, .dev, .share-card) {
+    --bg: #0d1014; --ink: #e8ecef; --ink-2: #c9cdd1; --dim: #8a949f; --line: #262e38;
+    --card: #181e26; --card-2: #202833; --lime: #c8f05a; --lime-deep: #1a2410;
+    --amber: #ffc24c; --sky: #7fb2ff; --ember: #ff8a4c; --rose: #e5534b;
+    color: var(--ink);
+  }
+  :root :is(.btn-lime, .nav-cta, .free-pill, .ask-form button, .bubble.me) { background: #c6f05e; color: #10160a; box-shadow: inset 0 0 0 1px #9cc23a; }
+  :root span.mark { border-color: #c4d99a; background: radial-gradient(circle at 50% 42%, #ffffff, #f1f6e4 60%, #dfe8cb); }
+  :root span.mark rect { stroke: #3f6b12; }
+  :root span.mark circle { fill: #c6f05e; stroke: #3f6b12; stroke-width: 3; }
+  :root .brand b { color: #3f6b12; }
+  :root :is(.btn-ghost, .nav-ask, .formats span) { border-color: #c3cbb7; }
+  :root .pulse-steps li::before { border-color: #c3cbb7; }
+  :root .free-band, :root .contact-card.whatsapp { border-color: #c4dc86; }
+  :root .ask-form :is(input, select, textarea) { background: #fff; border-color: #c3cbb7; }
+  :root .advice { background: #fbefd0; }
+  :root .race-plan { background: rgba(0,0,0,.03); }
+  :root .rep .band { background: rgba(120,170,30,.12); border-color: #9cc23a; }
+  :root .bubble mark { border-bottom-color: #9cc23a; }
+  :root .hero-watch { filter: drop-shadow(0 4px 8px rgba(30,40,20,.22)); }
+  :root .watch { filter: drop-shadow(0 34px 50px rgba(30,40,20,.3)); }
+  :root .ipad-pro, :root .iphone { box-shadow: 0 0 0 1.5px #9aa0a8, 0 0 0 3px #c9cdd2, 0 4px 8px -2px rgba(30,40,20,.25); }
+  :root .dev { box-shadow: 0 30px 60px -30px rgba(30,40,20,.5); }
+}
 </style>
 
 </head>
