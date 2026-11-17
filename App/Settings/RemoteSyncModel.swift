@@ -333,6 +333,7 @@ import SwiftData
             return
         }
         forgetWatchToken()
+        CredentialSyncStore.recordSignOut(id: DeviceSyncConstants.watchTokenId, defaults: defaults)
         watchMessage = C.watchRevoked
     }
 

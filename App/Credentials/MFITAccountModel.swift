@@ -50,8 +50,14 @@ import TrainingCore
         defaults.set(true, forKey: C.teacherCheckedKey)
     }
 
+    func reloadFromStore() {
+        isSignedIn = ((try? store.read()) ?? nil)?.isEmpty == false
+        revision += 1
+    }
+
     func signOut() {
         try? store.delete()
+        CredentialSyncStore.recordSignOut(id: DeviceSyncConstants.mfitTokenId, defaults: AccountScope.current.defaults)
         isSignedIn = false
         message = nil
         revision += 1

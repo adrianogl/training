@@ -115,9 +115,9 @@ import Testing
     }
 
     @Test func watchTokenTravelsToTheOtherDevice() {
-        let phone = WatchTokenSyncStore(tokenStore: MemoryKeyStore("token-do-iphone"), defaults: Self.defaults(), now: { Self.stamp })
+        let phone = CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: MemoryKeyStore("token-do-iphone"), defaults: Self.defaults(), now: { Self.stamp })
         let tablet = MemoryKeyStore()
-        let ipad = WatchTokenSyncStore(tokenStore: tablet, defaults: Self.defaults(), now: { Self.stamp })
+        let ipad = CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: tablet, defaults: Self.defaults(), now: { Self.stamp })
 
         let blobs = phone.pendingBlobs()
         phone.markBlobsPushed(blobs)
@@ -128,5 +128,24 @@ import Testing
         #expect(ipad.apply(blobs[0]))
         #expect((try? tablet.read()) == "token-do-iphone")
         #expect(ipad.pendingBlobs().isEmpty)
+    }
+
+    @Test func signingOutOnOneDeviceSignsOutOnTheOther() {
+        let phoneKeys = MemoryKeyStore("token-mfit")
+        let phone = CredentialSyncStore(id: DeviceSyncConstants.mfitTokenId, tokenStore: phoneKeys, defaults: Self.defaults(), now: { Self.stamp })
+        let tabletKeys = MemoryKeyStore()
+        let ipad = CredentialSyncStore(id: DeviceSyncConstants.mfitTokenId, tokenStore: tabletKeys, defaults: Self.defaults(), now: { Self.stamp })
+        _ = ipad.apply(phone.pendingBlobs()[0])
+        phone.markBlobsPushed(phone.pendingBlobs())
+        let later = CredentialSyncStore(id: DeviceSyncConstants.mfitTokenId, tokenStore: phoneKeys, defaults: phone.defaults, now: { Self.stamp.addingTimeInterval(60) })
+
+        try? phoneKeys.delete()
+        #expect(later.pendingBlobs().isEmpty)
+        CredentialSyncStore.recordSignOut(id: DeviceSyncConstants.mfitTokenId, defaults: phone.defaults, now: Self.stamp.addingTimeInterval(60))
+        let signOut = later.pendingBlobs()
+
+        #expect(signOut.map(\.data) == [Data()])
+        #expect(ipad.apply(signOut[0]))
+        #expect((try? tabletKeys.read()) == nil)
     }
 }
