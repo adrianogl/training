@@ -62,6 +62,16 @@ import WorkoutAnalysis
         }
     }
 
+    @Test func todayCardsShowThePerfectBadge() throws {
+        let run = LastRunSummary(
+            activityId: 2, title: "Corrida fácil", dateText: "seg., 16/11", kilometers: 12, paceSeconds: 292, averageHeartRate: 147,
+            evolution: nil, evolutionOnDevice: false, notice: nil, score: 100, kind: .easy, fadeKm: nil
+        )
+        for scheme in [ColorScheme.light, .dark] {
+            _ = try Self.render("today-compact-\(scheme)", LastRunCompactCard(lastRun: run, plannedKm: 12), scheme: scheme)
+        }
+    }
+
     @Test func perfectLineCountsTargetedBlocks() {
         let score = WorkoutScore(value: 100, items: [])
         #expect(ScoreRows.perfectLine(score, blocks: []) == ScoreConstants.perfectLineAllTargets)

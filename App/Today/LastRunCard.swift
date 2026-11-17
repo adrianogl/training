@@ -45,6 +45,7 @@ struct LastRunCard: View {
                 }
             }
             .brandCard(fillsHeight: true)
+            .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
         }
         .buttonStyle(.plain)
     }
