@@ -17,6 +17,9 @@ extension TrainerModel {
             readiness: day == currentDay ? history.readiness[day] : nil,
             prefs: TrainerStrengthPrefsStore().load(), cache: StrengthProgramStore().load(), schedule: StrengthSchedule()
         )
+        if let stored = ClaudeStrengthStore().workout(on: day), session.source == .trainer {
+            return ClaudeStrengthApply.apply(stored.workout, session: session, context: context)
+        }
         return StrengthGenerator.workout(for: session, context: context)
     }
 

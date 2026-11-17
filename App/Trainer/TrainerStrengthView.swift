@@ -1,11 +1,15 @@
 import Insights
 import SwiftUI
+import TrainingCore
+import UIKit
 
 struct TrainerStrengthView: View {
     @Environment(AppModel.self) private var app
     @State private var editing: TrainerStrengthDraft?
     @State private var showsPain = false
     @State private var showsSend = false
+    @State private var showsClaudeRequest = false
+    @State private var claudeImport: ClaudeImportState?
 
     private var model: TrainerModel { app.trainer }
     private var sessions: [TrainerStrengthSession] { model.strengthSessions.sorted { $0.weekday < $1.weekday } }
@@ -16,6 +20,9 @@ struct TrainerStrengthView: View {
                 daysCard
                 if model.suggestedStrength() != sessions, sessions.contains(where: { $0.source == .trainer }) {
                     suggestionCard
+                }
+                if sessions.contains(where: { $0.source == .trainer }) {
+                    claudeCard
                 }
                 Button { showsPain = true } label: {
                     Label(TrainerStrengthText.painButton, systemImage: TrainerStrengthConstants.painSymbol)
@@ -45,6 +52,48 @@ struct TrainerStrengthView: View {
         }
         .sheet(isPresented: $showsPain) { TrainerPainSheet() }
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }
+        .sheet(isPresented: $showsClaudeRequest) { ClaudeRequestSheet(race: raceTarget) }
+        .sheet(item: $claudeImport) { state in
+            ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure) {
+                ClaudeStrengthStore().apply(state.results, summary: state.summary)
+            }
+        }
+    }
+
+    private var raceTarget: ClaudeRaceTarget? {
+        if let plan = model.plan, plan.target.kind == .race, let date = plan.target.date, date > model.currentDay {
+            return ClaudeRaceTarget(name: plan.target.name, day: date)
+        }
+        guard let race = try? targetRace(in: app.container.mainContext, today: model.currentDay), let day = Day(iso: race.day) else { return nil }
+        return ClaudeRaceTarget(name: race.name, day: day)
+    }
+
+    private var claudeCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(ClaudeText.source, systemImage: ClaudeConstants.symbol)
+                .font(.footnote.weight(.bold))
+                .foregroundStyle(ClaudeConstants.color)
+            Button(ClaudeText.askButton) { showsClaudeRequest = true }
+                .buttonStyle(TrainerSecondaryButtonStyle())
+            Button(ClaudeText.pasteButton) { pasteFromClaude() }
+                .buttonStyle(TrainerSecondaryButtonStyle())
+        }
+        .brandCard()
+    }
+
+    private func pasteFromClaude() {
+        let text = UIPasteboard.general.string ?? ""
+        do {
+            let response = try ClaudeStrengthParser.parse(text)
+            let input = model.claudeContextInput(.untilRace, race: raceTarget)
+            var context = model.claudeValidationContext(input)
+            context.first = model.currentDay.adding(days: 1)
+            claudeImport = ClaudeImportState(summary: response.summary, results: ClaudeStrengthValidator.validate(response, context: context), failure: nil)
+        } catch ClaudeStrengthParseError.unsupportedVersion(let version) {
+            claudeImport = ClaudeImportState(summary: nil, results: [], failure: String(format: ClaudeText.unsupportedFormat, version))
+        } catch {
+            claudeImport = ClaudeImportState(summary: nil, results: [], failure: ClaudeText.invalidJSON)
+        }
     }
 
     private var upcomingCard: some View {
@@ -68,6 +117,7 @@ struct TrainerStrengthView: View {
                             }
                         }
                         Spacer(minLength: 6)
+                        if model.isClaudeDay(entry.day) { ClaudeSourceChip() }
                         Image(systemName: "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
                     }
                     .padding(.vertical, 6)

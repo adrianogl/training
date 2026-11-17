@@ -188,3 +188,13 @@ Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: 
 
 - **Aviso da manhã:** depois da prontidão, cita a força do dia de qualquer fonte: "Força: MMII." para o MFIT e "Força: mobilidade e core, 25 min." para o treinador. Quando uma regra mudou o treino do treinador (dia de qualidade, recuperação, prova ou prontidão), vira "Força ajustada:". Dia sem força ou nos 3 dias antes da prova não cita nada (`MorningStrengthText`).
 - **Relatório de domingo:** o bloco de força mostra as sessões feitas contra as planejadas por fonte, como "MFIT 3 de 3 · Treinador 1 de 2", quando a semana tem dias do treinador (`StrengthTally`).
+
+## Treinos de força do Claude
+
+Arquivos: `Insights/ClaudeStrength*.swift`, `App/Trainer/Claude/*`. Testes: `InsightsTests/ClaudeStrengthTests.swift`, `AppTests/ClaudeAppTests.swift`.
+
+- **Pedido:** a tela Força copia um pacote com instruções, contexto (dias do treinador e do MFIT, corrida do período, prontidão de 7 dias, dor, últimas cargas, catálogo, regras e prova) e o formato da resposta. Período: próxima semana (segunda a domingo) ou até a véspera da prova-alvo; sem prova, 12 semanas.
+- **Formato:** JSON `versao` 1, com `treinos` por `dia`, `foco`, `minutos`, `local`, `porque` e `exercicios` (`id` do catálogo, `series`, `reps` ou `segundos`, `descanso`, `kg`).
+- **Erros que bloqueiam o dia:** data inválida, dia passado ou fora do período, dia do MFIT, dia sem força do treinador, exercício fora do catálogo ou do local, exercício em região com dor, séries fora de 1–6, reps fora de 1–30, segundos fora de 10–120, descanso fora de 0–240, mais de 12 exercícios, perna pesada (2 ou mais exercícios de agachamento, terra, unilateral ou pliometria com barra, máquina ou halter) nas 48 h antes de limiar, VO2 ou longão, e força nos 3 dias antes da prova.
+- **Avisos:** duração estimada a mais de 10 min dos minutos do dia; carga mais de 5% acima da última.
+- **Uso:** os dias aplicados substituem o gerador naquela data. Prontidão abaixo de 50 e semana da prova trocam pelo treino do gerador com o aviso; dor marcada depois tira os exercícios afetados. Mudar o foco de um dia na tela Força apaga os treinos do Claude desse dia da semana. "Voltar ao gerador" apaga o daquele dia. Treinos de dias passados são descartados.

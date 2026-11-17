@@ -40,7 +40,11 @@ struct TodayStrengthCard<Label: View>: View {
                         HStack {
                             Text(TrainerStrengthText.todayTitle).font(.caption).foregroundStyle(BrandColors.dim)
                             Spacer()
-                            TrainerStrengthSourceChip(source: .trainer)
+                            if app.trainer.isClaudeDay(Day.today()) {
+                                ClaudeSourceChip()
+                            } else {
+                                TrainerStrengthSourceChip(source: .trainer)
+                            }
                             Text(StrengthText.open).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
                         }
                         Text(TrainerStrengthText.focusName(generated.group)).font(.headline).foregroundStyle(BrandColors.text)
