@@ -225,6 +225,18 @@ describe('PUT /api/v1/watch/readiness', () => {
     expect(withoutFace).toEqual([{ face: null }])
   })
 
+  it('mantém a agenda anterior quando o aparelho não manda eventos e limpa com lista vazia', async () => {
+    await putReadiness({ ...readiness, face })
+    await putReadiness({ ...readiness, face: { ...face, events: undefined, vo2Delta: 2.5 } })
+    const kept = await sql<{ face: { events?: unknown; vo2Delta?: number } }>('select face from readiness')
+    await putReadiness({ ...readiness, face: { ...face, events: [] } })
+    const cleared = await sql<{ face: { events?: unknown } }>('select face from readiness')
+
+    expect(kept[0]?.face.events).toEqual(face.events)
+    expect(kept[0]?.face.vo2Delta).toBe(2.5)
+    expect(cleared[0]?.face.events).toEqual([])
+  })
+
   it.each([
     ['face array', []],
     ['vo2Delta texto', { vo2Delta: '1' }],
@@ -240,7 +252,6 @@ describe('PUT /api/v1/watch/readiness', () => {
     ['shape com 25 passos', { workoutShape: Array.from({ length: 25 }, () => [1, 1]) }],
     ['dia da prova inválido', { raceDay: '2026-02-30' }],
     ['meta fracionária', { raceGoal: 5880.5 }],
-    ['eventos vazios', { events: [] }],
     ['quatro eventos', { events: Array.from({ length: 4 }, () => ({ start: 1_794_908_700, title: 'Daily' })) }],
     ['evento sem título', { events: [{ start: 1_794_908_700 }] }],
     ['título com 41', { events: [{ start: 1_794_908_700, title: 'a'.repeat(41) }] }],

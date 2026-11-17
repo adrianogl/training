@@ -39,7 +39,7 @@ import Testing
         #expect(face.events?.count == 3)
         #expect(face.events?.first?.title.count == 40)
         #expect(face.events?.last?.title == "Refinamento")
-        #expect(WatchFace(events: []).events == nil)
+        #expect(WatchFace(events: nil).events == nil)
     }
 
     @Test func readinessWithoutFaceOmitsKey() throws {
@@ -55,5 +55,15 @@ import Testing
         #expect(!body.contains("score"))
         #expect(!body.contains("verdict"))
         #expect(body.contains("LIVE!21K"))
+    }
+
+    @Test func emptyAgendaIsSentButMissingAgendaIsLeftOut() throws {
+        let empty = WatchFace(events: [])
+        let missing = WatchFace(events: nil)
+
+        #expect(empty.events == [])
+        #expect(missing.events == nil)
+        let encoded = String(data: try JSONEncoder().encode(missing), encoding: .utf8) ?? ""
+        #expect(!encoded.contains("events"))
     }
 }

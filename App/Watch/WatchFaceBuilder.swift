@@ -9,7 +9,7 @@ import TrainingCore
 enum WatchFaceBuilder {
     private typealias C = WatchFaceConstants
 
-    static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int, weather: [HourlyWeather] = [], events: [WatchEvent] = []) -> WatchFace? {
+    static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int, weather: [HourlyWeather] = [], events: [WatchEvent]? = nil) -> WatchFace? {
         let race = try? targetRace(in: context, today: today)
         let goal = race == nil ? goalLine(goalSnapshots: (try? goalSnapshots(context: context, today: today)) ?? [], today: today) : nil
         let todayPlan = planned.first { $0.day == today.iso }
