@@ -154,7 +154,7 @@ public struct WatchFace: Codable, Equatable, Sendable {
             guard (1...C.watchFaceEventStartLimit).contains(event.start), let title = Self.text(event.title) else { return nil }
             return WatchEvent(start: event.start, title: title)
         }
-        self.events = validEvents.isEmpty ? nil : Array(validEvents.prefix(C.watchFaceMaxEvents))
+        self.events = events == nil ? nil : Array(validEvents.prefix(C.watchFaceMaxEvents))
     }
 
     private static func text(_ value: String) -> String? {

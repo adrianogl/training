@@ -13,8 +13,8 @@ enum WatchCalendar {
         (try? await EKEventStore().requestFullAccessToEvents()) ?? false
     }
 
-    static func upcoming(now: Date) -> [WatchEvent] {
-        guard status == .fullAccess else { return [] }
+    static func upcoming(now: Date) -> [WatchEvent]? {
+        guard status == .fullAccess else { return nil }
         let store = EKEventStore()
         let predicate = store.predicateForEvents(withStart: now, end: now.addingTimeInterval(C.windowSeconds), calendars: nil)
         let items = store.events(matching: predicate).map { event in

@@ -37,7 +37,11 @@ export async function saveReadiness(sql: Sql, accountId: string, readiness: Read
   await sql(
     `insert into readiness (account_id, day, score, verdict, face) values ($1, $2::date, $3, $4, $5::jsonb)
      on conflict (account_id) do update
-     set day = excluded.day, score = excluded.score, verdict = excluded.verdict, face = excluded.face, updated_at = now()`,
+     set day = excluded.day, score = excluded.score, verdict = excluded.verdict, updated_at = now(),
+         face = case
+           when excluded.face is null or excluded.face ? 'events' or readiness.face is null or not (readiness.face ? 'events') then excluded.face
+           else excluded.face || jsonb_build_object('events', readiness.face -> 'events')
+         end`,
     [accountId, readiness.day, readiness.score ?? null, readiness.verdict ?? null, readiness.face === undefined ? null : JSON.stringify(readiness.face)],
   )
 }

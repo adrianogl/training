@@ -206,7 +206,6 @@ function isShape(value: unknown): value is number[][] {
 
 function isEvents(value: unknown): value is WatchEvent[] {
   return Array.isArray(value)
-    && value.length > 0
     && value.length <= FACE_MAX_EVENTS
     && value.every((event) => isObject(event)
       && Object.keys(event).every((key) => key === 'start' || key === 'title')
