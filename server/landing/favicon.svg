@@ -1,14 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .base { fill: #0B0E12; }
+    .glow-in { stop-color: #C8F05A; stop-opacity: 0.35; }
+    .glow-out { stop-color: #0B0E12; }
+    .track { stroke: #C8F05A; }
+    .dot { fill: #EDEFF2; stroke: none; }
+    @media (prefers-color-scheme: light) {
+      .base { fill: #E9F0D8; }
+      .glow-in { stop-color: #FFFFFF; stop-opacity: 1; }
+      .glow-out { stop-color: #DFE8CB; }
+      .track { stroke: #3F6B12; }
+      .dot { fill: #C6F05E; stroke: #3F6B12; stroke-width: 2.5; }
+    }
+  </style>
   <defs>
     <radialGradient id="g" cx="0.5" cy="0.4" r="0.7">
-      <stop offset="0" stop-color="#C8F05A" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="#0B0E12"/>
+      <stop offset="0" class="glow-in"/>
+      <stop offset="1" class="glow-out"/>
     </radialGradient>
   </defs>
-  <rect width="64" height="64" rx="16.6" fill="#0B0E12"/>
+  <rect width="64" height="64" rx="16.6" class="base"/>
   <rect width="64" height="64" rx="16.6" fill="url(#g)"/>
   <g transform="scale(0.64)">
-    <rect x="15" y="26" width="70" height="48" rx="24" fill="none" stroke="#C8F05A" stroke-width="7"/>
-    <circle cx="76" cy="31" r="6" fill="#EDEFF2"/>
+    <rect x="15" y="26" width="70" height="48" rx="24" fill="none" stroke-width="7" class="track"/>
+    <circle cx="76" cy="31" r="6" class="dot"/>
   </g>
 </svg>
