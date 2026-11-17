@@ -305,6 +305,9 @@ import TrainingCore
     }
 
     func saveStrength(_ sessions: [TrainerStrengthSession]) async {
+        let before = Dictionary(strengthSessions.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
+        let after = Dictionary(sessions.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
+        ClaudeStrengthStore().removeWeekdays(Set(before.keys.filter { after[$0] != before[$0] }))
         guard var current = plan else {
             standaloneStrength = sessions.sorted { $0.weekday < $1.weekday }
             TrainerStrengthStandaloneStore().save(standaloneStrength)

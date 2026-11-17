@@ -1,0 +1,104 @@
+import Foundation
+import Insights
+
+enum ClaudeText {
+    static let source = "Claude"
+    static let askButton = "Pedir ao Claude"
+    static let pasteButton = "Colar treinos do Claude"
+    static let requestTitle = "Pedir ao Claude"
+    static let periodLabel = "Período"
+    static let extraLabel = "Pedido extra (opcional)"
+    static let extraPlaceholder = "Ex.: quero mais glúteo médio, joelho chato depois do longão"
+    static let copy = "Copiar pacote para o Claude"
+    static let copied = "Copiado. Cole numa conversa com o Claude e, quando ele responder, copie o JSON e toque em \"Colar treinos do Claude\"."
+    static let includesTitle = "O pacote leva"
+    static let includes = [
+        "Seus dias de força do treinador, com foco, duração e local",
+        "Dias do MFIT, com o que o professor trabalhou",
+        "Corrida do período (plano ou Garmin)",
+        "Prontidão dos últimos 7 dias e dor marcada",
+        "Últimas cargas e o catálogo de exercícios do Garmin",
+        "Regras de força e o formato da resposta",
+    ]
+    static let importTitle = "Treinos do Claude"
+    static let applyFormat = "Aplicar %d dia(s)"
+    static let copyErrors = "Copiar erros para o Claude"
+    static let errorsCopied = "Erros copiados. Cole na conversa com o Claude para ele corrigir."
+    static let applied = "Aplicado."
+    static let invalidJSON = "Não achei um JSON válido na área de transferência. Copie só a resposta do Claude e tente de novo."
+    static let unsupportedFormat = "Versão do formato que o app não conhece (%d). Peça ao Claude para usar \"versao\": 1."
+    static let backToGenerator = "Voltar ao gerador neste dia"
+    static let whyTitle = "Por que, segundo o Claude"
+    static let close = "Fechar"
+    static let estimatedFormat = "%d exercícios · %d min estimados"
+    static let errorsIntro = "O app recusou estes pontos. Corrija e devolva o JSON completo de novo, no mesmo formato:"
+
+    static func periodName(_ period: ClaudeRequestPeriod, race: String?) -> String {
+        switch period {
+        case .nextWeek: "Próxima semana"
+        case .untilRace: race.map { "Até a prova (\($0))" } ?? "Próximas 12 semanas"
+        }
+    }
+
+    static func issue(_ issue: ClaudeIssue) -> String {
+        switch issue {
+        case .invalidDate: "data inválida"
+        case .pastDay: "dia que já passou"
+        case .outOfPeriod: "fora do período pedido"
+        case .mfitDay: "dia do MFIT, não será aplicado"
+        case .notTrainerDay: "não é um dia de força do treinador"
+        case .unknownExercise(let id): "\"\(id)\" não existe no catálogo"
+        case .wrongPlace(let id): "\"\(id)\" não cabe no local do dia"
+        case .painRegion(let id): "\"\(id)\" carrega uma região com dor marcada"
+        case .doseOutOfRange(let id): "\"\(id)\" com séries, repetições, segundos ou descanso fora da faixa"
+        case .noExercises: "sem exercícios"
+        case .tooManyExercises: "mais de 12 exercícios"
+        case .heavyLegsBeforeQuality: "perna pesada nas 48 h antes de limiar, VO2 ou longão"
+        case .nearRace: "força nos 3 dias antes da prova"
+        case .durationOff(let estimated, let planned): "\(estimated) min estimados para \(planned) marcados"
+        case .loadJump(let id): "carga de \"\(id)\" mais de 5% acima da última"
+        }
+    }
+
+    static let instructions = """
+    Você é o treinador de força de um corredor. Monte os treinos de força dos dias listados em "dias_do_treinador" dentro do período, usando o contexto abaixo.
+    - Use só exercícios do "catalogo", pelo "id". Respeite o "local" de cada dia (academia, casa ou só peso do corpo).
+    - Não monte nada nos dias do MFIT: eles são do professor. Complemente o que ele já trabalha.
+    - Siga as "regras". Periodize ao longo do período: progressão de carga e volume, semanas mais leves e redução perto da prova.
+    - A corrida só é conhecida para as primeiras semanas; nas outras, mantenha o padrão da semana conhecida.
+    - Responda apenas com o JSON no formato de "formato_da_resposta", sem texto antes ou depois. Em "porque", explique em uma frase a escolha do dia.
+    """
+
+    static let rules = [
+        "Perna pesada (2 ou mais exercícios de agachamento, terra, unilateral ou pliometria com carga) nunca nas 48 h antes de limiar, VO2 ou longão.",
+        "Em dia de limiar, VO2 ou longão, só mobilidade e core, ou superiores.",
+        "Nos 3 dias antes da prova, sem força; de 4 a 7 dias antes, só mobilidade curta.",
+        "Nenhum exercício que carregue uma região com dor marcada.",
+        "Séries de 1 a 6, repetições de 1 a 30, isometria de 10 a 120 s, descanso de 0 a 240 s, no máximo 12 exercícios.",
+        "Carga em kg só quando houver base nas últimas cargas; subir no máximo 5% por vez.",
+        "Duração estimada até 10 min diferente dos minutos do dia.",
+        "Priorize exercícios de corredor: unilateral, panturrilha e sóleo, glúteo médio, anti-rotação, mobilidade de quadril e tornozelo.",
+    ]
+
+    static let responseFormat = """
+    {
+      "versao": 1,
+      "autor": "claude",
+      "resumo": "uma frase sobre o período",
+      "treinos": [
+        {
+          "dia": "AAAA-MM-DD",
+          "foco": "upper | lower | fullBody | core",
+          "minutos": 25,
+          "local": "gym | home | bodyweight",
+          "porque": "uma frase",
+          "exercicios": [
+            { "id": "id do catálogo", "series": 3, "reps": 10, "descanso": 30 },
+            { "id": "id do catálogo", "series": 3, "segundos": 30, "descanso": 30 },
+            { "id": "id do catálogo", "series": 4, "reps": 6, "descanso": 150, "kg": 60 }
+          ]
+        }
+      ]
+    }
+    """
+}

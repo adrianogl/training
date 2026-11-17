@@ -30,6 +30,17 @@ enum TrainerStrengthContextBuilder {
         return Set(categories.compactMap(StrengthCatalog.pattern(garminCategory:)))
     }
 
+    static func coveredByWeekday(program: MFITProgram?, schedule: StrengthSchedule, week: Day) -> [Int: [MovementPattern]] {
+        let workouts = schedule.workouts(program, from: week, through: week.adding(days: TrainerConstants.weekdayCount - 1))
+        var result: [Int: [MovementPattern]] = [:]
+        for workout in workouts {
+            guard let day = Day(iso: workout.day) else { continue }
+            let patterns = Set(workout.blocks.flatMap { $0.exercises.compactMap(\.category) }.compactMap(StrengthCatalog.pattern(garminCategory:)))
+            result[day.weekStart.days(until: day) + 1, default: []].append(contentsOf: patterns)
+        }
+        return result.mapValues { Array(Set($0)).sorted { $0.rawValue < $1.rawValue } }
+    }
+
     static func loads(_ records: [MFITLoadRecord]) -> [String: StrengthLoadRecord] {
         var result: [String: StrengthLoadRecord] = [:]
         for exercise in StrengthCatalog.all {

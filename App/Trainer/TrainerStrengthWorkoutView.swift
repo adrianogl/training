@@ -40,9 +40,23 @@ struct TrainerStrengthWorkoutView: View {
 
     @ViewBuilder
     private func content(_ workout: GeneratedStrengthWorkout) -> some View {
+        let stored = day.flatMap { ClaudeStrengthStore().workout(on: $0) }
         VStack(alignment: .leading, spacing: 2) {
-            Text(TrainerStrengthText.focusName(workout.group)).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
+            HStack(alignment: .firstTextBaseline) {
+                Text(TrainerStrengthText.focusName(workout.group)).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
+                Spacer()
+                if stored != nil { ClaudeSourceChip() }
+            }
             Text(TrainerStrengthText.meta(workout)).font(.caption).foregroundStyle(BrandColors.dim)
+        }
+        if let why = stored?.why {
+            VStack(alignment: .leading, spacing: 4) {
+                Label(ClaudeText.whyTitle, systemImage: ClaudeConstants.symbol).font(.footnote.weight(.bold)).foregroundStyle(ClaudeConstants.color)
+                Text(why).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ClaudeConstants.color.opacity(0.10), in: RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous))
         }
         ForEach(workout.adjustments, id: \.self) { adjustment in
             TrainerStrengthBanner(adjustment: adjustment) {
@@ -65,6 +79,13 @@ struct TrainerStrengthWorkoutView: View {
             Label(TrainerStrengthText.painButton, systemImage: TrainerStrengthConstants.painSymbol)
         }
         .buttonStyle(TrainerSecondaryButtonStyle())
+        if let day, stored != nil {
+            Button(ClaudeText.backToGenerator) {
+                ClaudeStrengthStore().remove(day)
+                revision += 1
+            }
+            .buttonStyle(TrainerSecondaryButtonStyle())
+        }
     }
 
     private func exerciseRow(_ exercise: GeneratedExercise) -> some View {
