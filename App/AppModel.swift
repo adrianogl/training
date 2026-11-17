@@ -99,7 +99,9 @@ import TrainingCore
                 PreferenceSyncStore(defaults: remoteDefaults),
                 ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
-                WatchTokenSyncStore(tokenStore: watchTokenStore, defaults: remoteDefaults),
+                CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: watchTokenStore, defaults: remoteDefaults),
+                CredentialSyncStore(id: DeviceSyncConstants.mfitTokenId, tokenStore: mfitTokenStore, defaults: remoteDefaults),
+                CredentialSyncStore(id: DeviceSyncConstants.garminKeyId, tokenStore: keyStore, defaults: remoteDefaults),
             ]
         )
         self.garminAccount = GarminAccountModel(
@@ -122,7 +124,11 @@ import TrainingCore
         remoteSync.devicesChanged = { [weak self] kinds in
             guard let self else { return }
             if kinds.contains(.chat) { Task { await self.scope.chats.reload() } }
-            if kinds.contains(.preference) { self.trainer.reloadKeptReadiness() }
+            if kinds.contains(.preference) {
+                self.trainer.reloadKeptReadiness()
+                self.mfitAccount.reloadFromStore()
+                self.hasKey = self.currentKey() != nil
+            }
         }
         trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
         garminAccount.link = { [weak self] in

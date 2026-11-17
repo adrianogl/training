@@ -45,6 +45,8 @@ enum DeviceSyncConstants {
         TrainerSignalNotifierConstants.notifiedDefaultsKey,
     ]
     static let watchTokenId = "watchToken"
-    static let watchTokenStateKey = "deviceSync.watchToken"
+    static let mfitTokenId = "mfitToken"
+    static let garminKeyId = "garminApiKey"
+    static let credentialStatePrefix = "deviceSync.credential."
     static let trackedPrefixes = [CoursePointsConstants.defaultsPrefix]
 }
