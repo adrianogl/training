@@ -117,6 +117,8 @@ public struct WatchFace: Codable, Equatable, Sendable {
     public var raceGoal: Int?
     public var racePrediction: Int?
     public var events: [WatchEvent]?
+    public var trainingStatus: String?
+    public var nextWeek: String?
 
     public init(
         vo2Delta: Double? = nil,
@@ -129,9 +131,13 @@ public struct WatchFace: Codable, Equatable, Sendable {
         raceDay: String? = nil,
         raceGoal: Int? = nil,
         racePrediction: Int? = nil,
-        events: [WatchEvent]? = nil
+        events: [WatchEvent]? = nil,
+        trainingStatus: String? = nil,
+        nextWeek: String? = nil
     ) {
         typealias C = RemoteSyncConstants
+        self.trainingStatus = trainingStatus.flatMap(Self.text)
+        self.nextWeek = nextWeek.flatMap(Self.text)
         self.vo2Delta = vo2Delta.map { min(max($0, -C.watchFaceVO2DeltaLimit), C.watchFaceVO2DeltaLimit) }
         self.weekPlannedKm = weekPlannedKm.map { min(max($0, 0), C.watchFaceWeekKmLimit) }
         self.weekGoalKm = weekGoalKm.flatMap { $0 > 0 ? min($0, C.watchFaceWeekKmLimit) : nil }

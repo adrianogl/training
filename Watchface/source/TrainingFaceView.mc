@@ -234,22 +234,69 @@ class TrainingFaceView extends WatchUi.WatchFace {
         var color = Theme.TXT;
         var verdict = Texts.READINESS;
         var text = Texts.NO_VALUE;
+        var style = score == null ? TrainingStatusStyle.of(_data.trainingStatus) : null;
         if (score != null) {
             color = bandColor(score);
             verdict = bandVerdict(score);
             text = score.toString();
+        } else if (style != null) {
+            verdict = style[0];
         } else if (_data.missingNight) {
             verdict = Texts.NO_NIGHT;
         }
-        var valueFont = font(:statValue);
-        var tagFont = font(:tag);
-        var tagGap = s(5);
-        var width = dc.getTextWidthInPixels(text, valueFont);
-        var left = s(Layout.LEFT_COLUMN) - (width + tagGap + dc.getTextWidthInPixels(Texts.AI, tagFont)) / 2;
-        drawPx(dc, left, s(Layout.STAT_BASELINE), valueFont, text, color, Graphics.TEXT_JUSTIFY_LEFT);
-        drawPx(dc, left + width + tagGap, s(Layout.STAT_BASELINE - 2), tagFont, Texts.AI, Theme.LIME, Graphics.TEXT_JUSTIFY_LEFT);
+        if (style != null) {
+            var valueFont = font(:statValue);
+            var cy = s(Layout.STAT_BASELINE) - Graphics.getFontAscent(valueFont) / 2;
+            drawStatusIcon(dc, s(Layout.LEFT_COLUMN), cy, s(15), style[2], style[3], style[1]);
+        } else {
+            drawAt(dc, Layout.LEFT_COLUMN, Layout.STAT_BASELINE, font(:statValue), text, color, Graphics.TEXT_JUSTIFY_CENTER);
+        }
         drawAt(dc, Layout.LEFT_COLUMN, Layout.LABEL_BASELINE, font(:label), verdict, Theme.DIM, Graphics.TEXT_JUSTIFY_CENTER);
-        drawReadinessRuler(dc, score);
+        if (style != null) {
+            drawStatusBar(dc, style[1]);
+        } else {
+            drawReadinessRuler(dc, score);
+        }
+    }
+
+    private function drawStatusBar(dc, color) {
+        var x0 = s(Layout.READINESS_BAR_LEFT) + 1;
+        var x1 = s(Layout.READINESS_BAR_LEFT + Layout.READINESS_BAR_WIDTH) - 1;
+        var height = max(2, s(Layout.BAR_HEIGHT));
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.fillRoundedRectangle(x0, s(Layout.BAR_TOP), max(2, x1 - x0), height, height / 2);
+    }
+
+    private function drawStatusIcon(dc, cx, cy, r, kind, angle, color) {
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        if (kind == :peak) {
+            dc.fillPolygon([[cx - r, cy + r * 7 / 10], [cx, cy - r], [cx + r, cy + r * 7 / 10]]);
+            return;
+        }
+        if (kind == :ring) {
+            dc.setPenWidth(max(2, s(4)));
+            dc.drawCircle(cx, cy, r - s(2));
+            return;
+        }
+        if (kind == :alert) {
+            var bar = max(2, s(6));
+            dc.fillRoundedRectangle(cx - bar / 2, cy - r, bar, r * 13 / 10, bar / 2);
+            dc.fillCircle(cx, cy + r * 8 / 10, max(2, s(4)));
+            return;
+        }
+        var shaft = max(2, s(6)) / 2;
+        var head = r * 6 / 10;
+        var points = [[-r, -shaft], [r - head, -shaft], [r - head, -head], [r, 0], [r - head, head], [r - head, shaft], [-r, shaft]];
+        var radians = Math.toRadians(angle);
+        var cos = Math.cos(radians);
+        var sin = Math.sin(radians);
+        var rotated = [];
+        for (var i = 0; i < points.size(); i++) {
+            var px = points[i][0];
+            var py = points[i][1];
+            rotated.add([(cx + px * cos - py * sin).toNumber(), (cy + px * sin + py * cos).toNumber()]);
+        }
+        dc.fillPolygon(rotated);
     }
 
     private function drawReadinessRuler(dc, score) {
@@ -382,15 +429,20 @@ class TrainingFaceView extends WatchUi.WatchFace {
     private function drawEvent(dc, dx, dy, today, labelBaseline, titleBaseline, titleMax, alwaysOn) {
         var start = _data.eventStart;
         var title = _data.eventTitle;
-        if (start == null || title == null) {
+        var nowSeconds = Time.now().value();
+        var day = null;
+        if (start != null && title != null && start > nowSeconds) {
+            day = Format.eventDay(Gregorian.info(new Time.Moment(start), Time.FORMAT_SHORT), today);
+        }
+        var weekend = today.day_of_week == 1 || today.day_of_week == 7;
+        if (weekend && _data.nextWeek != null && (day == null || !day.equals(Texts.TODAY))) {
+            drawNextWeek(dc, dx, dy, labelBaseline, titleBaseline, titleMax, alwaysOn);
             return;
         }
-        var nowSeconds = Time.now().value();
-        if (start <= nowSeconds) {
+        if (day == null) {
             return;
         }
         var info = Gregorian.info(new Time.Moment(start), Time.FORMAT_SHORT);
-        var day = Format.eventDay(info, today);
         var time = Format.eventTime(info);
         var relative = "";
         if (day.equals(Texts.TODAY)) {
@@ -423,6 +475,14 @@ class TrainingFaceView extends WatchUi.WatchFace {
         }
         var fitted = fitLine(dc, title, titleFonts, s(titleMax));
         drawPx(dc, _cx + dx, s(titleBaseline) + dy, fitted[1], fitted[0], titleColor, Graphics.TEXT_JUSTIFY_CENTER);
+    }
+
+    private function drawNextWeek(dc, dx, dy, labelBaseline, titleBaseline, titleMax, alwaysOn) {
+        var labelColor = alwaysOn ? Theme.AOD_DIM : Theme.DIM;
+        drawPx(dc, _cx + dx, s(labelBaseline) + dy, font(:eventLabel), Texts.NEXT_WEEK, labelColor, Graphics.TEXT_JUSTIFY_CENTER);
+        var fonts = alwaysOn ? [font(:aodEventTitle)] : [font(:eventTitle), font(:eventTitleSmall)];
+        var fitted = fitLine(dc, _data.nextWeek, fonts, s(titleMax));
+        drawPx(dc, _cx + dx, s(titleBaseline) + dy, fitted[1], fitted[0], alwaysOn ? Theme.DIM : Theme.TXT, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     private function fitLine(dc, text, fonts, maxWidth) {

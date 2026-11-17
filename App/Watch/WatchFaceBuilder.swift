@@ -9,7 +9,7 @@ import TrainingCore
 enum WatchFaceBuilder {
     private typealias C = WatchFaceConstants
 
-    static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int, weather: [HourlyWeather] = [], events: [WatchEvent]? = nil) -> WatchFace? {
+    static func face(context: ModelContext, summary: TodaySummary, today: Day, planned: [PlannedWorkout], weeklyGoalKm: Int, weather: [HourlyWeather] = [], events: [WatchEvent]? = nil, trainingStatus: String? = nil, nextWeek: String? = nil) -> WatchFace? {
         let race = try? targetRace(in: context, today: today)
         let goal = race == nil ? goalLine(goalSnapshots: (try? goalSnapshots(context: context, today: today)) ?? [], today: today) : nil
         let todayPlan = planned.first { $0.day == today.iso }
@@ -29,7 +29,9 @@ enum WatchFaceBuilder {
             raceDay: race?.day ?? goal?.day,
             raceGoal: race?.goalSeconds.map { Int($0.rounded()) } ?? goal?.goalSeconds,
             racePrediction: race == nil ? goal?.predictionSeconds : summary.race.raceDay.map { Int($0.mid.rounded()) },
-            events: events
+            events: events,
+            trainingStatus: trainingStatus,
+            nextWeek: nextWeek
         )
         return face == WatchFace() ? nil : face
     }
@@ -83,5 +85,19 @@ enum WatchFaceBuilder {
         let total = parts.reduce(0) { $0 + $1.weight }
         guard total > 0 else { return nil }
         return parts.map { [max(1, Int(($0.weight / total * C.shapeWeightScale).rounded())), $0.zone] }
+    }
+
+    static func trainingStatusKey(_ phrase: String?) -> String? {
+        guard let phrase else { return nil }
+        let key = phrase.replacing(/_\d+$/, with: "")
+        return C.trainingStatusKeys.contains(key) ? key : nil
+    }
+
+    static func nextWeekText(plan: TrainerPlan?, today: Day) -> String? {
+        let start = today.weekStart.adding(days: C.daysPerWeek)
+        guard let week = plan?.weeks.first(where: { $0.start == start }), plan?.endedOn == nil else { return nil }
+        let name = week.isRecovery ? C.lightWeek : C.phaseNames[week.phase] ?? ""
+        let kilometers = Int((week.plannedMeters / WorkoutConstants.metersPerKilometer).rounded())
+        return String(format: C.nextWeekFormat, name, kilometers)
     }
 }

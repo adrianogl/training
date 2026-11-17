@@ -1,4 +1,13 @@
+import Insights
 enum WatchFaceConstants {
+    static let phaseNames: [TrainerPhase: String] = [
+        .general: "Base geral", .base: "Base", .build: "Construção", .specific: "Específica", .taper: "Polimento",
+    ]
+    static let lightWeek = "Semana leve"
+    static let nextWeekFormat = "%@ · %d km"
+    static let trainingStatusKeys: Set<String> = [
+        "PRODUCTIVE", "MAINTAINING", "PEAKING", "RECOVERY", "UNPRODUCTIVE", "DETRAINING", "OVERREACHING", "STRAINED",
+    ]
     static let vo2WindowDays = 90
     static let vo2Precision = 10.0
     static let weekKmPrecision = 10.0

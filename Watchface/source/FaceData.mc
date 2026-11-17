@@ -18,6 +18,8 @@ class FaceData {
     var weekGoalKm = null;
     var readiness = null;
     var missingNight = false;
+    var trainingStatus = null;
+    var nextWeek = null;
     var eventStart = null;
     var eventTitle = null;
 
@@ -47,6 +49,8 @@ class FaceData {
     private function readBridge() {
         readiness = null;
         missingNight = false;
+        trainingStatus = null;
+        nextWeek = null;
         vo2Delta = null;
         weekPlannedKm = null;
         var today = Format.isoDate(Gregorian.info(Time.now(), Time.FORMAT_SHORT));
@@ -63,6 +67,10 @@ class FaceData {
         }
         vo2Delta = number(face[ReadinessBridge.VO2_DELTA]);
         weekGoalKm = number(face[ReadinessBridge.WEEK_GOAL_KM]);
+        var status = face[ReadinessBridge.TRAINING_STATUS];
+        trainingStatus = status instanceof String ? status : null;
+        var week = face[ReadinessBridge.NEXT_WEEK];
+        nextWeek = week instanceof String ? week : null;
         if (isToday) {
             weekPlannedKm = number(face[ReadinessBridge.WEEK_PLANNED_KM]);
         }

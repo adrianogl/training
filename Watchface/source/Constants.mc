@@ -26,6 +26,21 @@ module Theme {
     const PLAN = 0x7FB2FF;
 }
 
+module TrainingStatusStyle {
+    function of(key) {
+        if (key == null) { return null; }
+        if (key.equals("PRODUCTIVE")) { return ["PRODUTIVO", 0x4CC35A, :arrow, -45]; }
+        if (key.equals("MAINTAINING")) { return ["MANUTENÇÃO", 0xFFC24C, :arrow, 0]; }
+        if (key.equals("PEAKING")) { return ["PICO", 0xB57CFF, :peak, 0]; }
+        if (key.equals("RECOVERY")) { return ["RECUPERAÇÃO", 0x7FB2FF, :ring, 0]; }
+        if (key.equals("UNPRODUCTIVE")) { return ["IMPRODUTIVO", 0xFF9A3C, :arrow, 45]; }
+        if (key.equals("DETRAINING")) { return ["DESTREINANDO", 0x8A949F, :arrow, 90]; }
+        if (key.equals("OVERREACHING")) { return ["EXCESSO", 0xE5534B, :alert, 0]; }
+        if (key.equals("STRAINED")) { return ["ESFORÇADO", 0xE5534B, :alert, 0]; }
+        return null;
+    }
+}
+
 module Texts {
     const WEEKDAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"];
     const MONTHS = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
@@ -38,6 +53,7 @@ module Texts {
     const READINESS = "PRONTIDÃO";
     const NO_VALUE = "--";
     const NO_NIGHT = "SEM DADOS";
+    const NEXT_WEEK = "PRÓXIMA SEMANA";
     const TODAY = "HOJE";
     const TOMORROW = "AMANHÃ";
     const IN = "EM";
@@ -45,7 +61,6 @@ module Texts {
     const HOURS = "H";
     const SEPARATOR = " · ";
     const ELLIPSIS = "…";
-    const AI = "AI";
 }
 
 (:background)
@@ -67,6 +82,8 @@ module ReadinessBridge {
     const VO2_DELTA = "vo2Delta";
     const WEEK_PLANNED_KM = "weekPlannedKm";
     const WEEK_GOAL_KM = "weekGoalKm";
+    const TRAINING_STATUS = "trainingStatus";
+    const NEXT_WEEK = "nextWeek";
     const EVENTS = "events";
     const EVENT_START = "start";
     const EVENT_TITLE = "title";
@@ -103,7 +120,6 @@ module FontSpecs {
         :statGoal => [REGULAR, 24, Graphics.FONT_XTINY],
         :label => [BOLD, 17, Graphics.FONT_XTINY],
         :delta => [BOLD, 17, Graphics.FONT_XTINY],
-        :tag => [BOLD, 15, Graphics.FONT_XTINY],
         :eventLabel => [BOLD, 19, Graphics.FONT_XTINY],
         :eventTitle => [BOLD, 26, Graphics.FONT_TINY],
         :eventTitleSmall => [BOLD, 22, Graphics.FONT_XTINY],
