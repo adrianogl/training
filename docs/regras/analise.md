@@ -42,12 +42,14 @@ Arquivo: `WorkoutAnalysis/Assessment.swift`. Constantes: `WorkoutAnalysis/Analys
 | Item | Grupo | Quando aparece |
 | --- | --- | --- |
 | Blocos no alvo | bom | pelo menos um bloco com alvo ficou no alvo |
-| Ritmo constante | bom | volta mais lenta e mais rápida do bloco a no máximo 6 s/km |
+| Ritmo constante | bom | volta mais lenta e mais rápida do bloco a no máximo 6 s/km, no equivalente no plano |
 | FC menor que antes | bom | mesmo bloco do treino anterior, FC 3 bpm menor com velocidade dentro de 2% |
 | Boa recuperação | bom | FC cai pelo menos 25 bpm do pico do bloco até a média da recuperação |
 | Fora do alvo | corrigir | bloco mais rápido, mais lento, acima ou abaixo do alvo |
 | Incompleto | corrigir | bloco abaixo de 95% do prescrito, ou não feito |
-| Perda de ritmo | corrigir | última volta pelo menos 8 s/km mais lenta que a mediana das voltas do bloco |
+| Perda de ritmo | corrigir | última volta pelo menos 8 s/km mais lenta que a mediana das voltas do bloco, no equivalente no plano; se houve desnível, cita a subida da última volta |
+| Ritmo mais lento nas subidas | esperado | km seguidos em que a subida deixou o ritmo pelo menos 3 s/km mais lento que o equivalente no plano |
+| Ritmo mais rápido na descida | esperado | km seguidos em que a descida deixou o ritmo pelo menos 3 s/km mais rápido que o equivalente no plano |
 | Deriva cardíaca | atenção | FC do último terço 5% acima do primeiro terço, com velocidade variando até 2% |
 | Zona acima | atenção | aquecimento, recuperação ou rodagem com zona dominante 3 ou mais |
 | Forte com prontidão baixa | atenção | treino forte com prontidão abaixo de 50 |
@@ -55,11 +57,26 @@ Arquivo: `WorkoutAnalysis/Assessment.swift`. Constantes: `WorkoutAnalysis/Analys
 
 Quando um bloco fica incompleto, a análise procura a causa e cita só o que encontrou:
 
-- **Queda de ritmo:** o primeiro km pelo menos 8 s/km mais lento que a média dos 3 primeiros km, e que continua lento até o fim.
+- **Queda de ritmo:** o primeiro km pelo menos 8 s/km mais lento que a média dos 3 primeiros km, e que continua lento até o fim, no equivalente no plano.
 - **FC subindo:** a FC média dos 3 últimos km pelo menos 3 bpm acima da dos 3 primeiros.
 - **Pausas:** quantas houve, em que km começou a primeira e o tempo parado.
 - **Prontidão:** abaixo de 50.
 - **Carga:** aguda/crônica acima de 1,5.
+
+## Subida e descida
+
+Arquivos: `WorkoutAnalysis/Elevation*.swift`, `server/src/analysis/elevation.ts`. Testes: `WorkoutAnalysisTests/ElevationPaceTests.swift`, `server/test/elevation.test.ts`.
+
+| Regra | Valor | Constante |
+| --- | --- | --- |
+| Fonte | altitude que o relógio grava, somada por km | `ElevationCounter` |
+| Ruído do altímetro | só conta mudança de pelo menos 2 m | `elevationNoise` |
+| Desnível que conta | pelo menos 5 m de subida ou de descida no km | `elevationMinimum` |
+| Custo da subida | cada 1% de subida deixa o ritmo 3,3% mais lento | `climbCost` |
+| Ajuda da descida | cada 1% de descida deixa o ritmo 1,8% mais rápido | `descentGain` |
+| Citar o km | efeito de pelo menos 3 s/km | `elevationEffectSeconds` |
+
+Equivalente no plano = ritmo ÷ (1 + 3,3 × subida/distância − 1,8 × descida/distância). Ritmo constante, perda de ritmo, causa de bloco incompleto e, na análise detalhada, queda a partir do km X e saída rápida usam o equivalente no plano. A análise detalhada também passa os km com desnível para o texto do treinador. As voltas curtas de tiros não têm o desnível calculado e seguem pelo ritmo real.
 
 ## Nota do treino
 

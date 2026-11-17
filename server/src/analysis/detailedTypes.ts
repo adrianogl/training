@@ -19,6 +19,9 @@ export interface DetailedInput {
 export interface KilometerPoint {
   km: number
   paceSeconds: number
+  levelPace: number
+  climb: number
+  descent: number
   heartRate: number | null
 }
 

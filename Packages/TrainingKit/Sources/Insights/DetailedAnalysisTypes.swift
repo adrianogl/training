@@ -45,13 +45,21 @@ public struct DetailedSplit: Sendable, Equatable, Identifiable {
     public var km: Int
     public var paceSeconds: Double
     public var heartRate: Double?
+    public var climb: Double
+    public var descent: Double
 
     public var id: Int { km }
 
-    public init(km: Int, paceSeconds: Double, heartRate: Double?) {
+    public var levelPace: Double {
+        flatPace(paceSeconds, distance: DetailedAnalysisConstants.metersPerKilometer, climb: climb, descent: descent)
+    }
+
+    public init(km: Int, paceSeconds: Double, heartRate: Double?, climb: Double = 0, descent: Double = 0) {
         self.km = km
         self.paceSeconds = paceSeconds
         self.heartRate = heartRate
+        self.climb = climb
+        self.descent = descent
     }
 }
 

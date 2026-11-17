@@ -14,6 +14,7 @@ func detailedSplits(_ samples: [FITSample]) -> [DetailedSplit] {
     var previousDistance = 0.0
     var seconds = 0.0
     var heartRates: [Double] = []
+    var elevation = ElevationCounter()
     for sample in samples.sorted(by: { $0.t < $1.t }) {
         if let previousSample, let speed = previousSample.speed {
             integrated += speed * max(0, sample.t - previousSample.t)
@@ -33,14 +34,19 @@ func detailedSplits(_ samples: [FITSample]) -> [DetailedSplit] {
         previousTime = sample.t
         previousDistance = distance
         sample.heartRate.map { heartRates.append(Double($0)) }
+        elevation.add(sample.altitude)
         let covered = distance - start
         guard covered >= C.metersPerKilometer else { continue }
         if seconds > 0 {
-            rows.append(DetailedSplit(km: rows.count + 1, paceSeconds: (seconds * C.metersPerKilometer / covered * 10).rounded() / 10, heartRate: average(heartRates)))
+            rows.append(DetailedSplit(
+                km: rows.count + 1, paceSeconds: (seconds * C.metersPerKilometer / covered * 10).rounded() / 10, heartRate: average(heartRates),
+                climb: elevation.climb, descent: elevation.descent
+            ))
         }
         startDistance = distance
         seconds = 0
         heartRates = []
+        elevation.restart()
     }
     return rows
 }
@@ -69,7 +75,7 @@ func decoupling(_ splits: [DetailedSplit]) -> Double? {
 
 func openingPace(_ splits: [DetailedSplit]) -> Double? {
     guard splits.count >= C.startKm else { return nil }
-    return average(splits.prefix(C.startKm).map(\.paceSeconds))
+    return average(splits.prefix(C.startKm).map(\.levelPace))
 }
 
 func linearFit(_ points: [(x: Double, y: Double)]) -> (slope: Double, intercept: Double)? {

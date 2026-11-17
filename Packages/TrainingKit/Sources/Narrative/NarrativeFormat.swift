@@ -2,6 +2,28 @@ import Foundation
 import WorkoutAnalysis
 
 enum NarrativeFormat {
+    static func kilometerRange(_ facts: [String: Double]) -> String {
+        typealias C = FindingDetailConstants
+        let from = integer(facts[FindingFact.fromKilometer])
+        let to = integer(facts[FindingFact.toKilometer])
+        if to <= from { return "\(C.kilometer) \(from)" }
+        let joiner = to == from + 1 ? C.and : C.rangeTo
+        return "\(C.kilometer) \(from) \(joiner) \(to)"
+    }
+
+    static func elevation(_ facts: [String: Double]) -> String {
+        let climb = integer(facts[FindingFact.climb])
+        let descent = integer(facts[FindingFact.descent])
+        let minimum = Int(AnalysisConstants.elevationMinimum)
+        let parts = [climb >= minimum ? "+\(climb) m" : nil, descent >= minimum ? "−\(descent) m" : nil].compactMap { $0 }
+        return parts.joined(separator: " \(FindingDetailConstants.and) ")
+    }
+
+    static func elevationSegment(_ facts: [String: Double]) -> String {
+        let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
+        return "\(kilometerRange(facts)): \(elevation(facts)) \(FindingDetailConstants.at) \(pace)\(NarrativeConstants.paceUnit)"
+    }
+
     static func integer(_ value: Double?) -> Int {
         Int((value ?? 0).rounded())
     }

@@ -6,6 +6,7 @@ public enum FindingKind: String, Codable, Sendable {
     case blockInTarget, steadyPace, lowerHeartRateThanBefore, goodRecovery
     case blockOffTarget, stepIncomplete, paceFade
     case cardiacDrift, zoneAboveTarget, hardOnLowReadiness, highAcuteChronic
+    case climbSlower, descentFaster
 }
 
 public enum FindingFact {
@@ -44,6 +45,14 @@ public enum FindingFact {
     public static let pauseCount = "pauseCount"
     public static let pauseKilometer = "pauseKilometer"
     public static let pauseSeconds = "pauseSeconds"
+    public static let fromKilometer = "fromKilometer"
+    public static let toKilometer = "toKilometer"
+    public static let climb = "climb"
+    public static let descent = "descent"
+    public static let pace = "pace"
+    public static let flatPace = "flatPace"
+    public static let flatAdjusted = "flatAdjusted"
+    public static let lastClimb = "lastClimb"
 }
 
 public struct Finding: Codable, Sendable, Equatable {

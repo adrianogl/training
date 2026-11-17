@@ -38,6 +38,14 @@ public enum AnalysisConstants {
 }
 
 extension AnalysisConstants {
+    static let elevationNoise = 2.0
+    public static let elevationMinimum = 5.0
+    static let climbCost = 3.3
+    static let descentGain = 1.8
+    static let elevationEffectSeconds = 3.0
+}
+
+extension AnalysisConstants {
     static let executionWeight = 50.0
     static let intentWeight = 25.0
     static let costWeight = 25.0

@@ -1,6 +1,7 @@
 import Narrative
 
 enum DetailedCoachConstants {
+    static let elevationEffectSeconds = 3.0
     static let titles: [DetailedCoachPart: String] = [
         .workout: "O treino",
         .context: "No contexto dos seus treinos",
@@ -49,6 +50,9 @@ enum DetailedCoachText {
     static let stableSingle = "Do km 1 ao km %d o pace ficou em %@/km."
     static let afterFade = "Do km %d em diante o pace médio foi de %@/km."
     static let heartRateRange = "A FC foi de %d para %d bpm do primeiro ao último km."
+    static let climbKm = "O km %d subiu %d m e saiu a %@/km, o equivalente a %@/km no plano."
+    static let descentKm = "O km %d desceu %d m e saiu a %@/km, o equivalente a %@/km no plano."
+    static let maxElevationFacts = 4
     static let comparedWith = "Comparado com %d treinos parecidos dos últimos %d dias."
     static let completionVersus = "Você fez %d%% da distância; nos parecidos, a média foi %d%%."
     static let fadeVersus = "O pace começou a cair no km %d; nos parecidos, a média foi o km %d."

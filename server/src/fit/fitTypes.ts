@@ -59,6 +59,8 @@ export interface LapSummary {
   avgSpeed: number | null
   avgHeartRate: number | null
   maxHeartRate: number | null
+  climb?: number | null
+  descent?: number | null
 }
 
 export interface WorkoutStructure {

@@ -30,6 +30,7 @@ export interface TrackPoint {
   t: number
   distance: number
   heartRate: number | null
+  altitude: number | null
 }
 
 export interface ExpectedStep {
@@ -49,6 +50,7 @@ export type FindingKind =
   | 'blockInTarget' | 'steadyPace' | 'lowerHeartRateThanBefore' | 'goodRecovery'
   | 'blockOffTarget' | 'stepIncomplete' | 'paceFade'
   | 'cardiacDrift' | 'zoneAboveTarget' | 'hardOnLowReadiness' | 'highAcuteChronic'
+  | 'climbSlower' | 'descentFaster'
 
 export interface Finding {
   group: FindingGroup
