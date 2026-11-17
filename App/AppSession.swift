@@ -67,6 +67,7 @@ import UserNotifications
 
     static func live(environment: [String: String] = ProcessInfo.processInfo.environment) -> AppSession {
         let isTestHost = environment[AppConstants.testHostEnvironmentVariable] != nil
+        if !isTestHost { FreshInstall.clearLeftoverKeychain() }
         let transport = URLSessionTransport()
         let baseURL = RemoteSyncModel.baseURL(environment: environment)
         let account = AccountModel(transport: transport, baseURL: baseURL)
