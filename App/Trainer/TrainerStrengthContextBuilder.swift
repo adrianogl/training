@@ -6,12 +6,13 @@ import TrainingCore
 
 enum TrainerStrengthContextBuilder {
     static func context(
-        day: Day, plan: TrainerPlan, readiness: Int?, prefs: TrainerStrengthPrefs, cache: StrengthProgramCache, schedule: StrengthSchedule
+        day: Day, plan: TrainerPlan?, externalKind: TrainerDayKind? = nil, readiness: Int?, prefs: TrainerStrengthPrefs,
+        cache: StrengthProgramCache, schedule: StrengthSchedule
     ) -> StrengthContext {
-        let week = plan.weeks.first { $0.start == day.weekStart }
-        let raceDays: Int? = plan.target.kind == .race ? plan.target.date.map { day.days(until: $0) } : nil
+        let week = plan?.weeks.first { $0.start == day.weekStart }
+        let raceDays: Int? = plan.flatMap { plan in plan.target.kind == .race ? plan.target.date.map { day.days(until: $0) } : nil }
         return StrengthContext(
-            runKind: plan.workouts.first { $0.day == day }?.kind,
+            runKind: plan?.workouts.first { $0.day == day }?.kind ?? externalKind,
             isRecoveryWeek: week?.isRecovery ?? false,
             daysToRace: raceDays,
             readiness: readiness,

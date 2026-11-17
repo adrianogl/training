@@ -60,6 +60,7 @@ enum TrainerConstants {
     ]
     static let longModes: [TrainerLongMode] = [.continuous, .blocks]
     static let strengthGroups: [TrainerStrengthGroup] = [.upper, .lower, .fullBody, .core]
+    static let adjustmentsAnchor = "trainerAdjustmentsAnchor"
     static let locale = Locale(identifier: "pt_BR")
 
     static let shortcuts: [TrainerRequestShortcut] = [

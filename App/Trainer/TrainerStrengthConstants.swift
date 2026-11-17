@@ -3,6 +3,7 @@ import Insights
 
 enum TrainerStrengthConstants {
     static let prefsKey = "trainerStrengthPrefs"
+    static let standaloneKey = "trainerStrengthStandalone"
     static let completedSets = 3
     static let painReviewDays = 7
     static let minuteOptions = [15, 25, 30, 45, 60]

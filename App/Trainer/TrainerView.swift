@@ -29,8 +29,10 @@ struct TrainerView: View {
                         TrainerBetaBadge()
                     }
                     if let plan = model.plan {
+                        shortcuts(proxy)
                         planContent(plan, proxy: proxy)
                     } else if model.isLoaded {
+                        noPlanStrength
                         emptyState
                     }
                 }
@@ -103,12 +105,69 @@ struct TrainerView: View {
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(TrainerText.emptyTitle).font(.headline).foregroundStyle(BrandColors.text)
-            Text(TrainerText.emptyBody).font(.footnote).foregroundStyle(BrandColors.dim)
-            Button(TrainerText.cardCreate) { showsNewPlan = true }
+            Text(TrainerStrengthText.runPlanTitle).font(.headline).foregroundStyle(BrandColors.text)
+            Text(TrainerStrengthText.runPlanBody).font(.footnote).foregroundStyle(BrandColors.dim)
+            Button(TrainerStrengthText.createRunPlan) { showsNewPlan = true }
+                .buttonStyle(TrainerSecondaryButtonStyle())
+        }
+        .brandCard()
+    }
+
+    private var noPlanStrength: some View {
+        let sessions = model.strengthSessions.sorted { $0.weekday < $1.weekday }
+        let mfitDays = sessions.filter { $0.source == .mfit }.map { TrainerText.weekdayName($0.weekday - 1) }
+        return VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(TrainerStrengthText.weekTitle).padding(.vertical, 0)
+            ForEach(sessions.filter { $0.source == .trainer }) { session in
+                HStack(spacing: 10) {
+                    Text(TrainerText.weekdayName(session.weekday - 1)).font(.caption.weight(.bold)).foregroundStyle(BrandColors.text)
+                        .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(TrainerStrengthText.focusName(session.group)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                        Text(TrainerStrengthText.caption(session)).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                    Spacer(minLength: 6)
+                    TrainerStrengthSourceChip(source: .trainer)
+                }
+            }
+            if !mfitDays.isEmpty {
+                Text(String(format: TrainerStrengthText.mfitDaysFormat, mfitDays.joined(separator: ", "))).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            if sessions.isEmpty {
+                Text(TrainerText.strengthCardEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
+            }
+            NavigationLink(value: TrainerRoute.strength) { Text(TrainerStrengthText.openStrength) }
                 .buttonStyle(TrainerPrimaryButtonStyle())
         }
         .brandCard()
+    }
+
+    private func shortcuts(_ proxy: ScrollViewProxy) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                NavigationLink(value: TrainerRoute.strength) { shortcutLabel(TrainerStrengthText.shortcutStrength, symbol: "dumbbell") }
+                    .buttonStyle(.plain)
+                Button { showsSend = true } label: { shortcutLabel(TrainerStrengthText.shortcutSend, symbol: "applewatch") }
+                    .buttonStyle(.plain)
+                Button {
+                    withAnimation { showsAdjustments = true }
+                    Task {
+                        try? await Task.sleep(for: .seconds(TrainerConstants.tabSwitchSeconds))
+                        withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
+                    }
+                } label: { shortcutLabel(TrainerStrengthText.shortcutAdjustments, symbol: "slider.horizontal.3") }
+                    .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func shortcutLabel(_ title: String, symbol: String) -> some View {
+        Label(title, systemImage: symbol)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(BrandColors.text)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(BrandColors.track, in: Capsule())
     }
 
     @ViewBuilder
@@ -234,6 +293,7 @@ struct TrainerView: View {
         }
         .buttonStyle(.plain)
         .padding(.top, 6)
+        .id(TrainerConstants.adjustmentsAnchor)
         if showsAdjustments {
             strengthCard(plan)
             TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in

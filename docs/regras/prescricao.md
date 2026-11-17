@@ -144,6 +144,8 @@ Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.
 - **Fonte por dia:** cada dia de força vem do MFIT (professor, só leitura) ou do treinador. Quando o MFIT muda, só os dias do MFIT são trocados; os do treinador ficam, exceto num dia que o MFIT passou a ocupar, em que o MFIT vence (`StrengthSessions.merge`). Na edição, os dias do MFIT não aparecem para escolha.
 - **Foco do dia do treinador:** superiores, pernas, corpo inteiro ou mobilidade e core, com intensidade (leve, moderada, pesada), duração e local (academia, casa, só peso do corpo). Pernas moderada ou pesada e corpo inteiro pesado contam como dia de perna pesada.
 
+- **Sem plano do treinador:** a força funciona do mesmo jeito, guardada à parte (`TrainerStrengthStandaloneStore`) e levada para o plano quando ele é criado. O dia de corrida forte vem do nome do treino da assessoria no Garmin (`ExternalDayKind`): limiar, ritmo e tempo contam como limiar; VO2, intervalado, tiro e fartlek como VO2; longo, longão ou 18 km ou mais como longão; "prova" sem "ritmo" como prova. Semana de recuperação e semana da prova só se aplicam com plano.
+
 ### Sugestão de dias e foco
 
 Arquivo: `Insights/StrengthSessions.swift`. Testes: `InsightsTests/StrengthDayTests.swift`.
