@@ -32,6 +32,10 @@ enum TodayConstants {
     static let yesterdayBannerPadding: CGFloat = 8
     static let yesterdayBannerOpacity = 0.14
     static let readinessFromYesterday = "De ontem · a de hoje sai quando você acordar"
+    static let readinessMissingNight = "Sem dados desta noite"
+    static let readinessMissingNightNote = "O relógio não registrou HRV nem sono. Treine pela sensação de hoje."
+    static let readinessYesterdayReferenceFormat = "Nota de ontem: %d, só como referência"
+    static let watchMissingNight = "Noite sem dados"
     static let garminReadinessNote = "Nota da Garmin. Sem o sono e o HRV desta noite, o app não calculou a própria."
     static let verdictPhrases: [ReadinessVerdict: String] = [
         .hard: "Pode treinar forte",

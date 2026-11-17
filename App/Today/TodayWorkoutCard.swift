@@ -13,7 +13,8 @@ struct TodayWorkoutCard: View {
     private typealias C = TodayConstants
 
     var body: some View {
-        let suggestion = trainer.readinessSuggestion(score: model.summary.readiness?.score ?? model.fallbackScore, factor: TrainerModel.lowestFactor(model.summary.readiness))
+        let score = model.summary.readinessFromYesterday ? nil : model.summary.readiness?.score ?? model.fallbackScore
+        let suggestion = trainer.readinessSuggestion(score: score, factor: TrainerModel.lowestFactor(model.summary.readiness))
         VStack(alignment: .leading, spacing: 12) {
             header
             switch pick.today {

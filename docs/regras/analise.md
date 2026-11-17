@@ -21,7 +21,10 @@ A análise roda em dois lugares, que precisam ficar iguais:
 | Veredito | ≥ 70 forte, ≥ 40 moderado, abaixo disso descanso | `readinessVerdict` |
 | Média pessoal | 30 dias, com pelo menos 14 dias de dado | `ReadinessConstants` |
 
-Testes: `MetricsTests/ReadinessTests.swift`, `ReadinessBreakdownTests.swift`.
+| Sem dados de hoje | usa a nota de ontem, avisando "de ontem", e não manda essa nota ao relógio nem ao treinador | `todaySummary` |
+| Noite sem dados | já tem dado do dia (Body Battery ou estresse), passou das 10h e não veio HRV nem sono: o Hoje mostra "Sem dados desta noite", o relógio mostra "SEM DADOS", e o treinador e o aviso da manhã não usam a prontidão. A nota do Garmin, que conta o sono como zero, também não entra | `InsightsConstants.missingNightHour` |
+
+Testes: `MetricsTests/ReadinessTests.swift`, `ReadinessBreakdownTests.swift`, `InsightsTests/MissingNightTests.swift`.
 
 ## Divisão do treino em blocos e voltas
 

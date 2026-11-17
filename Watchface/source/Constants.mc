@@ -37,6 +37,7 @@ module Texts {
     const WEEK_KM = "KM SEMANA";
     const READINESS = "PRONTIDÃO";
     const NO_VALUE = "--";
+    const NO_NIGHT = "SEM DADOS";
     const TODAY = "HOJE";
     const TOMORROW = "AMANHÃ";
     const IN = "EM";
@@ -62,6 +63,7 @@ module ReadinessBridge {
     const DAY = "day";
     const SCORE = "score";
     const VERDICT = "verdict";
+    const MISSING_NIGHT = "Noite sem dados";
     const VO2_DELTA = "vo2Delta";
     const WEEK_PLANNED_KM = "weekPlannedKm";
     const WEEK_GOAL_KM = "weekGoalKm";
