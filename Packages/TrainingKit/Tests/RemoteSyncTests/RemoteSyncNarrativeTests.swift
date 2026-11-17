@@ -70,8 +70,8 @@ private func remote(_ text: String, at stamp: Date) throws -> ScriptedTransport.
         let sent = try #require(transport.pushBodies.first?.first)
         #expect(sent["kind"] as? String == "narrative")
         #expect(sent["id"] as? String == id)
-        #expect(sent["format"] == nil)
-        #expect(try RemotePayload.openNarrative(sent["payload"] as? String ?? "", id: id, key: keys.payload) == "Treino bom a 4:53/km.")
+        #expect(sent["format"] as? String == "plain")
+        #expect(String(decoding: try RemotePayload.decodeBlob(sent["payload"] as? String ?? ""), as: UTF8.self) == "Treino bom a 4:53/km.")
         #expect(report.pushed == 1)
         #expect(store.pending.isEmpty)
     }

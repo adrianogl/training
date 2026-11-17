@@ -34,6 +34,22 @@ private func run(_ stores: [FakeBlobStore], _ responses: [ScriptedTransport.Resp
 }
 
 @Suite struct RemoteSyncBlobTests {
+    @Test func accountWithoutKeyReadsPlainAndSkipsOldSealedRecords() async throws {
+        let store = FakeBlobStore(kind: .preference, pending: [])
+        let plain = RemoteRecord(kind: .preference, id: "weeklyGoalKm", updatedAt: base, deleted: false, payload: try RemotePayload.plain(blob: Data("50".utf8)), seq: 1, format: .plain)
+        let sealed = RemoteRecord(kind: .preference, id: "shareTemplate", updatedAt: base, deleted: false, payload: try RemotePayload.seal(blob: Data("1".utf8), kind: .preference, id: "shareTemplate", key: keys.payload), seq: 2)
+        let encoded = String(data: try RemoteJSON.encoder().encode([plain, sealed]), encoding: .utf8)!
+        let container = try TrainingSchema.container(inMemory: true)
+        let transport = ScriptedTransport([.json(200, #"{"records":\#(encoded),"cursor":2,"hasMore":false}"#)])
+        let client = RemoteClient(baseURL: URL(string: "https://sync.example.test")!, bearer: "sessao", transport: transport)
+        let engine = RemoteSyncEngine(container: container, client: client, defaultsSuite: migratedSuite(), blobStores: [store], now: { base })
+
+        _ = try await engine.sync()
+
+        #expect(store.applied.map(\.id) == ["weeklyGoalKm"])
+        #expect(transport.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer sessao")
+    }
+
     @Test func pushesPendingBlobsSealedWithTheirKind() async throws {
         let blob = RemoteBlob(id: "weeklyGoalKm", data: Data("50".utf8), updatedAt: base)
         let store = FakeBlobStore(kind: .preference, pending: [blob])
@@ -42,8 +58,8 @@ private func run(_ stores: [FakeBlobStore], _ responses: [ScriptedTransport.Resp
 
         let sent = try #require(transport.pushBodies.first?.first)
         #expect(sent["kind"] as? String == "preference")
-        #expect(sent["format"] == nil)
-        #expect(try RemotePayload.openBlob(sent["payload"] as? String ?? "", kind: .preference, id: "weeklyGoalKm", key: keys.payload) == Data("50".utf8))
+        #expect(sent["format"] as? String == "plain")
+        #expect(try RemotePayload.decodeBlob(sent["payload"] as? String ?? "") == Data("50".utf8))
         #expect(store.pushed == [blob])
     }
 

@@ -258,3 +258,7 @@ public protocol RemoteBlobStore: Sendable {
 public extension RemoteBlobStore {
     func handles(_ id: String) -> Bool { true }
 }
+
+struct RemoteBlobPayload: Codable {
+    var data: String
+}

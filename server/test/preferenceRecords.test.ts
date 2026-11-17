@@ -5,13 +5,14 @@ import { createAccountRoute, pullChangesRoute, pushChangesRoute } from '../src/r
 import { makeRequest, makeToken, migratedSql, record } from './helpers.js'
 
 const token = makeToken(1)
+const key = randomBytes(32)
 
 async function push(sql: Sql, records: unknown[]) {
   const response = await pushChangesRoute(
     makeRequest('POST', '/api/v1/changes', { token, body: JSON.stringify({ records }) }),
     sql,
     { maxAccounts: 3, maxAccountBytes: 50 * 1024 * 1024 },
-    randomBytes(32),
+    key,
   )
   return { status: response.status, body: await response.json() }
 }
@@ -51,11 +52,21 @@ describe('preferências e conversas', () => {
     expect(pushed).toEqual({ status: 400, body: { error: 'invalid_id' } })
   })
 
-  it('recusa o formato plain', async () => {
-    const preference = await push(sql, [record({ kind: 'preference', id: 'share', payload: '{}', format: 'plain' })])
+  it('aceita plain com os dados em base64, cifra no servidor e devolve igual', async () => {
+    const payload = JSON.stringify({ data: 'NTA=' })
+    const pushed = await push(sql, [record({ kind: 'preference', id: 'weeklyGoalKm', payload, format: 'plain' })])
+    const stored = await sql<{ payload: string }>("select payload from records where kind = 'preference'")
+    const pulled = await pullChangesRoute(makeRequest('GET', '/api/v1/changes', { token }), sql, key)
+    const body = (await pulled.json()) as { records: { payload: string; format: string }[] }
+
+    expect(pushed.status).toBe(200)
+    expect(stored[0]?.payload).not.toContain('NTA=')
+    expect(body.records[0]).toMatchObject({ payload, format: 'plain' })
+  })
+
+  it('recusa plain sem os dados em base64', async () => {
     const chat = await push(sql, [record({ kind: 'chat', id: 'trainer', payload: '{}', format: 'plain' })])
 
-    expect(preference).toEqual({ status: 400, body: { error: 'invalid_format' } })
-    expect(chat).toEqual({ status: 400, body: { error: 'invalid_format' } })
+    expect(chat).toEqual({ status: 400, body: { error: 'invalid_plain_payload' } })
   })
 })

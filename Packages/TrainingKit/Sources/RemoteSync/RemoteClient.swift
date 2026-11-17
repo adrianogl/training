@@ -8,8 +8,12 @@ public struct RemoteClient: Sendable {
     private let transport: any HTTPTransport
 
     public init(baseURL: URL, keys: RemoteKeys, transport: any HTTPTransport) {
+        self.init(baseURL: baseURL, bearer: keys.bearer, transport: transport)
+    }
+
+    public init(baseURL: URL, bearer: String, transport: any HTTPTransport) {
         self.baseURL = baseURL
-        self.bearer = keys.bearer
+        self.bearer = bearer
         self.transport = transport
     }
 

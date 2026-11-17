@@ -117,7 +117,6 @@ struct SettingsView: View {
         case .garmin: model.hasKey ? "sync \(lastSyncText)" : "sem chave da API"
         case .mfit: MFITAccountConstants.summary
         case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
-        case .devices: model.remoteSync.isEnabled ? "Ligada" : "Desligada"
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
         case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
         case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
@@ -132,6 +131,7 @@ struct SettingsView: View {
             switch group {
             case .account:
                 AccountSettingsView(model: model.account)
+                RemoteSyncSection(model: model.remoteSync, part: .sync)
             case .garmin:
                 GarminAccountSection(model: model.garminAccount)
                 keySection
@@ -141,8 +141,6 @@ struct SettingsView: View {
                 MFITAccountSection(model: model.mfitAccount)
             case .strava:
                 StravaSection(model: model.strava)
-            case .devices:
-                RemoteSyncSection(model: model.remoteSync, part: .sync)
             case .watch:
                 RemoteSyncSection(model: model.remoteSync, part: .watch)
             case .notice:
@@ -313,7 +311,7 @@ struct SettingsView: View {
 
     private static func initialGroup(defaults: UserDefaults = .standard) -> SettingsGroup {
         #if DEBUG
-        return defaults.bool(forKey: AppConstants.settingsScrollDefaultsKey) ? .devices : .garmin
+        return defaults.bool(forKey: AppConstants.settingsScrollDefaultsKey) ? .account : .garmin
         #else
         return .garmin
         #endif

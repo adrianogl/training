@@ -139,53 +139,6 @@ import TrainingCore
         #expect(denied.clipboard.values.isEmpty)
     }
 
-    @Test func disablingSyncDeletesWatchToken() async throws {
-        let h = try Self.harness(watchToken: WatchToken.generate())
-
-        await h.model.disable()
-
-        #expect(try h.watchStore.read() == nil)
-        #expect(!h.model.hasWatchToken)
-    }
-
-    @Test func deletingServerDataDeletesWatchToken() async throws {
-        let h = try Self.harness(watchToken: WatchToken.generate())
-
-        #expect(await h.model.deleteServerData())
-
-        #expect(try h.watchStore.read() == nil)
-        #expect(h.server.requests == ["DELETE /api/v1/account"])
-    }
-
-    @Test func disablingSyncRevokesWatchTokenOnServer() async throws {
-        let h = try Self.harness(watchToken: WatchToken.generate())
-
-        await h.model.disable()
-
-        #expect(h.server.requests == ["DELETE /api/v1/watch/token"])
-        #expect(try h.keyStore.read() == nil)
-    }
-
-    @Test func disablingOfflineStillTurnsSyncOff() async throws {
-        let server = FakeSyncServer(["DELETE /api/v1/watch/token": [.offline]])
-        let h = try Self.harness(watchToken: WatchToken.generate(), server: server)
-
-        await h.model.disable()
-
-        #expect(server.requests == ["DELETE /api/v1/watch/token"])
-        #expect(try h.keyStore.read() == nil)
-        #expect(try h.watchStore.read() == nil)
-        #expect(h.model.status == .off)
-    }
-
-    @Test func disablingWithoutWatchTokenMakesNoCall() async throws {
-        let h = try Self.harness()
-
-        await h.model.disable()
-
-        #expect(h.server.requests.isEmpty)
-    }
-
     @Test func generatingPublishesAvailableReadinessRightAway() async throws {
         let h = try Self.harness()
         h.model.readinessProvider = { Self.readiness }

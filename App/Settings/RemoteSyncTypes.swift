@@ -1,3 +1,4 @@
+import RemoteSync
 import Foundation
 
 enum RemoteSyncProblem: Equatable, Sendable {
@@ -27,11 +28,6 @@ enum RemoteSyncChip: Equatable, Sendable {
     }
 }
 
-struct RemoteSyncCounts: Equatable, Sendable {
-    let races: Int
-    let decisions: Int
-}
-
 enum DeviceOwnerResult: Equatable, Sendable {
     case granted
     case denied
@@ -49,4 +45,10 @@ protocol KeyClipboard: Sendable {
 enum RemoteSyncPart {
     case sync
     case watch
+}
+
+struct RemoteSyncAccess {
+    let client: RemoteClient
+    let keys: RemoteKeys?
+    let identity: String
 }
