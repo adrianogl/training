@@ -124,7 +124,8 @@ struct WorkoutAnalysisContext {
     private static func previous(of record: ActivityRecord, in records: [ActivityRecord]) -> [ActivityRecord] {
         let earlier = records.filter { $0.activityId != record.activityId && $0.hasStart && $0.start < record.start }
         if let name = record.workoutName {
-            return earlier.filter { $0.workoutName == name }
+            let key = WorkoutTitle.comparisonKey(name)
+            return earlier.filter { $0.workoutName.map(WorkoutTitle.comparisonKey) == key }
         }
         guard let distance = record.distance, distance > 0 else { return [] }
         let windowStart = record.start.addingTimeInterval(-WorkoutDetailConstants.similarRunWindowDays * WorkoutDetailConstants.secondsPerDay)

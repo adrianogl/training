@@ -147,5 +147,7 @@ export function scoreWorkout(blocks: WorkoutBlock[], zones: HeartRateZones | nul
   const maximum = items.reduce((sum, item) => sum + item.maximum, 0)
   if (maximum <= 0) return null
   const points = items.reduce((sum, item) => sum + item.points, 0)
-  return { value: Math.round((points / maximum) * ANALYSIS.scoreScale), items }
+  const value = Math.round((points / maximum) * ANALYSIS.scoreScale)
+  const complete = items.every((item) => item.maximum > 0)
+  return { value: complete ? value : Math.min(value, ANALYSIS.incompleteScoreCap), items }
 }

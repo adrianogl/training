@@ -8,6 +8,7 @@ import { runContinuity } from './continuity.js'
 import { blockKilometers, kilometerSplits } from './kilometers.js'
 import { evolutionText, narrate } from './narrative.js'
 import { scoreWorkout } from './workoutScore.js'
+import { comparisonKey } from './workoutTitle.js'
 
 export function thresholdZones(thresholdHeartRate: number): HeartRateZones {
   const inner = ANALYSIS.thresholdFloorFractions.map((fraction) => Math.round(thresholdHeartRate * fraction))
@@ -150,11 +151,12 @@ export function analyzeWorkout(input: AnalysisInput, formatDay: (day: string) =>
   }
 }
 
-export function comparisonCandidates<T extends { id: number; day: string; startLocal: string; distanceMeters: number | null; workoutId: number | null; type: string }>(current: T, all: T[], isRun: (item: T) => boolean): T[] {
+export function comparisonCandidates<T extends { id: number; name: string; day: string; startLocal: string; distanceMeters: number | null; workoutId: number | null; type: string }>(current: T, all: T[], isRun: (item: T) => boolean): T[] {
   const earlier = all.filter((item) => item.id !== current.id && item.startLocal < current.startLocal)
   let matches: T[]
   if (current.workoutId !== null) {
-    matches = earlier.filter((item) => item.workoutId === current.workoutId)
+    const key = comparisonKey(current.name)
+    matches = earlier.filter((item) => item.workoutId === current.workoutId || (item.workoutId !== null && key.length > 0 && comparisonKey(item.name) === key))
   } else {
     const meters = current.distanceMeters ?? 0
     if (meters <= 0) return []

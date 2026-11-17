@@ -13,7 +13,9 @@ public func scoreWorkout(blocks: [WorkoutBlock], zones: HeartRateZones?, previou
     let maximum = items.reduce(0) { $0 + $1.maximum }
     guard maximum > 0 else { return nil }
     let points = items.reduce(0) { $0 + $1.points }
-    return WorkoutScore(value: Int((points / maximum * AnalysisConstants.scoreScale).rounded()), items: items)
+    let value = Int((points / maximum * AnalysisConstants.scoreScale).rounded())
+    let complete = items.allSatisfy { $0.maximum > 0 }
+    return WorkoutScore(value: complete ? value : min(value, AnalysisConstants.incompleteScoreCap), items: items)
 }
 
 private func absent(_ part: ScorePart, _ reason: ScoreReason) -> ScoreItem {

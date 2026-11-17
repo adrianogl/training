@@ -93,7 +93,11 @@ Equivalente no plano = ritmo ÷ (1 + 3,3 × subida/distância − 1,8 × descida
 | Intenção (zona e ritmo de cada bloco) | 25 | idem |
 | Custo (eficiência contra os treinos iguais) | 25 | idem |
 
-Comparação com até 4 treinos iguais (`maxComparisons`). A versão da nota está em `AnalysisConstants.scoreVersion`. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
+Comparação com até 4 treinos iguais (`maxComparisons`). Treino planejado é igual a outro quando o nome bate sem o dia da semana e a data: "Corrida fácil seg 16/11" compara com "Corrida fácil qua 11/11". Um dia da semana cortado no fim do nome pelo limite do Garmin também sai (`WorkoutTitle.comparisonKey`, `server/src/analysis/workoutTitle.ts`).
+
+Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
+
+A versão da nota está em `AnalysisConstants.scoreVersion`. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
 
 ## Análise detalhada
 

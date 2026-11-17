@@ -1,5 +1,5 @@
 export const ANALYSIS = {
-  scoreVersion: 1,
+  scoreVersion: 2,
   completionRatio: 0.95,
   minimumStraySeconds: 10,
   sessionEndTrigger: 'session_end',
@@ -39,6 +39,7 @@ export const ANALYSIS = {
   costMedianShare: 0.5,
   costReasonThreshold: 0.01,
   scoreScale: 100,
+  incompleteScoreCap: 95,
   easyZoneNumber: 2,
   similarDistanceTolerance: 0.2,
   similarRunWindowDays: 90,
