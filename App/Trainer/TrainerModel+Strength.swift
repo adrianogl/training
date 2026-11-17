@@ -22,6 +22,10 @@ extension TrainerModel {
         )
     }
 
+    func strengthDone(on day: Day) -> Bool {
+        history.strength.contains { $0.day == day }
+    }
+
     func replacesMFIT(on day: Day) -> Bool {
         claudeOverride(on: day) != nil
     }
