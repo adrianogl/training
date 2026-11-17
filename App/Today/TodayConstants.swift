@@ -177,7 +177,7 @@ enum TodayConstants {
     static let blockToday = "O que faço hoje"
     static let blockWeek = "Como vai a semana"
     static let blockOutlook = "Onde vou chegar"
-    static let outlookPredictionLabels = ["5 km", "10 km", "21,1 km"]
+    static let outlookPredictionLabels = ["5 km", "10 km", "21,1 km", "42,2 km"]
     static let outlookRaceFormat = "Prova-alvo · %@"
     static let outlookGoalTodayFormat = "hoje %@"
     static let outlookLongRunsFormat = "%d de %d longões"

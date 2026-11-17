@@ -79,14 +79,14 @@ import TrainingCore
         #expect(LastRunBuilder.compactLine(run, plannedKm: nil) == "4:35/km · FC 165 · queda no km 11")
     }
 
-    @Test func outlookKeepsFiveTenAndHalf() {
+    @Test func outlookKeepsTheFourDistancesInOrder() {
         let predictions = [
             Prediction(label: "42,2 km", seconds: 11_000),
             Prediction(label: "10 km", seconds: 2_425),
             Prediction(label: "5 km", seconds: 1_171),
             Prediction(label: "21,1 km", seconds: nil),
         ]
-        #expect(TodayOutlookText.predictions(predictions).map(\.label) == ["5 km", "10 km"])
+        #expect(TodayOutlookText.predictions(predictions).map(\.label) == ["5 km", "10 km", "42,2 km"])
     }
 
     @Test func goalStatusShowsGapOrAhead() {
