@@ -58,7 +58,12 @@ class TrainingFaceApp extends Application.AppBase {
             Application.Storage.setValue(StorageKeys.READINESS_VERDICT, data[ReadinessBridge.VERDICT]);
         } else {
             Application.Storage.deleteValue(StorageKeys.READINESS);
-            Application.Storage.deleteValue(StorageKeys.READINESS_VERDICT);
+            var verdict = data[ReadinessBridge.VERDICT];
+            if (verdict instanceof String) {
+                Application.Storage.setValue(StorageKeys.READINESS_VERDICT, verdict);
+            } else {
+                Application.Storage.deleteValue(StorageKeys.READINESS_VERDICT);
+            }
         }
         Application.Storage.setValue(StorageKeys.READINESS_DAY, day);
         Application.Storage.setValue(StorageKeys.FACE, data);

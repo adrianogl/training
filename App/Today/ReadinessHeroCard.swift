@@ -13,8 +13,10 @@ struct ReadinessHeroCard: View {
     var body: some View {
         NavigationLink(value: TodayRoute.readiness) {
             VStack(alignment: .leading, spacing: 14) {
-                if model.summary.readiness != nil && model.summary.readinessFromYesterday {
-                    yesterdayBanner
+                if model.summary.readinessMissingNight == true {
+                    banner(C.readinessMissingNight)
+                } else if model.summary.readiness != nil && model.summary.readinessFromYesterday {
+                    banner(C.readinessFromYesterday)
                 }
                 HStack(alignment: .firstTextBaseline) {
                     SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
@@ -25,7 +27,19 @@ struct ReadinessHeroCard: View {
                             .foregroundStyle(BrandColors.dim)
                     }
                 }
-                if let breakdown = model.summary.readiness {
+                if model.summary.readinessMissingNight == true {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(C.readinessMissingNightNote)
+                            .font(.subheadline)
+                            .foregroundStyle(BrandColors.text.opacity(0.85))
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let score = model.summary.readiness?.score {
+                            Text(String(format: C.readinessYesterdayReferenceFormat, score))
+                                .font(.caption)
+                                .foregroundStyle(BrandColors.dim)
+                        }
+                    }
+                } else if let breakdown = model.summary.readiness {
                     HStack(alignment: .center, spacing: 18) {
                         ScoreGauge(score: breakdown.score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
                         VStack(alignment: .leading, spacing: 6) {
@@ -78,9 +92,9 @@ struct ReadinessHeroCard: View {
         .buttonStyle(.plain)
     }
 
-    private var yesterdayBanner: some View {
+    private func banner(_ text: String) -> some View {
         let radius = BrandConstants.cardCornerRadius
-        return Text(C.readinessFromYesterday)
+        return Text(text)
             .font(.footnote.weight(.semibold))
             .foregroundStyle(BrandColors.attention)
             .frame(maxWidth: .infinity, alignment: .leading)

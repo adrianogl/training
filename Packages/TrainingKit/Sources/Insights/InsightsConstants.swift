@@ -13,6 +13,7 @@ enum InsightsConstants {
     static let raceProjectionFallbackDays = 60
     static let metricProjectionDays = 60
     static let readinessHistoryDays = 30
+    static let missingNightHour = 10
     static let readinessChartDays = 30
     static let comparisonDays = 90
     static let paceWindowDays = 28

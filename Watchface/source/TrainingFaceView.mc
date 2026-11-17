@@ -238,6 +238,8 @@ class TrainingFaceView extends WatchUi.WatchFace {
             color = bandColor(score);
             verdict = bandVerdict(score);
             text = score.toString();
+        } else if (_data.missingNight) {
+            verdict = Texts.NO_NIGHT;
         }
         var valueFont = font(:statValue);
         var tagFont = font(:tag);

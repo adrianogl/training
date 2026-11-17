@@ -17,6 +17,7 @@ class FaceData {
     var weekPlannedKm = null;
     var weekGoalKm = null;
     var readiness = null;
+    var missingNight = false;
     var eventStart = null;
     var eventTitle = null;
 
@@ -45,6 +46,7 @@ class FaceData {
 
     private function readBridge() {
         readiness = null;
+        missingNight = false;
         vo2Delta = null;
         weekPlannedKm = null;
         var today = Format.isoDate(Gregorian.info(Time.now(), Time.FORMAT_SHORT));
@@ -52,6 +54,8 @@ class FaceData {
         var isToday = day instanceof String && day.equals(today);
         if (isToday) {
             readiness = Application.Storage.getValue(StorageKeys.READINESS);
+            var verdict = Application.Storage.getValue(StorageKeys.READINESS_VERDICT);
+            missingNight = readiness == null && verdict instanceof String && verdict.equals(ReadinessBridge.MISSING_NIGHT);
         }
         var face = Application.Storage.getValue(StorageKeys.FACE);
         if (!(face instanceof Dictionary)) {

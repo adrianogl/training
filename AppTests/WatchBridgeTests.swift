@@ -258,6 +258,17 @@ import TrainingCore
         #expect(AppModel.watchReadiness(summary: Self.summary(score: 63, verdict: nil), day: Self.day) == empty)
     }
 
+    @Test func yesterdaysScoreIsNotSentAsToday() {
+        var fromYesterday = Self.summary(score: 81, verdict: .hard)
+        fromYesterday.readinessFromYesterday = true
+        var missingNight = fromYesterday
+        missingNight.readinessMissingNight = true
+        let garmin = GarminReadinessScore(day: "2026-11-12", score: 11)
+
+        #expect(AppModel.watchReadiness(summary: fromYesterday, day: Self.day) == WatchReadiness(day: "2026-11-12", score: nil, verdict: nil))
+        #expect(AppModel.watchReadiness(summary: missingNight, day: Self.day, garmin: garmin) == WatchReadiness(day: "2026-11-12", score: nil, verdict: TodayConstants.watchMissingNight))
+    }
+
     @Test func garminScoreFillsInWhenTheAppHasNone() {
         let garmin = GarminReadinessScore(day: "2026-11-12", score: 50)
         let yesterday = GarminReadinessScore(day: "2026-11-11", score: 80)

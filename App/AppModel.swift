@@ -342,7 +342,10 @@ import TrainingCore
     }
 
     nonisolated static func watchReadiness(summary: TodaySummary, day: Day, garmin: GarminReadinessScore? = nil) -> WatchReadiness {
-        if let score = summary.readiness?.score, let phrase = summary.verdict.flatMap({ TodayConstants.verdictPhrases[$0] }) {
+        if summary.readinessMissingNight == true {
+            return WatchReadiness(day: day.iso, score: nil, verdict: TodayConstants.watchMissingNight)
+        }
+        if !summary.readinessFromYesterday, let score = summary.readiness?.score, let phrase = summary.verdict.flatMap({ TodayConstants.verdictPhrases[$0] }) {
             return WatchReadiness(day: day.iso, score: score, verdict: phrase)
         }
         if let garmin, garmin.day == day.iso, let phrase = TodayConstants.verdictPhrases[readinessVerdict(score: garmin.score)] {
@@ -353,7 +356,8 @@ import TrainingCore
 
     func publishWatchReadiness(summary: TodaySummary?, day: Day) async {
         guard let summary else { return }
-        let garmin = summary.readiness == nil ? await GarminReadinessCache.refresh(client: garminAccount.client, day: day, defaults: scope.defaults) : nil
+        let wantsGarmin = (summary.readiness == nil || summary.readinessFromYesterday) && summary.readinessMissingNight != true
+        let garmin = wantsGarmin ? await GarminReadinessCache.refresh(client: garminAccount.client, day: day, defaults: scope.defaults) : nil
         var readiness = Self.watchReadiness(summary: summary, day: day, garmin: garmin)
         let planned = await plannedForWatch(week: day.weekStart)
         let container = container

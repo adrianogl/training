@@ -1,3 +1,4 @@
+import Foundation
 import Metrics
 import Reports
 import Storage
@@ -5,7 +6,7 @@ import SwiftData
 import Sync
 import TrainingCore
 
-public func todaySummary(context: ModelContext, today: Day) throws -> TodaySummary {
+public func todaySummary(context: ModelContext, today: Day, now: Date = .now, calendar: Calendar = .current) throws -> TodaySummary {
     typealias C = InsightsConstants
     let activities = try fetchActivities(context, since: today.adding(days: -C.raceHistoryDays), through: today)
     let builder = ReportBuilder(context: context, today: today)
@@ -26,6 +27,8 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
     }
     let fromYesterday = breakdown(on: today) == nil && breakdown(on: today.adding(days: -1)) != nil
     let readinessDay = fromYesterday ? today.adding(days: -1) : today
+    let dayStarted = records[today].map { $0.bodyBatteryMorningMax != nil || $0.stressAvg != nil } ?? false
+    let missingNight = fromYesterday && dayStarted && calendar.component(.hour, from: now) >= C.missingNightHour
     let todayInput = input(on: readinessDay)
     let history = (1...C.readinessHistoryDays).reversed().compactMap { input(on: readinessDay.adding(days: -$0)) }
     let runs = activities.filter(isRun)
@@ -47,6 +50,7 @@ public func todaySummary(context: ModelContext, today: Day) throws -> TodaySumma
         lastRunId: runs.last?.activityId,
         readinessRaw: readinessRaw(today: todayInput, history: history),
         readinessFromYesterday: fromYesterday,
+        readinessMissingNight: missingNight,
         readinessHistory: (0..<C.readinessChartDays).reversed().map { offset in
             let day = readinessDay.adding(days: -offset)
             return ReadinessDayScore(day: day, score: breakdown(on: day)?.score ?? records[day]?.readinessScore)
