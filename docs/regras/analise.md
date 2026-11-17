@@ -26,6 +26,10 @@ A análise roda em dois lugares, que precisam ficar iguais:
 
 Testes: `MetricsTests/ReadinessTests.swift`, `ReadinessBreakdownTests.swift`, `InsightsTests/MissingNightTests.swift`.
 
+## Zonas de FC no Garmin
+
+As zonas de corrida do app partem do limiar do relógio: Z2 a partir de 85%, Z3 90%, Z4 95% e Z5 no limiar. Depois de cada sincronização, se o limiar mudou ou se as zonas de corrida do Garmin estão diferentes, o app grava essas faixas no Garmin, com o interruptor "Manter iguais às do app" em Ajustes › Garmin. Só mexe no perfil de corrida, e o início da Z1 continua o do Garmin. Depois de gravar, o app lê de volta e avisa se não bater. Arquivos: `GarminAPI/HeartRateZoneProfiles.swift`, `App/Garmin/GarminZonesModel.swift`. Testes: `GarminAPITests/HeartRateZoneProfilesTests.swift`.
+
 ## Divisão do treino em blocos e voltas
 
 | Regra | Valor | Onde |

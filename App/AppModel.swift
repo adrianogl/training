@@ -28,6 +28,7 @@ import TrainingCore
     let account: AccountModel
     let strava: StravaModel
     let trainer: TrainerModel
+    let garminZones: GarminZonesModel
     let snapshots: ScreenSnapshotStore
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
@@ -115,6 +116,7 @@ import TrainingCore
         self.account = account ?? AccountModel(transport: transport, baseURL: remoteBaseURL)
         self.strava = StravaModel(container: container, defaults: remoteDefaults)
         self.trainer = TrainerModel(container: container, store: trainerStore, defaults: remoteDefaults)
+        self.garminZones = GarminZonesModel(defaults: remoteDefaults)
         self.snapshots = snapshots
         remoteSync.accountToken = { [weak self] in self?.account.token }
         remoteSync.readinessProvider = { [weak self] in self?.todayWatchReadiness() }
@@ -339,6 +341,7 @@ import TrainingCore
             finishedSummary = nil
             await publishWatchReadiness(summary: finished.summary, day: finished.day)
         }
+        if syncStatus.isFinished { await garminZones.sync(container: container, client: garminAccount.client) }
         return syncStatus.isFinished
     }
 

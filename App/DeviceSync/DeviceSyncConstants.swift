@@ -37,6 +37,7 @@ enum DeviceSyncConstants {
         ShareStudioConstants.hidesEndsDefaultsKey,
         ShareConstants.templateDefaultsKey,
         ShareConstants.fieldsDefaultsKey,
+        GarminZonesConstants.enabledDefaultsKey,
     ]
     static let unionKeys: Set<String> = [
         WorkoutNoticeConstants.notifiedKey,
