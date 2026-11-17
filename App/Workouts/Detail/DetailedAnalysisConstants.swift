@@ -2,6 +2,9 @@ import CoreGraphics
 
 enum GeneratedTextConstants {
     static let keyPrefix = "generatedText."
+    static let entryPrefix = "generatedText.v2."
+    static let pendingKey = "generatedText.v2.pending"
+    static let version = "2"
 }
 
 enum DetailedScreenConstants {

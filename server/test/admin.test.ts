@@ -186,7 +186,7 @@ describe('collectMetrics', () => {
 
     expect(metrics.database.latencyMs).toBeGreaterThanOrEqual(0)
     expect(metrics.accounts).toBe(1)
-    expect(metrics.records).toEqual({ race: { live: 2, deleted: 1 }, decision: { live: 1, deleted: 0 }, goal: { live: 0, deleted: 0 }, trainer: { live: 0, deleted: 0 } })
+    expect(metrics.records).toEqual({ race: { live: 2, deleted: 1 }, decision: { live: 1, deleted: 0 }, goal: { live: 0, deleted: 0 }, trainer: { live: 0, deleted: 0 }, narrative: { live: 0, deleted: 0 } })
     expect(metrics.lastWrite.seq).toBeGreaterThan(0)
     expect(metrics.lastWrite.at).not.toBeNull()
     expect(metrics.errors24h).toBe(1)

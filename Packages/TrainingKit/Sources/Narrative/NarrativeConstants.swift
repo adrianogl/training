@@ -14,6 +14,7 @@ public enum NarrativeConstants {
     static let heartRateDeltaThreshold = 1.0
     static let temperature = 0.3
     static let forbiddenFragments = ["Achado", "Fatos", "|", "!"]
+    static let timeUnitWords: Set<String> = ["hora", "horas", "minuto", "minutos", "segundo", "segundos"]
 
     static let instructions = """
     Você é um treinador de corrida e escreve, em português do Brasil, a leitura de um treino do seu atleta.

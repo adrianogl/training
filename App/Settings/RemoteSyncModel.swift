@@ -30,6 +30,7 @@ import SwiftData
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let defaultsSuite: String?
     @ObservationIgnored private let trainerStore: (any RemoteTrainerStore)?
+    @ObservationIgnored private let narrativeStore: (any RemoteNarrativeStore)?
     @ObservationIgnored var readinessProvider: (@MainActor () -> WatchReadiness?)?
     @ObservationIgnored var trainerChanged: (@MainActor () -> Void)?
     @ObservationIgnored private var debounceTask: Task<Void, Never>?
@@ -47,9 +48,11 @@ import SwiftData
         watchTokenStore: any APIKeyStore = AccountScope.current.keyStore(AppConstants.watchTokenKeychainAccount),
         defaults: UserDefaults = AccountScope.current.defaults,
         defaultsSuite: String? = nil,
-        trainerStore: (any RemoteTrainerStore)? = nil
+        trainerStore: (any RemoteTrainerStore)? = nil,
+        narrativeStore: (any RemoteNarrativeStore)? = nil
     ) {
         self.trainerStore = trainerStore
+        self.narrativeStore = narrativeStore
         self.defaultsSuite = defaultsSuite
         self.clipboard = clipboard
         self.watchTokenStore = watchTokenStore
@@ -131,7 +134,7 @@ import SwiftData
         let key = text.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
             let keys = try RemoteKeys(syncKey: key)
-            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys, defaultsSuite: defaultsSuite, trainerStore: trainerStore).sync()
+            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys, defaultsSuite: defaultsSuite, trainerStore: trainerStore, narrativeStore: narrativeStore).sync()
             try keyStore.save(key)
             finished(report)
             return true
@@ -372,7 +375,7 @@ import SwiftData
         }
         status = .syncing
         do {
-            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys, defaultsSuite: defaultsSuite, trainerStore: trainerStore).sync()
+            let report = try await RemoteSyncEngine(container: container, client: client(keys), keys: keys, defaultsSuite: defaultsSuite, trainerStore: trainerStore, narrativeStore: narrativeStore).sync()
             guard currentKey() == key else { return }
             finished(report)
         } catch let error as URLError where Self.isNetwork(error) {

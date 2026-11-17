@@ -59,6 +59,22 @@ public enum RemotePayload {
         return plaintext
     }
 
+    public static func seal(narrative text: String, id: String, key: SymmetricKey) throws -> String {
+        guard let combined = try AES.GCM.seal(Data(text.utf8), using: key, authenticating: context(.narrative, id)).combined else {
+            throw RemoteSyncError.tamperedPayload
+        }
+        return combined.base64EncodedString()
+    }
+
+    public static func openNarrative(_ payload: String, id: String, key: SymmetricKey) throws -> String {
+        guard let combined = Data(base64Encoded: payload),
+              let box = try? AES.GCM.SealedBox(combined: combined),
+              let plaintext = try? AES.GCM.open(box, using: key, authenticating: context(.narrative, id)),
+              let text = String(data: plaintext, encoding: .utf8)
+        else { throw RemoteSyncError.tamperedPayload }
+        return text
+    }
+
     public static func decodeRace(_ text: String) throws -> RaceTransferItem {
         try decode(text)
     }
