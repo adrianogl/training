@@ -1,6 +1,10 @@
 import Foundation
 import Storage
 
+enum GoalTargetMode: Hashable, CaseIterable {
+    case time, pace
+}
+
 struct GoalDraft: Equatable {
     var kind: GoalKind = .time
     var distanceKm: Double = 10
@@ -9,6 +13,8 @@ struct GoalDraft: Equatable {
     var deadline = Date.now
     var longDistance = ""
     var pace = ""
+    var targetMode: GoalTargetMode = .time
+    var targetPace = ""
 }
 
 enum GoalDraftError: Error, Equatable {

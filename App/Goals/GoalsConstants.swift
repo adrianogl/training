@@ -24,6 +24,12 @@ enum GoalsConstants {
     static let distanceLabel = "Distância"
     static let timeLabel = "Tempo-alvo"
     static let timePlaceholder = "40:00"
+    static let targetLabel = "Alvo"
+    static let targetModeTitles: [GoalTargetMode: String] = [.time: "Tempo", .pace: "Pace"]
+    static let derivedPaceLabel = "Pace"
+    static let derivedTimeLabel = "Tempo"
+    static let paceUnitFormat = "%@ /km"
+    static let derivedHints: [GoalTargetMode: String] = [.time: "O pace é calculado a partir do tempo.", .pace: "O tempo é calculado a partir do pace."]
     static let hasDeadline = "Com prazo"
     static let deadlineLabel = "Prazo"
     static let longDistanceLabel = "Distância mínima (km)"

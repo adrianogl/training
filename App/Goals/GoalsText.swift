@@ -50,6 +50,13 @@ enum GoalsText {
         title(kind: snapshot.kind, distanceKm: snapshot.distanceKm, targetSeconds: snapshot.targetSeconds)
     }
 
+    static func subtitle(_ snapshot: GoalSnapshot) -> String {
+        switch snapshot.kind {
+        case .time: line(kind: .time, distanceKm: snapshot.distanceKm, targetSeconds: snapshot.targetSeconds, paceSecondsPerKm: nil, deadline: snapshot.deadline?.iso)
+        case .continuousLong: C.kindScopes[.continuousLong] ?? ""
+        }
+    }
+
     static func title(_ goal: GoalRecord) -> String {
         title(kind: goal.goalKind ?? .time, distanceKm: goal.distanceKm, targetSeconds: goal.targetSeconds)
     }

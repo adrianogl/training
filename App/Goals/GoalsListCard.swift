@@ -48,7 +48,7 @@ struct GoalsListCard: View {
         HStack(alignment: .center, spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(GoalsText.title(snapshot)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(C.kindScopes[snapshot.kind] ?? "").font(.caption).foregroundStyle(BrandColors.dim)
+                Text(GoalsText.subtitle(snapshot)).font(.caption).foregroundStyle(BrandColors.dim).monospacedDigit()
             }
             Spacer(minLength: 8)
             if let status = GoalsText.status(snapshot) {

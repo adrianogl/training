@@ -13,6 +13,7 @@ enum GoalDraftParser {
         case .time:
             draft.distanceKm = goal.distanceKm
             draft.time = goal.targetSeconds.map(WorkoutFormat.clock) ?? ""
+            draft.targetPace = goal.targetSeconds.map { WorkoutFormat.clock($0 / goal.distanceKm) } ?? ""
             if let deadline = goal.deadline.flatMap(Day.init(iso:)) {
                 draft.hasDeadline = true
                 draft.deadline = deadline.chartDate
@@ -27,7 +28,7 @@ enum GoalDraftParser {
     static func values(_ draft: GoalDraft, today: Day, calendar: Calendar = .current) -> Result<GoalValues, GoalDraftError> {
         switch draft.kind {
         case .time:
-            guard let seconds = RaceEditorModel.parseClock(draft.time), seconds >= C.minTargetSeconds, seconds <= C.maxTargetSeconds else { return .failure(.time) }
+            guard let seconds = targetSeconds(draft) else { return .failure(draft.targetMode == .pace ? .pace : .time) }
             var deadline: String?
             if draft.hasDeadline {
                 let day = Day.today(in: calendar.timeZone, now: draft.deadline)
@@ -39,6 +40,25 @@ enum GoalDraftParser {
             guard let distance = Double(draft.longDistance.replacingOccurrences(of: ",", with: ".")), distance > 0, distance <= C.maxDistanceKm else { return .failure(.distance) }
             guard let pace = RaceEditorModel.parseClock(draft.pace), pace >= C.minPace, pace <= C.maxPace else { return .failure(.pace) }
             return .success(GoalValues(kind: .continuousLong, distanceKm: distance, paceSecondsPerKm: pace))
+        }
+    }
+
+    static func targetSeconds(_ draft: GoalDraft) -> Double? {
+        switch draft.targetMode {
+        case .time:
+            guard let seconds = RaceEditorModel.parseClock(draft.time), seconds >= C.minTargetSeconds, seconds <= C.maxTargetSeconds else { return nil }
+            return seconds
+        case .pace:
+            guard let pace = RaceEditorModel.parseClock(draft.targetPace), pace >= C.minPace, pace <= C.maxPace else { return nil }
+            return (pace * draft.distanceKm).rounded()
+        }
+    }
+
+    static func derived(_ draft: GoalDraft) -> String? {
+        guard let seconds = targetSeconds(draft) else { return nil }
+        switch draft.targetMode {
+        case .time: return String(format: C.paceUnitFormat, WorkoutFormat.clock(seconds / draft.distanceKm))
+        case .pace: return WorkoutFormat.clock(seconds)
         }
     }
 

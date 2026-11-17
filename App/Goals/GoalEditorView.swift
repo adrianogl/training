@@ -41,8 +41,24 @@ struct GoalEditorView: View {
                     Picker(C.distanceLabel, selection: $draft.distanceKm) {
                         ForEach(C.distances, id: \.km) { item in Text(item.label).tag(item.km) }
                     }
-                    LabeledContent(C.timeLabel) {
-                        TextField(C.timePlaceholder, text: $draft.time).multilineTextAlignment(.trailing).keyboardType(.numbersAndPunctuation)
+                    Picker(C.targetLabel, selection: $draft.targetMode) {
+                        ForEach(GoalTargetMode.allCases, id: \.self) { mode in Text(C.targetModeTitles[mode] ?? "").tag(mode) }
+                    }
+                    .pickerStyle(.segmented)
+                    switch draft.targetMode {
+                    case .time:
+                        LabeledContent(C.timeLabel) {
+                            TextField(C.timePlaceholder, text: $draft.time).multilineTextAlignment(.trailing).keyboardType(.numbersAndPunctuation)
+                        }
+                    case .pace:
+                        LabeledContent(C.paceLabel) {
+                            TextField(C.pacePlaceholder, text: $draft.targetPace).multilineTextAlignment(.trailing).keyboardType(.numbersAndPunctuation)
+                        }
+                    }
+                    if let derived = GoalDraftParser.derived(draft) {
+                        LabeledContent(draft.targetMode == .time ? C.derivedPaceLabel : C.derivedTimeLabel) {
+                            Text(derived).fontWeight(.semibold).foregroundStyle(BrandColors.accent).monospacedDigit()
+                        }
                     }
                     Toggle(C.hasDeadline, isOn: $draft.hasDeadline)
                     if draft.hasDeadline {
@@ -59,6 +75,7 @@ struct GoalEditorView: View {
             } footer: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(C.kindScopes[draft.kind] ?? "")
+                    if draft.kind == .time { Text(C.derivedHints[draft.targetMode] ?? "") }
                     if let error { Text(error).foregroundStyle(BrandColors.danger) }
                 }
             }
