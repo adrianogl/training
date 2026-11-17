@@ -169,3 +169,14 @@ Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog.swift`, 
 - **Complemento ao MFIT:** padrões de movimento que o MFIT já trabalhou na semana vão para o fim da fila.
 - **Progressão de carga:** com a última carga registrada e todas as séries fechadas, sobe 2,5% arredondado, no mínimo 1 kg. Sem fechar as séries, repete a carga. Sem histórico, sem carga sugerida.
 - **Séries e repetições:** principal com barra ou máquina pesada 4 × 6 (150 s), moderada 3 × 10 (90 s), leve 2 × 12 (60 s); acessório pesado 3 × 8, moderado 3 × 10, leve 2 × 12; panturrilha 2–3 × 10–12; pliometria 3 × 6 (90 s); core 2–3 × 10–12 ou 30–45 s; mobilidade 2 × 8 por lado.
+
+## Envio ao Garmin
+
+Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: `GarminAPITests/GarminPlannedUploadTests.swift`, `AppTests/TrainerSendTests.swift`.
+
+- **O que vai:** os próximos 7 dias, por tipo (corrida, força ou os dois), com dias desmarcáveis. Força só dos dias do treinador; os do MFIT seguem pelo fluxo do MFIT.
+- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo.
+- **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
+- **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
+- **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.
+- **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.

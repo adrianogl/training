@@ -61,6 +61,24 @@ public struct GeneratedExercise: Codable, Sendable, Equatable, Identifiable {
 
     public var id: String { exerciseId }
 
+    public init(
+        exerciseId: String, name: String, category: String, exerciseName: String?, sets: Int, reps: Int?, seconds: Int?,
+        restSeconds: Int, weight: Double?, perSide: Bool, replacedName: String? = nil, replacedId: String? = nil
+    ) {
+        self.exerciseId = exerciseId
+        self.name = name
+        self.category = category
+        self.exerciseName = exerciseName
+        self.sets = sets
+        self.reps = reps
+        self.seconds = seconds
+        self.restSeconds = restSeconds
+        self.weight = weight
+        self.perSide = perSide
+        self.replacedName = replacedName
+        self.replacedId = replacedId
+    }
+
     var workSeconds: Double {
         let single = Double(seconds ?? (reps ?? 0) * StrengthGeneratorConstants.secondsPerRep)
         return perSide ? single * 2 : single

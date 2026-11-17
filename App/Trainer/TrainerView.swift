@@ -14,6 +14,7 @@ struct TrainerView: View {
     @State private var highlightedWeek: String?
     @State private var tab: TrainerTab = .plan
     @State private var showsAdjustments = false
+    @State private var showsSend = false
     @AppStorage(TrainerMFITConstants.keptDefaultsKey, store: AccountScope.current.defaults) private var keptSwaps = ""
 
     private var model: TrainerModel { app.trainer }
@@ -80,6 +81,8 @@ struct TrainerView: View {
         .sheet(isPresented: $showsRequest) { TrainerRequestView() }
         .sheet(isPresented: $showsChat) { TrainerChatSheet() }
         .sheet(isPresented: $showsEdit) { TrainerNewPlanView(isEditing: true) }
+        .sheet(isPresented: $showsSend) { TrainerSendSheet() }
+        .task(id: autoSendKey) { await model.autoSend(client: app.garminAccount.client) }
         .task { await model.load() }
         .task(id: app.garminAccount.isSignedIn) {
             await model.loadExternal(client: app.garminAccount.client)
@@ -88,6 +91,11 @@ struct TrainerView: View {
             guard app.mfitAccount.isSignedIn else { return }
             await model.syncStrength(TrainerMFITStrength.sessions(program: StrengthProgramStore().load().program, schedule: StrengthSchedule()))
         }
+    }
+
+    private var autoSendKey: String {
+        let plan = model.plan
+        return [String(plan?.versions.count ?? 0), String(plan?.strength.count ?? 0), model.currentDay.iso, String(app.garminAccount.isSignedIn)].joined(separator: "|")
     }
 
     private var emptyState: some View {
@@ -193,6 +201,11 @@ struct TrainerView: View {
         ForEach(model.weekGroups) { group in
             weekSection(group)
         }
+        Button { showsSend = true } label: {
+            Label(TrainerSendText.openButton, systemImage: "applewatch")
+        }
+        .buttonStyle(TrainerPrimaryButtonStyle())
+        .padding(.top, 4)
         adjustments(plan)
         AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
         if model.saveFailed {

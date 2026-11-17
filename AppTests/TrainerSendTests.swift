@@ -1,0 +1,66 @@
+import Foundation
+import GarminAPI
+import Insights
+import Testing
+import TrainingCore
+@testable import trAIning
+
+@Suite struct TrainerSendTests {
+    private let day = Day(iso: "2026-11-18")!
+
+    private func threshold() -> TrainerWorkout {
+        TrainerWorkout(day: day, kind: .threshold, title: "Limiar 8 × 1 km", totalMeters: 11_000, steps: [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 8, meters: 1_000, restSeconds: 120, paceLow: 240, paceHigh: 248),
+        ], rationale: "")
+    }
+
+    @Test func runStepsKeepWarmupRepeatsAndStandingRest() {
+        let steps = TrainerSendBuilder.runSteps(threshold())
+        #expect(steps == [
+            .warmup(meters: 3_000),
+            .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]),
+        ])
+    }
+
+    @Test func easyRunWithoutStepsIsOneInterval() {
+        let easy = TrainerWorkout(day: day, kind: .easy, title: "Rodagem 10 km", totalMeters: 10_000, steps: [], paceLow: 295, paceHigh: 310, rationale: "")
+        #expect(TrainerSendBuilder.runSteps(easy) == [.interval(meters: 10_000, fastest: 295, slowest: 310)])
+    }
+
+    @Test func strengthExercisesCarryGarminKeysAndSides() {
+        let exercise = GeneratedExercise(exerciseId: "bulgaro-halteres", name: "Agachamento búlgaro", category: "LUNGE", exerciseName: "DUMBBELL_BULGARIAN_SPLIT_SQUAT", sets: 3, reps: 8, seconds: nil, restSeconds: 60, weight: 12, perSide: true)
+        let mapped = TrainerSendBuilder.strengthExercises([exercise])
+        #expect(mapped == [PlannedStrengthExercise(description: "Agachamento búlgaro - cada lado", category: "LUNGE", exerciseName: "DUMBBELL_BULGARIAN_SPLIT_SQUAT", sets: 3, reps: 8, seconds: nil, restSeconds: 60, weight: 12)])
+    }
+
+    @Test func statusComparesSignatures() {
+        let item = TrainerSendItem(key: "run|2026-11-18", day: day, kind: .run, title: "Limiar", payload: Data("a".utf8))
+        #expect(TrainerSendBuilder.status(item, records: [:]) == .new)
+        #expect(TrainerSendBuilder.status(item, records: [item.key: TrainerSentRecord(workoutId: 1, signature: item.signature, day: day.iso, kind: .run)]) == .current)
+        #expect(TrainerSendBuilder.status(item, records: [item.key: TrainerSentRecord(workoutId: 1, signature: "x", day: day.iso, kind: .run)]) == .changed)
+    }
+
+    @Test func staleOnlyListsRecordsTheAppCreatedInTheWindow() {
+        let records: [String: TrainerSentRecord] = [
+            "run|2026-11-18": TrainerSentRecord(workoutId: 1, signature: "a", day: "2026-11-18", kind: .run),
+            "strength|2026-11-19|x": TrainerSentRecord(workoutId: 2, signature: "b", day: "2026-11-19", kind: .strength),
+            "run|2026-12-30": TrainerSentRecord(workoutId: 3, signature: "c", day: "2026-12-30", kind: .run),
+        ]
+        let stale = TrainerSendBuilder.stale(records: records, current: ["run|2026-11-18"], kinds: [.run, .strength], from: day, through: day.adding(days: 6))
+        #expect(stale.map(\.workoutId) == [2])
+    }
+
+    @Test func storeKeepsRecordsAndSettings() {
+        let store = TrainerSendStore(defaults: UserDefaults(suiteName: "send-\(UUID())")!)
+        store.record(TrainerSentRecord(workoutId: 9, signature: "s", day: "2026-11-18", kind: .strength), key: "k")
+        var settings = store.settings()
+        settings.auto = .strength
+        store.save(settings)
+        #expect(store.records()["k"]?.workoutId == 9)
+        #expect(store.settings().auto == .strength)
+        #expect(store.settings().runFromTrainer == false)
+        store.remove(key: "k")
+        #expect(store.records().isEmpty)
+    }
+}
