@@ -197,6 +197,10 @@ import TrainingCore
         return TrainerEngine.readinessSuggestion(plan: plan, history: seen, today: currentDay, factor: factor)
     }
 
+    func reloadKeptReadiness() {
+        keptReadinessDay = defaults.string(forKey: TrainerConstants.readinessKeptDefaultsKey)
+    }
+
     func keepReadiness(_ suggestion: TrainerReadinessSuggestion) {
         defaults.set(suggestion.day.iso, forKey: TrainerConstants.readinessKeptDefaultsKey)
         keptReadinessDay = suggestion.day.iso
