@@ -30,6 +30,8 @@ struct WorkoutRow: View {
                         if isFromPlan {
                             Text(WorkoutConstants.fromPlan)
                                 .font(.caption2.weight(.bold))
+                                .lineLimit(1)
+                                .fixedSize()
                                 .foregroundStyle(BrandColors.dim)
                         }
                         if hasChat {
