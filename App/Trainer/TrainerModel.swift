@@ -14,6 +14,7 @@ import TrainingCore
     private(set) var seenVersion: Int
     private(set) var isLoaded = false
     private(set) var isWorking = false
+    var isSendingToGarmin = false
     private(set) var isAdjusting = false
     private(set) var saveFailed = false
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []

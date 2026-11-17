@@ -32,7 +32,7 @@ struct TrainerStrengthView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(TrainerText.strengthTitle)
         .sheet(item: $editing) { draft in
-            TrainerStrengthEditView(draft: draft) { save($0) }
+            TrainerStrengthEditView(draft: draft, blockedDays: Set(sessions.filter { $0.source == .mfit }.map(\.weekday))) { save($0) }
         }
         .sheet(isPresented: $showsPain) { TrainerPainSheet() }
     }
@@ -164,11 +164,13 @@ struct TrainerStrengthEditView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var session: TrainerStrengthSession
     let isNew: Bool
+    let blockedDays: Set<Int>
     let onResult: (TrainerStrengthResult) -> Void
 
-    init(draft: TrainerStrengthDraft, onResult: @escaping (TrainerStrengthResult) -> Void) {
+    init(draft: TrainerStrengthDraft, blockedDays: Set<Int> = [], onResult: @escaping (TrainerStrengthResult) -> Void) {
         _session = State(initialValue: draft.session)
         isNew = draft.isNew
+        self.blockedDays = blockedDays
         self.onResult = onResult
     }
 
@@ -178,7 +180,7 @@ struct TrainerStrengthEditView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 12) {
                         Picker(TrainerText.strengthDayLabel, selection: $session.weekday) {
-                            ForEach(1...TrainerConstants.weekdayCount, id: \.self) { weekday in
+                            ForEach((1...TrainerConstants.weekdayCount).filter { !blockedDays.contains($0) }, id: \.self) { weekday in
                                 Text(TrainerConstants.weekdayFull[weekday - 1].capitalized).tag(weekday)
                             }
                         }

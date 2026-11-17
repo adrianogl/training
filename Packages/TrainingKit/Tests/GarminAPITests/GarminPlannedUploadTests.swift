@@ -73,4 +73,28 @@ private final class PlannedStore: GarminSessionStore {
         #expect(stub.requests.map { $0.httpMethod ?? "" } == ["POST", "POST", "DELETE"])
         #expect(stub.requests.map { $0.url?.path ?? "" } == ["/workout-service/workout", "/workout-service/schedule/55", "/workout-service/workout/55"])
     }
+
+    @Test func deletesTheCreatedWorkoutWhenSchedulingFails() async throws {
+        let stub = StubTransport([.ok(#"{"workoutId": 77}"#), .status(500, "{}"), .ok("")])
+        let client = GarminAccountClient(transport: stub, store: PlannedStore())
+        await #expect(throws: GarminAccountError.unexpectedResponse(status: 500)) {
+            _ = try await GarminPlannedUpload.create(client: client, body: Data("{}".utf8), day: Day(iso: "2026-11-19")!)
+        }
+        #expect(stub.requests.map { $0.httpMethod ?? "" } == ["POST", "POST", "DELETE"])
+        #expect(stub.requests.last?.url?.path == "/workout-service/workout/77")
+    }
+
+    @Test func deleteTreatsMissingWorkoutAsDone() async throws {
+        let stub = StubTransport([.status(404, "{}")])
+        let client = GarminAccountClient(transport: stub, store: PlannedStore())
+        try await GarminPlannedUpload.delete(client: client, workoutId: 5)
+    }
+
+    @Test func deleteFailsOnOtherErrors() async {
+        let stub = StubTransport([.status(500, "{}")])
+        let client = GarminAccountClient(transport: stub, store: PlannedStore())
+        await #expect(throws: GarminAccountError.unexpectedResponse(status: 500)) {
+            try await GarminPlannedUpload.delete(client: client, workoutId: 5)
+        }
+    }
 }

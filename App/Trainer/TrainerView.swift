@@ -82,7 +82,10 @@ struct TrainerView: View {
         .sheet(isPresented: $showsChat) { TrainerChatSheet() }
         .sheet(isPresented: $showsEdit) { TrainerNewPlanView(isEditing: true) }
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }
-        .task(id: autoSendKey) { await model.autoSend(client: app.garminAccount.client) }
+        .task(id: autoSendKey) {
+            let client = app.garminAccount.client
+            Task { await model.autoSend(client: client) }
+        }
         .task { await model.load() }
         .task(id: app.garminAccount.isSignedIn) {
             await model.loadExternal(client: app.garminAccount.client)

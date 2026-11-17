@@ -122,11 +122,22 @@ public enum GarminPlannedUpload {
     public static func create(client: GarminAccountClient, body: Data, day: Day) async throws -> Int64 {
         let created = try JSONDecoder().decode(GarminWorkoutUpload.Created.self, from: try await client.post(GarminAccountEndpoints.createWorkoutPath, body: body))
         let schedule = try JSONSerialization.data(withJSONObject: ["date": day.iso])
-        _ = try await client.post(GarminAccountEndpoints.schedulePathPrefix + String(created.workoutId), body: schedule)
+        do {
+            _ = try await client.post(GarminAccountEndpoints.schedulePathPrefix + String(created.workoutId), body: schedule)
+        } catch {
+            try? await delete(client: client, workoutId: created.workoutId)
+            throw error
+        }
         return created.workoutId
     }
 
     public static func delete(client: GarminAccountClient, workoutId: Int64) async throws {
-        _ = try await client.delete(GarminAccountEndpoints.workoutPathPrefix + String(workoutId))
+        do {
+            _ = try await client.delete(GarminAccountEndpoints.workoutPathPrefix + String(workoutId))
+        } catch GarminAccountError.unexpectedResponse(status: notFound) {
+            return
+        }
     }
+
+    static let notFound = 404
 }

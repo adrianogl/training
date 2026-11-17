@@ -34,6 +34,13 @@ import Testing
         #expect(merged.map(\.name) == ["Mobilidade", "MMII"])
     }
 
+    @Test func mfitWinsWhenBothFallOnTheSameDay() {
+        let trainer = TrainerStrengthSession(weekday: 2, group: .core, legLoad: .light, name: "Mobilidade", source: .trainer)
+        let mfit = TrainerStrengthSession(weekday: 2, group: .upper, legLoad: .light, name: "Superiores", source: .mfit)
+        let merged = StrengthSessions.merge(mfit: [mfit], into: [trainer])
+        #expect(merged.map(\.name) == ["Superiores"])
+    }
+
     @Test func mfitComparisonIgnoresTrainerDays() {
         let trainer = TrainerStrengthSession(weekday: 2, group: .core, legLoad: .light, name: "Mobilidade", source: .trainer)
         let mfit = TrainerStrengthSession(weekday: 3, group: .lower, legLoad: .heavy, name: "MMII", source: .mfit)

@@ -34,14 +34,21 @@ extension TrainerModel {
         return records.filter { _, record in stale.contains(record) }.map { (key: $0.key, record: $0.value) }.sorted { $0.record.day < $1.record.day }
     }
 
+    func sendToGarmin(_ items: [TrainerSendItem], stale: [(key: String, record: TrainerSentRecord)], client: GarminAccountClient) async -> TrainerSendResult? {
+        guard !isSendingToGarmin else { return nil }
+        isSendingToGarmin = true
+        defer { isSendingToGarmin = false }
+        return await TrainerSender.send(items, stale: stale, client: client, store: TrainerSendStore())
+    }
+
     func autoSend(client: GarminAccountClient?) async {
         let store = TrainerSendStore()
         let settings = store.settings()
-        guard let client, let filter = settings.auto else { return }
+        guard let client, let filter = settings.auto, !isSendingToGarmin else { return }
         let items = sendItems(filter, settings: settings)
         let stale = staleSends(filter, items: items, store: store)
         let records = store.records()
         guard !stale.isEmpty || items.contains(where: { TrainerSendBuilder.status($0, records: records) != .current }) else { return }
-        _ = await TrainerSender.send(items, stale: stale, client: client, store: store)
+        _ = await sendToGarmin(items, stale: stale, client: client)
     }
 }

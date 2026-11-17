@@ -55,7 +55,7 @@ struct TrainerSendSheet: View {
                         send(pending, stale: stale)
                     }
                     .buttonStyle(TrainerPrimaryButtonStyle())
-                    .disabled(sending || app.garminAccount.client == nil || pending.count + stale.count == 0)
+                    .disabled(sending || app.trainer.isSendingToGarmin || app.garminAccount.client == nil || pending.count + stale.count == 0)
                     if let message {
                         Text(message).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
                     }
@@ -130,7 +130,10 @@ struct TrainerSendSheet: View {
         guard let client = app.garminAccount.client else { return }
         sending = true
         Task {
-            let result = await TrainerSender.send(items, stale: stale, client: client, store: store)
+            guard let result = await app.trainer.sendToGarmin(items, stale: stale, client: client) else {
+                sending = false
+                return
+            }
             var text = String(format: TrainerSendText.resultFormat, result.sent, result.removed)
             if result.failed > 0 { text += String(format: TrainerSendText.failedFormat, result.failed) }
             message = text

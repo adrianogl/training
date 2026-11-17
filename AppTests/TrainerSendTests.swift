@@ -64,3 +64,45 @@ import TrainingCore
         #expect(store.records().isEmpty)
     }
 }
+
+@MainActor
+@Suite struct TrainerSenderTests {
+    private struct Failure: Error {}
+    private let day = Day(iso: "2026-11-18")!
+
+    private func item(_ text: String) -> TrainerSendItem {
+        TrainerSendItem(key: "strength|2026-11-18|a", day: day, kind: .strength, title: "Mobilidade", payload: Data(text.utf8))
+    }
+
+    @Test func keepsTheRecordWhenRemovingAStaleWorkoutFails() async {
+        let store = TrainerSendStore(defaults: UserDefaults(suiteName: "sender-\(UUID())")!)
+        let record = TrainerSentRecord(workoutId: 10, signature: "x", day: "2026-11-19", kind: .strength)
+        store.record(record, key: "old")
+        let result = await TrainerSender.send([], stale: [(key: "old", record: record)], store: store, create: { _ in 1 }, remove: { _ in throw Failure() })
+        #expect(result == TrainerSendResult(sent: 0, removed: 0, failed: 1))
+        #expect(store.records()["old"] == record)
+    }
+
+    @Test func doesNotCreateWhenTheOldVersionCouldNotBeRemoved() async {
+        let store = TrainerSendStore(defaults: UserDefaults(suiteName: "sender-\(UUID())")!)
+        let changed = item("novo")
+        let previous = TrainerSentRecord(workoutId: 10, signature: "antigo", day: day.iso, kind: .strength)
+        store.record(previous, key: changed.key)
+        var created = 0
+        let result = await TrainerSender.send([changed], stale: [], store: store, create: { _ in created += 1; return 20 }, remove: { _ in throw Failure() })
+        #expect(created == 0)
+        #expect(result.failed == 1)
+        #expect(store.records()[changed.key] == previous)
+    }
+
+    @Test func replacesTheOldVersionAfterRemovingIt() async {
+        let store = TrainerSendStore(defaults: UserDefaults(suiteName: "sender-\(UUID())")!)
+        let changed = item("novo")
+        store.record(TrainerSentRecord(workoutId: 10, signature: "antigo", day: day.iso, kind: .strength), key: changed.key)
+        var removed: [Int64] = []
+        let result = await TrainerSender.send([changed], stale: [], store: store, create: { _ in 20 }, remove: { removed.append($0) })
+        #expect(removed == [10])
+        #expect(result == TrainerSendResult(sent: 1, removed: 0, failed: 0))
+        #expect(store.records()[changed.key]?.workoutId == 20)
+    }
+}

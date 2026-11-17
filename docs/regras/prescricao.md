@@ -141,7 +141,7 @@ Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.
 
 - **Volume de corrida:** a força (segunda superiores, quarta pernas, sexta corpo inteiro) não reduz o volume de corrida. O plano só mostra a força.
 - **Dias:** o treinador avisa quando limiar, VO2 ou longão cai no dia seguinte a um dia de pernas, e sugere trocar o dia.
-- **Fonte por dia:** cada dia de força vem do MFIT (professor, só leitura) ou do treinador. Quando o MFIT muda, só os dias do MFIT são trocados; os do treinador ficam (`StrengthSessions.merge`).
+- **Fonte por dia:** cada dia de força vem do MFIT (professor, só leitura) ou do treinador. Quando o MFIT muda, só os dias do MFIT são trocados; os do treinador ficam, exceto num dia que o MFIT passou a ocupar, em que o MFIT vence (`StrengthSessions.merge`). Na edição, os dias do MFIT não aparecem para escolha.
 - **Foco do dia do treinador:** superiores, pernas, corpo inteiro ou mobilidade e core, com intensidade (leve, moderada, pesada), duração e local (academia, casa, só peso do corpo). Pernas moderada ou pesada e corpo inteiro pesado contam como dia de perna pesada.
 
 ### Sugestão de dias e foco
@@ -179,6 +179,7 @@ Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: 
 - **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
 - **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
 - **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.
+- **Falhas:** se apagar no Garmin falhar (exceto "não encontrado"), o registro fica e o treino novo daquele dia não é criado, para não sobrar treino duplicado. Se o agendamento falhar, o treino recém-criado é apagado. Só um envio roda por vez, e ele não é cancelado ao sair da tela.
 - **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.
 
 ## Força nos avisos

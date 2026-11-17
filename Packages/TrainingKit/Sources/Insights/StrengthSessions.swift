@@ -5,7 +5,9 @@ public enum StrengthSessions {
             copy.source = .mfit
             return copy
         }
-        return (current.filter { $0.source == .trainer } + tagged).sorted { $0.weekday < $1.weekday }
+        let mfitDays = Set(tagged.map(\.weekday))
+        let trainer = current.filter { $0.source == .trainer && !mfitDays.contains($0.weekday) }
+        return (trainer + tagged).sorted { $0.weekday < $1.weekday }
     }
 
     public static func sameMFIT(_ mfit: [TrainerStrengthSession], _ current: [TrainerStrengthSession]) -> Bool {
