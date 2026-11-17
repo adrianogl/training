@@ -20,6 +20,13 @@ enum DeviceSyncConstants {
         TrainerConstants.readinessKeptDefaultsKey,
         TrainerMFITConstants.keptDefaultsKey,
         StravaConstants.ledgerDefaultsKey,
+        TrainerConstants.seenVersionDefaultsKey,
+        TrainerConstants.seenCycleEndDefaultsKey,
+        BackgroundConstants.notifiedDayDefaultsKey,
+        WorkoutNoticeConstants.notifiedKey,
+        WorkoutNoticeConstants.notifiedWorkoutsKey,
+        StrengthConstants.recordNotifiedKey,
+        TrainerSignalNotifierConstants.notifiedDefaultsKey,
         RacePlanConstants.choiceDefaultsKey,
         BackgroundConstants.noticeEnabledDefaultsKey,
         BackgroundConstants.noticeMinimumMinutesDefaultsKey,
@@ -31,5 +38,13 @@ enum DeviceSyncConstants {
         ShareConstants.templateDefaultsKey,
         ShareConstants.fieldsDefaultsKey,
     ]
+    static let unionKeys: Set<String> = [
+        WorkoutNoticeConstants.notifiedKey,
+        WorkoutNoticeConstants.notifiedWorkoutsKey,
+        StrengthConstants.recordNotifiedKey,
+        TrainerSignalNotifierConstants.notifiedDefaultsKey,
+    ]
+    static let watchTokenId = "watchToken"
+    static let watchTokenStateKey = "deviceSync.watchToken"
     static let trackedPrefixes = [CoursePointsConstants.defaultsPrefix]
 }

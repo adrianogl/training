@@ -99,4 +99,34 @@ import Testing
         #expect(!store.handles(DeviceSyncConstants.strengthId))
         #expect(store.handles(AppConstants.weeklyGoalDefaultsKey))
     }
+
+    @Test func notifiedListsFromTwoDevicesAreJoined() {
+        let source = Self.defaults()
+        source.set(["a", "b"], forKey: StrengthConstants.recordNotifiedKey)
+        let blob = PreferenceSyncStore(defaults: source, now: { Self.stamp }).pendingBlobs()[0]
+        let defaults = Self.defaults()
+        let store = PreferenceSyncStore(defaults: defaults, now: { Self.stamp.addingTimeInterval(60) })
+        defaults.set(["c"], forKey: StrengthConstants.recordNotifiedKey)
+        store.markBlobsPushed(store.pendingBlobs())
+
+        #expect(store.apply(blob))
+        #expect(defaults.stringArray(forKey: StrengthConstants.recordNotifiedKey) == ["c", "a", "b"])
+        #expect(store.pendingBlobs().map(\.id) == [StrengthConstants.recordNotifiedKey])
+    }
+
+    @Test func watchTokenTravelsToTheOtherDevice() {
+        let phone = WatchTokenSyncStore(tokenStore: MemoryKeyStore("token-do-iphone"), defaults: Self.defaults(), now: { Self.stamp })
+        let tablet = MemoryKeyStore()
+        let ipad = WatchTokenSyncStore(tokenStore: tablet, defaults: Self.defaults(), now: { Self.stamp })
+
+        let blobs = phone.pendingBlobs()
+        phone.markBlobsPushed(blobs)
+
+        #expect(blobs.map(\.id) == [DeviceSyncConstants.watchTokenId])
+        #expect(phone.pendingBlobs().isEmpty)
+        #expect(ipad.pendingBlobs().isEmpty)
+        #expect(ipad.apply(blobs[0]))
+        #expect((try? tablet.read()) == "token-do-iphone")
+        #expect(ipad.pendingBlobs().isEmpty)
+    }
 }
