@@ -86,7 +86,7 @@ import WorkoutAnalysis
         comparison = analysis.comparison
         comparisonRows = analysis.comparisonRows
         comparisonNotice = analysis.comparisonNotice
-        comparisonTitle = record.workoutName ?? WorkoutDetailConstants.similarRunsTitle
+        comparisonTitle = record.workoutName.map(WorkoutTitle.clean) ?? WorkoutDetailConstants.similarRunsTitle
         reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: assessment, blocks: blocks, evolution: analysis.evolution)
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
@@ -140,7 +140,7 @@ import WorkoutAnalysis
         let activeDistance = active.reduce(0) { $0 + $1.distance }
         let activePace = hasPrescription && activeDistance > 0 ? activeSeconds / (activeDistance / WorkoutConstants.metersPerKilometer) : nil
         return WorkoutShareInput(
-            title: record.workoutName ?? record.name,
+            title: record.displayTitle,
             dateText: ComparisonText.shortDate(record.start),
             distanceMeters: distance,
             movingSeconds: seconds,

@@ -69,6 +69,7 @@ enum WorkoutFeedbackConstants {
     ]
     static let nextSlowStartFormat = "Comece os primeiros km %d s/km mais devagar."
     static let nextHydrateFormat = "Beba água ou tome gel antes do km %d."
+    static let gelMinimumMeters = 15_000.0
     static let nextReadiness = "Tente de novo num dia de prontidão melhor."
     static let nextCompleteDistance = "Complete a distância planejada."
     static let nextCompleteBlocks = "Complete todos os blocos planejados."

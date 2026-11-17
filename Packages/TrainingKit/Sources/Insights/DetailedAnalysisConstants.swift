@@ -9,6 +9,7 @@ enum DetailedAnalysisConstants {
     static let driftNormalPercent = 5
     static let completionCap = 100.0
     static let fadeMinimumKm = 3
+    static let fuelMinimumMeters = 15_000.0
     static let startKm = 5
     static let startMargin = 4.0
     static let earlyFadeKm = 10

@@ -158,7 +158,7 @@ import Testing
         #expect(delta < -2)
         #expect(first > last)
         #expect(analysis.finding(.startPace) == nil)
-        #expect(analysis.recommendations.contains { $0.kind == .fuel })
+        #expect(!analysis.recommendations.contains { $0.kind == .fuel })
     }
 
     @Test func runsWithoutSamplesProduceNoAnalysis() {

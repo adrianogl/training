@@ -8,6 +8,7 @@ enum SkeletonConstants {
     static let workoutHeights: [CGFloat] = [96, 96, 96, 96]
     static let spacing: CGFloat = 12
     static let readinessHeight: CGFloat = 168
+    static let todayWorkoutHeight: CGFloat = 150
     static let weekHeight: CGFloat = 150
     static let lastRunHeight: CGFloat = 110
     static let outlookHeight: CGFloat = 190

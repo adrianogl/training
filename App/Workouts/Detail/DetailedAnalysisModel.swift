@@ -32,7 +32,7 @@ import WorkoutAnalysis
             longGoalKm: goals.filter { $0.goalKind == .continuousLong }.map(\.distanceKm).min(),
             raceGoalKms: goals.filter { $0.goalKind == .time }.map(\.distanceKm)
         )
-        let name = record.workoutName ?? record.name
+        let name = record.displayTitle
         title = (record.distance ?? 0) > 0 ? "\(name) · \(WorkoutFormat.kilometers(record.distance ?? 0)) km" : name
         dateText = record.start.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutFormat.locale))
         sections = analysis.map(DetailedCoach.sections(for:)) ?? []

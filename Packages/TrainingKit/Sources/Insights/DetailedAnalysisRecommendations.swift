@@ -28,7 +28,7 @@ private func startPaceRecommendation(_ context: DetailedContext) -> DetailedReco
 }
 
 private func fuelRecommendation(_ context: DetailedContext) -> DetailedRecommendation? {
-    guard let fade = context.current.fadeKm else { return nil }
+    guard let fade = context.current.fadeKm, max(context.current.meters, context.current.plannedMeters ?? 0) >= C.fuelMinimumMeters else { return nil }
     let km = max(1, fade - 1)
     var reason = String(format: T.fuelReason, fade)
     if let similar = median(context.similar.compactMap { $0.fadeKm.map(Double.init) }) {

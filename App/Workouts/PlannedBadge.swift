@@ -4,6 +4,8 @@ struct PlannedBadge: View {
     var body: some View {
         Text(WorkoutConstants.plannedBadge)
             .font(.caption2.weight(.semibold))
+            .lineLimit(1)
+            .fixedSize()
             .foregroundStyle(BrandColors.accent)
             .padding(.horizontal, 7)
             .padding(.vertical, 2)

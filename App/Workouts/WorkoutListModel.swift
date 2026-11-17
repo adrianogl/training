@@ -123,7 +123,7 @@ enum WorkoutListModel {
         let isRun = ActivityTypeKey.isRun(record.typeKey)
         return WorkoutRowData(
             activityId: record.activityId,
-            title: record.workoutName ?? record.name,
+            title: record.displayTitle,
             names: [record.workoutName, record.name].compactMap { $0 },
             dayIso: Day.today(now: record.start).iso,
             dateText: dateText(record.start),

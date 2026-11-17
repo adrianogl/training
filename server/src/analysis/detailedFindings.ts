@@ -194,7 +194,10 @@ export function buildFindings(context: FindingContext): { findings: DetailedFind
   if (current.kind === 'long' && start.todayStart !== null && current.fadeKm !== null && current.fadeKm < DETAILED.earlyFadeKm && calmStart !== null && start.todayStart < calmStart) {
     recommendations.push({ key: 'startPace', value: round(calmStart, 0) })
   }
-  if (current.fadeKm !== null) recommendations.push({ key: 'gel', value: Math.max(1, current.fadeKm - DETAILED.gelKmBeforeFade) })
+  const plannedOrDone = Math.max(current.run.activity.distanceMeters ?? 0, current.plannedMeters ?? 0)
+  if (current.fadeKm !== null && plannedOrDone >= DETAILED.gelMinimumMeters) {
+    recommendations.push({ key: 'gel', value: Math.max(1, current.fadeKm - DETAILED.gelKmBeforeFade) })
+  }
   const readinessFinding = findings.find((item) => item.key === 'readiness')
   const lowAverage = readinessFinding?.values.lowAverage
   const highAverage = readinessFinding?.values.highAverage

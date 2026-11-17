@@ -185,12 +185,17 @@ struct TodayView: View {
 
     @ViewBuilder
     private func todayBlock(_ model: TodayModel) -> some View {
-        if let pick = workoutPick(model) {
+        if !model.plannedLoaded || !strength.isLoaded || !app.trainer.isLoaded {
+            blockLabel(TodayConstants.blockToday)
+            SkeletonCards(heights: [SkeletonConstants.todayWorkoutHeight])
+        } else if let pick = workoutPick(model) {
             blockLabel(TodayConstants.blockToday)
             TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick, legDay: strength.legDay(before: model.today))
         }
-        TodayStrengthCard(showsLabel: workoutPick(model) == nil) {
-            blockLabel(TodayConstants.blockToday)
+        if model.plannedLoaded && strength.isLoaded && app.trainer.isLoaded {
+            TodayStrengthCard(showsLabel: workoutPick(model) == nil) {
+                blockLabel(TodayConstants.blockToday)
+            }
         }
     }
 

@@ -32,6 +32,7 @@ import WorkoutAnalysis
     private(set) var garminReadiness: GarminReadinessScore?
     private(set) var goals: [GoalSnapshot] = []
     private(set) var isLoaded = false
+    private(set) var plannedLoaded = false
     private(set) var isStale = false
 
     init(container: ModelContainer, today: Day, snapshots: ScreenSnapshotStore? = nil) {
@@ -92,6 +93,7 @@ import WorkoutAnalysis
     }
 
     func loadPlanned(client: GarminAccountClient?) async {
+        defer { plannedLoaded = true }
         guard let client else { return }
         let first = today.weekStart
         let last = first.adding(days: 6)
@@ -306,7 +308,7 @@ import WorkoutAnalysis
         let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= lower && $0.start < upper })
         return ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) }.map { record in
             ReportRun(
-                title: record.workoutName ?? record.name,
+                title: record.displayTitle,
                 kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer,
                 score: record.scoreValue,
                 day: record.localDay ?? Day.today(now: record.start).iso,
@@ -323,7 +325,7 @@ import WorkoutAnalysis
         guard let last = runs.first else { return nil }
         let hours = RecoveryEstimator.typicalHours(runs.map(\.start))
         return RecoveryRun(
-            title: last.workoutName ?? last.name,
+            title: last.displayTitle,
             end: last.start.addingTimeInterval(last.duration ?? last.movingDuration ?? 0),
             aerobicEffect: last.aerobicTrainingEffect,
             anaerobicEffect: last.anaerobicTrainingEffect,
@@ -348,7 +350,7 @@ import WorkoutAnalysis
             let total = record.zoneSeconds.reduce(0, +)
             let run = WeekRun(
                 activityId: record.activityId,
-                title: record.workoutName ?? record.name,
+                title: record.displayTitle,
                 kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer,
                 score: record.scoreValue,
                 zoneShares: total > 0 ? record.zoneSeconds.map { $0 / total } : []
@@ -387,7 +389,7 @@ import WorkoutAnalysis
         let zoneTotal = record.zoneSeconds.reduce(0, +)
         return LastRunSummary(
             activityId: id,
-            title: record.workoutName ?? record.name,
+            title: record.displayTitle,
             dateText: WorkoutListModel.dateText(record.start),
             kilometers: kilometers,
             paceSeconds: paceSeconds,

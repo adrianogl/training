@@ -70,7 +70,7 @@ public enum PlannedWorkouts {
         return PlannedWorkout(
             id: dto.workoutId,
             day: day,
-            title: dto.workoutName ?? fallbackTitle ?? "",
+            title: dto.workoutName.map(WorkoutTitle.clean) ?? fallbackTitle ?? "",
             estimatedSeconds: dto.estimatedDurationInSecs ?? estimate?.seconds,
             estimatedMeters: dto.estimatedDistanceInMeters ?? estimate?.meters,
             steps: steps
