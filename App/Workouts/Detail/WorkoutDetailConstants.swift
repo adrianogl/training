@@ -20,6 +20,9 @@ enum WorkoutDetailConstants {
     static let blockLabelPrefix = "Bloco"
     static let labelColumnWidth: CGFloat = 76
     static let kilometerIndent: CGFloat = 14
+    static let climbFormat = "↑%d m"
+    static let descentFormat = "↓%d m"
+    static let flatPaceLabel = "no plano"
     static let valueColumnWidth: CGFloat = 52
     static let barHeight: CGFloat = 8
     static let bandHeight: CGFloat = 14
