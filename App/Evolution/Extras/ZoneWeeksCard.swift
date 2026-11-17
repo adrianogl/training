@@ -54,6 +54,11 @@ struct RecordsCard: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text(record.label).font(.subheadline.weight(.semibold)).frame(width: 64, alignment: .leading)
                     Text(WorkoutFormat.clock(record.seconds)).font(BrandFonts.number(18))
+                    if let meters = record.meters, meters > 0 {
+                        Text(WorkoutListModel.paceText(secondsPerKilometer: record.seconds / (meters / WorkoutConstants.metersPerKilometer)))
+                            .font(BrandFonts.number(13))
+                            .foregroundStyle(BrandColors.dim)
+                    }
                     if now.timeIntervalSince(record.date) <= Double(C.recentDays) * 86_400 {
                         Text(C.newRecord)
                             .font(.caption2.weight(.bold)).foregroundStyle(BrandColors.onAccent)

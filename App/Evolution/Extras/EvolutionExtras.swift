@@ -28,13 +28,13 @@ enum EvolutionExtras {
             let split = record.meters == 1_000 ? \ActivityRecord.fastestSplit_1000 : record.meters == 5_000 ? \ActivityRecord.fastestSplit_5000 : nil
             if let split {
                 candidates += runs.compactMap { run in
-                    run[keyPath: split].flatMap { $0 > 0 ? PersonalRecord(label: record.label, seconds: $0, date: run.start, source: "\(C.splitSource) \(run.workoutName ?? run.name)") : nil }
+                    run[keyPath: split].flatMap { $0 > 0 ? PersonalRecord(label: record.label, seconds: $0, date: run.start, source: "\(C.splitSource) \(run.workoutName ?? run.name)", meters: record.meters) : nil }
                 }
             }
             candidates += runs.compactMap { run in
                 guard let meters = run.distance, let seconds = run.movingDuration ?? run.duration,
                       meters >= record.meters * C.distanceTolerance.low, meters <= record.meters * C.distanceTolerance.high else { return nil }
-                return PersonalRecord(label: record.label, seconds: seconds * record.meters / meters, date: run.start, source: "\(C.runSource) \(run.workoutName ?? run.name)")
+                return PersonalRecord(label: record.label, seconds: seconds * record.meters / meters, date: run.start, source: "\(C.runSource) \(run.workoutName ?? run.name)", meters: record.meters)
             }
             return candidates.min { $0.seconds < $1.seconds }
         }

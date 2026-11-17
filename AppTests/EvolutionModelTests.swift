@@ -87,11 +87,14 @@ import TrainingCore
         #expect(model.indicators.allSatisfy { $0.todayText == "—" })
     }
 
-    @Test func metricGroupKeepsFeaturedFirstAndPairsTheRest() {
-        let group = MetricGroup(title: "Capacidade", kinds: [.vo2max, .fitness, .hillStrength, .durability])
+    @Test func evenGroupsBecomeEqualPairsAndOddGroupsKeepTheFeaturedFirst() {
+        let four = MetricGroup(title: "Capacidade", kinds: [.vo2max, .fitness, .hillStrength, .durability])
+        let three = MetricGroup(title: "Ritmo", kinds: [.thresholdPace, .zone2Pace, .thresholdHeartRate])
 
-        #expect(group.featured == .vo2max)
-        #expect(group.pairs == [[.fitness, .hillStrength], [.durability]])
+        #expect(four.featured == nil)
+        #expect(four.pairs == [[.vo2max, .fitness], [.hillStrength, .durability]])
+        #expect(three.featured == .thresholdPace)
+        #expect(three.pairs == [[.zone2Pace, .thresholdHeartRate]])
         #expect(MetricGroup(title: "Vazio", kinds: []).featured == nil)
         #expect(MetricGroup(title: "Uma", kinds: [.hrv]).pairs.isEmpty)
     }

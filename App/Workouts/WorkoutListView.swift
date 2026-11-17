@@ -198,10 +198,8 @@ struct WorkoutListView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 8)
-                    if showsPlanned {
-                        ForEach(plannedItems) { item in
-                            plannedRow(item, today: today, selected: selected)
-                        }
+                    ForEach(showsPlanned ? plannedItems : plannedItems.filter { $0.day == today }) { item in
+                        plannedRow(item, today: today, selected: selected)
                     }
                 }
                 if weeks.isEmpty && model.showsSkeleton {

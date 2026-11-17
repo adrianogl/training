@@ -55,6 +55,11 @@ struct MetricGroupCard: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
             }
+            if let meters = kind.predictionMeters, let seconds = card?.stats.current, seconds > 0 {
+                Text(WorkoutListModel.paceText(secondsPerKilometer: seconds / (meters / WorkoutConstants.metersPerKilometer)))
+                    .font(BrandFonts.number(13))
+                    .foregroundStyle(BrandColors.dim)
+            }
             Spacer(minLength: 0)
             if !monthly.isEmpty {
                 MonthlyBars(monthly: monthly)

@@ -17,8 +17,12 @@ struct TodayOutlookCard: View {
                 SectionLabel(C.predictionsTitle).padding(.top, 0).padding(.bottom, 0)
             }
             if !predictions.isEmpty {
-                HStack(spacing: 8) {
-                    ForEach(predictions, id: \.label) { tile($0) }
+                Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                    ForEach(Array(stride(from: 0, to: predictions.count, by: 2)), id: \.self) { start in
+                        GridRow {
+                            ForEach(predictions[start..<min(start + 2, predictions.count)], id: \.label) { tile($0) }
+                        }
+                    }
                 }
             }
             if !model.goals.isEmpty {
@@ -59,6 +63,12 @@ struct TodayOutlookCard: View {
                 .foregroundStyle(BrandColors.text)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+            if let seconds = prediction.seconds, let meters = prediction.meters, meters > 0 {
+                Text(WorkoutListModel.paceText(secondsPerKilometer: seconds / (meters / WorkoutConstants.metersPerKilometer)))
+                    .font(BrandFonts.number(13))
+                    .foregroundStyle(BrandColors.dim)
+                    .lineLimit(1)
+            }
             Text(prediction.label).font(.caption2).foregroundStyle(BrandColors.dim)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

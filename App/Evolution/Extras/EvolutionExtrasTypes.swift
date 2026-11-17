@@ -11,4 +11,5 @@ struct PersonalRecord: Equatable, Sendable, Codable {
     let seconds: Double
     let date: Date
     let source: String
+    var meters: Double? = nil
 }

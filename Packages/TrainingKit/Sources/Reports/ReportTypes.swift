@@ -14,8 +14,10 @@ public struct Prediction: Sendable, Equatable, Codable {
     public var label: String
     public var seconds: Double?
     public var yearAgoSeconds: Double?
+    public var meters: Double?
 
-    public init(label: String, seconds: Double?, yearAgoSeconds: Double? = nil) {
+    public init(label: String, seconds: Double?, yearAgoSeconds: Double? = nil, meters: Double? = nil) {
+        self.meters = meters
         self.label = label
         self.seconds = seconds
         self.yearAgoSeconds = yearAgoSeconds
