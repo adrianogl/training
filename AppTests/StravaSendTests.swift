@@ -107,7 +107,7 @@ private struct NoAuth: StravaWebAuthenticating {
         let payload = try #require(StravaSummaryLoader.payload(activityId: 1, in: ModelContext(container)))
 
         #expect(payload.text.hasPrefix("VO2 máx | 3 × 1 km @ 4:05/km"))
-        #expect(payload.text.hasSuffix("\nvia training.aglv.dev"))
+        #expect(payload.text.hasSuffix("\nvia https://training.aglv.dev"))
         #expect(payload.distanceMeters == 5_900)
     }
 

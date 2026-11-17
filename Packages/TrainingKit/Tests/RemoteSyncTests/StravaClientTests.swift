@@ -38,7 +38,7 @@ import Testing
             startTime: Date(timeIntervalSince1970: 1_700_000_000),
             elapsedSeconds: 2_700,
             distanceMeters: 10_000,
-            text: "Rodagem | 10,0 km @ 4:30/km\nvia training.aglv.dev"
+            text: "Rodagem | 10,0 km @ 4:30/km\nvia https://training.aglv.dev"
         )
 
         var results: [StravaDescribeOutcome] = []

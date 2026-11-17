@@ -1,7 +1,7 @@
 import Foundation
 
 enum StravaConstants {
-    static let signature = "via training.aglv.dev"
+    static let signature = "via https://training.aglv.dev"
     static let callbackScheme = "training"
     static let comparisonWindowDays = 42.0
     static let secondsPerDay = 86_400.0
@@ -30,7 +30,7 @@ enum StravaConstants {
     static let formatTitle = "Formato"
     static let formatName = "B · resumo curto"
     static let exampleTitle = "Exemplo"
-    static let example = "VO2 máx | 5 × 1 km @ 3:48/km · nota 88\nMelhor VO2 das últimas 6 semanas: 5 s/km mais rápido que em 15/10.\nvia training.aglv.dev"
+    static let example = "VO2 máx | 5 × 1 km @ 3:48/km · nota 88\nMelhor VO2 das últimas 6 semanas: 5 s/km mais rápido que em 15/10.\nvia https://training.aglv.dev"
     static let footer = "O trAIning acrescenta o resumo ao fim da descrição da corrida no Strava, depois que a nota fica pronta. Se você editar o texto dele no Strava, ele não mexe mais."
     static let unavailable = "O Strava ainda não está configurado no servidor."
     static let connectFailed = "Não conectou ao Strava. Tente de novo."

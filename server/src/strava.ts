@@ -10,7 +10,7 @@ import {
   STRAVA_REDIRECT_URI,
   STRAVA_REFRESH_MARGIN_MS,
   STRAVA_SCOPE,
-  STRAVA_SIGNATURE,
+  STRAVA_SIGNATURES,
   STRAVA_STATE_CONTEXT,
   STRAVA_STATE_MINUTES,
   STRAVA_TOKEN_URL,
@@ -254,12 +254,14 @@ export function textHash(text: string): string {
 }
 
 export function findBlock(description: string): { start: number; end: number } | undefined {
-  const marker = description.lastIndexOf(STRAVA_SIGNATURE)
-  if (marker < 0) {
+  const found = STRAVA_SIGNATURES.map((signature) => ({ marker: description.lastIndexOf(signature), length: signature.length }))
+    .filter((item) => item.marker >= 0)
+    .sort((a, b) => b.marker - a.marker)[0]
+  if (found === undefined) {
     return undefined
   }
-  const separator = description.lastIndexOf('\n\n', marker)
-  return { start: separator < 0 ? 0 : separator + 2, end: marker + STRAVA_SIGNATURE.length }
+  const separator = description.lastIndexOf('\n\n', found.marker)
+  return { start: separator < 0 ? 0 : separator + 2, end: found.marker + found.length }
 }
 
 export async function postedHash(sql: Sql, accountId: string, stravaActivityId: number): Promise<string | undefined> {
