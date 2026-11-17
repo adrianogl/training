@@ -5,9 +5,10 @@ struct TrainerStrengthView: View {
     @Environment(AppModel.self) private var app
     @State private var editing: TrainerStrengthDraft?
     @State private var showsPain = false
+    @State private var showsSend = false
 
     private var model: TrainerModel { app.trainer }
-    private var sessions: [TrainerStrengthSession] { (model.plan?.strength ?? []).sorted { $0.weekday < $1.weekday } }
+    private var sessions: [TrainerStrengthSession] { model.strengthSessions.sorted { $0.weekday < $1.weekday } }
 
     var body: some View {
         ScrollView {
@@ -23,6 +24,14 @@ struct TrainerStrengthView: View {
                 if sessions.contains(where: { $0.source == .mfit }) {
                     Text(TrainerStrengthText.mfitReadOnly).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
                 }
+                if model.plan == nil {
+                    upcomingCard
+                    Button { showsSend = true } label: {
+                        Label(TrainerSendText.openButton, systemImage: "applewatch")
+                    }
+                    .buttonStyle(TrainerPrimaryButtonStyle())
+                    Text(TrainerStrengthText.noPlanNote).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
+                }
             }
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.top, 8)
@@ -35,6 +44,39 @@ struct TrainerStrengthView: View {
             TrainerStrengthEditView(draft: draft, blockedDays: Set(sessions.filter { $0.source == .mfit }.map(\.weekday))) { save($0) }
         }
         .sheet(isPresented: $showsPain) { TrainerPainSheet() }
+        .sheet(isPresented: $showsSend) { TrainerSendSheet() }
+    }
+
+    private var upcomingCard: some View {
+        let days = (0..<TrainerSendConstants.windowDays).map { model.currentDay.adding(days: $0) }
+        let entries = days.flatMap { day in model.trainerSessions(on: day).map { (day: day, session: $0) } }
+        return VStack(alignment: .leading, spacing: 4) {
+            SectionLabel(TrainerStrengthText.upcomingTitle).padding(.vertical, 0)
+            if entries.isEmpty {
+                Text(TrainerStrengthText.upcomingEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
+            }
+            ForEach(entries, id: \.session.id) { entry in
+                NavigationLink(value: TrainerRoute.strengthDay(entry.day.iso, entry.session.id)) {
+                    HStack(spacing: 10) {
+                        Text(TrainerText.weekdayName(entry.day.weekStart.days(until: entry.day)))
+                            .font(.caption.weight(.bold)).foregroundStyle(BrandColors.text)
+                            .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
+                        if let workout = model.strengthWorkout(sessionId: entry.session.id, day: entry.day) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(TrainerStrengthText.focusName(workout.group)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                                Text(TrainerStrengthText.meta(workout)).font(.caption).foregroundStyle(BrandColors.dim)
+                            }
+                        }
+                        Spacer(minLength: 6)
+                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                    .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .brandCard()
     }
 
     private var daysCard: some View {
@@ -131,7 +173,7 @@ struct TrainerStrengthView: View {
     }
 
     private func save(_ result: TrainerStrengthResult) {
-        var all = model.plan?.strength ?? []
+        var all = model.strengthSessions
         switch result {
         case .save(let session):
             if let index = all.firstIndex(where: { $0.id == session.id }) {

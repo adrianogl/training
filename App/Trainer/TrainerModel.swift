@@ -18,6 +18,7 @@ import TrainingCore
     private(set) var isAdjusting = false
     private(set) var saveFailed = false
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []
+    private(set) var standaloneStrength: [TrainerStrengthSession] = []
     private(set) var keptReadinessDay: String?
     private(set) var seenCycleEnd: Day?
     private(set) var cycleSummaries: [TrainerCycleSummary]
@@ -304,7 +305,11 @@ import TrainingCore
     }
 
     func saveStrength(_ sessions: [TrainerStrengthSession]) async {
-        guard var current = plan else { return }
+        guard var current = plan else {
+            standaloneStrength = sessions.sorted { $0.weekday < $1.weekday }
+            TrainerStrengthStandaloneStore().save(standaloneStrength)
+            return
+        }
         isWorking = true
         defer { isWorking = false }
         history = await loadHistory()
@@ -316,8 +321,9 @@ import TrainingCore
     }
 
     func syncStrength(_ sessions: [TrainerStrengthSession]) async {
-        guard let plan, !sessions.isEmpty, !StrengthSessions.sameMFIT(sessions, plan.strength) else { return }
-        await saveStrength(StrengthSessions.merge(mfit: sessions, into: plan.strength))
+        let current = strengthSessions
+        guard !sessions.isEmpty, !StrengthSessions.sameMFIT(sessions, current) else { return }
+        await saveStrength(StrengthSessions.merge(mfit: sessions, into: current))
     }
 
     func legSwapSuggestion(kept: Set<String>) -> TrainerLegSwap? {
@@ -358,6 +364,7 @@ import TrainingCore
 
     func load() async {
         plan = store.load()
+        standaloneStrength = TrainerStrengthStandaloneStore().load()
         loadedStamp = store.updatedAt()
         history = await loadHistory()
         if plan != nil { cycleHistory = await loadCycleHistory() }
@@ -469,7 +476,7 @@ import TrainingCore
         let previous = plan
         let review = cycleReview
         let created = TrainerEngine.create(
-            target: target, structure: structure, strength: strength, history: history, today: currentDay, now: .now,
+            target: target, structure: structure, strength: strength.isEmpty ? standaloneStrength : strength, history: history, today: currentDay, now: .now,
             startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, dayPreference: dayPreference
         )
         archiveCycle(previous, review: review, afterPeakMeters: TrainerEngine.volumes(of: created, history: history, today: currentDay).peak)

@@ -5,11 +5,10 @@ import TrainingCore
 
 extension TrainerModel {
     func sendItems(_ filter: TrainerSendFilter, settings: TrainerSendSettings) -> [TrainerSendItem] {
-        guard let plan else { return [] }
         let days = (0..<TrainerSendConstants.windowDays).map { currentDay.adding(days: $0) }
         var items: [TrainerSendItem] = []
         for day in days {
-            if filter.kinds.contains(.run), settings.runFromTrainer, let workout = plan.workouts.first(where: { $0.day == day }),
+            if filter.kinds.contains(.run), settings.runFromTrainer, let workout = plan?.workouts.first(where: { $0.day == day }),
                let item = TrainerSendBuilder.runItem(workout) {
                 items.append(item)
             }

@@ -30,6 +30,18 @@ enum TrainerStrengthText {
     static let minutesFormat = "%d min"
     static let exercisesFormat = "%d exercícios"
     static let todayTitle = "Força hoje"
+    static let upcomingTitle = "Próximos treinos de força"
+    static let upcomingEmpty = "Nenhum dia do treinador nos próximos 7 dias."
+    static let noPlanNote = "Sem plano do treinador, os dias de corrida forte vêm dos treinos do Garmin (assessoria). Semana de recuperação e prova só entram com plano."
+    static let weekTitle = "Força da semana"
+    static let openStrength = "Abrir força"
+    static let mfitDaysFormat = "%@ vêm do MFIT."
+    static let runPlanTitle = "Plano de corrida"
+    static let runPlanBody = "Sua corrida vem do Garmin. Crie um plano quando quiser que o treinador planeje a corrida também."
+    static let createRunPlan = "Criar plano de corrida"
+    static let shortcutStrength = "Força"
+    static let shortcutSend = "Enviar ao Garmin"
+    static let shortcutAdjustments = "Ajustes do plano"
 
     static func sourceName(_ source: TrainerStrengthSource) -> String {
         switch source {

@@ -99,6 +99,9 @@ struct TodayView: View {
         }
         .task(id: app.dataToken) {
             await app.trainer.load()
+            if app.trainer.plan == nil {
+                await app.trainer.loadExternal(client: app.garminAccount.client)
+            }
             await strength.load(container: app.container, client: app.mfitAccount.client, plan: app.trainer.plan, garmin: app.garminAccount.client)
             await scheduleWeeklyReport()
             writeWidgetSnapshot()

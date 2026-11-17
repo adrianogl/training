@@ -66,3 +66,23 @@ import TrainingCore
         }
     }
 }
+
+@Suite struct TrainerStrengthStandaloneTests {
+    @Test func standaloneStoreKeepsSessionsWithoutAPlan() {
+        let store = TrainerStrengthStandaloneStore(defaults: UserDefaults(suiteName: "standalone-\(UUID())")!)
+        #expect(store.load().isEmpty)
+        let session = TrainerStrengthSession(weekday: 2, group: .core, legLoad: .light, name: "Mobilidade e core", source: .trainer, intensity: .light, minutes: 25, place: .home)
+        store.save([session])
+        #expect(store.load() == [session])
+    }
+
+    @Test func externalKindDrivesTheQualityDayRuleWithoutAPlan() {
+        let context = TrainerStrengthContextBuilder.context(
+            day: Day(iso: "2026-11-18")!, plan: nil, externalKind: .threshold, readiness: nil, prefs: TrainerStrengthPrefs(),
+            cache: StrengthProgramCache(program: nil, known: []), schedule: StrengthSchedule(defaults: UserDefaults(suiteName: "sched-\(UUID())")!)
+        )
+        #expect(context.runKind == .threshold)
+        #expect(context.daysToRace == nil)
+        #expect(context.isRecoveryWeek == false)
+    }
+}
