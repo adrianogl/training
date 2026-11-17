@@ -2,6 +2,7 @@ import Insights
 import SwiftUI
 
 struct TodayWeekDetailView: View {
+    @Environment(AppModel.self) private var app
     let model: TodayModel
     let trainer: [TrainerWorkout]
     let goal: Int
@@ -11,10 +12,10 @@ struct TodayWeekDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
                 let shown = model.shownWeekReport(trainer: trainer)
-                WeeklyReportCard(report: shown, strength: strength?.weekSummary(start: shown.start))
+                WeeklyReportCard(report: shown, strength: strength?.weekSummary(start: shown.start), sources: app.trainer.strengthTally(weekStart: shown.start))
                 if !model.shownWeek.isCurrent {
                     let current = model.currentWeekReport(trainer: trainer)
-                    WeeklyReportCard(report: current, strength: strength?.weekSummary(start: current.start))
+                    WeeklyReportCard(report: current, strength: strength?.weekSummary(start: current.start), sources: app.trainer.strengthTally(weekStart: current.start))
                 }
                 VolumeHistoryCard(week: model.summary.week, goal: goal, planned: model.plannedWeeks)
             }

@@ -1,7 +1,9 @@
+import Insights
 import SwiftUI
 
 struct WeeklyStrengthBlock: View {
     let summary: WeeklyStrengthSummary
+    var sources: [StrengthSourceTally] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
@@ -10,6 +12,11 @@ struct WeeklyStrengthBlock: View {
                 Text(StrengthText.reportSessions(summary)).font(BrandFonts.number(22)).foregroundStyle(BrandColors.text)
                 Spacer()
                 Text(StrengthText.reportDetail(summary)).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            if sources.count > 1 || sources.contains(where: { $0.source == .trainer }) {
+                Text(sources.map { "\(TrainerStrengthText.sourceName($0.source)) \($0.done) de \($0.planned)" }.joined(separator: " · "))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(BrandColors.strength)
             }
             if !summary.groups.isEmpty {
                 let top = max(summary.groups.first?.sets ?? 1, 1)

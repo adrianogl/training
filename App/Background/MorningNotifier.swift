@@ -34,7 +34,7 @@ import TrainingCore
         defaults.set(now, forKey: C.lastAppOpenDefaultsKey)
     }
 
-    func evaluate(summary: TodaySummary, now: Date, lastAppOpen: Date?, settings: MorningNoticeSettings) async {
+    func evaluate(summary: TodaySummary, now: Date, lastAppOpen: Date?, settings: MorningNoticeSettings, strengthLine: String? = nil) async {
         guard settings.enabled,
               let breakdown = summary.readiness,
               let verdict = summary.verdict,
@@ -46,7 +46,8 @@ import TrainingCore
         let id = notificationId(day: day)
         if defaults.string(forKey: C.notifiedDayDefaultsKey) == day, await scheduler.pending().contains(id) == false { return }
         let minimum = calendar.date(byAdding: .minute, value: settings.minimumMinutes, to: calendar.startOfDay(for: now)) ?? now
-        await scheduler.schedule(id: id, text: morningNotificationText(breakdown, verdict: verdict), at: now < minimum ? minimum : nil)
+        let text = [morningNotificationText(breakdown, verdict: verdict), strengthLine].compactMap { $0 }.joined(separator: " ")
+        await scheduler.schedule(id: id, text: text, at: now < minimum ? minimum : nil)
         defaults.set(day, forKey: C.notifiedDayDefaultsKey)
     }
 

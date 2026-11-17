@@ -141,3 +141,48 @@ Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.
 
 - **Volume de corrida:** a força (segunda superiores, quarta pernas, sexta corpo inteiro) não reduz o volume de corrida. O plano só mostra a força.
 - **Dias:** o treinador avisa quando limiar, VO2 ou longão cai no dia seguinte a um dia de pernas, e sugere trocar o dia.
+- **Fonte por dia:** cada dia de força vem do MFIT (professor, só leitura) ou do treinador. Quando o MFIT muda, só os dias do MFIT são trocados; os do treinador ficam, exceto num dia que o MFIT passou a ocupar, em que o MFIT vence (`StrengthSessions.merge`). Na edição, os dias do MFIT não aparecem para escolha.
+- **Foco do dia do treinador:** superiores, pernas, corpo inteiro ou mobilidade e core, com intensidade (leve, moderada, pesada), duração e local (academia, casa, só peso do corpo). Pernas moderada ou pesada e corpo inteiro pesado contam como dia de perna pesada.
+
+### Sugestão de dias e foco
+
+Arquivo: `Insights/StrengthSessions.swift`. Testes: `InsightsTests/StrengthDayTests.swift`.
+
+| Situação | Foco sugerido |
+| --- | --- |
+| Semana com dias do MFIT | mobilidade e core, leve, 25 min, para complementar o professor |
+| Dia de qualidade (limiar, VO2, longão, prova) ou véspera | mobilidade e core, leve, 25 min |
+| Qualidade em 2 dias, ou perna pesada já na semana | superiores, moderada |
+| Sem qualidade nas 48 h seguintes | pernas, pesada |
+
+### Treino gerado
+
+Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog.swift`, `Insights/StrengthProgression.swift`. Constantes: `StrengthGeneratorConstants`. Testes: `InsightsTests/StrengthGeneratorTests.swift`, `StrengthCatalogTests.swift`.
+
+- **Catálogo:** só exercícios do catálogo, todos com a categoria do Garmin. Sem nome de exercício confirmado no Garmin, vai a categoria e o nome na descrição.
+- **Duração:** o treino fecha na duração escolhida com 5 min de tolerância. Com poucos exercícios disponíveis, sobe até 4 séries a mais por exercício.
+- **Dia de qualidade:** pernas ou corpo inteiro viram mobilidade e core, leve. Superiores e mobilidade ficam como estão. "Manter original" desfaz.
+- **Semana de recuperação:** duração e séries a 70%.
+- **Semana da prova:** nos 3 dias antes da prova, sem força; de 4 a 7 dias antes, só mobilidade, 15 min.
+- **Prontidão abaixo de 50:** só mobilidade, 20 min. "Manter original" desfaz.
+- **Dor marcada:** sai todo exercício que carrega a região (joelho, panturrilha e aquiles, lombar, quadril, ombro). Sem nada que sobre, cai para mobilidade.
+- **Complemento ao MFIT:** padrões de movimento que o MFIT já trabalhou na semana vão para o fim da fila.
+- **Progressão de carga:** com a última carga registrada e todas as séries fechadas, sobe 2,5% arredondado, no mínimo 1 kg. Sem fechar as séries, repete a carga. Sem histórico, sem carga sugerida.
+- **Séries e repetições:** principal com barra ou máquina pesada 4 × 6 (150 s), moderada 3 × 10 (90 s), leve 2 × 12 (60 s); acessório pesado 3 × 8, moderado 3 × 10, leve 2 × 12; panturrilha 2–3 × 10–12; pliometria 3 × 6 (90 s); core 2–3 × 10–12 ou 30–45 s; mobilidade 2 × 8 por lado.
+
+## Envio ao Garmin
+
+Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: `GarminAPITests/GarminPlannedUploadTests.swift`, `AppTests/TrainerSendTests.swift`.
+
+- **O que vai:** os próximos 7 dias, por tipo (corrida, força ou os dois), com dias desmarcáveis. Força só dos dias do treinador; os do MFIT seguem pelo fluxo do MFIT.
+- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo.
+- **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
+- **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
+- **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.
+- **Falhas:** se apagar no Garmin falhar (exceto "não encontrado"), o registro fica e o treino novo daquele dia não é criado, para não sobrar treino duplicado. Se o agendamento falhar, o treino recém-criado é apagado. Só um envio roda por vez, e ele não é cancelado ao sair da tela.
+- **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.
+
+## Força nos avisos
+
+- **Aviso da manhã:** depois da prontidão, cita a força do dia de qualquer fonte: "Força: MMII." para o MFIT e "Força: mobilidade e core, 25 min." para o treinador. Quando uma regra mudou o treino do treinador (dia de qualidade, recuperação, prova ou prontidão), vira "Força ajustada:". Dia sem força ou nos 3 dias antes da prova não cita nada (`MorningStrengthText`).
+- **Relatório de domingo:** o bloco de força mostra as sessões feitas contra as planejadas por fonte, como "MFIT 3 de 3 · Treinador 1 de 2", quando a semana tem dias do treinador (`StrengthTally`).

@@ -486,6 +486,13 @@ import TrainingCore
         }
     }
 
+    private func morningStrengthLine() -> String? {
+        let day = Day.today()
+        let mfit = StrengthSchedule().workouts(StrengthProgramStore().load().program, from: day, through: day).first?.title
+        let generated = trainer.trainerSessions(on: day).first.flatMap { trainer.strengthWorkout(sessionId: $0.id, day: day) }
+        return MorningStrengthText.line(mfitTitle: mfit, trainer: generated)
+    }
+
     private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {
         readinessComplete = MorningNotifier.hasNightData(summary)
         readinessDay = today()
@@ -494,7 +501,7 @@ import TrainingCore
             await notifier.foregroundSyncFinished(summary: summary, now: .now)
             return
         }
-        await notifier.evaluate(summary: summary, now: .now, lastAppOpen: notifier.lastAppOpen, settings: notifier.settings)
+        await notifier.evaluate(summary: summary, now: .now, lastAppOpen: notifier.lastAppOpen, settings: notifier.settings, strengthLine: morningStrengthLine())
     }
 
     private func updateProgress(_ fraction: Double) {

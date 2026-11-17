@@ -251,18 +251,50 @@ public enum TrainerStrengthLoad: String, Codable, Sendable, CaseIterable {
 }
 
 public struct TrainerStrengthSession: Codable, Sendable, Equatable, Identifiable {
+    public static let defaultMinutes = 45
+
     public var id: UUID
     public var weekday: Int
     public var group: TrainerStrengthGroup
     public var legLoad: TrainerStrengthLoad
     public var name: String
+    public var source: TrainerStrengthSource
+    public var intensity: TrainerStrengthIntensity
+    public var minutes: Int
+    public var place: StrengthPlace
 
-    public init(id: UUID = UUID(), weekday: Int, group: TrainerStrengthGroup, legLoad: TrainerStrengthLoad, name: String) {
+    public init(
+        id: UUID = UUID(), weekday: Int, group: TrainerStrengthGroup, legLoad: TrainerStrengthLoad, name: String,
+        source: TrainerStrengthSource = .trainer, intensity: TrainerStrengthIntensity = .moderate,
+        minutes: Int = TrainerStrengthSession.defaultMinutes, place: StrengthPlace = .gym
+    ) {
         self.id = id
         self.weekday = weekday
         self.group = group
         self.legLoad = legLoad
         self.name = name
+        self.source = source
+        self.intensity = intensity
+        self.minutes = minutes
+        self.place = place
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, weekday, group, legLoad, name, source, intensity, minutes, place
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        weekday = try container.decode(Int.self, forKey: .weekday)
+        group = try container.decode(TrainerStrengthGroup.self, forKey: .group)
+        legLoad = try container.decode(TrainerStrengthLoad.self, forKey: .legLoad)
+        name = try container.decode(String.self, forKey: .name)
+        source = try container.decodeIfPresent(TrainerStrengthSource.self, forKey: .source)
+            ?? (id.uuidString.hasPrefix(StrengthSessionConstants.mfitIdPrefix) ? .mfit : .trainer)
+        intensity = try container.decodeIfPresent(TrainerStrengthIntensity.self, forKey: .intensity) ?? .moderate
+        minutes = try container.decodeIfPresent(Int.self, forKey: .minutes) ?? Self.defaultMinutes
+        place = try container.decodeIfPresent(StrengthPlace.self, forKey: .place) ?? .gym
     }
 }
 

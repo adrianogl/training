@@ -44,6 +44,10 @@ public actor GarminAccountClient {
         try await send(pathAndQuery, method: "PUT", body: body)
     }
 
+    public func delete(_ pathAndQuery: String) async throws -> Data {
+        try await send(pathAndQuery, method: "DELETE", body: nil)
+    }
+
     private func send(_ pathAndQuery: String, method: String, body: Data?) async throws -> Data {
         var session = try currentSession()
         if session.expiresAt.timeIntervalSince(now()) < E.refreshMargin {

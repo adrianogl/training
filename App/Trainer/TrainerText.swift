@@ -606,7 +606,8 @@ enum TrainerText {
     }
 
     static func strengthTag(_ line: TrainerStrengthLine) -> String {
-        line.isDone ? "✓ \(line.name)" : "+ \(line.name)"
+        let mark = line.isDone ? "✓" : "+"
+        return line.source == .trainer ? "\(mark) \(line.name) · \(TrainerStrengthText.sourceName(line.source).lowercased())" : "\(mark) \(line.name)"
     }
 
     static func strengthSummary(_ sessions: [TrainerStrengthSession]) -> String {

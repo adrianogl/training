@@ -14,6 +14,7 @@ import TrainingCore
     private(set) var seenVersion: Int
     private(set) var isLoaded = false
     private(set) var isWorking = false
+    var isSendingToGarmin = false
     private(set) var isAdjusting = false
     private(set) var saveFailed = false
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []
@@ -315,8 +316,8 @@ import TrainingCore
     }
 
     func syncStrength(_ sessions: [TrainerStrengthSession]) async {
-        guard let plan, !sessions.isEmpty, !TrainerMFITStrength.same(sessions, plan.strength) else { return }
-        await saveStrength(sessions)
+        guard let plan, !sessions.isEmpty, !StrengthSessions.sameMFIT(sessions, plan.strength) else { return }
+        await saveStrength(StrengthSessions.merge(mfit: sessions, into: plan.strength))
     }
 
     func legSwapSuggestion(kept: Set<String>) -> TrainerLegSwap? {
@@ -647,7 +648,7 @@ import TrainingCore
         let result = TrainerEngine.status(of: workout, history: history, today: currentDay)
         let lines = plan.map { plan in
             TrainerEngine.strengthStatus(day: workout.day, plan: plan, history: history).map {
-                TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil)
+                TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil, source: $0.session.source)
             }
         } ?? []
         return TrainerDayRow(
