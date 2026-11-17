@@ -60,6 +60,10 @@ struct PreferenceSyncStore: RemoteBlobStore {
         }
     }
 
+    func handles(_ id: String) -> Bool {
+        isTracked(id)
+    }
+
     private func trackedIds() -> [String] {
         let prefixed = defaults.dictionaryRepresentation().keys.filter { key in C.trackedPrefixes.contains { key.hasPrefix($0) } }
         return C.trackedKeys + prefixed.sorted()

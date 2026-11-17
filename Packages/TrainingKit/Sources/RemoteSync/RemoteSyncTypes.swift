@@ -252,4 +252,9 @@ public protocol RemoteBlobStore: Sendable {
     func pendingBlobs() -> [RemoteBlob]
     func markBlobsPushed(_ blobs: [RemoteBlob])
     func apply(_ blob: RemoteBlob) -> Bool
+    func handles(_ id: String) -> Bool
+}
+
+public extension RemoteBlobStore {
+    func handles(_ id: String) -> Bool { true }
 }

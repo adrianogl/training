@@ -6,7 +6,7 @@ struct TrainerStrengthView: View {
     @State private var editing: TrainerStrengthDraft?
 
     private var model: TrainerModel { app.trainer }
-    private var fromMFIT: Bool { app.mfitAccount.isSignedIn && StrengthProgramStore().load().program != nil }
+    private var fromMFIT: Bool { StrengthProgramStore().load().program != nil }
 
     var body: some View {
         ScrollView {
