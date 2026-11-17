@@ -134,6 +134,10 @@ struct SettingsView: View {
                 RemoteSyncSection(model: model.remoteSync, part: .sync)
             case .garmin:
                 GarminAccountSection(model: model.garminAccount)
+                GarminZonesSection(model: model.garminZones) {
+                    Task { await model.garminZones.sync(container: model.container, client: model.garminAccount.client) }
+                }
+                .task { model.garminZones.load(container: model.container) }
                 keySection
                 connectionSection
                 syncSection
