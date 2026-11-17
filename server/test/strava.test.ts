@@ -13,8 +13,9 @@ const token = makeToken(7)
 const key = randomBytes(32)
 const accountId = accountIdFromAuthorization(`Bearer ${token}`) ?? ''
 const startTime = '2026-11-14T09:00:00.000Z'
-const blockOne = 'VO2 máx | 5 × 1 km @ 3:48/km · nota 88\nvia training.aglv.dev'
-const blockTwo = 'VO2 máx | 5 × 1 km @ 3:45/km · nota 90\nvia training.aglv.dev'
+const blockOne = 'VO2 máx | 5 × 1 km @ 3:48/km · nota 88\nvia https://training.aglv.dev'
+const blockTwo = 'VO2 máx | 5 × 1 km @ 3:45/km · nota 90\nvia https://training.aglv.dev'
+const legacyBlock = 'VO2 máx | 5 × 1 km @ 3:48/km · nota 88\nvia training.aglv.dev'
 
 interface Fake {
   calls: { url: string; method: string; body: string }[]
@@ -225,6 +226,19 @@ describe('escrever o resumo', () => {
     fake.description = 'Treino leve'
     await connect(fetcher)
     await describe_(fetcher)
+    fake.description = `${fake.description}\n\nobrigado, pessoal`
+
+    const response = await describe_(fetcher, blockTwo)
+
+    expect(await response.json()).toEqual({ status: 'updated', stravaActivityId: 99 })
+    expect(fake.description).toBe(`Treino leve\n\n${blockTwo}\n\nobrigado, pessoal`)
+  })
+
+  it('troca o bloco antigo, sem link, pelo novo com link', async () => {
+    const { fake, fetcher } = stravaFake()
+    fake.description = 'Treino leve'
+    await connect(fetcher)
+    await describe_(fetcher, legacyBlock)
     fake.description = `${fake.description}\n\nobrigado, pessoal`
 
     const response = await describe_(fetcher, blockTwo)

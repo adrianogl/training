@@ -1,6 +1,6 @@
 import { accountExists, resolveAccountId } from './auth.js'
 import { dataKeyFromEnv } from './cipher.js'
-import { STRAVA_APP_REDIRECT, STRAVA_FORMAT, STRAVA_MAX_TEXT_LENGTH, STRAVA_REQUIRED_SCOPES, STRAVA_ROUTE, STRAVA_SIGNATURE } from './constants.js'
+import { STRAVA_APP_REDIRECT, STRAVA_FORMAT, STRAVA_MAX_TEXT_LENGTH, STRAVA_REQUIRED_SCOPES, STRAVA_ROUTE, STRAVA_SIGNATURES } from './constants.js'
 import type { Sql } from './db.js'
 import { body, failure, json } from './garminRoutes.js'
 import {
@@ -167,7 +167,7 @@ function describeInput(value: Record<string, unknown> | undefined): DescribeInpu
     typeof text !== 'string' ||
     text.trim() === '' ||
     text.length > STRAVA_MAX_TEXT_LENGTH ||
-    !text.trimEnd().endsWith(STRAVA_SIGNATURE)
+    !STRAVA_SIGNATURES.some((signature) => text.trimEnd().endsWith(signature))
   ) {
     return undefined
   }
