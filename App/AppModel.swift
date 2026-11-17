@@ -120,6 +120,7 @@ import TrainingCore
         remoteSync.devicesChanged = { [weak self] kinds in
             guard let self else { return }
             if kinds.contains(.chat) { Task { await self.scope.chats.reload() } }
+            if kinds.contains(.preference) { self.trainer.reloadKeptReadiness() }
         }
         trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
         garminAccount.link = { [weak self] in

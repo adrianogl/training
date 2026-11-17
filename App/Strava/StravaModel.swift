@@ -30,7 +30,7 @@ import TrainingCore
         self.defaults = defaults
         self.authenticator = authenticator
         self.now = now
-        self.ledger = defaults.data(forKey: C.ledgerDefaultsKey).flatMap { try? JSONDecoder().decode(StravaSendLedger.self, from: $0) } ?? StravaSendLedger()
+        self.ledger = Self.storedLedger(defaults)
     }
 
     var isConnected: Bool { status.connected }
@@ -112,6 +112,7 @@ import TrainingCore
         guard status.connected, status.enabled, !passRunning, let client = link?() else { return }
         passRunning = true
         defer { passRunning = false }
+        ledger = Self.storedLedger(defaults)
         let current = now()
         let container = container
         let recent = await Task.detached(priority: .utility) { Self.recentRuns(in: ModelContext(container), since: current.addingTimeInterval(-C.retryWindow)) }.value
@@ -159,9 +160,14 @@ import TrainingCore
         case .disabled: (mapped, result) = (.disabled, .disabled)
         case .retryLater: (mapped, result) = (.retryLater, .retryLater)
         }
+        ledger = Self.storedLedger(defaults)
         ledger.record(mapped, activityId: activityId, now: now())
         if let data = try? JSONEncoder().encode(ledger) { defaults.set(data, forKey: C.ledgerDefaultsKey) }
         return result
+    }
+
+    private static func storedLedger(_ defaults: UserDefaults) -> StravaSendLedger {
+        defaults.data(forKey: C.ledgerDefaultsKey).flatMap { try? JSONDecoder().decode(StravaSendLedger.self, from: $0) } ?? StravaSendLedger()
     }
 
     nonisolated private static func recentRuns(in context: ModelContext, since: Date) -> [(id: Int64, start: Date)] {

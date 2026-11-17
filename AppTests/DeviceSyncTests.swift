@@ -41,6 +41,18 @@ import Testing
         #expect(!store.apply(RemoteBlob(id: blob.id, data: blob.data, updatedAt: Self.stamp.addingTimeInterval(-60))))
     }
 
+    @Test func keptDecisionsAndStravaLedgerAreTracked() {
+        let defaults = Self.defaults()
+        let store = PreferenceSyncStore(defaults: defaults, now: { Self.stamp })
+        defaults.set("2026-11-17", forKey: TrainerConstants.readinessKeptDefaultsKey)
+        defaults.set("2026-W47", forKey: TrainerMFITConstants.keptDefaultsKey)
+        defaults.set(Data("{}".utf8), forKey: StravaConstants.ledgerDefaultsKey)
+
+        #expect(Set(store.pendingBlobs().map(\.id)) == [
+            TrainerConstants.readinessKeptDefaultsKey, TrainerMFITConstants.keptDefaultsKey, StravaConstants.ledgerDefaultsKey,
+        ])
+    }
+
     @Test func chatsFromTwoDevicesKeepEveryMessage() {
         let first = ChatMessage(role: .user, text: "Como foi o treino?", date: Self.stamp)
         let second = ChatMessage(role: .assistant, text: "Bom.", date: Self.stamp.addingTimeInterval(10))
