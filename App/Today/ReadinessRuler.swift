@@ -10,7 +10,7 @@ struct ReadinessRuler: View {
                 let width = proxy.size.width
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(LinearGradient(colors: [BrandColors.rest, BrandColors.form, BrandColors.accent], startPoint: .leading, endPoint: .trailing))
+                        .fill(LinearGradient(colors: [BrandColors.rest, BrandColors.form, BrandColors.ready], startPoint: .leading, endPoint: .trailing))
                         .frame(height: 6)
                     ForEach([TodayConstants.moderateThreshold, TodayConstants.hardThreshold], id: \.self) { threshold in
                         Rectangle()
@@ -49,6 +49,6 @@ struct ReadinessRuler: View {
     static func color(for score: Int) -> Color {
         if score < TodayConstants.moderateThreshold { return BrandColors.rest }
         if score < TodayConstants.hardThreshold { return BrandColors.form }
-        return BrandColors.accent
+        return BrandColors.ready
     }
 }

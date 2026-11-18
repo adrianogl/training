@@ -11,7 +11,7 @@ struct ReadinessFactorRow: View {
                 if let pointsText = row.pointsText {
                     Text(pointsText)
                         .font(BrandFonts.number(16))
-                        .foregroundStyle(row.group == .down ? BrandColors.attention : BrandColors.accent)
+                        .foregroundStyle(row.group == .down ? BrandColors.attention : BrandColors.ready)
                 }
             }
             Text(row.detail)
@@ -20,7 +20,7 @@ struct ReadinessFactorRow: View {
             if let points = row.points {
                 GeometryReader { proxy in
                     Capsule()
-                        .fill(points >= 0 ? BrandColors.accent : BrandColors.attention)
+                        .fill(points >= 0 ? BrandColors.ready : BrandColors.attention)
                         .frame(width: max(4, proxy.size.width * min(abs(points) / TodayConstants.factorBarFullScale, 1)))
                 }
                 .frame(height: 5)

@@ -39,13 +39,13 @@ struct ScoreGauge: View {
     private var fill: Color {
         if score < moderate { return BrandColors.rest }
         if score < hard { return BrandColors.attention }
-        return BrandColors.accentFill
+        return BrandColors.readyFill
     }
 
     private var textColor: Color {
         if score < moderate { return BrandColors.rest }
         if score < hard { return BrandColors.attention }
-        return BrandColors.accent
+        return BrandColors.ready
     }
 
     private var fraction: Double { min(max(Double(score) / 100, 0), 1) }
@@ -53,7 +53,7 @@ struct ScoreGauge: View {
     private var segments: [(from: Double, to: Double, color: Color)] {
         let low = Double(moderate) / 100
         let high = Double(hard) / 100
-        return [(0, low, BrandColors.rest), (low, high, BrandColors.attention), (high, 1, BrandColors.accentFill)]
+        return [(0, low, BrandColors.rest), (low, high, BrandColors.attention), (high, 1, BrandColors.readyFill)]
     }
 
     private func arc(from start: Double, to end: Double) -> some Shape {
