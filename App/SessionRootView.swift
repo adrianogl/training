@@ -25,7 +25,7 @@ struct SessionRootView: View {
         }
         .onChange(of: session.model?.scope.id) { _, id in
             guard id != nil, scenePhase == .active else { return }
-            session.model?.activate()
+            session.model?.activate(force: true)
         }
         .task {
             guard showsIntro else { return }

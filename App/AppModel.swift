@@ -16,6 +16,7 @@ import TrainingCore
     let scope: AccountScope
     let storeError: String?
     private(set) var syncStatus: SyncStatus = .idle
+    private var returnsFromBackground = true
     private(set) var connectionStatus: ConnectionStatus = .untested
     private(set) var hasLocalData: Bool
     private(set) var newActivityIds: Set<Int64> = []
@@ -237,9 +238,9 @@ import TrainingCore
         }
     }
 
-    func appBecameActive() async {
+    func appBecameActive(syncs: Bool = true) async {
         await notifier.appOpened(now: .now)
-        await RaceNotices.refresh(container: container, client: garminAccount.client)
+        if syncs { await RaceNotices.refresh(container: container, client: garminAccount.client) }
         let defaults = UserDefaults.standard
         if notifier.settings.enabled, !defaults.bool(forKey: BackgroundConstants.permissionRequestedDefaultsKey) {
             defaults.set(true, forKey: BackgroundConstants.permissionRequestedDefaultsKey)
@@ -254,16 +255,19 @@ import TrainingCore
                 workouts.start(model: self)
             }
         }
-        await syncNow(.launch)
+        if syncs { await syncNow(.launch) }
         await workouts.refresh(model: self)
     }
 
-    func activate() {
-        guard autoSyncEnabled else { return }
-        Task { await appBecameActive() }
+    func activate(force: Bool = false) {
+        guard autoSyncEnabled, force || returnsFromBackground else { return }
+        returnsFromBackground = false
+        let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, now: .now)
+        Task { await appBecameActive(syncs: syncs) }
     }
 
     func enteredBackground() {
+        returnsFromBackground = true
         if runningTrigger?.runsInBackground != true { cancelSync() }
         BackgroundSync.schedule(readinessComplete: todayReadinessComplete)
         let task = UIApplication.shared.beginBackgroundTask()

@@ -8,6 +8,7 @@ enum AppConstants {
     static let testHostEnvironmentVariable = "TRAINING_TEST_HOST"
     static let launchFITLimit = 25
     static let launchDeferredFITDays = 7
+    static let autoSyncMinimumInterval: TimeInterval = 15 * 60
     static let newBadgeDuration = Duration.seconds(6)
     static let narrativeBackfillLimit = 10
     static let narrativeScanLimit = 30
