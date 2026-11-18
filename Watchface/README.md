@@ -1,6 +1,6 @@
 # Mostrador trAIning (Forerunner 965)
 
-Mostrador Connect IQ com a identidade do app: logo e data, temperatura e umidade, bateria, hora em Archivo com os segundos ao lado, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta e o próximo compromisso da agenda. No modo sempre ligado ficam só a data, a hora e o próximo compromisso.
+Mostrador Connect IQ com a identidade do app: foto de fundo em escala de cinza bem escura, logo e data, temperatura e umidade, bateria, hora em Archivo vazada, só com o contorno, e os segundos ao lado, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta e o próximo compromisso da agenda. No modo sempre ligado ficam só a data, a hora e o próximo compromisso, sem a foto.
 
 ## De onde vem cada dado
 
@@ -16,7 +16,7 @@ A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: aba
 
 O app lê o Calendário do iPhone (Ajustes › Sincronização › Relógio › Mostrar a agenda no relógio) e manda até 3 eventos dos próximos 7 dias, sem os de dia inteiro e os cancelados. O mostrador mostra o primeiro que ainda não começou: HOJE com quanto falta, AMANHÃ ou o dia da semana. O título desce de fonte e, se ainda não couber, é cortado na última palavra com reticências.
 
-A hora usa fontes bitmap da Archivo (OFL) em `resources/fonts`, só com os dígitos e os dois pontos: peso 900 na tela ativa e 700 no sempre ligado, para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
+A hora usa fontes bitmap da Archivo (OFL) em `resources/fonts`, só com os dígitos e os dois pontos: peso 900 vazado na tela ativa e 700 no sempre ligado, para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
 
 ## Prontidão do app
 
@@ -45,3 +45,16 @@ No simulador, conferir o modo sempre ligado em Settings → Display Mode e o map
 ### Token sem a loja
 
 Instalado pelo cabo, o mostrador não aparece nas configurações do Garmin Connect, então não há onde colar o token. Nesse caso, salve o token em `~/.config/training-sync/watch-token` e compile com `./build-local.sh`: ele copia o mostrador para uma pasta temporária, embute o token em `BuildToken.mc` e gera `bin/TrainingFace.prg`. No repositório, `BuildToken.WATCH_TOKEN` fica sempre vazio. Se a configuração do Garmin Connect tiver um token, ela tem prioridade.
+
+### Foto de fundo
+
+A foto não fica no repositório. No git, `resources/drawables/background.png` é um fundo preto. O `./build-local.sh` troca esse arquivo por `~/.config/training-sync/watch-background.png` (ou pelo caminho em `WATCH_BACKGROUND_FILE`), se ele existir.
+
+Para trocar a foto:
+
+```bash
+python3 scripts/prepare_background.py ~/foto.jpg ~/.config/training-sync/watch-background.png 0.4
+./build-local.sh
+```
+
+O script recorta o quadrado de 454 px (o último argumento é o centro vertical do recorte, de 0 a 1), converte para cinza e reduz para os 16 tons de 0 a `#3C3C3C` da paleta em `drawables.xml`. A paleta curta mantém o bitmap em 4 bits; a foto escura deixa o texto legível e economiza bateria no AMOLED.
