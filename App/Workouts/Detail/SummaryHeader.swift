@@ -37,18 +37,24 @@ struct SummaryHeader: View {
                 stat(summary.elevationText, "desnível")
                 stat(summary.loadText, "carga")
                 if let weather {
-                    stat(RunWeatherText.degrees(weather), RunWeatherText.caption(weather))
+                    stat(RunWeatherText.degrees(weather), RunWeatherText.caption(weather), color: RunWeatherText.tint(weather))
                 }
             }
             .padding(.top, 12)
             if let weather {
-                Text(RunWeatherText.summary(weather))
-                    .font(.caption)
-                    .foregroundStyle(BrandColors.dim)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 6)
+                Label {
+                    Text(RunWeatherText.summary(weather))
+                        .foregroundStyle(BrandColors.text.opacity(0.85))
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: RunWeatherBandConstants.symbol)
+                        .foregroundStyle(RunWeatherText.tint(weather))
+                }
+                .font(.footnote)
+                .padding(.top, 8)
             }
         }
+        .padding(.bottom, weather == nil ? 0 : RunWeatherBandConstants.headerBottomSpacing)
     }
 
     private var columns: Int {
@@ -59,12 +65,12 @@ struct SummaryHeader: View {
     }
 
     @ViewBuilder
-    private func stat(_ value: String?, _ caption: String) -> some View {
+    private func stat(_ value: String?, _ caption: String, color: Color = BrandColors.text) -> some View {
         if let value {
             VStack(alignment: .leading, spacing: 3) {
                 Text(value)
                     .font(BrandFonts.number(26))
-                    .foregroundStyle(BrandColors.text)
+                    .foregroundStyle(color)
                 Text(caption)
                     .font(.caption2)
                     .foregroundStyle(BrandColors.dim)

@@ -17,6 +17,8 @@ enum RunWeatherBandConstants {
     static let kmhPerMs = 3.6
     static let compass = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"]
     static let compassSector = 45.0
+    static let symbol = "thermometer.medium"
+    static let headerBottomSpacing = 12.0
     static let captionLabel = "clima"
     static let captionFormat = "clima +%@"
     static let summaryAdaptedFormat = "adaptado: %d treinos no calor (−%d%%)"
