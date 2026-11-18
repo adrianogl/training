@@ -6,18 +6,7 @@ struct TrainerCycleBanner: View {
     let dated: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
-            Text("✓").foregroundStyle(BrandColors.accent).accessibilityHidden(true)
-            (Text(TrainerCycleText.bannerTitle).fontWeight(.bold).foregroundStyle(BrandColors.accent)
-                + Text(" \(TrainerCycleText.banner(review, dated: dated))").foregroundStyle(BrandColors.text))
-                .font(.footnote)
-            Spacer(minLength: 6)
-            CardLinkBadge()
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(BrandColors.accentGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.35), lineWidth: 1))
+        DSNotice(tone: .success, title: TrainerCycleText.bannerTitle, text: TrainerCycleText.banner(review, dated: dated), trailing: CardLinkBadge())
     }
 }
 

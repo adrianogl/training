@@ -60,7 +60,7 @@ struct TrainerNewPlanView: View {
                             Text(primaryTitle)
                         }
                     }
-                        .buttonStyle(TrainerPrimaryButtonStyle())
+                        .buttonStyle(.ds(.primary))
                         .disabled(!canCreate || model.isWorking)
                         .opacity(canCreate ? 1 : 0.5)
                 }
@@ -207,14 +207,14 @@ struct TrainerNewPlanView: View {
             start: Double(start) * TrainerConstants.metersPerKilometer, peak: Double(peak) * TrainerConstants.metersPerKilometer
         )
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.startTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.startTitle)
             Stepper(
                 TrainerText.weeklyValue(start),
                 value: Binding(get: { start }, set: { startKilometers = $0 }),
                 in: TrainerConstants.weeklyKilometersRange
             )
             Text(TrainerText.weeklyAverage(averageKilometers)).font(.footnote).foregroundStyle(BrandColors.dim)
-            SectionLabel(TrainerText.peakTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.peakTitle)
             Stepper(
                 TrainerText.weeklyValue(peak),
                 value: Binding(get: { peak }, set: { peakKilometers = $0 }),
@@ -249,7 +249,7 @@ struct TrainerNewPlanView: View {
         VStack(alignment: .leading, spacing: 10) {
             switch mode {
             case .race:
-                SectionLabel(TrainerText.raceLabel).padding(.vertical, 0)
+                DSCardLabel(TrainerText.raceLabel)
                 if races.isEmpty {
                     Text(TrainerText.noRaces).font(.footnote).foregroundStyle(BrandColors.dim)
                 } else {
@@ -262,19 +262,19 @@ struct TrainerNewPlanView: View {
                     .tint(BrandColors.text)
                 }
             case .text:
-                SectionLabel(TrainerText.textLabel).padding(.vertical, 0)
+                DSCardLabel(TrainerText.textLabel)
                 TextField(TrainerText.textPlaceholder, text: $text, axis: .vertical)
                     .lineLimit(2...4)
                     .padding(10)
                     .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 deadlineControls
             case .paceDistance:
-                SectionLabel(TrainerText.goalPaceLabel).padding(.vertical, 0)
+                DSCardLabel(TrainerText.goalPaceLabel)
                 Stepper(
                     "\(WorkoutFormat.clock(Double(goalPace)))/km", value: $goalPace,
                     in: TrainerConstants.goalPaceRange, step: TrainerConstants.goalPaceStep
                 )
-                SectionLabel(TrainerText.distanceLabel).padding(.vertical, 0)
+                DSCardLabel(TrainerText.distanceLabel)
                 Stepper("\(goalKilometers) km", value: $goalKilometers, in: TrainerConstants.goalDistanceRange)
                 deadlineControls
             }
@@ -294,7 +294,7 @@ struct TrainerNewPlanView: View {
 
     private var lightWeeksCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.lightWeeksTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.lightWeeksTitle)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 4), spacing: 6) {
                 ForEach(model.previewLightWeekStarts(), id: \.iso) { start in
                     let marked = lightWeeks.contains(start)
@@ -319,7 +319,7 @@ struct TrainerNewPlanView: View {
     private var pacesCard: some View {
         let paces = model.previewPaces()
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.pacesTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.pacesTitle)
             HStack(spacing: 8) {
                 paceTile(paces.easy, TrainerText.paceEasy, runs: paces.easyRuns)
                 paceTile(paces.threshold, TrainerText.paceThreshold, runs: paces.thresholdRuns)

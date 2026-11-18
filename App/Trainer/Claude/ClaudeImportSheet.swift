@@ -35,14 +35,14 @@ struct ClaudeImportSheet: View {
                             onApply()
                             message = ClaudeText.applied
                         }
-                        .buttonStyle(TrainerPrimaryButtonStyle())
+                        .buttonStyle(.ds(.primary))
                         .disabled(validCount == 0 || message == ClaudeText.applied)
                         if results.contains(where: { !$0.errors.isEmpty }) {
                             Button(ClaudeText.copyErrors) {
                                 UIPasteboard.general.string = ClaudeContextBuilder.errorsMessage(results)
                                 message = ClaudeText.errorsCopied
                             }
-                            .buttonStyle(TrainerSecondaryButtonStyle())
+                            .buttonStyle(.ds(.secondary))
                         }
                     }
                     if let message {

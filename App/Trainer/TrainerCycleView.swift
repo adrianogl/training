@@ -63,22 +63,22 @@ struct TrainerCycleContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             TrainerPlanGoalRow(plan: plan).brandCard()
-            SectionHeader(TrainerCycleText.nextTitle)
+            DSSectionTitle(TrainerCycleText.nextTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             TrainerCycleSuggestionCard(review: review, dated: dated, ended: ended, onSuggestion: onSuggestion, onOther: onOther)
             if let seconds = review.raceSeconds {
-                SectionHeader(TrainerCycleText.raceTitle)
+                DSSectionTitle(TrainerCycleText.raceTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 TrainerCycleRaceCard(seconds: seconds, goal: review.goalSeconds)
             }
             if !review.weeks.isEmpty {
-                SectionHeader(TrainerCycleText.volumeTitle)
+                DSSectionTitle(TrainerCycleText.volumeTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 TrainerCycleVolumeCard(review: review)
-                SectionHeader(TrainerCycleText.keyTitle)
+                DSSectionTitle(TrainerCycleText.keyTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 TrainerCycleKeyCard(review: review)
             }
-            SectionHeader(TrainerCycleText.bodyTitle)
+            DSSectionTitle(TrainerCycleText.bodyTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             TrainerCycleBodyCard(review: review)
             if !review.predictions.isEmpty {
-                SectionHeader(TrainerCycleText.formTitle)
+                DSSectionTitle(TrainerCycleText.formTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 TrainerCycleFormCard(predictions: review.predictions)
             }
             rule

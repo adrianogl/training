@@ -14,7 +14,7 @@ struct TodayWeekCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(title)
             HStack(alignment: .firstTextBaseline) {
                 Text(bigText).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
                 Spacer()
@@ -26,13 +26,7 @@ struct TodayWeekCard: View {
             }
             WeeklyDaysRow(days: report.days, compact: sizeClass != .regular, strength: strength)
             ForEach(warnings, id: \.self) { warning in
-                HStack(alignment: .top, spacing: 8) {
-                    Text("!").font(.footnote.weight(.bold)).foregroundStyle(BrandColors.attention)
-                    Text(warning).font(.footnote).foregroundStyle(BrandColors.text)
-                }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                DSNotice(tone: .attention, text: warning)
             }
             if series.points.count > 1 {
                 sparkline

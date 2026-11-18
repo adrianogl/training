@@ -80,11 +80,7 @@ struct PlannedWorkoutDetailView: View {
             HStack(spacing: 10) {
                 Text(plan.title).font(.title2.bold()).foregroundStyle(BrandColors.text)
                 if let tag = dayTag {
-                    Text(tag)
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(BrandColors.onAccent)
-                        .padding(.horizontal, 8).padding(.vertical, 3)
-                        .background(BrandColors.accentFill, in: Capsule())
+                    DSChip(text: tag, tone: .accent, style: .solid)
                 }
             }
             HStack(spacing: 8) {
@@ -154,7 +150,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func summaryCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.summary).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.summary)
             Text(briefing.summary).font(.body).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
             if !briefing.tags.isEmpty {
                 FlowTags(tags: briefing.tags)
@@ -166,7 +162,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func howCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.how).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.how)
             PlannedShape(steps: plan.steps).frame(height: TodayConstants.planShapeHeight)
             ForEach(Array(briefing.phases.enumerated()), id: \.offset) { index, phase in
                 if index > 0 { Divider().overlay(BrandColors.line) }
@@ -191,7 +187,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func repsCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.reps).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.reps)
             ForEach(Array(briefing.reps.enumerated()), id: \.offset) { index, rep in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -214,7 +210,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func expectCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.expect).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.expect)
             LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)], alignment: .leading, spacing: 10) {
                 ForEach(Array(briefing.expectations.enumerated()), id: \.offset) { _, stat in
                     VStack(alignment: .leading, spacing: 2) {
@@ -237,7 +233,7 @@ struct PlannedWorkoutDetailView: View {
     private func previousCard(_ briefing: PlannedBriefing) -> some View {
         let longest = briefing.previous.map(\.kilometers).max() ?? 1
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.previous).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.previous)
             ForEach(Array(briefing.previous.enumerated()), id: \.offset) { _, run in
                 HStack(spacing: 10) {
                     Text(run.day.chartDate.formatted(.dateTime.day().month(.abbreviated).locale(WorkoutConstants.locale)))
@@ -264,7 +260,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func listCard(_ title: String, _ items: [BriefingItem]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(title)
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack(alignment: .top, spacing: 10) {
                     Circle().fill(color(item.tone)).frame(width: 8, height: 8).padding(.top, 6)
@@ -281,7 +277,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func carryCard(_ items: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.carry).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.carry)
             ForEach(items, id: \.self) { item in
                 Button {
                     if packed.contains(item) { packed.remove(item) } else { packed.insert(item) }
@@ -299,7 +295,7 @@ struct PlannedWorkoutDetailView: View {
 
     private func textCard(_ title: String, _ text: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(title)
             Text(text).font(.subheadline).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -314,7 +310,7 @@ struct PlannedWorkoutDetailView: View {
         let coolest = Set(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour))
         let perRow = briefing.bestHours.count > C.hoursPerRow ? C.hoursPerRowLong : max(briefing.bestHours.count, 1)
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.hours).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.hours)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: perRow), spacing: 6) {
                 ForEach(briefing.bestHours, id: \.hour) { hour in
                     VStack(spacing: 2) {
@@ -382,20 +378,16 @@ struct FlowTags: View {
 
     private var chips: some View {
         ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in
-            Text(tag.text)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(foreground(tag.tone))
-                .padding(.horizontal, 9).padding(.vertical, 3)
-                .background(foreground(tag.tone).opacity(0.14), in: Capsule())
+            DSChip(text: tag.text, tone: tone(tag.tone))
         }
     }
 
-    private func foreground(_ tone: BriefingTone) -> Color {
+    private func tone(_ tone: BriefingTone) -> DSTone {
         switch tone {
-        case .good: BrandColors.accent
-        case .info: BrandColors.fitness
-        case .warn: BrandColors.attention
-        case .bad: BrandColors.rest
+        case .good: .accent
+        case .info: .fitness
+        case .warn: .attention
+        case .bad: .danger
         }
     }
 }

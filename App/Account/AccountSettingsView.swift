@@ -38,7 +38,7 @@ struct AccountSettingsView: View {
                             Spacer()
                             if !session.current {
                                 Button(C.endSession) { Task { await model.endSession(session.id) } }
-                                    .buttonStyle(.bordered)
+                                    .buttonStyle(.ds(.text))
                             }
                         }
                     }

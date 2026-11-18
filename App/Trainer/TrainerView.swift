@@ -24,10 +24,7 @@ struct TrainerView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     CompactLogoHeader()
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text(TrainerText.title).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
-                        TrainerBetaBadge()
-                    }
+                    Text(TrainerText.title).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                     if let plan = model.plan {
                         shortcuts(proxy)
                         planContent(plan, proxy: proxy)
@@ -108,7 +105,7 @@ struct TrainerView: View {
             Text(TrainerStrengthText.runPlanTitle).font(.headline).foregroundStyle(BrandColors.text)
             Text(TrainerStrengthText.runPlanBody).font(.footnote).foregroundStyle(BrandColors.dim)
             Button(TrainerStrengthText.createRunPlan) { showsNewPlan = true }
-                .buttonStyle(TrainerSecondaryButtonStyle())
+                .buttonStyle(.ds(.secondary))
         }
         .brandCard()
     }
@@ -117,7 +114,7 @@ struct TrainerView: View {
         let sessions = model.strengthSessions.sorted { $0.weekday < $1.weekday }
         let mfitDays = sessions.filter { $0.source == .mfit }.map { TrainerText.weekdayName($0.weekday - 1) }
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerStrengthText.weekTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerStrengthText.weekTitle)
             ForEach(sessions.filter { $0.source == .trainer }) { session in
                 HStack(spacing: 10) {
                     Text(TrainerText.weekdayName(session.weekday - 1)).font(.caption.weight(.bold)).foregroundStyle(BrandColors.text)
@@ -137,7 +134,7 @@ struct TrainerView: View {
                 Text(TrainerText.strengthCardEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }
             NavigationLink(value: TrainerRoute.strength) { Text(TrainerStrengthText.openStrength) }
-                .buttonStyle(TrainerPrimaryButtonStyle())
+                .buttonStyle(.ds(.primary))
         }
         .brandCard()
     }
@@ -219,17 +216,17 @@ struct TrainerView: View {
     private var endedActions: some View {
         if model.cycleReview != nil {
             NavigationLink(value: TrainerRoute.cycle) { Text(TrainerCycleText.openAnalysis) }
-                .buttonStyle(TrainerPrimaryButtonStyle())
+                .buttonStyle(.ds(.primary))
                 .padding(.top, 4)
         }
         Button(TrainerText.newPlanTitle) { showsNewPlan = true }
-            .buttonStyle(TrainerSecondaryButtonStyle())
+            .buttonStyle(.ds(.secondary))
     }
 
     @ViewBuilder
     private var previousCycles: some View {
         if !model.cycleSummaries.isEmpty {
-            SectionHeader(TrainerCycleText.previousTitle)
+            DSSectionTitle(TrainerCycleText.previousTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             ForEach(model.cycleSummaries) { TrainerCycleSummaryRow(summary: $0) }
         }
     }
@@ -241,32 +238,21 @@ struct TrainerView: View {
 
     private func updatedBanner(_ version: TrainerVersion) -> some View {
         NavigationLink(value: TrainerRoute.changes) {
-            HStack(spacing: 8) {
-                Text("⟳").foregroundStyle(BrandColors.accent)
-                (Text(TrainerText.updatedBanner).fontWeight(.bold).foregroundStyle(BrandColors.accent)
-                    + Text(" \(TrainerText.triggerText(version))").foregroundStyle(BrandColors.text))
-                    .font(.footnote)
-                Spacer(minLength: 6)
-                CardLinkBadge()
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(BrandColors.accentGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.35), lineWidth: 1))
+            DSNotice(tone: .success, title: TrainerText.updatedBanner, text: TrainerText.triggerText(version), trailing: CardLinkBadge())
         }
         .buttonStyle(.cardLink)
     }
 
     @ViewBuilder
     private func planBody(_ plan: TrainerPlan) -> some View {
-        SectionHeader(TrainerText.upcoming)
+        DSSectionTitle(TrainerText.upcoming).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
         ForEach(model.weekGroups) { group in
             weekSection(group)
         }
         Button { showsSend = true } label: {
             Label(TrainerSendText.openButton, systemImage: "applewatch")
         }
-        .buttonStyle(TrainerPrimaryButtonStyle())
+        .buttonStyle(.ds(.primary))
         .padding(.top, 4)
         adjustments(plan)
         AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
@@ -302,11 +288,11 @@ struct TrainerView: View {
             Button { showsEdit = true } label: {
                 Label(TrainerText.editPacesButton, systemImage: "slider.horizontal.3")
             }
-            .buttonStyle(TrainerSecondaryButtonStyle())
+            .buttonStyle(.ds(.secondary))
             Button { showsRequest = true } label: {
                 Label(TrainerText.askButton, systemImage: "square.and.pencil")
             }
-            .buttonStyle(TrainerSecondaryButtonStyle())
+            .buttonStyle(.ds(.secondary))
         }
     }
 
@@ -394,27 +380,3 @@ struct TrainerView: View {
     }
 }
 
-struct TrainerPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.subheadline.weight(.bold))
-            .foregroundStyle(BrandColors.onAccent)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 11)
-            .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .opacity(configuration.isPressed ? 0.8 : 1)
-    }
-}
-
-struct TrainerSecondaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(BrandColors.text)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 11)
-            .background(BrandColors.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.cardBorder, lineWidth: 1))
-            .opacity(configuration.isPressed ? 0.8 : 1)
-    }
-}

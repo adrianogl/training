@@ -20,17 +20,17 @@ struct NextRaceView: View {
                 if let model, model.isLoaded, let info = model.info {
                     header(model, info: info)
                     heroCard(model, info: info)
-                    SectionHeader(RacesConstants.readySection)
+                    DSSectionTitle(RacesConstants.readySection).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                     pair {
                         RaceChecklistCard(items: model.checklist)
                         RaceBlockCard(block: model.block, today: model.today, reading: model.blockReading, longest: model.weeklyLongest)
                             .id(RacesConstants.blockAnchor)
                     }
                     if let taper = model.taper {
-                        SectionHeader(RacesConstants.taperSection)
+                        DSSectionTitle(RacesConstants.taperSection).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                         RaceTaperCard(plan: taper)
                     }
-                    SectionHeader(RacesConstants.raceDaySection)
+                    DSSectionTitle(RacesConstants.raceDaySection).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                     RaceDayCard(model: model, info: info, client: app.garminAccount.client)
                     AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
                         .padding(.top, 8)

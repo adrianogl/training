@@ -230,7 +230,7 @@ struct TodayView: View {
     }
 
     private func blockLabel(_ text: String, first: Bool = false) -> some View {
-        SectionHeader(text)
+        DSSectionTitle(text).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             .padding(.top, first ? -TodayConstants.blockLabelTopInset : 0)
             .padding(.bottom, -TodayConstants.blockLabelBottomInset)
     }

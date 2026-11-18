@@ -59,7 +59,7 @@ struct StrengthLoadsCard: View {
                     StrengthLoadsView(model: model)
                 } label: {
                     HStack {
-                        StrengthCardHeader(title: StrengthText.loadsTitle)
+                        DSCardLabel(StrengthText.loadsTitle)
                         if !model.loadSeries.isEmpty { CardLinkBadge() }
                     }
                     .contentShape(Rectangle())
@@ -164,7 +164,7 @@ struct StrengthLoadDetailContent: View {
                 }
             }
             chart(series).brandCard()
-            SectionLabel(StrengthText.records)
+            DSCardLabel(StrengthText.records).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             VStack(spacing: 0) {
                 ForEach(Array(series.points.reversed().enumerated()), id: \.element.id) { index, point in
                     HStack(spacing: 10) {
@@ -228,12 +228,6 @@ struct StrengthLoadDetailContent: View {
 
 struct StrengthRecordBadge: View {
     var body: some View {
-        Text(StrengthText.recordBadge)
-            .font(.system(size: 9.5, weight: .heavy))
-            .textCase(.uppercase)
-            .foregroundStyle(Color.black.opacity(0.85))
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1.5)
-            .background(StrengthConstants.recordGold, in: Capsule())
+        DSChip(text: StrengthText.recordBadge, tone: .accent, style: .solid)
     }
 }

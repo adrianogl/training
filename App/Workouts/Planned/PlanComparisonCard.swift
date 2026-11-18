@@ -11,13 +11,9 @@ struct PlanComparisonCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(title)
                 Spacer()
-                Text(String(format: C.compareScoreFormat, rows.filter(\.ok).count, rows.count))
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(rows.allSatisfy(\.ok) ? BrandColors.accent : BrandColors.attention)
-                    .padding(.horizontal, 9).padding(.vertical, 3)
-                    .background((rows.allSatisfy(\.ok) ? BrandColors.accentFill : BrandColors.attention).opacity(0.15), in: Capsule())
+                DSChip(text: String(format: C.compareScoreFormat, rows.filter(\.ok).count, rows.count), tone: rows.allSatisfy(\.ok) ? .accent : .attention)
             }
             HStack {
                 Spacer()

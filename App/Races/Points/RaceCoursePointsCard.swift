@@ -22,7 +22,7 @@ struct RaceCoursePointsCard: View {
         let water = CoursePointsBuilder.water(waterText)
         let gels = CoursePointsBuilder.gels(distance: distance, targetSeconds: targetSeconds)
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.title).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.title)
             if let profile, profile.count >= 2 {
                 GeometryReader { proxy in
                     let x = { (km: Double) in proxy.size.width * km * 1_000 / max(distance, 1) }

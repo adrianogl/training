@@ -13,13 +13,15 @@ enum WorkoutConstants {
     static let weekStrengthFormat = "%@ · %d de força"
     static let weekStrengthOnlyFormat = "%d de força"
     static let weekBarHeight: Double = 4
-    static let emptyFilter = "Nenhum treino desse tipo."
+    static let emptyFilter = "Nenhum treino desse tipo"
+    static let emptyFilterText = "Troque o filtro para ver os outros treinos."
     static let filterTitles: [WorkoutKindFilter: String] = [
         .all: "Todos",
         .run: "Corrida",
         .strength: "Força",
     ]
-    static let emptyList = "Nenhum treino ainda."
+    static let emptyList = "Nenhum treino ainda"
+    static let emptyListText = "Os treinos aparecem aqui depois da sincronização com o Garmin."
     static let listTitle = "Treinos"
     static let selectWorkout = "Escolha um treino na lista."
     static let plannedTitle = "Planejados"

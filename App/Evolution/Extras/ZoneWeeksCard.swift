@@ -9,7 +9,7 @@ struct ZoneWeeksCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.zonesTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.zonesTitle)
             Chart {
                 ForEach(weeks, id: \.start) { week in
                     ForEach(Array(week.seconds.enumerated()), id: \.offset) { zone, seconds in
@@ -45,7 +45,7 @@ struct RecordsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.recordsTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.recordsTitle)
             if records.isEmpty {
                 Text(C.recordsEmpty).font(.subheadline).foregroundStyle(BrandColors.dim)
             }
@@ -60,10 +60,7 @@ struct RecordsCard: View {
                             .foregroundStyle(BrandColors.dim)
                     }
                     if now.timeIntervalSince(record.date) <= Double(C.recentDays) * 86_400 {
-                        Text(C.newRecord)
-                            .font(.caption2.weight(.bold)).foregroundStyle(BrandColors.onAccent)
-                            .padding(.horizontal, 6).padding(.vertical, 2)
-                            .background(BrandColors.accentFill, in: Capsule())
+                        DSChip(text: C.newRecord, tone: .accent, style: .solid)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: 1) {

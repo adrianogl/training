@@ -40,7 +40,7 @@ struct ReadinessDetailView: View {
                 if let recovery {
                     RecoveryCard(estimate: recovery).padding(.top, 14)
                 }
-                SectionLabel(TodayConstants.detailExplanationTitle)
+                DSCardLabel(TodayConstants.detailExplanationTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 Text(TodayConstants.detailExplanation)
                     .font(.footnote)
                     .foregroundStyle(BrandColors.dim)

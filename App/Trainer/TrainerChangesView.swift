@@ -16,7 +16,7 @@ struct TrainerChangesView: View {
                 }
                 if versions.count > 1 {
                     VStack(alignment: .leading, spacing: 8) {
-                        SectionLabel(TrainerText.versionsTitle).padding(.vertical, 0)
+                        DSCardLabel(TrainerText.versionsTitle)
                         ForEach(versions, id: \.number) { version in
                             Button { selected = version.number } label: {
                                 HStack {

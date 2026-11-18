@@ -88,13 +88,13 @@ struct WorkoutDetailView: View {
     @ViewBuilder
     private func runSections(_ model: WorkoutDetailModel) -> some View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-            DetailSectionHeader(WorkoutDetailConstants.sectionHowItWent)
+            DSSectionTitle(WorkoutDetailConstants.sectionHowItWent).padding(.top, DSSpacing.s4)
             howItWent(model)
             if !goalEntries.isEmpty {
                 WorkoutGoalCard(entries: goalEntries)
             }
             if hasWorkoutSection(model) {
-                DetailSectionHeader(WorkoutDetailConstants.sectionWorkout)
+                DSSectionTitle(WorkoutDetailConstants.sectionWorkout).padding(.top, DSSpacing.s4)
             }
             if model.structureMissing {
                 notice
@@ -127,7 +127,7 @@ struct WorkoutDetailView: View {
                 .id(WorkoutDetailSection.route)
             }
             if model.comparison != nil, !model.comparisonRows.isEmpty {
-                DetailSectionHeader(WorkoutDetailConstants.sectionComparison)
+                DSSectionTitle(WorkoutDetailConstants.sectionComparison).padding(.top, DSSpacing.s4)
                 labelled("Comparado com treinos parecidos") {
                     ComparisonSection(
                         title: model.comparisonTitle,
@@ -210,7 +210,7 @@ struct WorkoutDetailView: View {
 
     private func labelled<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(title)
             content()
         }
     }

@@ -51,7 +51,7 @@ struct TrainerRequestView: View {
     private var form: some View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel(TrainerText.requestWhy).padding(.vertical, 0)
+                DSCardLabel(TrainerText.requestWhy)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 6) {
                         ForEach(TrainerConstants.shortcuts) { item in
@@ -81,7 +81,7 @@ struct TrainerRequestView: View {
                     Text(model.isWorking ? TrainerText.requestWorking : TrainerText.requestSubmit)
                 }
             }
-                .buttonStyle(TrainerPrimaryButtonStyle())
+                .buttonStyle(.ds(.primary))
                 .disabled(!canSubmit || model.isWorking)
                 .opacity(canSubmit ? 1 : 0.5)
         }

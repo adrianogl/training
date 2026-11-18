@@ -8,7 +8,7 @@ struct HeatmapCard: View {
     var body: some View {
         let total = columns.flatMap { $0 }.reduce(0) { $0 + $1.kilometers }
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.heatmapTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.heatmapTitle)
             HStack(alignment: .top, spacing: 6) {
                 VStack(spacing: C.heatmapCellSpacing) {
                     Color.clear.frame(height: 12)

@@ -39,9 +39,9 @@ struct TrainerCycleSuggestionCard: View {
                 }
             }
             Button(ended ? TrainerCycleText.createWithSuggestion : TrainerCycleText.applySuggestion, action: onSuggestion)
-                .buttonStyle(TrainerPrimaryButtonStyle())
+                .buttonStyle(.ds(.primary))
             Button(TrainerCycleText.chooseOther, action: onOther)
-                .buttonStyle(TrainerSecondaryButtonStyle())
+                .buttonStyle(.ds(.secondary))
         }
         .brandCard()
     }

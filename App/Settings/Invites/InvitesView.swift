@@ -81,9 +81,9 @@ struct InvitesView: View {
                     }
                     HStack {
                         Button(C.inviteAction) { Task { await model.invite(request) } }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.ds(.primary))
                         Button(C.declineAction) { Task { await model.decline(request) } }
-                            .buttonStyle(.bordered)
+                            .buttonStyle(.ds(.secondary))
                     }
                     .disabled(model.isWorking)
                 }

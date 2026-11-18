@@ -36,7 +36,7 @@ struct TrainerSendSheet: View {
                         Text(TrainerSendText.runFromAdvisory).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
                     VStack(alignment: .leading, spacing: 0) {
-                        SectionLabel(TrainerSendText.windowLabel).padding(.vertical, 0).padding(.bottom, 6)
+                        DSCardLabel(TrainerSendText.windowLabel).padding(.bottom, 6)
                         if items.isEmpty {
                             Text(TrainerSendText.empty).font(.footnote).foregroundStyle(BrandColors.dim).padding(.vertical, 8)
                         }
@@ -54,7 +54,7 @@ struct TrainerSendSheet: View {
                     Button(buttonTitle(pending.count + stale.count)) {
                         send(pending, stale: stale)
                     }
-                    .buttonStyle(TrainerPrimaryButtonStyle())
+                    .buttonStyle(.ds(.primary))
                     .disabled(sending || app.trainer.isSendingToGarmin || app.garminAccount.client == nil || pending.count + stale.count == 0)
                     if let message {
                         Text(message).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)

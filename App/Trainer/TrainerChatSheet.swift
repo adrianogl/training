@@ -24,9 +24,9 @@ struct TrainerChatSheet: View {
             ForEach(TrainerChatActions.detect(question: question, answer: answer.text, plan: plan, today: app.trainer.currentDay), id: \.self) { action in
                 switch action {
                 case .swap(let value):
-                    Button(TrainerChatActions.label(for: value)) { swap = value }.buttonStyle(TrainerSecondaryButtonStyle())
+                    Button(TrainerChatActions.label(for: value)) { swap = value }.buttonStyle(.ds(.secondary))
                 case .request(let value):
-                    Button(TrainerChatConstants.requestLabel) { request = value }.buttonStyle(TrainerSecondaryButtonStyle())
+                    Button(TrainerChatConstants.requestLabel) { request = value }.buttonStyle(.ds(.secondary))
                 }
             }
         }

@@ -42,14 +42,9 @@ struct AccountPrimaryButton: View {
                 Text(title).opacity(isWorking ? 0 : 1)
                 if isWorking { BrandLoader(size: .mini) }
             }
-            .font(.headline)
-            .foregroundStyle(BrandColors.onAccent)
-            .frame(maxWidth: .infinity, minHeight: AccountConstants.buttonHeight)
-            .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: AccountConstants.cornerRadius))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.ds(.primary))
         .disabled(disabled || isWorking)
-        .opacity(disabled ? 0.5 : 1)
     }
 }
 

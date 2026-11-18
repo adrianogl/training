@@ -38,7 +38,7 @@ struct WeeklyReportCard: View {
 
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
-            SectionLabel("\(report.isCurrentWeek ? C.titleCurrent : C.titlePrevious) · \(range)").padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel("\(report.isCurrentWeek ? C.titleCurrent : C.titlePrevious) · \(range)")
             Spacer()
             if report.isComplete {
                 Text(C.completeBadge).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)

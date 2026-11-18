@@ -5,14 +5,12 @@ struct FailureView: View {
     var onKeyHelp: (() -> Void)?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label(failure.message, systemImage: "exclamationmark.triangle.fill")
-                .foregroundStyle(BrandColors.race)
+        DSNotice(tone: .error, text: failure.message) {
             if failure.suggestsNewKey {
-                Link("Criar chave nova no Garmin Connect", destination: AppConstants.createKeyURL)
+                Link(FailureViewConstants.newKey, destination: AppConstants.createKeyURL).buttonStyle(.ds(.text))
             }
             if failure.needsKeyHelp, let onKeyHelp {
-                Button(GarminKeyHelpConstants.openLink, action: onKeyHelp)
+                Button(GarminKeyHelpConstants.openLink, action: onKeyHelp).buttonStyle(.ds(.text))
             }
         }
     }

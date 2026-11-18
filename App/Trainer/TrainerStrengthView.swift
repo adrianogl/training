@@ -33,7 +33,7 @@ struct TrainerStrengthView: View {
                 Button { showsPain = true } label: {
                     Label(TrainerStrengthText.painButton, systemImage: TrainerStrengthConstants.painSymbol)
                 }
-                .buttonStyle(TrainerSecondaryButtonStyle())
+                .buttonStyle(.ds(.secondary))
                 if sessions.contains(where: { $0.source == .mfit }) {
                     Text(TrainerStrengthText.mfitReadOnly).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
                 }
@@ -42,7 +42,7 @@ struct TrainerStrengthView: View {
                     Button { showsSend = true } label: {
                         Label(TrainerSendText.openButton, systemImage: "applewatch")
                     }
-                    .buttonStyle(TrainerPrimaryButtonStyle())
+                    .buttonStyle(.ds(.primary))
                     Text(TrainerStrengthText.noPlanNote).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
                 }
             }
@@ -115,12 +115,12 @@ struct TrainerStrengthView: View {
             Text(String(format: ClaudeText.inboxCountFormat, preview.results.count, valid, preview.results.count - valid))
                 .font(.caption).foregroundStyle(BrandColors.dim)
             Button(ClaudeText.review) { claudeImport = preview }
-                .buttonStyle(TrainerPrimaryButtonStyle())
+                .buttonStyle(.ds(.primary))
             Button(ClaudeText.discard) {
                 ClaudeMailbox().markSeen(inbox)
                 self.inbox = nil
             }
-            .buttonStyle(TrainerSecondaryButtonStyle())
+            .buttonStyle(.ds(.secondary))
         }
         .padding(12)
         .background(ClaudeConstants.color.opacity(TrainerStrengthConstants.bannerTint), in: shape)
@@ -133,9 +133,9 @@ struct TrainerStrengthView: View {
                 .font(.footnote.weight(.bold))
                 .foregroundStyle(ClaudeConstants.color)
             Button(ClaudeText.askButton) { showsClaudeRequest = true }
-                .buttonStyle(TrainerSecondaryButtonStyle())
+                .buttonStyle(.ds(.secondary))
             Button(ClaudeText.pasteButton) { pasteFromClaude() }
-                .buttonStyle(TrainerSecondaryButtonStyle())
+                .buttonStyle(.ds(.secondary))
         }
         .brandCard()
     }
@@ -159,7 +159,7 @@ struct TrainerStrengthView: View {
         let days = (0..<TrainerSendConstants.windowDays).map { model.currentDay.adding(days: $0) }
         let entries = days.flatMap { day in model.trainerSessions(on: day).map { (day: day, session: $0) } }
         return VStack(alignment: .leading, spacing: 4) {
-            SectionLabel(TrainerStrengthText.upcomingTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerStrengthText.upcomingTitle)
             if entries.isEmpty {
                 Text(TrainerStrengthText.upcomingEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }
@@ -190,13 +190,13 @@ struct TrainerStrengthView: View {
 
     private var daysCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(TrainerStrengthText.daysTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerStrengthText.daysTitle)
             HStack(spacing: 6) {
                 ForEach(1...TrainerConstants.weekdayCount, id: \.self) { weekday in
                     dayChip(weekday)
                 }
             }
-            SectionLabel(TrainerStrengthText.perDayTitle).padding(.top, 4).padding(.bottom, 0)
+            DSCardLabel(TrainerStrengthText.perDayTitle).padding(.top, 4)
             if sessions.isEmpty {
                 Text(TrainerText.strengthEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }
@@ -268,7 +268,7 @@ struct TrainerStrengthView: View {
             Button(TrainerStrengthText.useSuggestion) {
                 Task { await model.saveStrength(model.suggestedStrength()) }
             }
-            .buttonStyle(TrainerSecondaryButtonStyle())
+            .buttonStyle(.ds(.secondary))
         }
         .padding(12)
         .background(BrandColors.strengthGlow, in: RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous))
@@ -301,13 +301,7 @@ struct TrainerStrengthSourceChip: View {
     let source: TrainerStrengthSource
 
     var body: some View {
-        let color = source == .trainer ? BrandColors.strength : BrandColors.dim
-        Text(TrainerStrengthText.sourceName(source))
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
-            .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+        DSChip(text: TrainerStrengthText.sourceName(source), tone: source == .trainer ? .strength : .neutral)
     }
 }
 
@@ -350,13 +344,13 @@ struct TrainerStrengthEditView: View {
                         onResult(.save(session))
                         dismiss()
                     }
-                    .buttonStyle(TrainerPrimaryButtonStyle())
+                    .buttonStyle(.ds(.primary))
                     if !isNew {
                         Button(TrainerStrengthText.remove, role: .destructive) {
                             onResult(.remove(session.id))
                             dismiss()
                         }
-                        .buttonStyle(TrainerSecondaryButtonStyle())
+                        .buttonStyle(.ds(.secondary))
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)

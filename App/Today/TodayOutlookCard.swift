@@ -14,7 +14,7 @@ struct TodayOutlookCard: View {
             if let days = model.summary.raceCountdownDays {
                 race(days: days)
             } else {
-                SectionLabel(C.predictionsTitle).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(C.predictionsTitle)
             }
             if !predictions.isEmpty {
                 Grid(horizontalSpacing: 8, verticalSpacing: 8) {
@@ -46,7 +46,7 @@ struct TodayOutlookCard: View {
         let race = model.summary.race
         return VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                SectionLabel(String(format: C.outlookRaceFormat, model.raceName ?? race.label)).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(String(format: C.outlookRaceFormat, model.raceName ?? race.label))
                 Spacer()
                 (Text("\(days) ").font(BrandFonts.number(22)) + Text(days == 1 ? C.daySingular : C.daysLabel).font(.caption))
                     .foregroundStyle(BrandColors.race)
