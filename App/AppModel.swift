@@ -262,7 +262,7 @@ import TrainingCore
     func activate(force: Bool = false) {
         guard autoSyncEnabled, force || returnsFromBackground else { return }
         returnsFromBackground = false
-        let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, now: .now)
+        let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, readinessComplete: todayReadinessComplete, now: .now)
         Task { await appBecameActive(syncs: syncs) }
     }
 
