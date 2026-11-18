@@ -7,7 +7,6 @@ enum TrainerText {
     private typealias C = TrainerConstants
 
     static let title = "Treinador"
-    static let beta = "BETA"
     static let cardCreate = "Criar plano"
     static let emptyTitle = "Nenhum plano ainda"
     static let emptyBody = "O treinador monta duas semanas de treino por distância, com a estrutura da sua semana, e revê o plano a cada semana e depois de treinos fora do previsto."

@@ -107,9 +107,9 @@ import TrainingCore
                 plan: plan, boards: [], cells: Self.cells(), weeksToTarget: nil, weekProgress: nil,
                 onToggleLight: { _ in }, onSelect: { _ in }, cycle: review
             )
-            Button(TrainerCycleText.openAnalysis) {}.buttonStyle(TrainerPrimaryButtonStyle())
-            Button(TrainerText.newPlanTitle) {}.buttonStyle(TrainerSecondaryButtonStyle())
-            SectionHeader(TrainerCycleText.previousTitle)
+            Button(TrainerCycleText.openAnalysis) {}.buttonStyle(.ds(.primary))
+            Button(TrainerText.newPlanTitle) {}.buttonStyle(.ds(.secondary))
+            DSSectionTitle(TrainerCycleText.previousTitle)
             TrainerCycleSummaryRow(summary: summary)
         })
         #expect(size.height > size.width)

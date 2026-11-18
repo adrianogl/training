@@ -72,7 +72,7 @@ struct TrainerDayView: View {
             TrainerBestTimeCard(bestTime: bestTime, hasBlocks: TrainerEngine.plannedPauses(of: workout) > 0)
         }
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.whyTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.whyTitle)
             Text(workout.rationale).font(.footnote).foregroundStyle(BrandColors.text)
             if let method = workout.method {
                 Text(TrainerText.methodLine(method)).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.dim)
@@ -129,7 +129,7 @@ struct TrainerDayView: View {
         if let pauses = run.pauses { items.append((TrainerText.runPauses, "\(pauses)")) }
         if let fade = run.fadeKm { items.append((TrainerText.runFade, "\(fade)")) }
         return VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(TrainerText.doneTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.doneTitle)
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack {
                     Text(item.0).font(.footnote).foregroundStyle(BrandColors.dim)

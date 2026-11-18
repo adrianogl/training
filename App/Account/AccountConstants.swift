@@ -88,5 +88,7 @@ enum AccountConstants {
     static let inviteExpiredTitle = "Convite vencido"
     static let expiredText = "O link vale por 24 horas. Peça outro em Ajustes › Conta."
     static let continueLabel = "Continuar"
+    static let verifying = "Confirmando o e-mail"
+    static let loadingInvite = "Abrindo o convite"
     static let close = "Fechar"
 }

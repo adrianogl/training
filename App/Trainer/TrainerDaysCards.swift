@@ -29,7 +29,7 @@ struct TrainerDaysCards: View {
                 in: TrainerDaysPlanner.runsRange(preference)
             ) {
                 VStack(alignment: .leading, spacing: 2) {
-                    SectionLabel(TrainerDaysText.runsTitle).padding(.vertical, 0)
+                    DSCardLabel(TrainerDaysText.runsTitle)
                     HStack(spacing: 8) {
                         Text("\(preference.runs)").font(BrandFonts.number(22)).foregroundStyle(BrandColors.text)
                         Text(TrainerDaysText.runsDetail(runs: preference.runs, optional: preference.optional))
@@ -49,7 +49,7 @@ struct TrainerDaysCards: View {
 
     private var offCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerDaysText.offTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerDaysText.offTitle)
             HStack(spacing: TrainerDaysConstants.chipSpacing) {
                 ForEach(weekdays, id: \.self) { weekday in
                     chip(weekday, selected: preference.offDays.contains(weekday), color: BrandColors.rest) {
@@ -65,7 +65,7 @@ struct TrainerDaysCards: View {
 
     private var longCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerDaysText.longTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerDaysText.longTitle)
             HStack(spacing: TrainerDaysConstants.chipSpacing) {
                 ForEach(weekdays, id: \.self) { weekday in
                     chip(weekday, selected: preference.longDay == weekday, color: BrandColors.accent) {
@@ -103,7 +103,7 @@ struct TrainerDaysCards: View {
         let alternates = TrainerEngine.alternatesQuality(structure)
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
-                SectionLabel(TrainerDaysText.suggestionTitle).padding(.vertical, 0)
+                DSCardLabel(TrainerDaysText.suggestionTitle)
                 Spacer(minLength: 6)
                 if hardWarnings.isEmpty {
                     Label(TrainerDaysText.allRules, systemImage: "checkmark")

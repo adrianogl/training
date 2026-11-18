@@ -16,12 +16,7 @@ struct PlannedWorkoutRow: View {
                         .font(.caption)
                         .foregroundStyle(BrandColors.dim)
                     Text(plan.title).font(.headline).foregroundStyle(BrandColors.text).lineLimit(2)
-                    Text(isToday ? WorkoutConstants.plannedToday : WorkoutConstants.plannedTag)
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(isToday ? BrandColors.onAccent : BrandColors.dim)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(isToday ? BrandColors.accentFill : BrandColors.track, in: Capsule())
+                    DSChip(text: isToday ? WorkoutConstants.plannedToday : WorkoutConstants.plannedTag, tone: isToday ? .accent : .neutral, style: isToday ? .solid : .soft)
                 }
                 Spacer(minLength: 8)
                 VStack(alignment: .trailing, spacing: 2) {

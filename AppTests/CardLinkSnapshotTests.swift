@@ -9,7 +9,7 @@ import Testing
         let output = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"].map { URL(filePath: $0, directoryHint: .isDirectory) }
         let sample = VStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("Prontidão").padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel("Prontidão")
                 Text("78").font(BrandFonts.number(34)).foregroundStyle(BrandColors.text)
                 Text("Pronto para treino de qualidade.").font(.footnote).foregroundStyle(BrandColors.dim)
                 CardLinkFooter(title: CardLinkConstants.details)
@@ -26,7 +26,7 @@ import Testing
             }
             .brandCard()
             VStack(alignment: .leading, spacing: 10) {
-                SectionLabel("Carga").padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel("Carga")
                 Text("Aguda 1.111 · estável").font(.footnote).foregroundStyle(BrandColors.dim)
             }
             .brandCard()

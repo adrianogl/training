@@ -11,7 +11,7 @@ struct LastRunCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel("\(C.lastRunTitle) · \(lastRun.dateText)")
             titleRow
             if let plannedKm, plannedKm > 0, let km = lastRun.kilometers { planBar(km: km, planned: plannedKm) }
             stats
@@ -21,12 +21,7 @@ struct LastRunCard: View {
             if let reading = lastRun.reading {
                 Text(reading).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
             } else if let evolution = lastRun.evolution {
-                Text(evolution)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(BrandColors.accent)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(BrandColors.accentFill.opacity(0.16), in: Capsule())
+                DSChip(text: evolution, tone: .accent)
                 if lastRun.evolutionOnDevice {
                     OnDeviceCaption()
                 }
@@ -170,7 +165,7 @@ struct LastRunCard: View {
 
     private func recent(_ similar: [LastRunSimilar]) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(lastRun.kind.flatMap { L.recentTitles[$0] } ?? C.lastRunTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(lastRun.kind.flatMap { L.recentTitles[$0] } ?? C.lastRunTitle)
             row(date: currentDateText, km: lastRun.kilometers, climb: lastRun.elevationGain, pace: lastRun.paceSeconds, heartRate: lastRun.averageHeartRate, highlight: true)
             ForEach(similar) { item in
                 row(date: item.dateText, km: item.kilometers, climb: item.elevationGain, pace: item.paceSeconds, heartRate: item.averageHeartRate, highlight: false)

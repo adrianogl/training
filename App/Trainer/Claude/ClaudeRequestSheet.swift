@@ -41,7 +41,7 @@ struct ClaudeRequestSheet: View {
                         UIPasteboard.general.string = ClaudeContextBuilder.text(app.trainer.claudeContextInput(period, race: race), extra: extra)
                         copied = true
                     }
-                    .buttonStyle(TrainerPrimaryButtonStyle())
+                    .buttonStyle(.ds(.primary))
                     if copied {
                         Text(ClaudeText.copied).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
                     }

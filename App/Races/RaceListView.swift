@@ -213,11 +213,10 @@ struct RaceListView: View {
             )
         }
         if model.upcoming.isEmpty && model.completed.isEmpty && model.candidates.isEmpty {
-            Text(RacesConstants.emptyList)
-                .font(.subheadline)
-                .foregroundStyle(BrandColors.dim)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .brandCard()
+            DSEmptyState(symbol: "flag.checkered", title: RacesConstants.emptyTitle, text: RacesConstants.emptyList, actionTitle: RacesConstants.emptyAction) {
+                showsEditor = true
+            }
+            .brandCard()
         }
         if let target = model.target {
             RaceTargetCard(target: target, weather: model.targetWeather) {
@@ -232,15 +231,15 @@ struct RaceListView: View {
         }
         let others = model.upcoming.filter { $0.id != model.target?.id }
         if !others.isEmpty {
-            SectionHeader(RacesConstants.upcomingTitle)
+            DSSectionTitle(RacesConstants.upcomingTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             ForEach(others) { row in
                 link(.next(row.id)) { RaceRow(row: row) }
             }
         }
-        SectionHeader(RacesConstants.goalsTitle)
+        DSSectionTitle(RacesConstants.goalsTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
         GoalsListCard(snapshots: model.goals) { goalSheet = $0 }
         if !model.completed.isEmpty {
-            SectionHeader(RacesConstants.completedTitle)
+            DSSectionTitle(RacesConstants.completedTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             ForEach(model.completed) { row in
                 link(.completed(row.id)) { RaceRow(row: row) }
             }
@@ -280,12 +279,7 @@ private struct RaceRow: View {
                 HStack(spacing: 6) {
                     Text(row.name).font(.headline).foregroundStyle(BrandColors.text).lineLimit(2)
                     if row.isPR {
-                        Text(RacesConstants.prBadge)
-                            .font(.caption2.weight(.heavy))
-                            .foregroundStyle(BrandColors.onAccent)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(BrandColors.accentFill, in: Capsule())
+                        DSChip(text: RacesConstants.prBadge, tone: .accent, style: .solid)
                     }
                 }
                 if let detail = row.detailText {

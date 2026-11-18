@@ -7,7 +7,7 @@ struct SimpleWorkoutDetail: View {
     var body: some View {
         SummaryHeader(summary: summary)
         if !zoneShares.isEmpty {
-            SectionLabel("Tempo em zona de FC")
+            DSCardLabel("Tempo em zona de FC").padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 .id(WorkoutDetailSection.zones)
             ZonesBar(shares: zoneShares)
         }

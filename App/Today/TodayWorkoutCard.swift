@@ -24,13 +24,7 @@ struct TodayWorkoutCard: View {
             }
             if let suggestion { readiness(suggestion) }
             if let advice = StrengthLegAdvice.text(pick.today, leg: legDay) {
-                Text(advice)
-                    .font(.footnote)
-                    .foregroundStyle(BrandColors.attention)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(BrandColors.attention.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                DSNotice(tone: .attention, text: advice)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -43,8 +37,7 @@ struct TodayWorkoutCard: View {
 
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
-            if isTrainer { TrainerBetaBadge() }
+            DSCardLabel(title)
             Spacer()
             switch pick.today {
             case .garmin(let plan):
@@ -71,14 +64,6 @@ struct TodayWorkoutCard: View {
         }
     }
 
-    private var isTrainer: Bool {
-        switch pick.today ?? pick.tomorrow {
-        case .trainer: true
-        case .garmin: false
-        case nil: trainer.hasActivePlan
-        }
-    }
-
     private func garmin(_ plan: PlannedWorkout, showsAdvice: Bool) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(plan.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
@@ -86,13 +71,7 @@ struct TodayWorkoutCard: View {
             PlannedShape(steps: plan.steps).frame(height: C.planShapeHeight)
             PlannedStepsList(steps: plan.steps)
             if showsAdvice, let verdict = model.summary.verdict, let advice = C.planAdjust[verdict] {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(C.planAdjustTitle).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
-                    Text(advice).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(BrandColors.attention.opacity(C.overloadTintOpacity), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                DSNotice(tone: .attention, title: C.planAdjustTitle, text: advice)
             }
         }
     }
@@ -165,9 +144,9 @@ struct TodayWorkoutCard: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 8) {
                 Button(TrainerText.acceptReadiness) { Task { await trainer.acceptReadiness(suggestion) } }
-                    .buttonStyle(TrainerPrimaryButtonStyle())
+                    .buttonStyle(.ds(.primary))
                 Button(TrainerText.keepReadiness) { trainer.keepReadiness(suggestion) }
-                    .buttonStyle(TrainerSecondaryButtonStyle())
+                    .buttonStyle(.ds(.secondary))
             }
             .disabled(trainer.isWorking)
         }

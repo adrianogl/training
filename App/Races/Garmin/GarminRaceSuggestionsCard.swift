@@ -58,14 +58,9 @@ struct GarminRaceSuggestionsCard: View {
     private func buttons(primary: String, _ primaryAction: @escaping () -> Void, secondary: String, _ secondaryAction: @escaping () -> Void) -> some View {
         HStack(spacing: 8) {
             Button(primary, action: primaryAction)
-                .buttonStyle(.borderedProminent)
-                .tint(BrandColors.accentFill)
-                .foregroundStyle(BrandColors.onAccent)
+                .buttonStyle(.ds(.primary))
             Button(secondary, action: secondaryAction)
-                .buttonStyle(.bordered)
-                .tint(BrandColors.dim)
-                .foregroundStyle(BrandColors.text)
+                .buttonStyle(.ds(.secondary))
         }
-        .font(.subheadline.weight(.semibold))
     }
 }

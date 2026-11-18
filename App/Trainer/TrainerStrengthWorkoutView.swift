@@ -78,13 +78,13 @@ struct TrainerStrengthWorkoutView: View {
         Button { showsPain = true } label: {
             Label(TrainerStrengthText.painButton, systemImage: TrainerStrengthConstants.painSymbol)
         }
-        .buttonStyle(TrainerSecondaryButtonStyle())
+        .buttonStyle(.ds(.secondary))
         if let day, stored != nil {
             Button(ClaudeText.backToGenerator) {
                 ClaudeStrengthStore().remove(day)
                 revision += 1
             }
-            .buttonStyle(TrainerSecondaryButtonStyle())
+            .buttonStyle(.ds(.secondary))
         }
     }
 
@@ -112,30 +112,17 @@ struct TrainerStrengthBanner: View {
     let onKeep: () -> Void
 
     var body: some View {
-        let color = color
-        let shape = RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous)
-        VStack(alignment: .leading, spacing: 8) {
-            Text(TrainerStrengthText.adjustmentTitle(adjustment)).font(.subheadline.weight(.bold)).foregroundStyle(color)
-            Text(TrainerStrengthText.adjustmentBody(adjustment)).font(.footnote).foregroundStyle(BrandColors.text)
-                .fixedSize(horizontal: false, vertical: true)
+        DSNotice(tone: tone, title: TrainerStrengthText.adjustmentTitle(adjustment), text: TrainerStrengthText.adjustmentBody(adjustment)) {
             if TrainerStrengthText.canKeepOriginal(adjustment) {
-                Button(TrainerStrengthText.keepOriginal, action: onKeep)
-                    .font(.footnote.weight(.bold))
-                    .foregroundStyle(color)
-                    .buttonStyle(.plain)
+                Button(TrainerStrengthText.keepOriginal, action: onKeep).buttonStyle(.ds(.text))
             }
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(color.opacity(TrainerStrengthConstants.bannerTint), in: shape)
-        .overlay(shape.strokeBorder(color, lineWidth: TrainerStrengthConstants.bannerBorder))
     }
 
-    private var color: Color {
+    private var tone: DSNoticeTone {
         switch adjustment {
-        case .qualityDay: BrandColors.strength
-        case .raceWeek, .raceRest: BrandColors.race
-        default: BrandColors.attention
+        case .qualityDay: .info
+        default: .attention
         }
     }
 }
@@ -194,7 +181,7 @@ struct TrainerPainSheet: View {
                     TrainerStrengthPrefsStore().setPain(selected)
                     dismiss()
                 }
-                .buttonStyle(TrainerPrimaryButtonStyle())
+                .buttonStyle(.ds(.primary))
                 Spacer()
             }
             .padding(.horizontal, BrandConstants.screenPadding)

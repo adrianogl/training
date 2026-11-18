@@ -12,7 +12,7 @@ struct OverallStateCard: View {
     var body: some View {
         let regular = sizeClass == .regular
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(C.overallTitleWindow).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.overallTitleWindow)
             Text(title)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(BrandColors.text)

@@ -8,7 +8,7 @@ struct TrainerLongModeCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.longModeTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.longModeTitle)
             Picker(TrainerText.longModeTitle, selection: Binding(get: { mode }, set: onSelect)) {
                 ForEach(TrainerConstants.longModes, id: \.self) { option in
                     Text(TrainerText.longModeName(option)).tag(option)
@@ -31,7 +31,7 @@ struct TrainerBestTimeCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                SectionLabel(TrainerText.bestTimeTitle).padding(.vertical, 0)
+                DSCardLabel(TrainerText.bestTimeTitle)
                 Spacer()
                 Text(TrainerText.bestTimeCaption).font(.caption).foregroundStyle(BrandColors.dim)
             }

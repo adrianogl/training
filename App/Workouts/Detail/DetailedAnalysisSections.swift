@@ -33,7 +33,7 @@ struct DetailedFindingsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.findingsTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.findingsTitle)
             ForEach(Array(findings.enumerated()), id: \.element.id) { index, finding in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 HStack(alignment: .top, spacing: 8) {
@@ -71,7 +71,7 @@ struct DetailedRecommendationsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(C.recommendationsTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.recommendationsTitle)
             ForEach(Array(recommendations.enumerated()), id: \.element.id) { index, item in
                 HStack(alignment: .top, spacing: 8) {
                     Text("\(index + 1)")
@@ -99,7 +99,7 @@ struct DetailedCoachCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionLabel(C.coachTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.coachTitle)
             ForEach(sections) { section in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(section.part.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)

@@ -51,7 +51,7 @@ struct MetricDetailView: View {
         chartCard
         if let reading = model.reading {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(EvolutionConstants.detailReading).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(EvolutionConstants.detailReading)
                 Text(reading).font(.subheadline).foregroundStyle(BrandColors.text)
             }
             .brandCard()
@@ -59,7 +59,7 @@ struct MetricDetailView: View {
         if !model.monthly.isEmpty { monthlyCard }
         if let lastYear = model.lastYearText {
             VStack(alignment: .leading, spacing: 6) {
-                SectionLabel(EvolutionConstants.detailLastYear).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(EvolutionConstants.detailLastYear)
                 Text(lastYear).font(.subheadline).foregroundStyle(BrandColors.text)
             }
             .brandCard()
@@ -111,7 +111,7 @@ struct MetricDetailView: View {
 
     private var monthlyCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(EvolutionConstants.detailMonthly).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(EvolutionConstants.detailMonthly)
             Chart(model.monthly) { month in
                 BarMark(x: .value("Mês", month.date, unit: .month), y: .value("Média", month.value))
                     .foregroundStyle(BrandColors.fitness.opacity(0.8))

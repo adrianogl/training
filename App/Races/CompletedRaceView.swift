@@ -31,7 +31,7 @@ struct CompletedRaceView: View {
                 }
                 if summary.resultSeconds == nil {
                     VStack(alignment: .leading, spacing: 6) {
-                        SectionLabel(RacesConstants.lessonTitle).padding(.top, 0).padding(.bottom, 0)
+                        DSCardLabel(RacesConstants.lessonTitle)
                         Text(RacesConstants.lessonNoResult)
                             .font(.footnote)
                             .foregroundStyle(BrandColors.dim)
@@ -102,12 +102,7 @@ struct CompletedRaceView: View {
                     .textCase(.uppercase)
                     .foregroundStyle(BrandColors.dim)
                 if summary.isPR {
-                    Text(RacesConstants.prBadge)
-                        .font(.caption2.weight(.heavy))
-                        .foregroundStyle(BrandColors.onAccent)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(BrandColors.accentFill, in: Capsule())
+                    DSChip(text: RacesConstants.prBadge, tone: .accent, style: .solid)
                 }
             }
             Text(summary.info.name).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
@@ -117,7 +112,7 @@ struct CompletedRaceView: View {
 
     private var resultCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(RacesConstants.resultLabel).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(RacesConstants.resultLabel)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(summary.resultSeconds.map(WorkoutFormat.clock) ?? "—")
                     .font(BrandFonts.number(TodayConstants.compactCountdownFontSize))
@@ -180,7 +175,7 @@ struct CompletedRaceView: View {
     private var splitsCard: some View {
         let average = summary.splits.map(\.pace).reduce(0, +) / Double(max(summary.splits.count, 1))
         return VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(RacesConstants.splitsDivergingTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(RacesConstants.splitsDivergingTitle)
             Chart(summary.splits) { split in
                 BarMark(
                     x: .value("Km", split.index + 1),

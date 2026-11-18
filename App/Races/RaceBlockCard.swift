@@ -11,7 +11,7 @@ struct RaceBlockCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(RacesConstants.blockTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(RacesConstants.blockTitle)
             Chart {
                 ForEach(block, id: \.start) { week in
                     BarMark(x: .value("Semana", week.start.chartDate, unit: .weekOfYear), y: .value("km", week.km))

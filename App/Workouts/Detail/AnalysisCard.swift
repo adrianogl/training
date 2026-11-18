@@ -12,7 +12,7 @@ struct AnalysisCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(title)
                 Spacer()
                 if onDevice { OnDeviceCaption() }
             }

@@ -8,13 +8,9 @@ struct RaceTaperCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                SectionLabel(C.title).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(C.title)
                 Spacer()
-                Text(String(format: C.weekFormat, plan.daysLeft > C.daysPerWeek ? 1 : 2, 2))
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(BrandColors.fitness)
-                    .padding(.horizontal, 9).padding(.vertical, 3)
-                    .background(BrandColors.fitness.opacity(0.14), in: Capsule())
+                DSChip(text: String(format: C.weekFormat, plan.daysLeft > C.daysPerWeek ? 1 : 2, 2), tone: .fitness)
             }
             let scale = max(plan.weeks.map { max($0.doneKm, $0.targetKm ?? 0) }.max() ?? 1, 1)
             HStack(alignment: .bottom, spacing: 14) {

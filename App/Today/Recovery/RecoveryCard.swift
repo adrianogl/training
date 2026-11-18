@@ -10,7 +10,7 @@ struct RecoveryCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                SectionLabel(C.title).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(C.title)
                 Spacer()
                 if sizeClass == .regular {
                     Text(C.subtitle).font(.caption).foregroundStyle(BrandColors.dim)
@@ -128,13 +128,7 @@ struct RecoveryCard: View {
     }
 
     private func chip(_ status: RecoveryStatus) -> some View {
-        let tint = status == .early ? BrandColors.rest : (status == .almost ? BrandColors.attention : BrandColors.accent)
-        return Text(C.statusLabels[status] ?? "")
-            .font(.caption.weight(.bold))
-            .foregroundStyle(tint)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(tint.opacity(0.15), in: Capsule())
+        DSChip(text: C.statusLabels[status] ?? "", tone: status == .early ? .danger : (status == .almost ? .attention : .accent))
     }
 
     private struct PlacedEvent {

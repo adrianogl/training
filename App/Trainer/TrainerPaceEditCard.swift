@@ -10,7 +10,7 @@ struct TrainerPaceEditCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(TrainerText.pacesTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.pacesTitle)
             ForEach(TrainerConstants.paceKinds, id: \.self) { kind in
                 if let base = historyValue(kind) {
                     row(kind, base: base)
@@ -69,7 +69,7 @@ struct TrainerEditPreviewCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            SectionLabel(TrainerText.previewTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.previewTitle)
             if lines.isEmpty {
                 Text(TrainerText.previewEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }

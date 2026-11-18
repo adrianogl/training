@@ -9,11 +9,7 @@ struct GoalStatusChip: View {
     let status: GoalStatus
 
     var body: some View {
-        Text(status.text)
-            .font(.caption.weight(.semibold))
-            .padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(status.good ? BrandColors.accent : BrandColors.attention)
-            .background((status.good ? BrandColors.accentFill : BrandColors.attention).opacity(0.15), in: Capsule())
+        DSChip(text: status.text, tone: status.good ? .accent : .attention)
     }
 }
 

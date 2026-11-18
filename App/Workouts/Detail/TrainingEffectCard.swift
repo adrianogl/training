@@ -9,7 +9,7 @@ struct TrainingEffectCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(C.effectTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.effectTitle)
             Text(effect.label.flatMap { C.effectLabels[$0] } ?? C.effectFallback)
                 .font(BrandFonts.number(28))
                 .foregroundStyle(BrandColors.accent)

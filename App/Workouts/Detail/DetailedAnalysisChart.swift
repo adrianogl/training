@@ -10,7 +10,7 @@ struct DetailedKilometerChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.kmTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.kmTitle)
             paceChart
             if analysis.splits.contains(where: { $0.heartRate != nil }) {
                 heartRateChart
@@ -119,7 +119,7 @@ struct DetailedSimilarChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(C.similarTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.similarTitle)
             Chart(bars) { bar in
                 BarMark(x: .value("treino", bar.label), y: .value("%", bar.percent))
                     .foregroundStyle(color(bar.role))

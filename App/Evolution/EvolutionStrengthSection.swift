@@ -7,7 +7,7 @@ struct EvolutionStrengthGroupsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            StrengthCardHeader(title: StrengthText.groupsTitle)
+            DSCardLabel(StrengthText.groupsTitle)
             let totals = model.weekGroupTotals
             let top = max(totals.first?.sets ?? 1, 1)
             if totals.isEmpty {

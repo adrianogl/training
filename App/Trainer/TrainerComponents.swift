@@ -2,17 +2,6 @@ import Insights
 import SwiftUI
 import TrainingCore
 
-struct TrainerBetaBadge: View {
-    var body: some View {
-        Text(TrainerText.beta)
-            .font(.system(size: 10, weight: .bold))
-            .tracking(0.6)
-            .foregroundStyle(BrandColors.onAccent)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 1)
-            .background(BrandColors.attention, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-    }
-}
 
 struct TrainerStrengthTag: View {
     let line: TrainerStrengthLine
@@ -28,13 +17,7 @@ struct TrainerDayTagView: View {
     let tag: TrainerDayTag
 
     var body: some View {
-        let color = tag.style == .strength ? BrandColors.strength : BrandColors.dim
-        Text(tag.text)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundStyle(color)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 1)
-            .overlay(Capsule().strokeBorder(color.opacity(0.45), lineWidth: 1))
+        DSChip(text: tag.text, tone: tag.style == .strength ? .strength : .neutral)
     }
 }
 
@@ -261,7 +244,7 @@ struct TrainerVersionCard: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline) {
-                    SectionLabel(TrainerText.versionTitle(version)).padding(.vertical, 0)
+                    DSCardLabel(TrainerText.versionTitle(version))
                     Spacer()
                     Text(TrainerText.triggerText(version.trigger)).font(.caption).foregroundStyle(BrandColors.dim)
                 }

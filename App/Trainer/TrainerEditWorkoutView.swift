@@ -25,7 +25,7 @@ struct TrainerEditWorkoutView: View {
                         swapCard(workout)
                         if workout.edited {
                             Button(TrainerText.revertButton) { revert(workout) }
-                                .buttonStyle(TrainerSecondaryButtonStyle())
+                                .buttonStyle(.ds(.secondary))
                         }
                     }
                 }
@@ -49,7 +49,7 @@ struct TrainerEditWorkoutView: View {
 
     private func valuesCard(_ workout: TrainerWorkout, _ draft: TrainerWorkoutDraft) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(draft.isQuality ? TrainerText.seriesTitle : TrainerText.workoutEditTitle).padding(.vertical, 0)
+            DSCardLabel(draft.isQuality ? TrainerText.seriesTitle : TrainerText.workoutEditTitle)
             if draft.isQuality {
                 Stepper(
                     "\(TrainerText.repeatsLabel) · \(draft.repeats)",
@@ -94,7 +94,7 @@ struct TrainerEditWorkoutView: View {
     private func swapCard(_ workout: TrainerWorkout) -> some View {
         let days = model.swapCandidates(for: workout.day)
         return VStack(alignment: .leading, spacing: 8) {
-            SectionLabel(TrainerText.swapTitle).padding(.vertical, 0)
+            DSCardLabel(TrainerText.swapTitle)
             if days.isEmpty {
                 Text(TrainerText.swapEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             } else {

@@ -12,7 +12,7 @@ struct VerifyEmailView: View {
         VStack(alignment: .leading, spacing: 16) {
             switch state {
             case .checking:
-                BrandLoader(size: .mini).frame(maxWidth: .infinity)
+                DSLoadingState(title: C.verifying)
             case .verified:
                 badge("checkmark", tint: BrandColors.accent)
                 Text(C.verifiedTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
@@ -25,14 +25,10 @@ struct VerifyEmailView: View {
                 if model.isSignedIn {
                     AccountMessage(error: nil, notice: model.notice)
                     Button(C.resend) { Task { await model.resendVerification() } }
-                        .font(.headline)
-                        .foregroundStyle(BrandColors.accent)
-                        .frame(maxWidth: .infinity, minHeight: C.buttonHeight)
-                        .overlay(RoundedRectangle(cornerRadius: C.cornerRadius).stroke(BrandColors.cardBorder))
+                        .buttonStyle(.ds(.secondary))
                 }
                 Button(C.close, action: close)
-                    .font(.subheadline)
-                    .foregroundStyle(BrandColors.accent)
+                    .buttonStyle(.ds(.text))
                     .frame(maxWidth: .infinity)
             }
         }

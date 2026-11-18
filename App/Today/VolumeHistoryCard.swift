@@ -13,7 +13,7 @@ struct VolumeHistoryCard: View {
     var body: some View {
         let series = VolumeSeriesBuilder.make(week: week, planned: planned)
         VStack(alignment: .leading, spacing: 10) {
-            SectionLabel(planned.isEmpty ? C.volumeTitle : C.volumeTitlePlanned).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(planned.isEmpty ? C.volumeTitle : C.volumeTitlePlanned)
             if !planned.isEmpty { legend }
             chart(series)
                 .frame(height: C.volumeChartHeight)

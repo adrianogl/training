@@ -13,7 +13,7 @@ struct RacePlanCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(C.title).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.title)
             HStack(spacing: 6) {
                 stat(resultSeconds.map(WorkoutFormat.clock) ?? "—", C.yourTime)
                 stat(comparison.planSeconds.map(WorkoutFormat.clock) ?? "—", comparison.sourceName == nil ? C.appStrategyLabel : C.paceProLabel)

@@ -106,21 +106,21 @@ struct EvolutionView: View {
             if sizeClass != .regular {
                 periodPicker(model)
             }
-            SectionHeader(EvolutionConstants.summaryTitle)
+            DSSectionTitle(EvolutionConstants.summaryTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
                 .syncSkeleton(app.isRefreshing, height: SkeletonConstants.overallHeight)
-            SectionHeader(EvolutionConstants.metricsTitle).id(EvolutionConstants.metricsAnchor)
+            DSSectionTitle(EvolutionConstants.metricsTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom).id(EvolutionConstants.metricsAnchor)
             groupChips
             groups(model)
                 .syncSkeleton(app.isRefreshing, height: SkeletonConstants.metricsHeight)
-            SectionHeader(EvolutionConstants.historyTitle)
+            DSSectionTitle(EvolutionConstants.historyTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             row(weights: [1, 1]) {
                 RecordsCard(records: model.records, now: .now)
                 ZoneWeeksCard(weeks: model.zoneWeeks)
             }
             HeatmapCard(columns: model.heatmapColumns)
             if app.mfitAccount.isSignedIn {
-                SectionHeader(StrengthText.section)
+                DSSectionTitle(StrengthText.section).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 row(weights: [1, 1]) {
                     StrengthLoadsCard(model: strength, showsHeader: true)
                     EvolutionStrengthGroupsCard(model: strength)

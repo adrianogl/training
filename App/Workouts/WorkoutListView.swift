@@ -204,12 +204,10 @@ struct WorkoutListView: View {
                 if weeks.isEmpty && model.showsSkeleton {
                     FirstSyncView()
                 } else if weeks.isEmpty && hasRuns {
-                    Text(WorkoutConstants.emptyFilter)
-                        .foregroundStyle(BrandColors.dim)
+                    DSEmptyState(symbol: "line.3.horizontal.decrease", title: WorkoutConstants.emptyFilter, text: WorkoutConstants.emptyFilterText)
                         .brandCard()
                 } else if weeks.isEmpty {
-                    Text(WorkoutConstants.emptyList)
-                        .foregroundStyle(BrandColors.dim)
+                    DSEmptyState(symbol: "figure.run", title: WorkoutConstants.emptyList, text: WorkoutConstants.emptyListText)
                         .brandCard()
                 }
                 ForEach(weeks) { week in

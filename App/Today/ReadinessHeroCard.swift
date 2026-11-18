@@ -18,7 +18,7 @@ struct ReadinessHeroCard: View {
                 banner(C.readinessFromYesterday)
             }
             HStack(alignment: .firstTextBaseline) {
-                SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(C.readinessTitle)
                 Spacer()
                 if let recovery, recovery.remainingHours > 0 {
                     Text(String(format: RecoveryConstants.headerFormat, recovery.remainingHours))
@@ -93,19 +93,7 @@ struct ReadinessHeroCard: View {
     }
 
     private func banner(_ text: String) -> some View {
-        let radius = BrandConstants.cardCornerRadius
-        return Text(text)
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(BrandColors.attention)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, BrandConstants.cardPadding)
-            .padding(.vertical, C.yesterdayBannerPadding)
-            .background(
-                BrandColors.attention.opacity(C.yesterdayBannerOpacity),
-                in: UnevenRoundedRectangle(topLeadingRadius: radius, topTrailingRadius: radius, style: .continuous)
-            )
-            .padding(.horizontal, -BrandConstants.cardPadding)
-            .padding(.top, -BrandConstants.cardPadding)
+        DSNotice(tone: .attention, text: text)
     }
 }
 
@@ -179,25 +167,7 @@ private struct ReadinessOverloadLine: View {
 
     var body: some View {
         let detail = OverloadText.flaggedLine(alert)
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.footnote)
-                .foregroundStyle(BrandColors.attention)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(OverloadText.headline(alert))
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(BrandColors.attention)
-                if !detail.isEmpty {
-                    Text(detail).font(.caption).foregroundStyle(BrandColors.text)
-                }
-                Text(OverloadConstants.advice).font(.caption).foregroundStyle(BrandColors.dim)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(10)
-        .background(BrandColors.attention.opacity(TodayConstants.overloadTintOpacity), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .accessibilityElement(children: .combine)
+        DSNotice(tone: .attention, title: OverloadText.headline(alert), text: detail.isEmpty ? OverloadConstants.advice : detail + "\n" + OverloadConstants.advice)
     }
 }
 

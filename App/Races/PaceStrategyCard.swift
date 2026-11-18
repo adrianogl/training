@@ -10,7 +10,7 @@ struct PaceStrategyCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                SectionLabel(RacesConstants.strategyTitle).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(RacesConstants.strategyTitle)
                 Spacer()
                 if let target = model.targetText {
                     Text(target)

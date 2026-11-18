@@ -18,7 +18,7 @@ struct WorkoutAnalysisCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SectionLabel(C.analysisTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(C.analysisTitle)
             if !summary.feedback.isEmpty || summary.next != nil {
                 feedback
                 Divider().overlay(BrandColors.line)
@@ -115,7 +115,7 @@ struct WorkoutAnalysisCard: View {
             }
             if let next = summary.next {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    pill(C.nextTag, foreground: BrandColors.dim, background: BrandColors.track)
+                    DSChip(text: C.nextTag, tone: .neutral).fixedSize()
                     Text(next)
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(BrandColors.text)
@@ -167,20 +167,9 @@ struct WorkoutAnalysisCard: View {
     @ViewBuilder
     private func tag(_ tag: AnalysisTag) -> some View {
         switch tag {
-        case .fix: pill(C.tagFix, foreground: BrandColors.rest, background: BrandColors.rest.opacity(0.14))
-        case .good: pill(C.tagGood, foreground: BrandColors.accent, background: BrandColors.accentFill.opacity(0.16))
-        case .expected: pill(C.tagExpected, foreground: BrandColors.dim, background: BrandColors.track)
+        case .fix: DSChip(text: C.tagFix, tone: .danger).fixedSize()
+        case .good: DSChip(text: C.tagGood, tone: .accent).fixedSize()
+        case .expected: DSChip(text: C.tagExpected, tone: .neutral).fixedSize()
         }
-    }
-
-    private func pill(_ text: String, foreground: Color, background: Color) -> some View {
-        Text(text)
-            .font(.caption.weight(.bold))
-            .foregroundStyle(foreground)
-            .lineLimit(1)
-            .fixedSize()
-            .padding(.horizontal, 9)
-            .padding(.vertical, 3)
-            .background(background, in: Capsule())
     }
 }

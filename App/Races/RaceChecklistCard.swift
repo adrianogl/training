@@ -6,7 +6,7 @@ struct RaceChecklistCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                SectionLabel(RacesConstants.checklistTitle).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(RacesConstants.checklistTitle)
                 Spacer()
                 Text(String(format: RacesConstants.checklistCountFormat, items.filter { $0.status == .ok }.count, items.count))
                     .font(.caption.weight(.semibold).monospacedDigit())

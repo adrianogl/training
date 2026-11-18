@@ -27,7 +27,7 @@ struct InviteSignupView: View {
                 Text(model.errorMessage ?? C.invalidInvite).foregroundStyle(BrandColors.dim)
                 AccountPrimaryButton(title: C.close, action: close)
             } else {
-                BrandLoader(size: .mini).frame(maxWidth: .infinity)
+                DSLoadingState(title: C.loadingInvite)
             }
         }
         .task {
@@ -41,12 +41,7 @@ struct InviteSignupView: View {
     @ViewBuilder
     private func form(_ preview: InvitePreview) -> some View {
         if let inviter = preview.inviterName {
-            Text(String(format: C.inviteFromFormat, inviter))
-                .font(.caption.weight(.bold))
-                .foregroundStyle(BrandColors.accent)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(BrandColors.accentFill.opacity(0.15), in: Capsule())
+            DSChip(text: String(format: C.inviteFromFormat, inviter), tone: .accent)
         }
         VStack(alignment: .leading, spacing: 6) {
             Text(C.signupTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)

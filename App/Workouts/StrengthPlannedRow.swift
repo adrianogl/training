@@ -15,18 +15,8 @@ struct StrengthPlannedRow: View {
                     .foregroundStyle(BrandColors.dim)
                 Text(workout.title).font(.headline).foregroundStyle(BrandColors.text).lineLimit(2)
                 HStack(spacing: 6) {
-                    Text(WorkoutConstants.strengthTag)
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(BrandColors.strength)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(BrandColors.strength.opacity(0.14), in: Capsule())
-                    Text(isToday ? WorkoutConstants.plannedToday : WorkoutConstants.plannedTag)
-                        .font(.caption2.weight(.bold))
-                        .foregroundStyle(isToday ? BrandColors.onAccent : BrandColors.dim)
-                        .padding(.horizontal, 7)
-                        .padding(.vertical, 2)
-                        .background(isToday ? BrandColors.accentFill : BrandColors.track, in: Capsule())
+                    DSChip(text: WorkoutConstants.strengthTag, tone: .strength)
+                    DSChip(text: isToday ? WorkoutConstants.plannedToday : WorkoutConstants.plannedTag, tone: isToday ? .accent : .neutral, style: isToday ? .solid : .soft)
                 }
             }
             Spacer(minLength: 8)

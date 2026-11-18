@@ -259,7 +259,7 @@ struct ShareStudioView: View {
                 .brandCard()
             }
             if usesFields {
-                SectionLabel(C.fieldsLabel).padding(.top, 0).padding(.bottom, 0)
+                DSCardLabel(C.fieldsLabel)
                 toggles
             }
         }

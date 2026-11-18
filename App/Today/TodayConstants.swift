@@ -29,8 +29,6 @@ enum TodayConstants {
     static let todayTitle = "Hoje"
     static let readinessTitle = "Prontidão"
     static let readinessEmpty = "Sem dados de recuperação de hoje."
-    static let yesterdayBannerPadding: CGFloat = 8
-    static let yesterdayBannerOpacity = 0.14
     static let readinessFromYesterday = "De ontem · a de hoje sai quando você acordar"
     static let readinessMissingNight = "Sem dados desta noite"
     static let readinessMissingNightNote = "O relógio não registrou HRV nem sono. Treine pela sensação de hoje."
@@ -97,7 +95,6 @@ enum TodayConstants {
 
     static let sidebarRaceTitle = "Prova-alvo"
 
-    static let overloadTintOpacity = 0.12
     static let rowSpacing: Double = 12
     static let heroGaugeSize: Double = 150
     static let compactGaugeSize: Double = 112

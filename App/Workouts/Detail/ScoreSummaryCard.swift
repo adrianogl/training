@@ -51,7 +51,7 @@ struct ScoreSummaryCard: View {
             }
             let reasons = rows.compactMap { row in row.reasonText.map { (text: $0, full: row.points >= row.maximum) } }
             if !reasons.isEmpty {
-                FlowChips(items: reasons.map { ($0.text, $0.full ? BrandColors.accent : BrandColors.attention) })
+                FlowChips(items: reasons.map { ($0.text, $0.full ? DSTone.accent : DSTone.attention) })
             }
         }
         .brandCard(framed: framed, fillsHeight: true)
@@ -72,7 +72,7 @@ struct ScoreSummaryCard: View {
                 }
             }
         } else {
-            SectionLabel(ScoreConstants.breakdownTitle).padding(.top, 0).padding(.bottom, 0)
+            DSCardLabel(ScoreConstants.breakdownTitle)
         }
     }
 
@@ -111,7 +111,7 @@ struct ScoreSummaryCard: View {
 }
 
 struct FlowChips: View {
-    let items: [(String, Color)]
+    let items: [(String, DSTone)]
 
     var body: some View {
         ViewThatFits(in: .horizontal) {
@@ -122,12 +122,7 @@ struct FlowChips: View {
 
     private var chips: some View {
         ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-            Text(item.0)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(item.1)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(item.1.opacity(0.14), in: Capsule())
+            DSChip(text: item.0, tone: item.1)
         }
     }
 }
