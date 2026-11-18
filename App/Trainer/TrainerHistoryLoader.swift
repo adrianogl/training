@@ -77,7 +77,7 @@ enum TrainerHistoryLoader {
                 pauses = analysis.pauseKilometers.count
                 firstPauseKm = analysis.pauseKilometers.first.map { Int($0.rounded(.down)) + 1 }
             }
-            let analysis = WorkoutAnalysisContext.build(record: record, records: runs, inputs: inputs)
+            let analysis = WorkoutAnalysisStore.stored(record) ?? WorkoutAnalysisContext.build(record: record, records: runs, inputs: inputs)
             let active = analysis.blocks.filter { $0.kind == .active }
             if analysis.hasPrescription, !active.isEmpty {
                 total = active.count

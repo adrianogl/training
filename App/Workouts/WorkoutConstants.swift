@@ -50,6 +50,7 @@ enum WorkoutConstants {
     static let scoreKeyIdSeparator = ","
     static let scoreKeyMissing = "-"
     static let scoreKeyWeatherScale = 1000.0
+    static let analysisStoreVersion = 1
     static let scoreKeyFieldSeparator = ":"
     static let scoreKeyFloorSeparator = "/"
 }

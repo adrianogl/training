@@ -24,3 +24,27 @@ extension ActivityRecord {
         }.count
     }
 }
+
+extension ActivityRecord {
+    public func weatherEffect(hotSessions: [Int64: Int]) -> WeatherEffect? {
+        WeatherAdjustment.effect(runWeather, hotSessions: hotSessions[activityId] ?? 0)
+    }
+
+    public static func hotSessionCounts(_ records: [ActivityRecord]) -> [Int64: Int] {
+        let runs = records.filter { ActivityTypeKey.isRun($0.typeKey) }.sorted { $0.start < $1.start }
+        let window = Double(RunWeatherConstants.adaptationWindowDays) * 86_400
+        var prefix = [0]
+        prefix.reserveCapacity(runs.count + 1)
+        for run in runs { prefix.append(prefix[prefix.count - 1] + (WeatherAdjustment.isHotSession(run.runWeather) ? 1 : 0)) }
+        var counts: [Int64: Int] = [:]
+        var lower = 0
+        var upper = 0
+        for run in runs {
+            let since = run.start.addingTimeInterval(-window)
+            while lower < runs.count, runs[lower].start < since { lower += 1 }
+            while upper < runs.count, runs[upper].start < run.start { upper += 1 }
+            counts[run.activityId] = max(prefix[upper] - prefix[min(lower, upper)], 0)
+        }
+        return counts
+    }
+}

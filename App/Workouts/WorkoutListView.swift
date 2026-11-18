@@ -22,6 +22,7 @@ struct WorkoutListView: View {
     @State private var strengthPlanned: [StrengthWorkout] = []
     @State private var strengthDoneDays: Set<String> = []
     @State private var strengthProgram: MFITProgram?
+    @State private var weeksCache = WorkoutWeeksCache()
 
     @State private var path: [WorkoutSelection] = []
     @State private var selection: WorkoutSelection?
@@ -40,7 +41,7 @@ struct WorkoutListView: View {
     }
 
     var body: some View {
-        let allWeeks = WorkoutListModel.weeks(records: records, plannedKilometers: plannedWeeks)
+        let allWeeks = weeksCache.weeks(records: records, plannedKilometers: plannedWeeks)
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
         let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
         let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))

@@ -21,7 +21,7 @@ struct PreparedRun {
     init(_ record: ActivityRecord) {
         self.record = record
         day = Self.day(of: record)
-        let samples = record.samplesData.flatMap { try? JSONDecoder().decode([FITSample].self, from: $0) } ?? []
+        let samples = SampleStore.samples(record)
         splits = detailedSplits(samples)
         continuity = runContinuity(samples)
         plannedMeters = Self.plannedMeters(record)

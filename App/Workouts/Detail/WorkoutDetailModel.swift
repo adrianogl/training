@@ -46,11 +46,11 @@ import WorkoutAnalysis
     private(set) var aboveExpected: [AboveExpectedSignal] = []
     private(set) var trainingEffect: TrainingEffectData?
 
-    init(activityId: Int64, context: ModelContext) {
+    init(activityId: Int64, context: ModelContext, analysis precomputed: WorkoutAnalysisContext? = nil) {
         self.activityId = activityId
         let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
         guard let record = records.first(where: { $0.activityId == activityId }) else { return }
-        let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
+        let analysis = precomputed ?? WorkoutAnalysisStore.stored(record) ?? WorkoutAnalysisContext.build(record: record, records: records, in: context)
         isRun = analysis.isRun
         hasPrescription = analysis.hasPrescription
         summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription)

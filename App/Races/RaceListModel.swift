@@ -289,9 +289,8 @@ import WorkoutAnalysis
     nonisolated private static func splitsFor(activityId: Int64, context: ModelContext, race: RaceRecord) -> [RaceSplit] {
         var descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.activityId == activityId })
         descriptor.fetchLimit = 1
-        guard let data = (try? context.fetch(descriptor))?.first?.samplesData,
-              let samples = try? JSONDecoder().decode([FITSample].self, from: data)
-        else { return [] }
+        guard let record = (try? context.fetch(descriptor))?.first, record.samplesData != nil else { return [] }
+        let samples = SampleStore.samples(record)
         let planned = race.frozenTargetSeconds.map {
             paceStrategy(goalSeconds: $0, distance: race.distance, profile: race.gpxData.flatMap { try? gpxProfile($0) }, manual: race.manualPaces)
         } ?? []

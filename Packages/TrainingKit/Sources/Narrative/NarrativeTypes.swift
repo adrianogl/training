@@ -12,7 +12,7 @@ public struct WorkoutNarrative: Codable, Sendable, Equatable {
     }
 }
 
-public struct EvolutionFacts: Sendable, Equatable {
+public struct EvolutionFacts: Sendable, Equatable, Codable {
     public var paceDelta: Double
     public var heartRateDelta: Double?
     public var oldestDate: String

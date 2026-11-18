@@ -10,6 +10,7 @@ enum ActivityWeatherConstants {
     static let forecastHistoryDays = 85
     static let backfillDays = 120.0
     static let requestsPerRefresh = 40
+    static let parallelRequests = 6
     static let retryInterval: TimeInterval = 6 * 3600
     static let secondsPerDay: TimeInterval = 86_400
     static let secondsPerHour: TimeInterval = 3600

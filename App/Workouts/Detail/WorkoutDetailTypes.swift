@@ -16,7 +16,7 @@ struct WorkoutSummary: Equatable {
     let hasPrescription: Bool
 }
 
-struct ComparisonRow: Identifiable, Equatable, Sendable {
+struct ComparisonRow: Identifiable, Equatable, Sendable, Codable {
     let activityId: Int64
     let dateText: String
     let isCurrent: Bool
@@ -133,6 +133,7 @@ struct WorkoutAnalysisInputs {
     let readinessByDay: [String: Int]
     var dailyByDay: [String: DailyRecord] = [:]
     var legDays: Set<Day> = []
+    var hotSessions: [Int64: Int] = [:]
 }
 
 struct ZoneBar: Equatable, Sendable {

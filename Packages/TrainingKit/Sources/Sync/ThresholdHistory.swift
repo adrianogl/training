@@ -70,7 +70,7 @@ func refreshThresholdZoneSeconds(in context: ModelContext, limit: Int? = nil) th
         if let limit, refreshed >= limit { break }
         let threshold = timeline.heartRate(on: activityDay(record))
         guard record.thresholdUsed != threshold, let data = record.samplesData,
-              let samples = try? JSONDecoder().decode([FITSample].self, from: data) else { continue }
+              let samples = FITSampleCoding.decode(data) else { continue }
         assignThresholdZones(to: record, samples: samples, threshold: threshold)
         refreshed += 1
     }

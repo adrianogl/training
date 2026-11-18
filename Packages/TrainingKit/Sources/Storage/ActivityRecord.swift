@@ -48,6 +48,7 @@ public final class ActivityRecord {
     public var scoreValue: Int? = nil
     public var scoreKey: String? = nil
     @Attribute(.externalStorage) public var scoreData: Data? = nil
+    @Attribute(.externalStorage) public var analysisData: Data? = nil
     public var weatherTemperature: Double? = nil
     public var weatherDewPoint: Double? = nil
     public var weatherCheckedAt: Date? = nil

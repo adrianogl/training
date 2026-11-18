@@ -1,4 +1,4 @@
-public struct HeartRateZones: Sendable, Equatable {
+public struct HeartRateZones: Sendable, Equatable, Codable {
     public var floors: [Int]
     public var maxHeartRate: Int?
 

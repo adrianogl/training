@@ -7,18 +7,21 @@ import TrainingCore
 enum ActivityWeatherStore {
     private typealias C = ActivityWeatherConstants
 
-    static func refresh(container: ModelContainer, now: Date = .now) async {
+    @discardableResult
+    static func refresh(container: ModelContainer, now: Date = .now) async -> Set<Int64> {
         let context = ModelContext(container)
         let session = URLSession(configuration: .ephemeral)
         let pending = candidates(in: context, now: now)
-        guard !pending.isEmpty else { return }
-        var cache: [WeatherRequest: [WeatherHour]?] = [:]
+        guard !pending.isEmpty else { return [] }
+        var requests: [WeatherRequest] = []
+        for item in pending where !requests.contains(item.request) && requests.count < C.requestsPerRefresh {
+            requests.append(item.request)
+        }
+        let cache = await fetchAll(requests, session: session)
+        var updated: Set<Int64> = []
         for item in pending {
-            if cache[item.request] == nil {
-                guard cache.count < C.requestsPerRefresh else { break }
-                cache[item.request] = .some(await ActivityWeather.fetch(item.request, session: session))
-            }
-            let hours = cache[item.request] ?? nil
+            guard let fetched = cache[item.request] else { continue }
+            let hours = fetched
             item.record.weatherCheckedAt = now
             guard let hours, let weather = ActivityWeather.average(hours, start: item.start, end: item.end) else { continue }
             item.record.weatherTemperature = weather.temperature
@@ -27,8 +30,28 @@ enum ActivityWeatherStore {
             item.record.weatherWindFrom = weather.windFrom
             item.record.weatherRadiation = weather.radiation
             item.record.weatherVersion = C.version
+            updated.insert(item.record.activityId)
         }
         try? context.save()
+        return updated
+    }
+
+    private static func fetchAll(_ requests: [WeatherRequest], session: URLSession) async -> [WeatherRequest: [WeatherHour]?] {
+        await withTaskGroup(of: (WeatherRequest, [WeatherHour]?).self) { group in
+            var results: [WeatherRequest: [WeatherHour]?] = [:]
+            var next = requests.makeIterator()
+            for _ in 0..<C.parallelRequests {
+                guard let request = next.next() else { break }
+                group.addTask { (request, await ActivityWeather.fetch(request, session: session)) }
+            }
+            while let (request, hours) = await group.next() {
+                results[request] = .some(hours)
+                if let request = next.next() {
+                    group.addTask { (request, await ActivityWeather.fetch(request, session: session)) }
+                }
+            }
+            return results
+        }
     }
 
     private static func candidates(in context: ModelContext, now: Date) -> [(record: ActivityRecord, request: WeatherRequest, start: Date, end: Date)] {

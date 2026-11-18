@@ -1,3 +1,4 @@
+import WorkoutAnalysis
 import FITReader
 import Foundation
 import Metrics
@@ -69,8 +70,8 @@ func focusZoneSeconds(_ activity: ActivityRecord, thresholdAvailable: Bool) -> [
 }
 
 func samples(of activity: ActivityRecord) -> [FITSample]? {
-    guard let data = activity.samplesData else { return nil }
-    return try? JSONDecoder().decode([FITSample].self, from: data)
+    guard activity.samplesData != nil else { return nil }
+    return SampleStore.samples(activity)
 }
 
 func dailyMeans(_ values: [(Day, Double)]) -> [(Day, Double)] {

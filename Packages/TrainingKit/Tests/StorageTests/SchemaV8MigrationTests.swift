@@ -4,8 +4,8 @@ import Testing
 @testable import Storage
 
 @Suite struct SchemaV8MigrationTests {
-    @Test func currentSchemaIsV9() {
-        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV9.self))
+    @Test func currentSchemaIsV10() {
+        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV10.self))
         #expect(TrainingSchema.models.count == 8)
     }
 
@@ -33,6 +33,7 @@ import Testing
         #expect(activity.weatherTemperature == 28)
         #expect(activity.weatherVersion == 0)
         #expect(activity.weatherWindSpeed == nil)
+        #expect(activity.analysisData == nil)
     }
 
     @Test func v7StoreOpensAsV8WithoutWeather() throws {
