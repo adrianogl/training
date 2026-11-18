@@ -88,7 +88,7 @@ As provas, as metas e as decisões de resultado ficam na tabela `records`, no me
 
 | Rota | Resposta |
 | --- | --- |
-| `POST /api/v1/invite-requests` | Pública. Corpo `{"name","email","watch":"garmin"|"other"|"none","message"}`. 202; cifra e guarda o pedido e avisa os `ADMIN_EMAILS` por e-mail. 400 `invalid_name`, `invalid_email`, `invalid_watch`, `invalid_message`; 429 com mais de 3 pedidos por hora do mesmo IP ou 100 pendentes. O campo `website` é isca para robô: preenchido, responde 202 sem guardar |
+| `POST /api/v1/invite-requests` | Pública. Corpo `{"name","email","watch":"garmin"|"apple"|"other"|"none","message"}`. 202; cifra e guarda o pedido e avisa os `ADMIN_EMAILS` por e-mail. 400 `invalid_name`, `invalid_email`, `invalid_watch`, `invalid_message`; 429 com mais de 3 pedidos por hora do mesmo IP ou 100 pendentes. O campo `website` é isca para robô: preenchido, responde 202 sem guardar |
 | `POST /api/v1/admin/invite-requests/action` | Administrador. `{"id","action":"invite"|"decline"}`. Convidar cria o convite com nome e e-mail do pedido e envia como os outros convites |
 
 Os pedidos pendentes aparecem em `GET /api/v1/admin/overview`, no campo `requests`.
