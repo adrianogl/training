@@ -42,6 +42,6 @@ import Testing
     #expect(try FITReader.read(fit: FITFixtureBuilder.run(seconds: 30, msg140: nil)).zoneInfo == nil)
 }
 
-@Test func processingVersionIsThree() {
-    #expect(FITReaderConstants.processingVersion == 3)
+@Test func processingVersionIsFour() {
+    #expect(FITReaderConstants.processingVersion == 4)
 }

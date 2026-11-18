@@ -110,7 +110,14 @@ enum WorkoutDetailConstants {
     static let blocksHeaderPace = "pace no alvo · mais rápido →"
     static let blocksHeaderValue = "pace"
     static let blocksHeaderHeartRate = "FC"
-    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace, .climbSlower, .descentFaster, .weatherSlower, .cardiacDrift]
+    static let weatherTitle = "Clima"
+    static let windSpeedFormat = "%d km/h"
+    static let headwindSymbol = "arrow.down"
+    static let tailwindSymbol = "arrow.up"
+    static let headwindLabel = "contra"
+    static let tailwindLabel = "a favor"
+    static let calmPaceLabel = "sem vento"
+    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace, .climbSlower, .descentFaster, .weatherSlower, .windAgainst, .cardiacDrift]
     static let scoreGaugeSize: Double = 120
     static let aboveExpectedTitle = "Acima do esperado"
     static let aboveExpectedSymbol = "chart.line.uptrend.xyaxis"

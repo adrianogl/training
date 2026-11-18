@@ -20,6 +20,9 @@ import Testing
     #expect(samples[0].heartRate == 122)
     #expect(abs(samples[0].speed! - 3.2) < 0.001)
     #expect(samples[1].distance == 27)
+    #expect(samples[0].cadence == 171)
+    #expect(samples[0].stanceTime == 240)
+    #expect(samples[0].lat != nil && samples[0].lon != nil)
 }
 
 @Test func routeIsCappedAt500Points() throws {

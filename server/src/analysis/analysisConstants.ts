@@ -1,5 +1,5 @@
 export const ANALYSIS = {
-  scoreVersion: 2,
+  scoreVersion: 4,
   completionRatio: 0.95,
   minimumStraySeconds: 10,
   sessionEndTrigger: 'session_end',
@@ -63,6 +63,26 @@ export const ANALYSIS_WEATHER = {
   driftHeatFactor: 0.02,
   zoneHeatFactor: 0.03,
   fadeHeatFactor: 0.03,
+  fullSunRadiation: 800,
+  fullSunBoost: 4,
+  sunnyBoost: 2,
+  hotSessionFactor: 0.02,
+  adaptationWindowDays: 14,
+  adaptationPerSession: 0.05,
+  maxAdaptation: 0.4,
+  windHeightFactor: 0.75,
+  headwindCost: 0.0025,
+  tailwindShare: 0.5,
+  windEffectSeconds: 3,
+  minimumHeadingMeters: 5,
+  metersPerSecondToKmh: 3.6,
+  shortSleepSeconds: 6 * 3600,
+  lowSleepScore: 60,
+  lowBodyBattery: 40,
+  formMinimumSeconds: 900,
+  formSpeedTolerance: 0.02,
+  cadenceDrop: 3,
+  stanceRise: 0.04,
 } as const
 
 export const WORK_PACE = {

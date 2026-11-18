@@ -39,12 +39,14 @@ enum RunWeatherText {
         if effect.isCold { return C.coldTitle }
         guard let dewPoint = effect.weather.dewPoint else { return C.mildTitle }
         let dew = String(format: C.dewPointFormat, Int(dewPoint.rounded()))
-        return dewPoint >= C.muggyDewPoint ? dew + C.separator + C.muggy : dew
+        return [dew, dewPoint >= C.muggyDewPoint ? C.muggy : nil, effect.isSunny ? C.sunny : nil].compactMap { $0 }.joined(separator: C.separator)
     }
 
     static func detail(_ effect: WeatherEffect) -> String? {
         guard effect.paceFactor > 0 else { return nil }
-        return String(format: effect.isCold ? C.coldFormat : C.heatFormat, percent(effect.paceFactor))
+        let base = String(format: effect.isCold ? C.coldFormat : C.heatFormat, percent(effect.paceFactor))
+        guard effect.adaptation > 0 else { return base }
+        return base + C.separator + String(format: C.adaptedFormat, effect.hotSessions)
     }
 
     static func percent(_ factor: Double) -> String {

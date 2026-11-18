@@ -3,6 +3,7 @@ import Foundation
 import SwiftUI
 import Testing
 import TrainingCore
+import WorkoutAnalysis
 @testable import trAIning
 
 @Suite struct RunWeatherTests {
@@ -60,13 +61,42 @@ import TrainingCore
         #expect(RunWeatherText.detail(cold) == "Frio deixa o ritmo 0,7% mais lento")
     }
 
+    @Test func sunAndAdaptationShowInTheBand() throws {
+        let effect = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21, radiation: 700), hotSessions: 4))
+        #expect(RunWeatherText.title(effect) == "Orvalho 21 °C · abafado · sol forte")
+        #expect(RunWeatherText.detail(effect) == "Calor deixa o ritmo 4,6% mais lento · adaptado: 4 treinos no calor em 14 dias")
+    }
+
+    @Test func windLineShowsHeadwindAndCalmPace() throws {
+        var kilometer = WorkoutBlock(kind: .active, ordinal: 3, label: "Km 3", prescribed: nil, laps: [], seconds: 344, distance: 1000,
+                                     avgSpeed: 1000.0 / 344, avgHeartRate: 150, maxHeartRate: 160, dominantZone: 2, status: .noTarget)
+        kilometer.headwind = 15 / 3.6
+        kilometer.windFactor = WeatherAdjustment.windCost(headwind: 15 / 3.6)
+        let wind = try #require(KilometerWindBuilder.wind(kilometer))
+        #expect(wind.headwind)
+        #expect(wind.speedText == "15 km/h")
+        #expect(wind.calmPace == "5:30")
+        kilometer.windFactor = 0.001
+        #expect(KilometerWindBuilder.wind(kilometer) == nil)
+    }
+
     @MainActor
     @Test func weatherBandsRender() throws {
         let output = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"].map { URL(filePath: $0, directoryHint: .isDirectory) }
         let humid = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21)))
         let race = try #require(WeatherAdjustment.effect(RunWeather(temperature: 27, dewPoint: 20)))
         let reading = RaceWeatherReading(effect: race, source: .forecast, startHour: 7, endHour: 9, predictionSeconds: 6130)
+        let sunny = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21, radiation: 700), hotSessions: 4))
+        let rows = [(344.0, 15.0), (345.0, 15.0), (321.0, -15.0)].enumerated().map { index, item in
+            var row = WorkoutBlock(kind: .active, ordinal: index + 3, label: "Km \(index + 3)", prescribed: nil, laps: [], seconds: item.0, distance: 1000,
+                                   avgSpeed: 1000 / item.0, avgHeartRate: 150, maxHeartRate: 160, dominantZone: 2, status: .noTarget)
+            row.headwind = item.1 / 3.6
+            row.windFactor = WeatherAdjustment.windCost(headwind: item.1 / 3.6)
+            return row
+        }
         let content = VStack(alignment: .leading, spacing: 14) {
+            RunWeatherBand(effect: sunny)
+            BlocksSection(blocks: rows, bars: [], kilometers: [:], kilometerBars: [:], showsTarget: false)
             RunWeatherBand(effect: humid)
             RaceWeatherLine(reading: reading, goalSeconds: 6300)
         }

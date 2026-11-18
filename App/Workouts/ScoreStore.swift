@@ -11,22 +11,24 @@ enum ScoreStore {
         previous: [ActivityRecord],
         thresholdByDay: [Day: Int],
         watchZones: HeartRateZones?,
-        version: Int = AnalysisConstants.scoreVersion
+        version: Int = AnalysisConstants.scoreVersion,
+        runsAround: [ActivityRecord] = []
     ) -> String {
         let zones = { (run: ActivityRecord) in zoneSource(run, thresholdByDay: thresholdByDay, watchZones: watchZones) }
         return [
             String(version),
             zones(record),
             String(record.processingVersion),
-            weatherToken(record),
-            previous.map { [String($0.activityId), zones($0), String($0.processingVersion), weatherToken($0)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
+            weatherToken(record, among: runsAround),
+            previous.map { [String($0.activityId), zones($0), String($0.processingVersion), weatherToken($0, among: runsAround)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
                 .joined(separator: WorkoutConstants.scoreKeyIdSeparator),
         ].joined(separator: WorkoutConstants.scoreKeySeparator)
     }
 
-    static func weatherToken(_ record: ActivityRecord) -> String {
-        guard let effect = record.weatherEffect else { return WorkoutConstants.scoreKeyMissing }
-        return String(Int((effect.paceFactor * WorkoutConstants.scoreKeyWeatherScale).rounded()))
+    static func weatherToken(_ record: ActivityRecord, among runs: [ActivityRecord]) -> String {
+        guard let effect = record.weatherEffect(among: runs) else { return WorkoutConstants.scoreKeyMissing }
+        let wind = record.weatherWindSpeed.map { String(Int(($0 * WorkoutConstants.scoreKeyWeatherScale).rounded())) } ?? WorkoutConstants.scoreKeyMissing
+        return String(Int((effect.paceFactor * WorkoutConstants.scoreKeyWeatherScale).rounded())) + WorkoutConstants.scoreKeyFloorSeparator + wind
     }
 
     private static func zoneSource(_ record: ActivityRecord, thresholdByDay: [Day: Int], watchZones: HeartRateZones?) -> String {
@@ -58,7 +60,8 @@ enum ScoreStore {
                 record: record,
                 previous: WorkoutAnalysisContext.comparisonCandidates(of: record, in: pool),
                 thresholdByDay: thresholdByDay,
-                watchZones: watchZones
+                watchZones: watchZones,
+                runsAround: runs
             )
             guard record.scoreKey != key else { continue }
             let resolved = inputs ?? WorkoutAnalysisContext.inputs(records: records, in: context)

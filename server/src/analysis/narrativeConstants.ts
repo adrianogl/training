@@ -55,6 +55,8 @@ export const NARRATIVE = {
     heatSlower: (weather: string, percent: string, pace: string) => `Com ${weather}, calor e umidade deixam o ritmo ${percent} mais lento com o mesmo esforço. Em clima ameno, esse ritmo seria ${pace}/km.`,
     coldSlower: (weather: string, percent: string, pace: string) => `Com ${weather}, o frio deixa o ritmo ${percent} mais lento com o mesmo esforço. Em clima ameno, esse ritmo seria ${pace}/km.`,
     paceFadeWeather: (weather: string) => ` O calor de ${weather} ajuda a explicar.`,
+    wind: (speed: string, pace: string) => `Vento contra de ${speed} na altura de quem corre custa ritmo com o mesmo esforço. Sem o vento, esses km ficariam a ${pace}/km.`,
+    runForm: 'Com o ritmo igual ou mais lento, a passada encurtou e o pé ficou mais tempo no chão no fim. É sinal de cansaço muscular; força de pernas e educativos ajudam a segurar a forma.',
     lowReadiness: 'Com a prontidão baixa, um treino forte cobra mais recuperação nos próximos dias.',
     acuteChronic: 'A carga dos últimos 7 dias subiu rápido em relação às últimas 4 semanas, e o risco de lesão sobe junto.',
   },

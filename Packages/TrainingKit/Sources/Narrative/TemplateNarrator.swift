@@ -72,6 +72,13 @@ public struct TemplateNarrator: Narrator {
             let rise = Format.percent(facts[FindingFact.rise])
             let drift = "\(label) com desacoplamento: a FC subiu \(rise) (\(Format.integer(facts[FindingFact.fromHR])) → \(Format.integer(facts[FindingFact.toHR])) bpm) com o pace estável."
             return Format.hasWeather(facts) ? drift + " Esperado com \(Format.weather(facts))." : drift
+        case .windAgainst:
+            let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
+            let calm = facts[FindingFact.mildPace].map { WorkoutFormat.clock($0) } ?? ""
+            let unit = NarrativeConstants.paceUnit
+            return "\(Format.kilometerRange(facts)) com vento contra de \(Format.windSpeed(facts[FindingFact.headwind])): \(pace)\(unit) equivale a \(calm)\(unit) sem o vento."
+        case .runFormFade:
+            return "\(label) com a forma caindo no fim: \(Format.formEvidence(facts) ?? "")."
         case .weatherSlower:
             let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
             let mild = facts[FindingFact.mildPace].map { WorkoutFormat.clock($0) } ?? ""

@@ -1,3 +1,4 @@
+import Storage
 import Foundation
 import TrainingCore
 import WorkoutAnalysis
@@ -130,6 +131,8 @@ struct WorkoutAnalysisInputs {
     let thresholdByDay: [Day: Int]
     let dailyLoad: [Day: Double]
     let readinessByDay: [String: Int]
+    var dailyByDay: [String: DailyRecord] = [:]
+    var legDays: Set<Day> = []
 }
 
 struct ZoneBar: Equatable, Sendable {
@@ -154,6 +157,12 @@ struct ZoneMark: Equatable, Identifiable {
     let id: Int
     let bpm: Int
     let position: Double
+}
+
+struct KilometerWind: Equatable {
+    let headwind: Bool
+    let speedText: String
+    let calmPace: String
 }
 
 struct KilometerElevation: Equatable {

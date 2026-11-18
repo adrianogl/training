@@ -26,6 +26,9 @@ struct BlocksSection: View {
                             if let elevation = KilometerElevationBuilder.elevation(kilometer) {
                                 elevationLine(elevation)
                             }
+                            if let wind = KilometerWindBuilder.wind(kilometer) {
+                                windLine(wind)
+                            }
                         }
                         .padding(.vertical, 5)
                     }
@@ -43,6 +46,9 @@ struct BlocksSection: View {
         let canExpand = blocks.count > 1 && (block.laps.count > 1 || (showsTarget && block.prescribed != nil))
         return VStack(alignment: .leading, spacing: 6) {
             line(block, bar: bar, indent: 0)
+            if block.prescribed == nil, let wind = KilometerWindBuilder.wind(block) {
+                windLine(wind)
+            }
             if expanded.contains(position) {
                 details(block)
             }
@@ -69,6 +75,19 @@ struct BlocksSection: View {
         }
         .font(.caption2.monospacedDigit())
         .padding(.leading, WorkoutDetailConstants.labelColumnWidth + 8)
+    }
+
+    private func windLine(_ wind: KilometerWind) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: wind.headwind ? WorkoutDetailConstants.headwindSymbol : WorkoutDetailConstants.tailwindSymbol)
+                .foregroundStyle(wind.headwind ? BrandColors.attention : BrandColors.accent)
+            Text("\(wind.headwind ? WorkoutDetailConstants.headwindLabel : WorkoutDetailConstants.tailwindLabel), \(wind.speedText)")
+                .foregroundStyle(BrandColors.dim)
+            Text(wind.calmPace + " " + WorkoutDetailConstants.calmPaceLabel).fontWeight(.semibold).foregroundStyle(BrandColors.text)
+        }
+        .font(.caption2.monospacedDigit())
+        .padding(.leading, WorkoutDetailConstants.labelColumnWidth + 8)
+        .accessibilityElement(children: .combine)
     }
 
     private func sectionHeader(_ title: String, first: Bool) -> some View {

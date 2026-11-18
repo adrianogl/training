@@ -67,6 +67,8 @@ public enum NarrativeConstants {
         .climbSlower: "ritmo mais lento na subida",
         .descentFaster: "ritmo mais rápido na descida",
         .weatherSlower: "ritmo mais lento pelo clima",
+        .windAgainst: "vento contra",
+        .runFormFade: "forma caindo no fim",
     ]
     static let mildClimate = "em clima ameno"
     static let dewPointLabel = "orvalho"

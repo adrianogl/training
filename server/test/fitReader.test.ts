@@ -39,7 +39,9 @@ describe('leitura do FIT (paridade com o FITReader do app)', () => {
   it('reamostra em blocos de 5 s com média de FC, velocidade e altitude', () => {
     const summary = readFit(sampleFit())
     expect(summary.samples).toHaveLength(6)
-    expect(summary.samples[0]).toEqual({ t: 0, heartRate: 142, speed: expect.closeTo(3.02, 6), altitude: 802, distance: 12 })
+    expect(summary.samples[0]).toMatchObject({ t: 0, heartRate: 142, speed: expect.closeTo(3.02, 6), altitude: 802, distance: 12 })
+    expect(summary.samples[0]?.lat).toBeCloseTo(-19.9002, 4)
+    expect(summary.samples[0]?.cadence).toBeNull()
     expect(summary.samples[5]?.t).toBe(25)
     expect(summary.route).toHaveLength(30)
     expect(summary.route[0]?.lat).toBeCloseTo(-19.9, 6)

@@ -55,12 +55,24 @@ function resample(records: FitMessage[]): FitSample[] {
       })
       const heartRate = mean(pick((record) => num(record.heartRate)))
       const distances = pick((record) => num(record.distance))
+      const lat = mean(pick((record) => num(record.positionLat)))
+      const lon = mean(pick((record) => num(record.positionLong)))
       return {
         t: key * FIT.bucketSeconds,
         heartRate: heartRate === null ? null : Math.round(heartRate),
         speed: mean(pick((record) => num(record.enhancedSpeed) ?? num(record.speed))),
         altitude: mean(pick((record) => num(record.enhancedAltitude) ?? num(record.altitude))),
         distance: distances.at(-1) ?? null,
+        cadence: mean(pick((record) => {
+          const cadence = num(record.cadence)
+          return cadence === null || cadence <= 0 || cadence === FIT.invalidCadence ? null : (cadence + (num(record.fractionalCadence) ?? 0)) * FIT.stepsPerStride
+        })),
+        stanceTime: mean(pick((record) => {
+          const stance = num(record.stanceTime)
+          return stance === null || stance <= 0 ? null : stance
+        })),
+        lat: lat === null ? null : lat * FIT.semicircleToDegrees,
+        lon: lon === null ? null : lon * FIT.semicircleToDegrees,
       }
     })
 }

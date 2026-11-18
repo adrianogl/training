@@ -110,6 +110,11 @@ enum WorkoutFeedback {
         case .climbSlower: text = C.climbTitle
         case .descentFaster: text = C.descentTitle
         case .weatherSlower: text = first.facts[FindingFact.cold] == 1 ? C.coldTitle : C.heatTitle
+        case .windAgainst:
+            let from = Int((first.facts[FindingFact.fromKilometer] ?? 0).rounded())
+            let to = Int((first.facts[FindingFact.toKilometer] ?? 0).rounded())
+            text = to > from ? String(format: C.windRangeFormat, from, to) : String(format: C.windSingleFormat, from)
+        case .runFormFade: text = C.formTitle
         case .blockInTarget:
             let inTarget = Int(first.facts[FindingFact.inTarget] ?? 0)
             let total = Int(first.facts[FindingFact.total] ?? 0)
