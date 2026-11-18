@@ -5,9 +5,9 @@ import UniformTypeIdentifiers
 
 @MainActor
 enum AppIconExport {
-    static func png() -> Data? {
+    static func png(theme: AccentTheme = .pista) -> Data? {
         let side = ShareConstants.appIconPixels
-        let renderer = ImageRenderer(content: AppIconArt(side: side).environment(\.colorScheme, .dark))
+        let renderer = ImageRenderer(content: AppIconArt(side: side).environment(\.colorScheme, .dark).environment(\.accentTheme, theme))
         renderer.scale = 1
         renderer.isOpaque = true
         guard let rendered = renderer.cgImage,

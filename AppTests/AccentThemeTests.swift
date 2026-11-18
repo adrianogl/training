@@ -43,3 +43,11 @@ import Testing
         }
     }
 }
+
+@MainActor
+@Suite struct AppIconSwitcherTests {
+    @Test func lilacUsesTheAlternateIcon() {
+        #expect(AppIconSwitcher.iconName(for: .pista) == nil)
+        #expect(AppIconSwitcher.iconName(for: .lilac) == "AppIconLilac")
+    }
+}

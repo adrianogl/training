@@ -305,6 +305,7 @@ struct SettingsView: View {
         }
         Section {
             AccentThemePicker(selection: $accentTheme)
+                .onChange(of: accentTheme) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(raw)) }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
         } header: {
