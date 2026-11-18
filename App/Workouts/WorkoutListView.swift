@@ -45,7 +45,8 @@ struct WorkoutListView: View {
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
         let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
         let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))
-        let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned, doneStrengthDays: doneDays, filter: kindFilter)
+        let trainerStrength = model.mfitAccount.isSignedIn ? [] : model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays)
+        let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned + trainerStrength.map(\.workout), doneStrengthDays: doneDays, filter: kindFilter)
         Group {
             if isSplit {
                 HStack(spacing: 0) {
@@ -105,6 +106,11 @@ struct WorkoutListView: View {
         }
     }
 
+    private func trainerStrength(_ id: Int64) -> TrainerPlannedStrength? {
+        guard id < 0, !model.mfitAccount.isSignedIn else { return nil }
+        return model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays).first { $0.workout.id == id }
+    }
+
     private func applyRestoration() {
         guard !appliedRestoration else { return }
         appliedRestoration = true
@@ -156,7 +162,11 @@ struct WorkoutListView: View {
                 PlannedWorkoutDetailView(plan: plan, week: planned)
             }
         case .strength(let id):
-            StrengthPlannedDetailView(workoutId: id)
+            if let trainer = trainerStrength(id) {
+                TrainerStrengthWorkoutView(iso: trainer.workout.day, sessionId: trainer.sessionId)
+            } else {
+                StrengthPlannedDetailView(workoutId: id)
+            }
         }
     }
 

@@ -43,6 +43,11 @@ enum WorkoutSelection: Hashable, Codable {
     case strength(Int64)
 }
 
+struct TrainerPlannedStrength: Equatable {
+    let workout: StrengthWorkout
+    let sessionId: UUID
+}
+
 enum WorkoutPlannedItem: Identifiable {
     case run(PlannedWorkout)
     case strength(StrengthWorkout)
