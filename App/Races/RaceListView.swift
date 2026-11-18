@@ -194,7 +194,7 @@ struct RaceListView: View {
                 .brandCard()
         }
         if let target = model.target {
-            link(.next(target.id)) { RaceTargetCard(target: target) }
+            link(.next(target.id)) { RaceTargetCard(target: target, weather: model.targetWeather) }
         }
         let others = model.upcoming.filter { $0.id != model.target?.id }
         if !others.isEmpty {

@@ -4,7 +4,7 @@ enum WorkoutFeedbackConstants {
     static let visibleEntries = 4
     static let priority: [FindingKind] = [
         .blockOffTarget, .stepIncomplete, .zoneAboveTarget, .cardiacDrift, .paceFade, .hardOnLowReadiness, .highAcuteChronic,
-        .climbSlower, .descentFaster, .lowerHeartRateThanBefore, .goodRecovery, .steadyPace, .blockInTarget,
+        .weatherSlower, .climbSlower, .descentFaster, .lowerHeartRateThanBefore, .goodRecovery, .steadyPace, .blockInTarget,
     ]
 
     static let slower = ("mais lento que o alvo", "mais lentos que o alvo", "mais lenta que o alvo", "mais lentas que o alvo")
@@ -22,6 +22,8 @@ enum WorkoutFeedbackConstants {
     static let steadyLevel = "com pace constante no plano"
     static let climbTitle = "Ritmo mais lento nas subidas"
     static let descentTitle = "Ritmo mais rápido na descida"
+    static let heatTitle = "Ritmo mais lento pelo calor"
+    static let coldTitle = "Ritmo mais lento pelo frio"
     static let elevationKinds: Set<FindingKind> = [.climbSlower, .descentFaster]
     static let elevationLead = "Desnível: "
     static let whyClimbGroupFormat = "Subida custa ritmo com o mesmo esforço. No equivalente no plano, esses km ficaram entre %@ e %@/km."

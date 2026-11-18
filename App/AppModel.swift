@@ -79,7 +79,10 @@ import TrainingCore
         self.container = container
         self.scope = scope
         self.hasLocalData = Self.storeHasData(container: container)
-        self.scoreRefresher = ScoreRefresher { await ScoreStore.refresh(container: container, ids: nil) }
+        self.scoreRefresher = ScoreRefresher {
+            await ActivityWeatherStore.refresh(container: container)
+            await ScoreStore.refresh(container: container, ids: nil)
+        }
         self.storeError = storeError
         self.keyStore = keyStore
         self.transport = transport

@@ -4,10 +4,9 @@ import Testing
 @testable import Storage
 
 @Suite struct SchemaV7MigrationTests {
-    @Test func currentSchemaIsV7() {
+    @Test func schemaV7KeepsItsEntities() {
         let names = Set(Schema(versionedSchema: SchemaV7.self).entities.map(\.name))
         #expect(names == ["DailyRecord", "ActivityRecord", "RaceRecord", "SyncState", "HeartRateZonesRecord", "ThresholdHistoryRecord", "RaceDecisionRecord", "GoalRecord"])
-        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV7.self))
         #expect(TrainingSchema.models.count == 8)
     }
 

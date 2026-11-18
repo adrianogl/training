@@ -1,6 +1,7 @@
 import type { PrescribedStep, StepTarget } from '../fit/fitTypes.js'
 import { ANALYSIS } from './analysisConstants.js'
 import type { HeartRateZones, ScoreItem, ScorePart, ScoreReason, WorkoutBlock, WorkoutOccurrence, WorkoutScore } from './analysisTypes.js'
+import { mildSpeed } from './weatherEffect.js'
 
 const absent = (part: ScorePart, reason: ScoreReason): ScoreItem => ({ part, points: 0, maximum: 0, reason })
 const isExecuted = (block: WorkoutBlock) => block.status !== 'notExecuted'
@@ -113,7 +114,7 @@ export function efficiency(blocks: WorkoutBlock[]): number | null {
   const measured = blocks.filter((block) => (!prescribed || (block.kind === 'active' && block.prescribed !== null)) && isExecuted(block) && block.seconds > 0 && (block.avgHeartRate ?? 0) > 0)
   const seconds = measured.reduce((sum, block) => sum + block.seconds, 0)
   if (seconds <= 0) return null
-  const distance = measured.reduce((sum, block) => sum + block.distance, 0)
+  const distance = measured.reduce((sum, block) => sum + mildSpeed(block.distance, block.weatherFactor), 0)
   const heartRate = measured.reduce((sum, block) => sum + (block.avgHeartRate ?? 0) * block.seconds, 0) / seconds
   return distance / seconds / heartRate
 }

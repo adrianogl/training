@@ -3,6 +3,7 @@ import WorkoutAnalysis
 
 struct RaceTargetCard: View {
     let target: RaceTargetData
+    var weather: RaceWeatherReading?
 
     private typealias C = RacesConstants
 
@@ -32,6 +33,11 @@ struct RaceTargetCard: View {
             .font(.caption)
             if let prediction = target.predictionSeconds, let goal = target.goalSeconds {
                 GoalPredictionBar(today: prediction, target: goal).frame(height: GoalsConstants.barHeight)
+            }
+            if let weather {
+                Text(RaceWeatherText.list(weather) + RaceWeatherConstants.separator + RaceWeatherText.detail(weather))
+                    .font(.caption)
+                    .foregroundStyle(weather.effect.isHeat ? BrandColors.race : BrandColors.dim)
             }
             Text([target.distanceText, target.gapText].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption)

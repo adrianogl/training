@@ -1,4 +1,5 @@
 import FITReader
+import TrainingCore
 
 public func assess(_ blocks: [WorkoutBlock], context: AssessmentContext) -> WorkoutAssessment {
     let findings = blockInTarget(blocks)
@@ -7,10 +8,11 @@ public func assess(_ blocks: [WorkoutBlock], context: AssessmentContext) -> Work
         + goodRecovery(blocks)
         + blockOffTarget(blocks)
         + stepIncomplete(blocks, context: context)
-        + paceFade(blocks, kilometers: context.kilometers)
+        + paceFade(blocks, kilometers: context.kilometers, weather: context.weather)
         + elevationPace(blocks, kilometers: context.kilometers)
-        + cardiacDrift(blocks, kilometers: context.kilometers)
-        + zoneAboveTarget(blocks)
+        + weatherSlower(blocks, weather: context.weather)
+        + cardiacDrift(blocks, kilometers: context.kilometers, weather: context.weather)
+        + zoneAboveTarget(blocks, weather: context.weather)
         + hardOnLowReadiness(blocks, readiness: context.readinessScore)
         + highAcuteChronic(context.acuteChronic)
     return WorkoutAssessment(
@@ -46,7 +48,7 @@ private func steadyPace(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -
     }
 }
 
-private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
+private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, weather: WeatherEffect?) -> [Finding] {
     eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let paces = laps.map(levelPace)
         guard let last = paces.last, let lastLap = laps.last else { return nil }
@@ -62,6 +64,9 @@ private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> 
             facts[FindingFact.flatAdjusted] = 1
             facts[FindingFact.pace] = pace(lastLap)
             facts[FindingFact.lastClimb] = lastLap.climb ?? 0
+        }
+        if let weather, weather.isHeat, weather.paceFactor >= RunWeatherConstants.fadeHeatFactor {
+            facts.merge(weatherFacts(weather)) { current, _ in current }
         }
         return Finding(group: .negative, kind: .paceFade, blockOrdinal: position, facts: facts)
     }
@@ -121,8 +126,9 @@ private func levelPace(_ lap: LapSummary) -> Double {
     flatPace(lap) ?? pace(lap)
 }
 
-private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -> [Finding] {
-    eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
+private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, weather: WeatherEffect?) -> [Finding] {
+    let expected = weather.map { $0.isHeat && $0.paceFactor >= RunWeatherConstants.driftHeatFactor } ?? false
+    return eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let third = max(1, laps.count / 3)
         let first = Array(laps.prefix(third))
         let final = Array(laps.suffix(third))
@@ -130,11 +136,13 @@ private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers)
         let rise = toHR / fromHR - 1
         let speedChange = abs(meanSpeed(final) / meanSpeed(first) - 1)
         guard rise >= AnalysisConstants.driftThreshold, speedChange <= AnalysisConstants.driftMaxSpeedChange else { return nil }
-        return Finding(group: .attention, kind: .cardiacDrift, blockOrdinal: position, facts: [
+        var facts = [
             FindingFact.rise: rise,
             FindingFact.fromHR: fromHR,
             FindingFact.toHR: toHR,
-        ])
+        ]
+        if expected, let weather { facts.merge(weatherFacts(weather)) { current, _ in current } }
+        return Finding(group: expected ? .positive : .attention, kind: .cardiacDrift, blockOrdinal: position, facts: facts)
     }
 }
 
@@ -156,9 +164,9 @@ private func goodRecovery(_ blocks: [WorkoutBlock]) -> [Finding] {
 
 private func lowerHeartRateThanBefore(_ blocks: [WorkoutBlock], previous: [[WorkoutBlock]]) -> [Finding] {
     blocks.enumerated().compactMap { position, block in
-        guard block.kind == .active, let heartRate = block.avgHeartRate, let speed = block.avgSpeed,
+        guard block.kind == .active, let heartRate = block.avgHeartRate, let speed = block.weatherSpeed,
               let before = previous.lazy.compactMap({ $0.first { $0.label == block.label } }).first,
-              let beforeHeartRate = before.avgHeartRate, let beforeSpeed = before.avgSpeed, beforeSpeed > 0 else { return nil }
+              let beforeHeartRate = before.avgHeartRate, let beforeSpeed = before.weatherSpeed, beforeSpeed > 0 else { return nil }
         let delta = beforeHeartRate - heartRate
         guard delta >= AnalysisConstants.lowerHeartRateMargin,
               abs(speed / beforeSpeed - 1) <= AnalysisConstants.sameSpeedTolerance else { return nil }
@@ -255,14 +263,39 @@ private func pauseFacts(_ continuity: RunContinuity?) -> [String: Double] {
     ]
 }
 
-private func zoneAboveTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
-    blocks.enumerated().compactMap { position, block in
-        guard block.kind == .warmup || block.kind == .cooldown, let zone = block.dominantZone, zone >= AnalysisConstants.easyBlockZoneLimit else { return nil }
+private func zoneAboveTarget(_ blocks: [WorkoutBlock], weather: WeatherEffect?) -> [Finding] {
+    let hot = weather.map { $0.isHeat && $0.paceFactor >= RunWeatherConstants.zoneHeatFactor } ?? false
+    let limit = AnalysisConstants.easyBlockZoneLimit + (hot ? 1 : 0)
+    return blocks.enumerated().compactMap { position, block in
+        guard block.kind == .warmup || block.kind == .cooldown, let zone = block.dominantZone, zone >= limit else { return nil }
         var facts = [FindingFact.zone: Double(zone)]
         facts[FindingFact.speed] = block.avgSpeed
         facts[FindingFact.heartRate] = block.avgHeartRate.map(Double.init)
         return Finding(group: .attention, kind: .zoneAboveTarget, blockOrdinal: position, facts: facts)
     }
+}
+
+private func weatherSlower(_ blocks: [WorkoutBlock], weather: WeatherEffect?) -> [Finding] {
+    let rescued = blocks.filter { $0.weatherRescued == true && $0.seconds > 0 && $0.distance > 0 }
+    guard let weather, !rescued.isEmpty else { return [] }
+    let seconds = rescued.reduce(0) { $0 + $1.seconds }
+    let kilometers = rescued.reduce(0) { $0 + $1.distance } / AnalysisConstants.metersPerKilometer
+    let pace = seconds / kilometers
+    var facts = weatherFacts(weather)
+    facts[FindingFact.pace] = pace
+    facts[FindingFact.mildPace] = WeatherAdjustment.mildPace(pace, effect: weather)
+    facts[FindingFact.count] = Double(rescued.count)
+    return [Finding(group: .positive, kind: .weatherSlower, blockOrdinal: nil, facts: facts)]
+}
+
+func weatherFacts(_ weather: WeatherEffect) -> [String: Double] {
+    var facts = [
+        FindingFact.temperature: weather.weather.temperature,
+        FindingFact.weatherFactor: weather.paceFactor,
+    ]
+    facts[FindingFact.dewPoint] = weather.weather.dewPoint
+    if weather.isCold { facts[FindingFact.cold] = 1 }
+    return facts
 }
 
 private func hardOnLowReadiness(_ blocks: [WorkoutBlock], readiness: Int?) -> [Finding] {

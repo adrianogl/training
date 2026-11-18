@@ -74,6 +74,9 @@ struct WorkoutDetailView: View {
         if let summary = model.summary {
             if model.isRun {
                 SummaryHeader(summary: summary)
+                if let weather = model.weather {
+                    RunWeatherBand(effect: weather)
+                }
                 runSections(model)
             } else {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)

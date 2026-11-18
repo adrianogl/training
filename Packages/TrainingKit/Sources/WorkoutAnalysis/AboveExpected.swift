@@ -1,3 +1,5 @@
+import TrainingCore
+
 public func aboveExpected(_ blocks: [WorkoutBlock], previous: [[WorkoutBlock]]) -> [AboveExpectedSignal] {
     [heartRateAtPace(blocks, previous: previous), recoveryDrop(blocks, previous: previous)].compactMap { $0 }
 }
@@ -15,7 +17,7 @@ private func activeEffort(_ blocks: [WorkoutBlock]) -> ActiveEffort? {
     }
     let seconds = measured.reduce(0) { $0 + $1.seconds }
     guard seconds > 0 else { return nil }
-    let distance = measured.reduce(0) { $0 + $1.distance }
+    let distance = measured.reduce(0) { $0 + WeatherAdjustment.mildSpeed($1.distance, factor: $1.weatherFactor) }
     let heartRate = measured.reduce(0) { $0 + Double($1.avgHeartRate ?? 0) * $1.seconds } / seconds
     return ActiveEffort(speed: distance / seconds, heartRate: heartRate)
 }

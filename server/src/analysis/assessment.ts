@@ -1,7 +1,8 @@
 import type { LapSummary } from '../fit/fitTypes.js'
-import { ANALYSIS } from './analysisConstants.js'
+import { ANALYSIS, ANALYSIS_WEATHER } from './analysisConstants.js'
 import { flatPace, hasElevation } from './elevation.js'
-import type { AssessmentContext, BlockKilometers, BlockStatus, Finding, RunContinuity, WorkoutAssessment, WorkoutBlock } from './analysisTypes.js'
+import type { AssessmentContext, BlockKilometers, BlockStatus, Finding, RunContinuity, WeatherEffect, WorkoutAssessment, WorkoutBlock } from './analysisTypes.js'
+import { isHeat, mildPace, weatherFacts, weatherSpeed } from './weatherEffect.js'
 
 const hasTarget = (block: WorkoutBlock) => block.prescribed !== null && block.prescribed.target.kind !== 'open'
 
@@ -54,7 +55,7 @@ function steadyPace(blocks: WorkoutBlock[], kilometers: BlockKilometers): Findin
   })
 }
 
-function paceFade(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[] {
+function paceFade(blocks: WorkoutBlock[], kilometers: BlockKilometers, weather: WeatherEffect | null): Finding[] {
   return eligibleForLapRules(blocks, kilometers).flatMap(({ position, laps }) => {
     const paces = laps.map(levelPace)
     const last = paces.at(-1)
@@ -69,6 +70,7 @@ function paceFade(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[
       facts.pace = pace(lastLap)
       facts.lastClimb = lastLap.climb ?? 0
     }
+    if (weather !== null && isHeat(weather) && weather.paceFactor >= ANALYSIS_WEATHER.fadeHeatFactor) Object.assign(facts, { ...weatherFacts(weather), ...facts })
     return [{ group: 'negative' as const, kind: 'paceFade' as const, blockOrdinal: position, facts }]
   })
 }
@@ -130,7 +132,8 @@ function elevationPace(blocks: WorkoutBlock[], kilometers: BlockKilometers): Fin
   return findings
 }
 
-function cardiacDrift(blocks: WorkoutBlock[], kilometers: BlockKilometers): Finding[] {
+function cardiacDrift(blocks: WorkoutBlock[], kilometers: BlockKilometers, weather: WeatherEffect | null): Finding[] {
+  const expected = weather !== null && isHeat(weather) && weather.paceFactor >= ANALYSIS_WEATHER.driftHeatFactor
   return eligibleForLapRules(blocks, kilometers).flatMap(({ position, laps }) => {
     const third = Math.max(1, Math.floor(laps.length / 3))
     const first = laps.slice(0, third)
@@ -141,7 +144,12 @@ function cardiacDrift(blocks: WorkoutBlock[], kilometers: BlockKilometers): Find
     const rise = toHR / fromHR - 1
     const speedChange = Math.abs(meanSpeed(final) / meanSpeed(first) - 1)
     return rise >= ANALYSIS.driftThreshold && speedChange <= ANALYSIS.driftMaxSpeedChange
-      ? [{ group: 'attention' as const, kind: 'cardiacDrift' as const, blockOrdinal: position, facts: { rise, fromHR, toHR } }]
+      ? [{
+          group: expected ? ('positive' as const) : ('attention' as const),
+          kind: 'cardiacDrift' as const,
+          blockOrdinal: position,
+          facts: expected && weather !== null ? { ...weatherFacts(weather), rise, fromHR, toHR } : { rise, fromHR, toHR },
+        }]
       : []
   })
 }
@@ -161,11 +169,11 @@ function goodRecovery(blocks: WorkoutBlock[]): Finding[] {
 function lowerHeartRateThanBefore(blocks: WorkoutBlock[], previous: WorkoutBlock[][]): Finding[] {
   return blocks.flatMap((block, position) => {
     const heartRate = block.avgHeartRate
-    const speed = block.avgSpeed
+    const speed = weatherSpeed(block)
     if (block.kind !== 'active' || heartRate === null || speed === null) return []
     const before = previous.map((list) => list.find((item) => item.label === block.label)).find((item) => item !== undefined)
     const beforeHeartRate = before?.avgHeartRate ?? null
-    const beforeSpeed = before?.avgSpeed ?? null
+    const beforeSpeed = before === undefined ? null : weatherSpeed(before)
     if (beforeHeartRate === null || beforeSpeed === null || beforeSpeed <= 0) return []
     const delta = beforeHeartRate - heartRate
     return delta >= ANALYSIS.lowerHeartRateMargin && Math.abs(speed / beforeSpeed - 1) <= ANALYSIS.sameSpeedTolerance
@@ -249,15 +257,31 @@ function stepIncomplete(blocks: WorkoutBlock[], context: AssessmentContext): Fin
   })
 }
 
-function zoneAboveTarget(blocks: WorkoutBlock[]): Finding[] {
+function zoneAboveTarget(blocks: WorkoutBlock[], weather: WeatherEffect | null): Finding[] {
+  const hot = weather !== null && isHeat(weather) && weather.paceFactor >= ANALYSIS_WEATHER.zoneHeatFactor
+  const limit = ANALYSIS.easyBlockZoneLimit + (hot ? 1 : 0)
   return blocks.flatMap((block, position) => {
     const zone = block.dominantZone
-    if (block.kind === 'active' || zone === null || zone < ANALYSIS.easyBlockZoneLimit) return []
+    if ((block.kind !== 'warmup' && block.kind !== 'cooldown') || zone === null || zone < limit) return []
     const facts: Record<string, number> = { zone }
     if (block.avgSpeed !== null) facts.speed = block.avgSpeed
     if (block.avgHeartRate !== null) facts.heartRate = block.avgHeartRate
     return [{ group: 'attention' as const, kind: 'zoneAboveTarget' as const, blockOrdinal: position, facts }]
   })
+}
+
+function weatherSlower(blocks: WorkoutBlock[], weather: WeatherEffect | null): Finding[] {
+  const rescued = blocks.filter((block) => block.weatherRescued === true && block.seconds > 0 && block.distance > 0)
+  if (weather === null || rescued.length === 0) return []
+  const seconds = rescued.reduce((sum, block) => sum + block.seconds, 0)
+  const kilometers = rescued.reduce((sum, block) => sum + block.distance, 0) / ANALYSIS.metersPerKilometer
+  const pace = seconds / kilometers
+  return [{
+    group: 'positive',
+    kind: 'weatherSlower',
+    blockOrdinal: null,
+    facts: { ...weatherFacts(weather), pace, mildPace: mildPace(pace, weather), count: rescued.length },
+  }]
 }
 
 function hardOnLowReadiness(blocks: WorkoutBlock[], readiness: number | null): Finding[] {
@@ -278,10 +302,11 @@ export function assess(blocks: WorkoutBlock[], context: AssessmentContext): Work
     ...goodRecovery(blocks),
     ...blockOffTarget(blocks),
     ...stepIncomplete(blocks, context),
-    ...paceFade(blocks, context.kilometers),
+    ...paceFade(blocks, context.kilometers, context.weather ?? null),
     ...elevationPace(blocks, context.kilometers),
-    ...cardiacDrift(blocks, context.kilometers),
-    ...zoneAboveTarget(blocks),
+    ...weatherSlower(blocks, context.weather ?? null),
+    ...cardiacDrift(blocks, context.kilometers, context.weather ?? null),
+    ...zoneAboveTarget(blocks, context.weather ?? null),
     ...hardOnLowReadiness(blocks, context.readinessScore),
     ...highAcuteChronic(context.acuteChronic),
   ]

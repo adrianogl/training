@@ -1,6 +1,7 @@
 import { WEATHER } from './constants.js'
 import type { Weather } from './domain/domainTypes.js'
 import { daysBetween } from './domain/prediction.js'
+import type { RunWeather } from './analysis/analysisTypes.js'
 
 export interface Coordinate {
   latitude: number
@@ -55,4 +56,48 @@ export async function raceWeather(fetcher: Fetcher, coordinate: Coordinate, day:
     end_date: day,
   })
   return pickHour(await getJson(fetcher, `${WEATHER.forecastUrl}?${params}`), hour)
+}
+
+interface HourlyBody {
+  hourly?: { time?: string[]; temperature_2m?: (number | null)[]; dew_point_2m?: (number | null)[] }
+}
+
+const minutesOf = (local: string) => Date.parse(`${local.slice(0, 16)}:00Z`) / 60_000
+
+export function averageWeather(body: unknown, startLocal: string, durationSeconds: number): RunWeather | null {
+  const hourly = (body as HourlyBody | null)?.hourly
+  const start = minutesOf(startLocal)
+  const end = start + Math.max(durationSeconds / 60, 1)
+  let weight = 0
+  let temperature = 0
+  let dewWeight = 0
+  let dewPoint = 0
+  hourly?.time?.forEach((time, index) => {
+    const hourStart = minutesOf(time)
+    const overlap = Math.min(end, hourStart + 60) - Math.max(start, hourStart)
+    const value = hourly.temperature_2m?.[index]
+    if (overlap <= 0 || typeof value !== 'number') return
+    weight += overlap
+    temperature += value * overlap
+    const dew = hourly.dew_point_2m?.[index]
+    if (typeof dew === 'number') {
+      dewWeight += overlap
+      dewPoint += dew * overlap
+    }
+  })
+  return weight > 0 ? { temperature: temperature / weight, dewPoint: dewWeight > 0 ? dewPoint / dewWeight : null } : null
+}
+
+export async function activityWeather(fetcher: Fetcher, coordinate: Coordinate, startLocal: string, durationSeconds: number, today: string): Promise<RunWeather | null> {
+  const day = startLocal.slice(0, 10)
+  const archive = daysBetween(day, today) > WEATHER.forecastHistoryDays
+  const params = new URLSearchParams({
+    latitude: rounded(coordinate.latitude),
+    longitude: rounded(coordinate.longitude),
+    hourly: WEATHER.fields,
+    timezone: 'auto',
+    start_date: day,
+    end_date: day,
+  })
+  return averageWeather(await getJson(fetcher, `${archive ? WEATHER.archiveUrl : WEATHER.forecastUrl}?${params}`), startLocal, durationSeconds)
 }

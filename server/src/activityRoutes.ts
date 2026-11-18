@@ -12,6 +12,9 @@ import { GarminError } from './garminError.js'
 import { readGoals } from './goals.js'
 import { body, failure, garminEnvFromProcess, json, withAccount } from './garminRoutes.js'
 import { addDays, garminGet, localDay, readActivitiesSince, readDays, saveActivity } from './garminSync.js'
+import type { RunWeather } from './analysis/analysisTypes.js'
+import type { FitSummary } from './fit/fitTypes.js'
+import { activityWeather } from './weather.js'
 import { monthsBetween, plannedWorkout, runItems } from './planned/planned.js'
 import { PLANNED } from './planned/plannedConstants.js'
 import type { CalendarItem, WorkoutDto } from './planned/plannedTypes.js'
@@ -21,6 +24,13 @@ const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', '
 
 export function shortDay(day: string): string {
   return `${Number(day.slice(8, 10))} de ${MONTHS[Number(day.slice(5, 7)) - 1] ?? ''}`
+}
+
+function weatherFor(env: GarminEnv, activity: ActivitySummary, fit: FitSummary | null | undefined, today: string): Promise<RunWeather | null> {
+  const start = fit?.route[0]
+  const seconds = activity.durationSeconds ?? activity.movingSeconds
+  if (start === undefined || seconds === null) return Promise.resolve(null)
+  return activityWeather(env.fetcher, { latitude: start.lat, longitude: start.lon }, activity.startLocal, seconds, today)
 }
 
 function requestedId(request: Request): number | null {
@@ -43,6 +53,9 @@ export function activityRoute(request: Request, sql: Sql, env: GarminEnv = garmi
     if (candidates.length > 0) await fetchFits(sql, keyed, accountId, candidates.map((item) => item.id), ACTIVITY.comparisonFetchLimit)
     const fits = await readStoredFits(sql, key, accountId, candidates.map((item) => item.id))
     const day = (await readDays(sql, key, accountId, activity.day, activity.day))[0]
+    const [weather, ...previousWeather] = run
+      ? await Promise.all([weatherFor(env, activity, fit, today), ...candidates.map((item) => weatherFor(env, item, fits.get(item.id), today))])
+      : [null]
     const analysis = analyzeWorkout(
       {
         activityId: id,
@@ -54,9 +67,10 @@ export function activityRoute(request: Request, sql: Sql, env: GarminEnv = garmi
         fit,
         readinessScore: day?.readiness?.score ?? null,
         acuteChronic: acuteChronicRatio(dailyLoad(activities), activity.day),
-        previous: candidates.flatMap((item) => {
+        weather: weather ?? null,
+        previous: candidates.flatMap((item, index) => {
           const stored = fits.get(item.id)
-          return stored === undefined ? [] : [{ activityId: item.id, day: item.day, distance: item.distanceMeters, movingSeconds: item.movingSeconds ?? item.durationSeconds, averageHeartRate: item.averageHeartRate, fit: stored }]
+          return stored === undefined ? [] : [{ activityId: item.id, day: item.day, distance: item.distanceMeters, movingSeconds: item.movingSeconds ?? item.durationSeconds, averageHeartRate: item.averageHeartRate, fit: stored, weather: previousWeather[index] ?? null }]
         }),
       },
       shortDay,
