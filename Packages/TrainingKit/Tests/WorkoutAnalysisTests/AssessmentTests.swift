@@ -297,6 +297,16 @@ private let longRunBlock = block(label: "Bloco 1", prescribed: speedTarget, seco
     #expect(findings.first?.facts[FindingFact.zone] == 3)
 }
 
+@Test func recoveryInHighZoneIsNotAttention() {
+    let blocks = [
+        block(label: "Bloco 1", dominantZone: 5),
+        block(.recovery, label: "Recuperação", dominantZone: 5),
+        block(label: "Bloco 2", dominantZone: 5),
+    ]
+
+    #expect(assess(blocks, context: AssessmentContext()).attention.filter { $0.kind == .zoneAboveTarget }.isEmpty)
+}
+
 @Test func hardWorkoutOnLowReadiness() {
     let hard = [block(prescribed: speedTarget, status: .inTarget)]
     let easy = [block(dominantZone: 2)]

@@ -58,7 +58,7 @@ Arquivo: `WorkoutAnalysis/Assessment.swift`. Constantes: `WorkoutAnalysis/Analys
 | Ritmo mais lento nas subidas | esperado | km seguidos em que a subida deixou o ritmo pelo menos 3 s/km mais lento que o equivalente no plano |
 | Ritmo mais rápido na descida | esperado | km seguidos em que a descida deixou o ritmo pelo menos 3 s/km mais rápido que o equivalente no plano |
 | Deriva cardíaca | atenção | FC do último terço 5% acima do primeiro terço, com velocidade variando até 2% |
-| Zona acima | atenção | aquecimento, recuperação ou rodagem com zona dominante 3 ou mais |
+| Zona acima | atenção | aquecimento ou desaquecimento com zona dominante 3 ou mais. Recuperação entre blocos não entra: a FC depois de um tiro não depende só do atleta, mesmo parado |
 | Forte com prontidão baixa | atenção | treino forte com prontidão abaixo de 50 |
 | Carga alta | atenção | carga aguda/crônica acima de 1,5 |
 

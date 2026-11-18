@@ -45,7 +45,7 @@ enum FindingDetailConstants {
     static let whyPaceFadeLevel = "Mesmo descontando o desnível, o ritmo caiu no fim do bloco. Começar alguns segundos por km mais lento ajuda a segurar até o fim."
     static let whyPaceFade = "O cansaço apareceu no fim do bloco. Começar alguns segundos por km mais lento ajuda a segurar o ritmo até o fim."
     static let whyCardiacDrift = "É deriva cardíaca: o coração trabalhou mais para manter o mesmo ritmo. Calor, pouca hidratação e cansaço acumulado aumentam a deriva."
-    static let whyZoneAbove = "Bloco leve em zona alta soma carga sem ajudar no objetivo dele, que é aquecer ou recuperar."
+    static let whyZoneAbove = "Bloco leve em zona alta soma carga sem ajudar no objetivo dele, que é aquecer ou soltar."
     static let whyLowReadiness = "Com a prontidão baixa, um treino forte cobra mais recuperação nos próximos dias."
     static let whyAcuteChronic = "A carga dos últimos 7 dias subiu rápido em relação às últimas 4 semanas, e o risco de lesão sobe junto."
 }
