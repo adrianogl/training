@@ -52,29 +52,25 @@ import WorkoutAnalysis
     @Test func runWeatherTexts() throws {
         let humid = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21)))
         #expect(RunWeatherText.title(humid) == "Orvalho 21 °C · abafado")
-        #expect(RunWeatherText.detail(humid) == "Calor deixa o ritmo 4,8% mais lento")
         let mild = try #require(WeatherAdjustment.effect(RunWeather(temperature: 12, dewPoint: 5)))
         #expect(RunWeatherText.title(mild) == "Orvalho 5 °C")
-        #expect(RunWeatherText.detail(mild) == nil)
         let cold = try #require(WeatherAdjustment.effect(RunWeather(temperature: -2, dewPoint: -6)))
         #expect(RunWeatherText.title(cold) == "Frio")
-        #expect(RunWeatherText.detail(cold) == "Frio deixa o ritmo 0,7% mais lento")
     }
 
     @Test func sunAndAdaptationShowInTheBand() throws {
         let effect = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21, radiation: 700), hotSessions: 4))
         #expect(RunWeatherText.title(effect) == "Orvalho 21 °C · abafado · sol forte")
-        #expect(RunWeatherText.detail(effect) == "Calor deixa o ritmo 4,6% mais lento · adaptado: 4 treinos no calor em 14 dias")
     }
 
-    @Test func weatherCardRows() throws {
-        let effect = try #require(WeatherAdjustment.effect(RunWeather(temperature: 23, dewPoint: 20, windSpeed: 3.4, windFrom: 40), hotSessions: 7))
-        let rows = RunWeatherText.rows(effect)
-        #expect(rows.map(\.label) == ["Efeito no ritmo", "Adaptação (14 dias)", "Vento"])
-        #expect(rows[1].value == "7 treinos · −35%")
-        #expect(rows[2].value == "12 km/h de NE")
+    @Test func weatherSummaryForTheHeader() throws {
+        let effect = try #require(WeatherAdjustment.effect(RunWeather(temperature: 23, dewPoint: 20, windSpeed: 0.9, windFrom: 190), hotSessions: 7))
+        #expect(RunWeatherText.degrees(effect) == "23°")
+        #expect(RunWeatherText.caption(effect) == "clima +2,1%")
+        #expect(RunWeatherText.summary(effect) == "Orvalho 20 °C · abafado · adaptado: 7 treinos no calor (−35%) · vento 3 km/h de S")
         #expect(RunWeatherText.compass(350) == "N")
-        #expect(RunWeatherText.compass(200) == "S")
+        let mild = try #require(WeatherAdjustment.effect(RunWeather(temperature: 12, dewPoint: 5)))
+        #expect(RunWeatherText.caption(mild) == "clima")
     }
 
     @Test func windLineShowsHeadwindAndCalmPace() throws {
@@ -93,7 +89,6 @@ import WorkoutAnalysis
     @MainActor
     @Test func weatherBandsRender() throws {
         let output = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"].map { URL(filePath: $0, directoryHint: .isDirectory) }
-        let humid = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21)))
         let race = try #require(WeatherAdjustment.effect(RunWeather(temperature: 27, dewPoint: 20)))
         let reading = RaceWeatherReading(effect: race, source: .forecast, startHour: 7, endHour: 9, predictionSeconds: 6130)
         let sunny = try #require(WeatherAdjustment.effect(RunWeather(temperature: 28, dewPoint: 21, radiation: 700), hotSessions: 4))
@@ -105,10 +100,11 @@ import WorkoutAnalysis
             return row
         }
         let content = VStack(alignment: .leading, spacing: 14) {
-            RunWeatherCard(effect: sunny)
-            RunWeatherCard(effect: try! #require(WeatherAdjustment.effect(RunWeather(temperature: 23, dewPoint: 20, windSpeed: 3.4, windFrom: 40), hotSessions: 7)))
+            SummaryHeader(summary: WorkoutSummary(
+                title: "Corrida Limiar Anaeróbio Fracio", dateText: "ter., 17 de nov., 19:09", subtitle: "Belo Horizonte", distanceText: "11,3",
+                durationText: "51:26", paceText: "4:34 /km", averageHeartRateText: "157", elevationText: "+10 m", loadText: "301", hasPrescription: true
+            ), weather: sunny)
             BlocksSection(blocks: rows, bars: [], kilometers: [:], kilometerBars: [:], showsTarget: false)
-            RunWeatherCard(effect: humid)
             RaceWeatherLine(reading: reading, goalSeconds: 6300)
         }
         for scheme in [ColorScheme.light, .dark] {
