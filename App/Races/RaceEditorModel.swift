@@ -1,3 +1,5 @@
+import MapKit
+import GarminAPI
 import Foundation
 import Insights
 import Metrics
@@ -86,6 +88,34 @@ import WorkoutAnalysis
         isLoaded = true
     }
 
+    func apply(_ event: GarminRaceEvent, client: GarminAccountClient?) async {
+        name = event.name
+        if let day = Day(iso: event.day) { date = day.chartDate }
+        if let start = event.startTime, let time = Self.timeFormatter.date(from: start) {
+            hasStartTime = true
+            startTime = time
+        }
+        if let meters = event.distanceMeters {
+            if let option = C.distanceMeters.first(where: { abs($0.value - meters) / $0.value <= GarminRaceConstants.standardTolerance })?.key {
+                distanceOption = option
+            } else {
+                distanceOption = .other
+                customKm = RacesText.km(meters / C.metersPerKm)
+            }
+        }
+        priority = .c
+        guard let id = event.courseId, let client, let data = try? await GarminCourses.gpx(client: client, id: id) else { return }
+        setGPX(data)
+        if city.isEmpty, let start = gpxStart(data), let found = await Self.cityName(lat: start.lat, lon: start.lon) {
+            city = found
+        }
+    }
+
+    private static func cityName(lat: Double, lon: Double) async -> String? {
+        guard let request = MKReverseGeocodingRequest(location: CLLocation(latitude: lat, longitude: lon)) else { return nil }
+        return try? await request.mapItems.first?.addressRepresentations?.cityName
+    }
+
     func evaluate() async {
         guard let distance, let goal = goalSeconds else {
             assessment = nil
@@ -136,8 +166,9 @@ import WorkoutAnalysis
         gpxError = nil
     }
 
-    func save() throws {
-        guard let distance else { return }
+    @discardableResult
+    func save() throws -> UUID? {
+        guard let distance else { return nil }
         let context = container.mainContext
         let race = fetchRace() ?? {
             let created = RaceRecord(name: "", day: "", distance: distance)
@@ -161,6 +192,7 @@ import WorkoutAnalysis
         race.updatedAt = .now
         try context.save()
         onChange()
+        return race.id
     }
 
     func delete() throws {

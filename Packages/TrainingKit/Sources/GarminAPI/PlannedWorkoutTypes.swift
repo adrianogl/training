@@ -53,12 +53,28 @@ public struct PlannedWorkout: Sendable, Equatable, Identifiable {
 
 struct CalendarDTO: Decodable {
     struct Item: Decodable {
+        struct EventTime: Decodable {
+            let startTimeHhMm: String?
+        }
+
+        struct Target: Decodable {
+            let value: Double?
+            let unit: String?
+            let unitType: String?
+        }
+
         let id: Int64?
         let itemType: String?
         let date: String?
         let title: String?
         let workoutId: Int64?
         let sportTypeKey: String?
+        var isRace: Bool? = nil
+        var activityTypeId: Int? = nil
+        var eventTimeLocal: EventTime? = nil
+        var completionTarget: Target? = nil
+        var courseId: Int64? = nil
+        var url: String? = nil
     }
 
     let calendarItems: [Item]

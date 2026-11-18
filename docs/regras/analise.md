@@ -171,6 +171,17 @@ Arquivos: `App/Races/Weather/`, `Reports/ReportBuilder.swift`. Testes: `AppTests
 - Até 16 dias antes vale a previsão do tempo, guardada por 3 h. Antes disso, a média das mesmas horas e data nos últimos 5 anos, guardada por 24 h (`RaceWeatherConstants`).
 - A estratégia de ritmo por km usa o tempo-alvo ajustado só quando há previsão do tempo.
 
+## Provas do Garmin
+
+Arquivos: `GarminAPI/GarminRaceEvents*.swift`, `App/Races/Garmin/`. Testes: `GarminAPITests/GarminRaceEventsTests.swift`, `AppTests/GarminRaceSuggestionTests.swift`.
+
+- Fonte: eventos de prova de corrida (`itemType` "event", `isRace`) do calendário do Garmin nos próximos 12 meses, lidos ao abrir a tela Provas, com cache de 1 h. Eventos repetidos entre meses são juntados pelo id.
+- Vêm nome, data, horário de largada, distância e percurso, quando o Garmin tem. A prioridade entra como C; meta e cidade ficam com o atleta.
+- Sugestão: só aparece se não houver prova no app no mesmo dia com distância até 10% diferente, e se o evento não foi importado nem ignorado.
+- Adicionar abre o cadastro preenchido; prova com percurso baixa o GPX e tira a cidade do ponto de partida.
+- Mudança de data, largada ou distância no Garmin depois de importar aparece como aviso, com "Atualizar" e "Manter". Nada muda sozinho.
+- O vínculo com o evento e as provas ignoradas ficam no aparelho (`GarminRaceLinkStore`). O app só lê o calendário do Garmin.
+
 ## Nota do treino
 
 | Parte | Peso | Onde |
