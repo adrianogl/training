@@ -49,6 +49,12 @@ describe('pedido de convite', () => {
     expect(list.requests).toEqual([expect.objectContaining({ name: 'Marina', email: 'marina@exemplo.com', watch: 'garmin', message: 'Treino para a primeira meia' })])
   })
 
+  it('aceita Apple Watch e mostra o nome do relógio no e-mail', async () => {
+    const response = await ask({ ...marina, watch: 'apple' })
+    expect(response.status).toBe(202)
+    expect(sent[0]?.text).toContain('Relógio: Apple Watch')
+  })
+
   it('valida os campos', async () => {
     const errors = await Promise.all([
       ask({ ...marina, name: '' }),

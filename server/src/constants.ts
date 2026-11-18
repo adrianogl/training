@@ -133,13 +133,13 @@ export const GOALS = {
 } as const
 
 export const INVITE_REQUEST = {
-  watches: ['garmin', 'other', 'none'],
+  watches: ['garmin', 'apple', 'other', 'none'],
   messageMaxLength: 500,
   maxPerIpPerHour: 3,
   maxPending: 100,
   honeypotField: 'website',
   mailSubject: 'Novo pedido de convite no trAIning',
-  watchNames: { garmin: 'Garmin', other: 'Outro relógio', none: 'Não usa relógio' } as Record<string, string>,
+  watchNames: { garmin: 'Garmin', apple: 'Apple Watch', other: 'Outro relógio', none: 'Não usa relógio' } as Record<string, string>,
   adminPath: '/convites',
 } as const
 export const STRAVA_ROUTE = 'strava'
