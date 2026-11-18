@@ -59,7 +59,13 @@ extension SyncEngine {
 
     private func readFIT(activityId: Int64) async throws -> FITOutcome {
         do {
-            let summary = try FITReader.read(zip: try await source.fitArchive(activityId: activityId))
+            let summary: FITSummary
+            if let detail = source as? any ActivityDetailSource {
+                guard let read = try await detail.activitySummary(activityId: activityId) else { return .unavailable }
+                summary = read
+            } else {
+                summary = try FITReader.read(zip: try await source.fitArchive(activityId: activityId))
+            }
             let encoder = JSONEncoder()
             return .read(
                 summary: summary,

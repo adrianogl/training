@@ -21,6 +21,11 @@ enum TrainerSendText {
     static let resultFormat = "%d enviado(s), %d apagado(s)"
     static let failedFormat = ", %d com erro"
     static let close = "Fechar"
+    static let appleTitle = "Enviar ao Apple Watch"
+    static let appleOpenButton = "Enviar ao Apple Watch…"
+    static let appleOnlyApp = "Os treinos aparecem no app Exercício, em Treinos personalizados, no dia certo. A força vai com a duração; os exercícios ficam no iPhone."
+    static let appleStatusCurrent = "no relógio"
+    static let appleUpToDate = "Tudo já está no relógio"
 
     static func filterName(_ filter: TrainerSendFilter) -> String {
         switch filter {

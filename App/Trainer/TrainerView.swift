@@ -249,7 +249,7 @@ struct TrainerView: View {
             weekSection(group)
         }
         Button { showsSend = true } label: {
-            Label(TrainerSendText.openButton, systemImage: "applewatch")
+            Label(app.watchKind == .appleWatch ? TrainerSendText.appleOpenButton : TrainerSendText.openButton, systemImage: "applewatch")
         }
         .buttonStyle(.ds(.primary))
         .padding(.top, 4)

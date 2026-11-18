@@ -49,6 +49,16 @@ struct MetricGroup: Identifiable, Sendable {
         return stride(from: 0, to: rest.count, by: 2).map { Array(rest[$0..<min($0 + 2, rest.count)]) }
     }
 
+    func available(in data: [MetricKind: MetricCardData]) -> MetricGroup? {
+        let present = kinds.filter { data[$0]?.stats.current != nil }
+        return present.isEmpty ? nil : MetricGroup(title: title, kinds: present)
+    }
+
+    static func available(in data: [MetricKind: MetricCardData], loading: Bool) -> [MetricGroup] {
+        guard !loading, !data.isEmpty else { return EvolutionConstants.metricGroups }
+        return EvolutionConstants.metricGroups.compactMap { $0.available(in: data) }
+    }
+
     static func selected(_ title: String, in groups: [MetricGroup] = EvolutionConstants.metricGroups) -> MetricGroup? {
         groups.first { $0.title == title } ?? groups.first
     }

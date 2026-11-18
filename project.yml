@@ -36,6 +36,7 @@ targets:
           - Insights
           - RemoteSync
           - MFIT
+          - HealthImport
     settings:
       base:
         PRODUCT_NAME: trAIning
@@ -43,7 +44,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_CFBundleDisplayName: Training
-        INFOPLIST_KEY_NSHealthShareUsageDescription: "O app lê só os treinos do Apple Health para avisar quando um treino termina e já tem análise."
+        INFOPLIST_KEY_NSHealthShareUsageDescription: "O app lê do Apple Saúde os treinos, rotas, frequência cardíaca, HRV, FC de repouso e sono para analisar os treinos e calcular a prontidão. Os dados ficam neste iPhone."
         CODE_SIGN_ENTITLEMENTS: App/trAIning.entitlements
         INFOPLIST_KEY_NSFaceIDUsageDescription: "O app pede o Face ID para mostrar ou copiar a chave de sincronização entre aparelhos."
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait

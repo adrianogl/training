@@ -104,7 +104,7 @@ struct EvolutionView: View {
             OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
                 .syncSkeleton(app.isRefreshing, height: SkeletonConstants.overallHeight)
             DSSectionTitle(EvolutionConstants.metricsTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom).id(EvolutionConstants.metricsAnchor)
-            groupChips
+            groupChips(model)
             groups(model)
                 .syncSkeleton(app.isRefreshing, height: SkeletonConstants.metricsHeight)
             DSSectionTitle(EvolutionConstants.historyTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
@@ -150,18 +150,20 @@ struct EvolutionView: View {
         if model.cardData.isEmpty && model.isLoadingCards {
             ProgressView(EvolutionConstants.loadingCards).frame(maxWidth: .infinity).padding(.top, 12)
         } else {
-            if let group = MetricGroup.selected(selectedGroupTitle) {
-                MetricGroupCard(group: group, data: model.cardData)
+            let available = MetricGroup.available(in: model.cardData, loading: model.isLoadingCards)
+            if let group = MetricGroup.selected(selectedGroupTitle, in: available) {
+                MetricGroupCard(group: group.available(in: model.cardData) ?? group, data: model.cardData)
                     .opacity(model.isLoadingCards ? 0.5 : 1)
             }
         }
     }
 
-    private var groupChips: some View {
-        let selected = MetricGroup.selected(selectedGroupTitle)?.title
+    private func groupChips(_ model: EvolutionModel) -> some View {
+        let available = MetricGroup.available(in: model.cardData, loading: model.isLoadingCards)
+        let selected = MetricGroup.selected(selectedGroupTitle, in: available)?.title
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: EvolutionConstants.groupChipSpacing) {
-                ForEach(EvolutionConstants.metricGroups) { group in
+                ForEach(available) { group in
                     DSFilterChip(title: group.title, isSelected: group.title == selected) {
                         selectedGroupTitle = group.title
                     }

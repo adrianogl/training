@@ -49,7 +49,7 @@ struct SettingsView: View {
             }
             ForEach(SettingsSection.allCases) { section in
                 Section(section.title) {
-                    ForEach(section.groups.filter { $0 != .invites || model.account.user?.isAdmin == true }) { group in
+                    ForEach(section.groups.filter(isVisible)) { group in
                         if sizeClass == .regular {
                             Button { selection = group } label: { groupRow(group) }
                                 .buttonStyle(.plain)
@@ -69,6 +69,14 @@ struct SettingsView: View {
         .navigationTitle(AppSection.settings.title)
         .toolbarTitleDisplayMode(.inline)
         .toolbar(removing: .title)
+    }
+
+    private func isVisible(_ group: SettingsGroup) -> Bool {
+        switch group {
+        case .invites: model.account.user?.isAdmin == true
+        case .garmin, .watch: model.watchKind?.usesGarmin != false
+        default: true
+        }
     }
 
     private var buildFooter: some View {
@@ -127,6 +135,7 @@ struct SettingsView: View {
         switch group {
         case .account: model.account.user.map { "\($0.name) · \($0.email)" } ?? AccountConstants.accountTitle
         case .invites: InvitesConstants.summary
+        case .device: model.watchKind?.title ?? ""
         case .garmin: model.hasKey ? "sync \(lastSyncText)" : "sem chave da API"
         case .mfit: MFITAccountConstants.summary
         case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
@@ -148,6 +157,8 @@ struct SettingsView: View {
                 RemoteSyncSection(model: model.remoteSync, part: .sync)
             case .invites:
                 InvitesView(account: model.account)
+            case .device:
+                DeviceSettingsSection(model: model)
             case .garmin:
                 GarminAccountSection(model: model.garminAccount)
                 GarminZonesSection(model: model.garminZones) {

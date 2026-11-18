@@ -66,7 +66,7 @@ import TrainingCore
 
     @Test func settingsHaveThreeSectionsWithoutGoals() {
         #expect(SettingsSection.allCases.map(\.title) == ["Conta e conexões", "Avisos", "App"])
-        #expect(SettingsSection.connections.groups == [.account, .invites, .garmin, .mfit, .strava, .watch, .claude])
+        #expect(SettingsSection.connections.groups == [.account, .invites, .device, .garmin, .mfit, .strava, .watch, .claude])
         #expect(SettingsSection.notices.groups == [.notice])
         #expect(SettingsSection.app.groups == [.appearance, .data, .licenses])
         #expect(SettingsGroup(rawValue: "goals") == nil)

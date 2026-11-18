@@ -479,7 +479,8 @@ import TrainingCore
 
     func createPlan(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], startMeters: Double?,
-        peakMeters: Double?, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, dayPreference: TrainerDayPreference? = nil
+        peakMeters: Double?, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, dayPreference: TrainerDayPreference? = nil,
+        paceOverrides: [TrainerPaceKind: Double] = [:]
     ) async {
         isWorking = true
         defer { isWorking = false }
@@ -489,7 +490,8 @@ import TrainingCore
         let review = cycleReview
         let created = TrainerEngine.create(
             target: target, structure: structure, strength: strength.isEmpty ? standaloneStrength : strength, history: history, today: currentDay, now: .now,
-            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, dayPreference: dayPreference
+            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, dayPreference: dayPreference,
+            paceOverrides: paceOverrides
         )
         archiveCycle(previous, review: review, afterPeakMeters: TrainerEngine.volumes(of: created, history: history, today: currentDay).peak)
         persist(created)

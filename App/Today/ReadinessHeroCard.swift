@@ -7,6 +7,7 @@ struct ReadinessHeroCard: View {
     var recovery: RecoveryEstimate?
     var legDay: StrengthLegDay?
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @Environment(AppModel.self) private var app
 
     private typealias C = TodayConstants
 
@@ -16,6 +17,8 @@ struct ReadinessHeroCard: View {
                 banner(C.readinessMissingNight)
             } else if model.summary.readiness != nil && model.summary.readinessFromYesterday {
                 banner(C.readinessFromYesterday)
+            } else if app.watchKind == .appleWatch, model.summary.readiness != nil, model.summary.readinessRaw[.hrv] == nil {
+                DSNotice(tone: .info, title: C.appleBaselineTitle, text: C.appleBaselineText)
             }
             HStack(alignment: .firstTextBaseline) {
                 DSCardLabel(C.readinessTitle)

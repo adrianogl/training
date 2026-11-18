@@ -19,8 +19,14 @@ struct DSStat: View {
     var boxed = false
 
     var body: some View {
+        if let value {
+            content(value)
+        }
+    }
+
+    private func content(_ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value ?? DSStatConstants.missing)
+            Text(value)
                 .font(BrandFonts.number(size.fontSize))
                 .foregroundStyle(color)
                 .lineLimit(1)
@@ -36,7 +42,7 @@ struct DSStat: View {
             if boxed { RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous).fill(BrandColors.track) }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label): \(value ?? DSStatConstants.missingSpoken)")
+        .accessibilityLabel("\(label): \(value)")
     }
 }
 

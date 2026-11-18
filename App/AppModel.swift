@@ -1,6 +1,7 @@
 import UIKit
 import Foundation
 import GarminAPI
+import HealthImport
 import Insights
 import Metrics
 import Narrative
@@ -22,6 +23,11 @@ import TrainingCore
     private(set) var newActivityIds: Set<Int64> = []
     private(set) var deferredFITRevision = 0
     private(set) var hasKey: Bool
+    @ObservationIgnored let healthReader = HealthKitReader()
+    @ObservationIgnored lazy var healthDataSource = HealthDataSource(reader: healthReader)
+    var watchKind: WatchKind? {
+        didSet { watchKind?.store(in: scope.defaults) }
+    }
     let autoSyncEnabled: Bool
     let remoteSync: RemoteSyncModel
     let garminAccount: GarminAccountModel
@@ -91,6 +97,11 @@ import TrainingCore
         self.autoSyncEnabled = autoSyncEnabled
         self.makeNarrator = makeNarrator
         self.hasKey = ((try? keyStore.read()) ?? nil)?.isEmpty == false
+        let storedWatch = WatchKind.stored(in: scope.defaults)
+        let keyed = ((try? keyStore.read()) ?? nil)?.isEmpty == false
+        let watch = storedWatch ?? (keyed ? WatchKind.garmin : nil)
+        if storedWatch == nil { watch?.store(in: scope.defaults) }
+        self.watchKind = watch
         self.remoteSync = RemoteSyncModel(
             container: container,
             keyStore: remoteKeyStore,
@@ -285,6 +296,15 @@ import TrainingCore
         return try? todaySummary(context: context, today: today)
     }
 
+    func chooseWatch(_ kind: WatchKind) {
+        guard watchKind != kind else { return }
+        watchKind = kind
+        Task {
+            if kind == .appleWatch { try? await healthReader.requestAccess() }
+            await syncNow(.settings)
+        }
+    }
+
     @discardableResult
     func syncNow(_ trigger: SyncTrigger) async -> Bool {
         if trigger == .background { readinessComplete = false }
@@ -293,11 +313,15 @@ import TrainingCore
             await syncTask.value
             guard trigger == .settings, running != .settings, self.syncTask == nil else { return syncStatus.isFinished }
         }
-        guard let key = currentKey() else {
+        let usesHealth = watchKind == .appleWatch
+        let key = currentKey()
+        guard usesHealth || key != nil else {
             syncStatus = .failed(.missingKey)
             await remoteSync.syncNow()
             return false
         }
+        if usesHealth { try? await healthReader.requestAccess() }
+        let healthSource = usesHealth ? healthDataSource : nil
         runningTrigger = trigger
         syncStatus = .running(progress: 0)
         let pendingNarratives = narrativeTask
@@ -310,7 +334,8 @@ import TrainingCore
             await pendingDeferredFIT?.value
             let hasOutdatedRuns = trigger == .pull ? await SyncEngineConfiguration.hasOutdatedRuns(container: container) : false
             let configuration = SyncEngineConfiguration(trigger: trigger, hasOutdatedRuns: hasOutdatedRuns)
-            guard let source = self?.client(for: key, configuration: configuration) else { return }
+            let garminSource: (any GarminDataSource)? = key.flatMap { self?.client(for: $0, configuration: configuration) }
+            guard let source = healthSource ?? garminSource else { return }
             let engine = configuration.makeEngine(source: source, container: container)
             var processed: Set<Int64>?
             var deferringEngine: SyncEngine?

@@ -10,11 +10,12 @@ public enum TrainerEngine {
     public static func create(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession],
         history: TrainerHistory, today: Day, now: Date, startMeters: Double? = nil, peakMeters: Double? = nil,
-        lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, dayPreference: TrainerDayPreference? = nil
+        lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, dayPreference: TrainerDayPreference? = nil,
+        paceOverrides: [TrainerPaceKind: Double] = [:]
     ) -> TrainerPlan {
         var plan = build(
             target: target, structure: structure, strength: strength, history: history, today: today, offset: 0,
-            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode
+            startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, paceOverrides: paceOverrides
         )
         if let dayPreference { plan.dayPreference = dayPreference }
         let first = TrainerChange(

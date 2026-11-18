@@ -36,14 +36,24 @@ enum TrainerSendBuilder {
     static func runItem(_ workout: TrainerWorkout) -> TrainerSendItem? {
         guard !C.skippedKinds.contains(workout.kind),
               let payload = try? GarminPlannedPayload.running(name: C.namePrefix + workout.title, steps: runSteps(workout)) else { return nil }
-        return TrainerSendItem(key: C.runKeyPrefix + workout.day.iso, day: workout.day, kind: .run, title: workout.title, payload: payload)
+        return TrainerSendItem(key: C.runKeyPrefix + workout.day.iso, day: workout.day, kind: .run, title: workout.title, payload: payload, runSteps: runSteps(workout))
     }
 
     static func strengthItem(_ workout: GeneratedStrengthWorkout, sessionId: UUID, day: Day) -> TrainerSendItem? {
         let title = TrainerStrengthText.focusName(workout.group)
         guard !workout.exercises.isEmpty,
               let payload = try? GarminPlannedPayload.strength(name: C.namePrefix + title, exercises: strengthExercises(workout.exercises)) else { return nil }
-        return TrainerSendItem(key: C.strengthKeyPrefix + day.iso + "|" + sessionId.uuidString, day: day, kind: .strength, title: title, payload: payload)
+        return TrainerSendItem(
+            key: C.strengthKeyPrefix + day.iso + "|" + sessionId.uuidString, day: day, kind: .strength, title: title, payload: payload,
+            strengthSeconds: strengthSeconds(workout.exercises)
+        )
+    }
+
+    static func strengthSeconds(_ exercises: [GeneratedExercise]) -> Double {
+        exercises.reduce(0) { total, exercise in
+            let work = Double(exercise.seconds ?? (exercise.reps ?? 0) * C.secondsPerRep)
+            return total + Double(exercise.sets) * (work + Double(exercise.restSeconds))
+        }
     }
 
     static func status(_ item: TrainerSendItem, records: [String: TrainerSentRecord]) -> TrainerSendStatus {
