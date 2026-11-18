@@ -1,3 +1,5 @@
+import TrainingCore
+
 public enum FindingGroup: String, Codable, Sendable {
     case positive, negative, attention
 }
@@ -7,6 +9,7 @@ public enum FindingKind: String, Codable, Sendable {
     case blockOffTarget, stepIncomplete, paceFade
     case cardiacDrift, zoneAboveTarget, hardOnLowReadiness, highAcuteChronic
     case climbSlower, descentFaster
+    case weatherSlower
 }
 
 public enum FindingFact {
@@ -53,6 +56,12 @@ public enum FindingFact {
     public static let flatPace = "flatPace"
     public static let flatAdjusted = "flatAdjusted"
     public static let lastClimb = "lastClimb"
+    public static let temperature = "temperature"
+    public static let dewPoint = "dewPoint"
+    public static let weatherFactor = "weatherFactor"
+    public static let cold = "cold"
+    public static let mildPace = "mildPace"
+    public static let count = "count"
 }
 
 public struct Finding: Codable, Sendable, Equatable {
@@ -87,18 +96,21 @@ public struct AssessmentContext: Sendable {
     public var previous: [[WorkoutBlock]]
     public var kilometers: BlockKilometers
     public var continuity: RunContinuity?
+    public var weather: WeatherEffect?
 
     public init(
         readinessScore: Int? = nil,
         acuteChronic: Double? = nil,
         previous: [[WorkoutBlock]] = [],
         kilometers: BlockKilometers = [:],
-        continuity: RunContinuity? = nil
+        continuity: RunContinuity? = nil,
+        weather: WeatherEffect? = nil
     ) {
         self.readinessScore = readinessScore
         self.acuteChronic = acuteChronic
         self.previous = previous
         self.kilometers = kilometers
         self.continuity = continuity
+        self.weather = weather
     }
 }

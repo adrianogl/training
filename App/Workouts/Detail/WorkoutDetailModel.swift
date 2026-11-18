@@ -13,6 +13,7 @@ import WorkoutAnalysis
     let activityId: Int64
     private(set) var summary: WorkoutSummary?
     private(set) var isRun = false
+    private(set) var weather: WeatherEffect?
     private(set) var hasPrescription = false
     private(set) var structureMissing = false
     private(set) var blocks: [WorkoutBlock] = []
@@ -53,6 +54,7 @@ import WorkoutAnalysis
         isRun = analysis.isRun
         hasPrescription = analysis.hasPrescription
         summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription)
+        weather = isRun ? record.weatherEffect : nil
         zoneShares = Self.zoneShares(record.zoneSeconds)
         trainingEffect = TrainingEffectData(
             label: record.trainingEffectLabel,

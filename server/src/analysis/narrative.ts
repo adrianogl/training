@@ -16,6 +16,11 @@ export function clock(seconds: number): string {
 const integer = (value: number | undefined) => Math.round(value ?? 0)
 const decimal = (value: number | undefined) => (value ?? 0).toFixed(2).replace('.', ',')
 const percent = (value: number | undefined) => `${Math.round((value ?? 0) * 100)}%`
+const temperatureText = (value: number | undefined) => `${integer(value)} °C`
+const weatherText = (facts: Record<string, number>) =>
+  facts.cold === 1 || facts.dewPoint === undefined ? temperatureText(facts.temperature) : `${temperatureText(facts.temperature)}, orvalho ${temperatureText(facts.dewPoint)}`
+const weatherPercent = (facts: Record<string, number>) => `${((facts.weatherFactor ?? 0) * 100).toFixed(1).replace('.', ',')}%`
+const hasWeather = (facts: Record<string, number>) => facts.temperature !== undefined
 const paceClock = (speed: number | undefined) => (speed === undefined || speed <= 0 ? null : clock(ANALYSIS.metersPerKilometer / speed))
 const pace = (speed: number | undefined) => {
   const value = paceClock(speed)
@@ -162,10 +167,16 @@ export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
       return offTarget(finding, label, blocks)
     case 'stepIncomplete':
       return incomplete(finding, label, blocks)
-    case 'paceFade':
-      return `${label} perdeu ritmo no fim: a última volta saiu ${integer(facts.fade)} s/km mais lenta que a mediana.`
-    case 'cardiacDrift':
-      return `${label} com desacoplamento: a FC subiu ${percent(facts.rise)} (${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm) com o pace estável.`
+    case 'paceFade': {
+      const fade = `${label} perdeu ritmo no fim: a última volta saiu ${integer(facts.fade)} s/km mais lenta que a mediana.`
+      return hasWeather(facts) ? `${fade} O calor de ${weatherText(facts)} pesou.` : fade
+    }
+    case 'cardiacDrift': {
+      const drift = `${label} com desacoplamento: a FC subiu ${percent(facts.rise)} (${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm) com o pace estável.`
+      return hasWeather(facts) ? `${drift} Esperado com ${weatherText(facts)}.` : drift
+    }
+    case 'weatherSlower':
+      return `Com ${weatherText(facts)}, o ritmo de ${clockOf(facts.pace) ?? ''}${NARRATIVE.paceUnit} equivale a ${clockOf(facts.mildPace) ?? ''}${NARRATIVE.paceUnit} em clima ameno.`
     case 'zoneAboveTarget':
       return `${label} em Z${integer(facts.zone)}, acima do esperado para um bloco leve.`
     case 'hardOnLowReadiness':
@@ -244,6 +255,8 @@ export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): strin
     case 'climbSlower':
     case 'descentFaster':
       return elevationSegment(facts)
+    case 'weatherSlower':
+      return `${clockOf(facts.pace) ?? ''} → ${clockOf(facts.mildPace) ?? ''} ${NARRATIVE.paceUnit} · ${weatherText(facts)}`
     case 'cardiacDrift':
       return `FC ${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm · +${percent(facts.rise)}`
     case 'zoneAboveTarget':
@@ -278,14 +291,18 @@ export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
     }
     case 'stepIncomplete':
       return incompleteWhy(finding, blocks)
-    case 'paceFade':
-      return facts.flatAdjusted === 1 ? W.paceFadeLevel : W.paceFade
+    case 'paceFade': {
+      const base = facts.flatAdjusted === 1 ? W.paceFadeLevel : W.paceFade
+      return hasWeather(facts) ? base + W.paceFadeWeather(weatherText(facts)) : base
+    }
     case 'climbSlower':
       return W.climb(clockOf(facts.flatPace) ?? '')
     case 'descentFaster':
       return W.descent(clockOf(facts.flatPace) ?? '')
+    case 'weatherSlower':
+      return (facts.cold === 1 ? W.coldSlower : W.heatSlower)(weatherText(facts), weatherPercent(facts), clockOf(facts.mildPace) ?? '')
     case 'cardiacDrift':
-      return W.cardiacDrift
+      return hasWeather(facts) ? W.cardiacDriftWeather(weatherText(facts)) : W.cardiacDrift
     case 'zoneAboveTarget':
       return W.zoneAbove
     case 'hardOnLowReadiness':

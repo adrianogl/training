@@ -22,6 +22,21 @@ export interface WorkoutBlock {
   maxHeartRate: number | null
   dominantZone: number | null
   status: BlockStatus
+  weatherFactor?: number
+  weatherRescued?: boolean
+}
+
+export interface RunWeather {
+  temperature: number
+  dewPoint: number | null
+}
+
+export type WeatherStress = 'mild' | 'heat' | 'cold'
+
+export interface WeatherEffect {
+  weather: RunWeather
+  stress: WeatherStress
+  paceFactor: number
 }
 
 export type BlockKilometers = Map<number, WorkoutBlock[]>
@@ -51,6 +66,7 @@ export type FindingKind =
   | 'blockOffTarget' | 'stepIncomplete' | 'paceFade'
   | 'cardiacDrift' | 'zoneAboveTarget' | 'hardOnLowReadiness' | 'highAcuteChronic'
   | 'climbSlower' | 'descentFaster'
+  | 'weatherSlower'
 
 export interface Finding {
   group: FindingGroup
@@ -71,6 +87,7 @@ export interface AssessmentContext {
   previous: WorkoutBlock[][]
   kilometers: BlockKilometers
   continuity: RunContinuity | null
+  weather?: WeatherEffect | null
 }
 
 export interface WorkoutOccurrence {
@@ -154,6 +171,7 @@ export interface WorkoutAnalysis {
   findings: NarratedFinding[]
   score: WorkoutScore | null
   comparison: { rows: ComparisonRow[]; notice: string | null; evolution: string | null } | null
+  weather: WeatherEffect | null
 }
 
 export interface AnalysisInput {
@@ -166,7 +184,8 @@ export interface AnalysisInput {
   fit: FitSummary | null
   readinessScore: number | null
   acuteChronic: number | null
-  previous: { activityId: number; day: string; distance: number | null; movingSeconds: number | null; averageHeartRate: number | null; fit: FitSummary }[]
+  weather?: RunWeather | null
+  previous: { activityId: number; day: string; distance: number | null; movingSeconds: number | null; averageHeartRate: number | null; fit: FitSummary; weather?: RunWeather | null }[]
 }
 
 export interface RunContinuity {

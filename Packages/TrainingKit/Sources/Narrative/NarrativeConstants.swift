@@ -66,5 +66,9 @@ public enum NarrativeConstants {
         .highAcuteChronic: "carga aguda:crônica alta",
         .climbSlower: "ritmo mais lento na subida",
         .descentFaster: "ritmo mais rápido na descida",
+        .weatherSlower: "ritmo mais lento pelo clima",
     ]
+    static let mildClimate = "em clima ameno"
+    static let dewPointLabel = "orvalho"
+    static let degreeUnit = "°C"
 }

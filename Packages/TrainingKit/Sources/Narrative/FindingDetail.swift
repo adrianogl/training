@@ -35,6 +35,9 @@ public enum FindingDetail {
             return "\(C.lastLap) \(raw) (\(climb)) · \(C.onLevel) \(last) · \(C.medianOnLevel) \(middle) \(NarrativeConstants.paceUnit)"
         case .climbSlower, .descentFaster:
             return Format.elevationSegment(facts)
+        case .weatherSlower:
+            guard let pace = clock(facts[FindingFact.pace]), let mild = clock(facts[FindingFact.mildPace]) else { return nil }
+            return "\(pace) → \(mild) \(NarrativeConstants.paceUnit) · \(Format.weather(facts))"
         case .cardiacDrift:
             return "FC \(Format.integer(facts[FindingFact.fromHR])) → \(Format.integer(facts[FindingFact.toHR])) bpm · +\(Format.percent(facts[FindingFact.rise]))"
         case .zoneAboveTarget:
@@ -59,10 +62,16 @@ public enum FindingDetail {
         case .blockOffTarget: return offTargetWhy(finding, blocks: blocks)
         case .stepIncomplete:
             return incompleteWhy(finding, blocks: blocks)
-        case .paceFade: return facts[FindingFact.flatAdjusted] == 1 ? C.whyPaceFadeLevel : C.whyPaceFade
+        case .paceFade:
+            let base = facts[FindingFact.flatAdjusted] == 1 ? C.whyPaceFadeLevel : C.whyPaceFade
+            return Format.hasWeather(facts) ? base + String(format: C.whyPaceFadeWeatherFormat, Format.weather(facts)) : base
         case .climbSlower: return String(format: C.whyClimbFormat, clock(facts[FindingFact.flatPace]) ?? "")
         case .descentFaster: return String(format: C.whyDescentFormat, clock(facts[FindingFact.flatPace]) ?? "")
-        case .cardiacDrift: return C.whyCardiacDrift
+        case .cardiacDrift:
+            return Format.hasWeather(facts) ? String(format: C.whyCardiacDriftWeatherFormat, Format.weather(facts)) : C.whyCardiacDrift
+        case .weatherSlower:
+            let format = facts[FindingFact.cold] == 1 ? C.whyColdSlowerFormat : C.whyHeatSlowerFormat
+            return String(format: format, Format.weather(facts), Format.weatherPercent(facts), clock(facts[FindingFact.mildPace]) ?? "")
         case .zoneAboveTarget: return C.whyZoneAbove
         case .hardOnLowReadiness: return C.whyLowReadiness
         case .highAcuteChronic: return C.whyAcuteChronic

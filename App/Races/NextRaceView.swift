@@ -137,6 +137,9 @@ struct NextRaceView: View {
                 heroValue(RacesConstants.predictionLabel, seconds: target.predictionSeconds, color: BrandColors.text)
                 heroValue(RacesConstants.goalLabel, seconds: target.goalSeconds, color: BrandColors.accent)
             }
+            if let weather = model.weather {
+                RaceWeatherLine(reading: weather, goalSeconds: info.goalSeconds)
+            }
             let caption = [target.gapText, model.goalSummary?.goalPaceText].compactMap { $0 }.joined(separator: " · ")
             if !caption.isEmpty {
                 Text(caption).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)

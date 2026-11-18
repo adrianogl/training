@@ -66,10 +66,17 @@ public struct TemplateNarrator: Narrator {
         case .stepIncomplete:
             return incomplete(finding, label: label, blocks: blocks)
         case .paceFade:
-            return "\(label) perdeu ritmo no fim: a última volta saiu \(Format.integer(facts[FindingFact.fade])) s/km mais lenta que a mediana."
+            let fade = "\(label) perdeu ritmo no fim: a última volta saiu \(Format.integer(facts[FindingFact.fade])) s/km mais lenta que a mediana."
+            return Format.hasWeather(facts) ? fade + " O calor de \(Format.weather(facts)) pesou." : fade
         case .cardiacDrift:
             let rise = Format.percent(facts[FindingFact.rise])
-            return "\(label) com desacoplamento: a FC subiu \(rise) (\(Format.integer(facts[FindingFact.fromHR])) → \(Format.integer(facts[FindingFact.toHR])) bpm) com o pace estável."
+            let drift = "\(label) com desacoplamento: a FC subiu \(rise) (\(Format.integer(facts[FindingFact.fromHR])) → \(Format.integer(facts[FindingFact.toHR])) bpm) com o pace estável."
+            return Format.hasWeather(facts) ? drift + " Esperado com \(Format.weather(facts))." : drift
+        case .weatherSlower:
+            let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
+            let mild = facts[FindingFact.mildPace].map { WorkoutFormat.clock($0) } ?? ""
+            let unit = NarrativeConstants.paceUnit
+            return "Com \(Format.weather(facts)), o ritmo de \(pace)\(unit) equivale a \(mild)\(unit) \(NarrativeConstants.mildClimate)."
         case .zoneAboveTarget:
             return "\(label) em Z\(Format.integer(facts[FindingFact.zone])), acima do esperado para um bloco leve."
         case .climbSlower, .descentFaster:

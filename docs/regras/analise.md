@@ -56,8 +56,9 @@ Arquivo: `WorkoutAnalysis/Assessment.swift`. Constantes: `WorkoutAnalysis/Analys
 | Incompleto | corrigir | bloco abaixo de 95% do prescrito, ou não feito |
 | Perda de ritmo | corrigir | última volta pelo menos 8 s/km mais lenta que a mediana das voltas do bloco, no equivalente no plano; se houve desnível, cita a subida da última volta |
 | Ritmo mais lento nas subidas | esperado | km seguidos em que a subida deixou o ritmo pelo menos 3 s/km mais lento que o equivalente no plano |
+| Ritmo mais lento pelo calor ou pelo frio | esperado | bloco com alvo de ritmo que ficou no alvo pelo equivalente em clima ameno (ver Temperatura) |
 | Ritmo mais rápido na descida | esperado | km seguidos em que a descida deixou o ritmo pelo menos 3 s/km mais rápido que o equivalente no plano |
-| Deriva cardíaca | atenção | FC do último terço 5% acima do primeiro terço, com velocidade variando até 2% |
+| Deriva cardíaca | atenção | FC do último terço 5% acima do primeiro terço, com velocidade variando até 2%. No calor, vai para esperado (ver Temperatura) |
 | Zona acima | atenção | aquecimento ou desaquecimento com zona dominante 3 ou mais. Recuperação entre blocos não entra: a FC depois de um tiro não depende só do atleta, mesmo parado |
 | Forte com prontidão baixa | atenção | treino forte com prontidão abaixo de 50 |
 | Carga alta | atenção | carga aguda/crônica acima de 1,5 |
@@ -98,6 +99,35 @@ Arquivos: `WorkoutAnalysis/Elevation*.swift`, `server/src/analysis/elevation.ts`
 
 Equivalente no plano = ritmo ÷ (1 + 3,3 × subida/distância − 1,8 × descida/distância). Ritmo constante, perda de ritmo, causa de bloco incompleto e, na análise detalhada, queda a partir do km X e saída rápida usam o equivalente no plano. A análise detalhada também passa os km com desnível para o texto do treinador. As voltas curtas de tiros não têm o desnível calculado e seguem pelo ritmo real.
 
+## Temperatura
+
+Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift`, `server/src/analysis/weatherEffect.ts`. Testes: `TrainingCoreTests/RunWeatherTests.swift`, `WorkoutAnalysisTests/WeatherAnalysisTests.swift`, `server/test/weatherEffect.test.ts`.
+
+| Regra | Valor | Constante |
+| --- | --- | --- |
+| Fonte | Open-Meteo, na coordenada da largada arredondada a 0,1°, média das horas que o treino cobre. Até 85 dias, endpoint de previsão; antes disso, arquivo | `ActivityWeatherConstants`, `WEATHER` |
+| Treinos preenchidos | corridas ao ar livre dos últimos 120 dias, até 40 consultas por sincronização; falha tenta de novo depois de 6 h. Esteira e treino sem GPS ficam sem clima | `backfillDays`, `requestsPerRefresh`, `retryInterval` |
+| Calor | soma temperatura + ponto de orvalho em °F: até 100 nada; 110 0,5%; 120 1%; 130 2%; 140 3%; 150 4,5%; 160 6%; 170 8%; 180 ou mais 10%, interpolando | `RunWeatherConstants.heatBands`, `HEAT.bands` |
+| Frio | só a temperatura, de 5 °C para baixo: 0 °C 0,5%; −5 °C 1%; −10 °C ou menos 2% | `coldBands` |
+| Equivalente em clima ameno | ritmo ÷ (1 + ajuste) | `WeatherAdjustment.mildPace` |
+| Bloco com alvo de ritmo | mais lento que o alvo, mas dentro dele no equivalente em clima ameno, conta como no alvo e gera "Ritmo mais lento pelo calor" (ou "pelo frio") no grupo esperado. Mais rápido continua fora do alvo | `adjustForWeather` |
+| Deriva cardíaca | com calor de pelo menos 2%, sai de atenção e vai para esperado, citando os graus | `driftHeatFactor` |
+| Zona acima | com calor de pelo menos 3%, o limite do aquecimento e do desaquecimento sobe de Z3 para Z4 | `zoneHeatFactor` |
+| Perda de ritmo | com calor de pelo menos 3%, o texto cita o calor | `fadeHeatFactor` |
+| Custo, FC menor que antes, Acima do esperado | velocidade de cada treino ajustada pelo clima daquele treino | `WorkoutBlock.weatherSpeed` |
+| Alvo de FC | não muda | — |
+
+O detalhe da corrida mostra os graus, o ponto de orvalho e o ajuste. Sem clima, a análise fica como antes.
+
+### Previsão das provas
+
+Arquivos: `App/Races/Weather/`, `Reports/ReportBuilder.swift`. Testes: `AppTests/RunWeatherTests.swift`.
+
+- Os esforços que alimentam a previsão (melhor 1 km, melhor 5 km, sessões de limiar e VO2, provas) entram pelo equivalente em clima ameno.
+- Prova com horário de largada e local (primeiro ponto do GPX ou a cidade, convertida em coordenada no aparelho) mostra a previsão no clima do dia, nas horas da largada até a chegada prevista.
+- Até 16 dias antes vale a previsão do tempo, guardada por 3 h. Antes disso, a média das mesmas horas e data nos últimos 5 anos, guardada por 24 h (`RaceWeatherConstants`).
+- A estratégia de ritmo por km usa o tempo-alvo ajustado só quando há previsão do tempo.
+
 ## Nota do treino
 
 | Parte | Peso | Onde |
@@ -110,7 +140,7 @@ Comparação com até 4 treinos iguais (`maxComparisons`). Treino planejado é i
 
 Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
 
-A versão da nota está em `AnalysisConstants.scoreVersion`. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
+A versão da nota está em `AnalysisConstants.scoreVersion` (3, desde o ajuste pelo clima). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
 
 ## Análise detalhada
 

@@ -27,6 +27,7 @@ import TrainingCore
     private(set) var blockReading = ""
     private(set) var weeklyLongest: [Day: Double] = [:]
     private(set) var taper: TaperPlan?
+    private(set) var weather: RaceWeatherReading?
     private(set) var isLoaded = false
     private(set) var isStale = false
 
@@ -66,6 +67,27 @@ import TrainingCore
         }
         isStale = false
         isLoaded = true
+        await loadWeather()
+    }
+
+    private func loadWeather() async {
+        guard let info, let prediction = outlook.raceDay?.mid ?? outlook.today else { return }
+        let id = raceId
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id && $0.deletedAt == nil })
+        descriptor.fetchLimit = 1
+        let race = try? container.mainContext.fetch(descriptor).first
+        let reading = await RaceWeatherLookup.reading(
+            day: info.day, startTime: info.startTime, gpx: race?.gpxData, city: info.city, predictionSeconds: prediction, today: today
+        )
+        guard !Task.isCancelled else { return }
+        weather = reading
+        recalculate()
+    }
+
+    private var strategySeconds: Double? {
+        guard let target else { return nil }
+        guard let weather, weather.source == .forecast else { return target.seconds }
+        return WeatherAdjustment.weatherSeconds(target.seconds, effect: weather.effect)
     }
 
     private func apply(_ result: NextRaceLoad) {
@@ -117,7 +139,9 @@ import TrainingCore
         if target.source == .frozen, let day = target.frozenOn {
             return "\(C.targetPrefix) \(source) \(day.day)/\(day.month): \(TodayText.goalClock(target.seconds))"
         }
-        return "\(C.targetPrefix): \(source) \(TodayText.goalClock(target.seconds))"
+        let base = "\(C.targetPrefix): \(source) \(TodayText.goalClock(target.seconds))"
+        guard let weather, weather.source == .forecast, weather.effect.paceFactor > 0 else { return base }
+        return base + String(format: RaceWeatherConstants.strategySuffixFormat, RunWeatherText.percent(weather.effect.paceFactor))
     }
 
     func elapsed(through index: Int) -> Double {
@@ -145,13 +169,13 @@ import TrainingCore
     }
 
     private func recalculate() {
-        guard let info, let target else {
+        guard let info, let seconds = strategySeconds else {
             strategy = []
             strategyState = .noTarget
             return
         }
         strategy = paceStrategy(
-            goalSeconds: target.seconds,
+            goalSeconds: seconds,
             distance: info.distance,
             profile: profile?.map { (distance: $0.distance, altitude: $0.altitude) },
             manual: manual

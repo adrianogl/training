@@ -38,12 +38,22 @@ enum NarrativePrompt {
             guard let progress = TemplateNarrator.incompleteProgress(finding, blocks: blocks) else { return [state] }
             return [state, "feito \(progress.done) de \(progress.target) prescritos (\(progress.percent)%)"]
         case .paceFade:
-            return ["última volta \(Format.integer(facts[FindingFact.fade])) s/km mais lenta que a mediana"]
+            let fade = "última volta \(Format.integer(facts[FindingFact.fade])) s/km mais lenta que a mediana"
+            return Format.hasWeather(facts) ? [fade, "calor de \(Format.weather(facts))"] : [fade]
         case .cardiacDrift:
-            return [
+            let drift = [
                 "a FC subiu \(Format.percent(facts[FindingFact.rise]))",
                 "de \(Format.integer(facts[FindingFact.fromHR])) bpm para \(Format.integer(facts[FindingFact.toHR])) bpm",
                 "com o pace estável",
+            ]
+            return Format.hasWeather(facts) ? drift + ["esperada com \(Format.weather(facts))"] : drift
+        case .weatherSlower:
+            let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
+            let mild = facts[FindingFact.mildPace].map { WorkoutFormat.clock($0) } ?? ""
+            return [
+                "pace \(pace)\(NarrativeConstants.paceUnit) com \(Format.weather(facts))",
+                "\(mild)\(NarrativeConstants.paceUnit) \(NarrativeConstants.mildClimate)",
+                "ritmo \(Format.weatherPercent(facts)) mais lento pelo clima",
             ]
         case .zoneAboveTarget:
             return ["Z\(Format.integer(facts[FindingFact.zone]))", "bloco leve"]

@@ -83,3 +83,11 @@ public func reducedGPX(_ data: Data, maxPoints: Int) throws -> Data {
     text += "</trkseg></trk></gpx>"
     return Data(text.utf8)
 }
+
+public func gpxStart(_ data: Data) -> Coordinate? {
+    let delegate = GPXParserDelegate()
+    let parser = XMLParser(data: data)
+    parser.delegate = delegate
+    guard parser.parse(), let first = delegate.points.first else { return nil }
+    return Coordinate(lat: first.latitude, lon: first.longitude)
+}

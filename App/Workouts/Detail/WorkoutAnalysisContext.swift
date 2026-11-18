@@ -64,7 +64,8 @@ struct WorkoutAnalysisContext {
             acuteChronic: record.localDay.flatMap(Day.init(iso:)).flatMap { acuteChronicRatio(dailyLoad: inputs.dailyLoad, on: $0) },
             previous: previous.map(\.blocks),
             kilometers: analysis.kilometers,
-            continuity: runContinuity(recordSamples)
+            continuity: runContinuity(recordSamples),
+            weather: record.weatherEffect
         ))
         analysis.aboveExpected = WorkoutAnalysis.aboveExpected(blocks, previous: previous.map(\.blocks))
         let current = WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
@@ -113,8 +114,8 @@ struct WorkoutAnalysisContext {
     }
 
     private static func blocks(_ record: ActivityRecord, structure: WorkoutStructure?, zones: HeartRateZones?) -> [WorkoutBlock] {
-        guard let structure else { return kilometerSplits(samples(record), zones: zones) }
-        return buildBlocks(structure, zones: zones)
+        let built = structure.map { buildBlocks($0, zones: zones) } ?? kilometerSplits(samples(record), zones: zones)
+        return adjustForWeather(built, effect: record.weatherEffect)
     }
 
     private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?) -> WorkoutOccurrence? {

@@ -109,6 +109,7 @@ enum WorkoutFeedback {
         case .steadyPace: text = "\(subject) \(first.facts[FindingFact.flatAdjusted] == 1 ? C.steadyLevel : C.steady)"
         case .climbSlower: text = C.climbTitle
         case .descentFaster: text = C.descentTitle
+        case .weatherSlower: text = first.facts[FindingFact.cold] == 1 ? C.coldTitle : C.heatTitle
         case .blockInTarget:
             let inTarget = Int(first.facts[FindingFact.inTarget] ?? 0)
             let total = Int(first.facts[FindingFact.total] ?? 0)

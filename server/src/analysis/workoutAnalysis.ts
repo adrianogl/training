@@ -1,6 +1,6 @@
 import type { FitSample, FitSummary } from '../fit/fitTypes.js'
 import { ANALYSIS } from './analysisConstants.js'
-import type { AnalysisInput, ComparisonRow, EvolutionFacts, HeartRateZones, WorkoutAnalysis, WorkoutBlock, WorkoutComparison, WorkoutOccurrence } from './analysisTypes.js'
+import type { AnalysisInput, ComparisonRow, EvolutionFacts, HeartRateZones, WeatherEffect, WorkoutAnalysis, WorkoutBlock, WorkoutComparison, WorkoutOccurrence } from './analysisTypes.js'
 import { assess } from './assessment.js'
 import { buildBlocks, hasPrescription } from './blocks.js'
 import { compare } from './comparison.js'
@@ -9,6 +9,7 @@ import { blockKilometers, kilometerSplits } from './kilometers.js'
 import { evolutionText, narrate } from './narrative.js'
 import { scoreWorkout } from './workoutScore.js'
 import { comparisonKey } from './workoutTitle.js'
+import { adjustForWeather, weatherEffect } from './weatherEffect.js'
 
 export function thresholdZones(thresholdHeartRate: number): HeartRateZones {
   const inner = ANALYSIS.thresholdFloorFractions.map((fraction) => Math.round(thresholdHeartRate * fraction))
@@ -38,7 +39,7 @@ export function zoneSeconds(samples: FitSample[], zones: HeartRateZones): number
   return samples.some((sample) => (sample.heartRate ?? 0) > 0) ? seconds : null
 }
 
-const blocksOf = (fit: FitSummary, zones: HeartRateZones | null): WorkoutBlock[] => buildBlocks(fit.structure, zones)
+const blocksOf = (fit: FitSummary, zones: HeartRateZones | null, weather: WeatherEffect | null): WorkoutBlock[] => adjustForWeather(buildBlocks(fit.structure, zones), weather)
 
 function downsample<T>(items: T[], limit: number): T[] {
   if (items.length <= limit) return items
@@ -100,20 +101,21 @@ function deltaEvolution(comparison: WorkoutComparison, rows: ComparisonRow[]): E
 }
 
 export function analyzeWorkout(input: AnalysisInput, formatDay: (day: string) => string): WorkoutAnalysis {
-  const empty: WorkoutAnalysis = { isRun: input.isRun, hasPrescription: false, workoutName: null, zones: null, zoneSeconds: null, blocks: [], kilometers: [], splits: [], chart: [], route: [], findings: [], score: null, comparison: null }
+  const empty: WorkoutAnalysis = { isRun: input.isRun, hasPrescription: false, workoutName: null, zones: null, zoneSeconds: null, blocks: [], kilometers: [], splits: [], chart: [], route: [], findings: [], score: null, comparison: null, weather: null }
   const fit = input.fit
   if (fit === null) return empty
   const prescribed = hasPrescription(fit.structure)
   const base = { ...empty, hasPrescription: prescribed, workoutName: fit.structure.prescription?.name ?? null, route: fit.route, chart: downsample(fit.samples, ANALYSIS.chartPointLimit) }
   if (!input.isRun) return base
   const zones = zonesFor(fit)
-  const blocks = blocksOf(fit, zones)
+  const weather = weatherEffect(input.weather ?? null)
+  const blocks = blocksOf(fit, zones, weather)
   const kilometers = prescribed ? blockKilometers(blocks, fit.samples, zones) : new Map<number, WorkoutBlock[]>()
   const previous: WorkoutOccurrence[] = input.previous.flatMap((item) => {
-    const itemBlocks = blocksOf(item.fit, zonesFor(item.fit))
+    const itemBlocks = blocksOf(item.fit, zonesFor(item.fit), weatherEffect(item.weather ?? null))
     return itemBlocks.length === 0 ? [] : [{ activityId: item.activityId, day: item.day, blocks: itemBlocks }]
   })
-  const assessment = assess(blocks, { readinessScore: input.readinessScore, acuteChronic: input.acuteChronic, previous: previous.map((item) => item.blocks), kilometers, continuity: runContinuity(fit.samples) })
+  const assessment = assess(blocks, { readinessScore: input.readinessScore, acuteChronic: input.acuteChronic, previous: previous.map((item) => item.blocks), kilometers, continuity: runContinuity(fit.samples), weather })
   const current: WorkoutOccurrence = { activityId: input.activityId, day: input.day, blocks }
   const comparison = compare(current, previous)
   let comparisonView: WorkoutAnalysis['comparison'] = null
@@ -148,6 +150,7 @@ export function analyzeWorkout(input: AnalysisInput, formatDay: (day: string) =>
     findings: narrate(assessment, blocks),
     score: scoreWorkout(blocks, zones, previous),
     comparison: comparisonView,
+    weather,
   }
 }
 

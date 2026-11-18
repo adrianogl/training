@@ -23,6 +23,7 @@ import WorkoutAnalysis
     private(set) var completed: [RaceRowData] = []
     private(set) var summaries: [UUID: CompletedRaceSummary] = [:]
     private(set) var target: RaceTargetData?
+    private(set) var targetWeather: RaceWeatherReading?
     private(set) var goals: [GoalSnapshot] = []
     private(set) var isLoaded = false
     private(set) var isStale = false
@@ -62,6 +63,23 @@ import WorkoutAnalysis
         apply(result)
         isStale = false
         await snapshots?.write(RaceListSnapshot(today: today, load: result), for: .raceList)
+        await loadTargetWeather()
+    }
+
+    private func loadTargetWeather() async {
+        guard let target, let prediction = target.predictionSeconds else {
+            targetWeather = nil
+            return
+        }
+        let id = target.id
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id && $0.deletedAt == nil })
+        descriptor.fetchLimit = 1
+        guard let race = try? container.mainContext.fetch(descriptor).first, let day = Day(iso: race.day) else { return }
+        let reading = await RaceWeatherLookup.reading(
+            day: day, startTime: race.startTime, gpx: race.gpxData, city: race.city, predictionSeconds: prediction, today: today
+        )
+        guard !Task.isCancelled else { return }
+        targetWeather = reading
     }
 
     private func apply(_ result: RaceListLoad) {

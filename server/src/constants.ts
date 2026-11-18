@@ -149,6 +149,8 @@ export const SYNC_VERSION = 4
 
 export const WEATHER = {
   forecastUrl: 'https://api.open-meteo.com/v1/forecast',
+  archiveUrl: 'https://archive-api.open-meteo.com/v1/archive',
+  forecastHistoryDays: 85,
   geocodingUrl: 'https://geocoding-api.open-meteo.com/v1/search',
   fields: 'temperature_2m,dew_point_2m',
   forecastDaysAhead: 16,

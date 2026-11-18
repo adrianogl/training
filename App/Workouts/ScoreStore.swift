@@ -18,9 +18,15 @@ enum ScoreStore {
             String(version),
             zones(record),
             String(record.processingVersion),
-            previous.map { [String($0.activityId), zones($0), String($0.processingVersion)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
+            weatherToken(record),
+            previous.map { [String($0.activityId), zones($0), String($0.processingVersion), weatherToken($0)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
                 .joined(separator: WorkoutConstants.scoreKeyIdSeparator),
         ].joined(separator: WorkoutConstants.scoreKeySeparator)
+    }
+
+    static func weatherToken(_ record: ActivityRecord) -> String {
+        guard let effect = record.weatherEffect else { return WorkoutConstants.scoreKeyMissing }
+        return String(Int((effect.paceFactor * WorkoutConstants.scoreKeyWeatherScale).rounded()))
     }
 
     private static func zoneSource(_ record: ActivityRecord, thresholdByDay: [Day: Int], watchZones: HeartRateZones?) -> String {

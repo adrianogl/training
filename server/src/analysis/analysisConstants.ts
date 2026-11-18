@@ -52,6 +52,19 @@ export const ANALYSIS = {
   chartPointLimit: 400,
 } as const
 
+export const ANALYSIS_WEATHER = {
+  coldBands: [
+    [5, 0],
+    [0, 0.005],
+    [-5, 0.01],
+    [-10, 0.02],
+  ],
+  coldStart: 5,
+  driftHeatFactor: 0.02,
+  zoneHeatFactor: 0.03,
+  fadeHeatFactor: 0.03,
+} as const
+
 export const WORK_PACE = {
   metersPerKilometer: 1000,
   minimumLapMeters: 200,

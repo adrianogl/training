@@ -110,7 +110,7 @@ enum WorkoutDetailConstants {
     static let blocksHeaderPace = "pace no alvo · mais rápido →"
     static let blocksHeaderValue = "pace"
     static let blocksHeaderHeartRate = "FC"
-    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace, .climbSlower, .descentFaster]
+    static let expectedKinds: Set<FindingKind> = [.blockInTarget, .steadyPace, .climbSlower, .descentFaster, .weatherSlower, .cardiacDrift]
     static let scoreGaugeSize: Double = 120
     static let aboveExpectedTitle = "Acima do esperado"
     static let aboveExpectedSymbol = "chart.line.uptrend.xyaxis"
