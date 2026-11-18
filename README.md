@@ -10,41 +10,53 @@
   <img alt="Telas Evolução no iPad e Hoje no iPhone, com números de exemplo" src="docs/assets/cover.png" width="100%">
 </p>
 
-App nativo de iPhone e iPad que lê os dados do Garmin pela Personal API e responde três perguntas: dá pra treinar forte hoje, estou melhorando, e em quanto tempo eu faço a próxima prova. Os números da imagem acima são de exemplo.
+App nativo de iPhone e iPad para corrida. Lê sono, HRV e treinos do Garmin ou do Apple Watch e calcula no aparelho a prontidão do dia, a análise de cada treino, a evolução, a previsão de prova e um plano com corrida e força. O que o app faz para quem usa está na landing, em [training.aglv.dev](https://training.aglv.dev). Este README é para quem vai rodar ou mexer no código.
 
-## O que o app faz
+Versão atual: `1.7.2` (ver [Versão](#versão)).
 
-- **Hoje**: prontidão de 0 a 100 com veredito (descanso, moderado ou treino forte), fitness até a prova, previsão da prova-alvo hoje e no dia da prova, semana corrente, previsões para 5, 10, 21,1 e 42,2 km e o último treino comparado com os parecidos. O detalhe da prontidão mostra o que puxou a nota para cima e para baixo em relação ao seu normal dos últimos 30 dias.
-- **Evolução**: estado geral contra 3 meses atrás e um card por métrica (VO2max, pace na Z2, pace de limiar, fitness, volume, HRV, sono, FC de repouso, durabilidade, força em subida e outras). Toda métrica tem histórico e projeção tracejada com faixa de incerteza; se a meta cruza a projeção, o app mostra a data estimada.
-- **Treinos**: nota de 0 a 100 por corrida, juntando execução e esforço adequado, com a decomposição dos pontos. Parciais, mapa, curva de FC e zonas calculadas pela FC de limiar, ao lado das zonas do relógio.
-- **Provas**: cadastro com meta e GPX, previsão contra a meta (tranquila, desafiadora ou agressiva), estratégia de pace por km pela inclinação, bloco semana a semana e checklist. Corridas com cara de prova no histórico aparecem com a pergunta "foi prova?" e, confirmadas, entram na previsão.
-- Aviso de manhã com a prontidão do dia, quando o sono e o HRV da noite chegam.
+## Estrutura do repositório
 
-## Dados
+| Pasta | O que tem |
+| --- | --- |
+| `App/` | App SwiftUI (iPhone e iPad): telas, modelos de tela, conta, ajustes e integrações |
+| `Widgets/`, `Shared/` | Widgets da tela inicial e da tela bloqueada, e os tipos que eles dividem com o app |
+| `Packages/TrainingKit/` | Pacote Swift com a lógica, testável sem o app (módulos abaixo) |
+| `Watchface/` | Mostrador Connect IQ para o Forerunner 965 ([README](Watchface/README.md)) |
+| `server/` | API na Vercel (Node 22 + Neon Postgres) e a landing em `server/landing/` ([README](server/README.md)) |
+| `docs/regras/` | Regras de análise ([`analise.md`](docs/regras/analise.md)) e de prescrição ([`prescricao.md`](docs/regras/prescricao.md)) |
+| `docs/superpowers/` | Specs e planos de design das primeiras versões |
+| `scripts/` | `dev-run.sh` (simulador) e `release.sh` (versão) |
+| `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
 
-Tudo vem da [Personal API do Garmin Connect](https://github.com/garmin/connect-personal-api-python), com uma chave pessoal e só leitura.
+| Módulo do `TrainingKit` | Papel |
+| --- | --- |
+| `GarminAPI`, `FITReader`, `HealthImport` | Leitura do Garmin Connect, dos arquivos `.FIT` e do Apple Saúde |
+| `Sync`, `Storage` | Sync incremental e persistência em SwiftData |
+| `TrainingCore`, `Metrics`, `WorkoutAnalysis`, `Projections` | Prontidão, carga, zonas, nota do treino, previsões e projeções |
+| `Insights`, `Narrative`, `Reports` | Leituras em texto, relatório da semana e avisos |
+| `MFIT` | Treinos de força do MFIT Personal |
+| `RemoteSync` | Cliente da API do servidor: conta, registros, Garmin e relógio |
+| `trainingctl` | CLI que roda o sync e reprocessa um `store.sqlite` fora do app |
 
-| Vem do Garmin, como está | Calculado pelo trAIning |
-|---|---|
-| HRV da noite e faixa base | Prontidão e o detalhe por fator |
-| Sono: duração, fases e nota | Fitness, fadiga, forma e razão aguda:crônica |
-| Body Battery, stress, FC de repouso, respiração, SpO2 | VO2max suavizado, lido do `.FIT` de cada corrida |
-| Zonas de FC e FC de limiar | Zonas pelo limiar, pace na Z2, pace de limiar |
-| Atividades: distância, tempo, FC, carga, efeito de treino, parciais, dinâmica de corrida | Previsão por distância, projeções e data estimada da meta |
-| Arquivo `.FIT` de cada corrida (processado e descartado) | Nota do treino, durabilidade, força em subida, estratégia de pace |
+## Como os dados andam
 
-Todo número calculado pelo app traz o rótulo trAIning. A previsão de prova é "previsão trAIning", não a do Garmin. As fórmulas estão em [`docs/superpowers/specs/2026-11-07-training-design.md`](docs/superpowers/specs/2026-11-07-training-design.md).
+- **Garmin:** o login com a conta Garmin passa pelo servidor (SSO mobile da Garmin, com código por e-mail quando a conta pede). O servidor guarda a sessão cifrada e não guarda a senha. O app pega a sessão em `GET /api/v1/garmin/session` e busca os dados direto no Garmin Connect.
+- **Apple Watch:** o app lê o Apple Saúde (treinos, rotas, FC, HRV, sono e FC de repouso) e manda os treinos do plano para o relógio pelo WorkoutKit. Nada do Apple Saúde vai para o servidor.
+- **No aparelho:** dados diários, atividades e tudo o que é calculado ficam em SwiftData. Os `.FIT` são baixados, processados e descartados.
+- **No servidor:** conta e sessões, convites, a sessão da Garmin, o token do Strava, a nota que o mostrador lê, os tokens do MCP e os registros que sincronizam entre aparelhos (provas, metas, decisões, plano do treinador, leituras, preferências e conversas). Os registros chegam em JSON e o servidor cifra com `DATA_KEY` (AES-256-GCM) antes de gravar.
+- **Texto e conversa:** Foundation Models da Apple, no aparelho, a partir de números já calculados. Sem o modelo, o app usa templates com os mesmos números.
 
-As leituras em texto são geradas no aparelho pelo Foundation Models da Apple, a partir de números já calculados. Sem o modelo disponível, o app usa templates com os mesmos números.
+As fórmulas e os limites estão em `docs/regras/`. Mudança de regra atualiza esses arquivos no mesmo commit.
 
 ## Requisitos
 
 - iPhone ou iPad com iOS/iPadOS 26 ou mais novo.
 - Mac com Xcode e SDK do iOS 26 ou mais novo, e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
-- Uma chave da Personal API, criada no Garmin Connect. A chave vale de 30 dias a 1 ano, conforme o que você escolher na criação.
 - Uma conta Apple. A conta gratuita (Personal Team) basta.
+- Relógio Garmin com conta no Garmin Connect, ou Apple Watch.
+- Para o servidor, Node 22. Para o mostrador, Java 17 e o Connect IQ SDK.
 
-## Como rodar
+## Rodar o app
 
 ```bash
 git clone https://github.com/adrianogl/training.git
@@ -53,39 +65,76 @@ xcodegen generate
 open trAIning.xcodeproj
 ```
 
-No Xcode, em Signing & Capabilities do target `trAIning`, escolha o seu time (com a conta gratuita aparece como "Personal Team"). Se o bundle id `dev.aglv.training` já estiver em uso por outra conta, troque o prefixo em `project.yml` e gere o projeto de novo.
+No Xcode, em Signing & Capabilities dos targets `trAIning` e `TrainingWidgets`, escolha o seu time (com a conta gratuita aparece como "Personal Team"). Se o bundle id `dev.aglv.training` já estiver em uso por outra conta, troque o prefixo em `project.yml` e gere o projeto de novo.
 
-Conecte o iPhone ou o iPad por cabo (ou pela mesma rede Wi-Fi, depois do primeiro pareamento), escolha o aparelho como destino e rode. Na primeira vez, o iOS pede para confiar no desenvolvedor em Ajustes > Geral > VPN e Gerenciamento de Dispositivos, e para ligar o Modo de Desenvolvedor.
+Conecte o iPhone ou o iPad por cabo, escolha o aparelho como destino e rode. Na primeira vez, o iOS pede para confiar no desenvolvedor em Ajustes › Geral › VPN e Gerenciamento de Dispositivos e para ligar o Modo de Desenvolvedor.
 
-Com o app aberto, vá em Ajustes, cole a chave da Personal API e toque em testar a conexão. A primeira carga baixa todo o histórico disponível, uma requisição por vez, e pode levar alguns minutos; o app já fica usável com o que chegou.
+### Primeiro uso
 
-### Simulador
+1. **Conta.** O app abre no login. O cadastro é só por convite: o link do e-mail abre `training://convite?c=…` no aparelho com o app instalado. Os e-mails em `ADMIN_EMAILS` do servidor criam conta sem convite e veem Ajustes › Convites.
+2. **Relógio.** Escolha Garmin ou Apple Watch. Dá para trocar depois em Ajustes › Relógio.
+   - Garmin: e-mail e senha da Garmin e, se pedir, o código que chega por e-mail.
+   - Apple Watch: autorize a leitura do Apple Saúde e a escrita de treinos agendados.
+3. **Primeira carga.** O app baixa o histórico disponível e já fica usável com o que chegou. A carga completa leva alguns minutos.
 
-`scripts/dev-run.sh` gera o projeto, cria um simulador, compila, instala e abre o app. O script copia um banco local de `garmin-data/snapshot/` (pasta fora do git) para o simulador; sem ele, use `--snapshot <pasta>` apontando para um `store.sqlite` seu, ou rode pelo Xcode. Se existir `~/.config/garmin/connect-personal-api-key`, a chave é passada ao app pela variável `TRAINING_API_KEY`.
+### Integrações opcionais
 
-```bash
-scripts/dev-run.sh               # compila e abre no simulador
-scripts/dev-run.sh --test        # roda os testes
-scripts/dev-run.sh --reset-data  # recopia o snapshot
-```
+| Onde | O que faz |
+| --- | --- |
+| Ajustes › Strava | Escreve o resumo do treino na descrição da atividade |
+| Ajustes › MFIT | Lê o programa de força que o professor montou no MFIT Personal |
+| Ajustes › Claude | Gera um token para o Claude Desktop ou o Claude Code montarem treinos de força pelo MCP em `https://training.aglv.dev/mcp`. O app mostra o comando pronto; os treinos só entram depois que você revisa e aplica |
+| Ajustes › Mostrador | Token do mostrador Garmin e a agenda no relógio |
+| Treinador › Enviar ao Garmin | Manda os treinos do treinador para o relógio: só força, só corrida ou os dois. O app só mexe nos treinos que ele mesmo criou |
 
 ### Conta gratuita: reinstalar a cada 7 dias
 
-Com a conta gratuita, o perfil de instalação vence 7 dias depois de cada instalação. Depois disso o app não abre. Para voltar a usar, conecte o aparelho e rode de novo pelo Xcode (Product > Run). Os dados ficam, porque o bundle id é o mesmo; a chave continua no Keychain.
+Com a conta gratuita, o perfil de instalação vence 7 dias depois de cada instalação e o app para de abrir. Para voltar a usar, conecte o aparelho e rode de novo pelo Xcode (Product › Run). Os dados ficam, porque o bundle id é o mesmo.
 
-Cada aparelho busca os próprios dados no Garmin, e a chave do Garmin precisa ser colada em cada um. Provas cadastradas e respostas do "Parece prova?" podem ser sincronizadas entre iPhone e iPad (veja abaixo).
+### Simulador
 
-### Sincronização entre aparelhos (opcional)
+`scripts/dev-run.sh` gera o projeto, cria um simulador, compila, instala e abre o app. O script copia um banco de `garmin-data/snapshot/` (pasta fora do git) para o simulador; sem ele, use `--snapshot <pasta>` com um `store.sqlite` seu. Se existir `~/.config/garmin/connect-personal-api-key`, a chave vai para o app pela variável `TRAINING_API_KEY`.
 
-Em Ajustes > Sincronização entre aparelhos, toque em "Ativar neste aparelho". O app gera uma chave de sync. Copie a chave (pede Face ID ou o código do aparelho), mande para você mesmo por AirDrop ou mensagem, e no outro aparelho toque em "Já tenho uma chave de outro aparelho" e cole. Daí em diante as provas e as respostas sobem e descem sozinhas, depois de cada mudança e a cada sync do Garmin.
+```bash
+scripts/dev-run.sh               # compila e abre no simulador
+scripts/dev-run.sh --test        # roda os testes do app
+scripts/dev-run.sh --reset-data  # copia o snapshot de novo
+```
 
-O servidor fica em [`server/`](server/) (Vercel Functions + Neon Postgres). Para rodar o seu, veja [`server/README.md`](server/README.md) e troque `remoteSyncBaseURL` em `App/AppConstants.swift`.
+## Testes
+
+```bash
+scripts/dev-run.sh --test                       # app, com snapshots das telas
+swift test --package-path Packages/TrainingKit  # TrainingKit
+npm --prefix server ci
+npm --prefix server test                        # servidor, contra PGlite, sem rede
+npm --prefix server run typecheck
+```
+
+## Servidor
+
+Vercel Functions (Node 22) com Postgres no Neon. Variáveis de ambiente, rotas e o protocolo de sync estão em [`server/README.md`](server/README.md). Para subir o seu:
+
+```bash
+cd server
+npm ci
+DATABASE_URL=... npm run migrate
+vercel deploy --prod
+```
+
+O mínimo é `DATABASE_URL`, `DATA_KEY` e `ADMIN_EMAILS`. Os e-mails de convite e senha pedem `RESEND_API_KEY`, `MAIL_FROM` e `APP_URL`; o Strava pede `STRAVA_CLIENT_ID` e `STRAVA_CLIENT_SECRET`. Depois, aponte `remoteSyncBaseURL` em `App/AppConstants.swift` para o seu domínio.
+
+O build da Vercel roda as migrations e copia `server/landing/` para `public/`. A landing é HTML e CSS estáticos; `link.html` atende os links de e-mail (`/convite`, `/confirmar`, `/redefinir-senha`) com o botão "Abrir no app".
+
+## Mostrador do relógio
+
+Connect IQ para o Forerunner 965: prontidão, VO2max, km da semana e o próximo compromisso da agenda. Compilar, instalar e trocar a foto de fundo: [`Watchface/README.md`](Watchface/README.md).
 
 ## Versão
 
 O app segue semver, a partir da `v1.0.0`. A versão sobe pelos commits desde a última tag `v*`: `feat` sobe o minor, `fix` e `perf` sobem o patch, `!` no tipo ou `BREAKING CHANGE` no corpo sobem o major. `chore`, `docs`, `refactor` e `test` não geram versão.
 
-```
+```bash
 scripts/release.sh --dry-run   # mostra a próxima versão e os commits
 scripts/release.sh             # grava MARKETING_VERSION e CURRENT_PROJECT_VERSION no project.yml
 ```
@@ -94,20 +143,12 @@ Depois: commit `chore(release): vX.Y.Z`, tag `vX.Y.Z` e push com `--tags`. O rod
 
 ## Privacidade
 
-- Os dados do Garmin vão direto do Garmin para o aparelho e não passam por nenhum servidor nosso.
-- A sincronização entre aparelhos é opcional. Ligada, ela manda para o servidor só as provas cadastradas e as respostas do "Parece prova?", cifradas no aparelho com AES-GCM. A chave de cifra é derivada da chave de sync e nunca sai do aparelho: o servidor guarda texto cifrado, o id, a data da última edição e a marca de apagado. Ele não lê nome de prova, meta, GPX nem paces.
-- O servidor guarda só o hash da chave de conta. Não há e-mail, login nem nome. "Apagar dados do servidor", em Ajustes, apaga a conta e tudo o que ela tinha.
-- Fora isso, os dados ficam no aparelho, em SwiftData. Sem telemetria, sem analytics, sem iCloud.
-- A chave do Garmin e a chave de sync ficam no Keychain local, sem sincronização pelo iCloud.
-- Os arquivos `.FIT` são baixados, processados e descartados; o app guarda só o que extraiu deles.
-- Em Ajustes, "Apagar dados locais" apaga treinos, dados diários e provas do aparelho. A chave continua no Keychain até você trocá-la.
-
-Nenhum dado pessoal, chave, `.FIT` ou resposta da API faz parte deste repositório.
-
-## Landing page
-
-A landing fica em [`server/landing/`](server/landing/): HTML e CSS estáticos, servidos pela Vercel na raiz do domínio e copiados para `public/` no build.
+- Dados de saúde e treinos da Garmin vão do Garmin Connect direto para o aparelho. Dados do Apple Saúde não saem do aparelho.
+- O servidor guarda só o que sincroniza entre aparelhos e os tokens das integrações, cifrados com `DATA_KEY`. Quem administra o servidor tem essa chave.
+- A senha da Garmin não é guardada, só a sessão, cifrada. Em Ajustes dá para desconectar a Garmin e o Strava, revogar o token do Claude e apagar a conta com tudo o que ela tinha no servidor.
+- Sem telemetria e sem analytics. O log de requisições guarda método, rota, status e o começo do id da conta por 7 dias, sem payload nem IP.
+- Nenhum dado pessoal, chave, `.FIT`, foto ou resposta de API faz parte deste repositório. A foto do mostrador fica fora do git.
 
 ## Aviso
 
-Projeto pessoal, fora da App Store, sem vínculo com o Garmin. "Garmin" aparece aqui só como referência à origem dos dados.
+Projeto pessoal, fora da App Store, sem vínculo com Garmin, Apple, Strava ou MFIT. Os nomes aparecem só como referência à origem dos dados.

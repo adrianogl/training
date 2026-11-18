@@ -14,13 +14,13 @@ Mostrador Connect IQ com a identidade do app: foto de fundo em escala de cinza b
 
 A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: abaixo de 40 descanso, de 40 a 69 moderado, a partir de 70 forte. Os km planejados só aparecem se a nota for do dia.
 
-O app lê o Calendário do iPhone (Ajustes › Sincronização › Relógio › Mostrar a agenda no relógio) e manda até 3 eventos dos próximos 7 dias, sem os de dia inteiro e os cancelados. O mostrador mostra o primeiro que ainda não começou: HOJE com quanto falta, AMANHÃ ou o dia da semana. O título desce de fonte e, se ainda não couber, é cortado na última palavra com reticências.
+O app lê o Calendário do iPhone (Ajustes › Mostrador › Mostrar a agenda no relógio) e manda até 3 eventos dos próximos 7 dias, sem os de dia inteiro e os cancelados. O mostrador mostra o primeiro que ainda não começou: HOJE com quanto falta, AMANHÃ ou o dia da semana. O título desce de fonte e, se ainda não couber, é cortado na última palavra com reticências.
 
 A hora usa a Archivo (OFL), só com os dígitos e os dois pontos. Na tela ativa, peso 900 vazado, cada caractere é um PNG com alpha em `resources/drawables/clock` (`packingFormat="png"`): fonte bitmap customizada sai sem antialias e o contorno fica serrilhado. No sempre ligado, peso 700 em fonte bitmap (`resources/fonts`), para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
 
 ## Prontidão do app
 
-1. No app trAIning do iPhone, gerar o token em Ajustes › Sincronização › Relógio.
+1. No app trAIning do iPhone, gerar o token em Ajustes › Mostrador.
 2. No Garmin Connect do celular, abrir o mostrador e colar o token em Configurações › Token do relógio.
 
 O mostrador busca a nota e os dados do mostrador em `GET /api/v1/watch/readiness` a cada 15 minutos, em background, pelo celular (Bluetooth) ou Wi-Fi. A nota só aparece se for do dia de hoje no relógio; depois da meia-noite volta "--" até chegar a nova. Quando a Garmin não registra o sono, o app manda a prontidão da própria Garmin; se nem ela existir, manda só a semana e a agenda, e a nota fica "--". Sem token, com token revogado (401) ou sem nota no servidor (404), aparece "--". Sem rede, fica a última nota recebida, se for de hoje.
