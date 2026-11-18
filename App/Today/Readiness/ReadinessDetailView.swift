@@ -24,7 +24,7 @@ struct ReadinessDetailView: View {
                     ReadinessHistoryChart(history: history)
                         .padding(.top, 6)
                 }
-                group(TodayConstants.detailUp, .up, BrandColors.accent)
+                group(TodayConstants.detailUp, .up, BrandColors.ready)
                 group(TodayConstants.detailDown, .down, BrandColors.attention)
                 group(TodayConstants.detailNoBaseline, .baseline, BrandColors.dim)
                 group(TodayConstants.detailMissing, .missing, BrandColors.dim)

@@ -112,7 +112,7 @@ struct ReadinessHistoryChart: View {
 
     private var legend: some View {
         HStack(spacing: 12) {
-            swatch(BrandColors.accent, C.legendHard)
+            swatch(BrandColors.ready, C.legendHard)
             swatch(BrandColors.form, C.legendModerate)
             swatch(BrandColors.rest, C.legendRest)
         }

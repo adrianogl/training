@@ -14,6 +14,7 @@ struct SettingsView: View {
     @AppStorage(WorkoutNoticeConstants.enabledKey) private var workoutNoticeEnabled = WorkoutNoticeConstants.defaultEnabled
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
     @AppStorage(AppConstants.appearanceDefaultsKey, store: .standard) private var appearance = AppearanceOption.system.rawValue
+    @AppStorage(AccentThemeConstants.defaultsKey, store: .standard) private var accentTheme = AccentTheme.pista.rawValue
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: SettingsGroup = SettingsView.initialGroup()
     var embedded = false
@@ -137,7 +138,7 @@ struct SettingsView: View {
         case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
         case .claude: model.remoteSync.mcpTokenCreatedAt == nil ? "Sem token" : "Token ativo"
         case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
-        case .appearance: AppearanceOption(rawValue: appearance)?.title ?? ""
+        case .appearance: [AppearanceOption(rawValue: appearance)?.title ?? "", AccentTheme.stored(accentTheme).title].joined(separator: " · ")
         case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
         case .licenses: LicensesConstants.summary
         }
@@ -293,18 +294,35 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
     private var appearanceSection: some View {
         Section {
-            Picker("Tema", selection: $appearance) {
+            Picker(AccentThemeConstants.modeTitle, selection: $appearance) {
                 ForEach(AppearanceOption.allCases) { option in
                     Text(option.title).tag(option.rawValue)
                 }
             }
             .pickerStyle(.segmented)
         } header: {
-            Text("Aparência")
+            Text(AccentThemeConstants.modeTitle)
         } footer: {
-            Text("\"Sistema\" segue o modo claro ou escuro do aparelho.")
+            Text(AccentThemeConstants.modeFooter)
+        }
+        Section {
+            AccentThemePicker(selection: $accentTheme)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+        } header: {
+            Text(AccentThemeConstants.colorTitle)
+        } footer: {
+            Text(AccentThemeConstants.colorFooter)
+        }
+        Section {
+            AccentThemePreview()
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+        } header: {
+            Text(AccentThemeConstants.previewTitle)
         }
     }
 
