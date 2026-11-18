@@ -11,6 +11,10 @@ enum RunWeatherText {
         return [dew, dewPoint >= C.muggyDewPoint ? C.muggy : nil, effect.isSunny ? C.sunny : nil].compactMap { $0 }.joined(separator: C.separator)
     }
 
+    static func tint(_ effect: WeatherEffect) -> Color {
+        effect.isCold ? BrandColors.fitness : effect.isHeat ? BrandColors.race : BrandColors.text
+    }
+
     static func degrees(_ effect: WeatherEffect) -> String {
         String(format: C.degreeFormat, Int(effect.weather.temperature.rounded()))
     }
