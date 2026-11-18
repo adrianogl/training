@@ -53,7 +53,7 @@ export const MAIL_COPY = {
     title: 'Novo pedido de convite',
     labels: { name: 'Nome', email: 'E-mail', watch: 'Relógio' },
     noMessage: 'Sem mensagem.',
-    button: 'Ver os pedidos',
+    button: 'Ver no app',
     footer: 'Aviso automático do admin do trAIning.',
   },
 } as const

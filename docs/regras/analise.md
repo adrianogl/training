@@ -4,10 +4,7 @@ Como o app lê um treino feito, a prontidão do dia e o texto que mostra sobre e
 
 Toda mudança em uma regra daqui atualiza este arquivo no mesmo commit.
 
-A análise roda em dois lugares, que precisam ficar iguais:
-
-- **App:** pacote `Packages/TrainingKit` (módulos `WorkoutAnalysis`, `Insights`, `Narrative`, `Metrics`).
-- **Servidor:** `server/src/analysis`, usado pelo app web em `activityRoutes.ts`.
+A análise roda só no app, no pacote `Packages/TrainingKit` (módulos `WorkoutAnalysis`, `Insights`, `Narrative`, `Metrics`).
 
 ## Prontidão do dia
 
@@ -86,7 +83,7 @@ Quando um sinal aparece, o item equivalente sai do grupo "bom": "FC menor que an
 
 ## Subida e descida
 
-Arquivos: `WorkoutAnalysis/Elevation*.swift`, `server/src/analysis/elevation.ts`. Testes: `WorkoutAnalysisTests/ElevationPaceTests.swift`, `server/test/elevation.test.ts`.
+Arquivos: `WorkoutAnalysis/Elevation*.swift`. Testes: `WorkoutAnalysisTests/ElevationPaceTests.swift`.
 
 | Regra | Valor | Constante |
 | --- | --- | --- |
@@ -101,7 +98,7 @@ Equivalente no plano = ritmo ÷ (1 + 3,3 × subida/distância − 1,8 × descida
 
 ## Temperatura
 
-Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift`, `server/src/analysis/weatherEffect.ts`. Testes: `TrainingCoreTests/RunWeatherTests.swift`, `WorkoutAnalysisTests/WeatherAnalysisTests.swift`, `server/test/weatherEffect.test.ts`.
+Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift`. Testes: `TrainingCoreTests/RunWeatherTests.swift`, `WorkoutAnalysisTests/WeatherAnalysisTests.swift`.
 
 | Regra | Valor | Constante |
 | --- | --- | --- |
@@ -124,7 +121,7 @@ O detalhe da corrida mostra os graus, o ponto de orvalho, o sol, a adaptação e
 
 ## Vento
 
-Arquivos: `WorkoutAnalysis/Wind.swift`, `WorkoutAnalysis/AssessmentConditions.swift`, `server/src/analysis/conditions.ts`. Testes: `WorkoutAnalysisTests/ConditionsAnalysisTests.swift`, `server/test/conditions.test.ts`.
+Arquivos: `WorkoutAnalysis/Wind.swift`, `WorkoutAnalysis/AssessmentConditions.swift`. Testes: `WorkoutAnalysisTests/ConditionsAnalysisTests.swift`.
 
 | Regra | Valor | Constante |
 | --- | --- | --- |
@@ -138,7 +135,7 @@ Arquivos: `WorkoutAnalysis/Wind.swift`, `WorkoutAnalysis/AssessmentConditions.sw
 
 ## Largada e véspera
 
-Arquivos: `App/Workouts/Detail/DayConditionBuilder.swift`, `WorkoutAnalysis/AssessmentConditions.swift`, `Narrative/NarrativeConditions.swift`, `server/src/analysis/conditions.ts`.
+Arquivos: `App/Workouts/Detail/DayConditionBuilder.swift`, `WorkoutAnalysis/AssessmentConditions.swift`, `Narrative/NarrativeConditions.swift`.
 
 Entram como "Causa provável" em fora do alvo (mais lento ou FC acima), incompleto, perda de ritmo e deriva fora do calor. Não mudam a nota nem o grupo do item.
 
@@ -147,11 +144,11 @@ Entram como "Causa provável" em fora do alvo (mais lento ou FC acima), incomple
 | Sono | menos de 6 h, ou nota abaixo de 60 | `shortSleepSeconds`, `lowSleepScore` |
 | HRV | última noite abaixo da faixa equilibrada | — |
 | Body Battery | máximo da manhã abaixo de 40 | `lowBodyBattery` |
-| Véspera | tiros, limiar ou longão no dia anterior; no app, também dia de pernas no MFIT (pelo menos 50% das séries em pernas). O servidor não tem os treinos do MFIT e olha só a corrida | `PreviousDayLoad` |
+| Véspera | tiros, limiar ou longão no dia anterior; também dia de pernas no MFIT (pelo menos 50% das séries em pernas) | `PreviousDayLoad` |
 
 ## Dinâmica de corrida
 
-Arquivos: `WorkoutAnalysis/AssessmentConditions.swift`, `server/src/analysis/conditions.ts`.
+Arquivos: `WorkoutAnalysis/AssessmentConditions.swift`.
 
 | Regra | Valor | Constante |
 | --- | --- | --- |
@@ -186,11 +183,11 @@ Arquivos: `GarminAPI/GarminRaceEvents*.swift`, `App/Races/Garmin/`. Testes: `Gar
 
 | Parte | Peso | Onde |
 | --- | --- | --- |
-| Execução (feito contra o prescrito) | 50 | `WorkoutAnalysis/WorkoutScore*.swift`, `server/src/analysis/workoutScore.ts` |
+| Execução (feito contra o prescrito) | 50 | `WorkoutAnalysis/WorkoutScore*.swift` |
 | Intenção (zona e ritmo de cada bloco) | 25 | idem |
 | Custo (eficiência contra os treinos iguais) | 25 | idem |
 
-Comparação com até 4 treinos iguais (`maxComparisons`). Treino planejado é igual a outro quando o nome bate sem o dia da semana e a data: "Corrida fácil seg 16/11" compara com "Corrida fácil qua 11/11". Um dia da semana cortado no fim do nome pelo limite do Garmin também sai (`WorkoutTitle.comparisonKey`, `server/src/analysis/workoutTitle.ts`).
+Comparação com até 4 treinos iguais (`maxComparisons`). Treino planejado é igual a outro quando o nome bate sem o dia da semana e a data: "Corrida fácil seg 16/11" compara com "Corrida fácil qua 11/11". Um dia da semana cortado no fim do nome pelo limite do Garmin também sai (`WorkoutTitle.comparisonKey`).
 
 Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
 
@@ -198,7 +195,7 @@ A versão da nota está em `AnalysisConstants.scoreVersion` (4, desde vento, sol
 
 ## Análise detalhada
 
-Arquivos: `Insights/DetailedAnalysis*.swift`, `server/src/analysis/detailed*.ts`. Testes: `InsightsTests/DetailedAnalysisTests.swift`, `DetailedCoachTests.swift`.
+Arquivos: `Insights/DetailedAnalysis*.swift`. Testes: `InsightsTests/DetailedAnalysisTests.swift`, `DetailedCoachTests.swift`.
 
 | Regra | Valor |
 | --- | --- |

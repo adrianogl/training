@@ -21,28 +21,11 @@ export const UPDATED_AT_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
 export const SINCE_PATTERN = /^\d{1,15}$/
 export const TOKEN_PATTERN = /^Bearer ([A-Za-z0-9_-]+)$/
 export const REQUEST_LOG_RETENTION_DAYS = 7
-export const ADMIN_PATH = '/admin'
-export const ADMIN_SESSION_COOKIE = 'admin_session'
-export const ADMIN_SESSION_CONTEXT = 'training-sync-admin-session'
-export const ADMIN_SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
-export const ADMIN_MAX_FORM_BYTES = 4096
-export const ADMIN_RECENT_LIMIT = 20
-export const ADMIN_HOURS = 24
-export const ADMIN_TIME_ZONE = 'America/Sao_Paulo'
-export const ADMIN_HEADERS = {
-  'content-type': 'text/html; charset=utf-8',
-  'cache-control': 'no-store',
-  'x-robots-tag': 'noindex',
-  'referrer-policy': 'no-referrer',
-  'content-security-policy':
-    "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
-} as const
 export const DEFAULT_MAX_ACCOUNTS = 3
 export const DEFAULT_MAX_ACCOUNT_BYTES = 50 * 1024 * 1024
 export const MAX_PULL_PAGE_BYTES = 3 * 1024 * 1024
 export const POSITIVE_INT_PATTERN = /^[1-9]\d{0,15}$/
 export const ACCOUNT_CREATION_LOCK_KEY = 'account_creation'
-export const ADMIN_MIN_TOKEN_LENGTH = 32
 export const UNLOGGED_STATUSES: readonly number[] = [401, 429]
 export const WATCH_TOKEN_HASH_PATTERN = /^[0-9a-f]{64}$/
 export const READINESS_DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -98,7 +81,6 @@ export const GARMIN_CODE_PATTERN = /^\d{4,8}$/
 export const GARMIN_LOGIN_URL = 'https://sso.garmin.com/mobile/api/login'
 export const GARMIN_MFA_URL = 'https://sso.garmin.com/mobile/api/mfa/verifyCode'
 export const GARMIN_TOKEN_URL = 'https://diauth.garmin.com/di-oauth2-service/oauth/token'
-export const GARMIN_API_BASE = 'https://connectapi.garmin.com'
 export const GARMIN_SSO_ORIGIN = 'https://sso.garmin.com'
 export const GARMIN_SSO_CLIENT_ID = 'GCM_IOS_DARK'
 export const GARMIN_SERVICE_URL = 'https://mobile.integration.garmin.com/gcm/ios'
@@ -139,28 +121,6 @@ export const ACTIVE_WINDOW_DAYS = 7
 export const MAIL_INVITE_SUBJECT = 'Convite para o trAIning'
 export const INVITE_MESSAGE = (name: string, inviter: string, link: string) =>
   `Oi, ${name}! ${inviter} te convidou para o trAIning, que lê os dados da sua Garmin e mostra a prontidão do dia, a análise dos treinos e a previsão das provas.\n\nCrie sua conta por este link (vale 7 dias):\n${link}`
-export const SYNC_HISTORY_DAYS = 180
-export const SYNC_RECENT_DAYS = 3
-export const SYNC_BUDGET_MS = 40_000
-export const SYNC_ACTIVITY_PAGE = 50
-export const SYNC_TIME_ZONE = 'America/Sao_Paulo'
-export const CRON_ROUTE = 'cron/garmin-sync'
-export const SYNC_VERSION = 4
-
-export const WEATHER = {
-  forecastUrl: 'https://api.open-meteo.com/v1/forecast',
-  archiveUrl: 'https://archive-api.open-meteo.com/v1/archive',
-  forecastHistoryDays: 85,
-  activityFields: 'temperature_2m,dew_point_2m,wind_speed_10m,wind_direction_10m,shortwave_radiation',
-  windUnit: 'ms',
-  adaptationDays: 14,
-  geocodingUrl: 'https://geocoding-api.open-meteo.com/v1/search',
-  fields: 'temperature_2m,dew_point_2m',
-  forecastDaysAhead: 16,
-  defaultStartHour: 7,
-  coordinateScale: 10,
-  timeoutMs: 5000,
-} as const
 
 export const GOALS = {
   kinds: ['time', 'continuousLong'],
@@ -172,19 +132,6 @@ export const GOALS = {
   maxActive: 20,
 } as const
 
-export const RACES = {
-  lapsPerRequest: 15,
-  activityHistoryDays: 365,
-  priorities: ['A', 'B', 'C'],
-  startTimePattern: /^([01]\d|2[0-3]):[0-5]\d$/,
-} as const
-
-export const ACTIVITY = {
-  nameMaxLength: 100,
-  historyDays: 365,
-  comparisonFetchLimit: 4,
-} as const
-
 export const INVITE_REQUEST = {
   watches: ['garmin', 'other', 'none'],
   messageMaxLength: 500,
@@ -193,7 +140,7 @@ export const INVITE_REQUEST = {
   honeypotField: 'website',
   mailSubject: 'Novo pedido de convite no trAIning',
   watchNames: { garmin: 'Garmin', other: 'Outro relógio', none: 'Não usa relógio' } as Record<string, string>,
-  adminPath: '/administracao',
+  adminPath: '/convites',
 } as const
 export const STRAVA_ROUTE = 'strava'
 export const STRAVA_AUTHORIZE_URL = 'https://www.strava.com/oauth/authorize'

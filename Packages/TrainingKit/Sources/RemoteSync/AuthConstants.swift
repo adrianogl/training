@@ -10,6 +10,8 @@ enum AuthConstants {
     static let resendVerificationPath = "api/v1/auth/resend-verification"
     static let sessionsPath = "api/v1/auth/sessions"
     static let accountPath = "api/v1/account"
+    static let invitePreviewPath = "api/v1/invites/preview"
+    static let inviteQuery = "c"
     static let sessionIdQuery = "id"
     static let passwordMinLength = 10
     static let clientHeader = "X-Training-Client"

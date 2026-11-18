@@ -13,7 +13,7 @@ import UIKit
     private(set) var isWorking = false
     private(set) var errorMessage: String?
     private(set) var notice: String?
-    private(set) var webOnly = false
+    var pendingLink: AccountLink?
 
     @ObservationIgnored private let store: any APIKeyStore
     @ObservationIgnored private let transport: any HTTPTransport
@@ -46,13 +46,12 @@ import UIKit
     func clearMessages() {
         errorMessage = nil
         notice = nil
-        webOnly = false
     }
 
-    func signup(name: String, email: String, password: String) async -> Bool {
+    func signup(name: String, email: String, password: String, inviteToken: String? = nil) async -> Bool {
         await run {
             let session = try await self.client().signup(
-                name: name, email: email, password: password, device: self.device, legacyKey: self.legacyKey?()
+                name: name, email: email, password: password, device: self.device, legacyKey: self.legacyKey?(), inviteToken: inviteToken
             )
             try self.keep(session)
         }
@@ -66,6 +65,30 @@ import UIKit
 
     func forgotPassword(email: String) async -> Bool {
         await run { try await self.client().forgotPassword(email: email) }
+    }
+
+    func invitePreview(token: String) async -> InvitePreview? {
+        var preview: InvitePreview?
+        _ = await run { preview = try await self.client().invitePreview(token: token) }
+        return preview
+    }
+
+    func resetPassword(token: String, password: String) async -> Bool {
+        let reset = await run { try await self.client().resetPassword(token: token, password: password) }
+        guard reset else { return false }
+        if isSignedIn { await forget(deleted: false) }
+        notice = C.passwordReset
+        return true
+    }
+
+    func verifyEmail(token: String) async -> Bool {
+        let verified = await run { try await self.client().verifyEmail(token: token) }
+        if verified { await refresh() }
+        return verified
+    }
+
+    func adminClient() -> AdminClient? {
+        token.map { AdminClient(baseURL: baseURL, token: $0, transport: transport) }
     }
 
     func refresh() async {
@@ -159,8 +182,6 @@ import UIKit
         do {
             try await work()
             return true
-        } catch AuthError.webOnly {
-            webOnly = true
         } catch let error as AuthError {
             errorMessage = Self.message(for: error)
         } catch {
@@ -181,7 +202,7 @@ import UIKit
         case .rateLimited: C.rateLimited
         case .mailUnavailable: C.mailUnavailable
         case .inviteRequired: C.inviteRequired
-        case .webOnly: C.webOnlyTitle
+        case .invalidInvite: C.invalidInvite
         case .invalidToken, .unauthorized, .server, .decoding: C.generic
         }
     }

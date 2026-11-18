@@ -53,7 +53,7 @@ struct SettingsView: View {
             }
             ForEach(SettingsSection.allCases) { section in
                 Section(section.title) {
-                    ForEach(section.groups) { group in
+                    ForEach(section.groups.filter { $0 != .invites || model.account.user?.isAdmin == true }) { group in
                         if sizeClass == .regular {
                             Button { selection = group } label: { groupRow(group) }
                                 .buttonStyle(.plain)
@@ -114,6 +114,7 @@ struct SettingsView: View {
     private func status(_ group: SettingsGroup) -> String {
         switch group {
         case .account: model.account.user.map { "\($0.name) · \($0.email)" } ?? AccountConstants.accountTitle
+        case .invites: InvitesConstants.summary
         case .garmin: model.hasKey ? "sync \(lastSyncText)" : "sem chave da API"
         case .mfit: MFITAccountConstants.summary
         case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
@@ -133,6 +134,8 @@ struct SettingsView: View {
             case .account:
                 AccountSettingsView(model: model.account)
                 RemoteSyncSection(model: model.remoteSync, part: .sync)
+            case .invites:
+                InvitesView(account: model.account)
             case .garmin:
                 GarminAccountSection(model: model.garminAccount)
                 GarminZonesSection(model: model.garminZones) {

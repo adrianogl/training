@@ -21,4 +21,13 @@ describe('roteador da API', () => {
     expect(wrongMethod.status).toBe(405)
     expect(wrongMethod.headers.get('allow')).toBe('POST')
   })
+
+  it('as rotas que só o site usava não existem mais', async () => {
+    const sql = await migratedSql()
+    const removed = ['garmin/sync', 'garmin/planned', 'garmin/activity', 'garmin/activity/detailed', 'garmin/evolution', 'garmin/today', 'garmin/days', 'garmin/activities', 'cron/garmin-sync', 'races', 'goals', 'trainer']
+
+    const statuses = await Promise.all(removed.map(async (route) => (await dispatch(makeRequest('GET', `/api/v1/${route}`), sql)).status))
+
+    expect(statuses).toEqual(removed.map(() => 404))
+  })
 })

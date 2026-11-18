@@ -6,7 +6,7 @@ import { EMAIL_MAX_LENGTH, EMAIL_PATTERN, INVITE_CHANNELS, INVITE_MESSAGE, INVIT
 import { dataKeyFromEnv } from './cipher.js'
 import type { Sql } from './db.js'
 import { pendingRequests } from './inviteRequests.js'
-import { cancelInvite, createInvite, inviteById, listInvites, pendingInvite, renewInvite, setInviteAppAccess } from './invites.js'
+import { cancelInvite, createInvite, inviteById, listInvites, pendingInvite, renewInvite } from './invites.js'
 import type { AuthEnv, InviteChannel, InviteRow, User } from './types.js'
 import { findSession, userById } from './users.js'
 import { parseObject } from './validate.js'
@@ -92,7 +92,7 @@ export function adminCreateInviteRoute(request: Request, sql: Sql, env: AuthEnv 
     if (channel === 'email' && env.mailer === undefined) {
       return failure(503, 'mail_unavailable')
     }
-    const created = await createInvite(sql, { name, email, channel: channel as InviteChannel, appAccess: value?.appAccess === true }, admin.id, env.now())
+    const created = await createInvite(sql, { name, email, channel: channel as InviteChannel }, admin.id, env.now())
     return deliver(env, admin, created.invite, created.token)
   })
 }
@@ -109,12 +109,6 @@ export function adminInviteActionRoute(request: Request, sql: Sql, env: AuthEnv 
     if (action === 'cancel') {
       await cancelInvite(sql, id, now)
       return json(200, { invite: await inviteById(sql, id, now) })
-    }
-    if (action === 'app') {
-      if (typeof value?.appAccess !== 'boolean') {
-        return failure(400, 'invalid_action')
-      }
-      return json(200, { invite: await setInviteAppAccess(sql, id, value.appAccess, now) })
     }
     if (action === 'renew') {
       const renewed = await renewInvite(sql, id, now)
@@ -146,7 +140,7 @@ export async function invitePreviewRoute(request: Request, sql: Sql, env: AuthEn
     if (invite === undefined) {
       return failure(404, 'invalid_invite')
     }
-    return json(200, { name: invite.name, email: invite.email, inviterName: invite.inviterName, expiresAt: invite.expiresAt, appAccess: invite.appAccess })
+    return json(200, { name: invite.name, email: invite.email, inviterName: invite.inviterName, expiresAt: invite.expiresAt })
   } catch {
     return failure(404, 'invalid_invite')
   }

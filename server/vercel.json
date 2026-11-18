@@ -12,23 +12,17 @@
       "destination": "/api/router?route=:route*"
     },
     {
-      "source": "/admin",
-      "destination": "/api/admin"
+      "source": "/(convite|convites|confirmar|redefinir-senha)",
+      "destination": "/link.html"
     },
     {
-      "source": "/app",
-      "destination": "/app/index.html"
+      "source": "/app/(convite|confirmar|redefinir-senha)",
+      "destination": "/link.html"
     },
     {
       "source": "/app/:path*",
-      "destination": "/app/index.html"
+      "destination": "/index.html"
     }
   ],
-  "buildCommand": "npm run build",
-  "crons": [
-    {
-      "path": "/api/v1/cron/garmin-sync",
-      "schedule": "0 12 * * *"
-    }
-  ]
+  "buildCommand": "npm run build"
 }

@@ -5,7 +5,7 @@ enum GoalsConstants {
     static let archivedTitle = "Arquivadas"
     static let newGoal = "Nova meta"
     static let empty = "Nenhuma meta além do volume semanal."
-    static let footer = "As metas sincronizam com o site e entram nas análises dos treinos."
+    static let footer = "As metas sincronizam entre os seus aparelhos e entram nas análises dos treinos."
     static let kindTitles: [GoalKind: String] = [.time: "Tempo numa distância", .continuousLong: "Longão sem pausas"]
     static let kindHints: [GoalKind: String] = [
         .time: "Ex.: 10 km em 40 min, com prazo opcional.",
@@ -40,7 +40,7 @@ enum GoalsConstants {
     static let archive = "Arquivar"
     static let unarchive = "Reativar"
     static let delete = "Apagar meta"
-    static let deleteQuestion = "Apagar esta meta no app e no site?"
+    static let deleteQuestion = "Apagar esta meta em todos os aparelhos?"
     static let invalidTime = "Confira o tempo, como 40:00 ou 1:39:00."
     static let invalidDistance = "Confira a distância."
     static let invalidPace = "Confira o pace, como 4:50."

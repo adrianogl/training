@@ -23,6 +23,12 @@ struct SessionRootView: View {
                 IntroView().transition(.opacity)
             }
         }
+        .onOpenURL { url in
+            if let link = AccountLink(url: url) { session.account.pendingLink = link }
+        }
+        .sheet(item: Bindable(session.account).pendingLink) { link in
+            AccountLinkSheet(model: session.account, link: link)
+        }
         .onChange(of: session.model?.scope.id) { _, id in
             guard id != nil, scenePhase == .active else { return }
             session.model?.activate(force: true)

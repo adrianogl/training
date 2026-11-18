@@ -146,7 +146,7 @@ export function inviteMail(input: InviteMailInput): MailContent {
 export function inviteRequestMail(input: InviteRequestMailInput): MailContent {
   const copy = MAIL_COPY.inviteRequest
   const message = input.message === '' ? undefined : input.message
-  const text = `${input.name} (${input.email}) pediu um convite.\nRelógio: ${input.watch}\n${message === undefined ? copy.noMessage : `Mensagem: ${message}`}\n\nVer os pedidos: ${input.link}`
+  const text = `${input.name} (${input.email}) pediu um convite.\nRelógio: ${input.watch}\n${message === undefined ? copy.noMessage : `Mensagem: ${message}`}\n\nVer em Ajustes › Convites no app: ${input.link}`
   const card = cardRows(
     [
       [copy.labels.name, input.name],

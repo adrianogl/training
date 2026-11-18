@@ -9,10 +9,6 @@ struct AccountGateView: View {
             VStack(spacing: 28) {
                 Logo(showsTagline: true)
                     .padding(.top, 48)
-                if model.webOnly {
-                    WebOnlyNotice()
-                        .frame(maxWidth: AccountConstants.formMaxWidth)
-                }
                 Group {
                     switch screen {
                     case .login: LoginView(model: model, screen: $screen)
