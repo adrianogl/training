@@ -8,6 +8,8 @@ TOKEN="$(tr -d '[:space:]' < "$TOKEN_FILE")"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 cp -R "$ROOT/manifest.xml" "$ROOT/monkey.jungle" "$ROOT/resources" "$ROOT/source" "$WORK/"
+BACKGROUND_FILE="${WATCH_BACKGROUND_FILE:-$HOME/.config/training-sync/watch-background.png}"
+[[ -r "$BACKGROUND_FILE" ]] && cp "$BACKGROUND_FILE" "$WORK/resources/drawables/background.png"
 printf '(:background)\nmodule BuildToken {\n    const WATCH_TOKEN = "%s";\n}\n' "$TOKEN" > "$WORK/source/BuildToken.mc"
 mkdir -p "$ROOT/bin"
 monkeyc -f "$WORK/monkey.jungle" -d fr965 -o "$ROOT/bin/TrainingFace.prg" -y "$ROOT/developer_key.der"

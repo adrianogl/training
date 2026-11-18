@@ -1,3 +1,23 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.png"/>
+    <bitmap id="Background" filename="background.png" dithering="none">
+        <palette disableTransparency="true">
+            <color>000000</color>
+            <color>040404</color>
+            <color>080808</color>
+            <color>0C0C0C</color>
+            <color>101010</color>
+            <color>141414</color>
+            <color>181818</color>
+            <color>1C1C1C</color>
+            <color>202020</color>
+            <color>242424</color>
+            <color>282828</color>
+            <color>2C2C2C</color>
+            <color>303030</color>
+            <color>343434</color>
+            <color>383838</color>
+            <color>3C3C3C</color>
+        </palette>
+    </bitmap>
 </drawables>

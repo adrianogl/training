@@ -17,6 +17,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
     private var _timeActive = null;
     private var _timeAlwaysOn = null;
     private var _timeSeconds = null;
+    private var _background = null;
 
     function initialize() {
         WatchFace.initialize();
@@ -41,6 +42,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
         _timeActive = WatchUi.loadResource(Rez.Fonts.TimeActive);
         _timeAlwaysOn = WatchUi.loadResource(Rez.Fonts.TimeAlwaysOn);
         _timeSeconds = WatchUi.loadResource(Rez.Fonts.TimeSeconds);
+        _background = WatchUi.loadResource(Rez.Drawables.Background);
     }
 
     private function vectorFont(face, size, fallback) {
@@ -90,6 +92,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
         if (!_awake && _burnInProtection) {
             drawAlwaysOn(dc, clock);
         } else {
+            dc.drawBitmap(0, 0, _background);
             drawActive(dc, clock, _awake);
         }
     }
