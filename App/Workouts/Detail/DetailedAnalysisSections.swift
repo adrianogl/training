@@ -9,18 +9,12 @@ struct DetailedKPIRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             ForEach(tiles) { tile in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(tile.value)
-                        .font(BrandFonts.number(22))
-                        .foregroundStyle(tile.isWorse ? BrandColors.attention : BrandColors.text)
-                    Text(tile.caption + (tile.average.map { " · " + String(format: C.averageFormat, $0) } ?? ""))
-                        .font(.caption2)
-                        .foregroundStyle(BrandColors.dim)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                DSStat(
+                    value: tile.value,
+                    label: tile.caption + (tile.average.map { " · " + String(format: C.averageFormat, $0) } ?? ""),
+                    color: tile.isWorse ? BrandColors.attention : BrandColors.text,
+                    boxed: true
+                )
             }
         }
     }

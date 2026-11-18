@@ -69,12 +69,7 @@ struct WorkoutChatSheet: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(context.suggestions, id: \.self) { suggestion in
-                        Button(suggestion) { send(suggestion) }
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(BrandColors.text)
-                            .padding(.horizontal, 11).padding(.vertical, 6)
-                            .background(BrandColors.track, in: Capsule())
-                            .buttonStyle(.plain)
+                        DSFilterChip(title: suggestion) { send(suggestion) }
                     }
                 }
             }

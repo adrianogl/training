@@ -21,7 +21,7 @@ struct ForgotPasswordView: View {
                     Text(C.forgotTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                     Text(C.forgotSubtitle).foregroundStyle(BrandColors.dim)
                 }
-                AccountField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
+                DSTextField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
                 AccountMessage(error: model.errorMessage, notice: nil)
                 AccountPrimaryButton(title: C.sendLink, isWorking: model.isWorking, disabled: email.isEmpty) {
                     Task { sent = await model.forgotPassword(email: email) }

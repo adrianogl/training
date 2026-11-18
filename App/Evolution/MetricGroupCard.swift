@@ -53,11 +53,7 @@ struct MetricGroupCard: View {
                     .foregroundStyle(BrandColors.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
-                Text(change?.text ?? C.emptyValue)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(EvolutionColors.trend(change?.trend ?? .unknown))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                DSDelta(text: change?.text ?? C.emptyValue, trend: (change?.trend ?? .unknown).ds)
             }
             if let meters = kind.predictionMeters, let seconds = card?.stats.current, seconds > 0 {
                 Text(WorkoutListModel.paceText(secondsPerKilometer: seconds / (meters / WorkoutConstants.metersPerKilometer)))

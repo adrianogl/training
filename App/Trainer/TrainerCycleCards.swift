@@ -88,10 +88,7 @@ struct TrainerCycleVolumeCard: View {
     }
 
     private func legend(_ color: Color, _ name: String) -> some View {
-        HStack(spacing: 5) {
-            Capsule().fill(color).frame(width: TrainerCycleConstants.legendWidth, height: TrainerCycleConstants.legendHeight)
-            Text(name).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
+        DSLegendItem(text: name, color: color)
     }
 }
 

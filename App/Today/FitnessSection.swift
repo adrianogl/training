@@ -60,17 +60,10 @@ struct FitnessSection: View {
     }
 
     private func legend(_ label: String, _ color: Color) -> some View {
-        HStack(spacing: 5) {
-            Capsule().fill(color).frame(width: TodayConstants.legendSwatchWidth, height: TodayConstants.legendSwatchHeight)
-            Text(label)
-        }
+        DSLegendItem(text: label, color: color)
     }
 
     private func stat(_ value: String?, _ label: String, _ color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(value ?? "—").font(BrandFonts.number(22)).foregroundStyle(color)
-            Text(label).font(.caption).foregroundStyle(BrandColors.dim)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        DSStat(value: value, label: label, color: color)
     }
 }

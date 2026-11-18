@@ -121,9 +121,6 @@ struct ReadinessHistoryChart: View {
     }
 
     private func swatch(_ color: Color, _ text: String) -> some View {
-        HStack(spacing: 4) {
-            RoundedRectangle(cornerRadius: 2).fill(color).frame(width: C.legendSwatch, height: C.legendSwatch)
-            Text(text)
-        }
+        DSLegendItem(text: text, color: color, mark: .square)
     }
 }

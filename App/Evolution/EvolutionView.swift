@@ -20,21 +20,15 @@ struct EvolutionView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        CompactLogoHeader()
-                        SyncStatusPill()
-                        if model?.isStale == true {
-                            RefreshingLabel()
-                        }
-                        HStack(alignment: .firstTextBaseline) {
-                            Text(EvolutionConstants.title)
-                                .font(BrandFonts.largeTitle)
-                                .foregroundStyle(BrandColors.text)
+                        DSScreenHeader(title: EvolutionConstants.title) {
+                            SyncStatusPill()
+                            if model?.isStale == true { RefreshingLabel() }
+                        } trailing: {
                             if sizeClass == .regular, let model, model.isLoaded {
-                                Spacer()
                                 periodPicker(model).frame(maxWidth: EvolutionConstants.periodPickerWidth)
                             }
                         }
-                        .padding(.bottom, 14)
+                        .padding(.bottom, DSSpacing.s2)
                         if let model, model.isLoaded, !app.showsSkeleton {
                             content(model)
                         } else if app.showsSkeleton {
@@ -168,18 +162,9 @@ struct EvolutionView: View {
         return ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: EvolutionConstants.groupChipSpacing) {
                 ForEach(EvolutionConstants.metricGroups) { group in
-                    let isSelected = group.title == selected
-                    Button { selectedGroupTitle = group.title } label: {
-                        Text(group.title)
-                            .font(.footnote)
-                            .foregroundStyle(isSelected ? BrandColors.accent : BrandColors.text.opacity(0.85))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(isSelected ? BrandColors.accentGlow : BrandColors.track, in: Capsule())
-                            .overlay(Capsule().strokeBorder(isSelected ? BrandColors.accent.opacity(0.5) : BrandColors.cardBorder, lineWidth: 1))
+                    DSFilterChip(title: group.title, isSelected: group.title == selected) {
+                        selectedGroupTitle = group.title
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
                 }
             }
         }

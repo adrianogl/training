@@ -166,11 +166,9 @@ struct WorkoutListView: View {
         return ScrollViewReader { proxy in
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 10) {
-                CompactLogoHeader()
-                Text(WorkoutConstants.listTitle)
-                    .font(BrandFonts.largeTitle)
-                    .foregroundStyle(BrandColors.text)
-                SyncStatusPill()
+                DSScreenHeader(title: WorkoutConstants.listTitle) {
+                    SyncStatusPill()
+                }
                 if hasRuns {
                     WorkoutKindFilterBar(selection: $kindFilter)
                 }
@@ -271,13 +269,7 @@ struct WorkoutListView: View {
     }
 
     private func weekBar(_ progress: Double) -> some View {
-        GeometryReader { proxy in
-            Capsule()
-                .fill(BrandColors.accentFill)
-                .frame(width: max(WorkoutConstants.weekBarHeight, proxy.size.width * progress))
-        }
-        .frame(height: WorkoutConstants.weekBarHeight)
-        .background(BrandColors.track, in: Capsule())
+        DSProgressBar(value: progress, height: WorkoutConstants.weekBarHeight)
         .padding(.top, -4)
     }
 

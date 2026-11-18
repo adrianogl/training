@@ -29,7 +29,7 @@ struct AccentThemeCard: View {
                 .font(.system(size: 11, weight: .heavy).width(.expanded))
                 .tracking(1.5)
                 .foregroundStyle(BrandColors.text)
-            DSProgressSample(share: C.previewShare)
+            DSProgressBar(value: C.previewShare)
             DSChip(text: C.sampleChip, tone: .accent, style: .solid)
             Text(C.sampleButton)
                 .font(.caption.weight(.bold))
@@ -81,7 +81,7 @@ struct AccentThemePreview: View {
                     Spacer()
                     CardLinkBadge()
                 }
-                DSProgressSample(share: C.previewShare)
+                DSProgressBar(value: C.previewShare)
                 HStack(spacing: 6) {
                     DSChip(text: C.previewOnPace, tone: .accent)
                     DSChip(text: C.sampleChip, tone: .accent, style: .solid)
@@ -96,17 +96,5 @@ struct AccentThemePreview: View {
                 .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous))
         }
         .accessibilityHidden(true)
-    }
-}
-
-struct DSProgressSample: View {
-    let share: Double
-
-    var body: some View {
-        GeometryReader { proxy in
-            Capsule().fill(BrandColors.track)
-                .overlay(alignment: .leading) { Capsule().fill(BrandColors.accentFill).frame(width: proxy.size.width * share) }
-        }
-        .frame(height: 6)
     }
 }

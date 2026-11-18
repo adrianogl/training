@@ -129,17 +129,8 @@ struct TrainerNewPlanView: View {
     private var strengthLink: some View {
         let sessions = model.plan?.strength ?? []
         return NavigationLink(value: TrainerRoute.strength) {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(TrainerText.strengthTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    Text(sessions.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(sessions))
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
-                }
-                Spacer(minLength: 6)
-                CardLinkBadge()
-            }
-            .brandCard()
+            DSRow(title: TrainerText.strengthTitle, subtitle: sessions.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(sessions), accessory: .link)
+                .brandCard()
         }
         .buttonStyle(.cardLink)
     }

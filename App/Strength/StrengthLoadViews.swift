@@ -214,14 +214,7 @@ struct StrengthLoadDetailContent: View {
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(BrandFonts.number(20)).foregroundStyle(BrandColors.text)
-            Text(label).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
-        .background(BrandColors.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(BrandColors.cardBorder))
+        DSStat(value: value, label: label, boxed: true)
     }
 }
 
