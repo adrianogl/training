@@ -67,6 +67,16 @@ import WorkoutAnalysis
         #expect(RunWeatherText.detail(effect) == "Calor deixa o ritmo 4,6% mais lento · adaptado: 4 treinos no calor em 14 dias")
     }
 
+    @Test func weatherCardRows() throws {
+        let effect = try #require(WeatherAdjustment.effect(RunWeather(temperature: 23, dewPoint: 20, windSpeed: 3.4, windFrom: 40), hotSessions: 7))
+        let rows = RunWeatherText.rows(effect)
+        #expect(rows.map(\.label) == ["Efeito no ritmo", "Adaptação (14 dias)", "Vento"])
+        #expect(rows[1].value == "7 treinos · −35%")
+        #expect(rows[2].value == "12 km/h de NE")
+        #expect(RunWeatherText.compass(350) == "N")
+        #expect(RunWeatherText.compass(200) == "S")
+    }
+
     @Test func windLineShowsHeadwindAndCalmPace() throws {
         var kilometer = WorkoutBlock(kind: .active, ordinal: 3, label: "Km 3", prescribed: nil, laps: [], seconds: 344, distance: 1000,
                                      avgSpeed: 1000.0 / 344, avgHeartRate: 150, maxHeartRate: 160, dominantZone: 2, status: .noTarget)
@@ -95,9 +105,10 @@ import WorkoutAnalysis
             return row
         }
         let content = VStack(alignment: .leading, spacing: 14) {
-            RunWeatherBand(effect: sunny)
+            RunWeatherCard(effect: sunny)
+            RunWeatherCard(effect: try! #require(WeatherAdjustment.effect(RunWeather(temperature: 23, dewPoint: 20, windSpeed: 3.4, windFrom: 40), hotSessions: 7)))
             BlocksSection(blocks: rows, bars: [], kilometers: [:], kilometerBars: [:], showsTarget: false)
-            RunWeatherBand(effect: humid)
+            RunWeatherCard(effect: humid)
             RaceWeatherLine(reading: reading, goalSeconds: 6300)
         }
         for scheme in [ColorScheme.light, .dark] {

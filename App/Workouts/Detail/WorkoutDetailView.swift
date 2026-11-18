@@ -121,7 +121,8 @@ struct WorkoutDetailView: View {
                                 .id(WorkoutDetailSection.zones)
                         }
                         if let weather = model.weather {
-                            labelled(WorkoutDetailConstants.weatherTitle) { RunWeatherBand(effect: weather) }
+                            labelled(WorkoutDetailConstants.weatherTitle) { RunWeatherCard(effect: weather, fillsHeight: sizeClass == .regular) }
+                                .frame(maxHeight: sizeClass == .regular ? .infinity : nil, alignment: .top)
                         }
                     }
                 }
