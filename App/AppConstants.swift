@@ -24,6 +24,7 @@ enum AppConstants {
     static let openRaceDefaultsKey = "openRace"
     static let raceScrollDefaultsKey = "raceScroll"
     static let settingsScrollDefaultsKey = "settingsScroll"
+    static let openSettingsGroupDefaultsKey = "openSettingsGroup"
     static let openShareDefaultsKey = "openShare"
     static let samplePlannedDefaultsKey = "samplePlanned"
     static let openPlannedDefaultsKey = "openPlanned"

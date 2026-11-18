@@ -317,8 +317,7 @@ struct SettingsView: View {
         Section {
             AccentThemePicker(selection: $accentTheme)
                 .onChange(of: accentTheme) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(raw)) }
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+                .dsCardRow()
         } header: {
             Text(AccentThemeConstants.colorTitle)
         } footer: {
@@ -326,8 +325,7 @@ struct SettingsView: View {
         }
         Section {
             AccentThemePreview()
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+                .dsCardRow()
         } header: {
             Text(AccentThemeConstants.previewTitle)
         }
@@ -362,6 +360,7 @@ struct SettingsView: View {
 
     private static func initialGroup(defaults: UserDefaults = .standard) -> SettingsGroup {
         #if DEBUG
+        if let group = defaults.string(forKey: AppConstants.openSettingsGroupDefaultsKey).flatMap(SettingsGroup.init(rawValue:)) { return group }
         return defaults.bool(forKey: AppConstants.settingsScrollDefaultsKey) ? .account : .garmin
         #else
         return .garmin
