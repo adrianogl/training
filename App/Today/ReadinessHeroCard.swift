@@ -193,15 +193,7 @@ private struct ReadinessRecoveryStrip: View {
                 }
             }
             .font(.footnote.weight(.semibold))
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(BrandColors.track)
-                    Capsule()
-                        .fill(ready ? BrandColors.accentFill : BrandColors.attention)
-                        .frame(width: max(proxy.size.width * estimate.progress, C.stripHeight))
-                }
-            }
-            .frame(height: C.stripHeight)
+            DSProgressBar(value: max(estimate.progress, 0.0001), color: ready ? BrandColors.readyFill : BrandColors.attention, height: C.stripHeight)
             if let next = estimate.upcoming.first {
                 Text(RecoveryText.nextLine(next)).font(.caption).foregroundStyle(BrandColors.dim)
             }

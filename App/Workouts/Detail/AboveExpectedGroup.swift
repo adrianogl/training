@@ -41,13 +41,7 @@ struct AboveExpectedGroup: View {
                 .font(.caption)
                 .foregroundStyle(BrandColors.dim)
                 .frame(width: C.aboveExpectedLabelWidth, alignment: .leading)
-            GeometryReader { proxy in
-                Capsule()
-                    .fill(color)
-                    .frame(width: max(4, proxy.size.width * value / scale))
-            }
-            .frame(height: C.aboveExpectedBarHeight)
-            .background(BrandColors.track, in: Capsule())
+            DSProgressBar(value: value / scale, color: color, height: C.aboveExpectedBarHeight)
             Text("\(Int(value)) \(C.aboveExpectedUnit)")
                 .font(BrandFonts.number(14))
                 .foregroundStyle(valueColor)

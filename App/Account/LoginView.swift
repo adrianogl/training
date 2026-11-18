@@ -14,8 +14,8 @@ struct LoginView: View {
                 Text(C.loginTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 Text(C.loginSubtitle).foregroundStyle(BrandColors.dim)
             }
-            AccountField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
-            AccountField(label: C.passwordLabel, text: $password, secure: true, content: .password)
+            DSTextField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
+            DSTextField(label: C.passwordLabel, text: $password, secure: true, content: .password)
             Button(C.forgotLink) { screen = .forgot }
                 .font(.subheadline)
                 .foregroundStyle(BrandColors.accent)

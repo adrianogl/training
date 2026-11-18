@@ -16,9 +16,9 @@ struct ResetPasswordView: View {
                 Text(C.resetTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 Text(C.resetSubtitle).foregroundStyle(BrandColors.dim)
             }
-            AccountField(label: C.newPasswordLabel, text: $password, secure: true, content: .newPassword)
+            DSTextField(label: C.newPasswordLabel, text: $password, secure: true, content: .newPassword)
             Text(C.passwordHint).font(.caption).foregroundStyle(BrandColors.dim)
-            AccountField(label: C.confirmNewLabel, text: $confirmation, secure: true, content: .newPassword)
+            DSTextField(label: C.confirmNewLabel, text: $confirmation, secure: true, content: .newPassword)
             AccountMessage(error: localError ?? model.errorMessage, notice: nil)
             AccountPrimaryButton(title: C.savePassword, isWorking: model.isWorking, disabled: password.isEmpty) {
                 submit()

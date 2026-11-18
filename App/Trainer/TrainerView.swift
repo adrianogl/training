@@ -23,8 +23,7 @@ struct TrainerView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    CompactLogoHeader()
-                    Text(TrainerText.title).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
+                    DSScreenHeader(title: TrainerText.title)
                     if let plan = model.plan {
                         shortcuts(proxy)
                         planContent(plan, proxy: proxy)
@@ -264,17 +263,8 @@ struct TrainerView: View {
     @ViewBuilder
     private func adjustments(_ plan: TrainerPlan) -> some View {
         Button { withAnimation { showsAdjustments.toggle() } } label: {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(TrainerText.adjustmentsTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    Text(TrainerText.adjustmentsSummary(strength: plan.strength, longMode: plan.longMode))
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
-                }
-                Spacer(minLength: 6)
-                CardDisclosure(expanded: showsAdjustments)
-            }
-            .brandCard()
+            DSRow(title: TrainerText.adjustmentsTitle, subtitle: TrainerText.adjustmentsSummary(strength: plan.strength, longMode: plan.longMode), accessory: .disclosure(expanded: showsAdjustments))
+                .brandCard()
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -364,17 +354,8 @@ struct TrainerView: View {
 
     private func strengthCard(_ plan: TrainerPlan) -> some View {
         NavigationLink(value: TrainerRoute.strength) {
-            HStack(spacing: 10) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(TrainerText.strengthTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    Text(plan.strength.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(plan.strength))
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
-                }
-                Spacer(minLength: 6)
-                CardLinkBadge()
-            }
-            .brandCard()
+            DSRow(title: TrainerText.strengthTitle, subtitle: plan.strength.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(plan.strength), accessory: .link)
+                .brandCard()
         }
         .buttonStyle(.cardLink)
     }

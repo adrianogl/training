@@ -105,10 +105,7 @@ struct DetailedKilometerChart: View {
     }
 
     private func legend(_ text: String, color: Color) -> some View {
-        HStack(spacing: 5) {
-            Capsule().fill(color).frame(width: 10, height: 3)
-            Text(text).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
+        DSLegendItem(text: text, color: color)
     }
 }
 
@@ -154,9 +151,6 @@ struct DetailedSimilarChart: View {
     }
 
     private func legend(_ text: String, color: Color) -> some View {
-        HStack(spacing: 5) {
-            Capsule().fill(color).frame(width: 10, height: 3)
-            Text(text).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
+        DSLegendItem(text: text, color: color)
     }
 }

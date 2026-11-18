@@ -69,13 +69,7 @@ struct LastRunCard: View {
         let percent = Int((km / planned * 100).rounded())
         return HStack(spacing: 8) {
             Text(String(format: L.planFormat, TodayText.decimal(planned, fractionDigits: planned.rounded() == planned ? 0 : 1))).font(.caption).foregroundStyle(BrandColors.dim)
-            GeometryReader { proxy in
-                Capsule().fill(BrandColors.track)
-                    .overlay(alignment: .leading) {
-                        Capsule().fill(km / planned >= L.planGood ? BrandColors.accentFill : BrandColors.attention).frame(width: proxy.size.width * share)
-                    }
-            }
-            .frame(height: 6)
+            DSProgressBar(value: share, color: km / planned >= L.planGood ? BrandColors.accentFill : BrandColors.attention)
             Text(String(format: L.percentFormat, percent))
                 .font(BrandFonts.number(14))
                 .foregroundStyle(km / planned >= L.planGood ? BrandColors.accent : BrandColors.attention)
@@ -94,13 +88,7 @@ struct LastRunCard: View {
     }
 
     private func stat(_ value: String?, _ label: String, color: Color = BrandColors.text) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(value ?? "—").font(BrandFonts.number(22)).foregroundStyle(color).lineLimit(1).minimumScaleFactor(0.7)
-            Text(label).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label): \(value ?? "sem dado")")
+        DSStat(value: value, label: label, color: color)
     }
 
     private func paceChart(_ splits: [LastRunSplit]) -> some View {
@@ -128,9 +116,10 @@ struct LastRunCard: View {
             .chartYScale(domain: -L.chartPaddingRatio...(1 + L.chartPaddingRatio))
             .frame(height: L.chartHeight)
             HStack {
-                (Text("● ").foregroundStyle(BrandColors.accent) + Text(L.chartLegendPace + "   ") + Text("● ").foregroundStyle(BrandColors.rest) + Text(L.chartLegendHeartRate))
-                    .font(.caption2)
-                    .foregroundStyle(BrandColors.dim)
+                HStack(spacing: DSSpacing.s3) {
+                    DSLegendItem(text: L.chartLegendPace, color: BrandColors.accentFill)
+                    DSLegendItem(text: L.chartLegendHeartRate, color: BrandColors.rest)
+                }
                 Spacer()
                 if let fade = lastRun.fadeKm {
                     Text(String(format: L.fadeFormat, fade)).font(.caption2).foregroundStyle(BrandColors.attention)

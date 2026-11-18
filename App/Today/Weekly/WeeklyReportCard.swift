@@ -84,18 +84,7 @@ struct WeeklyReportCard: View {
         let scale = max(report.doneKm, planned)
         let fill = scale > 0 ? report.doneKm / scale : 0
         let marker = scale > 0 ? planned / scale : 1
-        return GeometryReader { proxy in
-            let width = proxy.size.width
-            ZStack(alignment: .leading) {
-                Capsule().fill(BrandColors.track)
-                Capsule().fill(BrandColors.accentFill).frame(width: width * fill)
-                Rectangle()
-                    .fill(BrandColors.text)
-                    .frame(width: C.markerWidth, height: C.barHeight + 8)
-                    .offset(x: min(width * marker, width) - C.markerWidth)
-            }
-        }
-        .frame(height: C.barHeight)
+        return DSProgressBar(value: fill, height: C.barHeight, marker: marker)
     }
 
     private var metrics: some View {
@@ -124,16 +113,7 @@ struct WeeklyReportCard: View {
     }
 
     private func metric(_ value: String, _ label: String, _ color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(value).font(BrandFonts.number(20)).foregroundStyle(color)
-            Text(label).font(.caption2).foregroundStyle(BrandColors.dim).lineLimit(1).minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 11)
-        .padding(.vertical, 9)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(label): \(value)")
+        DSStat(value: value, label: label, color: color, boxed: true)
     }
 
     @ViewBuilder

@@ -18,13 +18,7 @@ struct ReadinessFactorRow: View {
                 .font(.caption)
                 .foregroundStyle(BrandColors.dim)
             if let points = row.points {
-                GeometryReader { proxy in
-                    Capsule()
-                        .fill(points >= 0 ? BrandColors.ready : BrandColors.attention)
-                        .frame(width: max(4, proxy.size.width * min(abs(points) / TodayConstants.factorBarFullScale, 1)))
-                }
-                .frame(height: 5)
-                .background(BrandColors.track, in: Capsule())
+                DSProgressBar(value: abs(points) / TodayConstants.factorBarFullScale, color: points >= 0 ? BrandColors.ready : BrandColors.attention, height: 5)
             }
         }
         .brandCard()

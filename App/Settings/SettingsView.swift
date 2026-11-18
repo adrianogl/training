@@ -43,12 +43,7 @@ struct SettingsView: View {
     private var groupList: some View {
         List {
             if sizeClass != .regular {
-                VStack(alignment: .leading, spacing: 0) {
-                    CompactLogoHeader()
-                    Text(AppSection.settings.title)
-                        .font(BrandFonts.largeTitle)
-                        .foregroundStyle(BrandColors.text)
-                }
+                DSScreenHeader(title: AppSection.settings.title)
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             }

@@ -107,28 +107,12 @@ struct RaceListView: View {
     private var listScroll: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                CompactLogoHeader()
-                SyncStatusPill()
-                if model?.isStale == true {
-                    RefreshingLabel()
+                DSScreenHeader(title: RacesConstants.title) {
+                    SyncStatusPill()
+                    if model?.isStale == true { RefreshingLabel() }
+                } trailing: {
+                    DSAddButton(label: RacesConstants.addRace) { showsEditor = true }
                 }
-                HStack {
-                    Text(RacesConstants.title)
-                        .font(BrandFonts.largeTitle)
-                        .foregroundStyle(BrandColors.text)
-                    Spacer()
-                    Button {
-                        showsEditor = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(BrandColors.onAccent)
-                            .frame(width: 40, height: 40)
-                            .background(BrandColors.accentFill, in: Circle())
-                    }
-                    .accessibilityLabel(RacesConstants.addRace)
-                }
-                .padding(.bottom, 8)
                 if let model, model.isLoaded, !app.showsSkeleton {
                     content(model)
                 } else if app.showsSkeleton {

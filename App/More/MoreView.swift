@@ -7,11 +7,8 @@ struct MoreView: View {
         NavigationStack(path: $path) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    CompactLogoHeader()
-                    Text(AppSection.more.title)
-                        .font(BrandFonts.largeTitle)
-                        .foregroundStyle(BrandColors.text)
-                        .padding(.bottom, 14)
+                    DSScreenHeader(title: AppSection.more.title)
+                        .padding(.bottom, DSSpacing.s2)
                     VStack(spacing: 0) {
                         ForEach(Array(AppConstants.moreItems.enumerated()), id: \.element) { index, item in
                             if index > 0 { Divider().overlay(BrandColors.line).padding(.leading, MoreConstants.dividerInset) }

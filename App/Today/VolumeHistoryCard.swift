@@ -32,13 +32,7 @@ struct VolumeHistoryCard: View {
     }
 
     private func legendItem(_ text: String, _ color: Color, dashed: Bool) -> some View {
-        HStack(spacing: 4) {
-            Capsule()
-                .fill(dashed ? Color.clear : color)
-                .overlay(dashed ? Capsule().strokeBorder(color, style: StrokeStyle(lineWidth: 1, dash: [2, 2])) : nil)
-                .frame(width: C.legendSwatchWidth, height: C.legendSwatchHeight)
-            Text(text).font(.caption2).foregroundStyle(BrandColors.dim)
-        }
+        DSLegendItem(text: text, color: color, mark: dashed ? .dashed : .line)
     }
 
     private func chart(_ series: VolumeSeries) -> some View {

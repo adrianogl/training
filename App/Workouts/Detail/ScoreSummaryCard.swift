@@ -34,13 +34,7 @@ struct ScoreSummaryCard: View {
                                 .font(.footnote)
                                 .foregroundStyle(BrandColors.dim)
                                 .frame(width: C.scorePartNameWidth, alignment: .leading)
-                            GeometryReader { proxy in
-                                Capsule()
-                                    .fill(color(row))
-                                    .frame(width: max(4, proxy.size.width * row.points / row.maximum))
-                            }
-                            .frame(height: C.scorePartBarHeight)
-                            .background(BrandColors.track, in: Capsule())
+                            DSProgressBar(value: row.points / row.maximum, color: color(row), height: C.scorePartBarHeight)
                             Text(row.pointsText ?? "")
                                 .font(BrandFonts.number(14))
                                 .foregroundStyle(BrandColors.text)

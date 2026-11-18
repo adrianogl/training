@@ -48,7 +48,7 @@ struct InviteSignupView: View {
             Text(String(format: C.inviteSubtitleFormat, preview.expiresAt.formatted(.dateTime.day().month(.twoDigits))))
                 .foregroundStyle(BrandColors.dim)
         }
-        AccountField(label: C.nameLabel, text: $name, content: .name)
+        DSTextField(label: C.nameLabel, text: $name, content: .name)
         if let email = preview.email {
             VStack(alignment: .leading, spacing: 6) {
                 Text(C.emailLabel).font(.footnote).foregroundStyle(BrandColors.dim)
@@ -59,9 +59,9 @@ struct InviteSignupView: View {
                     .background(BrandColors.track, in: RoundedRectangle(cornerRadius: C.cornerRadius))
             }
         }
-        AccountField(label: C.passwordLabel, text: $password, secure: true, content: .newPassword)
+        DSTextField(label: C.passwordLabel, text: $password, secure: true, content: .newPassword)
         Text(C.passwordHint).font(.caption).foregroundStyle(BrandColors.dim)
-        AccountField(label: C.confirmLabel, text: $confirmation, secure: true, content: .newPassword)
+        DSTextField(label: C.confirmLabel, text: $confirmation, secure: true, content: .newPassword)
         AccountMessage(error: localError ?? model.errorMessage, notice: nil)
         AccountPrimaryButton(title: C.create, isWorking: model.isWorking, disabled: name.isEmpty || password.isEmpty || preview.email == nil) {
             submit(email: preview.email ?? "")

@@ -20,11 +20,11 @@ struct SignupView: View {
                     Text(C.legacyNote).font(.footnote).foregroundStyle(BrandColors.accent)
                 }
             }
-            AccountField(label: C.nameLabel, text: $name, content: .name)
-            AccountField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
-            AccountField(label: C.passwordLabel, text: $password, secure: true, content: .newPassword)
+            DSTextField(label: C.nameLabel, text: $name, content: .name)
+            DSTextField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
+            DSTextField(label: C.passwordLabel, text: $password, secure: true, content: .newPassword)
             Text(C.passwordHint).font(.caption).foregroundStyle(BrandColors.dim)
-            AccountField(label: C.confirmLabel, text: $confirmation, secure: true, content: .newPassword)
+            DSTextField(label: C.confirmLabel, text: $confirmation, secure: true, content: .newPassword)
             AccountMessage(error: localError ?? model.errorMessage, notice: nil)
             AccountPrimaryButton(title: C.create, isWorking: model.isWorking, disabled: name.isEmpty || email.isEmpty || password.isEmpty) {
                 submit()

@@ -20,13 +20,9 @@ struct GoalsListCard: View {
             }
             if weeklyGoal > 0 {
                 Button { onOpen(.all) } label: {
-                    HStack {
-                        Text(C.weeklyTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                        Spacer()
+                    DSRow(title: C.weeklyTitle, accessory: .link) {
                         Text(String(format: C.weeklyPerWeekFormat, weeklyGoal)).font(.caption).foregroundStyle(BrandColors.dim)
-                        CardLinkBadge()
                     }
-                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.cardLink)
                 Divider().overlay(BrandColors.line)
@@ -46,17 +42,10 @@ struct GoalsListCard: View {
     }
 
     private func row(_ snapshot: GoalSnapshot) -> some View {
-        HStack(alignment: .center, spacing: 8) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(GoalsText.title(snapshot)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(GoalsText.subtitle(snapshot)).font(.caption).foregroundStyle(BrandColors.dim).monospacedDigit()
-            }
-            Spacer(minLength: 8)
+        DSRow(title: GoalsText.title(snapshot), subtitle: GoalsText.subtitle(snapshot), accessory: .link) {
             if let status = GoalsText.status(snapshot) {
                 GoalStatusChip(status: status)
             }
-            CardLinkBadge()
         }
-        .contentShape(Rectangle())
     }
 }

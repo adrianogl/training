@@ -67,14 +67,7 @@ struct SummaryHeader: View {
     @ViewBuilder
     private func stat(_ value: String?, _ caption: String, color: Color = BrandColors.text) -> some View {
         if let value {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(value)
-                    .font(BrandFonts.number(26))
-                    .foregroundStyle(color)
-                Text(caption)
-                    .font(.caption2)
-                    .foregroundStyle(BrandColors.dim)
-            }
+            DSStat(value: value, label: caption, color: color, size: .large)
         }
     }
 

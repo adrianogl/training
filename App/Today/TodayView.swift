@@ -18,24 +18,12 @@ struct TodayView: View {
             ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    CompactLogoHeader()
-                    Text(Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutConstants.locale)))
-                        .font(.footnote)
-                        .foregroundStyle(BrandColors.dim)
-                    SyncStatusPill()
-                        .padding(.top, 6)
-                    if model?.isStale == true {
-                        RefreshingLabel()
-                            .padding(.top, 6)
+                    DSScreenHeader(title: TodayConstants.todayTitle, subtitle: Date.now.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutConstants.locale))) {
+                        SyncStatusPill()
+                        if model?.isStale == true { RefreshingLabel() }
+                        if let chip = app.remoteSync.chip { RemoteSyncChipView(chip: chip, action: openSettings) }
                     }
-                    if let chip = app.remoteSync.chip {
-                        RemoteSyncChipView(chip: chip, action: openSettings)
-                            .padding(.top, 6)
-                    }
-                    Text(TodayConstants.todayTitle)
-                        .font(BrandFonts.largeTitle)
-                        .foregroundStyle(BrandColors.text)
-                        .padding(.bottom, 14)
+                    .padding(.bottom, DSSpacing.s2)
                     if let storeError = app.storeError {
                         Text("Não abriu o banco local, o app está usando memória: \(storeError)")
                             .font(.footnote)
