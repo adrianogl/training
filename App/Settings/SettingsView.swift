@@ -68,6 +68,7 @@ struct SettingsView: View {
         }
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
+        .task { await model.account.refresh() }
         .navigationTitle(AppSection.settings.title)
         .toolbarTitleDisplayMode(.inline)
         .toolbar(removing: .title)
