@@ -1,5 +1,4 @@
 <fonts>
-    <font id="TimeActive" filename="time_active.fnt" antialias="true" filter="0123456789:"/>
     <font id="TimeAlwaysOn" filename="time_aod.fnt" antialias="true" filter="0123456789:"/>
     <font id="TimeSeconds" filename="time_seconds.fnt" antialias="true" filter="0123456789"/>
 </fonts>

@@ -14,7 +14,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
     private var _scale = 1.0;
     private var _cx = 227;
     private var _fonts = {};
-    private var _timeActive = null;
+    private var _clockDigits = [];
     private var _timeAlwaysOn = null;
     private var _timeSeconds = null;
     private var _background = null;
@@ -39,7 +39,11 @@ class TrainingFaceView extends WatchUi.WatchFace {
             var spec = specs[keys[i]];
             _fonts[keys[i]] = vectorFont(spec[0], s(spec[1]), spec[2]);
         }
-        _timeActive = WatchUi.loadResource(Rez.Fonts.TimeActive);
+        var digits = [Rez.Drawables.Digit0, Rez.Drawables.Digit1, Rez.Drawables.Digit2, Rez.Drawables.Digit3, Rez.Drawables.Digit4,
+            Rez.Drawables.Digit5, Rez.Drawables.Digit6, Rez.Drawables.Digit7, Rez.Drawables.Digit8, Rez.Drawables.Digit9, Rez.Drawables.DigitColon];
+        for (var i = 0; i < digits.size(); i++) {
+            _clockDigits.add(WatchUi.loadResource(digits[i]));
+        }
         _timeAlwaysOn = WatchUi.loadResource(Rez.Fonts.TimeAlwaysOn);
         _timeSeconds = WatchUi.loadResource(Rez.Fonts.TimeSeconds);
         _background = WatchUi.loadResource(Rez.Drawables.Background);
@@ -101,7 +105,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
         var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         drawLogoAndDate(dc, 0, 0, today, Layout.LOGO_TOP, Layout.LOGO_WIDTH, Layout.LOGO_HEIGHT, Layout.DATE_BASELINE, font(:date), Theme.DIM, false);
         drawWeatherAndBattery(dc, s(Layout.WEATHER_BASELINE));
-        drawClock(dc, s(Layout.CLOCK_BASELINE), clock, showSeconds, Theme.TXT, 0, _timeActive);
+        drawOutlineClock(dc, s(Layout.CLOCK_BASELINE), clock, showSeconds);
         drawDividers(dc);
         drawReadiness(dc);
         drawVo2(dc);
@@ -115,7 +119,7 @@ class TrainingFaceView extends WatchUi.WatchFace {
         var dy = s(shift[1]);
         var today = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
         drawLogoAndDate(dc, dx, dy, today, Layout.AOD_LOGO_TOP, Layout.AOD_LOGO_WIDTH, Layout.AOD_LOGO_HEIGHT, Layout.AOD_DATE_BASELINE, font(:aodDate), Theme.AOD_DIM, true);
-        drawClock(dc, s(Layout.AOD_CLOCK_BASELINE) + dy, clock, false, Theme.AOD_TIME, dx, _timeAlwaysOn);
+        drawAlwaysOnClock(dc, s(Layout.AOD_CLOCK_BASELINE) + dy, clock, dx);
         drawEvent(dc, dx, dy, today, Layout.AOD_EVENT_LABEL_BASELINE, Layout.AOD_EVENT_TITLE_BASELINE, Layout.AOD_EVENT_TITLE_MAX, true);
     }
 
@@ -215,14 +219,32 @@ class TrainingFaceView extends WatchUi.WatchFace {
         }
     }
 
-    private function drawClock(dc, baselinePx, clock, showSeconds, color, offsetPx, mainFont) {
-        var main = Format.hoursMinutes(clock);
-        var mainWidth = dc.getTextWidthInPixels(main, mainFont);
-        var left = _cx + offsetPx - mainWidth / 2;
-        drawPx(dc, left, baselinePx, mainFont, main, color, Graphics.TEXT_JUSTIFY_LEFT);
-        if (showSeconds) {
-            drawPx(dc, left + mainWidth + s(Layout.SECONDS_GAP), baselinePx, _timeSeconds, Format.seconds(clock), Theme.LIME, Graphics.TEXT_JUSTIFY_LEFT);
+    private function drawOutlineClock(dc, baselinePx, clock, showSeconds) {
+        var chars = Format.hoursMinutes(clock).toCharArray();
+        var mainWidth = 0;
+        for (var i = 0; i < chars.size(); i++) {
+            mainWidth += clockDigit(chars[i]).getWidth();
         }
+        var x = _cx - mainWidth / 2;
+        var top = baselinePx - ClockDigits.BASELINE;
+        for (var i = 0; i < chars.size(); i++) {
+            var digit = clockDigit(chars[i]);
+            dc.drawBitmap(x, top, digit);
+            x += digit.getWidth();
+        }
+        if (showSeconds) {
+            drawPx(dc, x + s(Layout.SECONDS_GAP), baselinePx, _timeSeconds, Format.seconds(clock), Theme.LIME, Graphics.TEXT_JUSTIFY_LEFT);
+        }
+    }
+
+    private function clockDigit(char) {
+        return _clockDigits[char.toNumber() - '0'.toNumber()];
+    }
+
+    private function drawAlwaysOnClock(dc, baselinePx, clock, offsetPx) {
+        var main = Format.hoursMinutes(clock);
+        var mainWidth = dc.getTextWidthInPixels(main, _timeAlwaysOn);
+        drawPx(dc, _cx + offsetPx - mainWidth / 2, baselinePx, _timeAlwaysOn, main, Theme.AOD_TIME, Graphics.TEXT_JUSTIFY_LEFT);
     }
 
     private function drawDividers(dc) {

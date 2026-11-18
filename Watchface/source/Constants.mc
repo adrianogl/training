@@ -104,6 +104,10 @@ module ReadinessBands {
     const HARD_FROM = 70;
 }
 
+module ClockDigits {
+    const BASELINE = 89;
+}
+
 module Defaults {
     const KM_SCALE_MARGIN = 1.1;
 }

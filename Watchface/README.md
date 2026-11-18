@@ -16,7 +16,7 @@ A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: aba
 
 O app lê o Calendário do iPhone (Ajustes › Sincronização › Relógio › Mostrar a agenda no relógio) e manda até 3 eventos dos próximos 7 dias, sem os de dia inteiro e os cancelados. O mostrador mostra o primeiro que ainda não começou: HOJE com quanto falta, AMANHÃ ou o dia da semana. O título desce de fonte e, se ainda não couber, é cortado na última palavra com reticências.
 
-A hora usa fontes bitmap da Archivo (OFL) em `resources/fonts`, só com os dígitos e os dois pontos: peso 900 vazado na tela ativa e 700 no sempre ligado, para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
+A hora usa a Archivo (OFL), só com os dígitos e os dois pontos. Na tela ativa, peso 900 vazado, cada caractere é um PNG com alpha em `resources/drawables/clock` (`packingFormat="png"`): fonte bitmap customizada sai sem antialias e o contorno fica serrilhado. No sempre ligado, peso 700 em fonte bitmap (`resources/fonts`), para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
 
 ## Prontidão do app
 
