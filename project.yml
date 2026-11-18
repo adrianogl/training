@@ -53,6 +53,18 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    postBuildScripts:
+      - name: Build info
+        basedOnDependencyAnalysis: false
+        script: |
+          PLIST="$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          COMMIT=$(git -C "$SRCROOT" rev-parse --short=8 HEAD 2>/dev/null || echo "")
+          BUILT=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          /usr/libexec/PlistBuddy -c "Delete :TrainingCommit" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Delete :TrainingBuiltAt" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :TrainingCommit string $COMMIT" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :TrainingBuiltAt string $BUILT" "$PLIST"
   TrainingWidgets:
     type: app-extension
     platform: iOS

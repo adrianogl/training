@@ -65,6 +65,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            buildFooter
         }
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
@@ -72,6 +73,20 @@ struct SettingsView: View {
         .navigationTitle(AppSection.settings.title)
         .toolbarTitleDisplayMode(.inline)
         .toolbar(removing: .title)
+    }
+
+    private var buildFooter: some View {
+        let info = AppBuildInfo()
+        return VStack(spacing: 2) {
+            Text(info.versionLine)
+            if let built = info.builtLine() { Text(built) }
+        }
+        .font(.caption)
+        .foregroundStyle(BrandColors.dim)
+        .textSelection(.enabled)
+        .frame(maxWidth: .infinity)
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 12, trailing: 0))
     }
 
     private func groupRow(_ group: SettingsGroup) -> some View {
