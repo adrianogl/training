@@ -45,7 +45,8 @@ struct WorkoutDetailView: View {
             }
         }
         .task(id: activityId) {
-            let loaded = WorkoutDetailModel(activityId: activityId, context: context)
+            let analysis = await WorkoutAnalysisStore.load(activityId: activityId, container: context.container)
+            let loaded = WorkoutDetailModel(activityId: activityId, context: context, analysis: analysis)
             model = loaded
             goalEntries = WorkoutGoalCheck.entries(activityId: activityId, blocks: loaded.blocks, context: context)
             planCheck = await loadPlanCheck()

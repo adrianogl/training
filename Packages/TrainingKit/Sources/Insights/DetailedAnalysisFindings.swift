@@ -247,7 +247,7 @@ private func repetitionsFinding(_ context: DetailedContext) -> DetailedFinding? 
         .filter { $0.intensity == .active && $0.distance > 0 && $0.timerSeconds > 0 }
         .map { $0.timerSeconds / ($0.distance / C.metersPerKilometer) }
     guard paces.count >= C.minimumReps, let spread = standardDeviation(paces) else { return nil }
-    let samples = context.current.record.samplesData.flatMap { try? JSONDecoder().decode([FITSample].self, from: $0) } ?? []
+    let samples = SampleStore.samples(context.current.record)
     let drops = laps.filter { $0.intensity == .recovery }.compactMap { lap -> Double? in
         let rates = samples
             .filter { $0.t >= lap.startOffset && $0.t <= lap.startOffset + lap.timerSeconds }

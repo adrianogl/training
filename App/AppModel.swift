@@ -80,8 +80,9 @@ import TrainingCore
         self.scope = scope
         self.hasLocalData = Self.storeHasData(container: container)
         self.scoreRefresher = ScoreRefresher {
-            await ActivityWeatherStore.refresh(container: container)
-            await ScoreStore.refresh(container: container, ids: nil)
+            await PerformanceTrace.measure("notas") { await ScoreStore.refresh(container: container, ids: nil) }
+            let updated = await PerformanceTrace.measure("clima dos treinos") { await ActivityWeatherStore.refresh(container: container) }
+            if !updated.isEmpty { await PerformanceTrace.measure("notas com clima") { await ScoreStore.refresh(container: container, ids: nil) } }
         }
         self.storeError = storeError
         self.keyStore = keyStore
@@ -312,16 +313,20 @@ import TrainingCore
             do {
                 let report: SyncReport
                 if trigger == .workoutFinished {
-                    report = try await engine.runLight()
+                    report = try await PerformanceTrace.measure("sincronização leve") { try await engine.runLight() }
                 } else {
-                    report = try await engine.run { fraction in
-                        Task { @MainActor in self?.updateProgress(fraction) }
+                    report = try await PerformanceTrace.measure("sincronização") {
+                        try await engine.run { fraction in
+                            Task { @MainActor in self?.updateProgress(fraction) }
+                        }
                     }
                 }
                 let day = Day.today()
-                let summary = await Task.detached(priority: .utility) {
-                    Self.runPostSyncWork(container: container, today: day)
-                }.value
+                let summary = await PerformanceTrace.measure("pós-sincronização") {
+                    await Task.detached(priority: .utility) {
+                        Self.runPostSyncWork(container: container, today: day)
+                    }.value
+                }
                 self?.syncStatus = .finished(.now)
                 self?.trainer.scheduleAutoAdjust()
                 self?.finishedSummary = summary.map { ($0, day) }

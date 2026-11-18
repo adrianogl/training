@@ -153,7 +153,8 @@ enum RaceChecklistExtras {
     }
 
     private static func splits(_ run: ActivityRecord) -> [RaceSplit] {
-        guard let data = run.samplesData, let samples = try? JSONDecoder().decode([FITSample].self, from: data) else { return [] }
+        guard run.samplesData != nil else { return [] }
+        let samples = SampleStore.samples(run)
         return kilometerSplits(samples, zones: nil).enumerated().compactMap { index, block in
             guard block.distance > 0 else { return nil }
             return RaceSplit(index: index, distance: block.distance, pace: block.seconds / (block.distance / C.metersPerKm), planned: nil)

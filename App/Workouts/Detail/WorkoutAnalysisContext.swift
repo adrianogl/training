@@ -8,7 +8,7 @@ import Sync
 import TrainingCore
 import WorkoutAnalysis
 
-struct WorkoutAnalysisContext {
+struct WorkoutAnalysisContext: Codable, Sendable {
     var isRun = false
     var hasPrescription = false
     var structureMissing = false
@@ -37,7 +37,8 @@ struct WorkoutAnalysisContext {
             dailyLoad: dailyLoad(records),
             readinessByDay: readinessByDay(context),
             dailyByDay: DayConditionBuilder.dailyByDay(context),
-            legDays: DayConditionBuilder.legDays()
+            legDays: DayConditionBuilder.legDays(),
+            hotSessions: ActivityRecord.hotSessionCounts(records)
         )
     }
 
@@ -53,7 +54,7 @@ struct WorkoutAnalysisContext {
         analysis.watchZones = watchZones(for: record, fallback: inputs.watchZones)
         analysis.thresholdHeartRate = inputs.thresholdByDay[day(record)]
         let recordSamples = samples(record)
-        let weather = record.weatherEffect(among: records)
+        let weather = record.weatherEffect(hotSessions: inputs.hotSessions)
         let blocks = blocks(record, structure: structure, zones: zones, samples: recordSamples, weather: weather)
         analysis.blocks = blocks
         if analysis.hasPrescription {
@@ -95,19 +96,12 @@ struct WorkoutAnalysisContext {
         return analysis
     }
 
-    static func score(record: ActivityRecord, records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> WorkoutScore? {
-        guard ActivityTypeKey.isRun(record.typeKey) else { return nil }
-        let zones = zones(for: record, inputs: inputs)
-        let blocks = blocks(record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(among: records))
-        return scoreWorkout(blocks: blocks, zones: zones, previous: previousOccurrences(of: record, in: records, inputs: inputs))
-    }
-
     static func comparisonCandidates(of record: ActivityRecord, in records: [ActivityRecord]) -> [ActivityRecord] {
         Array(previous(of: record, in: records).prefix(WorkoutDetailConstants.maxComparisons))
     }
 
     private static func previousOccurrences(of record: ActivityRecord, in records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [WorkoutOccurrence] {
-        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs), records: records) }
+        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs), hotSessions: inputs.hotSessions) }
     }
 
     static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
@@ -116,8 +110,7 @@ struct WorkoutAnalysisContext {
     }
 
     static func samples(_ record: ActivityRecord) -> [FITSample] {
-        guard let data = record.samplesData else { return [] }
-        return (try? JSONDecoder().decode([FITSample].self, from: data)) ?? []
+        SampleStore.samples(record)
     }
 
     private static func blocks(
@@ -127,8 +120,8 @@ struct WorkoutAnalysisContext {
         return adjustForWeather(applyWind(built, samples: samples, weather: record.runWeather), effect: weather)
     }
 
-    private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?, records: [ActivityRecord]) -> WorkoutOccurrence? {
-        let blocks = blocks(record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(among: records))
+    private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?, hotSessions: [Int64: Int]) -> WorkoutOccurrence? {
+        let blocks = blocks(record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(hotSessions: hotSessions))
         guard !blocks.isEmpty else { return nil }
         return WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
     }

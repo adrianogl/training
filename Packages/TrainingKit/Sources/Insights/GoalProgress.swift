@@ -60,7 +60,7 @@ public func longGoalProgress(_ goal: GoalRecord, runs: [ActivityRecord], created
     let pace = goal.paceSecondsPerKm ?? 0
     let checks = runs.compactMap { run -> LongRunCheck? in
         guard let day = run.localDay.flatMap(Day.init(iso:)) else { return nil }
-        let samples = run.samplesData.flatMap { try? JSONDecoder().decode([FITSample].self, from: $0) } ?? []
+        let samples = SampleStore.samples(run)
         guard let continuity = runContinuity(samples) else {
             return LongRunCheck(activityId: run.activityId, day: day, distanceKm: (run.distance ?? 0) / C.metersPerKilometer)
         }

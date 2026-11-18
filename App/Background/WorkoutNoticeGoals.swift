@@ -32,7 +32,7 @@ enum WorkoutNoticeGoals {
     }
 
     private static func continuity(_ record: ActivityRecord) -> RunContinuity? {
-        let samples = record.samplesData.flatMap { try? JSONDecoder().decode([FITSample].self, from: $0) } ?? []
+        let samples = SampleStore.samples(record)
         return runContinuity(samples)
     }
 

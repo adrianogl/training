@@ -34,7 +34,7 @@ enum WorkoutGoalCheck {
     }
 
     static func samples(_ record: ActivityRecord) -> [FITSample] {
-        record.samplesData.flatMap { try? JSONDecoder().decode([FITSample].self, from: $0) } ?? []
+        SampleStore.samples(record)
     }
 
     private static func longEntry(record: ActivityRecord, runs: [ActivityRecord], goal: GoalRecord) -> WorkoutGoalEntry? {

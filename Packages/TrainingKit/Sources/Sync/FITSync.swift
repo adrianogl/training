@@ -63,7 +63,7 @@ extension SyncEngine {
             let encoder = JSONEncoder()
             return .read(
                 summary: summary,
-                samples: try encoder.encode(summary.samples),
+                samples: FITSampleCoding.encode(summary.samples),
                 route: try encoder.encode(summary.route),
                 structure: try encoder.encode(summary.structure)
             )
