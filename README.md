@@ -81,6 +81,17 @@ Em Ajustes > Sincronização entre aparelhos, toque em "Ativar neste aparelho". 
 
 O servidor fica em [`server/`](server/) (Vercel Functions + Neon Postgres). Para rodar o seu, veja [`server/README.md`](server/README.md) e troque `remoteSyncBaseURL` em `App/AppConstants.swift`.
 
+## Versão
+
+O app segue semver, a partir da `v1.0.0`. A versão sobe pelos commits desde a última tag `v*`: `feat` sobe o minor, `fix` e `perf` sobem o patch, `!` no tipo ou `BREAKING CHANGE` no corpo sobem o major. `chore`, `docs`, `refactor` e `test` não geram versão.
+
+```
+scripts/release.sh --dry-run   # mostra a próxima versão e os commits
+scripts/release.sh             # grava MARKETING_VERSION e CURRENT_PROJECT_VERSION no project.yml
+```
+
+Depois: commit `chore(release): vX.Y.Z`, tag `vX.Y.Z` e push com `--tags`. O rodapé de Ajustes mostra a versão, o build, o commit e o horário do build.
+
 ## Privacidade
 
 - Os dados do Garmin vão direto do Garmin para o aparelho e não passam por nenhum servidor nosso.
