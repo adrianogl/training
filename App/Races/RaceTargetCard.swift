@@ -1,9 +1,10 @@
 import SwiftUI
 import WorkoutAnalysis
 
-struct RaceTargetCard: View {
+struct RaceTargetCard<Footer: View>: View {
     let target: RaceTargetData
     var weather: RaceWeatherReading?
+    @ViewBuilder var footer: Footer
 
     private typealias C = RacesConstants
 
@@ -42,7 +43,7 @@ struct RaceTargetCard: View {
             Text([target.distanceText, target.gapText].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption)
                 .foregroundStyle(BrandColors.dim)
-            CardLinkFooter(title: CardLinkConstants.race).padding(.top, 4)
+            footer.padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()

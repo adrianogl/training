@@ -6,37 +6,37 @@ struct EvolutionStrengthGroupsCard: View {
     private typealias C = StrengthConstants
 
     var body: some View {
-        NavigationLink {
-            StrengthVolumeView(model: model)
-        } label: {
-            VStack(alignment: .leading, spacing: 10) {
-                StrengthCardHeader(title: StrengthText.groupsTitle)
-                let totals = model.weekGroupTotals
-                let top = max(totals.first?.sets ?? 1, 1)
-                if totals.isEmpty {
-                    Text(StrengthText.noWeek).font(.footnote).foregroundStyle(BrandColors.dim)
-                }
-                ForEach(totals.prefix(C.evolutionGroupsLimit)) { total in
-                    HStack(spacing: 10) {
-                        Text(StrengthText.groupName(total.group)).font(.footnote).foregroundStyle(BrandColors.text)
-                            .frame(width: 92, alignment: .leading)
-                        GeometryReader { proxy in
-                            Capsule()
-                                .fill(C.heat[max(min(total.level, C.heat.count), 1) - 1])
-                                .frame(width: max(6, proxy.size.width * total.sets / top), height: 8)
-                                .frame(maxHeight: .infinity, alignment: .center)
-                        }
-                        .frame(height: 12)
-                        Text("\(Int(total.sets.rounded()))").font(BrandFonts.number(14)).foregroundStyle(BrandColors.text)
-                            .frame(width: 28, alignment: .trailing)
+        VStack(alignment: .leading, spacing: 10) {
+            StrengthCardHeader(title: StrengthText.groupsTitle)
+            let totals = model.weekGroupTotals
+            let top = max(totals.first?.sets ?? 1, 1)
+            if totals.isEmpty {
+                Text(StrengthText.noWeek).font(.footnote).foregroundStyle(BrandColors.dim)
+            }
+            ForEach(totals.prefix(C.evolutionGroupsLimit)) { total in
+                HStack(spacing: 10) {
+                    Text(StrengthText.groupName(total.group)).font(.footnote).foregroundStyle(BrandColors.text)
+                        .frame(width: 92, alignment: .leading)
+                    GeometryReader { proxy in
+                        Capsule()
+                            .fill(C.heat[max(min(total.level, C.heat.count), 1) - 1])
+                            .frame(width: max(6, proxy.size.width * total.sets / top), height: 8)
+                            .frame(maxHeight: .infinity, alignment: .center)
                     }
+                    .frame(height: 12)
+                    Text("\(Int(total.sets.rounded()))").font(BrandFonts.number(14)).foregroundStyle(BrandColors.text)
+                        .frame(width: 28, alignment: .trailing)
                 }
+            }
+            NavigationLink {
+                StrengthVolumeView(model: model)
+            } label: {
                 CardLinkFooter(title: StrengthText.groupsLink)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .brandCard()
+            .buttonStyle(.cardLink)
         }
-        .buttonStyle(.cardLink)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
     }
 }
 

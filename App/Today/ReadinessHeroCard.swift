@@ -11,87 +11,85 @@ struct ReadinessHeroCard: View {
     private typealias C = TodayConstants
 
     var body: some View {
-        NavigationLink(value: TodayRoute.readiness) {
-            VStack(alignment: .leading, spacing: 14) {
-                if model.summary.readinessMissingNight == true {
-                    banner(C.readinessMissingNight)
-                } else if model.summary.readiness != nil && model.summary.readinessFromYesterday {
-                    banner(C.readinessFromYesterday)
+        VStack(alignment: .leading, spacing: 14) {
+            if model.summary.readinessMissingNight == true {
+                banner(C.readinessMissingNight)
+            } else if model.summary.readiness != nil && model.summary.readinessFromYesterday {
+                banner(C.readinessFromYesterday)
+            }
+            HStack(alignment: .firstTextBaseline) {
+                SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
+                Spacer()
+                if let recovery, recovery.remainingHours > 0 {
+                    Text(String(format: RecoveryConstants.headerFormat, recovery.remainingHours))
+                        .font(.caption)
+                        .foregroundStyle(BrandColors.dim)
                 }
-                HStack(alignment: .firstTextBaseline) {
-                    SectionLabel(C.readinessTitle).padding(.top, 0).padding(.bottom, 0)
-                    Spacer()
-                    if let recovery, recovery.remainingHours > 0 {
-                        Text(String(format: RecoveryConstants.headerFormat, recovery.remainingHours))
+            }
+            if model.summary.readinessMissingNight == true {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(C.readinessMissingNightNote)
+                        .font(.subheadline)
+                        .foregroundStyle(BrandColors.text.opacity(0.85))
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let score = model.summary.readiness?.score {
+                        Text(String(format: C.readinessYesterdayReferenceFormat, score))
                             .font(.caption)
                             .foregroundStyle(BrandColors.dim)
                     }
                 }
-                if model.summary.readinessMissingNight == true {
+            } else if let breakdown = model.summary.readiness {
+                HStack(alignment: .center, spacing: 18) {
+                    ScoreGauge(score: breakdown.score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(C.readinessMissingNightNote)
-                            .font(.subheadline)
-                            .foregroundStyle(BrandColors.text.opacity(0.85))
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let score = model.summary.readiness?.score {
-                            Text(String(format: C.readinessYesterdayReferenceFormat, score))
-                                .font(.caption)
-                                .foregroundStyle(BrandColors.dim)
-                        }
-                    }
-                } else if let breakdown = model.summary.readiness {
-                    HStack(alignment: .center, spacing: 18) {
-                        ScoreGauge(score: breakdown.score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(model.summary.verdict.flatMap { C.verdictPhrases[$0] } ?? "")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(BrandColors.text)
-                            let sentence = [model.readinessSentence, legDay.map(StrengthText.legSentence)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
-                            if !sentence.isEmpty {
-                                Text(sentence)
-                                    .font(.subheadline)
-                                    .foregroundStyle(BrandColors.text.opacity(0.85))
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                    ReadinessDrivers(rows: model.factorRows)
-                    if let legDay { StrengthLegFactorRow(leg: legDay) }
-                } else if let score = model.fallbackScore {
-                    HStack(alignment: .center, spacing: 18) {
-                        ScoreGauge(score: score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(C.verdictPhrases[readinessVerdict(score: score)] ?? "")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(BrandColors.text)
-                            Text(C.garminReadinessNote)
+                        Text(model.summary.verdict.flatMap { C.verdictPhrases[$0] } ?? "")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(BrandColors.text)
+                        let sentence = [model.readinessSentence, legDay.map(StrengthText.legSentence)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
+                        if !sentence.isEmpty {
+                            Text(sentence)
                                 .font(.subheadline)
-                                .foregroundStyle(BrandColors.dim)
+                                .foregroundStyle(BrandColors.text.opacity(0.85))
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                } else {
-                    Text(C.readinessEmpty)
-                        .font(.subheadline)
-                        .foregroundStyle(BrandColors.dim)
                 }
-                if let stress = model.summary.supporting.stress {
-                    Text(String(format: C.stressContextFormat, stress))
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
+                ReadinessDrivers(rows: model.factorRows)
+                if let legDay { StrengthLegFactorRow(leg: legDay) }
+            } else if let score = model.fallbackScore {
+                HStack(alignment: .center, spacing: 18) {
+                    ScoreGauge(score: score, size: sizeClass == .regular ? C.heroGaugeSize : C.compactGaugeSize)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(C.verdictPhrases[readinessVerdict(score: score)] ?? "")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(BrandColors.text)
+                        Text(C.garminReadinessNote)
+                            .font(.subheadline)
+                            .foregroundStyle(BrandColors.dim)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                if let overload {
-                    ReadinessOverloadLine(alert: overload)
-                }
-                if let recovery {
-                    ReadinessRecoveryStrip(estimate: recovery)
-                }
-                Spacer(minLength: 0)
-                CardLinkFooter(title: CardLinkConstants.details)
+            } else {
+                Text(C.readinessEmpty)
+                    .font(.subheadline)
+                    .foregroundStyle(BrandColors.dim)
             }
-            .brandCard(fillsHeight: true)
+            if let stress = model.summary.supporting.stress {
+                Text(String(format: C.stressContextFormat, stress))
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.dim)
+            }
+            if let overload {
+                ReadinessOverloadLine(alert: overload)
+            }
+            if let recovery {
+                ReadinessRecoveryStrip(estimate: recovery)
+            }
+            Spacer(minLength: 0)
+            NavigationLink(value: TodayRoute.readiness) { CardLinkFooter(title: CardLinkConstants.details) }
+                .buttonStyle(.cardLink)
         }
-        .buttonStyle(.cardLink)
+        .brandCard(fillsHeight: true)
     }
 
     private func banner(_ text: String) -> some View {

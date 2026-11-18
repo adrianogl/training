@@ -10,42 +10,40 @@ struct LastRunCard: View {
     private typealias L = LastRunConstants
 
     var body: some View {
-        NavigationLink(value: TodayRoute.workout(lastRun.activityId)) {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
-                titleRow
-                if let plannedKm, plannedKm > 0, let km = lastRun.kilometers { planBar(km: km, planned: plannedKm) }
-                stats
-                if let splits = lastRun.splits, splits.count > 1 { paceChart(splits) }
-                if let shares = lastRun.zoneShares, shares.contains(where: { $0 > 0 }) { zones(shares) }
-                if let similar = lastRun.similar, !similar.isEmpty { recent(similar) }
-                if let reading = lastRun.reading {
-                    Text(reading).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
-                } else if let evolution = lastRun.evolution {
-                    Text(evolution)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(BrandColors.accent)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(BrandColors.accentFill.opacity(0.16), in: Capsule())
-                    if lastRun.evolutionOnDevice {
-                        OnDeviceCaption()
-                    }
-                } else if lastRun.similar != nil {
-                    Text(String(format: L.noSimilarFormat, lastRun.kind.flatMap { L.kindNames[$0] } ?? "")).font(.caption).foregroundStyle(BrandColors.dim)
-                } else {
-                    Text(C.lastRunNoComparison).font(.caption).foregroundStyle(BrandColors.dim)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
+            titleRow
+            if let plannedKm, plannedKm > 0, let km = lastRun.kilometers { planBar(km: km, planned: plannedKm) }
+            stats
+            if let splits = lastRun.splits, splits.count > 1 { paceChart(splits) }
+            if let shares = lastRun.zoneShares, shares.contains(where: { $0 > 0 }) { zones(shares) }
+            if let similar = lastRun.similar, !similar.isEmpty { recent(similar) }
+            if let reading = lastRun.reading {
+                Text(reading).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+            } else if let evolution = lastRun.evolution {
+                Text(evolution)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(BrandColors.accent)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(BrandColors.accentFill.opacity(0.16), in: Capsule())
+                if lastRun.evolutionOnDevice {
+                    OnDeviceCaption()
                 }
-                if let notice = lastRun.notice {
-                    Text(notice).font(.caption).foregroundStyle(BrandColors.attention)
-                }
-                Spacer(minLength: 0)
-                CardLinkFooter(title: CardLinkConstants.analysis)
+            } else if lastRun.similar != nil {
+                Text(String(format: L.noSimilarFormat, lastRun.kind.flatMap { L.kindNames[$0] } ?? "")).font(.caption).foregroundStyle(BrandColors.dim)
+            } else {
+                Text(C.lastRunNoComparison).font(.caption).foregroundStyle(BrandColors.dim)
             }
-            .brandCard(fillsHeight: true)
-            .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
+            if let notice = lastRun.notice {
+                Text(notice).font(.caption).foregroundStyle(BrandColors.attention)
+            }
+            Spacer(minLength: 0)
+            NavigationLink(value: TodayRoute.workout(lastRun.activityId)) { CardLinkFooter(title: CardLinkConstants.analysis) }
+                .buttonStyle(.cardLink)
         }
-        .buttonStyle(.cardLink)
+        .brandCard(fillsHeight: true)
+        .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
     }
 
     private var titleRow: some View {

@@ -13,6 +13,7 @@ struct CardLinkFooter: View {
             }
             .foregroundStyle(BrandColors.accent)
         }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title)
         .accessibilityAddTraits(.isLink)
