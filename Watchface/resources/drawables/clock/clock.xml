@@ -1,0 +1,13 @@
+<drawables>
+    <bitmap id="Digit0" filename="digit_0.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit1" filename="digit_1.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit2" filename="digit_2.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit3" filename="digit_3.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit4" filename="digit_4.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit5" filename="digit_5.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit6" filename="digit_6.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit7" filename="digit_7.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit8" filename="digit_8.png" dithering="none" packingFormat="png"/>
+    <bitmap id="Digit9" filename="digit_9.png" dithering="none" packingFormat="png"/>
+    <bitmap id="DigitColon" filename="digit_colon.png" dithering="none" packingFormat="png"/>
+</drawables>

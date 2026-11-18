@@ -45,7 +45,7 @@ struct WorkoutListView: View {
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
         let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
         let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))
-        let trainerStrength = model.mfitAccount.isSignedIn ? [] : model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays)
+        let trainerStrength = model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays)
         let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned + trainerStrength.map(\.workout), doneStrengthDays: doneDays, filter: kindFilter)
         Group {
             if isSplit {
@@ -107,7 +107,7 @@ struct WorkoutListView: View {
     }
 
     private func trainerStrength(_ id: Int64) -> TrainerPlannedStrength? {
-        guard id < 0, !model.mfitAccount.isSignedIn else { return nil }
+        guard id < 0 else { return nil }
         return model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays).first { $0.workout.id == id }
     }
 
