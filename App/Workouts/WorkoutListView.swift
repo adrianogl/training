@@ -190,9 +190,7 @@ struct WorkoutListView: View {
                             Text(String(format: WorkoutConstants.plannedHeaderFormat, WorkoutConstants.plannedTitle, plannedItems.count))
                                 .font(.caption)
                                 .foregroundStyle(BrandColors.dim)
-                            Image(systemName: showsPlanned ? "chevron.up" : "chevron.down")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(BrandColors.dim)
+                            CardDisclosure(expanded: showsPlanned)
                             Spacer()
                         }
                         .contentShape(Rectangle())
@@ -298,10 +296,10 @@ struct WorkoutListView: View {
     private func link<Label: View>(_ item: WorkoutSelection, @ViewBuilder label: () -> Label) -> some View {
         if isSplit {
             Button { selection = item } label: { label() }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
         } else {
             NavigationLink(value: item) { label() }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
         }
     }
 

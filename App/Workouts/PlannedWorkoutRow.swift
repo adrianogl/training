@@ -36,6 +36,7 @@ struct PlannedWorkoutRow: View {
                             .foregroundStyle(BrandColors.text)
                     }
                 }
+                CardLinkBadge()
             }
             PlannedShape(steps: plan.steps).frame(height: 14)
         }

@@ -12,11 +12,7 @@ struct LastRunCard: View {
     var body: some View {
         NavigationLink(value: TodayRoute.workout(lastRun.activityId)) {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline) {
-                    SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
-                    Spacer()
-                    Text(L.viewAnalysis).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
-                }
+                SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
                 titleRow
                 if let plannedKm, plannedKm > 0, let km = lastRun.kilometers { planBar(km: km, planned: plannedKm) }
                 stats
@@ -43,11 +39,13 @@ struct LastRunCard: View {
                 if let notice = lastRun.notice {
                     Text(notice).font(.caption).foregroundStyle(BrandColors.attention)
                 }
+                Spacer(minLength: 0)
+                CardLinkFooter(title: CardLinkConstants.analysis)
             }
             .brandCard(fillsHeight: true)
             .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 
     private var titleRow: some View {

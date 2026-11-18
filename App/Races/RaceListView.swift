@@ -176,10 +176,10 @@ struct RaceListView: View {
                         }
                     }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.cardLink)
         } else {
             NavigationLink(value: route) { label() }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
         }
     }
 
@@ -282,6 +282,7 @@ private struct RaceRow: View {
                     Text(result).font(BrandFonts.number(15)).foregroundStyle(BrandColors.dim)
                 }
             }
+            CardLinkBadge()
         }
         .brandCard()
         .contentShape(Rectangle())

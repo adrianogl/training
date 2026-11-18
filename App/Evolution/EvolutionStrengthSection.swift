@@ -10,7 +10,7 @@ struct EvolutionStrengthGroupsCard: View {
             StrengthVolumeView(model: model)
         } label: {
             VStack(alignment: .leading, spacing: 10) {
-                StrengthCardHeader(title: StrengthText.groupsTitle, link: StrengthText.groupsLink)
+                StrengthCardHeader(title: StrengthText.groupsTitle)
                 let totals = model.weekGroupTotals
                 let top = max(totals.first?.sets ?? 1, 1)
                 if totals.isEmpty {
@@ -31,11 +31,12 @@ struct EvolutionStrengthGroupsCard: View {
                             .frame(width: 28, alignment: .trailing)
                     }
                 }
+                CardLinkFooter(title: StrengthText.groupsLink)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .brandCard()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 }
 

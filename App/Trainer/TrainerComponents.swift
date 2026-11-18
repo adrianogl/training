@@ -85,6 +85,7 @@ struct TrainerDayRowView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(TrainerConstants.color(for: status.tone))
             }
+            CardLinkBadge()
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)

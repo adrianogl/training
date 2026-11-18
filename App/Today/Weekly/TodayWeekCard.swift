@@ -15,11 +15,7 @@ struct TodayWeekCard: View {
     var body: some View {
         NavigationLink(value: TodayRoute.week) {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .firstTextBaseline) {
-                    SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
-                    Spacer()
-                    Text(C.viewDetails).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
-                }
+                SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
                 HStack(alignment: .firstTextBaseline) {
                     Text(bigText).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
                     Spacer()
@@ -43,11 +39,12 @@ struct TodayWeekCard: View {
                     sparkline
                 }
                 Text(footer).font(.caption).foregroundStyle(BrandColors.dim)
+                CardLinkFooter(title: CardLinkConstants.week)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .brandCard()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 
     private var title: String {

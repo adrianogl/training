@@ -177,12 +177,12 @@ struct TrainerStrengthView: View {
                         }
                         Spacer(minLength: 6)
                         if model.isClaudeDay(entry.day) { ClaudeSourceChip() }
-                        Image(systemName: "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                        CardLinkBadge()
                     }
                     .padding(.vertical, 6)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
             }
         }
         .brandCard()
@@ -248,7 +248,7 @@ struct TrainerStrengthView: View {
             Spacer(minLength: 6)
             TrainerStrengthSourceChip(source: session.source)
             if session.source == .trainer {
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                CardLinkBadge()
             }
         }
         .padding(.vertical, 6)

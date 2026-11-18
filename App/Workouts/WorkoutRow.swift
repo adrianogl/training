@@ -19,6 +19,7 @@ struct WorkoutRow: View {
                 if let score = row.score {
                     ScoreInline(value: score)
                 }
+                CardLinkBadge()
             }
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(row.title)

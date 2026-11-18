@@ -33,6 +33,7 @@ struct StrengthPlannedRow: View {
             Text(String(format: WorkoutConstants.strengthSetsFormat, workout.totalSets))
                 .font(BrandFonts.number(20))
                 .foregroundStyle(BrandColors.dim)
+            CardLinkBadge()
         }
         .padding(BrandConstants.cardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)

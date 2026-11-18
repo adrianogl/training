@@ -29,7 +29,7 @@ struct MetricGroupCard: View {
                 .brandCard(fillsHeight: !featured)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
         .frame(maxWidth: .infinity)
     }
 
@@ -39,10 +39,14 @@ struct MetricGroupCard: View {
         let change = card.flatMap { EvolutionText.change(kind: kind, stats: $0.stats) }
         let monthly = kind == .monthlyVolume ? card?.monthly ?? [] : []
         VStack(alignment: .leading, spacing: 8) {
-            Text(C.metricNames[kind] ?? "")
-                .font(featured ? .subheadline.weight(.semibold) : .footnote)
-                .foregroundStyle(BrandColors.text)
-                .lineLimit(2)
+            HStack(alignment: .top, spacing: 6) {
+                Text(C.metricNames[kind] ?? "")
+                    .font(featured ? .subheadline.weight(.semibold) : .footnote)
+                    .foregroundStyle(BrandColors.text)
+                    .lineLimit(2)
+                Spacer(minLength: 0)
+                CardLinkBadge()
+            }
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(EvolutionText.value(card?.stats.current, C.metricFormats[kind]))
                     .font(BrandFonts.number(featured ? 24 : 16))
