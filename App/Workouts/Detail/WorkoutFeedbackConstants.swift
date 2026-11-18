@@ -61,7 +61,7 @@ enum WorkoutFeedbackConstants {
     static let goodsLead = "O que foi bem: "
 
     static let nextTips: [FindingKind: String] = [
-        .zoneAboveTarget: "Trote mais leve nas recuperações, para a FC baixar antes do próximo bloco.",
+        .zoneAboveTarget: "Aqueça e solte mais devagar, para o bloco leve ficar em zona baixa.",
         .cardiacDrift: "Hidrate antes e durante, e comece mais leve em dias quentes.",
         .paceFade: "Comece os blocos alguns segundos por km mais lento para segurar o ritmo até o fim.",
         .hardOnLowReadiness: "Em dia de prontidão baixa, troque o treino forte por um leve.",

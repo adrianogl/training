@@ -257,7 +257,7 @@ private func pauseFacts(_ continuity: RunContinuity?) -> [String: Double] {
 
 private func zoneAboveTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
     blocks.enumerated().compactMap { position, block in
-        guard block.kind != .active, let zone = block.dominantZone, zone >= AnalysisConstants.easyBlockZoneLimit else { return nil }
+        guard block.kind == .warmup || block.kind == .cooldown, let zone = block.dominantZone, zone >= AnalysisConstants.easyBlockZoneLimit else { return nil }
         var facts = [FindingFact.zone: Double(zone)]
         facts[FindingFact.speed] = block.avgSpeed
         facts[FindingFact.heartRate] = block.avgHeartRate.map(Double.init)
