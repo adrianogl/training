@@ -23,6 +23,11 @@ enum TrainerEngineConstants {
     static let vo2BelowThreshold = 15.0
     static let thresholdBelowEasy = 60.0
     static let fallbackEasyPace = 360.0
+    static let riegelExponent = 1.06
+    static let recentRaceFiveK = 5000.0
+    static let recentRaceThresholdMeters = 15000.0
+    static let recentRaceEasyFactor = 1.27
+    static let recentRaceVo2BelowFiveK = 5.0
     static let thresholdPredictionMeters = 10_000.0
     static let vo2PredictionMeters = 5_000.0
     static let fallbackWeeklyMeters = 15_000.0

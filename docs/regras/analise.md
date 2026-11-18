@@ -231,3 +231,27 @@ Arquivos: `Insights/Strength*.swift`. Testes: `InsightsTests/StrengthTests.swift
 - Nível da sessão: 5 e 10 séries por grupo. Nível da semana: 7 e 15.
 - Dia de pernas: pelo menos 50% das séries em pernas.
 - Aviso quando limiar, VO2 ou longão cai no dia seguinte a um dia de pernas.
+
+## Apple Watch e métricas por relógio
+
+Arquivos: `HealthImport/*`, `App/Health/HealthKitReader.swift`, `App/Device/*`. Testes: `HealthImportTests/*`.
+
+A conta escolhe o relógio (Garmin ou Apple Watch) no primeiro acesso ou em Ajustes › Relógio. Com Apple Watch, o sync lê do Apple Saúde neste iPhone, pelo mesmo caminho do Garmin; nada do Apple Saúde vai ao servidor.
+
+| Regra | Valor | Constante |
+| --- | --- | --- |
+| Treinos lidos | corrida, caminhada e força (outros ficam de fora) | `HealthWorkoutKind` |
+| Amostras do treino | a cada 5 s: FC, distância, velocidade, cadência, contato com o solo, rota e altitude | `sampleStep` |
+| Voltas | segmentos do treino; sem segmentos, as voltas | `HealthKitReader.laps` |
+| HRV da noite | média do SDNN entre 18h e 11h | `nightStartHour`, `nightEndHour` |
+| Faixa de HRV própria | 60 noites anteriores, a partir de 14 noites; baixa abaixo de média − 1,5 DP; equilibrada de média − 0,5 DP a média + 1 DP | `hrvBaselineDays`, `hrvMinimumNights` |
+| Nota de sono | até 70 pela duração (8 h = 70) + até 30 pela parte profunda + REM (40% = 30) | `sleepDurationPoints`, `sleepStagePoints` |
+| Carga do treino | TRIMP: minutos × reserva de FC × 0,64 × e^(1,92 × reserva) | `trimpFactor`, `trimpExponent` |
+| FC máxima e de repouso | maior FC dos treinos do último ano; mediana da FC de repouso de 30 dias | `restingWindowDays` |
+| Zonas | 50, 60, 70, 80 e 90% da FC máxima | `zoneFloors` |
+| Body Battery | não existe; a prontidão redistribui o peso entre HRV, sono e carga | `readiness` |
+
+Nas primeiras 14 noites, a prontidão usa sono e carga, e Hoje avisa "Primeiras semanas".
+
+**Métricas por relógio:** o app só mostra o que chegou. Tile ou grupo de Evolução sem valor no período some; número solto sem valor (`DSStat`) some em vez de mostrar "—"; Ajustes esconde Garmin e Mostrador para quem usa Apple Watch.
+

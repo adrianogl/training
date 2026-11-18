@@ -1,13 +1,13 @@
 import SwiftUI
 
 enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
-    case account, invites, garmin, mfit, strava, watch, claude, notice, appearance, data, licenses
+    case account, invites, device, garmin, mfit, strava, watch, claude, notice, appearance, data, licenses
 
     var id: String { rawValue }
 
     var section: SettingsSection {
         switch self {
-        case .account, .invites, .garmin, .mfit, .strava, .watch, .claude: .connections
+        case .account, .invites, .device, .garmin, .mfit, .strava, .watch, .claude: .connections
         case .notice: .notices
         case .appearance, .data, .licenses: .app
         }
@@ -17,10 +17,11 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         switch self {
         case .account: "Conta"
         case .invites: InvitesConstants.title
+        case .device: WatchKindConstants.settingsTitle
         case .garmin: "Garmin"
         case .mfit: "MFIT"
         case .strava: "Strava"
-        case .watch: "Relógio"
+        case .watch: "Mostrador"
         case .claude: "Claude"
         case .notice: "Avisos"
         case .appearance: "Aparência"
@@ -33,10 +34,11 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         switch self {
         case .account: "person.crop.circle.fill"
         case .invites: "envelope.open.fill"
+        case .device: "applewatch.side.right"
         case .garmin: "triangle.fill"
         case .mfit: "dumbbell.fill"
         case .strava: "figure.run"
-        case .watch: "applewatch"
+        case .watch: "clock.fill"
         case .claude: "sparkles"
         case .notice: "bell.fill"
         case .appearance: "circle.lefthalf.filled"
@@ -49,6 +51,7 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
         switch self {
         case .account: Color(hex: 0x4E6A00)
         case .invites: Color(hex: 0x6B7F2A)
+        case .device: Color(hex: 0x3F4652)
         case .garmin: Color(hex: 0x1F7AE0)
         case .mfit: Color(hex: 0xE5484D)
         case .strava: Color(hex: 0xFC4C02)

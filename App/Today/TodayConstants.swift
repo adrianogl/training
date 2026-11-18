@@ -4,6 +4,8 @@ import Foundation
 import Metrics
 
 enum TodayConstants {
+    static let appleBaselineTitle = "Primeiras semanas"
+    static let appleBaselineText = "O HRV entra na prontidão depois de 14 noites com o Apple Watch. Até lá, a nota usa sono, FC de repouso e carga."
     static let logger = Logger(subsystem: "trAIning", category: "Today")
     static let moderateThreshold = 40
     static let hardThreshold = 70

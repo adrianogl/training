@@ -29,6 +29,19 @@ Constantes: `Packages/TrainingKit/Sources/Insights/TrainerEngine*Constants.swift
 | Rodagem sem histórico | 6:00/km | `fallbackEasyPace` |
 | Mudança mínima para atualizar ritmo | 2 s/km | `paceChangeSeconds` |
 
+### Sem corridas no histórico
+
+Quando a pessoa não tem nenhuma rodagem nos 90 dias, o plano novo pede um tempo recente (5 km, 10 km ou 21 km) e calcula os ritmos pela fórmula de Riegel (expoente 1,06). Os ritmos entram como ajuste manual do plano; depois o treinador recalcula pelas corridas.
+
+| Ritmo | Regra | Constante |
+| --- | --- | --- |
+| VO2 | pace previsto para 5 km − 5 s/km | `recentRaceVo2BelowFiveK` |
+| Limiar | pace previsto para 15 km | `recentRaceThresholdMeters` |
+| Rodagem | pace previsto para 5 km × 1,27 | `recentRaceEasyFactor` |
+| Longão | rodagem − 5 s/km | `longBelowEasy` |
+
+Arquivos: `Insights/TrainerEngineRecentRace.swift`, `App/Trainer/TrainerRecentRaceCard.swift`. Testes: `InsightsTests/TrainerRecentRaceTests.swift`.
+
 ## Tempo estimado
 
 Treino de corrida prescrito e ainda não feito mostra o tempo mínimo e o máximo: na semana e no dia do treinador, no card do Hoje, na lista de Treinos e no detalhe do treino do Garmin. Treino feito mostra o tempo real.
@@ -194,6 +207,15 @@ Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: 
 - **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.
 - **Falhas:** se apagar no Garmin falhar (exceto "não encontrado"), o registro fica e o treino novo daquele dia não é criado, para não sobrar treino duplicado. Se o agendamento falhar, o treino recém-criado é apagado. Só um envio roda por vez, e ele não é cancelado ao sair da tela.
 - **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.
+
+## Envio ao Apple Watch
+
+Arquivos: `App/Trainer/Send/AppleWorkoutBuilder.swift`. Testes: `AppTests/AppleWorkoutBuilderTests.swift`.
+
+- **Quando:** a conta usa Apple Watch (Ajustes › Relógio). Os treinos vão pelo WorkoutKit e aparecem no app Exercício, em Treinos personalizados, às 6h do dia.
+- **Corrida:** sempre do treinador (não há assessoria no Apple Watch). Aquecimento e desaquecimento por distância; cada bloco vira um intervalo com alerta de faixa de velocidade (o pace mais lento e o mais rápido do bloco); repetições viram um bloco com o número de voltas; descanso parado por tempo.
+- **Força:** treino de força com meta de tempo. Tempo = soma de séries × (tempo do exercício ou 4 s por repetição + descanso), arredondado para cima em minutos. Os exercícios ficam no app do iPhone.
+- **Status, substituição e remoção:** os mesmos do Garmin, usando o id do plano agendado. Sem envio automático.
 
 ## Força nos avisos
 

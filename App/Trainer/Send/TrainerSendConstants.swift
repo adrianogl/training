@@ -2,6 +2,8 @@ import Foundation
 import Insights
 
 enum TrainerSendConstants {
+    static let secondsPerRep = 4
+    static let scheduledHour = 6
     static let recordsKey = "trainerSendRecords"
     static let settingsKey = "trainerSendSettings"
     static let windowDays = 7

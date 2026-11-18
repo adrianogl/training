@@ -40,7 +40,7 @@ struct TrainerStrengthView: View {
                 if model.plan == nil {
                     upcomingCard
                     Button { showsSend = true } label: {
-                        Label(TrainerSendText.openButton, systemImage: "applewatch")
+                        Label(app.watchKind == .appleWatch ? TrainerSendText.appleOpenButton : TrainerSendText.openButton, systemImage: "applewatch")
                     }
                     .buttonStyle(.ds(.primary))
                     Text(TrainerStrengthText.noPlanNote).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)

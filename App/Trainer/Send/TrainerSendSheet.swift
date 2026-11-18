@@ -21,7 +21,9 @@ struct TrainerSendSheet: View {
     }
 
     var body: some View {
-        let items = app.trainer.sendItems(filter, settings: settings)
+        let isApple = app.watchKind == .appleWatch
+        let effective = TrainerSendSettings(runFromTrainer: isApple || settings.runFromTrainer, auto: settings.auto)
+        let items = app.trainer.sendItems(filter, settings: effective)
         let records = store.records()
         let stale = app.trainer.staleSends(filter, items: items, store: store)
         let pending = items.filter { !excluded.contains($0.key) && TrainerSendBuilder.status($0, records: records) != .current }
@@ -32,7 +34,7 @@ struct TrainerSendSheet: View {
                         ForEach(TrainerSendFilter.allCases) { Text(TrainerSendText.filterName($0)).tag($0) }
                     }
                     .pickerStyle(.segmented)
-                    if filter != .strength, !settings.runFromTrainer {
+                    if filter != .strength, !effective.runFromTrainer {
                         Text(TrainerSendText.runFromAdvisory).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
                     VStack(alignment: .leading, spacing: 0) {
@@ -49,17 +51,17 @@ struct TrainerSendSheet: View {
                     if !stale.isEmpty {
                         Text(String(format: TrainerSendText.removedFormat, stale.count)).font(.footnote).foregroundStyle(BrandColors.attention)
                     }
-                    Text(app.garminAccount.client == nil ? TrainerSendText.needsLogin : TrainerSendText.onlyApp)
+                    Text(isApple ? TrainerSendText.appleOnlyApp : app.garminAccount.client == nil ? TrainerSendText.needsLogin : TrainerSendText.onlyApp)
                         .font(.caption).foregroundStyle(BrandColors.dim)
                     Button(buttonTitle(pending.count + stale.count)) {
                         send(pending, stale: stale)
                     }
                     .buttonStyle(.ds(.primary))
-                    .disabled(sending || app.trainer.isSendingToGarmin || app.garminAccount.client == nil || pending.count + stale.count == 0)
+                    .disabled(sending || app.trainer.isSendingToGarmin || (!isApple && app.garminAccount.client == nil) || pending.count + stale.count == 0)
                     if let message {
                         Text(message).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
                     }
-                    settingsCard
+                    if app.watchKind != .appleWatch { settingsCard }
                 }
                 .id(revision)
                 .padding(.horizontal, BrandConstants.screenPadding)
@@ -67,7 +69,7 @@ struct TrainerSendSheet: View {
                 .padding(.bottom, 24)
             }
             .background(BrandBackground())
-            .navigationTitle(TrainerSendText.title)
+            .navigationTitle(isApple ? TrainerSendText.appleTitle : TrainerSendText.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button(TrainerSendText.close) { dismiss() } }
@@ -89,7 +91,7 @@ struct TrainerSendSheet: View {
                         .font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
                 }
                 Spacer(minLength: 6)
-                Text(TrainerSendText.status(status))
+                Text(status == .current && app.watchKind == .appleWatch ? TrainerSendText.appleStatusCurrent : TrainerSendText.status(status))
                     .font(.caption.weight(.bold))
                     .foregroundStyle(status == .current ? BrandColors.accent : status == .changed ? BrandColors.attention : BrandColors.fitness)
             }
@@ -123,14 +125,24 @@ struct TrainerSendSheet: View {
 
     private func buttonTitle(_ count: Int) -> String {
         if sending { return TrainerSendText.sending }
-        return count == 0 ? TrainerSendText.upToDate : String(format: TrainerSendText.sendFormat, count)
+        let done = app.watchKind == .appleWatch ? TrainerSendText.appleUpToDate : TrainerSendText.upToDate
+        return count == 0 ? done : String(format: TrainerSendText.sendFormat, count)
     }
 
     private func send(_ items: [TrainerSendItem], stale: [(key: String, record: TrainerSentRecord)]) {
-        guard let client = app.garminAccount.client else { return }
+        let client = app.garminAccount.client
+        guard app.watchKind == .appleWatch || client != nil else { return }
         sending = true
         Task {
-            guard let result = await app.trainer.sendToGarmin(items, stale: stale, client: client) else {
+            let outcome: TrainerSendResult?
+            if app.watchKind == .appleWatch {
+                outcome = await app.trainer.sendToAppleWatch(items, stale: stale)
+            } else if let client {
+                outcome = await app.trainer.sendToGarmin(items, stale: stale, client: client)
+            } else {
+                outcome = nil
+            }
+            guard let result = outcome else {
                 sending = false
                 return
             }

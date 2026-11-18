@@ -24,6 +24,9 @@ struct RootView: View {
             }
         }
         .onAppear(perform: applyRestoration)
+        .fullScreenCover(isPresented: Binding(get: { model.watchKind == nil }, set: { _ in })) {
+            WatchChoiceView { model.chooseWatch($0) }
+        }
         .onChange(of: section) { _, value in sectionRaw = value.rawValue }
         .onChange(of: sidebarSelection) { _, value in sidebarRaw = (value ?? .today).rawValue }
         .onChange(of: todayPath) { _, value in todayPathData = NavigationRestoration.encode(value) }

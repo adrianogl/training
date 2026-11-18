@@ -52,6 +52,9 @@ struct TrainerNewPlanView: View {
                         TrainerEditPreviewCard(lines: TrainerText.previewLines(preview))
                     } else {
                         lightWeeksCard
+                        if model.previewPaces().easyRuns == 0 {
+                            TrainerRecentRaceCard(overrides: $paceOverrides)
+                        }
                         pacesCard
                     }
                     Button { create() } label: {
@@ -308,7 +311,7 @@ struct TrainerNewPlanView: View {
     }
 
     private var pacesCard: some View {
-        let paces = model.previewPaces()
+        let paces = TrainerEngine.previewing(model.previewPaces(), overrides: paceOverrides)
         return VStack(alignment: .leading, spacing: 8) {
             DSCardLabel(TrainerText.pacesTitle)
             HStack(spacing: 8) {
@@ -364,7 +367,8 @@ struct TrainerNewPlanView: View {
                 target: target, structure: structure, strength: strength,
                 startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
                 peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer,
-                lightWeeks: lightWeeks.sorted(), longMode: longMode, dayPreference: dayPreference
+                lightWeeks: lightWeeks.sorted(), longMode: longMode, dayPreference: dayPreference,
+                paceOverrides: paceOverrides
             )
             dismiss()
         }

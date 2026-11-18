@@ -40,6 +40,13 @@ extension TrainerModel {
         return await TrainerSender.send(items, stale: stale, client: client, store: TrainerSendStore())
     }
 
+    func sendToAppleWatch(_ items: [TrainerSendItem], stale: [(key: String, record: TrainerSentRecord)]) async -> TrainerSendResult? {
+        guard !isSendingToGarmin else { return nil }
+        isSendingToGarmin = true
+        defer { isSendingToGarmin = false }
+        return await AppleWorkoutSender.send(items, stale: stale, store: TrainerSendStore())
+    }
+
     func autoSend(client: GarminAccountClient?) async {
         let store = TrainerSendStore()
         let settings = store.settings()
