@@ -15,7 +15,7 @@ struct GoalsListCard: View {
             }
             ForEach(snapshots, id: \.id) { snapshot in
                 Button { onOpen(.edit(snapshot.id)) } label: { row(snapshot) }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.cardLink)
                 Divider().overlay(BrandColors.line)
             }
             if weeklyGoal > 0 {
@@ -24,10 +24,11 @@ struct GoalsListCard: View {
                         Text(C.weeklyTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
                         Spacer()
                         Text(String(format: C.weeklyPerWeekFormat, weeklyGoal)).font(.caption).foregroundStyle(BrandColors.dim)
+                        CardLinkBadge()
                     }
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
                 Divider().overlay(BrandColors.line)
             }
             HStack {
@@ -54,6 +55,7 @@ struct GoalsListCard: View {
             if let status = GoalsText.status(snapshot) {
                 GoalStatusChip(status: status)
             }
+            CardLinkBadge()
         }
         .contentShape(Rectangle())
     }

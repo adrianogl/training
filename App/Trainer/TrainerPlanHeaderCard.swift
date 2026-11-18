@@ -73,9 +73,9 @@ struct TrainerPlanHeaderCard: View {
             if boards.count > 1 {
                 Button { showsPastBoards.toggle() } label: {
                     HStack(spacing: 6) {
-                        Image(systemName: showsPastBoards ? "chevron.down" : "chevron.right").font(.caption2)
                         Text(TrainerText.pastScoreboards).font(.caption.weight(.medium))
                         Spacer()
+                        CardDisclosure(expanded: showsPastBoards)
                     }
                     .foregroundStyle(BrandColors.dim)
                     .contentShape(Rectangle())

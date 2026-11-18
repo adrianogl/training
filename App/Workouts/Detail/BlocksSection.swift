@@ -45,7 +45,10 @@ struct BlocksSection: View {
         let bar = bars.indices.contains(position) ? bars[position] : nil
         let canExpand = blocks.count > 1 && (block.laps.count > 1 || (showsTarget && block.prescribed != nil))
         return VStack(alignment: .leading, spacing: 6) {
-            line(block, bar: bar, indent: 0)
+            HStack(alignment: .center, spacing: 8) {
+                line(block, bar: bar, indent: 0)
+                if canExpand { CardDisclosure(expanded: expanded.contains(position)) }
+            }
             if block.prescribed == nil, let wind = KilometerWindBuilder.wind(block) {
                 windLine(wind)
             }

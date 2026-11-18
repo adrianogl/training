@@ -12,7 +12,7 @@ struct TrainerCycleBanner: View {
                 + Text(" \(TrainerCycleText.banner(review, dated: dated))").foregroundStyle(BrandColors.text))
                 .font(.footnote)
             Spacer(minLength: 6)
-            Text(TrainerCycleText.bannerAction).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
+            CardLinkBadge()
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)

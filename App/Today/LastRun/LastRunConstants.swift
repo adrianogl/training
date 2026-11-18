@@ -19,7 +19,6 @@ enum LastRunConstants {
     static let dateFormat = "EEE d/M"
     static let shortDateFormat = "d/M"
 
-    static let viewAnalysis = "Ver análise ›"
     static let compactTitleFormat = "%@ · %@ km"
     static let compactHeartRateFormat = "FC %d"
     static let compactPlanFormat = "%d%% do plano"

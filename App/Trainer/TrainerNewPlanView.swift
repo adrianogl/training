@@ -137,11 +137,11 @@ struct TrainerNewPlanView: View {
                         .foregroundStyle(BrandColors.dim)
                 }
                 Spacer(minLength: 6)
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                CardLinkBadge()
             }
             .brandCard()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 
     private func prefill() {

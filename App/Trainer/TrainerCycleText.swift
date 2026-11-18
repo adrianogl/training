@@ -4,7 +4,6 @@ import WorkoutAnalysis
 
 enum TrainerCycleText {
     static let bannerTitle = "Ciclo concluído."
-    static let bannerAction = "Ver análise"
     static let openAnalysis = "Ver análise do ciclo"
     static let analysisTitle = "Análise do ciclo"
     static let resultTitle = "Resultado do ciclo"

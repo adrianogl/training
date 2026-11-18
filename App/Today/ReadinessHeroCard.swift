@@ -86,10 +86,12 @@ struct ReadinessHeroCard: View {
                 if let recovery {
                     ReadinessRecoveryStrip(estimate: recovery)
                 }
+                Spacer(minLength: 0)
+                CardLinkFooter(title: CardLinkConstants.details)
             }
             .brandCard(fillsHeight: true)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 
     private func banner(_ text: String) -> some View {

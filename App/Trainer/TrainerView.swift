@@ -236,7 +236,7 @@ struct TrainerView: View {
 
     private func cycleBanner(_ review: TrainerCycleReview, dated: Bool) -> some View {
         NavigationLink(value: TrainerRoute.cycle) { TrainerCycleBanner(review: review, dated: dated) }
-            .buttonStyle(.plain)
+            .buttonStyle(.cardLink)
     }
 
     private func updatedBanner(_ version: TrainerVersion) -> some View {
@@ -247,14 +247,14 @@ struct TrainerView: View {
                     + Text(" \(TrainerText.triggerText(version))").foregroundStyle(BrandColors.text))
                     .font(.footnote)
                 Spacer(minLength: 6)
-                Text(TrainerText.updatedAction).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
+                CardLinkBadge()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(BrandColors.accentGlow, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.35), lineWidth: 1))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 
     @ViewBuilder
@@ -286,7 +286,7 @@ struct TrainerView: View {
                         .foregroundStyle(BrandColors.dim)
                 }
                 Spacer(minLength: 6)
-                Image(systemName: showsAdjustments ? "chevron.down" : "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                CardDisclosure(expanded: showsAdjustments)
             }
             .brandCard()
             .contentShape(Rectangle())
@@ -347,10 +347,10 @@ struct TrainerView: View {
         return VStack(alignment: .leading, spacing: 6) {
             Button { setOpen(group, !open) } label: {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Image(systemName: open ? "chevron.down" : "chevron.right").font(.caption2).foregroundStyle(BrandColors.dim)
                     Text(group.title).font(.caption.weight(.medium)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
                     Spacer()
                     Text(group.caption).font(.caption).foregroundStyle(BrandColors.dim)
+                    CardDisclosure(expanded: open)
                 }
                 .padding(.horizontal, 2)
                 .contentShape(Rectangle())
@@ -366,7 +366,7 @@ struct TrainerView: View {
                     NavigationLink(value: TrainerRoute.day(row.id)) {
                         TrainerDayRowView(row: row, isToday: row.workout.day == model.currentDay)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.cardLink)
                 }
             }
         }
@@ -386,11 +386,11 @@ struct TrainerView: View {
                         .foregroundStyle(BrandColors.dim)
                 }
                 Spacer(minLength: 6)
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                CardLinkBadge()
             }
             .brandCard()
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 }
 

@@ -11,11 +11,7 @@ struct LastRunCompactCard: View {
     var body: some View {
         NavigationLink(value: TodayRoute.lastRun) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .firstTextBaseline) {
-                    SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
-                    Spacer()
-                    Text(L.viewAnalysis).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
-                }
+                SectionLabel("\(C.lastRunTitle) · \(lastRun.dateText)").padding(.top, 0).padding(.bottom, 0)
                 HStack(alignment: .center, spacing: 12) {
                     if let score = lastRun.score {
                         ScoreBadge(value: score, size: ScoreConstants.cardBadgeSize)
@@ -37,11 +33,12 @@ struct LastRunCompactCard: View {
                         .foregroundStyle(BrandColors.text)
                         .lineLimit(L.compactReadingLines)
                 }
+                CardLinkFooter(title: CardLinkConstants.analysis)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .brandCard()
             .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 }

@@ -42,6 +42,7 @@ struct RaceTargetCard: View {
             Text([target.distanceText, target.gapText].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption)
                 .foregroundStyle(BrandColors.dim)
+            CardLinkFooter(title: CardLinkConstants.race).padding(.top, 4)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()

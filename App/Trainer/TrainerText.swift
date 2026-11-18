@@ -14,7 +14,6 @@ enum TrainerText {
     static let upcoming = "Semanas"
     static let askButton = "Pedir readequação"
     static let updatedBanner = "Plano atualizado"
-    static let updatedAction = "ver o que mudou ›"
     static let signalPrefixes = ["Semana mais leve: ", "Semana leve antecipada: "]
     static let signalSuffix = "fora do seu normal."
     static let deleteMenu = "Apagar plano"

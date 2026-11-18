@@ -23,6 +23,7 @@ struct StrengthLoadRow: View {
                     .foregroundStyle((series.change ?? 0) > 0 ? BrandColors.accent : (series.change ?? 0) < 0 ? BrandColors.attention : BrandColors.dim)
             }
             .frame(width: 70, alignment: .trailing)
+            CardLinkBadge()
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
@@ -57,10 +58,13 @@ struct StrengthLoadsCard: View {
                 NavigationLink {
                     StrengthLoadsView(model: model)
                 } label: {
-                    StrengthCardHeader(title: StrengthText.loadsTitle, link: model.loadSeries.isEmpty ? nil : StrengthText.seeAll)
-                        .contentShape(Rectangle())
+                    HStack {
+                        StrengthCardHeader(title: StrengthText.loadsTitle)
+                        if !model.loadSeries.isEmpty { CardLinkBadge() }
+                    }
+                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
                 .disabled(model.loadSeries.isEmpty)
                 .padding(.bottom, 4)
             }
@@ -73,17 +77,16 @@ struct StrengthLoadsCard: View {
                 } label: {
                     StrengthLoadRow(series: series)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
                 .overlay(alignment: .top) { if index > 0 { Divider().overlay(BrandColors.line) } }
             }
             if !showsHeader && model.loadSeries.count > StrengthConstants.loadsCardLimit {
                 NavigationLink {
                     StrengthLoadsView(model: model)
                 } label: {
-                    Text(StrengthText.seeAll).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
+                    CardLinkFooter(title: StrengthText.seeAll).padding(.top, 4)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.cardLink)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

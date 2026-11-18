@@ -94,7 +94,7 @@ struct TrainerCycleContent: View {
                         Text(TrainerCycleText.ruleSubtitle).font(.caption).foregroundStyle(BrandColors.dim)
                     }
                     Spacer(minLength: 6)
-                    Image(systemName: showsRule ? "chevron.down" : "chevron.right").font(.caption).foregroundStyle(BrandColors.dim)
+                    CardDisclosure(expanded: showsRule)
                 }
                 if showsRule {
                     ForEach(TrainerCycleText.ruleLines, id: \.self) { line in
