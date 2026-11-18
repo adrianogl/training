@@ -6,8 +6,7 @@ struct DeviceSettingsSection: View {
     var body: some View {
         Section {
             WatchKindPicker(selection: Binding(get: { model.watchKind ?? .garmin }, set: { model.chooseWatch($0) }))
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+                .dsCardRow()
         } footer: {
             Text(WatchKindConstants.settingsFooter)
         }
