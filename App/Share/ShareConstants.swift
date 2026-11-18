@@ -8,6 +8,7 @@ enum ShareConstants {
     static let exportScale: CGFloat = 3
     static let appIconPixels: CGFloat = 1024
     static let appIconExportEnvironmentVariable = "TRAINING_EXPORT_APP_ICON"
+    static let lilacIconExportEnvironmentVariable = "TRAINING_EXPORT_LILAC_ICON"
     static let launchIconExportEnvironmentVariable = "TRAINING_EXPORT_LAUNCH_ICON"
 
     static let templateDefaultsKey = "shareTemplate"

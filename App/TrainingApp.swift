@@ -22,6 +22,7 @@ struct TrainingApp: App {
             SessionRootView(session: session)
                 .preferredColorScheme(AppearanceOption(rawValue: appearance)?.colorScheme)
                 .environment(\.accentTheme, AccentTheme.stored(accentTheme))
+                .task { AppIconSwitcher.apply(AccentTheme.stored(accentTheme)) }
                 .tint(BrandColors.accent)
         }
         .onChange(of: scenePhase, initial: true) { _, phase in

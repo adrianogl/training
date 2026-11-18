@@ -44,6 +44,16 @@ import WorkoutAnalysis
         }
     }
 
+    @Test func lilacAppIconDiffersFromPista() throws {
+        let pista = try #require(AppIconExport.png())
+        let lilac = try #require(AppIconExport.png(theme: .lilac))
+        #expect(pista != lilac)
+        #expect(try #require(UIImage(data: lilac)?.cgImage).width == Int(ShareConstants.appIconPixels))
+        if let target = ProcessInfo.processInfo.environment[ShareConstants.lilacIconExportEnvironmentVariable] {
+            try lilac.write(to: URL(fileURLWithPath: target))
+        }
+    }
+
     @Test func launchIconHasTransparentCorners() throws {
         let data = try #require(AppIconExport.launchIconPNG())
         let image = try #require(UIImage(data: data))
