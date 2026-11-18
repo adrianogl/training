@@ -17,4 +17,16 @@ enum RunWeatherBandConstants {
     static let cornerRadius = 14.0
     static let padding = 12.0
     static let percentScale = 100.0
+    static let cardDegreeFontSize = 40.0
+    static let paceLabel = "Efeito no ritmo"
+    static let heatValueFormat = "+%@ pelo calor"
+    static let coldValueFormat = "+%@ pelo frio"
+    static let noEffect = "nenhum"
+    static let adaptationLabel = "Adaptação (14 dias)"
+    static let adaptationValueFormat = "%d treinos · −%d%%"
+    static let windLabel = "Vento"
+    static let windValueFormat = "%d km/h de %@"
+    static let kmhPerMs = 3.6
+    static let compass = ["N", "NE", "L", "SE", "S", "SO", "O", "NO"]
+    static let compassSector = 45.0
 }
