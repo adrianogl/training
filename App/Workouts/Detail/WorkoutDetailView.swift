@@ -73,7 +73,7 @@ struct WorkoutDetailView: View {
     private func content(_ model: WorkoutDetailModel) -> some View {
         if let summary = model.summary {
             if model.isRun {
-                SummaryHeader(summary: summary)
+                SummaryHeader(summary: summary, weather: model.weather)
                 runSections(model)
             } else {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)
@@ -111,20 +111,12 @@ struct WorkoutDetailView: View {
                     }
                     .id(WorkoutDetailSection.heartRate)
                 }
-                if model.ruler != nil || !model.zoneShares.isEmpty || model.weather != nil {
-                    VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-                        if let ruler = model.ruler {
-                            labelled("Tempo em zona de FC") { ZoneRuler(data: ruler) }
-                                .id(WorkoutDetailSection.zones)
-                        } else if !model.zoneShares.isEmpty {
-                            labelled("Tempo em zona de FC") { ZonesBar(shares: model.zoneShares) }
-                                .id(WorkoutDetailSection.zones)
-                        }
-                        if let weather = model.weather {
-                            labelled(WorkoutDetailConstants.weatherTitle) { RunWeatherCard(effect: weather, fillsHeight: sizeClass == .regular) }
-                                .frame(maxHeight: sizeClass == .regular ? .infinity : nil, alignment: .top)
-                        }
-                    }
+                if let ruler = model.ruler {
+                    labelled("Tempo em zona de FC") { ZoneRuler(data: ruler) }
+                        .id(WorkoutDetailSection.zones)
+                } else if !model.zoneShares.isEmpty {
+                    labelled("Tempo em zona de FC") { ZonesBar(shares: model.zoneShares) }
+                        .id(WorkoutDetailSection.zones)
                 }
             }
             if !model.route.isEmpty {

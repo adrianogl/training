@@ -110,7 +110,6 @@ enum WorkoutDetailConstants {
     static let blocksHeaderPace = "pace no alvo · mais rápido →"
     static let blocksHeaderValue = "pace"
     static let blocksHeaderHeartRate = "FC"
-    static let weatherTitle = "Clima"
     static let windSpeedFormat = "%d km/h"
     static let headwindSymbol = "arrow.down"
     static let tailwindSymbol = "arrow.up"

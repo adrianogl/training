@@ -11,26 +11,24 @@ enum RunWeatherText {
         return [dew, dewPoint >= C.muggyDewPoint ? C.muggy : nil, effect.isSunny ? C.sunny : nil].compactMap { $0 }.joined(separator: C.separator)
     }
 
-    static func detail(_ effect: WeatherEffect) -> String? {
-        guard effect.paceFactor > 0 else { return nil }
-        let base = String(format: effect.isCold ? C.coldFormat : C.heatFormat, percent(effect.paceFactor))
-        guard effect.adaptation > 0 else { return base }
-        return base + C.separator + String(format: C.adaptedFormat, effect.hotSessions)
+    static func degrees(_ effect: WeatherEffect) -> String {
+        String(format: C.degreeFormat, Int(effect.weather.temperature.rounded()))
     }
 
-    static func rows(_ effect: WeatherEffect) -> [(label: String, value: String)] {
-        var rows: [(label: String, value: String)] = []
-        let pace = effect.paceFactor > 0
-            ? String(format: effect.isCold ? C.coldValueFormat : C.heatValueFormat, percent(effect.paceFactor))
-            : C.noEffect
-        rows.append((C.paceLabel, pace))
+    static func caption(_ effect: WeatherEffect) -> String {
+        guard effect.paceFactor > 0 else { return C.captionLabel }
+        return String(format: C.captionFormat, percent(effect.paceFactor))
+    }
+
+    static func summary(_ effect: WeatherEffect) -> String {
+        var parts = [title(effect)]
         if effect.adaptation > 0 {
-            rows.append((C.adaptationLabel, String(format: C.adaptationValueFormat, effect.hotSessions, Int((effect.adaptation * C.percentScale).rounded()))))
+            parts.append(String(format: C.summaryAdaptedFormat, effect.hotSessions, Int((effect.adaptation * C.percentScale).rounded())))
         }
         if let speed = effect.weather.windSpeed, let from = effect.weather.windFrom, speed > 0 {
-            rows.append((C.windLabel, String(format: C.windValueFormat, Int((speed * C.kmhPerMs).rounded()), compass(from))))
+            parts.append(String(format: C.summaryWindFormat, Int((speed * C.kmhPerMs).rounded()), compass(from)))
         }
-        return rows
+        return parts.joined(separator: C.separator)
     }
 
     static func compass(_ degrees: Double) -> String {

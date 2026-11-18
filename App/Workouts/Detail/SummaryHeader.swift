@@ -1,7 +1,9 @@
 import SwiftUI
+import TrainingCore
 
 struct SummaryHeader: View {
     let summary: WorkoutSummary
+    var weather: WeatherEffect?
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
@@ -27,16 +29,33 @@ struct SummaryHeader: View {
                         .foregroundStyle(BrandColors.dim)
                 }
             }
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: sizeClass == .regular ? 6 : 3), alignment: .leading, spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), alignment: .leading), count: columns), alignment: .leading, spacing: 12) {
                 stat(summary.distanceText, "km")
                 stat(summary.durationText, "tempo")
                 stat(summary.paceText.map(stripUnit), "pace médio")
                 stat(summary.averageHeartRateText, "FC média")
                 stat(summary.elevationText, "desnível")
                 stat(summary.loadText, "carga")
+                if let weather {
+                    stat(RunWeatherText.degrees(weather), RunWeatherText.caption(weather))
+                }
             }
             .padding(.top, 12)
+            if let weather {
+                Text(RunWeatherText.summary(weather))
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.dim)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 6)
+            }
         }
+    }
+
+    private var columns: Int {
+        let count = [summary.distanceText, summary.durationText, summary.paceText, summary.averageHeartRateText, summary.elevationText, summary.loadText]
+            .compactMap { $0 }.count + (weather == nil ? 0 : 1)
+        guard sizeClass == .regular else { return count > 6 ? 4 : 3 }
+        return max(count, 6)
     }
 
     @ViewBuilder
