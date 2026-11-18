@@ -13,38 +13,36 @@ struct TodayWeekCard: View {
     private typealias C = WeeklyReportConstants
 
     var body: some View {
-        NavigationLink(value: TodayRoute.week) {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
-                HStack(alignment: .firstTextBaseline) {
-                    Text(bigText).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
-                    Spacer()
-                    if let percent = report.percent {
-                        Text(String(format: C.percentFormat, percent))
-                            .font(BrandFonts.number(22))
-                            .foregroundStyle((report.adherence ?? 0) >= TodayConstants.volumePercentGood ? BrandColors.accent : BrandColors.attention)
-                    }
+        VStack(alignment: .leading, spacing: 12) {
+            SectionLabel(title).padding(.top, 0).padding(.bottom, 0)
+            HStack(alignment: .firstTextBaseline) {
+                Text(bigText).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
+                Spacer()
+                if let percent = report.percent {
+                    Text(String(format: C.percentFormat, percent))
+                        .font(BrandFonts.number(22))
+                        .foregroundStyle((report.adherence ?? 0) >= TodayConstants.volumePercentGood ? BrandColors.accent : BrandColors.attention)
                 }
-                WeeklyDaysRow(days: report.days, compact: sizeClass != .regular, strength: strength)
-                ForEach(warnings, id: \.self) { warning in
-                    HStack(alignment: .top, spacing: 8) {
-                        Text("!").font(.footnote.weight(.bold)).foregroundStyle(BrandColors.attention)
-                        Text(warning).font(.footnote).foregroundStyle(BrandColors.text)
-                    }
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
-                if series.points.count > 1 {
-                    sparkline
-                }
-                Text(footer).font(.caption).foregroundStyle(BrandColors.dim)
-                CardLinkFooter(title: CardLinkConstants.week)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .brandCard()
+            WeeklyDaysRow(days: report.days, compact: sizeClass != .regular, strength: strength)
+            ForEach(warnings, id: \.self) { warning in
+                HStack(alignment: .top, spacing: 8) {
+                    Text("!").font(.footnote.weight(.bold)).foregroundStyle(BrandColors.attention)
+                    Text(warning).font(.footnote).foregroundStyle(BrandColors.text)
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            if series.points.count > 1 {
+                sparkline
+            }
+            Text(footer).font(.caption).foregroundStyle(BrandColors.dim)
+            NavigationLink(value: TodayRoute.week) { CardLinkFooter(title: CardLinkConstants.week) }
+                .buttonStyle(.cardLink)
         }
-        .buttonStyle(.cardLink)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
     }
 
     private var title: String {

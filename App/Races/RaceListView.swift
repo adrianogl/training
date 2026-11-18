@@ -184,6 +184,17 @@ struct RaceListView: View {
     }
 
     @ViewBuilder
+    private func footerLink(_ route: RaceRoute) -> some View {
+        if isSplit {
+            Button { selection = route } label: { CardLinkFooter(title: CardLinkConstants.race) }
+                .buttonStyle(.cardLink)
+        } else {
+            NavigationLink(value: route) { CardLinkFooter(title: CardLinkConstants.race) }
+                .buttonStyle(.cardLink)
+        }
+    }
+
+    @ViewBuilder
     private func content(_ model: RaceListModel) -> some View {
         if !model.garmin.isEmpty {
             GarminRaceSuggestionsCard(
@@ -209,7 +220,15 @@ struct RaceListView: View {
                 .brandCard()
         }
         if let target = model.target {
-            link(.next(target.id)) { RaceTargetCard(target: target, weather: model.targetWeather) }
+            RaceTargetCard(target: target, weather: model.targetWeather) {
+                footerLink(.next(target.id))
+            }
+            .overlay {
+                if isSplit && currentRoute == .next(target.id) {
+                    RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
+                        .strokeBorder(BrandColors.accentFill, lineWidth: 2)
+                }
+            }
         }
         let others = model.upcoming.filter { $0.id != model.target?.id }
         if !others.isEmpty {
