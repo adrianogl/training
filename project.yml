@@ -49,7 +49,7 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -85,7 +85,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.aglv.training.widgets
         CODE_SIGN_ENTITLEMENTS: Widgets/TrainingWidgets.entitlements
         CODE_SIGN_STYLE: Automatic
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "1,2"
         SKIP_INSTALL: YES
