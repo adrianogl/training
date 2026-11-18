@@ -1,3 +1,4 @@
+import GarminAPI
 import Storage
 import SwiftUI
 import TrainingCore
@@ -7,6 +8,7 @@ struct RaceEditorSheet: View {
     @Environment(AppModel.self) private var app
     @Environment(\.dismiss) private var dismiss
     let raceId: UUID?
+    var prefill: GarminRaceEvent?
     @State private var model: RaceEditorModel?
     @State private var importsGPX = false
     @State private var picksCourse = false
@@ -39,6 +41,7 @@ struct RaceEditorSheet: View {
         .task {
             let loaded = RaceEditorModel(container: app.container, raceId: raceId, today: Day.today(), onChange: { app.remoteSync.scheduleSync() })
             await loaded.load()
+            if let prefill { await loaded.apply(prefill, client: app.garminAccount.client) }
             model = loaded
         }
     }
@@ -151,7 +154,8 @@ struct RaceEditorSheet: View {
 
     private func save() {
         do {
-            try model?.save()
+            let saved = try model?.save()
+            if let prefill, let saved { GarminRaceLinkStore().recordImport(prefill, raceId: saved) }
             dismiss()
         } catch {
             saveError = error.localizedDescription

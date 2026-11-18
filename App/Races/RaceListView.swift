@@ -1,3 +1,4 @@
+import GarminAPI
 import Insights
 import Storage
 import SwiftData
@@ -12,6 +13,7 @@ struct RaceListView: View {
     @SceneStorage(NavigationRestorationConstants.racesPathKey) private var pathData = Data()
     @SceneStorage(NavigationRestorationConstants.racesSelectionKey) private var selectionData = Data()
     @State private var showsEditor = false
+    @State private var garminPrefill: GarminRaceEvent?
     @State private var goalSheet: GoalSheet?
     @State private var openedDebugRace = false
     @Environment(\.horizontalSizeClass) private var sizeClass
@@ -79,6 +81,9 @@ struct RaceListView: View {
         .sheet(isPresented: $showsEditor) {
             RaceEditorSheet(raceId: nil)
         }
+        .sheet(item: $garminPrefill, onDismiss: { model?.refreshGarmin() }) { event in
+            RaceEditorSheet(raceId: nil, prefill: event)
+        }
         .sheet(item: $goalSheet) { sheet in
             GoalSheetView(sheet: sheet)
         }
@@ -95,6 +100,7 @@ struct RaceListView: View {
             guard !Task.isCancelled else { return }
             model = loaded
             openDebugRaceIfNeeded(loaded)
+            await loaded.loadGarmin(client: app.garminAccount.client)
         }
     }
 
@@ -179,6 +185,15 @@ struct RaceListView: View {
 
     @ViewBuilder
     private func content(_ model: RaceListModel) -> some View {
+        if !model.garmin.isEmpty {
+            GarminRaceSuggestionsCard(
+                state: model.garmin,
+                onAdd: { garminPrefill = $0 },
+                onIgnore: { model.ignore($0) },
+                onApply: { change in Task { await model.apply(change) } },
+                onKeep: { model.keep($0) }
+            )
+        }
         if !model.candidates.isEmpty {
             RaceCandidatesCard(
                 candidates: model.candidates,

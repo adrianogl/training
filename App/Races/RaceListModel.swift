@@ -1,3 +1,4 @@
+import GarminAPI
 import FITReader
 import Foundation
 import Insights
@@ -24,6 +25,9 @@ import WorkoutAnalysis
     private(set) var summaries: [UUID: CompletedRaceSummary] = [:]
     private(set) var target: RaceTargetData?
     private(set) var targetWeather: RaceWeatherReading?
+    private(set) var garmin = GarminRaceSuggestions()
+    @ObservationIgnored private var garminEvents: [GarminRaceEvent] = []
+    @ObservationIgnored private let garminLinks = GarminRaceLinkStore()
     private(set) var goals: [GoalSnapshot] = []
     private(set) var isLoaded = false
     private(set) var isStale = false
@@ -63,7 +67,54 @@ import WorkoutAnalysis
         apply(result)
         isStale = false
         await snapshots?.write(RaceListSnapshot(today: today, load: result), for: .raceList)
+        refreshGarmin()
         await loadTargetWeather()
+    }
+
+    func loadGarmin(client: GarminAccountClient?) async {
+        guard let client, let events = await GarminRaceEventCache.shared.events(client: client, today: today) else { return }
+        guard !Task.isCancelled else { return }
+        garminEvents = events
+        refreshGarmin()
+    }
+
+    func refreshGarmin() {
+        garmin = GarminRaceSuggestionBuilder.build(events: garminEvents, races: knownRaces(), links: garminLinks.load())
+    }
+
+    func ignore(_ event: GarminRaceEvent) {
+        garminLinks.decline(event.id)
+        refreshGarmin()
+    }
+
+    func keep(_ change: GarminRaceChange) {
+        garminLinks.acknowledge(change.event)
+        refreshGarmin()
+    }
+
+    func apply(_ change: GarminRaceChange) async {
+        let id = change.raceId
+        var descriptor = FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.id == id && $0.deletedAt == nil })
+        descriptor.fetchLimit = 1
+        let context = container.mainContext
+        guard let race = try? context.fetch(descriptor).first else { return }
+        if race.day != change.event.day {
+            race.frozenTargetSeconds = nil
+            race.frozenTargetDay = nil
+        }
+        race.day = change.event.day
+        race.startTime = change.event.startTime ?? race.startTime
+        if let meters = change.event.distanceMeters { race.distance = meters }
+        race.updatedAt = .now
+        guard (try? context.save()) != nil else { return }
+        garminLinks.acknowledge(change.event)
+        onChange()
+        await load()
+    }
+
+    private func knownRaces() -> [KnownRace] {
+        let races = (try? container.mainContext.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))) ?? []
+        return races.map { KnownRace(id: $0.id, name: $0.name, day: $0.day, startTime: $0.startTime, distance: $0.distance) }
     }
 
     private func loadTargetWeather() async {
