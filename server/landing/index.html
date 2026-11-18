@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <title>trAIning</title>
-<meta name="description" content="Prontidão, treinos, força, provas e evolução com os dados da sua Garmin, no iPhone, no iPad, no relógio e no site.">
+<meta name="description" content="Prontidão, treinos, força, provas e evolução com os dados da sua Garmin, no iPhone, no iPad e no relógio.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600;700&family=Roboto+Condensed:wght@400;700&display=swap">
@@ -398,8 +398,8 @@ footer .footer-note { flex-basis: 100%; font-size: 12px; }
 .dev { position: absolute; background: #000; border: 1px solid #2c3136; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); overflow: hidden; }
 .dev .scr { position: absolute; inset: 0; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
 .mac { left: 50%; top: 0; width: min(760px, 86%); aspect-ratio: 16 / 10; border-radius: 14px; transform: translateX(-50%) translateY(calc(30px - var(--p) * 30px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
-.ipad { left: 2%; bottom: 0; width: min(330px, 34%); aspect-ratio: 3 / 4; border-radius: 22px; border-width: 8px; border-color: #15181b; transform: translateX(calc(-60px + var(--p) * 60px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
-.iph { right: 4%; bottom: 0; width: min(170px, 20%); aspect-ratio: 9 / 19.2; border-radius: 26px; border-width: 6px; border-color: #15181b; transform: translateX(calc(60px - var(--p) * 60px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
+.ipad { left: calc(50% - min(330px, 34%) - 24px); bottom: 0; width: min(330px, 34%); aspect-ratio: 3 / 4; border-radius: 22px; border-width: 8px; border-color: #15181b; transform: translateX(calc(-60px + var(--p) * 60px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
+.iph { left: calc(50% + 24px); bottom: 0; width: min(170px, 20%); aspect-ratio: 9 / 19.2; border-radius: 26px; border-width: 6px; border-color: #15181b; transform: translateX(calc(60px - var(--p) * 60px)); opacity: clamp(0.3, var(--p) * 1.6, 1); }
 .mini { background: var(--card); border: 1px solid var(--line); border-radius: 10px; height: 100%; }
 .mac .bar { height: 26px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #0d0f11; position: absolute; inset: 0 0 auto; }
 .mac .bar i { width: 9px; height: 9px; border-radius: 50%; background: #3a3f46; }
@@ -459,7 +459,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
   .social { margin-right: 2px; padding-right: 6px; }
   .social a { width: 30px; height: 30px; }
   .social svg { width: 16px; height: 16px; }
-  .ipad { width: 40%; } .iph { width: 26%; }
+  .ipad { width: 40%; left: calc(50% - 40% - 12px); } .iph { width: 26%; left: calc(50% + 12px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .contact-card { transition: none; }
@@ -510,7 +510,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#topo" aria-label="trAIning, início"><span class="mark"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="15" y="26" width="70" height="48" rx="24" fill="none" stroke="#C8F05A" stroke-width="6"/><rect x="24" y="35" width="52" height="30" rx="15" fill="none" stroke="#C8F05A" stroke-opacity=".35" stroke-width="2.5"/><circle cx="76" cy="31" r="5" fill="#E8ECEF"/></svg></span><span class="word">TR<b>AI</b>NING</span></a>
-    <div class="nav-actions"><nav class="social" aria-label="Contato"><a href="https://wa.me/5531994950997?text=Oi%2C%20Adriano!%20Vi%20o%20trAIning%20e%20queria%20saber%20mais." target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"></path><path d="M9.5 9.5c0 2.5 2.5 5 5 5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"></path></svg></a><a href="https://instagram.com/adriano_gl" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="12" cy="12" r="3.5"></circle><circle cx="17" cy="7" r="0.6" fill="currentColor"></circle></svg></a><a href="https://www.linkedin.com/in/adrianogl" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 11v5M8 8v.01M12 16v-5M12 13c0-1.5 1-2 2-2s2 .5 2 2v3"></path></svg></a><a href="https://github.com/adrianogl" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"></path></svg></a></nav><a class="nav-ask" href="#pedir">Pedir convite</a><a class="nav-cta" href="/app/entrar">Entrar</a></div>
+    <div class="nav-actions"><nav class="social" aria-label="Contato"><a href="https://wa.me/5531994950997?text=Oi%2C%20Adriano!%20Vi%20o%20trAIning%20e%20queria%20saber%20mais." target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"></path><path d="M9.5 9.5c0 2.5 2.5 5 5 5l1-1.5-2-1-1 1c-1-.5-2-1.5-2.5-2.5l1-1-1-2z"></path></svg></a><a href="https://instagram.com/adriano_gl" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="12" cy="12" r="3.5"></circle><circle cx="17" cy="7" r="0.6" fill="currentColor"></circle></svg></a><a href="https://www.linkedin.com/in/adrianogl" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"></rect><path d="M8 11v5M8 8v.01M12 16v-5M12 13c0-1.5 1-2 2-2s2 .5 2 2v3"></path></svg></a><a href="https://github.com/adrianogl" target="_blank" rel="noopener" aria-label="GitHub" title="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1.5-4-2-6-2.5M15 21v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"></path></svg></a></nav><a class="nav-cta" href="#pedir">Pedir convite</a></div>
   </div>
 </header>
 
@@ -521,12 +521,11 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <div class="wrap hero-grid">
         <div>
           <div class="tags"><span class="free-pill">100% gratuito</span><span class="tag"><i></i>Projeto pessoal · acesso por convite</span></div>
-          <p class="eyebrow">Garmin · iPhone · iPad · relógio · web</p>
+          <p class="eyebrow">Garmin · iPhone · iPad · relógio</p>
           <h1 id="hero-title" class="display">Inteligência do pulso à <em>linha de chegada</em>.</h1>
           <p class="lede">O trAIning lê o seu sono, o HRV e cada treino da Garmin e diz o que fazer hoje, como a prova vai sair e se você está evoluindo.</p>
           <div class="hero-actions">
             <a class="btn btn-lime" href="#pedir">Pedir convite</a>
-            <a class="btn btn-ghost" href="/app/entrar">Já tenho conta</a>
           </div>
         </div>
         <div class="hero-devices" aria-hidden="true">
@@ -627,7 +626,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <p class="free-word display" id="free-title">Grátis.</p>
         <div class="free-points">
           <span><b>Sem plano pago.</b> Tudo o que esta página mostra está liberado para quem tem convite.</span>
-          <span><b>Sem anúncio.</b> Nada de propaganda no app, no site ou no relógio.</span>
+          <span><b>Sem anúncio.</b> Nada de propaganda no app ou no relógio.</span>
           <span><b>Sem cartão.</b> O convite e o cadastro não pedem forma de pagamento.</span>
         </div>
       </div>
@@ -933,7 +932,6 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div class="feature" style="--d:0.15"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19h16"></path><path d="M7 16V9M12 16V5M17 16v-6"></path></svg><b>Placar da semana</b><span>Km feitos, treinos no alvo, longão fechado e quanto a previsão da prova mudou.</span></div>
         <div class="feature" style="--d:0.20"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><b>Semana pelo seu corpo</b><span>Toda semana compara HRV, FC de repouso, sono, carga, desempenho e prontidão com o seu normal. Com dois sinais fora do normal, a próxima semana vem 10% mais leve; com três, ou HRV e FC de repouso juntos, a semana leve vem antes. E num dia forte com prontidão baixa, Hoje sugere a troca.</span></div>
         <div class="feature" style="--d:0.10"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path></svg><b>Pergunte ao treinador</b><span>"Posso trocar o longão para domingo?" A resposta usa as regras do plano e abre a mudança pronta para você confirmar.</span></div>
-        <div class="feature" style="--d:0.15"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2"></rect><path d="M8 21h8"></path></svg><b>Também no site</b><span>O mesmo plano em training.aglv.dev, só para ver, com as semanas, os dias e o que mudou.</span></div>
         <div class="feature" style="--d:0.20"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"></rect><path d="M4 10h16M9 3v4M15 3v4"></path></svg><b>Semanas até a prova</b><span>Todas as semanas planejadas desde o início, com semana leve onde você escolher, como no Natal.</span></div>
         <div class="feature" style="--d:0.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="3"></rect><circle cx="7" cy="12" r="1"></circle><circle cx="10.5" cy="12" r="1"></circle><circle cx="14" cy="12" r="1"></circle><circle cx="17.5" cy="12" r="1"></circle></svg><b>Dias da semana</b><span>Quantas corridas, o dia off e o dia do longão. O plano sugere a semana e avisa quando uma troca junta dois dias fortes.</span></div>
       </div>
@@ -1047,7 +1045,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 21V4M5 4h13l-2.5 4L18 12H5"></path></svg><b>Avisos da prova</b><span>Na véspera, a hora de deitar; na manhã, o pace do Pace Pro e os pontos de água.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 7v10M3 9.5v5M18 7v10M21 9.5v5M6 12h12"></path></svg><b>Força na prontidão</b><span>No dia seguinte à perna pesada, a prontidão e o treino do dia levam isso em conta.</span></div>
         <div class="feature" style="--d:.25"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"></path></svg><b>Zonas de FC</b><span>Tempo em cada zona, por treino e por semana, comparado com a regra 80/20.</span></div>
-        <div class="feature" style="--d:.3"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg><b>Metas</b><span>10 km em 40 min ou longão sem pausas. O progresso aparece em Hoje, no site e na análise de cada treino.</span></div>
+        <div class="feature" style="--d:.3"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle></svg><b>Metas</b><span>10 km em 40 min ou longão sem pausas. O progresso aparece em Hoje e na análise de cada treino.</span></div>
         <div class="feature" style="--d:.35"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><b>Percursos</b><span>Importa o percurso da prova do Garmin Connect para a estratégia.</span></div>
         <div class="feature" style="--d:.4"><svg viewBox="0 0 24 24" fill="none" stroke="#c8f05a" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="7" y="6" width="10" height="12" rx="3"></rect><path d="M9 6V3h6v3M9 18v3h6v-3M12 9v4l2 1"></path></svg><b>Envio ao Garmin</b><span>Os treinos do treinador no relógio: só força, só corrida ou os dois. O app só mexe no que ele mesmo criou.</span></div>
       </div>
@@ -1059,13 +1057,11 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
       <p class="eyebrow">Em todo lugar</p>
       <h2 id="todo-title" class="display" style="font-size: clamp(34px, 4.6vw, 64px); max-width: 18ch">Uma conta. A Garmin conectada uma vez.</h2>
       <div class="devices" aria-hidden="true">
-        <div class="dev mac"><div class="bar"><i></i><i></i><i></i><span>training.aglv.dev/app</span></div><div class="macgrid"><div class="macnav"><b>Hoje</b><span>Treinos</span><span>Provas</span><span>Evolução</span><span>Ajustes</span></div><div class="macmain"><div class="mini"></div><div class="mini"></div><div class="mini" style="grid-column: span 2"></div><div class="mini"></div></div></div></div>
         <div class="dev ipad"><div class="scr"><div class="mini" style="height:30%"></div><div class="mini" style="height:22%"></div><div class="mini" style="height:40%"></div></div></div>
         <div class="dev iph"><div class="scr" style="padding:10px"><div class="mini" style="height:34%"></div><div class="mini" style="height:24%"></div><div class="mini" style="height:30%"></div></div></div>
       </div>
       <div class="everywhere-points">
         <div><b>iPhone e iPad</b>O app completo, com a conversa da Apple Intelligence.</div>
-        <div><b>No computador</b>O site em training.aglv.dev/app, com os mesmos números.</div>
         <div><b>No relógio</b>O mostrador mostra a prontidão, o VO2, a semana e o próximo compromisso da agenda, e os treinos do treinador chegam como treino agendado.</div>
         <div><b>Strava</b>O resumo do treino na descrição da atividade.</div>
         <div><b>Widgets</b>Prontidão e treino do dia sem abrir o app.</div>
@@ -1100,7 +1096,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>100% gratuito.</b> Sem plano pago, sem anúncio e sem cobrança. Não é um produto comercial.</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Vagas limitadas.</b> O servidor comporta poucas contas, então o acesso é por convite.</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Precisa de relógio Garmin.</b> Os dados vêm da sua conta Garmin Connect.</span></li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Pode mudar.</b> As telas mudam com frequência, e o site pode ficar fora do ar por um tempo.</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Pode mudar.</b> As telas mudam com frequência, e o servidor pode ficar fora do ar por um tempo.</span></li>
           <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12l4 4 10-10"></path></svg><span><b>Não é orientação médica.</b> Os números ajudam a decidir o treino e não substituem treinador nem médico.</span></li>
       </ul>
     </div>
@@ -1128,7 +1124,7 @@ footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; g
         <p class="eyebrow">Acesso por convite</p>
         <h2 id="final-title" class="display" style="font-size: clamp(38px, 5vw, 68px); margin-top: 14px">Quer testar? Peça um convite.</h2>
         <p class="lede">Eu leio cada pedido. Se houver vaga, o convite chega no seu e-mail com o link para criar a conta.</p>
-        <div class="have"><b>Já tem conta ou recebeu um convite?</b><span>Abra o link do convite ou entre com o seu e-mail.</span><a class="btn btn-ghost" href="/app/entrar">Entrar no site</a></div>
+        <div class="have"><b>Recebeu um convite?</b><span>Abra o link do e-mail no iPhone ou iPad com o trAIning instalado.</span></div>
       </div>
       <form class="ask-form" id="ask-form" novalidate>
         <div id="ask-body" class="ask-body">

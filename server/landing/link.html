@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<title>trAIning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #0d1014;
+  --ink: #e8ecef;
+  --dim: #8a949f;
+  --line: #262e38;
+  --card: #181e26;
+  --lime: #c8f05a;
+  --display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left)); }
+main { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 800; font-size: 15px; text-decoration: none; letter-spacing: 0.08em; }
+.brand svg { width: 34px; height: 34px; }
+.brand b { color: var(--lime); }
+h1 { font-family: var(--display); font-stretch: 118%; font-weight: 800; font-size: 34px; line-height: 1.02; margin: 12px 0 0; text-wrap: balance; }
+p { margin: 0; color: var(--dim); }
+.open { display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 999px; background: var(--lime); color: #0b0d0a; font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: 16px; text-decoration: none; margin-top: 6px; }
+.note { font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="brand" href="/"><svg viewBox="0 0 100 100" aria-hidden="true"><rect x="15" y="26" width="70" height="48" rx="24" fill="none" stroke="#C8F05A" stroke-width="6"/><rect x="24" y="35" width="52" height="30" rx="15" fill="none" stroke="#C8F05A" stroke-opacity=".35" stroke-width="2.5"/><circle cx="76" cy="31" r="5" fill="#E8ECEF"/></svg><span>TR<b>AI</b>NING</span></a>
+  <h1 id="title">Seu convite está aqui</h1>
+  <p id="text">Toque no botão para criar a conta no app trAIning deste aparelho.</p>
+  <a class="open" id="open" href="training://">Abrir no app</a>
+  <p class="note">No computador ou sem o app? Abra este e-mail no iPhone ou iPad que tem o trAIning instalado.</p>
+</main>
+<script>
+(function () {
+  var pages = {
+    convite: ['Seu convite está aqui', 'Toque no botão para criar a conta no app trAIning deste aparelho.'],
+    confirmar: ['Confirme seu e-mail', 'Toque no botão para confirmar o e-mail no app trAIning.'],
+    'redefinir-senha': ['Crie uma nova senha', 'Toque no botão para escolher a nova senha no app trAIning. O link vale por 30 minutos.'],
+    convites: ['Pedidos de convite', 'Toque no botão para abrir os Ajustes do app. Os pedidos ficam em Convites.']
+  };
+  var targets = { convites: 'ajustes' };
+  var page = location.pathname.split('/').filter(Boolean).pop() || 'convite';
+  var copy = pages[page] || pages.convite;
+  document.getElementById('title').textContent = copy[0];
+  document.getElementById('text').textContent = copy[1];
+  var known = pages[page] ? page : 'convite';
+  document.getElementById('open').href = 'training://' + (targets[known] || known) + location.search;
+})();
+</script>
+</body>
+</html>

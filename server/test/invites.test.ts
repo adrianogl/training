@@ -73,57 +73,13 @@ describe('cadastro só por convite', () => {
     expect((await guestSignup(tokenFrom(created.link))).status).toBe(400)
   })
 
-  it('convidado não entra pelo app, só pelo site', async () => {
+  it('convidado se cadastra e entra pelo app', async () => {
     const created = await invite({ name: 'Marina', channel: 'link' })
-    await guestSignup(tokenFrom(created.link))
-
-    const app = await loginRoute(req('POST', '/api/v1/auth/login', { email: 'marina@exemplo.com', password, device: 'iPhone' }, undefined, { 'x-training-client': 'app' }), sql, env)
-    const site = await loginRoute(req('POST', '/api/v1/auth/login', { email: 'marina@exemplo.com', password, device: 'Site' }), sql, env)
-    const admin = await loginRoute(req('POST', '/api/v1/auth/login', { email: 'admin@exemplo.com', password, device: 'iPhone' }, undefined, { 'x-training-client': 'app' }), sql, env)
-
-    expect(app.status).toBe(403)
-    expect(await app.json()).toEqual({ error: 'web_only' })
-    expect([site.status, admin.status]).toEqual([200, 200])
-  })
-
-  it('convite com app liberado deixa o convidado entrar pelo app', async () => {
-    const created = await invite({ name: 'Marina', channel: 'link', appAccess: true })
     const signup = await guestSignup(tokenFrom(created.link), 'marina@exemplo.com', { 'x-training-client': 'app' })
     const login = await loginRoute(req('POST', '/api/v1/auth/login', { email: 'marina@exemplo.com', password, device: 'iPhone' }, undefined, { 'x-training-client': 'app' }), sql, env)
 
     expect(signup.status).toBe(201)
     expect(login.status).toBe(200)
-  })
-
-  it('liberar o app na lista de convites vale para quem já aceitou', async () => {
-    const created = await invite({ name: 'Marina', channel: 'link' })
-    await guestSignup(tokenFrom(created.link))
-    const appLogin = () => loginRoute(req('POST', '/api/v1/auth/login', { email: 'marina@exemplo.com', password, device: 'iPhone' }, undefined, { 'x-training-client': 'app' }), sql, env)
-
-    expect((await appLogin()).status).toBe(403)
-    const toggled = await adminInviteActionRoute(req('POST', '/api/v1/admin/invites/action', { id: created.invite.id, action: 'app', appAccess: true }, adminToken), sql, env)
-    expect(((await toggled.json()) as { invite: { appAccess: boolean } }).invite.appAccess).toBe(true)
-    expect((await appLogin()).status).toBe(200)
-
-    await adminInviteActionRoute(req('POST', '/api/v1/admin/invites/action', { id: created.invite.id, action: 'app', appAccess: false }, adminToken), sql, env)
-    expect((await appLogin()).status).toBe(403)
-  })
-
-  it('ação de app sem valor booleano é recusada', async () => {
-    const created = await invite({ name: 'Marina', channel: 'link' })
-    const response = await adminInviteActionRoute(req('POST', '/api/v1/admin/invites/action', { id: created.invite.id, action: 'app' }, adminToken), sql, env)
-
-    expect(response.status).toBe(400)
-  })
-
-  it('cadastro de convidado pelo app é recusado antes de criar a conta', async () => {
-    const created = await invite({ name: 'Marina', channel: 'link' })
-
-    const response = await guestSignup(tokenFrom(created.link), 'marina@exemplo.com', { 'x-training-client': 'app' })
-    const users = await sql<{ count: number }>('select count(*)::int as count from users')
-
-    expect(response.status).toBe(403)
-    expect(users[0]?.count).toBe(1)
   })
 
   it('a prévia do convite mostra quem convidou', async () => {

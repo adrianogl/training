@@ -1,8 +1,4 @@
 import { inviteRequestActionRoute, inviteRequestRoute } from './inviteRequestRoutes.js'
-import { activityRoute, detailedActivityRoute, plannedRoute, renameActivityRoute } from './activityRoutes.js'
-import { deleteRaceRoute, racesRoute, saveRaceRoute } from './raceRoutes.js'
-import { deleteGoalRoute, goalsRoute, saveGoalRoute } from './goalRoutes.js'
-import { trainerRoute } from './trainerRoutes.js'
 import {
   changePasswordRoute,
   forgotPasswordRoute,
@@ -19,15 +15,9 @@ import { adminCreateInviteRoute, adminDeleteUserRoute, adminInviteActionRoute, a
 import { API_PATH_PREFIX, API_ROUTER_QUERY } from './constants.js'
 import type { Sql } from './db.js'
 import {
-  garminActivitiesRoute,
   garminConnectRoute,
-  garminCronRoute,
-  garminDaysRoute,
   garminSessionRoute,
   garminStatusRoute,
-  garminSyncRoute,
-  garminTodayRoute,
-  garminEvolutionRoute,
   garminVerifyRoute,
 } from './garminRoutes.js'
 import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaStatusRoute } from './stravaRoutes.js'
@@ -66,7 +56,6 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'garmin/verify': { POST: (request, sql) => garminVerifyRoute(request, sql) },
   'garmin/status': { GET: (request, sql) => garminStatusRoute(request, sql), DELETE: (request, sql) => garminStatusRoute(request, sql) },
   'garmin/session': { GET: (request, sql) => garminSessionRoute(request, sql) },
-  'garmin/sync': { POST: (request, sql) => garminSyncRoute(request, sql) },
   'strava/connect': { GET: (request, sql) => stravaConnectRoute(request, sql) },
   'strava/callback': { GET: (request, sql) => stravaCallbackRoute(request, sql) },
   'strava/describe': { POST: (request, sql) => stravaDescribeRoute(request, sql) },
@@ -75,17 +64,6 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
     PATCH: (request, sql) => stravaStatusRoute(request, sql),
     DELETE: (request, sql) => stravaStatusRoute(request, sql),
   },
-  goals: { GET: (request, sql) => goalsRoute(request, sql), POST: (request, sql) => saveGoalRoute(request, sql), PUT: (request, sql) => saveGoalRoute(request, sql), DELETE: (request, sql) => deleteGoalRoute(request, sql) },
-  races: { GET: (request, sql) => racesRoute(request, sql), POST: (request, sql) => saveRaceRoute(request, sql), PUT: (request, sql) => saveRaceRoute(request, sql), DELETE: (request, sql) => deleteRaceRoute(request, sql) },
-  trainer: { GET: (request, sql) => trainerRoute(request, sql) },
-  'garmin/planned': { GET: (request, sql) => plannedRoute(request, sql) },
-  'garmin/activity': { GET: (request, sql) => activityRoute(request, sql), PUT: (request, sql) => renameActivityRoute(request, sql) },
-  'garmin/activity/detailed': { GET: (request, sql) => detailedActivityRoute(request, sql) },
-  'garmin/evolution': { GET: (request, sql) => garminEvolutionRoute(request, sql) },
-  'garmin/today': { GET: (request, sql) => garminTodayRoute(request, sql) },
-  'garmin/days': { GET: (request, sql) => garminDaysRoute(request, sql) },
-  'garmin/activities': { GET: (request, sql) => garminActivitiesRoute(request, sql) },
-  'cron/garmin-sync': { GET: (request, sql) => garminCronRoute(request, sql) },
   'admin/overview': { GET: (request, sql) => adminOverviewRoute(request, sql) },
   'admin/invites': { POST: (request, sql) => adminCreateInviteRoute(request, sql) },
   'admin/invites/action': { POST: (request, sql) => adminInviteActionRoute(request, sql) },

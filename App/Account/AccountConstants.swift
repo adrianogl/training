@@ -12,9 +12,9 @@ enum AccountConstants {
     static let formMaxWidth: Double = 420
 
     static let loginTitle = "Entrar"
-    static let loginSubtitle = "Use o mesmo e-mail e senha do site."
+    static let loginSubtitle = "Entre com o e-mail e a senha da sua conta."
     static let signupTitle = "Criar conta"
-    static let signupSubtitle = "A mesma conta vale no app e no site."
+    static let signupSubtitle = "O cadastro é por convite. Use o e-mail que recebeu o convite."
     static let legacyNote = "Suas provas sincronizadas entram na conta nova."
     static let forgotTitle = "Recuperar senha"
     static let forgotSubtitle = "Enviamos um link para o e-mail da conta. Ele vale por 30 minutos."
@@ -67,9 +67,26 @@ enum AccountConstants {
     static let offline = "Não conectou ao servidor. Confira a internet."
     static let generic = "Não deu certo. Tente de novo."
     static let inviteRequired = "O cadastro é só por convite. Peça um convite a quem te indicou o trAIning."
-    static let webOnlyTitle = "Sua conta é pelo site, por enquanto"
-    static let webOnlyText = "Quem entra por convite usa o trAIning no navegador. O app para iPhone e iPad abre para convidados depois."
-    static let siteURL = URL(string: "https://training.aglv.dev/app")!
-    static let siteLabel = "training.aglv.dev/app"
-    static let openSite = "Abrir o site no Safari"
+    static let invalidInvite = "Este convite venceu ou já foi usado. Peça um novo a quem te convidou."
+
+    static let linkInviteHost = "convite"
+    static let linkVerifyHost = "confirmar"
+    static let linkResetHost = "redefinir-senha"
+    static let linkInviteQuery = "c"
+    static let linkTokenQuery = "token"
+
+    static let inviteFromFormat = "Convite de %@"
+    static let inviteSubtitleFormat = "Escolha uma senha para entrar. O convite vale até %@."
+    static let inviteSignedInTitle = "Você já tem conta"
+    static let inviteSignedInText = "Este aparelho já está numa conta do trAIning. Para usar o convite, saia da conta em Ajustes › Conta e abra o link de novo."
+    static let resetTitle = "Nova senha"
+    static let resetSubtitle = "O link vale por 30 minutos. Depois de salvar, entre de novo com a nova senha em todos os aparelhos."
+    static let passwordReset = "Senha alterada. Entre com a nova senha."
+    static let verifiedTitle = "E-mail confirmado"
+    static let verifiedText = "Agora dá para recuperar a senha por este e-mail."
+    static let expiredTitle = "Link expirado"
+    static let inviteExpiredTitle = "Convite vencido"
+    static let expiredText = "O link vale por 24 horas. Peça outro em Ajustes › Conta."
+    static let continueLabel = "Continuar"
+    static let close = "Fechar"
 }

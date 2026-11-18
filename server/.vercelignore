@@ -7,7 +7,5 @@
 !tsconfig.json
 !vercel.json
 !landing
-!web
-web/node_modules
 !scripts
 !migrations

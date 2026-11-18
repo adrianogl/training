@@ -45,35 +45,6 @@ export interface RequestLogEntry {
   accountPrefix: string | null
 }
 
-export interface KindCounts {
-  live: number
-  deleted: number
-}
-
-export interface HourlyBucket {
-  hourStart: string
-  total: number
-  errors: number
-}
-
-export interface RecentRequest {
-  at: string
-  method: string
-  route: string
-  status: number
-  recordCount: number | null
-}
-
-export interface AdminMetrics {
-  database: { latencyMs: number }
-  accounts: number
-  records: Record<RecordKind, KindCounts>
-  lastWrite: { at: string | null; seq: number }
-  errors24h: number
-  hourly: HourlyBucket[]
-  recent: RecentRequest[]
-}
-
 export interface Limits {
   maxAccounts: number
   maxAccountBytes: number
@@ -215,14 +186,12 @@ export interface InviteRow {
   createdAt: string
   expiresAt: string
   acceptedAt: string | null
-  appAccess: boolean
 }
 
 export interface InviteInput {
   name: string
   email: string | undefined
   channel: InviteChannel
-  appAccess?: boolean
 }
 
 export interface AdminUserRow {
@@ -231,7 +200,6 @@ export interface AdminUserRow {
   email: string
   role: UserRole
   admin: boolean
-  appAccess: boolean
   garminConnected: boolean
   lastSeenAt: string | null
   dataBytes: number
@@ -249,94 +217,6 @@ export interface AdminOverview {
   requestsByHour: { hour: string; count: number }[]
   requestsByRoute: { route: string; count: number }[]
   databaseBytes: number | null
-}
-
-export interface HealthDay {
-  day: string
-  restingHeartRate: number | null
-  averageStress: number | null
-  steps: number | null
-  bodyBattery: { highest: number | null; lowest: number | null; atWake: number | null; charged: number | null; drained: number | null; morningMax: number | null }
-  sleep: { seconds: number; score: number | null; deep: number; light: number; rem: number; awake: number; start: string | null; end: string | null } | null
-  hrv: { lastNight: number | null; weeklyAvg: number | null; status: string | null; lowUpper: number | null; balancedLow: number | null; balancedUpper: number | null } | null
-  readiness: { score: number; level: string | null; sleepScore: number | null; recoveryMinutes: number | null; acuteLoad: number | null } | null
-}
-
-export interface ActivitySummary {
-  id: number
-  name: string
-  type: string
-  startLocal: string
-  day: string
-  distanceMeters: number | null
-  durationSeconds: number | null
-  movingSeconds: number | null
-  elevationGain: number | null
-  averageSpeed: number | null
-  maxSpeed: number | null
-  averageHeartRate: number | null
-  maxHeartRate: number | null
-  cadence: number | null
-  trainingLoad: number | null
-  aerobicEffect: number | null
-  anaerobicEffect: number | null
-  vo2max: number | null
-  zoneSeconds: number[]
-  fastestKmSeconds: number | null
-  fastest5kSeconds?: number | null
-  laps: number | null
-  workoutId: number | null
-}
-
-export interface SyncProgress {
-  done: boolean
-  days: number
-  activities: number
-  oldestDay: string | null
-}
-
-export interface RaceItem {
-  id: string
-  name: string
-  day: string
-  startTime?: string | null
-  distance: number
-  goalSeconds?: number | null
-  priority: string
-  city?: string | null
-  gpxData?: string | null
-  manualPacesData?: string | null
-  customLabelsData?: string | null
-  resultActivityId?: number | null
-  frozenTargetSeconds?: number | null
-  frozenTargetDay?: string | null
-  manuallyUnlinked?: boolean | null
-  updatedAt: string
-}
-
-export type GoalKind = 'time' | 'continuousLong'
-
-export interface GoalItem {
-  id: string
-  kind: GoalKind
-  distanceKm: number
-  targetSeconds: number | null
-  deadline: string | null
-  paceSecondsPerKm: number | null
-  archived: boolean
-  achievedAt: string | null
-  createdAt: string
-  updatedAt: string
-}
-
-export interface StoredGoal {
-  id: string
-  goal: GoalItem | null
-}
-
-export interface StoredRace {
-  id: string
-  race: RaceItem | null
 }
 
 export interface InviteRequestInput {

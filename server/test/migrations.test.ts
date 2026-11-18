@@ -15,14 +15,9 @@ describe('applyMigrations', () => {
     expect(tables.map((t) => t.table_name)).toEqual([
       'account_creations',
       'accounts',
-      'activities',
-      'activity_fit',
-      'activity_laps',
       'email_tokens',
       'garmin_connections',
       'garmin_pending_logins',
-      'garmin_sync_state',
-      'health_days',
       'invite_requests',
       'invites',
       'login_attempts',
@@ -45,7 +40,7 @@ describe('applyMigrations', () => {
     const first = await applyMigrations(sql, migrationsDir)
     const second = await applyMigrations(sql, migrationsDir)
 
-    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql', '007_garmin.sql', '008_invites.sql', '009_garmin_data.sql', '010_sync_version.sql', '011_records_format.sql', '012_activity_laps.sql', '013_activity_fit.sql', '014_invite_requests.sql', '015_records_goal.sql', '016_activity_fit_metrics_version.sql', '017_records_trainer.sql', '018_strava.sql', '019_invite_app_access.sql', '020_records_narrative.sql', '021_records_preference_chat.sql', '022_mcp_tokens.sql'])
+    expect(first).toEqual(['001_init.sql', '002_request_log.sql', '003_watch.sql', '004_watch_face.sql', '005_readiness_optional_score.sql', '006_users.sql', '007_garmin.sql', '008_invites.sql', '009_garmin_data.sql', '010_sync_version.sql', '011_records_format.sql', '012_activity_laps.sql', '013_activity_fit.sql', '014_invite_requests.sql', '015_records_goal.sql', '016_activity_fit_metrics_version.sql', '017_records_trainer.sql', '018_strava.sql', '019_invite_app_access.sql', '020_records_narrative.sql', '021_records_preference_chat.sql', '022_mcp_tokens.sql', '023_drop_site_data.sql'])
     expect(second).toEqual([])
   })
 

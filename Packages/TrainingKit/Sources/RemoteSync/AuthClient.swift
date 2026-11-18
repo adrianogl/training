@@ -13,9 +13,10 @@ public struct AuthClient: Sendable {
         self.transport = transport
     }
 
-    public func signup(name: String, email: String, password: String, device: String, legacyKey: String?) async throws -> AuthSession {
+    public func signup(name: String, email: String, password: String, device: String, legacyKey: String?, inviteToken: String? = nil) async throws -> AuthSession {
         var body: [String: String] = ["name": name, "email": email, "password": password, "device": device]
         if let legacyKey { body["legacyKey"] = legacyKey }
+        if let inviteToken { body["inviteToken"] = inviteToken }
         return try decode(try await send("POST", C.signupPath, body: body, accepted: [201]))
     }
 
@@ -54,6 +55,10 @@ public struct AuthClient: Sendable {
         _ = try await send("POST", C.verifyPath, body: ["token": verifyToken], accepted: [204])
     }
 
+    public func invitePreview(token inviteToken: String) async throws -> InvitePreview {
+        try decode(try await send("GET", C.invitePreviewPath, query: [URLQueryItem(name: C.inviteQuery, value: inviteToken)]))
+    }
+
     public func resendVerification() async throws {
         _ = try await send("POST", C.resendVerificationPath, accepted: [204])
     }
@@ -71,11 +76,11 @@ public struct AuthClient: Sendable {
         _ = try await send("DELETE", C.accountPath, accepted: [204])
     }
 
-    private func send(_ method: String, _ path: String, body: [String: String]? = nil, accepted: Set<Int> = [200]) async throws -> Data {
+    func send(_ method: String, _ path: String, body: [String: String]? = nil, accepted: Set<Int> = [200]) async throws -> Data {
         try await send(method, path, data: try body.map { try JSONEncoder().encode($0) }, accepted: accepted)
     }
 
-    private func send(_ method: String, _ path: String, query: [URLQueryItem] = [], data: Data? = nil, accepted: Set<Int> = [200]) async throws -> Data {
+    func send(_ method: String, _ path: String, query: [URLQueryItem] = [], data: Data? = nil, accepted: Set<Int> = [200]) async throws -> Data {
         var url = baseURL.appending(path: path)
         if !query.isEmpty { url.append(queryItems: query) }
         var request = URLRequest(url: url)
@@ -92,7 +97,7 @@ public struct AuthClient: Sendable {
         return responseData
     }
 
-    private func decode<Value: Decodable>(_ data: Data) throws -> Value {
+    func decode<Value: Decodable>(_ data: Data) throws -> Value {
         do {
             return try RemoteJSON.decoder().decode(Value.self, from: data)
         } catch {
@@ -112,8 +117,8 @@ public struct AuthClient: Sendable {
         case "invalid_token": return .invalidToken
         case "mail_unavailable": return .mailUnavailable
         case "rate_limited": return .rateLimited
-        case "web_only": return .webOnly
         case "invite_required": return .inviteRequired
+        case "invalid_invite": return .invalidInvite
         default: break
         }
         return switch status {

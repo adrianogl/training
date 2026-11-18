@@ -10,7 +10,7 @@ const cases = [
   ['confirmar e-mail', verifyEmailMail(link), 'Confirmar e-mail'],
   ['redefinir senha', resetPasswordMail(link), 'Criar senha nova'],
   ['convite', inviteMail(invite), 'Criar minha conta'],
-  ['pedido de convite', inviteRequestMail(request), 'Ver os pedidos'],
+  ['pedido de convite', inviteRequestMail(request), 'Ver no app'],
 ] as const
 
 describe('templates de e-mail', () => {

@@ -6,7 +6,7 @@ const OUTPUT_DIR = new URL('../.email-preview/', import.meta.url)
 const BASE = 'https://training.aglv.dev'
 
 const previews = {
-  'confirmar-email': verifyEmailMail(`${BASE}/app/confirmar?token=exemplo`),
+  'confirmar-email': verifyEmailMail(`${BASE}/confirmar?token=exemplo`),
   'redefinir-senha': resetPasswordMail(`${BASE}/redefinir-senha?token=exemplo`),
   convite: inviteMail({
     name: 'Marina',
@@ -19,7 +19,7 @@ const previews = {
     email: 'marina@exemplo.com',
     watch: 'Forerunner 265',
     message: 'Corro com um grupo de BH e queria testar antes da meia de março.',
-    link: `${BASE}/administracao`,
+    link: `${BASE}/convites`,
   }),
 }
 

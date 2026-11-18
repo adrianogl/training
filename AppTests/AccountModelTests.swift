@@ -96,17 +96,32 @@ private final class AccountTransport: HTTPTransport {
 }
 
 @MainActor
-@Suite struct AccountWebOnlyTests {
-    @Test func guestLoginFromTheAppShowsTheWebNotice() async {
-        let transport = AccountTransport([(403, #"{"error":"web_only"}"#)])
+@Suite struct AccountLinkFlowTests {
+    private static func account(_ transport: AccountTransport, token: String? = nil) -> AccountModel {
+        let store = MemoryKeyStore()
+        if let token { try? store.save(token) }
         let defaults = UserDefaults(suiteName: "account-\(UUID().uuidString)")!
-        let account = AccountModel(store: MemoryKeyStore(), transport: transport, baseURL: URL(string: "https://sync.example.test")!, defaults: defaults, device: "iPhone")
+        return AccountModel(store: store, transport: transport, baseURL: URL(string: "https://sync.example.test")!, defaults: defaults, device: "iPhone")
+    }
 
-        let ok = await account.login(email: "marina@exemplo.com", password: "corrida-longa-42")
+    @Test func resetSignsThisDeviceOutAndLeavesANotice() async {
+        let transport = AccountTransport([(204, "")])
+        let account = Self.account(transport, token: "sessao")
 
-        #expect(!ok)
-        #expect(account.webOnly)
+        let ok = await account.resetPassword(token: "t", password: "senha-nova-longa")
+
+        #expect(ok)
         #expect(!account.isSignedIn)
-        #expect(transport.requests.first?.value(forHTTPHeaderField: "X-Training-Client") == "app")
+        #expect(account.notice == AccountConstants.passwordReset)
+    }
+
+    @Test func expiredInviteShowsTheInviteMessage() async {
+        let transport = AccountTransport([(404, #"{"error":"invalid_invite"}"#)])
+        let account = Self.account(transport)
+
+        let preview = await account.invitePreview(token: "x")
+
+        #expect(preview == nil)
+        #expect(account.errorMessage == AccountConstants.invalidInvite)
     }
 }
