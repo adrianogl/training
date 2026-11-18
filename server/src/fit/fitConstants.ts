@@ -1,8 +1,10 @@
 export const FIT = {
-  processingVersion: 3,
+  processingVersion: 4,
   metricsVersion: 1,
   recalculatePerRound: 20,
   bucketSeconds: 5,
+  invalidCadence: 255,
+  stepsPerStride: 2,
   maxRoutePoints: 500,
   initialSimplificationTolerance: 1e-6,
   semicircleToDegrees: 180 / 2_147_483_648,

@@ -1,3 +1,4 @@
+import { FIT } from '../src/fit/fitConstants.js'
 import type { DetailedInput, DetailedRun } from '../src/analysis/detailedTypes.js'
 import type { FitSample, FitSummary } from '../src/fit/fitTypes.js'
 import type { ActivitySummary, GoalItem, HealthDay } from '../src/types.js'
@@ -45,7 +46,7 @@ export function scenarioRun(spec: RunSpec): DetailedRun {
     cadence: 172, trainingLoad: 120, aerobicEffect: 3, anaerobicEffect: 0.5, vo2max: 52, zoneSeconds: [60, 1200, 1800, 400, 0], fastestKmSeconds: 260, fastest5kSeconds: null, laps: null, workoutId: null,
   }
   const prescription = spec.plannedMeters === null ? null : { name: null, description: null, steps: [{ index: 0, intensity: 'active' as const, duration: { kind: 'distance' as const, meters: spec.plannedMeters }, target: { kind: 'open' as const } }] }
-  const fit: FitSummary = { version: 3, samples, route: [], physio: null, structure: { prescription, laps: [] }, zoneInfo: null }
+  const fit: FitSummary = { version: FIT.processingVersion, samples, route: [], physio: null, structure: { prescription, laps: [] }, zoneInfo: null }
   return { activity, fit }
 }
 

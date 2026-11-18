@@ -21,6 +21,29 @@ const weatherText = (facts: Record<string, number>) =>
   facts.cold === 1 || facts.dewPoint === undefined ? temperatureText(facts.temperature) : `${temperatureText(facts.temperature)}, orvalho ${temperatureText(facts.dewPoint)}`
 const weatherPercent = (facts: Record<string, number>) => `${((facts.weatherFactor ?? 0) * 100).toFixed(1).replace('.', ',')}%`
 const hasWeather = (facts: Record<string, number>) => facts.temperature !== undefined
+const PREVIOUS_DAY: Record<number, string> = { 1: 'limiar', 2: 'tiros', 3: 'longão', 4: 'treino de pernas' }
+const listText = (items: string[]) => (items.length > 1 ? `${items.slice(0, -1).join(', ')} e ${items.at(-1) ?? ''}` : (items[0] ?? ''))
+export function dayCause(facts: Record<string, number>): string | null {
+  const state: string[] = []
+  if (facts.sleepSeconds !== undefined) {
+    const minutes = integer(facts.sleepSeconds / 60)
+    state.push(`noite de ${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, '0')}`)
+  } else if (facts.sleepScore !== undefined) state.push(`sono com nota ${integer(facts.sleepScore)}`)
+  if (facts.hrvLow === 1) state.push('HRV abaixo da faixa')
+  if (facts.bodyBattery !== undefined) state.push(`Body Battery ${integer(facts.bodyBattery)} de manhã`)
+  const previous = facts.previousDay === undefined ? undefined : PREVIOUS_DAY[integer(facts.previousDay)]
+  if (state.length === 0 && previous === undefined) return null
+  return [state.length === 0 ? null : `Causa provável: ${listText(state)}.`, previous === undefined ? null : `Ontem teve ${previous}.`].filter((item) => item !== null).join(' ')
+}
+const formEvidence = (facts: Record<string, number>) => {
+  const parts: string[] = []
+  if (facts.cadenceFrom !== undefined && facts.cadenceTo !== undefined) parts.push(`cadência ${integer(facts.cadenceFrom)} → ${integer(facts.cadenceTo)} passos/min`)
+  if (facts.stanceFrom !== undefined && facts.stanceTo !== undefined && facts.stanceFrom > 0) {
+    parts.push(`contato com o solo ${integer(facts.stanceFrom)} → ${integer(facts.stanceTo)} ms (+${integer((facts.stanceTo / facts.stanceFrom - 1) * 100)}%)`)
+  }
+  return parts.join(' · ')
+}
+const kmh = (value: number | undefined) => `${integer(value)} km/h`
 const paceClock = (speed: number | undefined) => (speed === undefined || speed <= 0 ? null : clock(ANALYSIS.metersPerKilometer / speed))
 const pace = (speed: number | undefined) => {
   const value = paceClock(speed)
@@ -104,7 +127,8 @@ function dayContextSentences(facts: Record<string, number>): string[] {
 function incompleteWhy(finding: Finding, blocks: WorkoutBlock[]): string {
   const facts = finding.facts
   if (statusOf(finding, blocks) === 'notExecuted') return NARRATIVE.why.notExecuted
-  const signals = [...slowdownSentences(facts), ...pauseSentences(facts), ...dayContextSentences(facts)]
+  const cause = dayCause(facts)
+  const signals = [...slowdownSentences(facts), ...pauseSentences(facts), ...dayContextSentences(facts), ...(cause === null ? [] : [cause])]
   if (signals.length > 0) return signals.join(' ')
   if (facts.targetDistance === undefined || facts.distance === undefined || facts.targetDistance <= facts.distance) return NARRATIVE.why.incomplete
   return D.remaining(distanceText(facts.targetDistance - facts.distance))
@@ -175,6 +199,10 @@ export function findingText(finding: Finding, blocks: WorkoutBlock[]): string {
       const drift = `${label} com desacoplamento: a FC subiu ${percent(facts.rise)} (${integer(facts.fromHR)} → ${integer(facts.toHR)} bpm) com o pace estável.`
       return hasWeather(facts) ? `${drift} Esperado com ${weatherText(facts)}.` : drift
     }
+    case 'windAgainst':
+      return `${kilometerRange(facts)} com vento contra de ${kmh(facts.headwind)}: ${clockOf(facts.pace) ?? ''}${NARRATIVE.paceUnit} equivale a ${clockOf(facts.mildPace) ?? ''}${NARRATIVE.paceUnit} sem o vento.`
+    case 'runFormFade':
+      return `${label} com a forma caindo no fim: ${formEvidence(facts)}.`
     case 'weatherSlower':
       return `Com ${weatherText(facts)}, o ritmo de ${clockOf(facts.pace) ?? ''}${NARRATIVE.paceUnit} equivale a ${clockOf(facts.mildPace) ?? ''}${NARRATIVE.paceUnit} em clima ameno.`
     case 'zoneAboveTarget':
@@ -255,6 +283,10 @@ export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): strin
     case 'climbSlower':
     case 'descentFaster':
       return elevationSegment(facts)
+    case 'windAgainst':
+      return `${kmh(facts.windSpeed)} · ${clockOf(facts.pace) ?? ''} → ${clockOf(facts.mildPace) ?? ''} /km sem o vento`
+    case 'runFormFade':
+      return formEvidence(facts)
     case 'weatherSlower':
       return `${clockOf(facts.pace) ?? ''} → ${clockOf(facts.mildPace) ?? ''} ${NARRATIVE.paceUnit} · ${weatherText(facts)}`
     case 'cardiacDrift':
@@ -268,7 +300,15 @@ export function findingEvidence(finding: Finding, blocks: WorkoutBlock[]): strin
   }
 }
 
+const CAUSE_KINDS = new Set(['blockOffTarget', 'paceFade', 'cardiacDrift'])
+
 export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
+  const base = baseWhy(finding, blocks)
+  const cause = CAUSE_KINDS.has(finding.kind) ? dayCause(finding.facts) : null
+  return cause === null ? base : `${base} ${cause}`
+}
+
+function baseWhy(finding: Finding, blocks: WorkoutBlock[]): string {
   const W = NARRATIVE.why
   const facts = finding.facts
   switch (finding.kind) {
@@ -299,6 +339,10 @@ export function findingWhy(finding: Finding, blocks: WorkoutBlock[]): string {
       return W.climb(clockOf(facts.flatPace) ?? '')
     case 'descentFaster':
       return W.descent(clockOf(facts.flatPace) ?? '')
+    case 'windAgainst':
+      return W.wind(kmh(facts.headwind), clockOf(facts.mildPace) ?? '')
+    case 'runFormFade':
+      return W.runForm
     case 'weatherSlower':
       return (facts.cold === 1 ? W.coldSlower : W.heatSlower)(weatherText(facts), weatherPercent(facts), clockOf(facts.mildPace) ?? '')
     case 'cardiacDrift':

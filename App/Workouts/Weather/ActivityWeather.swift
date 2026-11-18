@@ -22,6 +22,7 @@ enum ActivityWeather {
             URLQueryItem(name: "latitude", value: request.latitude),
             URLQueryItem(name: "longitude", value: request.longitude),
             URLQueryItem(name: "hourly", value: C.fields),
+            URLQueryItem(name: "wind_speed_unit", value: C.windUnit),
             URLQueryItem(name: "timezone", value: timezone),
             URLQueryItem(name: "start_date", value: request.firstDay),
             URLQueryItem(name: "end_date", value: request.lastDay),
@@ -41,13 +42,19 @@ enum ActivityWeather {
     }
 
     static func parse(_ data: Data) -> [WeatherHour]? {
-        guard let response = try? JSONDecoder().decode(OpenMeteoResponse.self, from: data) else { return nil }
+        guard let response = try? JSONDecoder().decode(ActivityWeatherResponse.self, from: data) else { return nil }
         let hourly = response.hourly
+        func value(_ list: [Double?]?, _ index: Int) -> Double? {
+            guard let list, index < list.count else { return nil }
+            return list[index]
+        }
         return hourly.time.indices.compactMap { index in
-            guard index < hourly.temperature_2m.count, let temperature = hourly.temperature_2m[index],
-                  let start = hourFormatter.date(from: hourly.time[index]) else { return nil }
-            let dewPoint = index < hourly.dew_point_2m.count ? hourly.dew_point_2m[index] : nil
-            return WeatherHour(start: start, temperature: temperature, dewPoint: dewPoint)
+            guard let temperature = value(hourly.temperature_2m, index), let start = hourFormatter.date(from: hourly.time[index]) else { return nil }
+            return WeatherHour(
+                start: start, temperature: temperature, dewPoint: value(hourly.dew_point_2m, index),
+                windSpeed: value(hourly.wind_speed_10m, index), windFrom: value(hourly.wind_direction_10m, index),
+                radiation: value(hourly.shortwave_radiation, index)
+            )
         }
     }
 
@@ -57,6 +64,12 @@ enum ActivityWeather {
         var temperature = 0.0
         var dewWeight = 0.0
         var dewPoint = 0.0
+        var windWeight = 0.0
+        var windSpeed = 0.0
+        var windEast = 0.0
+        var windNorth = 0.0
+        var sunWeight = 0.0
+        var radiation = 0.0
         for hour in hours {
             let overlap = min(finish, hour.start.addingTimeInterval(C.secondsPerHour)).timeIntervalSince(max(start, hour.start))
             guard overlap > 0 else { continue }
@@ -66,9 +79,26 @@ enum ActivityWeather {
                 dewWeight += overlap
                 dewPoint += dew * overlap
             }
+            if let speed = hour.windSpeed, let from = hour.windFrom {
+                windWeight += overlap
+                windSpeed += speed * overlap
+                windEast += speed * sin(from * .pi / 180) * overlap
+                windNorth += speed * cos(from * .pi / 180) * overlap
+            }
+            if let sun = hour.radiation {
+                sunWeight += overlap
+                radiation += sun * overlap
+            }
         }
         guard weight > 0 else { return nil }
-        return RunWeather(temperature: temperature / weight, dewPoint: dewWeight > 0 ? dewPoint / dewWeight : nil)
+        let direction = windWeight > 0 ? (atan2(windEast, windNorth) * 180 / .pi + 360).truncatingRemainder(dividingBy: 360) : nil
+        return RunWeather(
+            temperature: temperature / weight,
+            dewPoint: dewWeight > 0 ? dewPoint / dewWeight : nil,
+            windSpeed: windWeight > 0 ? windSpeed / windWeight : nil,
+            windFrom: direction,
+            radiation: sunWeight > 0 ? radiation / sunWeight : nil
+        )
     }
 
     static let gmtCalendar: Calendar = {

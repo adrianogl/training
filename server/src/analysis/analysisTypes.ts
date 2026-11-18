@@ -1,4 +1,4 @@
-import type { FitSummary, LapSummary, PrescribedStep } from '../fit/fitTypes.js'
+import type { FitSample, FitSummary, LapSummary, PrescribedStep } from '../fit/fitTypes.js'
 
 export interface HeartRateZones {
   floors: number[]
@@ -24,11 +24,16 @@ export interface WorkoutBlock {
   status: BlockStatus
   weatherFactor?: number
   weatherRescued?: boolean
+  windFactor?: number
+  headwind?: number
 }
 
 export interface RunWeather {
   temperature: number
   dewPoint: number | null
+  windSpeed?: number | null
+  windFrom?: number | null
+  radiation?: number | null
 }
 
 export type WeatherStress = 'mild' | 'heat' | 'cold'
@@ -37,6 +42,17 @@ export interface WeatherEffect {
   weather: RunWeather
   stress: WeatherStress
   paceFactor: number
+  sunBoost: number
+  hotSessions: number
+  adaptation: number
+}
+
+export interface DayCondition {
+  sleepSeconds: number | null
+  sleepScore: number | null
+  hrvBelowBalanced: boolean
+  bodyBattery: number | null
+  previousDay: number | null
 }
 
 export type BlockKilometers = Map<number, WorkoutBlock[]>
@@ -66,7 +82,7 @@ export type FindingKind =
   | 'blockOffTarget' | 'stepIncomplete' | 'paceFade'
   | 'cardiacDrift' | 'zoneAboveTarget' | 'hardOnLowReadiness' | 'highAcuteChronic'
   | 'climbSlower' | 'descentFaster'
-  | 'weatherSlower'
+  | 'weatherSlower' | 'windAgainst' | 'runFormFade'
 
 export interface Finding {
   group: FindingGroup
@@ -88,6 +104,8 @@ export interface AssessmentContext {
   kilometers: BlockKilometers
   continuity: RunContinuity | null
   weather?: WeatherEffect | null
+  samples?: FitSample[]
+  day?: DayCondition | null
 }
 
 export interface WorkoutOccurrence {
@@ -185,7 +203,9 @@ export interface AnalysisInput {
   readinessScore: number | null
   acuteChronic: number | null
   weather?: RunWeather | null
-  previous: { activityId: number; day: string; distance: number | null; movingSeconds: number | null; averageHeartRate: number | null; fit: FitSummary; weather?: RunWeather | null }[]
+  hotSessions?: number
+  dayCondition?: DayCondition | null
+  previous: { activityId: number; day: string; distance: number | null; movingSeconds: number | null; averageHeartRate: number | null; fit: FitSummary; weather?: RunWeather | null; hotSessions?: number }[]
 }
 
 export interface RunContinuity {

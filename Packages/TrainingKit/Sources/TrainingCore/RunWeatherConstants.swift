@@ -9,4 +9,17 @@ public enum RunWeatherConstants {
     public static let driftHeatFactor = 0.02
     public static let zoneHeatFactor = 0.03
     public static let fadeHeatFactor = 0.03
+    public static let fullSunRadiation = 800.0
+    public static let fullSunBoost = 4.0
+    public static let sunnyBoost = 2.0
+    public static let hotSessionFactor = 0.02
+    public static let adaptationWindowDays = 14
+    public static let adaptationPerSession = 0.05
+    public static let maxAdaptation = 0.4
+    public static let windHeightFactor = 0.75
+    public static let headwindCost = 0.0025
+    public static let tailwindShare = 0.5
+    public static let windEffectSeconds = 3.0
+    public static let minimumHeadingMeters = 5.0
+    public static let metersPerSecondToKmh = 3.6
 }

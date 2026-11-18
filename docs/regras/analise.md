@@ -117,7 +117,50 @@ Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift
 | Custo, FC menor que antes, Acima do esperado | velocidade de cada treino ajustada pelo clima daquele treino | `WorkoutBlock.weatherSpeed` |
 | Alvo de FC | não muda | — |
 
-O detalhe da corrida mostra os graus, o ponto de orvalho e o ajuste. Sem clima, a análise fica como antes.
+| Sol | radiação solar média das horas do treino, de 0 a 800 W/m², soma de 0 a 4 °C à temperatura do ajuste de calor; "sol forte" a partir de +2 °C | `fullSunRadiation`, `fullSunBoost`, `sunnyBoost` |
+| Adaptação ao calor | cada corrida com calor de pelo menos 2% nos 14 dias anteriores tira 5% do ajuste de calor, até 40% | `hotSessionFactor`, `adaptationPerSession`, `maxAdaptation` |
+
+O detalhe da corrida mostra os graus, o ponto de orvalho, o sol, a adaptação e o ajuste. Sem clima, a análise fica como antes. O clima de cada treino tem versão (`weatherVersion`); a versão 2 trouxe vento e sol, e os treinos dos últimos 120 dias são consultados de novo.
+
+## Vento
+
+Arquivos: `WorkoutAnalysis/Wind.swift`, `WorkoutAnalysis/AssessmentConditions.swift`, `server/src/analysis/conditions.ts`. Testes: `WorkoutAnalysisTests/ConditionsAnalysisTests.swift`, `server/test/conditions.test.ts`.
+
+| Regra | Valor | Constante |
+| --- | --- | --- |
+| Fonte | vento a 10 m do Open-Meteo, média das horas do treino (direção pela média dos vetores) | `ActivityWeatherConstants.fields` |
+| Altura de quem corre | vento a 10 m × 0,75 | `windHeightFactor` |
+| Direção do trecho | pelas posições do FIT, a cada 5 m percorridos | `minimumHeadingMeters` |
+| Custo | 0,25% × (m/s contra)²; a favor devolve metade | `headwindCost`, `tailwindShare` |
+| Bloco com alvo de ritmo | o ajuste do vento soma ao do clima: mais lento que o alvo e dentro dele sem o vento conta como no alvo | `WorkoutBlock.conditionsFactor` |
+| Item "Vento contra do km X ao Y" | km seguidos com efeito de pelo menos 3 s/km, no grupo esperado | `windEffectSeconds` |
+| Km a km | seta, velocidade na altura de quem corre e ritmo sem vento quando o efeito passa de 3 s/km, contra ou a favor | `KilometerWindBuilder` |
+
+## Largada e véspera
+
+Arquivos: `App/Workouts/Detail/DayConditionBuilder.swift`, `WorkoutAnalysis/AssessmentConditions.swift`, `Narrative/NarrativeConditions.swift`, `server/src/analysis/conditions.ts`.
+
+Entram como "Causa provável" em fora do alvo (mais lento ou FC acima), incompleto, perda de ritmo e deriva fora do calor. Não mudam a nota nem o grupo do item.
+
+| Sinal | Quando conta | Constante |
+| --- | --- | --- |
+| Sono | menos de 6 h, ou nota abaixo de 60 | `shortSleepSeconds`, `lowSleepScore` |
+| HRV | última noite abaixo da faixa equilibrada | — |
+| Body Battery | máximo da manhã abaixo de 40 | `lowBodyBattery` |
+| Véspera | tiros, limiar ou longão no dia anterior; no app, também dia de pernas no MFIT (pelo menos 50% das séries em pernas). O servidor não tem os treinos do MFIT e olha só a corrida | `PreviousDayLoad` |
+
+## Dinâmica de corrida
+
+Arquivos: `WorkoutAnalysis/AssessmentConditions.swift`, `server/src/analysis/conditions.ts`.
+
+| Regra | Valor | Constante |
+| --- | --- | --- |
+| Fonte | cadência e tempo de contato com o solo do FIT, em blocos de 5 s | `FITSample.cadence`, `stanceTime` |
+| Onde | bloco ativo de pelo menos 15 min; em corrida livre, o treino inteiro | `formMinimumSeconds` |
+| Comparação | último terço contra o primeiro, com o ritmo igual ou até 2% mais lento | `formSpeedTolerance` |
+| Item "Forma caindo no fim" (atenção) | cadência caindo pelo menos 3 passos/min ou contato com o solo subindo pelo menos 4% | `cadenceDrop`, `stanceRise` |
+
+A versão 4 do processamento do FIT passou a guardar a cadência, o contato com o solo e a posição de cada bloco de 5 s. Só as corridas dos últimos 120 dias são processadas de novo (`SyncConstants.reprocessWindowDays`).
 
 ### Previsão das provas
 
@@ -140,7 +183,7 @@ Comparação com até 4 treinos iguais (`maxComparisons`). Treino planejado é i
 
 Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
 
-A versão da nota está em `AnalysisConstants.scoreVersion` (3, desde o ajuste pelo clima). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
+A versão da nota está em `AnalysisConstants.scoreVersion` (4, desde vento, sol e adaptação ao calor). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
 
 ## Análise detalhada
 

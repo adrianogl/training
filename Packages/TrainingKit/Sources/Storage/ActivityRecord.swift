@@ -51,6 +51,10 @@ public final class ActivityRecord {
     public var weatherTemperature: Double? = nil
     public var weatherDewPoint: Double? = nil
     public var weatherCheckedAt: Date? = nil
+    public var weatherWindSpeed: Double? = nil
+    public var weatherWindFrom: Double? = nil
+    public var weatherRadiation: Double? = nil
+    public var weatherVersion: Int = 0
     public var updatedAt: Date = Date.now
 
     public init(

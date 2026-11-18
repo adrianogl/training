@@ -1,6 +1,8 @@
 public enum FITReaderConstants {
-    public static let processingVersion = 3
+    public static let processingVersion = 4
     public static let bucketSeconds = 5.0
+    static let invalidCadence: UInt8 = 255
+    static let stepsPerStride = 2.0
     static let maxRoutePoints = 500
     static let initialSimplificationTolerance = 1e-6
     static let semicircleToDegrees = 180.0 / 2_147_483_648.0

@@ -22,6 +22,9 @@ enum FITFixtureBuilder {
             try record.setDistance(Double(second) * 3)
             try record.setPositionLat(Int32(-300_000_000 + sin(angle) * 1_000_000))
             try record.setPositionLong(Int32(-550_000_000 + cos(angle * 1.3) * 1_000_000))
+            try record.setCadence(85)
+            try record.setFractionalCadence(0.5)
+            try record.setStanceTime(240)
             encoder.write(mesg: record)
         }
 

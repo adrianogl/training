@@ -24,6 +24,8 @@ public struct WorkoutBlock: Codable, Sendable, Equatable {
     public var status: BlockStatus
     public var weatherFactor: Double?
     public var weatherRescued: Bool?
+    public var windFactor: Double?
+    public var headwind: Double?
 
     public init(
         kind: BlockKind,
@@ -39,7 +41,9 @@ public struct WorkoutBlock: Codable, Sendable, Equatable {
         dominantZone: Int?,
         status: BlockStatus,
         weatherFactor: Double? = nil,
-        weatherRescued: Bool? = nil
+        weatherRescued: Bool? = nil,
+        windFactor: Double? = nil,
+        headwind: Double? = nil
     ) {
         self.kind = kind
         self.ordinal = ordinal
@@ -55,10 +59,14 @@ public struct WorkoutBlock: Codable, Sendable, Equatable {
         self.status = status
         self.weatherFactor = weatherFactor
         self.weatherRescued = weatherRescued
+        self.windFactor = windFactor
+        self.headwind = headwind
     }
 
+    public var conditionsFactor: Double { (weatherFactor ?? 0) + (windFactor ?? 0) }
+
     public var weatherSpeed: Double? {
-        avgSpeed.map { WeatherAdjustment.mildSpeed($0, factor: weatherFactor) }
+        avgSpeed.map { WeatherAdjustment.mildSpeed($0, factor: conditionsFactor) }
     }
 }
 

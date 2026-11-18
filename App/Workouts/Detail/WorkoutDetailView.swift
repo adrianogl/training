@@ -74,9 +74,6 @@ struct WorkoutDetailView: View {
         if let summary = model.summary {
             if model.isRun {
                 SummaryHeader(summary: summary)
-                if let weather = model.weather {
-                    RunWeatherBand(effect: weather)
-                }
                 runSections(model)
             } else {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)
@@ -114,12 +111,19 @@ struct WorkoutDetailView: View {
                     }
                     .id(WorkoutDetailSection.heartRate)
                 }
-                if let ruler = model.ruler {
-                    labelled("Tempo em zona de FC") { ZoneRuler(data: ruler) }
-                        .id(WorkoutDetailSection.zones)
-                } else if !model.zoneShares.isEmpty {
-                    labelled("Tempo em zona de FC") { ZonesBar(shares: model.zoneShares) }
-                        .id(WorkoutDetailSection.zones)
+                if model.ruler != nil || !model.zoneShares.isEmpty || model.weather != nil {
+                    VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
+                        if let ruler = model.ruler {
+                            labelled("Tempo em zona de FC") { ZoneRuler(data: ruler) }
+                                .id(WorkoutDetailSection.zones)
+                        } else if !model.zoneShares.isEmpty {
+                            labelled("Tempo em zona de FC") { ZonesBar(shares: model.zoneShares) }
+                                .id(WorkoutDetailSection.zones)
+                        }
+                        if let weather = model.weather {
+                            labelled(WorkoutDetailConstants.weatherTitle) { RunWeatherBand(effect: weather) }
+                        }
+                    }
                 }
             }
             if !model.route.isEmpty {

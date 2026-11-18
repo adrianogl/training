@@ -54,7 +54,7 @@ import WorkoutAnalysis
         isRun = analysis.isRun
         hasPrescription = analysis.hasPrescription
         summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription)
-        weather = isRun ? record.weatherEffect : nil
+        weather = isRun ? record.weatherEffect(among: records) : nil
         zoneShares = Self.zoneShares(record.zoneSeconds)
         trainingEffect = TrainingEffectData(
             label: record.trainingEffectLabel,

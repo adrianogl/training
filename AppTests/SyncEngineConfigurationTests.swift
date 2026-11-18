@@ -9,7 +9,7 @@ import Testing
 @Suite struct SyncEngineConfigurationTests {
     private static func activity(id: Int64, typeKey: String = "running", fitProcessed: Bool = true, version: Int) -> ActivityRecord {
         ActivityRecord(
-            activityId: id, typeKey: typeKey, name: "Corrida", start: Date(timeIntervalSince1970: 1_700_000_000),
+            activityId: id, typeKey: typeKey, name: "Corrida", start: Date.now.addingTimeInterval(-86_400),
             fitProcessed: fitProcessed, processingVersion: version
         )
     }

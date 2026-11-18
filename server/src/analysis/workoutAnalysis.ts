@@ -10,6 +10,7 @@ import { evolutionText, narrate } from './narrative.js'
 import { scoreWorkout } from './workoutScore.js'
 import { comparisonKey } from './workoutTitle.js'
 import { adjustForWeather, weatherEffect } from './weatherEffect.js'
+import { applyWind, applyWindKilometers } from './conditions.js'
 
 export function thresholdZones(thresholdHeartRate: number): HeartRateZones {
   const inner = ANALYSIS.thresholdFloorFractions.map((fraction) => Math.round(thresholdHeartRate * fraction))
@@ -39,7 +40,8 @@ export function zoneSeconds(samples: FitSample[], zones: HeartRateZones): number
   return samples.some((sample) => (sample.heartRate ?? 0) > 0) ? seconds : null
 }
 
-const blocksOf = (fit: FitSummary, zones: HeartRateZones | null, weather: WeatherEffect | null): WorkoutBlock[] => adjustForWeather(buildBlocks(fit.structure, zones), weather)
+const blocksOf = (fit: FitSummary, zones: HeartRateZones | null, weather: WeatherEffect | null): WorkoutBlock[] =>
+  adjustForWeather(applyWind(buildBlocks(fit.structure, zones), fit.samples, weather?.weather ?? null), weather)
 
 function downsample<T>(items: T[], limit: number): T[] {
   if (items.length <= limit) return items
@@ -108,14 +110,14 @@ export function analyzeWorkout(input: AnalysisInput, formatDay: (day: string) =>
   const base = { ...empty, hasPrescription: prescribed, workoutName: fit.structure.prescription?.name ?? null, route: fit.route, chart: downsample(fit.samples, ANALYSIS.chartPointLimit) }
   if (!input.isRun) return base
   const zones = zonesFor(fit)
-  const weather = weatherEffect(input.weather ?? null)
+  const weather = weatherEffect(input.weather ?? null, input.hotSessions ?? 0)
   const blocks = blocksOf(fit, zones, weather)
-  const kilometers = prescribed ? blockKilometers(blocks, fit.samples, zones) : new Map<number, WorkoutBlock[]>()
+  const kilometers = prescribed ? applyWindKilometers(blockKilometers(blocks, fit.samples, zones), fit.samples, weather?.weather ?? null) : new Map<number, WorkoutBlock[]>()
   const previous: WorkoutOccurrence[] = input.previous.flatMap((item) => {
-    const itemBlocks = blocksOf(item.fit, zonesFor(item.fit), weatherEffect(item.weather ?? null))
+    const itemBlocks = blocksOf(item.fit, zonesFor(item.fit), weatherEffect(item.weather ?? null, item.hotSessions ?? 0))
     return itemBlocks.length === 0 ? [] : [{ activityId: item.activityId, day: item.day, blocks: itemBlocks }]
   })
-  const assessment = assess(blocks, { readinessScore: input.readinessScore, acuteChronic: input.acuteChronic, previous: previous.map((item) => item.blocks), kilometers, continuity: runContinuity(fit.samples), weather })
+  const assessment = assess(blocks, { readinessScore: input.readinessScore, acuteChronic: input.acuteChronic, previous: previous.map((item) => item.blocks), kilometers, continuity: runContinuity(fit.samples), weather, samples: fit.samples, day: input.dayCondition ?? null })
   const current: WorkoutOccurrence = { activityId: input.activityId, day: input.day, blocks }
   const comparison = compare(current, previous)
   let comparisonView: WorkoutAnalysis['comparison'] = null
@@ -146,7 +148,7 @@ export function analyzeWorkout(input: AnalysisInput, formatDay: (day: string) =>
     zoneSeconds: zones === null ? null : zoneSeconds(fit.samples, zones),
     blocks,
     kilometers: [...kilometers.entries()].map(([block, rows]) => ({ block, rows })),
-    splits: kilometerSplits(fit.samples, zones),
+    splits: applyWind(kilometerSplits(fit.samples, zones), fit.samples, weather?.weather ?? null),
     findings: narrate(assessment, blocks),
     score: scoreWorkout(blocks, zones, previous),
     comparison: comparisonView,

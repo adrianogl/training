@@ -47,6 +47,14 @@ enum NarrativePrompt {
                 "com o pace estável",
             ]
             return Format.hasWeather(facts) ? drift + ["esperada com \(Format.weather(facts))"] : drift
+        case .windAgainst:
+            let calm = facts[FindingFact.mildPace].map { WorkoutFormat.clock($0) } ?? ""
+            return [
+                "\(Format.kilometerRange(facts)) com vento contra de \(Format.windSpeed(facts[FindingFact.headwind]))",
+                "\(calm)\(NarrativeConstants.paceUnit) sem o vento",
+            ]
+        case .runFormFade:
+            return [Format.formEvidence(facts) ?? "", "forma caindo no fim"]
         case .weatherSlower:
             let pace = facts[FindingFact.pace].map { WorkoutFormat.clock($0) } ?? ""
             let mild = facts[FindingFact.mildPace].map { WorkoutFormat.clock($0) } ?? ""

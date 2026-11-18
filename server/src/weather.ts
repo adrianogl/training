@@ -1,6 +1,7 @@
 import { WEATHER } from './constants.js'
 import type { Weather } from './domain/domainTypes.js'
 import { daysBetween } from './domain/prediction.js'
+import { addDays } from './garminSync.js'
 import type { RunWeather } from './analysis/analysisTypes.js'
 
 export interface Coordinate {
@@ -59,7 +60,14 @@ export async function raceWeather(fetcher: Fetcher, coordinate: Coordinate, day:
 }
 
 interface HourlyBody {
-  hourly?: { time?: string[]; temperature_2m?: (number | null)[]; dew_point_2m?: (number | null)[] }
+  hourly?: {
+    time?: string[]
+    temperature_2m?: (number | null)[]
+    dew_point_2m?: (number | null)[]
+    wind_speed_10m?: (number | null)[]
+    wind_direction_10m?: (number | null)[]
+    shortwave_radiation?: (number | null)[]
+  }
 }
 
 const minutesOf = (local: string) => Date.parse(`${local.slice(0, 16)}:00Z`) / 60_000
@@ -68,36 +76,64 @@ export function averageWeather(body: unknown, startLocal: string, durationSecond
   const hourly = (body as HourlyBody | null)?.hourly
   const start = minutesOf(startLocal)
   const end = start + Math.max(durationSeconds / 60, 1)
-  let weight = 0
-  let temperature = 0
-  let dewWeight = 0
-  let dewPoint = 0
+  const sums = { weight: 0, temperature: 0, dewWeight: 0, dew: 0, windWeight: 0, wind: 0, east: 0, north: 0, sunWeight: 0, sun: 0 }
   hourly?.time?.forEach((time, index) => {
     const hourStart = minutesOf(time)
     const overlap = Math.min(end, hourStart + 60) - Math.max(start, hourStart)
     const value = hourly.temperature_2m?.[index]
     if (overlap <= 0 || typeof value !== 'number') return
-    weight += overlap
-    temperature += value * overlap
+    sums.weight += overlap
+    sums.temperature += value * overlap
     const dew = hourly.dew_point_2m?.[index]
     if (typeof dew === 'number') {
-      dewWeight += overlap
-      dewPoint += dew * overlap
+      sums.dewWeight += overlap
+      sums.dew += dew * overlap
+    }
+    const speed = hourly.wind_speed_10m?.[index]
+    const from = hourly.wind_direction_10m?.[index]
+    if (typeof speed === 'number' && typeof from === 'number') {
+      sums.windWeight += overlap
+      sums.wind += speed * overlap
+      sums.east += speed * Math.sin((from * Math.PI) / 180) * overlap
+      sums.north += speed * Math.cos((from * Math.PI) / 180) * overlap
+    }
+    const sun = hourly.shortwave_radiation?.[index]
+    if (typeof sun === 'number') {
+      sums.sunWeight += overlap
+      sums.sun += sun * overlap
     }
   })
-  return weight > 0 ? { temperature: temperature / weight, dewPoint: dewWeight > 0 ? dewPoint / dewWeight : null } : null
+  if (sums.weight <= 0) return null
+  return {
+    temperature: sums.temperature / sums.weight,
+    dewPoint: sums.dewWeight > 0 ? sums.dew / sums.dewWeight : null,
+    windSpeed: sums.windWeight > 0 ? sums.wind / sums.windWeight : null,
+    windFrom: sums.windWeight > 0 ? ((Math.atan2(sums.east, sums.north) * 180) / Math.PI + 360) % 360 : null,
+    radiation: sums.sunWeight > 0 ? sums.sun / sums.sunWeight : null,
+  }
 }
 
-export async function activityWeather(fetcher: Fetcher, coordinate: Coordinate, startLocal: string, durationSeconds: number, today: string): Promise<RunWeather | null> {
-  const day = startLocal.slice(0, 10)
-  const archive = daysBetween(day, today) > WEATHER.forecastHistoryDays
+export interface RunWindow {
+  startLocal: string
+  seconds: number
+}
+
+export async function activityWeather(
+  fetcher: Fetcher, coordinate: Coordinate, run: RunWindow, earlier: RunWindow[], today: string, isHot: (weather: RunWeather | null) => boolean,
+): Promise<{ weather: RunWeather | null; hotSessions: number }> {
+  const day = run.startLocal.slice(0, 10)
+  const first = addDays(day, -WEATHER.adaptationDays)
+  const archive = daysBetween(first, today) > WEATHER.forecastHistoryDays
   const params = new URLSearchParams({
     latitude: rounded(coordinate.latitude),
     longitude: rounded(coordinate.longitude),
-    hourly: WEATHER.fields,
+    hourly: WEATHER.activityFields,
+    wind_speed_unit: WEATHER.windUnit,
     timezone: 'auto',
-    start_date: day,
+    start_date: first,
     end_date: day,
   })
-  return averageWeather(await getJson(fetcher, `${archive ? WEATHER.archiveUrl : WEATHER.forecastUrl}?${params}`), startLocal, durationSeconds)
+  const body = await getJson(fetcher, `${archive ? WEATHER.archiveUrl : WEATHER.forecastUrl}?${params}`)
+  const hotSessions = earlier.filter((item) => item.startLocal >= first && item.startLocal < run.startLocal && isHot(averageWeather(body, item.startLocal, item.seconds))).length
+  return { weather: averageWeather(body, run.startLocal, run.seconds), hotSessions }
 }

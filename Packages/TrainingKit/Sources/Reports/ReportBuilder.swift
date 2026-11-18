@@ -92,9 +92,10 @@ public struct ReportBuilder {
 
     private func computeEfforts(from all: [ActivityRecord]) throws -> [Effort] {
         var efforts: [Effort] = []
-        for run in all where run.hasStart && ActivityTypeKey.isRun(run.typeKey) {
+        let runs = all.filter { $0.hasStart && ActivityTypeKey.isRun($0.typeKey) }
+        for run in runs {
             let runDay = day(of: run.start)
-            let weather = run.weatherEffect
+            let weather = run.weatherEffect(among: runs)
             if let seconds = run.fastestSplit_5000, seconds > 0 {
                 efforts.append(Effort(distance: ReportConstants.split5kMeters, seconds: WeatherAdjustment.mildPace(seconds, effect: weather), day: runDay, kind: .split5k))
             }
@@ -107,7 +108,7 @@ public struct ReportBuilder {
         for race in try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil })) {
             guard let id = race.resultActivityId, let activity = byId[id], let seconds = activity.duration, seconds > 0 else { continue }
             guard let distance = activity.distance, distance > 0 else { continue }
-            efforts.append(Effort(distance: distance, seconds: WeatherAdjustment.mildPace(seconds, effect: activity.weatherEffect), day: day(of: activity.start), kind: .race))
+            efforts.append(Effort(distance: distance, seconds: WeatherAdjustment.mildPace(seconds, effect: activity.weatherEffect(among: runs)), day: day(of: activity.start), kind: .race))
         }
         return efforts
     }
@@ -133,7 +134,7 @@ public struct ReportBuilder {
         for run in all where run.hasStart && ActivityTypeKey.isRun(run.typeKey) {
             let kind = classifyRun(run, longGoalKm: nil, raceGoalKms: raceKms)
             guard kind == .tempo || kind == .intervals, var work = workPace(run) else { continue }
-            work.seconds = WeatherAdjustment.mildPace(work.seconds, effect: run.weatherEffect)
+            work.seconds = WeatherAdjustment.mildPace(work.seconds, effect: run.weatherEffect(among: all))
             sessions[kind, default: []].append(TrainingSession(day: day(of: run.start), work: work))
         }
         return sessions

@@ -3,8 +3,8 @@ import WorkoutAnalysis
 enum WorkoutFeedbackConstants {
     static let visibleEntries = 4
     static let priority: [FindingKind] = [
-        .blockOffTarget, .stepIncomplete, .zoneAboveTarget, .cardiacDrift, .paceFade, .hardOnLowReadiness, .highAcuteChronic,
-        .weatherSlower, .climbSlower, .descentFaster, .lowerHeartRateThanBefore, .goodRecovery, .steadyPace, .blockInTarget,
+        .blockOffTarget, .stepIncomplete, .zoneAboveTarget, .cardiacDrift, .paceFade, .runFormFade, .hardOnLowReadiness, .highAcuteChronic,
+        .windAgainst, .weatherSlower, .climbSlower, .descentFaster, .lowerHeartRateThanBefore, .goodRecovery, .steadyPace, .blockInTarget,
     ]
 
     static let slower = ("mais lento que o alvo", "mais lentos que o alvo", "mais lenta que o alvo", "mais lentas que o alvo")
@@ -24,6 +24,9 @@ enum WorkoutFeedbackConstants {
     static let descentTitle = "Ritmo mais rápido na descida"
     static let heatTitle = "Ritmo mais lento pelo calor"
     static let coldTitle = "Ritmo mais lento pelo frio"
+    static let windRangeFormat = "Vento contra do km %d ao %d"
+    static let windSingleFormat = "Vento contra no km %d"
+    static let formTitle = "Forma caindo no fim"
     static let elevationKinds: Set<FindingKind> = [.climbSlower, .descentFaster]
     static let elevationLead = "Desnível: "
     static let whyClimbGroupFormat = "Subida custa ritmo com o mesmo esforço. No equivalente no plano, esses km ficaram entre %@ e %@/km."

@@ -6,12 +6,14 @@ public func assess(_ blocks: [WorkoutBlock], context: AssessmentContext) -> Work
         + steadyPace(blocks, kilometers: context.kilometers)
         + lowerHeartRateThanBefore(blocks, previous: context.previous)
         + goodRecovery(blocks)
-        + blockOffTarget(blocks)
+        + blockOffTarget(blocks, day: dayFacts(context.day))
         + stepIncomplete(blocks, context: context)
-        + paceFade(blocks, kilometers: context.kilometers, weather: context.weather)
+        + paceFade(blocks, kilometers: context.kilometers, weather: context.weather, day: dayFacts(context.day))
         + elevationPace(blocks, kilometers: context.kilometers)
         + weatherSlower(blocks, weather: context.weather)
-        + cardiacDrift(blocks, kilometers: context.kilometers, weather: context.weather)
+        + windAgainst(blocks, kilometers: context.kilometers, weather: context.weather)
+        + cardiacDrift(blocks, kilometers: context.kilometers, weather: context.weather, day: dayFacts(context.day))
+        + runFormFade(blocks, samples: context.samples)
         + zoneAboveTarget(blocks, weather: context.weather)
         + hardOnLowReadiness(blocks, readiness: context.readinessScore)
         + highAcuteChronic(context.acuteChronic)
@@ -48,7 +50,7 @@ private func steadyPace(_ blocks: [WorkoutBlock], kilometers: BlockKilometers) -
     }
 }
 
-private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, weather: WeatherEffect?) -> [Finding] {
+private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, weather: WeatherEffect?, day: [String: Double]) -> [Finding] {
     eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let paces = laps.map(levelPace)
         guard let last = paces.last, let lastLap = laps.last else { return nil }
@@ -68,6 +70,7 @@ private func paceFade(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, wea
         if let weather, weather.isHeat, weather.paceFactor >= RunWeatherConstants.fadeHeatFactor {
             facts.merge(weatherFacts(weather)) { current, _ in current }
         }
+        facts.merge(day) { current, _ in current }
         return Finding(group: .negative, kind: .paceFade, blockOrdinal: position, facts: facts)
     }
 }
@@ -126,7 +129,7 @@ private func levelPace(_ lap: LapSummary) -> Double {
     flatPace(lap) ?? pace(lap)
 }
 
-private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, weather: WeatherEffect?) -> [Finding] {
+private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers, weather: WeatherEffect?, day: [String: Double]) -> [Finding] {
     let expected = weather.map { $0.isHeat && $0.paceFactor >= RunWeatherConstants.driftHeatFactor } ?? false
     return eligibleForLapRules(blocks, kilometers: kilometers).compactMap { position, laps in
         let third = max(1, laps.count / 3)
@@ -141,7 +144,7 @@ private func cardiacDrift(_ blocks: [WorkoutBlock], kilometers: BlockKilometers,
             FindingFact.fromHR: fromHR,
             FindingFact.toHR: toHR,
         ]
-        if expected, let weather { facts.merge(weatherFacts(weather)) { current, _ in current } }
+        if expected, let weather { facts.merge(weatherFacts(weather)) { current, _ in current } } else { facts.merge(day) { current, _ in current } }
         return Finding(group: expected ? .positive : .attention, kind: .cardiacDrift, blockOrdinal: position, facts: facts)
     }
 }
@@ -179,7 +182,7 @@ private func lowerHeartRateThanBefore(_ blocks: [WorkoutBlock], previous: [[Work
     }
 }
 
-private func blockOffTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
+private func blockOffTarget(_ blocks: [WorkoutBlock], day: [String: Double]) -> [Finding] {
     let offTarget: Set<BlockStatus> = [.faster, .slower, .aboveTarget, .belowTarget]
     let highestRecovery = blocks.filter { $0.kind == .recovery }.compactMap(\.avgHeartRate).max()
     return blocks.enumerated().compactMap { position, block in
@@ -201,6 +204,7 @@ private func blockOffTarget(_ blocks: [WorkoutBlock]) -> [Finding] {
         default:
             break
         }
+        if block.status == .slower || block.status == .aboveTarget { facts.merge(day) { current, _ in current } }
         return Finding(group: .negative, kind: .blockOffTarget, blockOrdinal: position, facts: facts)
     }
 }
@@ -223,6 +227,7 @@ private func stepIncomplete(_ blocks: [WorkoutBlock], context: AssessmentContext
             if let ratio = context.acuteChronic, ratio > AnalysisConstants.highAcuteChronic {
                 facts[FindingFact.ratio] = ratio
             }
+            facts.merge(dayFacts(context.day)) { current, _ in current }
         }
         return Finding(group: .negative, kind: .stepIncomplete, blockOrdinal: position, facts: facts)
     }
@@ -277,7 +282,7 @@ private func zoneAboveTarget(_ blocks: [WorkoutBlock], weather: WeatherEffect?) 
 
 private func weatherSlower(_ blocks: [WorkoutBlock], weather: WeatherEffect?) -> [Finding] {
     let rescued = blocks.filter { $0.weatherRescued == true && $0.seconds > 0 && $0.distance > 0 }
-    guard let weather, !rescued.isEmpty else { return [] }
+    guard let weather, weather.paceFactor > 0, !rescued.isEmpty else { return [] }
     let seconds = rescued.reduce(0) { $0 + $1.seconds }
     let kilometers = rescued.reduce(0) { $0 + $1.distance } / AnalysisConstants.metersPerKilometer
     let pace = seconds / kilometers
@@ -295,6 +300,8 @@ func weatherFacts(_ weather: WeatherEffect) -> [String: Double] {
     ]
     facts[FindingFact.dewPoint] = weather.weather.dewPoint
     if weather.isCold { facts[FindingFact.cold] = 1 }
+    if weather.isSunny { facts[FindingFact.sunny] = 1 }
+    if weather.adaptation > 0 { facts[FindingFact.hotSessions] = Double(weather.hotSessions) }
     return facts
 }
 

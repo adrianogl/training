@@ -1,3 +1,4 @@
+import FITReader
 import TrainingCore
 
 public enum FindingGroup: String, Codable, Sendable {
@@ -9,7 +10,7 @@ public enum FindingKind: String, Codable, Sendable {
     case blockOffTarget, stepIncomplete, paceFade
     case cardiacDrift, zoneAboveTarget, hardOnLowReadiness, highAcuteChronic
     case climbSlower, descentFaster
-    case weatherSlower
+    case weatherSlower, windAgainst, runFormFade
 }
 
 public enum FindingFact {
@@ -62,6 +63,19 @@ public enum FindingFact {
     public static let cold = "cold"
     public static let mildPace = "mildPace"
     public static let count = "count"
+    public static let windSpeed = "windSpeed"
+    public static let headwind = "headwind"
+    public static let cadenceFrom = "cadenceFrom"
+    public static let cadenceTo = "cadenceTo"
+    public static let stanceFrom = "stanceFrom"
+    public static let stanceTo = "stanceTo"
+    public static let sleepSeconds = "sleepSeconds"
+    public static let sleepScore = "sleepScore"
+    public static let hrvLow = "hrvLow"
+    public static let bodyBattery = "bodyBattery"
+    public static let previousDay = "previousDay"
+    public static let sunny = "sunny"
+    public static let hotSessions = "hotSessions"
 }
 
 public struct Finding: Codable, Sendable, Equatable {
@@ -97,6 +111,8 @@ public struct AssessmentContext: Sendable {
     public var kilometers: BlockKilometers
     public var continuity: RunContinuity?
     public var weather: WeatherEffect?
+    public var samples: [FITSample]
+    public var day: DayCondition?
 
     public init(
         readinessScore: Int? = nil,
@@ -104,7 +120,9 @@ public struct AssessmentContext: Sendable {
         previous: [[WorkoutBlock]] = [],
         kilometers: BlockKilometers = [:],
         continuity: RunContinuity? = nil,
-        weather: WeatherEffect? = nil
+        weather: WeatherEffect? = nil,
+        samples: [FITSample] = [],
+        day: DayCondition? = nil
     ) {
         self.readinessScore = readinessScore
         self.acuteChronic = acuteChronic
@@ -112,5 +130,27 @@ public struct AssessmentContext: Sendable {
         self.kilometers = kilometers
         self.continuity = continuity
         self.weather = weather
+        self.samples = samples
+        self.day = day
+    }
+}
+
+public enum PreviousDayLoad: Int, Codable, Sendable {
+    case threshold = 1, intervals, long, legs
+}
+
+public struct DayCondition: Sendable, Equatable {
+    public var sleepSeconds: Int?
+    public var sleepScore: Int?
+    public var hrvBelowBalanced: Bool
+    public var bodyBattery: Int?
+    public var previousDay: PreviousDayLoad?
+
+    public init(sleepSeconds: Int? = nil, sleepScore: Int? = nil, hrvBelowBalanced: Bool = false, bodyBattery: Int? = nil, previousDay: PreviousDayLoad? = nil) {
+        self.sleepSeconds = sleepSeconds
+        self.sleepScore = sleepScore
+        self.hrvBelowBalanced = hrvBelowBalanced
+        self.bodyBattery = bodyBattery
+        self.previousDay = previousDay
     }
 }

@@ -35,7 +35,9 @@ struct WorkoutAnalysisContext {
             watchZones: (try? runningZonesRecord(in: context)).flatMap(zones(from:)),
             thresholdByDay: (try? thresholdHeartRates(on: runDays, in: context)) ?? [:],
             dailyLoad: dailyLoad(records),
-            readinessByDay: readinessByDay(context)
+            readinessByDay: readinessByDay(context),
+            dailyByDay: DayConditionBuilder.dailyByDay(context),
+            legDays: DayConditionBuilder.legDays()
         )
     }
 
@@ -50,11 +52,12 @@ struct WorkoutAnalysisContext {
         analysis.zones = zones
         analysis.watchZones = watchZones(for: record, fallback: inputs.watchZones)
         analysis.thresholdHeartRate = inputs.thresholdByDay[day(record)]
-        let blocks = blocks(record, structure: structure, zones: zones)
-        analysis.blocks = blocks
         let recordSamples = samples(record)
+        let weather = record.weatherEffect(among: records)
+        let blocks = blocks(record, structure: structure, zones: zones, samples: recordSamples, weather: weather)
+        analysis.blocks = blocks
         if analysis.hasPrescription {
-            analysis.kilometers = kilometerSplits(of: blocks, samples: recordSamples, zones: zones)
+            analysis.kilometers = applyWind(kilometerSplits(of: blocks, samples: recordSamples, zones: zones), samples: recordSamples, weather: record.runWeather)
         }
 
         let previous = previousOccurrences(of: record, in: records, inputs: inputs)
@@ -65,7 +68,11 @@ struct WorkoutAnalysisContext {
             previous: previous.map(\.blocks),
             kilometers: analysis.kilometers,
             continuity: runContinuity(recordSamples),
-            weather: record.weatherEffect
+            weather: weather,
+            samples: recordSamples,
+            day: DayConditionBuilder.condition(
+                record: record, records: records, daily: record.localDay.flatMap { inputs.dailyByDay[$0] }, legDays: inputs.legDays
+            )
         ))
         analysis.aboveExpected = WorkoutAnalysis.aboveExpected(blocks, previous: previous.map(\.blocks))
         let current = WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
@@ -91,7 +98,7 @@ struct WorkoutAnalysisContext {
     static func score(record: ActivityRecord, records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> WorkoutScore? {
         guard ActivityTypeKey.isRun(record.typeKey) else { return nil }
         let zones = zones(for: record, inputs: inputs)
-        let blocks = blocks(record, structure: structure(record), zones: zones)
+        let blocks = blocks(record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(among: records))
         return scoreWorkout(blocks: blocks, zones: zones, previous: previousOccurrences(of: record, in: records, inputs: inputs))
     }
 
@@ -100,7 +107,7 @@ struct WorkoutAnalysisContext {
     }
 
     private static func previousOccurrences(of record: ActivityRecord, in records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [WorkoutOccurrence] {
-        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs)) }
+        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs), records: records) }
     }
 
     static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
@@ -113,13 +120,15 @@ struct WorkoutAnalysisContext {
         return (try? JSONDecoder().decode([FITSample].self, from: data)) ?? []
     }
 
-    private static func blocks(_ record: ActivityRecord, structure: WorkoutStructure?, zones: HeartRateZones?) -> [WorkoutBlock] {
-        let built = structure.map { buildBlocks($0, zones: zones) } ?? kilometerSplits(samples(record), zones: zones)
-        return adjustForWeather(built, effect: record.weatherEffect)
+    private static func blocks(
+        _ record: ActivityRecord, structure: WorkoutStructure?, zones: HeartRateZones?, samples: [FITSample], weather: WeatherEffect?
+    ) -> [WorkoutBlock] {
+        let built = structure.map { buildBlocks($0, zones: zones) } ?? kilometerSplits(samples, zones: zones)
+        return adjustForWeather(applyWind(built, samples: samples, weather: record.runWeather), effect: weather)
     }
 
-    private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?) -> WorkoutOccurrence? {
-        let blocks = blocks(record, structure: structure(record), zones: zones)
+    private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?, records: [ActivityRecord]) -> WorkoutOccurrence? {
+        let blocks = blocks(record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(among: records))
         guard !blocks.isEmpty else { return nil }
         return WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
     }

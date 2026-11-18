@@ -1,3 +1,4 @@
+import WorkoutAnalysis
 enum FindingDetailConstants {
     static let lapsFrom = "voltas de"
     static let to = "a"
@@ -49,6 +50,20 @@ enum FindingDetailConstants {
     static let whyHeatSlowerFormat = "Com %@, calor e umidade deixam o ritmo %@ mais lento com o mesmo esforço. Em clima ameno, esse ritmo seria %@/km."
     static let whyColdSlowerFormat = "Com %@, o frio deixa o ritmo %@ mais lento com o mesmo esforço. Em clima ameno, esse ritmo seria %@/km."
     static let whyPaceFadeWeatherFormat = " O calor de %@ ajuda a explicar."
+    static let causeKinds: Set<FindingKind> = [.blockOffTarget, .paceFade, .cardiacDrift]
+    static let causeLead = "Causa provável: "
+    static let causeSleepFormat = "noite de %dh%02d"
+    static let causeSleepScoreFormat = "sono com nota %d"
+    static let causeHrvLow = "HRV abaixo da faixa"
+    static let causeBatteryFormat = "Body Battery %d de manhã"
+    static let causePreviousFormat = "Ontem teve %@."
+    static let causePreviousDay: [PreviousDayLoad: String] = [.threshold: "limiar", .intervals: "tiros", .long: "longão", .legs: "treino de pernas"]
+    static let cadenceFormat = "cadência %d → %d passos/min"
+    static let stanceFormat = "contato com o solo %d → %d ms (+%d%%)"
+    static let speedUnit = "km/h"
+    static let windEvidenceFormat = "%@ · %@ → %@ /km sem o vento"
+    static let whyWindFormat = "Vento contra de %@ na altura de quem corre custa ritmo com o mesmo esforço. Sem o vento, esses km ficariam a %@/km."
+    static let whyRunForm = "Com o ritmo igual ou mais lento, a passada encurtou e o pé ficou mais tempo no chão no fim. É sinal de cansaço muscular; força de pernas e educativos ajudam a segurar a forma."
     static let whyZoneAbove = "Bloco leve em zona alta soma carga sem ajudar no objetivo dele, que é aquecer ou soltar."
     static let whyLowReadiness = "Com a prontidão baixa, um treino forte cobra mais recuperação nos próximos dias."
     static let whyAcuteChronic = "A carga dos últimos 7 dias subiu rápido em relação às últimas 4 semanas, e o risco de lesão sobe junto."

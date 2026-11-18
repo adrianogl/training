@@ -56,14 +56,34 @@ public enum FITReader {
             let speeds = group.compactMap { $0.getEnhancedSpeed() ?? $0.getSpeed() }
             let altitudes = group.compactMap { $0.getEnhancedAltitude() ?? $0.getAltitude() }
             let distances = group.compactMap { $0.getDistance() }
+            let cadences = group.compactMap(stepsPerMinute)
+            let stances = group.compactMap { $0.getStanceTime() }.filter { $0 > 0 }
+            let positions = group.compactMap(position)
             return FITSample(
                 t: Double(key) * FITReaderConstants.bucketSeconds,
                 heartRate: mean(heartRates).map { Int($0.rounded()) },
                 speed: mean(speeds),
                 altitude: mean(altitudes),
-                distance: distances.last
+                distance: distances.last,
+                cadence: mean(cadences),
+                stanceTime: mean(stances),
+                lat: mean(positions.map(\.lat)),
+                lon: mean(positions.map(\.lon))
             )
         }
+    }
+
+    private static func stepsPerMinute(_ record: RecordMesg) -> Double? {
+        guard let cadence = record.getCadence(), cadence > 0, cadence != FITReaderConstants.invalidCadence else { return nil }
+        return (Double(cadence) + (record.getFractionalCadence() ?? 0)) * FITReaderConstants.stepsPerStride
+    }
+
+    private static func position(_ record: RecordMesg) -> Coordinate? {
+        guard let lat = record.getPositionLat(), let lon = record.getPositionLong() else { return nil }
+        return Coordinate(
+            lat: Double(lat) * FITReaderConstants.semicircleToDegrees,
+            lon: Double(lon) * FITReaderConstants.semicircleToDegrees
+        )
     }
 
     private static func mean(_ values: [Double]) -> Double? {
@@ -71,13 +91,7 @@ public enum FITReader {
     }
 
     private static func route(from records: [RecordMesg]) -> [Coordinate] {
-        records.compactMap { record in
-            guard let lat = record.getPositionLat(), let lon = record.getPositionLong() else { return nil }
-            return Coordinate(
-                lat: Double(lat) * FITReaderConstants.semicircleToDegrees,
-                lon: Double(lon) * FITReaderConstants.semicircleToDegrees
-            )
-        }
+        records.compactMap(position)
     }
 
     private static func physio(from messages: [Mesg]) -> PhysioMetrics? {

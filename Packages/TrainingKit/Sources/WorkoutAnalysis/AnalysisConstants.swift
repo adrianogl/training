@@ -1,5 +1,5 @@
 public enum AnalysisConstants {
-    public static let scoreVersion = 3
+    public static let scoreVersion = 4
     static let completionRatio = 0.95
     static let minimumStraySeconds = 10.0
     static let sessionEndTrigger = "session_end"
@@ -58,4 +58,14 @@ extension AnalysisConstants {
     static let scoreScale = 100.0
     static let incompleteScoreCap = 95
     static let easyZoneNumber = 2
+}
+
+extension AnalysisConstants {
+    static let shortSleepSeconds = 6 * 3600
+    static let lowSleepScore = 60
+    static let lowBodyBattery = 40
+    static let formMinimumSeconds = 900.0
+    static let formSpeedTolerance = 0.02
+    static let cadenceDrop = 3.0
+    static let stanceRise = 0.04
 }

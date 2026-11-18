@@ -23,20 +23,25 @@ enum ActivityWeatherStore {
             guard let hours, let weather = ActivityWeather.average(hours, start: item.start, end: item.end) else { continue }
             item.record.weatherTemperature = weather.temperature
             item.record.weatherDewPoint = weather.dewPoint
+            item.record.weatherWindSpeed = weather.windSpeed
+            item.record.weatherWindFrom = weather.windFrom
+            item.record.weatherRadiation = weather.radiation
+            item.record.weatherVersion = C.version
         }
         try? context.save()
     }
 
     private static func candidates(in context: ModelContext, now: Date) -> [(record: ActivityRecord, request: WeatherRequest, start: Date, end: Date)] {
         let since = now.addingTimeInterval(-C.backfillDays * C.secondsPerDay)
+        let version = C.version
         let descriptor = FetchDescriptor<ActivityRecord>(
-            predicate: #Predicate { $0.start >= since && $0.weatherTemperature == nil },
+            predicate: #Predicate { $0.start >= since && $0.weatherVersion < version },
             sortBy: [SortDescriptor(\.start, order: .reverse)]
         )
         let records = (try? context.fetch(descriptor)) ?? []
         return records.compactMap { record in
             guard ActivityTypeKey.isRun(record.typeKey),
-                  record.weatherCheckedAt.map({ now.timeIntervalSince($0) >= C.retryInterval }) ?? true,
+                  record.weatherTemperature != nil || (record.weatherCheckedAt.map({ now.timeIntervalSince($0) >= C.retryInterval }) ?? true),
                   let coordinate = startCoordinate(record) else { return nil }
             let end = record.start.addingTimeInterval(record.duration ?? record.movingDuration ?? 0)
             guard end <= now else { return nil }

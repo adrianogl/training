@@ -10,8 +10,9 @@ public func hasOutdatedRuns(in context: ModelContext) throws -> Bool {
 
 func outdatedRuns(in context: ModelContext, includesExhausted: Bool) throws -> [ActivityRecord] {
     let currentVersion = FITReaderConstants.processingVersion
+    let since = Date.now.addingTimeInterval(-SyncConstants.reprocessWindowDays * SyncConstants.secondsPerDay)
     let outdated = FetchDescriptor<ActivityRecord>(
-        predicate: #Predicate { $0.fitProcessed && $0.processingVersion < currentVersion },
+        predicate: #Predicate { $0.fitProcessed && $0.processingVersion < currentVersion && $0.start >= since },
         sortBy: [SortDescriptor(\.start, order: .reverse)]
     )
     let maxFailures = SyncConstants.maxFitTransientFailures

@@ -178,7 +178,7 @@ private func efficiency(_ blocks: [WorkoutBlock]) -> Double? {
     }
     let seconds = measured.reduce(0) { $0 + $1.seconds }
     guard seconds > 0 else { return nil }
-    let distance = measured.reduce(0) { $0 + WeatherAdjustment.mildSpeed($1.distance, factor: $1.weatherFactor) }
+    let distance = measured.reduce(0) { $0 + WeatherAdjustment.mildSpeed($1.distance, factor: $1.conditionsFactor) }
     let heartRate = measured.reduce(0) { $0 + Double($1.avgHeartRate ?? 0) * $1.seconds } / seconds
     return (distance / seconds) / heartRate
 }

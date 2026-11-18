@@ -4,6 +4,10 @@ export interface FitSample {
   speed: number | null
   altitude: number | null
   distance: number | null
+  cadence?: number | null
+  stanceTime?: number | null
+  lat?: number | null
+  lon?: number | null
 }
 
 export interface Coordinate {

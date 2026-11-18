@@ -35,6 +35,11 @@ public enum FindingDetail {
             return "\(C.lastLap) \(raw) (\(climb)) · \(C.onLevel) \(last) · \(C.medianOnLevel) \(middle) \(NarrativeConstants.paceUnit)"
         case .climbSlower, .descentFaster:
             return Format.elevationSegment(facts)
+        case .windAgainst:
+            guard let pace = clock(facts[FindingFact.pace]), let calm = clock(facts[FindingFact.mildPace]) else { return nil }
+            return String(format: C.windEvidenceFormat, Format.windSpeed(facts[FindingFact.windSpeed]), pace, calm)
+        case .runFormFade:
+            return Format.formEvidence(facts)
         case .weatherSlower:
             guard let pace = clock(facts[FindingFact.pace]), let mild = clock(facts[FindingFact.mildPace]) else { return nil }
             return "\(pace) → \(mild) \(NarrativeConstants.paceUnit) · \(Format.weather(facts))"
@@ -52,6 +57,12 @@ public enum FindingDetail {
     }
 
     public static func why(_ finding: Finding, blocks: [WorkoutBlock]) -> String {
+        let base = baseWhy(finding, blocks: blocks)
+        guard C.causeKinds.contains(finding.kind), let cause = Format.dayCause(finding.facts) else { return base }
+        return base + " " + cause
+    }
+
+    private static func baseWhy(_ finding: Finding, blocks: [WorkoutBlock]) -> String {
         let facts = finding.facts
         switch finding.kind {
         case .blockInTarget:
@@ -69,6 +80,10 @@ public enum FindingDetail {
         case .descentFaster: return String(format: C.whyDescentFormat, clock(facts[FindingFact.flatPace]) ?? "")
         case .cardiacDrift:
             return Format.hasWeather(facts) ? String(format: C.whyCardiacDriftWeatherFormat, Format.weather(facts)) : C.whyCardiacDrift
+        case .windAgainst:
+            return String(format: C.whyWindFormat, Format.windSpeed(facts[FindingFact.headwind]), clock(facts[FindingFact.mildPace]) ?? "")
+        case .runFormFade:
+            return C.whyRunForm
         case .weatherSlower:
             let format = facts[FindingFact.cold] == 1 ? C.whyColdSlowerFormat : C.whyHeatSlowerFormat
             return String(format: format, Format.weather(facts), Format.weatherPercent(facts), clock(facts[FindingFact.mildPace]) ?? "")
@@ -81,7 +96,7 @@ public enum FindingDetail {
     private static func incompleteWhy(_ finding: Finding, blocks: [WorkoutBlock]) -> String {
         let facts = finding.facts
         if Format.status(finding, blocks: blocks) == .notExecuted { return C.whyNotExecuted }
-        let signals = slowdownSentences(facts) + pauseSentences(facts) + dayContextSentences(facts)
+        let signals = slowdownSentences(facts) + pauseSentences(facts) + dayContextSentences(facts) + [Format.dayCause(facts)].compactMap { $0 }
         if !signals.isEmpty { return signals.joined(separator: " ") }
         guard let target = facts[FindingFact.targetDistance], let done = facts[FindingFact.distance], target > done else { return C.whyIncomplete }
         return String(format: C.whyRemainingFormat, Format.distanceText(target - done))
