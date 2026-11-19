@@ -1,8 +1,8 @@
 {
-  "versao": "1.10.0",
-  "build": 15,
-  "versao_app": "1.9.0",
+  "versao": "1.11.0",
+  "build": 16,
+  "versao_app": "1.11.0",
   "notas": [
-    "Usa o catálogo oficial de exercícios da Garmin no treinador"
+    "Avisa quando há versão nova do app ainda não instalada"
   ]
 }
