@@ -5,13 +5,14 @@ struct PlanComparisonCard: View {
     let note: String?
     var title = PlannedViewConstants.comparison
     var framed = true
+    var showsLabel = true
 
     private typealias C = PlannedViewConstants
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                DSCardLabel(title)
+                if showsLabel { DSCardLabel(title) }
                 Spacer()
                 DSChip(text: String(format: C.compareScoreFormat, rows.filter(\.ok).count, rows.count), tone: rows.allSatisfy(\.ok) ? .accent : .attention)
             }

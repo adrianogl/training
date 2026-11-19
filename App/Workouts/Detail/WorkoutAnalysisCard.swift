@@ -8,6 +8,7 @@ struct WorkoutAnalysisCard: View {
     let goalEntries: [WorkoutGoalEntry]
     var aboveExpected: [AboveExpectedSignal] = []
     var framed = true
+    var showsLabel = true
     @State private var showsAll = false
     @State private var coach: String?
     @State private var isGenerating = false
@@ -18,7 +19,7 @@ struct WorkoutAnalysisCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            DSCardLabel(C.analysisTitle)
+            if showsLabel { DSCardLabel(C.analysisTitle) }
             if !summary.feedback.isEmpty || summary.next != nil {
                 feedback
                 Divider().overlay(BrandColors.line)

@@ -73,11 +73,16 @@ enum WorkoutDetailConstants {
         "RECOVERY": "Recuperação",
     ]
     static let effectLevels = ["sem efeito", "efeito pequeno", "manutenção", "melhora", "grande melhora", "excessivo"]
-    static let effectAerobic = "Training Effect aeróbico"
-    static let effectAnaerobic = "Training Effect anaeróbico"
     static let effectHighZones = "Tempo em Z4–Z5"
-    static let effectLoad = "Carga do treino"
-    static let effectSentenceFormat = "Efeito aeróbico %@ (%@) e anaeróbico %@ (%@)."
+    static let effectAerobicShort = "Aeróbico"
+    static let effectAnaerobicShort = "Anaeróbico"
+    static let effectScale = 5.0
+    static let effectNameWidth: CGFloat = 96
+    static let effectValueWidth: CGFloat = 34
+    static let effectBarHeight: CGFloat = 8
+    static let sectionScore = "Nota do treino"
+    static let sectionEffect = "Efeito do treino"
+    static let sectionPlan = "Planejado × feito"
     static let effectEmpty = "O Garmin não mandou o Training Effect deste treino."
     static let highZoneIndices = [3, 4]
     static let analysisTitle = "Análise"
@@ -89,7 +94,6 @@ enum WorkoutDetailConstants {
     static let shareSymbol = "square.and.arrow.up"
     static let actionsTitle = "Ações"
     static let actionsSymbol = "ellipsis.circle"
-    static let sectionHowItWent = "Como foi"
     static let sectionWorkout = "O treino"
     static let sectionComparison = "Comparação"
     static let similarChartPadding = 4.0

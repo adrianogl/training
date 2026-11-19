@@ -66,11 +66,18 @@ import WorkoutAnalysis
     @Test func weatherSummaryForTheHeader() throws {
         let effect = try #require(WeatherAdjustment.effect(RunWeather(temperature: 23, dewPoint: 20, windSpeed: 0.9, windFrom: 190), hotSessions: 7))
         #expect(RunWeatherText.degrees(effect) == "23°")
-        #expect(RunWeatherText.caption(effect) == "clima +2,1%")
-        #expect(RunWeatherText.summary(effect) == "Orvalho 20 °C · abafado · adaptado: 7 treinos no calor (−35%) · vento 3 km/h de S")
+        #expect(RunWeatherText.caption(effect) == "2,1% mais lento")
+        #expect(RunWeatherText.summary(effect)
+            == "Dia abafado (orvalho 20 °C): o calor deixou o pace cerca de 2,1% mais lento. Como você já fez 7 treinos no calor, esse efeito foi 35% menor.")
+        #expect(RunWeatherText.caption(effect, pace: 274) == "+6\u{00A0}s/\u{2060}km pelo calor")
+        #expect(RunWeatherText.summary(effect, pace: 274)
+            == "Dia abafado (orvalho 20 °C): o calor custou cerca de 6\u{00A0}s/\u{2060}km. Sem ele, seu pace seria perto de 4:28/km. Você já fez 7 treinos no calor; sem essa adaptação, o custo seria de cerca de 9\u{00A0}s/\u{2060}km.")
         #expect(RunWeatherText.compass(350) == "N")
         let mild = try #require(WeatherAdjustment.effect(RunWeather(temperature: 12, dewPoint: 5)))
         #expect(RunWeatherText.caption(mild) == "clima")
+        #expect(RunWeatherText.summary(mild) == "Orvalho 5 °C.")
+        let windy = try #require(WeatherAdjustment.effect(RunWeather(temperature: 12, dewPoint: 5, windSpeed: 5, windFrom: 90)))
+        #expect(RunWeatherText.summary(windy) == "Orvalho 5 °C. Vento de 18 km/h de L.")
     }
 
     @Test func windLineShowsHeadwindAndCalmPace() throws {

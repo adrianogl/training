@@ -19,10 +19,9 @@ struct WorkoutRow: View {
                 if let score = row.score {
                     ScoreInline(value: score)
                 }
-                CardLinkBadge()
             }
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                Text(row.title)
+                Text(PlanText.title(row.title))
                     .font(.headline)
                     .foregroundStyle(BrandColors.text)
                     .lineLimit(2)
@@ -50,6 +49,8 @@ struct WorkoutRow: View {
                 ZoneStrip(shares: row.zoneShares)
                     .padding(.top, 2)
             }
+            CardLinkFooter(title: CardLinkConstants.details)
+                .padding(.top, 4)
         }
         .brandCard()
         .perfectScoreCard(score: row.score, activityId: row.activityId)
@@ -67,15 +68,13 @@ struct WorkoutRow: View {
             if isNew {
                 NewBadge()
             }
-            if row.hasPrescription {
-                PlannedBadge()
-            }
             if isFromPlan {
-                Text(WorkoutConstants.fromPlan)
-                    .font(.caption2.weight(.bold))
-                    .lineLimit(1)
-                    .fixedSize()
-                    .foregroundStyle(BrandColors.dim)
+                DSChip(text: WorkoutConstants.fromPlan, tone: .accent).fixedSize()
+            } else if row.hasPrescription {
+                DSChip(text: WorkoutConstants.structured, tone: .neutral).fixedSize()
+            }
+            if row.isStrength {
+                DSChip(text: WorkoutConstants.strengthTag, tone: .strength).fixedSize()
             }
             if hasChat {
                 Image(systemName: "sparkles")
