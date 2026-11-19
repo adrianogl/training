@@ -51,7 +51,7 @@ Versão atual: `1.11.0` (ver [Versão](#versão)).
 | `server/` | API na Vercel (Node 22 + Neon Postgres) e a landing em `server/landing/` ([README](server/README.md)) |
 | `docs/regras/` | Regras de análise ([`analise.md`](docs/regras/analise.md)) e de prescrição ([`prescricao.md`](docs/regras/prescricao.md)) |
 | `docs/superpowers/` | Specs e planos de design das primeiras versões |
-| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
+| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`), `auto_install.py` (reinstalação automática) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
 | `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
 
 | Módulo do `TrainingKit` | Papel |
@@ -116,7 +116,32 @@ Conecte o iPhone ou o iPad por cabo, escolha o aparelho como destino e rode. Na 
 
 ### Conta gratuita: reinstalar a cada 7 dias
 
-Com a conta gratuita, o perfil de instalação vence 7 dias depois de cada instalação e o app para de abrir. Para voltar a usar, conecte o aparelho e rode de novo pelo Xcode (Product › Run). Os dados ficam, porque o bundle id é o mesmo.
+Com a conta gratuita, o perfil de instalação vence 7 dias depois de **criado** e o app para de abrir. O Xcode reaproveita o perfil guardado em `~/Library/Developer/Xcode/UserData/Provisioning Profiles` enquanto ele vale, então compilar de novo não renova a validade. Para renovar, a Apple ID precisa estar em Xcode › Settings › Accounts: tire os perfis do app dessa pasta e compile com `-allowProvisioningUpdates`. Os dados ficam, porque o bundle id é o mesmo.
+
+O app lê a validade do próprio perfil (`embedded.mobileprovision`). No dia anterior ao vencimento e no último dia, o Hoje mostra um aviso vermelho e o app notifica às 8h.
+
+#### Reinstalação automática no Mac
+
+`scripts/auto_install.py` compila a `main` num worktree próprio, gera um perfil novo e instala nos aparelhos que estão no 5º dia da validade. `scripts/setup-auto-install.sh` agenda o script no launchd às 12h e às 21h. A configuração fica fora do repositório, em `~/.config/training-sync/auto-install.json`:
+
+```json
+{
+  "repo": "/caminho/do/training",
+  "worktree": "/caminho/do/training-autoinstall",
+  "team": "SEU_TEAM_ID",
+  "imessage": "+55...",
+  "devices": [{"id": "UDID", "name": "iPhone"}]
+}
+```
+
+```bash
+scripts/setup-auto-install.sh                                  # agenda no launchd
+python3 scripts/auto_install.py --dry-run                      # mostra o que faria agora
+python3 scripts/auto_install.py --init-expiry 2026-11-26T16:21:07Z   # grava a validade atual dos aparelhos
+python3 scripts/auto_install.py --test-notify                  # notificação e iMessage de teste
+```
+
+Os aparelhos precisam estar desbloqueados na mesma rede do Mac, ou ligados por cabo. Se a instalação ainda falhar às 12h do 6º dia, o Mac mostra uma notificação e manda um iMessage para o número da configuração. O log fica em `~/.config/training-sync/auto-install.log`.
 
 ### Simulador
 
@@ -138,6 +163,7 @@ npm --prefix server test                        # servidor, contra PGlite, sem r
 npm --prefix server run typecheck
 python3 scripts/test_garmin_catalog.py           # script do catálogo de força
 python3 scripts/test_release_version_file.py     # versao.json da release
+python3 scripts/test_auto_install.py             # datas da reinstalação automática
 ```
 
 ## Servidor

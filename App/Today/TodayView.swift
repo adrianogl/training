@@ -30,6 +30,10 @@ struct TodayView: View {
                             .foregroundStyle(BrandColors.danger)
                             .padding(.bottom, 14)
                     }
+                    if app.installExpiry.showsNotice {
+                        InstallExpiryNotice(title: app.installExpiry.title, text: app.installExpiry.text)
+                            .padding(.bottom, DSSpacing.s3)
+                    }
                     if app.appUpdate.showsNotice, let update = app.appUpdate.update {
                         AppUpdateNotice(update: update, openSettings: openSettings, dismiss: app.appUpdate.dismiss)
                             .padding(.bottom, DSSpacing.s3)

@@ -38,6 +38,7 @@ import TrainingCore
     let garminZones: GarminZonesModel
     let snapshots: ScreenSnapshotStore
     let appUpdate = AppUpdateModel()
+    let installExpiry = InstallExpiryModel()
     @ObservationIgnored let notifier: MorningNotifier
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
@@ -272,7 +273,10 @@ import TrainingCore
     }
 
     func activate(force: Bool = false) {
-        Task { await appUpdate.refresh() }
+        Task {
+            await appUpdate.refresh()
+            await installExpiry.refresh()
+        }
         guard autoSyncEnabled, force || returnsFromBackground else { return }
         returnsFromBackground = false
         let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, readinessComplete: todayReadinessComplete, now: .now)
