@@ -23,7 +23,6 @@ import WorkoutAnalysis
     private(set) var assessment = WorkoutAssessment(positives: [], negatives: [], attention: [])
     private(set) var comparison: WorkoutComparison?
     private(set) var comparisonRows: [ComparisonRow] = []
-    private(set) var comparisonTitle = ""
     private(set) var comparisonNotice: String?
     private(set) var evolutionText: String?
     private(set) var reading = WorkoutReading(findings: [], evolution: nil, findingsOnDevice: false, evolutionOnDevice: false)
@@ -92,7 +91,6 @@ import WorkoutAnalysis
         comparison = analysis.comparison
         comparisonRows = analysis.comparisonRows
         comparisonNotice = analysis.comparisonNotice
-        comparisonTitle = record.workoutName.map(WorkoutTitle.clean) ?? WorkoutDetailConstants.similarRunsTitle
         reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: assessment, blocks: blocks, evolution: analysis.evolution)
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
@@ -208,6 +206,8 @@ import WorkoutAnalysis
             elevationText: record.elevationGain.map { "+\(Int($0.rounded())) m" },
             loadText: record.activityTrainingLoad.map { "\(Int($0.rounded()))" },
             hasPrescription: hasPrescription,
+            bestKilometerText: isRun ? record.fastestSplit_1000.flatMap { $0 > 0 ? WorkoutFormat.clock($0) : nil } : nil,
+            maxHeartRateText: record.maxHR.map { "\(Int($0.rounded()))" },
             loadCaption: TrainingLoadText.caption(load: record.activityTrainingLoad, others: isRun ? recentLoads(record, records: records) : []),
             paceSeconds: isRun ? WorkoutListModel.pace(distance: record.distance ?? 0, duration: record.movingDuration ?? record.duration ?? 0) : nil
         )

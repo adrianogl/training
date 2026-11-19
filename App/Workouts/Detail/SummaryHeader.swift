@@ -4,7 +4,6 @@ import TrainingCore
 struct SummaryHeader: View {
     let summary: WorkoutSummary
     var weather: WeatherEffect?
-    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -54,6 +53,7 @@ struct SummaryHeader: View {
         [
             (summary.distanceText, "km"), (summary.durationText, "tempo"), (summary.paceText.map(stripUnit), "pace médio"),
             (summary.averageHeartRateText, "FC média"), (summary.elevationText, "desnível"), (summary.loadText, summary.loadCaption),
+            (summary.bestKilometerText, SummaryHeaderConstants.bestKilometer), (summary.maxHeartRateText, SummaryHeaderConstants.maxHeartRate),
         ].compactMap { value, caption in value.map { SummaryStatItem(value: $0, caption: caption) } }
     }
 
@@ -76,9 +76,7 @@ struct SummaryHeader: View {
         .background(tint.opacity(RunWeatherBandConstants.backgroundOpacity), in: RoundedRectangle(cornerRadius: RunWeatherBandConstants.cornerRadius, style: .continuous))
     }
 
-    private var columns: Int {
-        sizeClass == .regular ? SummaryHeaderConstants.regularColumns : SummaryHeaderConstants.compactColumns
-    }
+    private var columns: Int { SummaryHeaderConstants.columns }
 
     private var rows: [[SummaryStatItem]] {
         stride(from: 0, to: items.count, by: columns).map { Array(items[$0..<min($0 + columns, items.count)]) }

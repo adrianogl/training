@@ -10,7 +10,6 @@ enum WorkoutDetailConstants {
     static let barMinimumWidth = 0.1
     static let targetDomainPadding = 0.6
     static let maxComparisons = 4
-    static let similarRunsTitle = "Distância parecida"
     static let shortLabels = [
         "Aquecimento": "Aquec.",
         "Desaquecimento": "Desaq.",
@@ -94,8 +93,18 @@ enum WorkoutDetailConstants {
     static let shareSymbol = "square.and.arrow.up"
     static let actionsTitle = "Ações"
     static let actionsSymbol = "ellipsis.circle"
-    static let sectionWorkout = "O treino"
-    static let sectionComparison = "Comparação"
+    static let sectionBlocks = "Blocos × prescrito"
+    static let sectionSplits = "Parciais"
+    static let sectionHeartRate = "Frequência cardíaca"
+    static let sectionZones = "Tempo em zona de FC"
+    static let sectionRoute = "Percurso"
+    static let sectionGoal = "Meta"
+    static let sectionComparison = "Treinos parecidos"
+    static let comparisonHeader = "Treino"
+    static let structureMissingTitle = "Estrutura do treino ainda não baixada"
+    static let structureMissingText = "Os blocos abaixo são os quilômetros do registro. A próxima sincronização baixa a estrutura e refaz a leitura."
+    static let recoveryRowPadding = 3.0
+    static let rowPadding = 8.0
     static let similarChartPadding = 4.0
     static let similarChartMinimumRuns = 2
     static let similarChartHeight: CGFloat = 130
@@ -144,5 +153,4 @@ enum WorkoutDetailConstants {
     static let compactScoreGaugeSize: Double = 104
     static let scorePartNameWidth: Double = 76
     static let scorePartBarHeight: Double = 8
-    static let pairWeights: [Double] = [1, 1]
 }

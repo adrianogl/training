@@ -6,7 +6,6 @@ import TrainingCore
 struct WorkoutDetailView: View {
     let activityId: Int64
     @Environment(\.modelContext) private var context
-    @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var model: WorkoutDetailModel?
     @State private var showsShare = false
     @State private var planCheck: PlannedBriefing?
@@ -88,56 +87,47 @@ struct WorkoutDetailView: View {
     @ViewBuilder
     private func runSections(_ model: WorkoutDetailModel) -> some View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
+            let C = WorkoutDetailConstants.self
             howItWent(model)
             if !goalEntries.isEmpty {
-                WorkoutGoalCard(entries: goalEntries)
+                section(C.sectionGoal)
+                WorkoutGoalCard(entries: goalEntries, showsLabel: false)
             }
-            if hasWorkoutSection(model) {
-                DSSectionTitle(WorkoutDetailConstants.sectionWorkout).padding(.top, DSSpacing.s4)
+            if !model.blocks.isEmpty || model.structureMissing {
+                section(model.hasPrescription ? C.sectionBlocks : C.sectionSplits)
+                    .id(WorkoutDetailSection.blocks)
             }
             if model.structureMissing {
-                notice
+                DSNotice(tone: .attention, title: C.structureMissingTitle, text: C.structureMissingText)
             }
             if !model.blocks.isEmpty {
-                labelled(model.hasPrescription ? "Blocos × prescrito" : "Parciais") {
-                    BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription)
-                }
-                .id(WorkoutDetailSection.blocks)
+                BlocksSection(blocks: model.blocks, bars: model.bars, kilometers: model.kilometers, kilometerBars: model.kilometerBars, showsTarget: model.hasPrescription)
             }
-            pair {
-                if !model.heartRate.isEmpty {
-                    labelled("Frequência cardíaca") {
-                        HeartRateChart(series: model.heartRate, bands: model.zoneBands, spans: model.activeSpans)
-                    }
-                    .id(WorkoutDetailSection.heartRate)
-                }
-                if let ruler = model.ruler {
-                    labelled("Tempo em zona de FC") { ZoneRuler(data: ruler) }
-                        .id(WorkoutDetailSection.zones)
-                } else if !model.zoneShares.isEmpty {
-                    labelled("Tempo em zona de FC") { ZonesBar(shares: model.zoneShares) }
-                        .id(WorkoutDetailSection.zones)
-                }
+            if !model.heartRate.isEmpty {
+                section(C.sectionHeartRate).id(WorkoutDetailSection.heartRate)
+                HeartRateChart(series: model.heartRate, bands: model.zoneBands, spans: model.activeSpans)
+            }
+            if let ruler = model.ruler {
+                section(C.sectionZones).id(WorkoutDetailSection.zones)
+                ZoneRuler(data: ruler)
+            } else if !model.zoneShares.isEmpty {
+                section(C.sectionZones).id(WorkoutDetailSection.zones)
+                ZonesBar(shares: model.zoneShares)
             }
             if !model.route.isEmpty {
-                labelled("Percurso") {
-                    RouteMapView(route: model.route, altitude: model.altitude)
-                }
-                .id(WorkoutDetailSection.route)
+                section(C.sectionRoute).id(WorkoutDetailSection.route)
+                RouteMapView(route: model.route, altitude: model.altitude)
             }
             if model.comparison != nil, !model.comparisonRows.isEmpty {
-                DSSectionTitle(WorkoutDetailConstants.sectionComparison).padding(.top, DSSpacing.s4)
-                labelled("Comparado com treinos parecidos") {
-                    ComparisonSection(
-                        title: model.comparisonTitle,
-                        rows: model.comparisonRows,
-                        evolution: model.evolutionText,
-                        evolutionOnDevice: model.reading.evolutionOnDevice,
-                        notice: model.comparisonNotice,
-                        showsTarget: model.hasPrescription
-                    )
-                }
-                .id(WorkoutDetailSection.comparison)
+                section(C.sectionComparison).id(WorkoutDetailSection.comparison)
+                ComparisonSection(
+                    title: C.comparisonHeader,
+                    rows: model.comparisonRows,
+                    evolution: model.evolutionText,
+                    evolutionOnDevice: model.reading.evolutionOnDevice,
+                    notice: model.comparisonNotice,
+                    showsTarget: model.hasPrescription
+                )
             }
             if model.chatContext != nil {
                 chatButton
@@ -171,11 +161,6 @@ struct WorkoutDetailView: View {
             .padding(.bottom, DSSpacing.sectionBottom - TodayConstants.rowSpacing)
     }
 
-    private func hasWorkoutSection(_ model: WorkoutDetailModel) -> Bool {
-        model.structureMissing || !model.blocks.isEmpty || !model.heartRate.isEmpty || model.ruler != nil
-            || !model.zoneShares.isEmpty || !model.route.isEmpty
-    }
-
     private var actionsMenu: some View {
         Menu {
             if model?.shareSource != nil {
@@ -199,22 +184,6 @@ struct WorkoutDetailView: View {
         .accessibilityLabel(WorkoutDetailConstants.actionsTitle)
     }
 
-    @ViewBuilder
-    private func pair<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        if sizeClass == .regular {
-            ProportionalHStack(weights: WorkoutDetailConstants.pairWeights, spacing: TodayConstants.rowSpacing) { content() }
-        } else {
-            VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) { content() }
-        }
-    }
-
-    private func labelled<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(title)
-            content()
-        }
-    }
-
     private func loadPlanCheck() async -> PlannedBriefing? {
         guard let model, model.hasPrescription, let iso = model.localDay, let day = Day(iso: iso),
               let done = model.completedCheck, let client = app.garminAccount.client,
@@ -229,18 +198,6 @@ struct WorkoutDetailView: View {
 
     private var chatButton: some View {
         AskIntelligenceButton(title: WorkoutChatConstants.ask) { showsChat = true }
-    }
-
-    private var notice: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Estrutura do treino ainda não baixada")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(BrandColors.attention)
-            Text("Os blocos abaixo são os quilômetros do registro. A próxima sincronização baixa a estrutura e refaz a leitura.")
-                .font(.footnote)
-                .foregroundStyle(BrandColors.dim)
-        }
-        .brandCard()
     }
 
     private static func debugChatQuestion(defaults: UserDefaults = .standard) -> String? {
