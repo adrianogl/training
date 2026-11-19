@@ -23,6 +23,22 @@ export interface InviteMailInput {
   message: string
 }
 
+export interface GarminCatalogChange {
+  id: string
+  name: string | null
+}
+
+export interface GarminCatalogDiff {
+  added: GarminCatalogChange[]
+  removed: (GarminCatalogChange & { referenced: boolean })[]
+  renamed: { id: string; from: string | null; to: string | null }[]
+}
+
+export interface GarminCatalogMailInput {
+  diff: GarminCatalogDiff
+  checkedOn: string
+}
+
 export interface InviteRequestMailInput {
   name: string
   email: string

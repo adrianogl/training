@@ -15,6 +15,7 @@ export const MAIL_COLORS = {
   card: '#121517',
   tile: '#1a2410',
   tileLine: '#3c5214',
+  warn: '#f0b45a',
 } as const
 export const MAIL_LINK_HINT = 'Se o botão não abrir, copie este link:'
 
@@ -55,5 +56,17 @@ export const MAIL_COPY = {
     noMessage: 'Sem mensagem.',
     button: 'Ver no app',
     footer: 'Aviso automático do admin do trAIning.',
+  },
+  garminCatalog: {
+    preheader: 'A lista de exercícios de força da Garmin mudou.',
+    eyebrow: 'Admin',
+    title: 'O catálogo de exercícios da Garmin mudou',
+    body: 'A lista de exercícios de força da Garmin está diferente do retrato que o app usa. Rode o script no seu Mac, revise a classificação dos novos e faça o deploy. Enquanto isso, o treinador continua usando a lista atual.',
+    labels: { added: 'Novos', removed: 'Removidos', renamed: 'Renomeados', checked: 'Verificado em' },
+    sections: { added: 'Novos', removed: 'Removidos', renamed: 'Renomeados' },
+    referenced: 'Está no mapa de ids antigos: precisa de um novo destino.',
+    noName: 'sem nome em pt-BR',
+    button: 'Abrir o repositório',
+    footer: 'Aviso automático do admin do trAIning. Verificação mensal, dia 1.',
   },
 } as const
