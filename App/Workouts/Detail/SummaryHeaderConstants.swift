@@ -1,6 +1,7 @@
 import Foundation
 
 enum SummaryHeaderConstants {
-    static let compactColumns = 4
-    static let regularColumns = 6
+    static let columns = 4
+    static let bestKilometer = "melhor km"
+    static let maxHeartRate = "FC máx"
 }

@@ -14,6 +14,8 @@ struct WorkoutSummary: Equatable {
     let elevationText: String?
     let loadText: String?
     let hasPrescription: Bool
+    var bestKilometerText: String? = nil
+    var maxHeartRateText: String? = nil
     var loadCaption = TrainingLoadConstants.plain
     var paceSeconds: Double? = nil
 }

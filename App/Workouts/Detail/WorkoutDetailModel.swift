@@ -208,6 +208,8 @@ import WorkoutAnalysis
             elevationText: record.elevationGain.map { "+\(Int($0.rounded())) m" },
             loadText: record.activityTrainingLoad.map { "\(Int($0.rounded()))" },
             hasPrescription: hasPrescription,
+            bestKilometerText: isRun ? record.fastestSplit_1000.flatMap { $0 > 0 ? WorkoutFormat.clock($0) : nil } : nil,
+            maxHeartRateText: record.maxHR.map { "\(Int($0.rounded()))" },
             loadCaption: TrainingLoadText.caption(load: record.activityTrainingLoad, others: isRun ? recentLoads(record, records: records) : []),
             paceSeconds: isRun ? WorkoutListModel.pace(distance: record.distance ?? 0, duration: record.movingDuration ?? record.duration ?? 0) : nil
         )
