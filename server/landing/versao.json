@@ -1,8 +1,8 @@
 {
-  "versao": "1.11.0",
-  "build": 16,
-  "versao_app": "1.11.0",
+  "versao": "1.12.0",
+  "build": 17,
+  "versao_app": "1.12.0",
   "notas": [
-    "Avisa quando há versão nova do app ainda não instalada"
+    "Avisa a validade da instalação e reinstala sozinho pelo Mac"
   ]
 }
