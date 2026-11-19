@@ -31,6 +31,16 @@ struct UserNotificationScheduler: NotificationScheduling {
         try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
     }
 
+    func scheduleDaily(id: String, title: String, text: String, link: String, hour: Int) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = text
+        content.sound = .default
+        content.userInfo = [C.deepLinkUserInfoKey: link]
+        let trigger = UNCalendarNotificationTrigger(dateMatching: DateComponents(hour: hour, minute: 0), repeats: true)
+        try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: trigger))
+    }
+
     func cancel(id: String) async {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [id])
     }

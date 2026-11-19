@@ -25,7 +25,14 @@ actor FakeNotificationScheduler: NotificationScheduling {
         headers[id] = (title, link)
     }
 
+    private(set) var daily: [String: (title: String, text: String, link: String, hour: Int)] = [:]
+
+    func scheduleDaily(id: String, title: String, text: String, link: String, hour: Int) async {
+        daily[id] = (title, text, link, hour)
+    }
+
     func cancel(id: String) async {
+        daily[id] = nil
         scheduled[id] = nil
     }
 

@@ -51,7 +51,7 @@ Versão atual: `1.10.0` (ver [Versão](#versão)).
 | `server/` | API na Vercel (Node 22 + Neon Postgres) e a landing em `server/landing/` ([README](server/README.md)) |
 | `docs/regras/` | Regras de análise ([`analise.md`](docs/regras/analise.md)) e de prescrição ([`prescricao.md`](docs/regras/prescricao.md)) |
 | `docs/superpowers/` | Specs e planos de design das primeiras versões |
-| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
+| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
 | `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
 
 | Módulo do `TrainingKit` | Papel |
@@ -137,6 +137,7 @@ npm --prefix server ci
 npm --prefix server test                        # servidor, contra PGlite, sem rede
 npm --prefix server run typecheck
 python3 scripts/test_garmin_catalog.py           # script do catálogo de força
+python3 scripts/test_release_version_file.py     # versao.json da release
 ```
 
 ## Servidor
@@ -175,10 +176,14 @@ O app segue semver, a partir da `v1.0.0`. A versão sobe pelos commits desde a �
 
 ```bash
 scripts/release.sh --dry-run   # mostra a próxima versão e os commits
-scripts/release.sh             # grava MARKETING_VERSION e CURRENT_PROJECT_VERSION no project.yml
+scripts/release.sh             # grava a versão no project.yml, no README e em server/landing/versao.json
 ```
 
-Depois: atualizar "Versão atual" neste README, commit `chore(release): vX.Y.Z`, tag `vX.Y.Z` e push com `--tags`. O badge de versão lê a última tag do GitHub. O rodapé de Ajustes mostra a versão, o build, o commit e o horário do build.
+Depois: commit `chore(release): vX.Y.Z`, tag `vX.Y.Z`, push com `--tags` e `vercel deploy --prod` (o deploy publica o `versao.json`). O badge de versão lê a última tag do GitHub.
+
+### Aviso de versão nova
+
+O app lê `versao.json` do servidor ao abrir (no máximo a cada 6 horas) e no refresh em background. O arquivo guarda a última versão, a última versão que mudou o app (`versao_app`) e até 3 notas tiradas dos commits `feat` e `fix` que mexeram em `App/`, `Packages/`, `Widgets/` ou `Shared/`. Quando a versão instalada é anterior a `versao_app`, o Hoje mostra um aviso com as notas, o rodapé de Ajustes ganha uma linha e o app agenda uma notificação diária às 8h, cancelada quando a versão nova é instalada. Release só de servidor, landing ou docs não gera aviso. O rodapé de Ajustes mostra a versão, o build, o commit e o horário do build.
 
 ## Privacidade
 
