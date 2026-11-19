@@ -18,8 +18,6 @@ enum RecoveryConstants {
     static let saturday = 7
     static let sunday = 1
 
-    static let title = "Recuperação"
-    static let subtitle = "estimada pela carga e pela FC do treino"
     static let kindAfter: [SessionKind: String] = [.easy: "da rodagem", .threshold: "do limiar", .intervals: "do VO2", .long: "do longão", .race: "da prova"]
     static let afterPrefix = "Depois "
     static let afterRunFormat = "%@ de %@"
@@ -42,11 +40,8 @@ enum RecoveryConstants {
     static let readyLabelFormat = "pronto · %@"
     static let hourFormat = "%dh"
     static let hourMinuteFormat = "%dh%02d"
-    static let eventFormat = "%@ · %@"
-    static let nextLineFormat = "%@ · %@ · %@"
     static let readyNowLine = "Recuperado · pronto para treino forte"
     static let readyLineFormat = "Pronto para treino forte %@"
-    static let headerFormat = "recuperação · %d h"
     static let statusLabels: [RecoveryStatus: String] = [.relaxed: "tranquilo", .recovered: "recuperado", .almost: "quase", .early: "cedo"]
     static let easyBeforeFormat = "%d h antes de recuperar · rodagem leve não precisa esperar"
     static let afterReadyFormat = "%d h depois de recuperar"
@@ -60,9 +55,6 @@ enum RecoveryConstants {
     static let stripHeight: Double = 6
     static let markerSize: Double = 12
     static let labelWidth: Double = 104
-    static let eventRowHeight: Double = 40
+    static let dayColumnWidth: Double = 58
     static let markerRowHeight: Double = 30
-    static let eventSpreadWide: Double = 700
-    static let eventSpreadCompact: Double = 320
-    static let eventDotSize: Double = 9
 }

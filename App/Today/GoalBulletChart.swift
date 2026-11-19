@@ -11,6 +11,7 @@ struct GoalBulletChart: View {
     private typealias C = TodayConstants
 
     var showsGap = false
+    var compact = false
 
     var body: some View {
         let values = [today, raceDay, goal].compactMap { $0 }
@@ -23,9 +24,13 @@ struct GoalBulletChart: View {
                 GeometryReader { proxy in
                     let width = proxy.size.width
                     let x = { (seconds: Double) in (slowest - seconds) / (slowest - fastest) * width }
-                    ruler(width: width, x: x, fastest: fastest, slowest: slowest)
+                    if compact {
+                        track(width: width, x: x, trackY: C.bulletCompactHeight / 2)
+                    } else {
+                        ruler(width: width, x: x, fastest: fastest, slowest: slowest)
+                    }
                 }
-                .frame(height: C.bulletRulerHeight)
+                .frame(height: compact ? C.bulletCompactHeight : C.bulletRulerHeight)
                 if showsGap, let gap = GoalBulletLayout.gapText(raceDay: raceDay, goal: goal) {
                     Text(gap).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
                 }
@@ -75,6 +80,34 @@ struct GoalBulletChart: View {
                     .position(x: x(raceDay), y: trackY)
             }
             labels(width: width, x: x, todayBelow: todayBelow)
+        }
+    }
+
+    private func track(width: Double, x: @escaping (Double) -> Double, trackY: Double) -> some View {
+        ZStack(alignment: .topLeading) {
+            Capsule().fill(BrandColors.track)
+                .frame(width: width, height: 4)
+                .position(x: width / 2, y: trackY)
+            if let today, let raceDay {
+                Capsule().fill(BrandColors.race.opacity(0.35))
+                    .frame(width: abs(x(raceDay) - x(today)), height: 4)
+                    .position(x: (x(raceDay) + x(today)) / 2, y: trackY)
+            }
+            if let goal {
+                RoundedRectangle(cornerRadius: 2).fill(BrandColors.accent)
+                    .frame(width: 4, height: 18)
+                    .position(x: x(goal), y: trackY)
+            }
+            if let today {
+                Circle().fill(BrandColors.text).frame(width: 12, height: 12)
+                    .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 2))
+                    .position(x: x(today), y: trackY)
+            }
+            if let raceDay {
+                Circle().fill(BrandColors.race).frame(width: 14, height: 14)
+                    .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 2))
+                    .position(x: x(raceDay), y: trackY)
+            }
         }
     }
 

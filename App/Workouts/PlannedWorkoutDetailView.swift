@@ -26,7 +26,6 @@ struct PlannedWorkoutDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
                 header
-                if chatContext != nil { chatButton }
                 if let briefing {
                     content(briefing)
                 } else {
@@ -50,7 +49,7 @@ struct PlannedWorkoutDetailView: View {
     }
 
     private var chatButton: some View {
-        AskIntelligenceButton(title: WorkoutChatConstants.askPlanned) { showsChat = true }
+        AskIntelligenceButton(title: WorkoutChatConstants.askPlanned, secondary: true) { showsChat = true }
     }
 
     private func rebuild() {
@@ -78,7 +77,7 @@ struct PlannedWorkoutDetailView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(dateText).font(.subheadline).foregroundStyle(BrandColors.dim)
             HStack(spacing: 10) {
-                Text(plan.title).font(.title2.bold()).foregroundStyle(BrandColors.text)
+                Text(PlanText.title(plan.title)).font(.title2.bold()).foregroundStyle(BrandColors.text)
                 if let tag = dayTag {
                     DSChip(text: tag, tone: .accent, style: .solid)
                 }
@@ -93,7 +92,7 @@ struct PlannedWorkoutDetailView: View {
     @ViewBuilder
     private func content(_ briefing: PlannedBriefing) -> some View {
         statsRow(briefing.stats)
-        summaryCard(briefing)
+        titled(C.summary) { summaryCard(briefing) }
         if !briefing.comparison.isEmpty { comparisonCard(briefing) }
         let cards = cards(briefing)
         ForEach(Array(stride(from: 0, to: cards.count, by: 2)), id: \.self) { index in
@@ -102,7 +101,28 @@ struct PlannedWorkoutDetailView: View {
                 if index + 1 < cards.count { card(cards[index + 1], briefing) }
             }
         }
-        if !briefing.bestHours.isEmpty { hoursCard(briefing) }
+        if !briefing.bestHours.isEmpty { titled(C.hours) { hoursCard(briefing) } }
+    }
+
+    private func titled<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: DSSpacing.sectionBottom) {
+            DSSectionTitle(title).padding(.top, DSSpacing.sectionTop - TodayConstants.rowSpacing)
+            content()
+        }
+        .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    private func title(_ card: Card) -> String {
+        switch card {
+        case .how: C.how
+        case .reps: C.reps
+        case .expect: C.expect
+        case .previous: C.previous
+        case .attention: C.attention
+        case .planB: C.planB
+        case .carry: C.carry
+        case .race: C.race
+        }
     }
 
     private enum Card {
@@ -123,15 +143,20 @@ struct PlannedWorkoutDetailView: View {
 
     @ViewBuilder
     private func card(_ card: Card, _ briefing: PlannedBriefing) -> some View {
+        titled(title(card)) { cardBody(card, briefing) }
+    }
+
+    @ViewBuilder
+    private func cardBody(_ card: Card, _ briefing: PlannedBriefing) -> some View {
         switch card {
         case .how: howCard(briefing)
         case .reps: repsCard(briefing)
         case .expect: expectCard(briefing)
         case .previous: previousCard(briefing)
-        case .attention: listCard(C.attention, briefing.attention)
-        case .planB: listCard(C.planB, briefing.planB)
+        case .attention: listCard(briefing.attention)
+        case .planB: listCard(briefing.planB)
         case .carry: carryCard(briefing.carry)
-        case .race: textCard(C.race, briefing.raceNote ?? "")
+        case .race: textCard(briefing.raceNote ?? "")
         }
     }
 
@@ -150,11 +175,11 @@ struct PlannedWorkoutDetailView: View {
 
     private func summaryCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(C.summary)
             Text(briefing.summary).font(.body).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
             if !briefing.tags.isEmpty {
                 FlowTags(tags: briefing.tags)
             }
+            if chatContext != nil { chatButton }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
@@ -162,8 +187,9 @@ struct PlannedWorkoutDetailView: View {
 
     private func howCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(C.how)
-            PlannedShape(steps: plan.steps).frame(height: TodayConstants.planShapeHeight)
+            if PlanText.singleStep(plan.steps) == nil {
+                PlannedShape(steps: plan.steps).frame(height: TodayConstants.planShapeHeight)
+            }
             ForEach(Array(briefing.phases.enumerated()), id: \.offset) { index, phase in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 HStack(alignment: .top, spacing: 12) {
@@ -187,7 +213,6 @@ struct PlannedWorkoutDetailView: View {
 
     private func repsCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.reps)
             ForEach(Array(briefing.reps.enumerated()), id: \.offset) { index, rep in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
@@ -210,7 +235,6 @@ struct PlannedWorkoutDetailView: View {
 
     private func expectCard(_ briefing: PlannedBriefing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(C.expect)
             LazyVGrid(columns: [GridItem(.flexible(), alignment: .leading), GridItem(.flexible(), alignment: .leading)], alignment: .leading, spacing: 10) {
                 ForEach(Array(briefing.expectations.enumerated()), id: \.offset) { _, stat in
                     VStack(alignment: .leading, spacing: 2) {
@@ -233,7 +257,6 @@ struct PlannedWorkoutDetailView: View {
     private func previousCard(_ briefing: PlannedBriefing) -> some View {
         let longest = briefing.previous.map(\.kilometers).max() ?? 1
         return VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.previous)
             ForEach(Array(briefing.previous.enumerated()), id: \.offset) { _, run in
                 HStack(spacing: 10) {
                     Text(run.day.chartDate.formatted(.dateTime.day().month(.abbreviated).locale(WorkoutConstants.locale)))
@@ -258,9 +281,8 @@ struct PlannedWorkoutDetailView: View {
         .brandCard()
     }
 
-    private func listCard(_ title: String, _ items: [BriefingItem]) -> some View {
+    private func listCard(_ items: [BriefingItem]) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(title)
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack(alignment: .top, spacing: 10) {
                     Circle().fill(color(item.tone)).frame(width: 8, height: 8).padding(.top, 6)
@@ -277,7 +299,6 @@ struct PlannedWorkoutDetailView: View {
 
     private func carryCard(_ items: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.carry)
             ForEach(items, id: \.self) { item in
                 Button {
                     if packed.contains(item) { packed.remove(item) } else { packed.insert(item) }
@@ -293,9 +314,8 @@ struct PlannedWorkoutDetailView: View {
         .brandCard()
     }
 
-    private func textCard(_ title: String, _ text: String) -> some View {
+    private func textCard(_ text: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(title)
             Text(text).font(.subheadline).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -310,7 +330,6 @@ struct PlannedWorkoutDetailView: View {
         let coolest = Set(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour))
         let perRow = briefing.bestHours.count > C.hoursPerRow ? C.hoursPerRowLong : max(briefing.bestHours.count, 1)
         return VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.hours)
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: perRow), spacing: 6) {
                 ForEach(briefing.bestHours, id: \.hour) { hour in
                     VStack(spacing: 2) {

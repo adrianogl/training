@@ -105,6 +105,7 @@ struct RootView: View {
         sidebarSelection = NavigationRestoration.section(sidebarRaw, allowed: AppSection.sidebarSections)
         todayPath = NavigationRestoration.validPrefix(NavigationRestoration.decodePath(todayPathData)) { (route: TodayRoute) in
             if case .workout(let id) = route { return NavigationRestoration.hasActivity(id, in: context) }
+            if case .planned = route { return false }
             return true
         }
         morePath = NavigationRestoration.decodeNavigationPath(morePathData)

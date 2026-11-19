@@ -15,8 +15,4 @@ enum RecoveryText {
         guard let km = next.kilometers, !next.title.lowercased().contains("km") else { return next.title }
         return String(format: C.nextKilometersFormat, next.title, TodayText.decimal(km, fractionDigits: km.rounded() == km ? 0 : 1))
     }
-
-    static func nextLine(_ next: RecoveryNext) -> String {
-        String(format: C.nextLineFormat, name(next), dayHour(next.start), C.statusLabels[next.status] ?? "")
-    }
 }

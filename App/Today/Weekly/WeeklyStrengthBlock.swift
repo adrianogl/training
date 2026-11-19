@@ -7,7 +7,6 @@ struct WeeklyStrengthBlock: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
-            Text(StrengthText.section).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
             HStack(alignment: .firstTextBaseline) {
                 Text(StrengthText.reportSessions(summary)).font(BrandFonts.number(22)).foregroundStyle(BrandColors.text)
                 Spacer()
@@ -46,10 +45,10 @@ struct WeeklyStrengthBlock: View {
                 .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             ForEach(summary.missed, id: \.self) { missed in
-                Text(missed).font(.footnote).foregroundStyle(BrandColors.attention)
+                DSNotice(tone: .attention, text: missed)
             }
         }
-        .padding(12)
-        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.line))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
     }
 }

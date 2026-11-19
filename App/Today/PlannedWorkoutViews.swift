@@ -71,14 +71,36 @@ enum PlanText {
     static func detail(_ step: PlannedStep) -> String {
         var parts: [String] = []
         if let seconds = step.seconds { parts.append(String(format: TodayConstants.planMinutesFormat, Int((seconds / 60).rounded()))) }
-        if let meters = step.meters { parts.append(String(format: TodayConstants.planMetersFormat, Int(meters.rounded()))) }
-        switch step.target {
-        case .pace(let fastest, let slowest): parts.append("\(WorkoutFormat.clock(fastest))–\(WorkoutFormat.clock(slowest))\(WorkoutConstants.paceUnit)")
-        case .heartRate(let low, let high): parts.append(String(format: TodayConstants.planHeartRateFormat, Int(low), Int(high)))
-        case .zone(let zone): parts.append(String(format: TodayConstants.planZoneFormat, zone))
-        case nil: break
-        }
+        if let meters = step.meters { parts.append(distance(meters)) }
+        if let target = target(step) { parts.append(target) }
         return parts.joined(separator: " · ")
+    }
+
+    static func target(_ step: PlannedStep) -> String? {
+        switch step.target {
+        case .pace(let fastest, let slowest): "\(WorkoutFormat.clock(fastest))–\(WorkoutFormat.clock(slowest))\(WorkoutConstants.paceUnit)"
+        case .heartRate(let low, let high): String(format: TodayConstants.planHeartRateFormat, Int(low), Int(high))
+        case .zone(let zone): String(format: TodayConstants.planZoneFormat, zone)
+        case nil: nil
+        }
+    }
+
+    static func distance(_ meters: Double) -> String {
+        guard meters >= WorkoutConstants.metersPerKilometer else { return String(format: TodayConstants.planMetersFormat, Int(meters.rounded())) }
+        let km = meters / WorkoutConstants.metersPerKilometer
+        return String(format: TodayConstants.planKilometersFormat, TodayText.decimal(km, fractionDigits: km.rounded() == km ? 0 : 1))
+    }
+
+    static func title(_ title: String) -> String {
+        let trimmed = title.replacingOccurrences(of: TodayConstants.planTitleDatePattern, with: "", options: [.regularExpression, .caseInsensitive])
+            .trimmingCharacters(in: .whitespaces)
+        return trimmed.isEmpty ? title : trimmed
+    }
+
+    static func singleStep(_ steps: [PlannedStep]) -> (name: String, detail: String)? {
+        let flat = steps.flatMap(\.flattened)
+        guard flat.count == 1, let step = flat.first, let meters = step.meters else { return nil }
+        return (String(format: TodayConstants.planContinuousFormat, distance(meters)), target(step) ?? "")
     }
 
     static func level(_ step: PlannedStep) -> Int {

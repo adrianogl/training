@@ -132,10 +132,22 @@ import TrainingCore
         #expect(load.detail.contains("ideal 0,8–1,3"))
     }
 
-    @Test func readinessSummaryHasNoDuplicatedSign() {
-        #expect(TodayText.readinessSummary(score: 74, normal: 68) == "+6 sobre o seu normal (68)")
-        #expect(TodayText.readinessSummary(score: 65, normal: 68) == "3 abaixo do seu normal (68)")
-        #expect(TodayText.readinessSummary(score: 68, normal: 68) == "No seu normal (68)")
+    @Test func factorsFollowAFixedOrder() async throws {
+        let container = try Self.store(withRace: true)
+        let model = TodayModel(container: container, today: Self.today)
+        await model.load()
+        let components = model.factorRows.map(\.component)
+        let order = TodayConstants.factorOrder.filter(components.contains)
+        #expect(components == order)
+    }
+
+    @Test func factorValueSaysWhyThereAreNoPoints() {
+        let missing = ReadinessFactorRowData(component: .bodyBattery, name: "x", detail: "", pointsText: nil, points: nil, group: .missing)
+        let baseline = ReadinessFactorRowData(component: .bodyBattery, name: "x", detail: "", pointsText: nil, points: nil, group: .baseline)
+        let up = ReadinessFactorRowData(component: .sleep, name: "x", detail: "", pointsText: "+2,1", points: 2.1, group: .up)
+        #expect(missing.valueText == "sem dado")
+        #expect(baseline.valueText == "sem normal")
+        #expect(up.valueText == "+2,1")
     }
 
     @Test func goalSentencesFollowCrossing() {

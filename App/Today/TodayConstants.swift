@@ -42,7 +42,6 @@ enum TodayConstants {
         .moderate: "Treino moderado",
         .rest: "Dia de descanso",
     ]
-    static let supportStress = "Stress"
     static let rulerRest = "descanso"
     static let rulerModerate = "moderado"
     static let rulerHard = "forte"
@@ -65,6 +64,11 @@ enum TodayConstants {
 
     static let predictionsTitle = "Previsões"
     static let lastRunTitle = "Último treino"
+    static let strengthTodayTitle = "Força de hoje"
+    static let outlookInDaysFormat = "em %d dias"
+    static let outlookInOneDay = "amanhã"
+    static let outlookSameDistanceMeters = 300.0
+    static let racesDeepLink = "training://provas"
     static let lastRunNoComparison = "Sem treinos parecidos para comparar."
     static let lastRunDistance = "distância"
     static let lastRunPace = "pace"
@@ -77,15 +81,17 @@ enum TodayConstants {
     static let legendSwatchHeight: Double = 3
 
     static let detailTitle = "Prontidão"
-    static let detailUp = "Puxando para cima"
-    static let detailDown = "Puxando para baixo"
-    static let detailNoBaseline = "Valor do dia"
-    static let detailMissing = "Sem dado"
-    static let detailMissingValue = "sem dado"
-    static let detailStressContext = "Stress do dia aparece como contexto, mas não entra na nota."
-    static let detailExplanationTitle = "Como os pontos são calculados"
+    static let detailMissingValue = "O relógio não mandou o dado hoje. O peso dele foi para os outros fatores."
+    static let detailExplanationTitle = "Como a nota é calculada"
+    static let detailFactorsTitle = "Fatores de hoje"
+    static let detailRecoveryTitle = "Recuperação"
+    static let detailNormalLabel = "Seu normal (30 dias)"
+    static let detailWeekLabel = "Média 7 dias"
+    static let factorNoData = "sem dado"
+    static let factorNoNormal = "sem normal"
+    static let factorNoNormalDetail = "ainda sem normal de 30 dias"
+    static let factorOrder: [ReadinessComponent] = [.hrv, .sleep, .load, .bodyBattery]
     static let detailExplanation = "A prontidão é a média ponderada de quatro notas de 0 a 100: HRV (35%), sono (25%), Body Battery (20%) e carga aguda:crônica (20%). Cada fator mostra quanto empurra a nota de hoje em relação ao seu normal dos últimos 30 dias: peso × (nota do fator hoje − média de 30 dias da nota do fator). O veredito vem dos limites fixos de 40 e 70. O normal só vale a partir de 14 dias com dado nos últimos 30."
-    static let detailNoNormal = "Ainda sem normal de 30 dias para comparar."
     static let loadIdealRange = "ideal 0,8–1,3"
 
     static let componentNames: [ReadinessComponent: String] = [
@@ -114,15 +120,8 @@ enum TodayConstants {
     static let driverScaleMinimum = 10.0
     static let driverDown = "puxa para baixo"
     static let driverUp = "puxa para cima"
-    static let stressContextFormat = "Stress do dia %d · entra só como contexto"
+    static let stressContextFormat = "Stress do dia %d · só contexto, não entra na nota"
     static let compactCountdownFontSize: Double = 60
-    static let daysLabel = "dias"
-    static let weeksLeftJoin = " e "
-    static let weeksLeftSuffix = " de treino"
-    static let weekSingular = "semana"
-    static let weekPlural = "semanas"
-    static let daySingular = "dia"
-    static let dayPlural = "dias"
     static let bulletPaddingRatio = 0.25
     static let bulletToday = "hoje"
     static let bulletRaceDay = "no dia"
@@ -131,6 +130,7 @@ enum TodayConstants {
     static let bulletLabelInset = 32.0
     static let bulletLabelGap = 64.0
     static let bulletRulerHeight: Double = 104
+    static let bulletCompactHeight: Double = 24
     static let bulletRulerTrackY = 44.0
     static let bulletAboveY = 12.0
     static let bulletBelowY = 90.0
@@ -145,7 +145,6 @@ enum TodayConstants {
     static let bulletGapAhead = "%@ abaixo da meta no dia"
     static let calendarDash: [CGFloat] = [4, 3]
     static let zoneStripHeight: Double = 4
-    static let volumeTitle = "Volume semanal"
     static let volumeChartHeight: Double = 190
     static let volumeThisWeek = "esta semana"
     static let volumeClosesFormat = "esta semana · fecha em ~%@"
@@ -166,7 +165,6 @@ enum TodayConstants {
     static let volumeAccessibilityFormat = "%@: %@ km realizados, %@ km planejados, %d%%"
     static let volumeAverageLabel = "média 4 sem."
     static let volumeGoalLabel = "meta"
-    static let volumeTitlePlanned = "Volume semanal · planejado × realizado"
     static let adherenceGood = 0.95
     static let adherenceFormat = "%d%%"
     static let volumeWeekFormat = "d MMM"
@@ -202,6 +200,9 @@ enum TodayConstants {
     static let planHeartRateFormat = "%d–%d bpm"
     static let planMinutesFormat = "%d min"
     static let planMetersFormat = "%d m"
+    static let planKilometersFormat = "%@ km"
+    static let planContinuousFormat = "%@ contínuo"
+    static let planTitleDatePattern = #"\s+(seg|ter|qua|qui|sex|s[aá]b|dom)\.?\s+\d{1,2}/\d{1,2}(/\d{2,4})?$"#
     static let planShapeHeight: Double = 40
     static let planShapeDefaultPace = 330.0
     static let planShapeLevels: [PlannedStepKind: Int] = [.warmup: 2, .active: 4, .recovery: 1, .cooldown: 1, .rest: 1, .other: 2]

@@ -12,6 +12,12 @@ struct TrainerStrengthWorkoutView: View {
 
     private var day: Day? { Day(iso: iso) }
 
+    private var dayLabel: String {
+        guard let day else { return iso }
+        if day == Day.today() { return TodayConstants.strengthTodayTitle }
+        return day.chartDate.formatted(.dateTime.weekday(.wide).day().month(.abbreviated).locale(WorkoutConstants.locale))
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrainerStrengthConstants.rowSpacing) {
@@ -26,7 +32,7 @@ struct TrainerStrengthWorkoutView: View {
         }
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(TrainerText.strengthTitle)
+        .navigationTitle(TrainerStrengthConstants.workoutTitle)
         .sheet(item: $swapping) { exercise in
             if let day, let workout = app.trainer.strengthWorkout(sessionId: sessionId, day: day) {
                 TrainerSwapSheet(exercise: exercise, alternatives: app.trainer.strengthAlternatives(exerciseId: exercise.exerciseId, in: workout, day: day)) { choice in
@@ -41,14 +47,17 @@ struct TrainerStrengthWorkoutView: View {
     @ViewBuilder
     private func content(_ workout: GeneratedStrengthWorkout) -> some View {
         let stored = day.flatMap { ClaudeStrengthStore().workout(on: $0) }
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
-                Text(TrainerStrengthText.focusName(workout.group)).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
+                DSCardLabel(dayLabel)
                 Spacer()
-                if stored != nil { ClaudeSourceChip() }
+                if stored != nil { ClaudeSourceChip() } else { TrainerStrengthSourceChip(source: .trainer) }
             }
+            Text(TrainerStrengthText.focusName(workout.group)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
             Text(TrainerStrengthText.meta(workout)).font(.caption).foregroundStyle(BrandColors.dim)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
         if let why = stored?.why {
             VStack(alignment: .leading, spacing: 4) {
                 Label(ClaudeText.whyTitle, systemImage: ClaudeConstants.symbol).font(.footnote.weight(.bold)).foregroundStyle(ClaudeConstants.color)
@@ -67,6 +76,8 @@ struct TrainerStrengthWorkoutView: View {
         if workout.exercises.isEmpty {
             Text(TrainerStrengthText.restLabel).font(.subheadline).foregroundStyle(BrandColors.dim).brandCard()
         } else {
+            DSSectionTitle(TrainerStrengthConstants.exercisesTitle)
+                .padding(.top, DSSpacing.sectionTop - TrainerStrengthConstants.rowSpacing)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
                     if index > 0 { Divider().overlay(BrandColors.line) }
@@ -92,9 +103,11 @@ struct TrainerStrengthWorkoutView: View {
         HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(TrainerStrengthText.load(exercise))
-                    .font(.caption)
-                    .foregroundStyle(exercise.replacedName == nil ? BrandColors.dim : BrandColors.accent)
+                if let load = TrainerStrengthText.load(exercise) {
+                    Text(load)
+                        .font(.caption)
+                        .foregroundStyle(exercise.replacedName == nil ? BrandColors.dim : BrandColors.accent)
+                }
             }
             Spacer(minLength: 6)
             Text(TrainerStrengthText.dose(exercise)).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)

@@ -10,18 +10,6 @@ extension Day {
 }
 
 enum TodayText {
-    static func weeksLeft(days: Int) -> String {
-        typealias C = TodayConstants
-        let perWeek = Int(C.daysPerWeek)
-        let weeks = days / perWeek
-        let rest = days % perWeek
-        let parts = [
-            weeks > 0 ? "\(weeks) \(weeks == 1 ? C.weekSingular : C.weekPlural)" : nil,
-            rest > 0 || weeks == 0 ? "\(rest) \(rest == 1 ? C.daySingular : C.dayPlural)" : nil,
-        ].compactMap { $0 }
-        return parts.joined(separator: C.weeksLeftJoin) + C.weeksLeftSuffix
-    }
-
     typealias C = TodayConstants
 
     static func goalClock(_ seconds: Double) -> String {
@@ -72,16 +60,6 @@ enum TodayText {
         if days == 0 { return "prova \(priority ?? "") hoje".replacingOccurrences(of: "  ", with: " ") }
         let unit = days == 1 ? "dia" : "dias"
         return "prova \(priority ?? "") em \(days) \(unit)".replacingOccurrences(of: "  ", with: " ")
-    }
-
-    static func readinessSummary(score: Int, normal: Double?) -> String {
-        guard let normal else { return C.detailNoNormal }
-        let rounded = Int(normal.rounded())
-        let delta = score - rounded
-        if delta == 0 { return "No seu normal (\(rounded))" }
-        return delta > 0
-            ? "+\(delta) sobre o seu normal (\(rounded))"
-            : "\(-delta) abaixo do seu normal (\(rounded))"
     }
 
     static func sleepDuration(_ seconds: Int) -> String {

@@ -84,6 +84,12 @@ enum WeeklyReportBuilder {
         return regex.stringByReplacingMatches(in: joined, range: range, withTemplate: "").trimmingCharacters(in: .whitespaces)
     }
 
+    static func shortTitle(_ start: Day) -> String {
+        let end = start.adding(days: 6)
+        let first = start.month == end.month ? "\(start.day)" : "\(start.day)/\(start.month)"
+        return String(format: C.shortTitleFormat, first, "\(end.day)/\(end.month)")
+    }
+
     static func dayLabel(_ day: Day) -> String {
         "\(weekday(day)) \(day.day)"
     }
