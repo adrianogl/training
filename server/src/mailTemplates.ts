@@ -9,6 +9,7 @@ import {
   MAIL_SITE_HOST,
 } from './mailConstants.js'
 import {
+  GARMIN_CATALOG,
   INVITE_REQUEST,
   MAIL_INVITE_SUBJECT,
   MAIL_RESET_SUBJECT,
@@ -16,7 +17,7 @@ import {
   MAIL_VERIFY_SUBJECT,
   MAIL_VERIFY_TEXT,
 } from './constants.js'
-import type { InviteMailInput, InviteRequestMailInput, MailContent, MailLayout } from './mailTemplates.types.js'
+import type { GarminCatalogMailInput, InviteMailInput, InviteRequestMailInput, MailContent, MailLayout } from './mailTemplates.types.js'
 
 export function escapeHtml(value: string): string {
   return value
@@ -164,6 +165,59 @@ export function inviteRequestMail(input: InviteRequestMailInput): MailContent {
       title: copy.title,
       card,
       button: { label: copy.button, href: input.link },
+      footer: copy.footer,
+      showHost: false,
+    }),
+  }
+}
+
+function catalogSection(title: string, items: string[]): string {
+  if (items.length === 0) return ''
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:22px 0 0 0"><tr><td style="font-family:${MAIL_FONT_DISPLAY};font-weight:700;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;color:${C.muted};padding-bottom:8px">${escapeHtml(title)}</td></tr>${items.join('')}</table>`
+}
+
+function catalogItem(name: string, id: string, warning?: string): string {
+  const border = warning === undefined ? '' : `border-left:3px solid ${C.warn};padding-left:10px;`
+  const note = warning === undefined ? '' : `<br><span style="font-size:12px;color:${C.warn}">${escapeHtml(warning)}</span>`
+  return `<tr><td style="padding:3px 0;${border}font-size:14px;color:${C.text}">${escapeHtml(name)}<br><span style="font-family:ui-monospace,Menlo,monospace;font-size:12px;color:${C.muted};word-break:break-all">${escapeHtml(id)}</span>${note}</td></tr>`
+}
+
+export function garminCatalogMail(input: GarminCatalogMailInput): MailContent {
+  const copy = MAIL_COPY.garminCatalog
+  const { added, removed, renamed } = input.diff
+  const label = (name: string | null) => name ?? copy.noName
+  const subject = `Catálogo da Garmin mudou: ${added.length} novos, ${removed.length} removidos, ${renamed.length} renomeados`
+  const textLines = [
+    copy.body,
+    '',
+    ...removed.map((item) => `Removido: ${item.id} (${label(item.name)})${item.referenced ? ` — ${copy.referenced}` : ''}`),
+    ...added.map((item) => `Novo: ${item.id} (${label(item.name)})`),
+    ...renamed.map((item) => `Renomeado: ${item.id} (${label(item.from)} → ${label(item.to)})`),
+    '',
+    `Rode: ${GARMIN_CATALOG.command}`,
+  ]
+  const card = cardRows([
+    [copy.labels.added, String(added.length)],
+    [copy.labels.removed, String(removed.length)],
+    [copy.labels.renamed, String(renamed.length)],
+    [copy.labels.checked, input.checkedOn],
+  ])
+  const sections = [
+    catalogSection(copy.sections.removed, removed.map((item) => catalogItem(label(item.name), item.id, item.referenced ? copy.referenced : undefined))),
+    catalogSection(copy.sections.added, added.map((item) => catalogItem(label(item.name), item.id))),
+    catalogSection(copy.sections.renamed, renamed.map((item) => catalogItem(`${label(item.from)} → ${label(item.to)}`, item.id))),
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:20px 0 0 0;background:${C.card};border:1px solid ${C.line};border-radius:10px"><tr><td style="padding:12px 14px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:${C.accent}">${escapeHtml(GARMIN_CATALOG.command)}</td></tr></table>`,
+  ].join('')
+  return {
+    subject,
+    text: textLines.join('\n'),
+    html: layout({
+      preheader: copy.preheader,
+      eyebrow: copy.eyebrow,
+      title: copy.title,
+      intro: copy.body,
+      card: card + sections,
+      button: { label: copy.button, href: GARMIN_CATALOG.repositoryUrl },
       footer: copy.footer,
       showHost: false,
     }),

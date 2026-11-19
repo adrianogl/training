@@ -97,6 +97,17 @@ class GarminCatalogTests(unittest.TestCase):
         rows = list(self.rows.values())
         self.assertEqual(catalog.markdown(catalog.changes(rows, rows)), "Sem mudanças no catálogo de exercícios da Garmin.")
 
+    def test_snapshot_keeps_the_raw_garmin_list(self):
+        raw = catalog.raw_names(EXERCISES, NAMES)
+        self.assertEqual(raw["SQUAT/GOBLET_SQUAT"], "Agachamento Goblet")
+        self.assertIsNone(raw["SQUAT/STEP_UP"])
+        self.assertIn("RUN/RUN", raw)
+        referenced = catalog.referenced_ids('"agachamento-livre": "SQUAT/BARBELL_BACK_SQUAT",\n"SQUAT/BARBELL_BACK_SQUAT": "Agachamento livre"')
+        self.assertEqual(referenced, ["SQUAT/BARBELL_BACK_SQUAT"])
+        source = catalog.snapshot_source({"SQUAT/STEP_UP": None, "SQUAT/GOBLET_SQUAT": "Agachamento Goblet"}, referenced)
+        self.assertIn('"SQUAT/STEP_UP": null', source)
+        self.assertIn("GARMIN_CATALOG_REFERENCED", source)
+
     def test_reads_rows_back_from_swift_source(self):
         import tempfile
         rows = list(self.rows.values())

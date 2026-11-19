@@ -64,6 +64,14 @@ export const RESET_TOKEN_MINUTES = 30
 export const LOGIN_ATTEMPT_LIMIT = 10
 export const LOGIN_ATTEMPT_WINDOW_MS = 15 * 60 * 1000
 export const RESEND_URL = 'https://api.resend.com/emails'
+export const GARMIN_CATALOG = {
+  exercisesUrl: 'https://connect.garmin.com/web-data/exercises/Exercises.json',
+  namesUrl: 'https://connect.garmin.com/web-translations/exercise_types/exercise_types_pt_BR.properties',
+  namePrefix: 'exercise_type_',
+  repositoryUrl: 'https://github.com/adrianogl/training',
+  command: 'python3 scripts/garmin-catalog.py',
+  timeoutMs: 20_000,
+} as const
 export const VERIFY_PATH = '/confirmar'
 export const RESET_PATH = '/redefinir-senha'
 export const MAIL_VERIFY_SUBJECT = 'Confirme seu e-mail no trAIning'

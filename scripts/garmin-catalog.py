@@ -318,6 +318,27 @@ def markdown(diff):
     return "\n".join(lines)
 
 
+def raw_names(exercises, names):
+    return {
+        f"{category}/{name}": names.get(f"exercise_type_{name}")
+        for category, body in sorted(exercises["categories"].items())
+        for name in sorted(body["exercises"])
+    }
+
+
+def referenced_ids(text):
+    return sorted(set(re.findall(r'"([A-Z0-9_]+/[A-Z0-9_]+)"', text)))
+
+
+def snapshot_source(raw, referenced):
+    entries = ",\n".join(f"  {json.dumps(key)}: {json.dumps(value, ensure_ascii=False)}" for key, value in raw.items())
+    ids = ",\n".join(f"  {json.dumps(key)}" for key in referenced)
+    return (
+        "export const GARMIN_CATALOG_SNAPSHOT: Record<string, string | null> = {\n" + entries + ",\n}\n\n"
+        "export const GARMIN_CATALOG_REFERENCED: readonly string[] = [\n" + ids + ",\n]\n"
+    )
+
+
 def fetch(url):
     request = urllib.request.Request(url, headers={"User-Agent": "training-catalog"})
     with urllib.request.urlopen(request, timeout=30) as response:
@@ -332,6 +353,7 @@ def main():
     parser.add_argument("--out", type=Path, default=ROOT / "Packages/TrainingKit/Sources/Insights/GarminStrengthCatalogData.swift")
     parser.add_argument("--constants", type=Path, default=ROOT / "Packages/TrainingKit/Sources/Insights/StrengthCatalogConstants.swift")
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--snapshot", type=Path, default=ROOT / "server/src/garminCatalogSnapshot.ts")
     args = parser.parse_args()
     exercises = json.loads(args.exercises.read_text("utf-8") if args.exercises else fetch(EXERCISES_URL))
     names = load_names(args.names.read_text("utf-8") if args.names else fetch(NAMES_URL))
@@ -340,6 +362,7 @@ def main():
     referenced = args.constants.read_text("utf-8") if args.constants.exists() else ""
     summary = markdown(changes(read_rows(args.out), rows, referenced))
     args.out.write_text(swift_source(rows), "utf-8")
+    args.snapshot.write_text(snapshot_source(raw_names(exercises, names), referenced_ids(referenced)), "utf-8")
     print(summary)
     if args.report:
         args.report.write_text(summary + "\n", "utf-8")
