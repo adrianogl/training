@@ -1,8 +1,8 @@
 {
-  "versao": "1.13.0",
-  "build": 18,
-  "versao_app": "1.13.0",
+  "versao": "1.14.0",
+  "build": 19,
+  "versao_app": "1.14.0",
   "notas": [
-    "Organiza a prontidão e padroniza os cards e as páginas do Hoje"
+    "Padroniza a Evolução e as páginas internas e corrige a frase da meta"
   ]
 }
