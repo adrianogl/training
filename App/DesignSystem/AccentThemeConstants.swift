@@ -1,6 +1,5 @@
 enum AccentThemeConstants {
     static let defaultsKey = "accentTheme"
-    static let lilacIconName = "AppIconLilac"
     static let pistaTitle = "Pista"
     static let pistaSubtitle = "Verde da marca"
     static let lilacTitle = "Lilás"

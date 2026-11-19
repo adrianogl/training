@@ -54,7 +54,7 @@ targets:
         CURRENT_PROJECT_VERSION: "12"
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: AppIconLilac
+        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIconLilac AppIconPistaLight AppIconPistaDark AppIconLilacLight AppIconLilacDark"
         ENABLE_USER_SCRIPT_SANDBOXING: NO
     postBuildScripts:
       - name: Build info
