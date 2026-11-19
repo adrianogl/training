@@ -144,7 +144,7 @@ enum WorkoutListModel {
         return total > 0 ? seconds.map { $0 / total } : []
     }
 
-    private static func pace(distance: Double?, duration: Double?) -> Double? {
+    static func pace(distance: Double?, duration: Double?) -> Double? {
         guard let distance, let duration else { return nil }
         return duration / (distance / WorkoutConstants.metersPerKilometer)
     }

@@ -88,7 +88,6 @@ struct WorkoutDetailView: View {
     @ViewBuilder
     private func runSections(_ model: WorkoutDetailModel) -> some View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
-            DSSectionTitle(WorkoutDetailConstants.sectionHowItWent).padding(.top, DSSpacing.s4)
             howItWent(model)
             if !goalEntries.isEmpty {
                 WorkoutGoalCard(entries: goalEntries)
@@ -147,28 +146,29 @@ struct WorkoutDetailView: View {
         }
     }
 
+    @ViewBuilder
     private func howItWent(_ model: WorkoutDetailModel) -> some View {
-        let showsScore = model.score != nil && !model.scoreRows.isEmpty
-        let comparison = planCheck.flatMap { $0.comparison.isEmpty ? nil : $0 }
-        return VStack(alignment: .leading, spacing: 16) {
-            if showsScore || model.trainingEffect != nil {
-                pair {
-                    if let score = model.score, showsScore {
-                        ScoreSummaryCard(value: score.value, rows: model.scoreRows, activityId: activityId, perfectLine: model.perfectLine, framed: false)
-                    }
-                    if let effect = model.trainingEffect {
-                        TrainingEffectCard(effect: effect, framed: false)
-                    }
-                }
-                Divider().overlay(BrandColors.line)
-            }
-            if let comparison {
-                PlanComparisonCard(rows: comparison.comparison, note: comparison.comparisonNote, framed: false)
-                Divider().overlay(BrandColors.line)
-            }
-            WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, aboveExpected: model.aboveExpected, framed: false)
+        let C = WorkoutDetailConstants.self
+        if let score = model.score, !model.scoreRows.isEmpty {
+            section(C.sectionScore)
+            ScoreSummaryCard(value: score.value, rows: model.scoreRows, activityId: activityId, perfectLine: model.perfectLine, showsLabel: false)
         }
-        .brandCard()
+        if let effect = model.trainingEffect {
+            section(C.sectionEffect)
+            TrainingEffectCard(effect: effect, showsLabel: false)
+        }
+        if let comparison = planCheck, !comparison.comparison.isEmpty {
+            section(C.sectionPlan)
+            PlanComparisonCard(rows: comparison.comparison, note: comparison.comparisonNote, showsLabel: false)
+        }
+        section(C.analysisTitle)
+        WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, aboveExpected: model.aboveExpected, showsLabel: false)
+    }
+
+    private func section(_ title: String) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, DSSpacing.sectionTop - TodayConstants.rowSpacing)
+            .padding(.bottom, DSSpacing.sectionBottom - TodayConstants.rowSpacing)
     }
 
     private func hasWorkoutSection(_ model: WorkoutDetailModel) -> Bool {

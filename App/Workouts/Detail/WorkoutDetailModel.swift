@@ -53,7 +53,7 @@ import WorkoutAnalysis
         let analysis = precomputed ?? WorkoutAnalysisStore.stored(record) ?? WorkoutAnalysisContext.build(record: record, records: records, in: context)
         isRun = analysis.isRun
         hasPrescription = analysis.hasPrescription
-        summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription)
+        summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription, records: records)
         weather = isRun ? record.weatherEffect(among: records) : nil
         zoneShares = Self.zoneShares(record.zoneSeconds)
         trainingEffect = TrainingEffectData(
@@ -186,7 +186,14 @@ import WorkoutAnalysis
         }
     }
 
-    private static func summary(_ record: ActivityRecord, isRun: Bool, hasPrescription: Bool) -> WorkoutSummary {
+    private static func recentLoads(_ record: ActivityRecord, records: [ActivityRecord]) -> [Double] {
+        let start = record.start.addingTimeInterval(-Double(TrainingLoadConstants.windowDays) * 86_400)
+        return records
+            .filter { $0.activityId != record.activityId && ActivityTypeKey.isRun($0.typeKey) && $0.start >= start && $0.start < record.start }
+            .compactMap(\.activityTrainingLoad)
+    }
+
+    private static func summary(_ record: ActivityRecord, isRun: Bool, hasPrescription: Bool, records: [ActivityRecord]) -> WorkoutSummary {
         let row = WorkoutListModel.row(record)
         let kind = hasPrescription ? WorkoutConstants.plannedKind : isRun ? "Corrida livre" : record.name
         let subtitle = [kind == row.title ? nil : kind, record.locationName].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
@@ -200,7 +207,9 @@ import WorkoutAnalysis
             averageHeartRateText: record.averageHR.map { "\(Int($0.rounded()))" },
             elevationText: record.elevationGain.map { "+\(Int($0.rounded())) m" },
             loadText: record.activityTrainingLoad.map { "\(Int($0.rounded()))" },
-            hasPrescription: hasPrescription
+            hasPrescription: hasPrescription,
+            loadCaption: TrainingLoadText.caption(load: record.activityTrainingLoad, others: isRun ? recentLoads(record, records: records) : []),
+            paceSeconds: isRun ? WorkoutListModel.pace(distance: record.distance ?? 0, duration: record.movingDuration ?? record.duration ?? 0) : nil
         )
     }
 }

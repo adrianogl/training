@@ -6,6 +6,7 @@ struct ScoreSummaryCard: View {
     var activityId: Int64?
     var perfectLine: String?
     var framed = true
+    var showsLabel = true
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var progress = 1.0
@@ -65,7 +66,7 @@ struct ScoreSummaryCard: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-        } else {
+        } else if showsLabel {
             DSCardLabel(ScoreConstants.breakdownTitle)
         }
     }

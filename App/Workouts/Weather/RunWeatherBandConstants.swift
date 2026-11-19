@@ -20,7 +20,20 @@ enum RunWeatherBandConstants {
     static let symbol = "thermometer.medium"
     static let headerBottomSpacing = 12.0
     static let captionLabel = "clima"
-    static let captionFormat = "clima +%@"
-    static let summaryAdaptedFormat = "adaptado: %d treinos no calor (−%d%%)"
-    static let summaryWindFormat = "vento %d km/h de %@"
+    static let captionFormat = "%@ mais lento"
+    static let captionCostFormat = "+%d\u{00A0}s/\u{2060}km pelo %@"
+    static let heatWord = "calor"
+    static let coldWord = "frio"
+    static let costFormat = ": o %@ custou cerca de %d\u{00A0}s/\u{2060}km. Sem ele, seu pace seria perto de %@/km."
+    static let adaptationCostFormat = "Você já fez %d treinos no calor; sem essa adaptação, o custo seria de cerca de %d\u{00A0}s/\u{2060}km."
+    static let minimumCostSeconds = 1.0
+    static let muggyOpeningFormat = "Dia abafado (orvalho %d °C)"
+    static let dewOpeningFormat = "Orvalho %d °C"
+    static let sunnySuffix = " e sol forte"
+    static let heatCostFormat = ": o calor deixou o pace cerca de %@ mais lento."
+    static let coldCostFormat = ": o frio deixou o pace cerca de %@ mais lento."
+    static let sentenceEnd = "."
+    static let adaptationFormat = "Como você já fez %d treinos no calor, esse efeito foi %d%% menor."
+    static let windFormat = "Vento de %d km/h de %@."
+    static let windShownKmh = 15.0
 }

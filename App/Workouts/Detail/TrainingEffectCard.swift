@@ -4,49 +4,49 @@ import WorkoutAnalysis
 struct TrainingEffectCard: View {
     let effect: TrainingEffectData
     var framed = true
+    var showsLabel = true
 
     private typealias C = WorkoutDetailConstants
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            DSCardLabel(C.effectTitle)
+            if showsLabel { DSCardLabel(C.effectTitle) }
             Text(effect.label.flatMap { C.effectLabels[$0] } ?? C.effectFallback)
-                .font(BrandFonts.number(28))
+                .font(BrandFonts.number(24))
                 .foregroundStyle(BrandColors.accent)
-            if let aerobic = effect.aerobic, let anaerobic = effect.anaerobic {
-                Text(String(format: C.effectSentenceFormat, number(aerobic), level(aerobic), number(anaerobic), level(anaerobic)))
-                    .font(.subheadline)
-                    .foregroundStyle(BrandColors.text.opacity(0.85))
-                    .fixedSize(horizontal: false, vertical: true)
-            } else {
+            if effect.aerobic == nil && effect.anaerobic == nil {
                 Text(C.effectEmpty).font(.subheadline).foregroundStyle(BrandColors.dim)
             }
-            VStack(spacing: 0) {
-                row(C.effectHighZones, effect.highZoneSeconds.map { WorkoutFormat.clock($0) })
-                row(C.effectAerobic, effect.aerobic.map { "\(number($0)) · \(level($0))" })
-                row(C.effectAnaerobic, effect.anaerobic.map { "\(number($0)) · \(level($0))" })
-                row(C.effectLoad, effect.load.map { "\(Int($0.rounded()))" })
+            VStack(spacing: 10) {
+                if let aerobic = effect.aerobic { bar(C.effectAerobicShort, aerobic, BrandColors.fitness) }
+                if let anaerobic = effect.anaerobic { bar(C.effectAnaerobicShort, anaerobic, BrandColors.race) }
+            }
+            if let seconds = effect.highZoneSeconds {
+                HStack {
+                    Text(C.effectHighZones).foregroundStyle(BrandColors.dim)
+                    Spacer()
+                    Text(WorkoutFormat.clock(seconds)).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
+                }
+                .font(.footnote)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard(framed: framed, fillsHeight: true)
     }
 
-    @ViewBuilder
-    private func row(_ name: String, _ value: String?) -> some View {
-        if let value {
-            HStack {
-                Text(name).foregroundStyle(BrandColors.dim)
-                Spacer()
-                Text(value).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
+    private func bar(_ name: String, _ value: Double, _ color: Color) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name).font(.footnote).foregroundStyle(BrandColors.text)
+                Text(level(value)).font(.caption2).foregroundStyle(BrandColors.dim)
             }
-            .font(.footnote)
-            .padding(.vertical, 6)
-            .overlay(alignment: .bottom) { Rectangle().fill(BrandColors.line).frame(height: 1) }
+            .frame(width: C.effectNameWidth, alignment: .leading)
+            DSProgressBar(value: min(value / C.effectScale, 1), color: color, height: C.effectBarHeight)
+            Text(TodayText.decimal(value, fractionDigits: 1))
+                .font(BrandFonts.number(15))
+                .foregroundStyle(BrandColors.text)
+                .frame(width: C.effectValueWidth, alignment: .trailing)
         }
-    }
-
-    private func number(_ value: Double) -> String {
-        TodayText.decimal(value, fractionDigits: 1)
     }
 
     private func level(_ value: Double) -> String {

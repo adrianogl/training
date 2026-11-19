@@ -14,6 +14,8 @@ struct WorkoutSummary: Equatable {
     let elevationText: String?
     let loadText: String?
     let hasPrescription: Bool
+    var loadCaption = TrainingLoadConstants.plain
+    var paceSeconds: Double? = nil
 }
 
 struct ComparisonRow: Identifiable, Equatable, Sendable, Codable {
