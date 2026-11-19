@@ -48,6 +48,7 @@ enum BackgroundSync {
         let work = Task {
             await WorkoutFinishNotifier.shared.refresh(model: model)
             await model.appUpdate.refresh()
+            await model.installExpiry.refresh()
             let succeeded = await model.syncNow(.background)
             await model.trainer.settleAutoAdjust()
             schedule(readinessComplete: model.todayReadinessComplete)
