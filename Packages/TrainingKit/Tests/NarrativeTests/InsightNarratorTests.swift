@@ -84,13 +84,20 @@ private let mockup = ReadinessBreakdown(score: 74, normal: 70, factors: [
 
     @Test func overallTemplateCoversVerdicts() {
         let better = OverallFacts(verdict: .better, improved: 5, worsened: 1, total: 8, goalGapSeconds: nil, raceDayGapSeconds: nil)
-        #expect(TemplateInsightNarrator.overallSentence(better) == "Melhor que há 3 meses: 5 de 8 indicadores melhoraram.")
+        #expect(TemplateInsightNarrator.overallSentence(better) == "5 de 8 indicadores melhoraram.")
         let stable = OverallFacts(verdict: .stable, improved: 2, worsened: 2, total: 8, goalGapSeconds: nil, raceDayGapSeconds: nil)
         #expect(TemplateInsightNarrator.overallSentence(stable) == "Estável em relação a 3 meses atrás.")
         let worse = OverallFacts(verdict: .worse, improved: 1, worsened: 5, total: 8, goalGapSeconds: 125, raceDayGapSeconds: nil)
         #expect(TemplateInsightNarrator.overallSentence(worse)
-            == "Pior que há 3 meses: 5 de 8 indicadores pioraram. Faltam 2:05 para a meta.")
+            == "5 de 8 indicadores pioraram. Faltam 2:05 para a meta.")
         let long = OverallFacts(verdict: .stable, improved: 0, worsened: 0, total: 8, goalGapSeconds: 3_725, raceDayGapSeconds: nil)
         #expect(TemplateInsightNarrator.overallSentence(long) == "Estável em relação a 3 meses atrás. Faltam 1:02:05 para a meta.")
+    }
+
+    @Test func goalGapSaysHowFarBelowTheGoalWhenAhead() {
+        #expect(TemplateInsightNarrator.goalGap(-1) == " A previsão já está 1 s abaixo da meta.")
+        #expect(TemplateInsightNarrator.goalGap(-125) == " A previsão já está 2:05 abaixo da meta.")
+        #expect(TemplateInsightNarrator.goalGap(12) == " Faltam 12 s para a meta.")
+        #expect(TemplateInsightNarrator.goalGap(0.2) == " A previsão está na meta.")
     }
 }

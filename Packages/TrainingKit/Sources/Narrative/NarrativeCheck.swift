@@ -41,8 +41,9 @@ enum NarrativeCheck {
         case .worse: forbidden = InsightNarrativeConstants.betterWords
         case .stable: forbidden = [InsightNarrativeConstants.betterWords[0], InsightNarrativeConstants.worseWords[0]]
         }
-        if let gap = facts.goalGapSeconds, gap != 0 {
-            forbidden += [InsightNarrativeConstants.aboveGoalWord, InsightNarrativeConstants.belowGoalWord]
+        if let gap = facts.goalGapSeconds, gap.rounded() != 0 {
+            forbidden.append(InsightNarrativeConstants.aboveGoalWord)
+            if gap > 0 { forbidden.append(InsightNarrativeConstants.belowGoalWord) }
         }
         return forbidden
     }

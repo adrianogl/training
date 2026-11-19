@@ -48,22 +48,18 @@ struct MetricDetailView: View {
     @ViewBuilder
     private var content: some View {
         statsCard
+        section(EvolutionConstants.detailChartTitle)
         chartCard
-        if let reading = model.reading {
-            VStack(alignment: .leading, spacing: 6) {
-                DSCardLabel(EvolutionConstants.detailReading)
-                Text(reading).font(.subheadline).foregroundStyle(BrandColors.text)
-            }
-            .brandCard()
+        if !model.monthly.isEmpty {
+            section(EvolutionConstants.detailMonthly)
+            monthlyCard
         }
-        if !model.monthly.isEmpty { monthlyCard }
-        if let lastYear = model.lastYearText {
-            VStack(alignment: .leading, spacing: 6) {
-                DSCardLabel(EvolutionConstants.detailLastYear)
-                Text(lastYear).font(.subheadline).foregroundStyle(BrandColors.text)
-            }
-            .brandCard()
-        }
+    }
+
+    private func section(_ title: String) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, DSSpacing.sectionTop - 12)
+            .padding(.bottom, DSSpacing.sectionBottom - 12)
     }
 
     private var statsCard: some View {
@@ -94,7 +90,16 @@ struct MetricDetailView: View {
                     Text(raceDay).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.accent)
                 }
             }
+            if let lastYear = model.lastYearText {
+                (Text(EvolutionConstants.detailLastYear + ": ").foregroundStyle(BrandColors.dim) + Text(lastYear).foregroundStyle(BrandColors.text))
+                    .font(.caption)
+            }
+            if let reading = model.reading {
+                Divider().overlay(BrandColors.line)
+                Text(reading).font(.subheadline).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
     }
 
@@ -103,15 +108,36 @@ struct MetricDetailView: View {
             if let chart = model.chart {
                 MetricChart(data: chart, style: .full)
             }
-            Text(EvolutionConstants.detailLegend).font(.caption2).foregroundStyle(BrandColors.dim)
+            DSFlowLayout(spacing: DSSpacing.s3) {
+                DSLegendItem(text: EvolutionConstants.averageLabel, color: BrandColors.text)
+                DSLegendItem(text: EvolutionConstants.projectionLabel, color: BrandColors.accent, mark: .dashed)
+                DSLegendItem(text: EvolutionConstants.lastYearLabel, color: BrandColors.dim)
+                if !(model.chart?.markers.isEmpty ?? true) {
+                    DSLegendItem(text: EvolutionConstants.raceLegend, color: BrandColors.race)
+                }
+            }
+            if let markers = model.chart?.markers, !markers.isEmpty {
+                DSFlowLayout(spacing: 6) {
+                    ForEach(markers) { marker in
+                        Text(String(format: EvolutionConstants.raceMarkerFormat, marker.name, marker.date.formatted(.dateTime.month(.abbreviated).year(.twoDigits).locale(WorkoutConstants.locale))))
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(BrandColors.race)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(BrandColors.race.opacity(0.12), in: Capsule())
+                    }
+                }
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
         .opacity(model.isLoading ? 0.5 : 1)
     }
 
     private var monthlyCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(EvolutionConstants.detailMonthly)
             Chart(model.monthly) { month in
                 BarMark(x: .value("Mês", month.date, unit: .month), y: .value("Média", month.value))
                     .foregroundStyle(BrandColors.fitness.opacity(0.8))
@@ -130,6 +156,7 @@ struct MetricDetailView: View {
             }
             .frame(height: EvolutionConstants.monthlyChartHeight)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
     }
 }

@@ -101,7 +101,7 @@ struct EvolutionView: View {
                 periodPicker(model)
             }
             DSSectionTitle(EvolutionConstants.summaryTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
-            OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators)
+            OverallStateCard(title: model.verdictTitle, sentence: model.overallSentence, indicators: model.indicators) { showsChat = true }
                 .syncSkeleton(app.isRefreshing, height: SkeletonConstants.overallHeight)
             DSSectionTitle(EvolutionConstants.metricsTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom).id(EvolutionConstants.metricsAnchor)
             groupChips(model)
@@ -121,7 +121,6 @@ struct EvolutionView: View {
                 }
                 EvolutionStrengthFrequencyCard(model: strength)
             }
-            AskIntelligenceButton(title: WorkoutChatConstants.askEvolution) { showsChat = true }
             Color.clear.frame(height: 1).id(EvolutionConstants.endAnchor)
         }
     }
@@ -161,12 +160,10 @@ struct EvolutionView: View {
     private func groupChips(_ model: EvolutionModel) -> some View {
         let available = MetricGroup.available(in: model.cardData, loading: model.isLoadingCards)
         let selected = MetricGroup.selected(selectedGroupTitle, in: available)?.title
-        return ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: EvolutionConstants.groupChipSpacing) {
-                ForEach(available) { group in
-                    DSFilterChip(title: group.title, isSelected: group.title == selected) {
-                        selectedGroupTitle = group.title
-                    }
+        return DSFlowLayout(spacing: EvolutionConstants.groupChipSpacing) {
+            ForEach(available) { group in
+                DSFilterChip(title: group.title, isSelected: group.title == selected) {
+                    selectedGroupTitle = group.title
                 }
             }
         }

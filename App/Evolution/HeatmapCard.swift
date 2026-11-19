@@ -8,7 +8,11 @@ struct HeatmapCard: View {
     var body: some View {
         let total = columns.flatMap { $0 }.reduce(0) { $0 + $1.kilometers }
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.heatmapTitle)
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(C.heatmapTitle)
+                Spacer()
+                Text(String(format: C.heatmapTotalFormat, TodayText.decimal(total, fractionDigits: 0))).font(.caption).foregroundStyle(BrandColors.dim)
+            }
             HStack(alignment: .top, spacing: 6) {
                 VStack(spacing: C.heatmapCellSpacing) {
                     Color.clear.frame(height: 12)
@@ -39,7 +43,6 @@ struct HeatmapCard: View {
                 }
             }
             HStack {
-                Text(String(format: C.heatmapTotalFormat, TodayText.decimal(total, fractionDigits: 0)))
                 Spacer()
                 Text(C.heatmapLess)
                 ForEach(C.heatmapScaleSteps, id: \.self) { step in

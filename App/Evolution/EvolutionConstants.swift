@@ -2,8 +2,6 @@ import Foundation
 import Insights
 
 enum EvolutionConstants {
-    static let markerLabelGapShare = 0.3
-    static let markerLabelMaxWidth: CGFloat = 150
     static let title = "Evolução"
     static let overallTitle = "Estado geral"
     static let verdictBetter = "Melhor que há 3 meses"
@@ -34,7 +32,7 @@ enum EvolutionConstants {
     static let minusSign = "\u{2212}"
 
     static let summaryTitle = "Resumo do período"
-    static let overallTitleWindow = "Estado geral · vs. 3 meses"
+    static let overallWindow = "vs. 3 meses atrás"
     static let historyTitle = "Histórico"
     static let indicatorValueWidth: Double = 76
     static let indicatorDeltaWidth: Double = 58
@@ -56,7 +54,9 @@ enum EvolutionConstants {
     static let heatmapWeekdayLabels = ["S", "", "Q", "", "S", "", "D"]
     static let heatmapLabelWidth: Double = 14
     static let heatmapMonthFormat = "MMM"
-    static let heatmapTotalFormat = "%@ km nas últimas 26 semanas"
+    static let heatmapTotalFormat = "%@ km · 26 semanas"
+    static let periodSuffix = " no período"
+    static let noChange = "sem mudança"
     static let heatmapLess = "menos"
     static let heatmapMore = "mais"
     static let heatmapScaleSteps = [0.0, 0.3, 0.55, 0.8, 1.0]
@@ -151,14 +151,15 @@ enum EvolutionConstants {
     static let detailMaximum = "Máximo"
     static let detailTrend = "Tendência"
     static let detailRaceDay = "No dia da prova"
-    static let detailReading = "Leitura"
+    static let detailChartTitle = "Gráfico"
+    static let raceLegend = "prova"
+    static let raceMarkerFormat = "%@ · %@"
     static let detailMonthly = "Médias mensais"
     static let detailLastYear = "Mesmo período do ano anterior"
     static let detailLastYearFormat = "média de %@ há 12 meses (%@ de diferença)"
-    static let detailLegend = "branco: média de 7 dias · tracejado: projeção · cinza: ano anterior"
     static let detailNoData = "Sem dados suficientes para esta métrica."
     static let dailyLabel = "Diário"
-    static let averageLabel = "Média 7 dias"
-    static let projectionLabel = "Projeção"
-    static let lastYearLabel = "Ano anterior"
+    static let averageLabel = "média de 7 dias"
+    static let projectionLabel = "projeção"
+    static let lastYearLabel = "ano anterior"
 }

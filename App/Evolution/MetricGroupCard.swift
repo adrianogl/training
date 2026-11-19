@@ -25,8 +25,11 @@ struct MetricGroupCard: View {
 
     private func tile(_ kind: MetricKind, featured: Bool) -> some View {
         NavigationLink(value: kind) {
-            content(kind, featured: featured)
-                .brandCard(fillsHeight: !featured)
+            VStack(alignment: .leading, spacing: 10) {
+                content(kind, featured: featured)
+                if featured { CardLinkFooter(title: CardLinkConstants.details) }
+            }
+            .brandCard(fillsHeight: !featured)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.cardLink)
@@ -39,22 +42,17 @@ struct MetricGroupCard: View {
         let change = card.flatMap { EvolutionText.change(kind: kind, stats: $0.stats) }
         let monthly = kind == .monthlyVolume ? card?.monthly ?? [] : []
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top, spacing: 6) {
-                Text(C.metricNames[kind] ?? "")
-                    .font(featured ? .subheadline.weight(.semibold) : .footnote)
-                    .foregroundStyle(BrandColors.text)
-                    .lineLimit(2)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                DSCardLabel(C.metricNames[kind] ?? "").lineLimit(2)
                 Spacer(minLength: 0)
-                CardLinkBadge()
+                if featured { DSDelta(text: deltaText(change), trend: (change?.trend ?? .unknown).ds) }
             }
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(EvolutionText.value(card?.stats.current, C.metricFormats[kind]))
-                    .font(BrandFonts.number(featured ? 24 : 16))
-                    .foregroundStyle(BrandColors.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                DSDelta(text: change?.text ?? C.emptyValue, trend: (change?.trend ?? .unknown).ds)
-            }
+            Text(EvolutionText.value(card?.stats.current, C.metricFormats[kind]))
+                .font(BrandFonts.number(featured ? 28 : 18))
+                .foregroundStyle(BrandColors.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+            if !featured { DSDelta(text: deltaText(change), trend: (change?.trend ?? .unknown).ds) }
             if let meters = kind.predictionMeters, let seconds = card?.stats.current, seconds > 0 {
                 Text(WorkoutListModel.paceText(secondsPerKilometer: seconds / (meters / WorkoutConstants.metersPerKilometer)))
                     .font(BrandFonts.number(13))
@@ -72,6 +70,11 @@ struct MetricGroupCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func deltaText(_ change: (text: String, trend: IndicatorTrend)?) -> String {
+        guard let change else { return C.noChange }
+        return change.trend == .same ? C.noChange : change.text + C.periodSuffix
     }
 }
 

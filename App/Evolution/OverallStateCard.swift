@@ -5,6 +5,7 @@ struct OverallStateCard: View {
     let title: String
     let sentence: String
     let indicators: [IndicatorDumbbellData]
+    var onChat: (() -> Void)?
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = EvolutionConstants
@@ -12,7 +13,11 @@ struct OverallStateCard: View {
     var body: some View {
         let regular = sizeClass == .regular
         VStack(alignment: .leading, spacing: 12) {
-            DSCardLabel(C.overallTitleWindow)
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(C.overallTitle)
+                Spacer()
+                Text(C.overallWindow).font(.caption).foregroundStyle(BrandColors.dim)
+            }
             Text(title)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(BrandColors.text)
@@ -39,6 +44,9 @@ struct OverallStateCard: View {
                         row(indicator, regular: regular)
                     }
                 }
+            }
+            if let onChat {
+                AskIntelligenceButton(title: WorkoutChatConstants.askEvolution, secondary: true, action: onChat)
             }
         }
         .brandCard()

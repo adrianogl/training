@@ -77,9 +77,23 @@ struct StrengthVolumeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(StrengthText.volumeTitle).font(BrandFonts.display(24)).foregroundStyle(BrandColors.text)
-                Text(StrengthText.volumeSubtitle).font(.footnote).foregroundStyle(BrandColors.dim)
                 VStack(spacing: 10) {
+                    HStack(alignment: .firstTextBaseline) {
+                        DSCardLabel(StrengthText.volumeCardTitle)
+                        Spacer()
+                        Text(String(format: StrengthText.volumeWeeksFormat, model.volumeWeekStarts.count)).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                    HStack(spacing: 10) {
+                        Color.clear.frame(width: 86, height: 1)
+                        HStack(spacing: 3) {
+                            ForEach(model.volumeWeekStarts, id: \.self) { start in
+                                Text("\(start.day)/\(start.month)").font(.system(size: 9)).foregroundStyle(BrandColors.dim)
+                                    .lineLimit(1).minimumScaleFactor(0.7).frame(maxWidth: .infinity)
+                            }
+                        }
+                        Text(StrengthText.volumeLastWeek).font(.system(size: 9)).foregroundStyle(BrandColors.dim)
+                            .frame(width: 28, alignment: .trailing)
+                    }
                     ForEach(model.volumeRows) { row in
                         HStack(spacing: 10) {
                             Text(StrengthText.groupName(row.group)).font(.footnote).foregroundStyle(BrandColors.text)
@@ -89,10 +103,17 @@ struct StrengthVolumeView: View {
                                 .frame(width: 28, alignment: .trailing)
                         }
                     }
+                    HStack(spacing: DSSpacing.s3) {
+                        ForEach(Array(StrengthText.volumeLegend.enumerated()), id: \.offset) { index, label in
+                            DSLegendItem(text: label, color: StrengthConstants.heat[index], mark: .square)
+                        }
+                        Spacer(minLength: 0)
+                    }
                 }
                 .brandCard()
             }
             .padding(.horizontal, BrandConstants.screenPadding)
+            .padding(.top, 8)
             .padding(.bottom, 24)
         }
         .background(BrandBackground())

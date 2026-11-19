@@ -20,6 +20,15 @@ struct CardLinkFooter: View {
     }
 }
 
+struct CardLinkChevron: View {
+    var body: some View {
+        Image(systemName: "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(BrandColors.dim)
+            .accessibilityHidden(true)
+    }
+}
+
 struct CardLinkBadge: View {
     var body: some View {
         Image(systemName: "chevron.right")
