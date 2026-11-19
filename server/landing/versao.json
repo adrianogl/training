@@ -1,8 +1,8 @@
 {
-  "versao": "1.12.0",
-  "build": 17,
-  "versao_app": "1.12.0",
+  "versao": "1.13.0",
+  "build": 18,
+  "versao_app": "1.13.0",
   "notas": [
-    "Avisa a validade da instalação e reinstala sozinho pelo Mac"
+    "Organiza a prontidão e padroniza os cards e as páginas do Hoje"
   ]
 }
