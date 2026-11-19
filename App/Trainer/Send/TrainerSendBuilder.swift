@@ -27,7 +27,7 @@ enum TrainerSendBuilder {
         exercises.map { exercise in
             PlannedStrengthExercise(
                 description: exercise.name + (exercise.perSide ? C.perSideSuffix : ""), category: exercise.category,
-                exerciseName: exercise.exerciseName, sets: exercise.sets, reps: exercise.reps, seconds: exercise.seconds,
+                exerciseName: exercise.exerciseName ?? StrengthCatalog.exercise(exercise.exerciseId)?.exerciseName, sets: exercise.sets, reps: exercise.reps, seconds: exercise.seconds,
                 restSeconds: exercise.restSeconds, weight: exercise.weight
             )
         }

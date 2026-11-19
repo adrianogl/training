@@ -56,17 +56,6 @@ struct ClaudeContextPayload: Codable, Equatable {
         let dia: String
     }
 
-    struct Exercise: Codable, Equatable {
-        let id: String
-        let nome: String
-        let padrao: String
-        let equipamento: String
-        let regioes: [String]
-        let focos: [String]
-        let unilateral: Bool
-        let isometria: Bool
-    }
-
     let periodo: Period
     let prova: Race?
     let dias_do_treinador: [TrainerDay]
@@ -75,6 +64,7 @@ struct ClaudeContextPayload: Codable, Equatable {
     let prontidao: [Readiness]
     let dor: [String]
     let ultimas_cargas_kg: [String: Double]
-    let catalogo: [Exercise]
+    let catalogo_formato: String
+    let catalogo: [String]
     let regras: [String]
 }

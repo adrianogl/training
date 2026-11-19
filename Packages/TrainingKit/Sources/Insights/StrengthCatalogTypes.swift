@@ -13,15 +13,15 @@ public enum StrengthPlace: String, Codable, Sendable, CaseIterable {
     case gym, home, bodyweight
 }
 
-public enum StrengthEquipment: String, Codable, Sendable {
-    case barbell, machine, cable, dumbbell, band, bodyweight
+public enum StrengthEquipment: String, Codable, Sendable, CaseIterable {
+    case barbell, machine, cable, dumbbell, kettlebell, medicineBall, suspension, swissBall, band, bodyweight
 }
 
 public struct CatalogExercise: Codable, Sendable, Equatable, Identifiable {
     public let id: String
     public let name: String
     public let category: String
-    public let exerciseName: String?
+    public let exerciseName: String
     public let pattern: MovementPattern
     public let focus: Set<TrainerStrengthGroup>
     public let equipment: StrengthEquipment
@@ -30,7 +30,7 @@ public struct CatalogExercise: Codable, Sendable, Equatable, Identifiable {
     public let timed: Bool
 
     public init(
-        id: String, name: String, category: String, exerciseName: String? = nil, pattern: MovementPattern,
+        id: String, name: String, category: String, exerciseName: String, pattern: MovementPattern,
         focus: Set<TrainerStrengthGroup>, equipment: StrengthEquipment, loads: Set<BodyRegion> = [],
         unilateral: Bool = false, timed: Bool = false
     ) {

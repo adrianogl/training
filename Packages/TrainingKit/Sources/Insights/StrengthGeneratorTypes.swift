@@ -18,11 +18,12 @@ public struct StrengthContext: Sendable, Equatable {
     public var loads: [String: StrengthLoadRecord]
     public var swaps: [String: String]
     public var keepOriginal: Bool
+    public var block: Int
 
     public init(
         runKind: TrainerDayKind? = nil, isRecoveryWeek: Bool = false, daysToRace: Int? = nil, readiness: Int? = nil,
         pain: Set<BodyRegion> = [], coveredPatterns: Set<MovementPattern> = [], loads: [String: StrengthLoadRecord] = [:],
-        swaps: [String: String] = [:], keepOriginal: Bool = false
+        swaps: [String: String] = [:], keepOriginal: Bool = false, block: Int = 0
     ) {
         self.runKind = runKind
         self.isRecoveryWeek = isRecoveryWeek
@@ -33,6 +34,7 @@ public struct StrengthContext: Sendable, Equatable {
         self.loads = loads
         self.swaps = swaps
         self.keepOriginal = keepOriginal
+        self.block = block
     }
 }
 

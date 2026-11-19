@@ -59,7 +59,7 @@ public enum ClaudeStrengthValidator {
             if !exercise.fits(place) { result.errors.append(.wrongPlace(item.id)) }
             if !exercise.loads.isDisjoint(with: context.pain) { result.errors.append(.painRegion(item.id)) }
             if !doseIsValid(item) { result.errors.append(.doseOutOfRange(item.id)) }
-            if let kilograms = item.kilograms, let last = context.lastLoads[item.id], kilograms > last * C.loadJumpShare {
+            if let kilograms = item.kilograms, let last = context.lastLoads[exercise.id] ?? context.lastLoads[item.id], kilograms > last * C.loadJumpShare {
                 result.warnings.append(.loadJump(item.id))
             }
             catalog.append(exercise)

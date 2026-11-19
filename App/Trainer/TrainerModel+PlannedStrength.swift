@@ -18,7 +18,7 @@ extension TrainerModel {
         let blocks = workout.exercises.map { exercise in
             StrengthBlock(
                 exercises: [StrengthExercise(
-                    name: exercise.name, detail: nil, category: exercise.category, exerciseKey: exercise.exerciseName,
+                    name: exercise.name, detail: nil, category: exercise.category, exerciseKey: exercise.exerciseName ?? StrengthCatalog.exercise(exercise.exerciseId)?.exerciseName,
                     reps: exercise.reps, seconds: exercise.seconds.map(Double.init), weight: exercise.weight
                 )],
                 sets: exercise.sets, restSeconds: Double(exercise.restSeconds)

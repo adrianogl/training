@@ -22,7 +22,11 @@ import TrainingCore
             #expect(text.contains(part), "\(part)")
         }
         let payload = ClaudeContextBuilder.payload(input())
-        #expect(payload.catalogo.count == StrengthCatalog.all.count)
+        #expect(payload.catalogo.count == ClaudeContextBuilder.catalog(input()).count)
+        #expect(payload.catalogo.count > 500)
+        #expect(!payload.catalogo.contains { $0.hasPrefix("SQUAT/GOBLET_SQUAT|") })
+        #expect(payload.catalogo.contains("PLANK/PLANK|antiExtension|bodyweight||core,fullBody|i"))
+        #expect(text.utf8.count < 120_000)
         #expect(payload.prova?.dia == "2026-12-13")
         #expect(payload.dias_do_treinador.first?.dia_da_semana == "ter")
     }

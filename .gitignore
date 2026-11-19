@@ -18,3 +18,4 @@ Watchface/bin/
 *.iq
 *.pem
 server/web/node_modules/
+__pycache__/
