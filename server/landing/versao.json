@@ -1,8 +1,8 @@
 {
-  "versao": "1.14.0",
-  "build": 19,
-  "versao_app": "1.14.0",
+  "versao": "1.15.0",
+  "build": 20,
+  "versao_app": "1.15.0",
   "notas": [
-    "Padroniza a Evolução e as páginas internas e corrige a frase da meta"
+    "Padroniza a lista e o topo do detalhe do treino"
   ]
 }
