@@ -13,37 +13,48 @@ struct WeeklyReportCard: View {
     private var isWide: Bool { sizeClass == .regular }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            header
-            if isWide {
-                HStack(alignment: .center, spacing: 22) {
-                    progress.frame(maxWidth: .infinity, alignment: .leading)
-                    metrics.frame(maxWidth: .infinity)
-                }
-            } else {
-                progress
+        VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
+            weekCard
+            if report.runCount != nil || report.quality != nil || report.long != nil || report.bestCard != nil || report.race != nil {
+                titled(C.highlightsTitle) { highlights }
             }
+            if let strength {
+                titled(StrengthText.section) { WeeklyStrengthBlock(summary: strength, sources: sources) }
+            }
+        }
+    }
+
+    private func titled<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: DSSpacing.sectionBottom) {
+            DSSectionTitle(title).padding(.top, DSSpacing.sectionTop - TodayConstants.rowSpacing)
+            content()
+        }
+    }
+
+    private var weekCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(WeeklyReportBuilder.shortTitle(report.start))
+                Spacer()
+                Text(report.isComplete ? C.closedState : C.openState).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            progress
             WeeklyDaysRow(days: report.days, compact: !isWide, strength: strength?.titles ?? [:])
-            if !isWide { metrics }
-            tiles
-            if let strength { WeeklyStrengthBlock(summary: strength, sources: sources) }
             if !report.note.isEmpty {
-                Divider().overlay(BrandColors.line)
-                Text(report.note).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+                DSNotice(tone: report.days.contains { $0.state == .missed || $0.state == .partial } ? .attention : .info, text: report.note)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
     }
 
-    private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            DSCardLabel("\(report.isCurrentWeek ? C.titleCurrent : C.titlePrevious) · \(range)")
-            Spacer()
-            if report.isComplete {
-                Text(C.completeBadge).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
-            }
+    private var highlights: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            metrics
+            tiles
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
     }
 
     private var progress: some View {
@@ -103,10 +114,11 @@ struct WeeklyReportCard: View {
             }
             if let long = report.long {
                 let planned = TodayText.decimal(long.plannedKm, fractionDigits: 0)
+                let done = long.doneKm > 0 ? TodayText.decimal(long.doneKm, fractionDigits: 1) : C.longNotDone
                 metric(
-                    isWide ? String(format: C.longFormat, TodayText.decimal(long.doneKm, fractionDigits: 1), planned) : TodayText.decimal(long.doneKm, fractionDigits: 1),
+                    isWide ? String(format: C.longFormat, done, planned) : done,
                     C.longLabel,
-                    long.doneKm >= long.plannedKm * C.completeShare ? BrandColors.accent : BrandColors.rest
+                    long.doneKm <= 0 ? BrandColors.dim : long.doneKm >= long.plannedKm * C.completeShare ? BrandColors.accent : BrandColors.rest
                 )
             }
         }
@@ -190,11 +202,6 @@ struct WeeklyReportCard: View {
     }
 
     private var bigTextPlain: String { String(bigText.characters) }
-
-    private var range: String {
-        let format = Date.FormatStyle.dateTime.day().month(.abbreviated).locale(WorkoutConstants.locale)
-        return String(format: C.rangeFormat, report.start.chartDate.formatted(format), report.start.adding(days: 6).chartDate.formatted(format))
-    }
 }
 
 private extension View {

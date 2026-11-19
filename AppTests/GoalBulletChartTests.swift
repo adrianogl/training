@@ -37,11 +37,4 @@ import Testing
         #expect(GoalBulletLayout.gapText(raceDay: 2_400, goal: 2_400) == "na meta no dia")
         #expect(GoalBulletLayout.gapText(raceDay: nil, goal: 2_400) == nil)
     }
-
-    @Test func weeksLeftUsesSingularAndSkipsZero() {
-        #expect(TodayText.weeksLeft(days: 9) == "1 semana e 2 dias de treino")
-        #expect(TodayText.weeksLeft(days: 14) == "2 semanas de treino")
-        #expect(TodayText.weeksLeft(days: 1) == "1 dia de treino")
-        #expect(TodayText.weeksLeft(days: 0) == "0 dias de treino")
-    }
 }

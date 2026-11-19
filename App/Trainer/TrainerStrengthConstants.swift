@@ -16,6 +16,8 @@ enum TrainerStrengthConstants {
     static let painSymbol = "bandage"
     static let suggestionSymbol = "sparkles"
     static let rowSpacing: CGFloat = 10
+    static let workoutTitle = "Força"
+    static let exercisesTitle = "Exercícios"
     static let bannerCorner: CGFloat = 14
     static let bannerBorder: CGFloat = 1.5
     static let bannerTint = 0.10

@@ -10,37 +10,11 @@ struct ReadinessHistoryChart: View {
     var body: some View {
         let scores = history.map(\.score)
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(C.title)
-                    .font(.caption.weight(.semibold))
-                    .tracking(1)
-                    .textCase(.uppercase)
-                    .foregroundStyle(BrandColors.dim)
-                Spacer(minLength: 8)
-                averages(scores)
-            }
             chart(scores)
                 .frame(height: C.height)
             legend
         }
         .brandCard()
-    }
-
-    private func averages(_ scores: [Int?]) -> some View {
-        let short = readinessAverage(scores.suffix(C.averageDays)).map { Int($0.rounded()) }
-        let long = readinessAverage(scores).map { Int($0.rounded()) }
-        return HStack(spacing: 4) {
-            if let short {
-                Text(C.averageShortPrefix).foregroundStyle(BrandColors.dim)
-                Text("\(short)").foregroundStyle(BrandColors.text).bold()
-            }
-            if let long {
-                Text("· \(C.averageLongPrefix)").foregroundStyle(BrandColors.dim)
-                Text("\(long)").foregroundStyle(BrandColors.text).bold()
-            }
-        }
-        .font(.caption)
-        .monospacedDigit()
     }
 
     private func chart(_ scores: [Int?]) -> some View {

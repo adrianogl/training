@@ -35,6 +35,14 @@ private let mockup = ReadinessBreakdown(score: 74, normal: 70, factors: [
             == "Prontidão 61 · treino moderado. Body Battery abaixo do seu normal, carga acima.")
     }
 
+    @Test func reasonIsTheSentenceWithoutTheScore() {
+        let breakdown = ReadinessBreakdown(score: 61, normal: 70, factors: [
+            factor(.bodyBattery, -6.0), factor(.load, 3.0), factor(.hrv, 1.0),
+        ])
+        #expect(TemplateInsightNarrator.readinessReason(breakdown) == "Body Battery abaixo do seu normal, carga acima.")
+        #expect(TemplateInsightNarrator.readinessReason(ReadinessBreakdown(score: 61, normal: nil, factors: [])) == nil)
+    }
+
     @Test func morningTextMatchesSpecExample() {
         #expect(morningNotificationText(mockup, verdict: .hard)
             == "Prontidão 74 · pode treinar forte. HRV acima do seu normal, sono abaixo.")

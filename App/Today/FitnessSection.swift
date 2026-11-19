@@ -8,7 +8,7 @@ struct FitnessSection: View {
         let fitness = model.summary.fitness
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text(TodayConstants.outlookFitnessTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                DSCardLabel(TodayConstants.outlookFitnessTitle)
                 Spacer()
                 if let form = fitness.raceDayForm {
                     Text(String(format: TodayConstants.outlookFitnessFormat, TodayText.signed(form)))

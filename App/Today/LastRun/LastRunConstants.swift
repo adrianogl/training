@@ -35,6 +35,8 @@ enum LastRunConstants {
     static let chartLegendPace = "pace por km"
     static let chartLegendHeartRate = "FC"
     static let fadeFormat = "queda no km %d"
+    static let chartTitle = "Pace e FC"
+    static let fullAnalysis = "Ver análise completa"
     static let noSimilarFormat = "Sem outros treinos de %@ nos últimos 60 dias."
     static let rowFormat = "%@ km"
     static let rowClimbFormat = "%@ km · +%d m"

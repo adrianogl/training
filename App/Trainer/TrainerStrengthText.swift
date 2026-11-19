@@ -29,7 +29,6 @@ enum TrainerStrengthText {
     static let mfitReadOnly = "Os dias do MFIT vêm do professor e não são editados aqui."
     static let minutesFormat = "%d min"
     static let exercisesFormat = "%d exercícios"
-    static let todayTitle = "Força hoje"
     static let upcomingTitle = "Próximos treinos de força"
     static let upcomingEmpty = "Nenhum dia do treinador nos próximos 7 dias."
     static let noPlanNote = "Sem plano do treinador, os dias de corrida forte vêm dos treinos do Garmin (assessoria). Semana de recuperação e prova só entram com plano."
@@ -99,9 +98,9 @@ enum TrainerStrengthText {
         return "\(exercise.sets) × \(amount)\(exercise.perSide ? " cada" : "")"
     }
 
-    static func load(_ exercise: GeneratedExercise) -> String {
+    static func load(_ exercise: GeneratedExercise) -> String? {
         if let replaced = exercise.replacedName { return String(format: replacedFormat, replaced) }
-        guard let weight = exercise.weight else { return "peso do corpo ou carga livre" }
+        guard let weight = exercise.weight else { return nil }
         return "\(Int(weight.rounded())) kg"
     }
 

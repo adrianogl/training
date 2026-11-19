@@ -17,6 +17,9 @@ struct TodayWeekDetailView: View {
                     let current = model.currentWeekReport(trainer: trainer)
                     WeeklyReportCard(report: current, strength: strength?.weekSummary(start: current.start), sources: app.trainer.strengthTally(weekStart: current.start))
                 }
+                DSSectionTitle(WeeklyReportConstants.volumeTitle)
+                    .padding(.top, DSSpacing.sectionTop - TodayConstants.rowSpacing)
+                    .padding(.bottom, DSSpacing.sectionBottom - TodayConstants.rowSpacing)
                 VolumeHistoryCard(week: model.summary.week, goal: goal, planned: model.plannedWeeks)
             }
             .padding(.horizontal, BrandConstants.screenPadding)

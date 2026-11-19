@@ -5,7 +5,6 @@ import WorkoutAnalysis
 enum StrengthText {
     static let title = "Força"
     static let today = "Força de hoje"
-    static let todaySource = "Força · do seu professor no MFIT"
     static let week = "Semana"
     static let weekMuscles = "Músculos da semana"
     static let history = "Histórico"

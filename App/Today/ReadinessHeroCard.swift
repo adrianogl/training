@@ -20,15 +20,7 @@ struct ReadinessHeroCard: View {
             } else if app.watchKind == .appleWatch, model.summary.readiness != nil, model.summary.readinessRaw[.hrv] == nil {
                 DSNotice(tone: .info, title: C.appleBaselineTitle, text: C.appleBaselineText)
             }
-            HStack(alignment: .firstTextBaseline) {
-                DSCardLabel(C.readinessTitle)
-                Spacer()
-                if let recovery, recovery.remainingHours > 0 {
-                    Text(String(format: RecoveryConstants.headerFormat, recovery.remainingHours))
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
-                }
-            }
+            DSCardLabel(C.readinessTitle)
             if model.summary.readinessMissingNight == true {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(C.readinessMissingNightNote)
@@ -48,7 +40,7 @@ struct ReadinessHeroCard: View {
                         Text(model.summary.verdict.flatMap { C.verdictPhrases[$0] } ?? "")
                             .font(.title3.weight(.semibold))
                             .foregroundStyle(BrandColors.text)
-                        let sentence = [model.readinessSentence, legDay.map(StrengthText.legSentence)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
+                        let sentence = [model.readinessReason, legDay.map(StrengthText.legSentence)].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
                         if !sentence.isEmpty {
                             Text(sentence)
                                 .font(.subheadline)
@@ -57,7 +49,7 @@ struct ReadinessHeroCard: View {
                         }
                     }
                 }
-                ReadinessDrivers(rows: model.factorRows)
+                ReadinessFactorList(rows: model.factorRows)
                 if let legDay { StrengthLegFactorRow(leg: legDay) }
             } else if let score = model.fallbackScore {
                 HStack(alignment: .center, spacing: 18) {
@@ -100,68 +92,15 @@ struct ReadinessHeroCard: View {
     }
 }
 
-private struct ReadinessDrivers: View {
+private struct ReadinessFactorList: View {
     let rows: [ReadinessFactorRowData]
 
-    private typealias C = TodayConstants
-
     var body: some View {
-        let scale = max(rows.compactMap { $0.points.map(abs) }.max() ?? 0, C.driverScaleMinimum)
+        let scale = ReadinessFactorScale.of(rows)
         VStack(spacing: 8) {
-            ForEach(rows) { row in
-                HStack(spacing: 10) {
-                    Text(row.name)
-                        .font(.footnote)
-                        .foregroundStyle(BrandColors.dim)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(width: C.driverNameWidth, alignment: .leading)
-                    DriverBar(points: row.points, scale: scale)
-                    Text(row.pointsText ?? "—")
-                        .font(BrandFonts.number(15))
-                        .foregroundStyle(row.points == nil ? BrandColors.dim : BrandColors.text)
-                        .frame(width: C.driverValueWidth, alignment: .trailing)
-                }
-            }
-            HStack(spacing: 10) {
-                Color.clear.frame(width: C.driverNameWidth, height: 1)
-                HStack {
-                    Text(C.driverDown)
-                    Spacer()
-                    Text(C.driverUp)
-                }
-                .font(.caption2)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .foregroundStyle(BrandColors.dim)
-                Color.clear.frame(width: C.driverValueWidth, height: 1)
-            }
+            ForEach(rows) { ReadinessFactorLine(row: $0, scale: scale) }
+            ReadinessFactorAxis()
         }
-    }
-}
-
-private struct DriverBar: View {
-    let points: Double?
-    let scale: Double
-
-    var body: some View {
-        GeometryReader { proxy in
-            let half = proxy.size.width / 2
-            let length = min(abs(points ?? 0) / scale, 1) * half
-            let isUp = (points ?? 0) >= 0
-            ZStack(alignment: .leading) {
-                Capsule().fill(BrandColors.track)
-                Rectangle()
-                    .fill(BrandColors.line)
-                    .frame(width: 1, height: TodayConstants.driverBarHeight + 6)
-                    .offset(x: half)
-                Capsule()
-                    .fill(isUp ? BrandColors.accentFill : BrandColors.rest)
-                    .frame(width: length)
-                    .offset(x: isUp ? half : half - length)
-            }
-        }
-        .frame(height: TodayConstants.driverBarHeight)
     }
 }
 
@@ -197,12 +136,6 @@ private struct ReadinessRecoveryStrip: View {
             }
             .font(.footnote.weight(.semibold))
             DSProgressBar(value: max(estimate.progress, 0.0001), color: ready ? BrandColors.readyFill : BrandColors.attention, height: C.stripHeight)
-            if let next = estimate.upcoming.first {
-                Text(RecoveryText.nextLine(next)).font(.caption).foregroundStyle(BrandColors.dim)
-            }
-            if let advice = estimate.advice {
-                Text(advice).font(.caption).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
-            }
         }
         .accessibilityElement(children: .combine)
     }

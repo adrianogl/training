@@ -17,13 +17,19 @@ public struct TemplateInsightNarrator: InsightNarrator {
         typealias Constants = InsightNarrativeConstants
         let phrase = Constants.verdictPhrases[verdict] ?? ""
         let head = "\(Constants.readinessPrefix) \(breakdown.score)\(Constants.separator)\(phrase)"
+        guard let reason = readinessReason(breakdown) else { return head + "." }
+        return "\(head). \(reason)"
+    }
+
+    public static func readinessReason(_ breakdown: ReadinessBreakdown) -> String? {
+        typealias Constants = InsightNarrativeConstants
         let top = breakdown.factors
             .compactMap { factor in factor.points.map { (factor.component, $0) } }
             .filter { $0.1 != 0 }
             .sorted { abs($0.1) > abs($1.1) }
             .prefix(Constants.topFactorCount)
-        guard let first = top.first else { return head + "." }
-        var text = "\(head). \(capitalized(name(first.0))) \(direction(first.1)) \(Constants.normalSuffix)"
+        guard let first = top.first else { return nil }
+        var text = "\(capitalized(name(first.0))) \(direction(first.1)) \(Constants.normalSuffix)"
         if top.count > 1, let second = top.last {
             text += ", \(name(second.0)) \(direction(second.1))"
         }

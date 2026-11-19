@@ -6,6 +6,7 @@ import WorkoutAnalysis
 struct TodayOutlookCard: View {
     let model: TodayModel
 
+    @Environment(\.openURL) private var openURL
     private typealias C = TodayConstants
 
     var body: some View {
@@ -17,21 +18,21 @@ struct TodayOutlookCard: View {
                 DSCardLabel(C.predictionsTitle)
             }
             if !predictions.isEmpty {
-                Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                    ForEach(Array(stride(from: 0, to: predictions.count, by: 2)), id: \.self) { start in
-                        GridRow {
-                            ForEach(predictions[start..<min(start + 2, predictions.count)], id: \.label) { tile($0) }
-                        }
-                    }
+                HStack(spacing: 6) {
+                    ForEach(predictions, id: \.label) { tile($0) }
                 }
             }
-            if !model.goals.isEmpty {
+            if !otherGoals.isEmpty {
                 divider
                 goals
             }
             if model.raceDay != nil {
                 divider
                 FitnessSection(model: model)
+            }
+            if model.summary.raceCountdownDays != nil, let url = URL(string: C.racesDeepLink) {
+                Button { openURL(url) } label: { CardLinkFooter(title: CardLinkConstants.race) }
+                    .buttonStyle(.cardLink)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -44,43 +45,68 @@ struct TodayOutlookCard: View {
 
     private func race(days: Int) -> some View {
         let race = model.summary.race
-        return VStack(alignment: .leading, spacing: 8) {
+        return VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 DSCardLabel(String(format: C.outlookRaceFormat, model.raceName ?? race.label))
                 Spacer()
-                (Text("\(days) ").font(BrandFonts.number(22)) + Text(days == 1 ? C.daySingular : C.daysLabel).font(.caption))
+                Text(String(format: days == 1 ? C.outlookInOneDay : C.outlookInDaysFormat, days))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(BrandColors.race)
             }
-            Text(TodayText.weeksLeft(days: days)).font(.caption).foregroundStyle(BrandColors.dim)
-            GoalBulletChart(today: race.today, raceDay: race.raceDay?.mid, goal: race.goalSeconds, showsGap: true)
+            HStack(alignment: .firstTextBaseline) {
+                value(C.bulletGoal, race.goalSeconds, BrandColors.accent)
+                Spacer()
+                value(C.bulletToday, race.today, BrandColors.text)
+                Spacer()
+                value(C.bulletRaceDay, race.raceDay?.mid, BrandColors.race)
+            }
+            GoalBulletChart(today: race.today, raceDay: race.raceDay?.mid, goal: race.goalSeconds, showsGap: true, compact: true)
+        }
+    }
+
+    @ViewBuilder
+    private func value(_ label: String, _ seconds: Double?, _ color: Color) -> some View {
+        if let seconds {
+            (Text(label + " ").font(.caption).foregroundStyle(BrandColors.dim) + Text(WorkoutFormat.clock(seconds)).font(BrandFonts.number(16)).foregroundStyle(color))
+        }
+    }
+
+    private var otherGoals: [GoalSnapshot] {
+        let race = model.summary.race
+        return model.goals.filter { snapshot in
+            guard let target = snapshot.targetSeconds, let goal = race.goalSeconds else { return true }
+            return !(abs(snapshot.distanceKm * WorkoutConstants.metersPerKilometer - race.distance) < C.outlookSameDistanceMeters && abs(target - goal) < 1)
         }
     }
 
     private func tile(_ prediction: Prediction) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
+        let isRace = model.summary.raceCountdownDays != nil && prediction.meters.map { abs($0 - model.summary.race.distance) < C.outlookSameDistanceMeters } == true
+        return VStack(alignment: .leading, spacing: 1) {
+            Text(prediction.label).font(.caption2).foregroundStyle(BrandColors.dim)
             Text(prediction.seconds.map(WorkoutFormat.clock) ?? "—")
-                .font(BrandFonts.number(17))
+                .font(BrandFonts.number(15))
                 .foregroundStyle(BrandColors.text)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             if let seconds = prediction.seconds, let meters = prediction.meters, meters > 0 {
                 Text(WorkoutListModel.paceText(secondsPerKilometer: seconds / (meters / WorkoutConstants.metersPerKilometer)))
-                    .font(BrandFonts.number(13))
+                    .font(.caption2)
                     .foregroundStyle(BrandColors.dim)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
-            Text(prediction.label).font(.caption2).foregroundStyle(BrandColors.dim)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
+        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(isRace ? BrandColors.accent : .clear, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
     }
 
     private var goals: some View {
         VStack(alignment: .leading, spacing: 8) {
-            ForEach(model.goals, id: \.id) { snapshot in
+            ForEach(otherGoals, id: \.id) { snapshot in
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(GoalsText.title(kind: snapshot.kind, distanceKm: snapshot.distanceKm, targetSeconds: snapshot.targetSeconds))

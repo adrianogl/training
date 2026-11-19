@@ -66,20 +66,28 @@ struct TodayWorkoutCard: View {
 
     private func garmin(_ plan: PlannedWorkout, showsAdvice: Bool) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(plan.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
-            strengthChips
-            PlannedShape(steps: plan.steps).frame(height: C.planShapeHeight)
-            PlannedStepsList(steps: plan.steps)
+            Text(PlanText.title(plan.title)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
+            if let single = PlanText.singleStep(plan.steps) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(single.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                    Spacer()
+                    Text(single.detail).font(.subheadline).foregroundStyle(BrandColors.dim).monospacedDigit()
+                }
+            } else {
+                PlannedShape(steps: plan.steps).frame(height: C.planShapeHeight)
+                PlannedStepsList(steps: plan.steps)
+            }
             if showsAdvice, let verdict = model.summary.verdict, let advice = C.planAdjust[verdict] {
                 DSNotice(tone: .attention, title: C.planAdjustTitle, text: advice)
             }
+            NavigationLink(value: TodayRoute.planned(plan.id)) { CardLinkFooter(title: CardLinkConstants.workout) }
+                .buttonStyle(.cardLink)
         }
     }
 
     private var rest: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(model.weekRuns[model.today]?.isEmpty == false ? C.runDoneTitle : TrainerText.restTitle).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
-            strengthChips
             switch pick.tomorrow {
             case .garmin(let plan):
                 VStack(alignment: .leading, spacing: 2) {
@@ -98,15 +106,6 @@ struct TodayWorkoutCard: View {
             }
             if pick.tomorrow != nil, let best = TrainerBestTimeBuilder.make(weather: weather) {
                 bestTime(best)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var strengthChips: some View {
-        if !pick.strength.isEmpty {
-            HStack(spacing: 6) {
-                ForEach(pick.strength) { TrainerDayTagView(tag: TrainerDayTag(text: TrainerText.strengthTag($0), style: .strength)) }
             }
         }
     }

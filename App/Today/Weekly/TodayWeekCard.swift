@@ -14,7 +14,11 @@ struct TodayWeekCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            DSCardLabel(title)
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(title)
+                Spacer()
+                Text(isClosed ? C.closedState : C.openState).font(.caption).foregroundStyle(BrandColors.dim)
+            }
             HStack(alignment: .firstTextBaseline) {
                 Text(bigText).font(BrandFonts.number(30)).foregroundStyle(BrandColors.text)
                 Spacer()
@@ -29,9 +33,16 @@ struct TodayWeekCard: View {
                 DSNotice(tone: .attention, text: warning)
             }
             if series.points.count > 1 {
-                sparkline
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(String(format: C.sparkTitleFormat, series.points.count)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim)
+                    sparkline
+                    HStack(spacing: DSSpacing.s3) {
+                        DSLegendItem(text: C.sparkDone, color: BrandColors.accentFill)
+                        DSLegendItem(text: C.sparkPlanned, color: BrandColors.dim, mark: .dashed)
+                        if !footer.isEmpty { Text(footer).font(.caption2).foregroundStyle(BrandColors.dim) }
+                    }
+                }
             }
-            Text(footer).font(.caption).foregroundStyle(BrandColors.dim)
             NavigationLink(value: TodayRoute.week) { CardLinkFooter(title: CardLinkConstants.week) }
                 .buttonStyle(.cardLink)
         }
@@ -39,11 +50,7 @@ struct TodayWeekCard: View {
         .brandCard()
     }
 
-    private var title: String {
-        let format = Date.FormatStyle.dateTime.day().month(.abbreviated).locale(WorkoutConstants.locale)
-        let range = String(format: C.rangeFormat, report.start.chartDate.formatted(format), report.start.adding(days: 6).chartDate.formatted(format))
-        return isClosed ? String(format: C.closedTitleFormat, range) : String(format: C.openTitleFormat, range)
-    }
+    private var title: String { WeeklyReportBuilder.shortTitle(report.start) }
 
     private var bigText: AttributedString {
         let done = TodayText.decimal(report.doneKm, fractionDigits: 1)
@@ -81,7 +88,7 @@ struct TodayWeekCard: View {
     }
 
     private var footer: String {
-        var parts = [String(format: C.sparkWeeksFormat, series.points.count)]
+        var parts: [String] = []
         if let percent = series.adherencePercent { parts.append(String(format: C.sparkAdherenceFormat, percent)) }
         if series.average4Weeks > 0 { parts.append(String(format: C.sparkAverageFormat, TodayText.decimal(series.average4Weeks, fractionDigits: 0))) }
         return parts.joined(separator: " · ")

@@ -15,13 +15,13 @@ struct TodayStrengthCard<Label: View>: View {
                 EmptyView()
             } else if let workout, !app.trainer.replacesMFIT(on: Day.today()) {
                 if showsLabel { label() }
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(StrengthText.todaySource).font(.caption).foregroundStyle(BrandColors.dim)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        DSCardLabel(TodayConstants.strengthTodayTitle)
                         Spacer()
                         TrainerStrengthSourceChip(source: .mfit)
                     }
-                    Text(workout.title).font(.headline).foregroundStyle(BrandColors.text)
+                    Text(workout.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
                     Text(StrengthText.countLabel(exercises: workout.blocks.flatMap(\.exercises).count, sets: workout.totalSets))
                         .font(.caption).foregroundStyle(BrandColors.dim)
                     NavigationLink {
@@ -36,9 +36,9 @@ struct TodayStrengthCard<Label: View>: View {
             } else if let session = app.trainer.trainerSessions(on: Day.today()).first,
                       let generated = app.trainer.strengthWorkout(sessionId: session.id, day: Day.today()) {
                 if showsLabel { label() }
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text(TrainerStrengthText.todayTitle).font(.caption).foregroundStyle(BrandColors.dim)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        DSCardLabel(TodayConstants.strengthTodayTitle)
                         Spacer()
                         if app.trainer.isClaudeDay(Day.today()) {
                             ClaudeSourceChip()
@@ -46,7 +46,7 @@ struct TodayStrengthCard<Label: View>: View {
                             TrainerStrengthSourceChip(source: .trainer)
                         }
                     }
-                    Text(TrainerStrengthText.focusName(generated.group)).font(.headline).foregroundStyle(BrandColors.text)
+                    Text(TrainerStrengthText.focusName(generated.group)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
                     Text(TrainerStrengthText.meta(generated)).font(.caption).foregroundStyle(BrandColors.dim)
                     if let adjustment = generated.adjustments.first {
                         Text(TrainerStrengthText.adjustmentTitle(adjustment)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)

@@ -172,12 +172,24 @@ import WorkoutAnalysis
 
     var goalSentence: String? { predictionContent.goalSentence }
 
-    var readinessSummaryText: String? {
-        summary.readiness.map { TodayText.readinessSummary(score: $0.score, normal: $0.normal) }
+    var readinessReason: String? {
+        summary.readiness.flatMap(TemplateInsightNarrator.readinessReason)
+    }
+
+    var readinessNormal: Int? {
+        if let normal = summary.readiness?.normal { return Int(normal.rounded()) }
+        return summary.readinessHistory.flatMap { readinessAverage($0.map(\.score)) }.map { Int($0.rounded()) }
+    }
+
+    var readinessWeekAverage: Int? {
+        summary.readinessHistory.flatMap { readinessAverage($0.suffix(ReadinessHistoryConstants.averageDays).map(\.score)) }.map { Int($0.rounded()) }
     }
 
     var factorRows: [ReadinessFactorRowData] {
-        (summary.readiness?.factors ?? []).map(row)
+        let order = C.factorOrder
+        return (summary.readiness?.factors ?? [])
+            .sorted { (order.firstIndex(of: $0.component) ?? order.count) < (order.firstIndex(of: $1.component) ?? order.count) }
+            .map(row)
     }
 
     var fitnessLines: [ChartLine] {
@@ -206,6 +218,7 @@ import WorkoutAnalysis
             parts.append("seu normal \(text)")
         }
         if factor.component == .load { parts.append(C.loadIdealRange) }
+        if factor.points == nil { parts.append(C.factorNoNormalDetail) }
         parts.append("peso \(Int((factor.weight * 100).rounded()))%")
         let group: ReadinessGroup = factor.points.map { $0 >= 0 ? .up : .down } ?? .baseline
         return ReadinessFactorRowData(

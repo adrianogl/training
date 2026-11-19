@@ -10,7 +10,11 @@ struct LastRunCompactCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel("\(C.lastRunTitle) · \(lastRun.dateText)")
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(C.lastRunTitle)
+                Spacer()
+                Text(lastRun.dateText).font(.caption).foregroundStyle(BrandColors.dim)
+            }
             HStack(alignment: .center, spacing: 12) {
                 if let score = lastRun.score {
                     ScoreBadge(value: score, size: ScoreConstants.cardBadgeSize)

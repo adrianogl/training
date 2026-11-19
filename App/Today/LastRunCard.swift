@@ -10,14 +10,51 @@ struct LastRunCard: View {
     private typealias L = LastRunConstants
 
     var body: some View {
+        VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
+            summaryCard
+            if let splits = lastRun.splits, splits.count > 1 {
+                titled(L.chartTitle) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        paceChart(splits)
+                        if let shares = lastRun.zoneShares, shares.contains(where: { $0 > 0 }) { zones(shares) }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .brandCard()
+                }
+            }
+            if let similar = lastRun.similar, !similar.isEmpty {
+                titled(lastRun.kind.flatMap { L.recentTitles[$0] } ?? C.lastRunTitle) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        recent(similar)
+                        if let notice = lastRun.notice { DSNotice(tone: .attention, text: notice) }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .brandCard()
+                }
+            }
+            NavigationLink(value: TodayRoute.workout(lastRun.activityId)) { Text(L.fullAnalysis) }
+                .buttonStyle(.ds(.secondary))
+                .padding(.top, DSSpacing.s2)
+        }
+    }
+
+    private func titled<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: DSSpacing.sectionBottom) {
+            DSSectionTitle(title).padding(.top, DSSpacing.sectionTop - TodayConstants.rowSpacing)
+            content()
+        }
+    }
+
+    private var summaryCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            DSCardLabel("\(C.lastRunTitle) · \(lastRun.dateText)")
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(lastRun.dateText)
+                Spacer()
+                if let subtitle { Text(subtitle).font(.caption).foregroundStyle(BrandColors.dim) }
+            }
             titleRow
             if let plannedKm, plannedKm > 0, let km = lastRun.kilometers { planBar(km: km, planned: plannedKm) }
             stats
-            if let splits = lastRun.splits, splits.count > 1 { paceChart(splits) }
-            if let shares = lastRun.zoneShares, shares.contains(where: { $0 > 0 }) { zones(shares) }
-            if let similar = lastRun.similar, !similar.isEmpty { recent(similar) }
             if let reading = lastRun.reading {
                 Text(reading).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
             } else if let evolution = lastRun.evolution {
@@ -30,14 +67,12 @@ struct LastRunCard: View {
             } else {
                 Text(C.lastRunNoComparison).font(.caption).foregroundStyle(BrandColors.dim)
             }
-            if let notice = lastRun.notice {
-                Text(notice).font(.caption).foregroundStyle(BrandColors.attention)
+            if let notice = lastRun.notice, lastRun.similar?.isEmpty ?? true {
+                DSNotice(tone: .attention, text: notice)
             }
-            Spacer(minLength: 0)
-            NavigationLink(value: TodayRoute.workout(lastRun.activityId)) { CardLinkFooter(title: CardLinkConstants.analysis) }
-                .buttonStyle(.cardLink)
         }
-        .brandCard(fillsHeight: true)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
         .perfectScoreCard(score: lastRun.score, activityId: lastRun.activityId)
     }
 
@@ -48,9 +83,6 @@ struct LastRunCard: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(BrandColors.text)
                     .lineLimit(2)
-                if let subtitle {
-                    Text(subtitle).font(.caption).foregroundStyle(BrandColors.dim)
-                }
             }
             Spacer()
             if let score = lastRun.score {
@@ -154,7 +186,6 @@ struct LastRunCard: View {
 
     private func recent(_ similar: [LastRunSimilar]) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            DSCardLabel(lastRun.kind.flatMap { L.recentTitles[$0] } ?? C.lastRunTitle)
             row(date: currentDateText, km: lastRun.kilometers, climb: lastRun.elevationGain, pace: lastRun.paceSeconds, heartRate: lastRun.averageHeartRate, highlight: true)
             ForEach(similar) { item in
                 row(date: item.dateText, km: item.kilometers, climb: item.elevationGain, pace: item.paceSeconds, heartRate: item.averageHeartRate, highlight: false)

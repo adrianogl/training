@@ -9,6 +9,7 @@ enum TodayRoute: Hashable, Codable {
     case workout(Int64)
     case week
     case lastRun
+    case planned(Int64)
 }
 
 enum TodayWorkoutSource: Equatable {
@@ -93,6 +94,11 @@ struct ReadinessFactorRowData: Identifiable, Equatable {
     let pointsText: String?
     let points: Double?
     let group: ReadinessGroup
+
+    var valueText: String {
+        if let pointsText { return pointsText }
+        return group == .missing ? TodayConstants.factorNoData : TodayConstants.factorNoNormal
+    }
 
     var id: ReadinessComponent { component }
 }

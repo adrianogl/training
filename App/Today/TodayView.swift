@@ -73,6 +73,10 @@ struct TodayView: View {
                     if let model, let lastRun = model.lastRun {
                         LastRunDetailView(lastRun: lastRun, plannedKm: model.lastRunPlannedKm(trainer: trainerWorkouts))
                     }
+                case .planned(let id):
+                    if let model, let plan = model.planned.values.joined().first(where: { $0.id == id }) {
+                        PlannedWorkoutDetailView(plan: plan, week: model.planned.values.joined().sorted { $0.day < $1.day })
+                    }
                 }
             }
         }

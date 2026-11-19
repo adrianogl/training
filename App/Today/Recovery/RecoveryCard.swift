@@ -4,18 +4,10 @@ import TrainingCore
 struct RecoveryCard: View {
     let estimate: RecoveryEstimate
 
-    @Environment(\.horizontalSizeClass) private var sizeClass
     private typealias C = RecoveryConstants
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                DSCardLabel(C.title)
-                Spacer()
-                if sizeClass == .regular {
-                    Text(C.subtitle).font(.caption).foregroundStyle(BrandColors.dim)
-                }
-            }
             HStack(alignment: .top, spacing: 12) {
                 source
                 Spacer(minLength: 8)
@@ -62,9 +54,7 @@ struct RecoveryCard: View {
     }
 
     private var timeline: some View {
-        let events = placedEvents
-        let height = C.timelineHeight + C.markerRowHeight + (events.map(\.row).max().map { Double($0 + 1) * C.eventRowHeight } ?? 0)
-        return GeometryReader { proxy in
+        GeometryReader { proxy in
             let width = proxy.size.width
             ZStack(alignment: .topLeading) {
                 Capsule().fill(BrandColors.track).frame(height: C.timelineHeight)
@@ -75,20 +65,9 @@ struct RecoveryCard: View {
                 if estimate.remainingHours > 0 {
                     pin(x: width * estimate.position(of: estimate.readyAt), color: BrandColors.accent, label: String(format: C.readyLabelFormat, RecoveryText.dayHour(estimate.readyAt)), width: width)
                 }
-                ForEach(events, id: \.next.id) { event in
-                    let x = width * estimate.position(of: event.next.start)
-                    Circle()
-                        .fill(color(event.next.kind))
-                        .frame(width: C.eventDotSize, height: C.eventDotSize)
-                        .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: 1.5))
-                        .offset(x: x - C.eventDotSize / 2, y: (C.timelineHeight - C.eventDotSize) / 2)
-                    eventLabel(event.next)
-                        .frame(width: C.labelWidth)
-                        .offset(x: clamp(x - C.labelWidth / 2, width: width), y: C.timelineHeight + C.markerRowHeight + Double(event.row) * C.eventRowHeight)
-                }
             }
         }
-        .frame(height: height)
+        .frame(height: C.timelineHeight + C.markerRowHeight)
         .accessibilityHidden(true)
     }
 
@@ -98,23 +77,22 @@ struct RecoveryCard: View {
             Text(label)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(color)
+                .lineLimit(1)
+                .fixedSize()
                 .frame(width: C.labelWidth)
                 .offset(x: clamp(x - C.labelWidth / 2, width: width), y: C.timelineHeight + 6)
-        }
-    }
-
-    private func eventLabel(_ next: RecoveryNext) -> some View {
-        VStack(spacing: 0) {
-            Text(RecoveryText.name(next)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(1).minimumScaleFactor(0.8)
-            Text(RecoveryText.dayHour(next.start)).font(.caption2).foregroundStyle(BrandColors.dim)
         }
     }
 
     private func row(_ next: RecoveryNext) -> some View {
         HStack(spacing: 10) {
             RoundedRectangle(cornerRadius: 2).fill(color(next.kind)).frame(width: 4, height: 34)
+            Text(RecoveryText.dayHour(next.start))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(BrandColors.dim)
+                .frame(width: C.dayColumnWidth, alignment: .leading)
             VStack(alignment: .leading, spacing: 1) {
-                Text(String(format: C.eventFormat, RecoveryText.name(next), RecoveryText.dayHour(next.start))).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                Text(RecoveryText.name(next)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
                 Text(next.detail).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
@@ -129,25 +107,6 @@ struct RecoveryCard: View {
 
     private func chip(_ status: RecoveryStatus) -> some View {
         DSChip(text: C.statusLabels[status] ?? "", tone: status == .early ? .danger : (status == .almost ? .attention : .accent))
-    }
-
-    private struct PlacedEvent {
-        let next: RecoveryNext
-        let row: Int
-    }
-
-    private var placedEvents: [PlacedEvent] {
-        var placed: [PlacedEvent] = []
-        for next in estimate.upcoming {
-            let x = estimate.position(of: next.start)
-            let crowded = placed.contains { abs(estimate.position(of: $0.next.start) - x) * nominalWidth < C.labelWidth && $0.row == 0 }
-            placed.append(PlacedEvent(next: next, row: crowded ? 1 : 0))
-        }
-        return placed
-    }
-
-    private var nominalWidth: Double {
-        sizeClass == .regular ? C.eventSpreadWide : C.eventSpreadCompact
     }
 
     private func clamp(_ x: Double, width: Double) -> Double {
