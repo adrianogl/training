@@ -20,7 +20,8 @@ enum TrainerStrengthContextBuilder {
             coveredPatterns: covered(program: cache.program, schedule: schedule, week: day.weekStart),
             loads: loads(cache.loads),
             swaps: prefs.swaps[day.iso] ?? [:],
-            keepOriginal: prefs.keptOriginal.contains(day.iso)
+            keepOriginal: prefs.keptOriginal.contains(day.iso),
+            block: StrengthGenerator.block(for: day)
         )
     }
 
@@ -42,11 +43,17 @@ enum TrainerStrengthContextBuilder {
     }
 
     static func loads(_ records: [MFITLoadRecord]) -> [String: StrengthLoadRecord] {
+        var latestByKey: [String: MFITLoadRecord] = [:]
+        for record in records where !record.loads.isEmpty {
+            if let current = latestByKey[record.key], current.day >= record.day { continue }
+            latestByKey[record.key] = record
+        }
         var result: [String: StrengthLoadRecord] = [:]
         for exercise in StrengthCatalog.all {
-            let key = MFITParser.exerciseKey(exercise.name)
-            guard let latest = records.filter({ $0.key == key && !$0.loads.isEmpty }).max(by: { $0.day < $1.day }),
-                  let top = latest.loads.max() else { continue }
+            let latest = StrengthCatalog.names(of: exercise)
+                .compactMap { latestByKey[MFITParser.exerciseKey($0)] }
+                .max { $0.day < $1.day }
+            guard let latest, let top = latest.loads.max() else { continue }
             result[exercise.id] = StrengthLoadRecord(weight: top, completedAllSets: latest.loads.count >= TrainerStrengthConstants.completedSets)
         }
         return result

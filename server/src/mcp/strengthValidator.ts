@@ -15,6 +15,20 @@ function addDays(iso: string, days: number): string {
   return new Date(Date.parse(`${iso}T12:00:00Z`) + days * MS_PER_DAY).toISOString().slice(0, 10)
 }
 
+function splitList(value: string | undefined): string[] {
+  return value === undefined || value === '' ? [] : value.split(STRENGTH.catalogListSeparator)
+}
+
+export function catalogExercise(entry: ContextExercise | string): ContextExercise | null {
+  if (typeof entry !== 'string') return isObject(entry) && typeof entry.id === 'string' ? entry : null
+  const [id, padrao, equipamento, regioes, focos, marks = ''] = entry.split(STRENGTH.catalogSeparator)
+  if (!id || !padrao || !equipamento) return null
+  return {
+    id, padrao, equipamento, regioes: splitList(regioes), focos: splitList(focos),
+    unilateral: marks.includes(STRENGTH.catalogUnilateral), isometria: marks.includes(STRENGTH.catalogTimed),
+  }
+}
+
 function weekday(iso: string): string {
   const index = (new Date(Date.parse(`${iso}T12:00:00Z`)).getUTCDay() + 6) % 7
   return STRENGTH.weekdays[index] ?? 'seg'
@@ -82,7 +96,7 @@ function validateDay(entry: ResponseDay, context: StrengthContext): DayReport {
   const exercises = Array.isArray(entry.exercicios) ? entry.exercicios.filter((item): item is ResponseExercise => isObject(item) && typeof item.id === 'string') : []
   if (exercises.length === 0) report.erros.push(ISSUE.noExercises)
   if (exercises.length > STRENGTH.maxExercises) report.erros.push(ISSUE.tooManyExercises)
-  const catalog = new Map(context.catalogo.map((exercise) => [exercise.id, exercise]))
+  const catalog = new Map(context.catalogo.map(catalogExercise).filter((exercise): exercise is ContextExercise => exercise !== null).map((exercise) => [exercise.id, exercise]))
   const known: ContextExercise[] = []
   let seconds = 0
   for (const item of exercises) {

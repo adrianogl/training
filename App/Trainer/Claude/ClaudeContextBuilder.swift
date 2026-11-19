@@ -17,14 +17,18 @@ enum ClaudeContextBuilder {
             prontidao: input.readiness.keys.sorted().compactMap { day in input.readiness[day].map { .init(dia: day.iso, nota: $0) } },
             dor: input.pain.map(\.rawValue).sorted(),
             ultimas_cargas_kg: input.loads,
-            catalogo: StrengthCatalog.all.map {
-                .init(
-                    id: $0.id, nome: $0.name, padrao: $0.pattern.rawValue, equipamento: $0.equipment.rawValue,
-                    regioes: $0.loads.map(\.rawValue).sorted(), focos: $0.focus.map(\.rawValue).sorted(), unilateral: $0.unilateral, isometria: $0.timed
-                )
-            },
+            catalogo_formato: ClaudeText.catalogFormat,
+            catalogo: catalog(input).map(StrengthCatalog.contextLine),
             regras: ClaudeText.rules
         )
+    }
+
+    static func catalog(_ input: ClaudeContextInput) -> [CatalogExercise] {
+        let places = Set(input.trainerSessions.filter { $0.source == .trainer }.map(\.place))
+        let wanted = places.isEmpty ? Set(StrengthPlace.allCases) : places
+        return StrengthCatalog.all.filter { exercise in
+            wanted.contains(where: exercise.fits) && exercise.loads.isDisjoint(with: input.pain)
+        }
     }
 
     static func text(_ input: ClaudeContextInput, extra: String?) -> String {

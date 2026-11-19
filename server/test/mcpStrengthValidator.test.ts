@@ -1,9 +1,9 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { parseResponse, validateResponse } from '../src/mcp/strengthValidator.js'
-import type { ContextExercise, StrengthContext, StrengthResponse } from '../src/mcp/strengthTypes.js'
+import { catalogExercise, parseResponse, validateResponse } from '../src/mcp/strengthValidator.js'
+import type { StrengthContext, StrengthResponse } from '../src/mcp/strengthTypes.js'
 
-const catalog = JSON.parse(readFileSync(new URL('./fixtures/strength-catalog.json', import.meta.url), 'utf8')) as ContextExercise[]
+const catalog = JSON.parse(readFileSync(new URL('./fixtures/strength-catalog.json', import.meta.url), 'utf8')) as string[]
 
 function context(overrides: Partial<StrengthContext> = {}): StrengthContext {
   return {
@@ -25,12 +25,12 @@ function context(overrides: Partial<StrengthContext> = {}): StrengthContext {
 }
 
 const mobility = [
-  { id: 'mobilidade-90-90', series: 2, reps: 8, descanso: 15 },
-  { id: 'pallof-elastico', series: 3, reps: 10, descanso: 30 },
-  { id: 'prancha-lateral', series: 3, segundos: 30, descanso: 30 },
-  { id: 'dead-bug', series: 3, reps: 10, descanso: 30 },
-  { id: 'mobilidade-tornozelo', series: 2, reps: 8, descanso: 15 },
-  { id: 'passaro-cao', series: 3, reps: 10, descanso: 30 },
+  { id: 'WARM_UP/STRETCH_90_90', series: 2, reps: 8, descanso: 15 },
+  { id: 'BANDED_EXERCISES/AB_TWIST', series: 3, reps: 10, descanso: 30 },
+  { id: 'PLANK/SIDE_PLANK', series: 3, segundos: 30, descanso: 30 },
+  { id: 'HIP_STABILITY/DEAD_BUG', series: 3, reps: 10, descanso: 30 },
+  { id: 'WARM_UP/ANKLE_DORSIFLEXION_WITH_BAND', series: 2, reps: 8, descanso: 15 },
+  { id: 'WARM_UP/OPPOSITE_ARM_AND_LEG_BALANCE', series: 3, reps: 10, descanso: 30 },
 ]
 
 function response(treinos: StrengthResponse['treinos']): StrengthResponse {
@@ -67,18 +67,18 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
   it('recusa exercício fora do catálogo, do local ou com dor', () => {
     const exercises = [
       { id: 'panturrilha-salto', series: 3, reps: 10, descanso: 30 },
-      { id: 'agachamento-livre', series: 3, reps: 8, descanso: 90 },
-      { id: 'panturrilha-degrau', series: 3, reps: 12, descanso: 45 },
+      { id: 'SQUAT/BARBELL_BACK_SQUAT', series: 3, reps: 8, descanso: 90 },
+      { id: 'CALF_RAISE/SINGLE_LEG_STANDING_CALF_RAISE', series: 3, reps: 12, descanso: 45 },
     ]
     const [report] = validateResponse(response([day('2026-11-24', exercises)]), context({ dor: ['calfAchilles'] }))
-    expect(report?.erros).toEqual(expect.arrayContaining(['"panturrilha-salto" não existe no catálogo', '"agachamento-livre" não cabe no local do dia', '"panturrilha-degrau" carrega uma região com dor marcada']))
+    expect(report?.erros).toEqual(expect.arrayContaining(['"panturrilha-salto" não existe no catálogo', '"SQUAT/BARBELL_BACK_SQUAT" não cabe no local do dia', '"CALF_RAISE/SINGLE_LEG_STANDING_CALF_RAISE" carrega uma região com dor marcada']))
   })
 
   it('recusa doses fora da faixa', () => {
     const exercises = [
-      { id: 'dead-bug', series: 9, reps: 10, descanso: 30 },
-      { id: 'prancha', series: 3, descanso: 30 },
-      { id: 'passaro-cao', series: 3, reps: 10, descanso: 600 },
+      { id: 'HIP_STABILITY/DEAD_BUG', series: 9, reps: 10, descanso: 30 },
+      { id: 'PLANK/PLANK', series: 3, descanso: 30 },
+      { id: 'WARM_UP/OPPOSITE_ARM_AND_LEG_BALANCE', series: 3, reps: 10, descanso: 600 },
     ]
     const [report] = validateResponse(response([day('2026-11-24', exercises)]), context())
     expect(report?.erros.filter((issue) => issue.includes('fora da faixa'))).toHaveLength(3)
@@ -86,10 +86,10 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
 
   it('recusa perna pesada antes de qualidade e perto da prova', () => {
     const legs = [
-      { id: 'agachamento-livre', series: 4, reps: 6, descanso: 150 },
-      { id: 'terra-romeno', series: 3, reps: 8, descanso: 120 },
-      { id: 'bulgaro-halteres', series: 3, reps: 8, descanso: 90 },
-      { id: 'panturrilha-em-pe', series: 3, reps: 12, descanso: 60 },
+      { id: 'SQUAT/BARBELL_BACK_SQUAT', series: 4, reps: 6, descanso: 150 },
+      { id: 'DEADLIFT/ROMANIAN_DEADLIFT', series: 3, reps: 8, descanso: 120 },
+      { id: 'LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT', series: 3, reps: 8, descanso: 90 },
+      { id: 'CALF_RAISE/STANDING_CALF_RAISE', series: 3, reps: 12, descanso: 60 },
     ]
     const entry = day('2026-11-26', legs, 'lower', 45, 'gym')
     const [quality] = validateResponse(response([entry]), context({ corrida: [{ dia: '2026-11-28', tipo: 'long', nome: 'Longão' }] }))
@@ -100,11 +100,24 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
 
   it('avisa duração e salto de carga', () => {
     const [report] = validateResponse(
-      response([day('2026-11-26', [{ id: 'agachamento-livre', series: 4, reps: 6, descanso: 150, kg: 70 }], 'lower', 45, 'gym')]),
-      context({ ultimas_cargas_kg: { 'agachamento-livre': 60 } }),
+      response([day('2026-11-26', [{ id: 'SQUAT/BARBELL_BACK_SQUAT', series: 4, reps: 6, descanso: 150, kg: 70 }], 'lower', 45, 'gym')]),
+      context({ ultimas_cargas_kg: { 'SQUAT/BARBELL_BACK_SQUAT': 60 } }),
     )
     expect(report?.erros).toEqual([])
-    expect(report?.avisos).toEqual(expect.arrayContaining(['carga de "agachamento-livre" mais de 5% acima da última']))
+    expect(report?.avisos).toEqual(expect.arrayContaining(['carga de "SQUAT/BARBELL_BACK_SQUAT" mais de 5% acima da última']))
     expect(report?.avisos.some((issue) => issue.includes('min estimados'))).toBe(true)
+  })
+
+  it('aceita o catálogo em objetos, como mandam as versões antigas do app', () => {
+    const legacy = [{ id: 'dead-bug', nome: 'Dead bug', padrao: 'antiExtension', equipamento: 'bodyweight', regioes: [], focos: ['core'], unilateral: false, isometria: false }]
+    const [report] = validateResponse(response([day('2026-11-24', [{ id: 'dead-bug', series: 3, reps: 10, descanso: 30 }])]), context({ catalogo: legacy }))
+    expect(report?.erros).not.toContain('"dead-bug" não existe no catálogo')
+  })
+
+  it('lê a linha compacta do catálogo', () => {
+    expect(catalogExercise('PLANK/SIDE_PLANK|lateralCore|bodyweight||core,fullBody|ui')).toEqual({
+      id: 'PLANK/SIDE_PLANK', padrao: 'lateralCore', equipamento: 'bodyweight', regioes: [], focos: ['core', 'fullBody'], unilateral: true, isometria: true,
+    })
+    expect(catalogExercise('quebrada')).toBeNull()
   })
 })

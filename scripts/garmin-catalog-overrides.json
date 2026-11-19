@@ -1,0 +1,85 @@
+{
+  "BANDED_EXERCISES/CURL": {
+    "nome": "Rosca com elástico"
+  },
+  "BANDED_EXERCISES/GLUTE_BRIDGE": {
+    "nome": "Ponte de glúteo com elástico"
+  },
+  "BANDED_EXERCISES/ROW": {
+    "nome": "Remada com elástico"
+  },
+  "BENCH_PRESS/DECLINE_BARBELL_BENCH_PRESS": {
+    "nome": "Supino declinado com barra"
+  },
+  "DEADLIFT/SINGLE_LEG_RDL_CIRCUIT": {
+    "nome": "Terra romeno unilateral",
+    "equipamento": "bodyweight",
+    "regioes": [
+      "hip"
+    ]
+  },
+  "DEADLIFT/STRAIGHT_LEG_DEADLIFT": {
+    "nome": "Levantamento terra com pernas estendidas"
+  },
+  "HIP_STABILITY/WEIGHTED_STANDING_REAR_LEG_RAISE": {
+    "equipamento": "cable"
+  },
+  "PLANK/SIDE_PLANK_WITH_FEET_ON_BENCH": {
+    "regioes": [
+      "hip"
+    ]
+  },
+  "PLYO/BARBELL_SPLIT_JUMP": {
+    "nome": "Salto em afundo com barra"
+  },
+  "PLYO/JUMP_TRAP_BAR": {
+    "nome": "Salto com barra hexagonal"
+  },
+  "ROW/BARBELL_BENCH_PULL": {
+    "nome": "Remada com barra deitado no banco"
+  },
+  "ROW/ROW": {
+    "nome": "Remada"
+  },
+  "SHOULDER_PRESS/KNEELING_LANDMINE_PRESS": {
+    "nome": "Desenvolvimento na landmine ajoelhado"
+  },
+  "SHOULDER_PRESS/STANDING_LANDMINE_PRESS": {
+    "nome": "Desenvolvimento na landmine em pé"
+  },
+  "SHRUG/UPRIGHT_ROW": {
+    "nome": "Remada alta"
+  },
+  "SQUAT/BARBELL_HALF_SQUAT": {
+    "nome": "Meio agachamento com barra"
+  },
+  "SQUAT/BELT_SQUAT": {
+    "nome": "Agachamento com cinto"
+  },
+  "SQUAT/SAFETY_BAR_SQUAT": {
+    "nome": "Agachamento com safety bar"
+  },
+  "SUSPENSION/CHEST_PRESS": {
+    "nome": "Supino na suspensão"
+  },
+  "SUSPENSION/CURL": {
+    "nome": "Rosca na suspensão"
+  },
+  "SUSPENSION/GLUTE_BRIDGE": {
+    "nome": "Ponte de glúteo na suspensão"
+  },
+  "TOTAL_BODY/BURPEE": {
+    "nome": "Burpee"
+  },
+  "TOTAL_BODY/BURPEE_BROAD_JUMP": {
+    "nome": "Burpee com salto horizontal"
+  },
+  "WARM_UP/OPPOSITE_ARM_AND_LEG_BALANCE": {
+    "padrao": "antiRotation",
+    "focos": [
+      "core",
+      "fullBody"
+    ],
+    "unilateral": true
+  }
+}

@@ -11,6 +11,6 @@ enum ClaudeStrengthConstants {
     static let raceRestDays = 0...3
     static let qualityKinds: Set<TrainerDayKind> = [.threshold, .vo2max, .long, .race]
     static let legPatterns: Set<MovementPattern> = [.squat, .hinge, .singleLeg, .plyo]
-    static let loadedEquipment: Set<StrengthEquipment> = [.barbell, .machine, .dumbbell]
+    static let loadedEquipment: Set<StrengthEquipment> = [.barbell, .machine, .dumbbell, .kettlebell]
     static let heavyLegExercises = 2
 }

@@ -1,3 +1,5 @@
+import TrainingCore
+
 enum StrengthGeneratorConstants {
     static let secondsPerRep = 3
     static let toleranceMinutes = 5.0
@@ -15,7 +17,7 @@ enum StrengthGeneratorConstants {
     static let mainPatterns: Set<MovementPattern> = [.squat, .hinge, .horizontalPush, .horizontalPull, .verticalPush, .verticalPull]
     static let mainEquipment: Set<StrengthEquipment> = [.barbell, .machine]
     static let coreLikePatterns: Set<MovementPattern> = [.antiExtension, .antiRotation, .lateralCore, .hipStability]
-    static let loadedEquipment: Set<StrengthEquipment> = [.barbell, .machine, .cable, .dumbbell]
+    static let loadedEquipment: Set<StrengthEquipment> = [.barbell, .machine, .cable, .dumbbell, .kettlebell, .medicineBall]
     static let mobilityOrder: [MovementPattern] = [.mobilityHip, .mobilityAnkle, .mobilityThoracic]
     static let patternOrder: [TrainerStrengthGroup: [MovementPattern]] = [
         .lower: [.squat, .hinge, .singleLeg, .calf, .hipStability, .plyo, .lateralCore],
@@ -23,5 +25,18 @@ enum StrengthGeneratorConstants {
         .fullBody: [.squat, .horizontalPull, .hinge, .horizontalPush, .singleLeg, .antiExtension, .calf, .verticalPush, .lateralCore, .antiRotation],
         .core: [.mobilityHip, .antiRotation, .mobilityAnkle, .antiExtension, .hipStability, .mobilityThoracic, .lateralCore, .singleLeg, .hinge, .calf],
     ]
-    static let equipmentPreference: [StrengthEquipment] = [.barbell, .machine, .cable, .dumbbell, .band, .bodyweight]
+    static let equipmentPreference: [StrengthEquipment] = [.barbell, .machine, .cable, .dumbbell, .kettlebell, .band, .bodyweight, .medicineBall, .swissBall, .suspension]
+    static let comboWords: Set<Substring> = ["TO", "AND", "CIRCUIT", "MATRIX", "COMBO"]
+    static let simpleTokenLimit = 4
+    static let maxExercises = 8
+    static let maxCoreExercises = 12
+    static let weightedPrefix = "WEIGHTED_"
+    static let advancedWords = ["HIGH_PULL", "BURPEE", "SIFF", "DEFICIT", "JUMP_SHRUG", "THRUSTER", "THRUSTERS", "MAN_MAKERS", "PISTOL", "DEPTH_JUMP", "SQUAT_CLEAN", "ZERCHER", "BOARD", "TRIPLE_STOP", "PARTIAL", "CHEATING", "KIPPING", "QUARTER"]
+    static let patternEquipmentPreference: [MovementPattern: [StrengthEquipment]] = [
+        .verticalPull: [.cable, .machine, .band, .bodyweight, .dumbbell, .barbell, .kettlebell, .suspension, .medicineBall, .swissBall],
+    ]
+    static let bodyweightFirstPatterns: Set<MovementPattern> = [.plyo, .antiExtension, .mobilityHip, .mobilityAnkle, .mobilityThoracic]
+    static let rotationEpoch = Day(year: 2026, month: 1, day: 5)
+    static let rotationDays = 28
+    static let alternativesCount = 3
 }

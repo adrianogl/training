@@ -1,6 +1,6 @@
 export interface ContextExercise {
   id: string
-  nome: string
+  nome?: string
   padrao: string
   equipamento: string
   regioes: string[]
@@ -18,7 +18,8 @@ export interface StrengthContext {
   prontidao: { dia: string; nota: number }[]
   dor: string[]
   ultimas_cargas_kg: Record<string, number>
-  catalogo: ContextExercise[]
+  catalogo_formato?: string
+  catalogo: (ContextExercise | string)[]
   regras: string[]
 }
 

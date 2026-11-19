@@ -32,12 +32,12 @@ const valid = JSON.stringify({
   treinos: [{
     dia: '2026-11-24', foco: 'core', minutos: 25, local: 'home', porque: 'motivo',
     exercicios: [
-      { id: 'mobilidade-90-90', series: 2, reps: 8, descanso: 15 },
-      { id: 'pallof-elastico', series: 3, reps: 10, descanso: 30 },
-      { id: 'prancha-lateral', series: 3, segundos: 30, descanso: 30 },
-      { id: 'dead-bug', series: 3, reps: 10, descanso: 30 },
-      { id: 'mobilidade-tornozelo', series: 2, reps: 8, descanso: 15 },
-      { id: 'passaro-cao', series: 3, reps: 10, descanso: 30 },
+      { id: 'WARM_UP/STRETCH_90_90', series: 2, reps: 8, descanso: 15 },
+      { id: 'BANDED_EXERCISES/AB_TWIST', series: 3, reps: 10, descanso: 30 },
+      { id: 'PLANK/SIDE_PLANK', series: 3, segundos: 30, descanso: 30 },
+      { id: 'HIP_STABILITY/DEAD_BUG', series: 3, reps: 10, descanso: 30 },
+      { id: 'WARM_UP/ANKLE_DORSIFLEXION_WITH_BAND', series: 2, reps: 8, descanso: 15 },
+      { id: 'WARM_UP/OPPOSITE_ARM_AND_LEG_BALANCE', series: 3, reps: 10, descanso: 30 },
     ],
   }],
 })

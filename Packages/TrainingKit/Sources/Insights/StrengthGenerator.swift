@@ -1,4 +1,5 @@
 import Foundation
+import TrainingCore
 
 public enum StrengthGenerator {
     private typealias C = StrengthGeneratorConstants
@@ -28,11 +29,20 @@ public enum StrengthGenerator {
 
     public static func alternatives(for exerciseId: String, in workout: GeneratedStrengthWorkout, context: StrengthContext) -> [CatalogExercise] {
         guard let current = StrengthCatalog.exercise(exerciseId) else { return [] }
-        let used = Set(workout.exercises.map(\.exerciseId))
-        return StrengthCatalog.all
-            .filter { $0.pattern == current.pattern && !used.contains($0.id) && $0.fits(workout.place) && $0.loads.isDisjoint(with: context.pain) }
-            .prefix(3)
-            .map { $0 }
+        let used = Set(workout.exercises.map { StrengthCatalog.canonicalId($0.exerciseId) })
+        return ordered(
+            StrengthCatalog.all.filter {
+                $0.pattern == current.pattern && $0.id != current.id && !used.contains($0.id) && $0.fits(workout.place) && $0.loads.isDisjoint(with: context.pain)
+            },
+            block: context.block
+        )
+        .prefix(C.alternativesCount)
+        .map { $0 }
+    }
+
+    public static func block(for day: Day) -> Int {
+        let days = C.rotationEpoch.days(until: day.weekStart)
+        return days >= 0 ? days / C.rotationDays : (days + 1) / C.rotationDays - 1
     }
 
     private static func plan(for session: TrainerStrengthSession, context: StrengthContext) -> Plan {
@@ -71,7 +81,7 @@ public enum StrengthGenerator {
             order = C.mobilityOrder
         }
         order = order.filter { !context.coveredPatterns.contains($0) } + order.filter { context.coveredPatterns.contains($0) }
-        pool.sort { rank($0.equipment) < rank($1.equipment) }
+        pool = ordered(pool, block: context.block)
 
         let target = plan.minutes * 60
         let tolerance = C.toleranceMinutes * 60
@@ -79,9 +89,10 @@ public enum StrengthGenerator {
         var used: Set<String> = []
         var total = 0.0
         var progressed = true
-        while total < target - tolerance, progressed {
+        let limit = plan.group == .core ? C.maxCoreExercises : C.maxExercises
+        while total < target - tolerance, progressed, chosen.count < limit {
             progressed = false
-            for pattern in order where total < target - tolerance {
+            for pattern in order where total < target - tolerance && chosen.count < limit {
                 for candidate in pool where candidate.pattern == pattern && !used.contains(candidate.id) {
                     let exercise = generated(candidate, plan: plan, context: context, used: used)
                     used.insert(candidate.id)
@@ -111,7 +122,8 @@ public enum StrengthGenerator {
         var exercise = candidate
         var replaced: String?
         var replacedId: String?
-        if let swapId = context.swaps[candidate.id], let swap = StrengthCatalog.exercise(swapId), !used.contains(swapId), swap.loads.isDisjoint(with: context.pain) {
+        let swaps = Dictionary(context.swaps.map { (StrengthCatalog.canonicalId($0.key), StrengthCatalog.canonicalId($0.value)) }, uniquingKeysWith: { first, _ in first })
+        if let swapId = swaps[candidate.id], let swap = StrengthCatalog.exercise(swapId), !used.contains(swapId), swap.loads.isDisjoint(with: context.pain) {
             exercise = swap
             replaced = candidate.name
             replacedId = candidate.id
@@ -166,7 +178,38 @@ public enum StrengthGenerator {
         }
     }
 
-    private static func rank(_ equipment: StrengthEquipment) -> Int {
-        C.equipmentPreference.firstIndex(of: equipment) ?? C.equipmentPreference.count
+    private static func ordered(_ exercises: [CatalogExercise], block: Int) -> [CatalogExercise] {
+        exercises
+            .map { (exercise: $0, key: (isolation($0), rank($0), complexity($0), shuffle($0.id, block: block))) }
+            .sorted { $0.key < $1.key }
+            .map(\.exercise)
+    }
+
+    private static func rank(_ exercise: CatalogExercise) -> Int {
+        if C.bodyweightFirstPatterns.contains(exercise.pattern), exercise.equipment == .bodyweight { return -1 }
+        let preference = C.patternEquipmentPreference[exercise.pattern] ?? C.equipmentPreference
+        return preference.firstIndex(of: exercise.equipment) ?? preference.count
+    }
+
+    private static func isolation(_ exercise: CatalogExercise) -> Int {
+        C.mainPatterns.contains(exercise.pattern) && !exercise.focus.contains(.fullBody) ? 1 : 0
+    }
+
+    private static func complexity(_ exercise: CatalogExercise) -> Int {
+        let tokens = exercise.exerciseName.split(separator: "_")
+        let advanced = C.advancedWords.contains { "_\(exercise.exerciseName)_".contains("_\($0)_") }
+        if tokens.count > C.simpleTokenLimit || tokens.contains(where: C.comboWords.contains) || advanced { return 2 }
+        return exercise.exerciseName.hasPrefix(C.weightedPrefix) ? 1 : 0
+    }
+
+    private static func shuffle(_ id: String, block: Int) -> UInt64 {
+        var hash: UInt64 = 0xcbf29ce484222325
+        for byte in "\(id)#\(block)".utf8 {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x100000001b3
+        }
+        hash = (hash ^ (hash >> 30)) &* 0xbf58476d1ce4e5b9
+        hash = (hash ^ (hash >> 27)) &* 0x94d049bb133111eb
+        return hash ^ (hash >> 31)
     }
 }

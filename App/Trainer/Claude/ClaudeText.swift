@@ -98,12 +98,14 @@ enum ClaudeText {
 
     static let instructions = """
     Você é o treinador de força de um corredor. Monte os treinos de força dos dias listados em "dias_do_treinador" dentro do período, usando o contexto abaixo.
-    - Use só exercícios do "catalogo", pelo "id". Respeite o "local" de cada dia (academia, casa ou só peso do corpo).
+    - Use só exercícios do "catalogo", pelo "id" (categoria/exercício do catálogo oficial da Garmin). Cada linha segue "catalogo_formato". Respeite o "local" de cada dia (academia, casa ou só peso do corpo): equipamentos kettlebell, medicineBall, suspension e swissBall só na academia.
     - Os dias do MFIT são do professor: complemente o que ele já trabalha. Se precisar trocar o treino do professor num dia (por exemplo, perto da prova), monte o treino desse dia com \"substitui_mfit\": true; o app troca o treino do professor só naquela data e tira o dele do Garmin.
     - Siga as "regras". Periodize ao longo do período: progressão de carga e volume, semanas mais leves e redução perto da prova.
     - A corrida só é conhecida para as primeiras semanas; nas outras, mantenha o padrão da semana conhecida.
     - Responda apenas com o JSON no formato de "formato_da_resposta", sem texto antes ou depois. Em "porque", explique em uma frase a escolha do dia.
     """
+
+    static let catalogFormat = "id|padrao|equipamento|regioes que carrega|focos|marcas (u = unilateral, i = isometria, em segundos)"
 
     static let rules = [
         "Perna pesada (2 ou mais exercícios de agachamento, terra, unilateral ou pliometria com carga) nunca nas 48 h antes de limiar, VO2 ou longão.",

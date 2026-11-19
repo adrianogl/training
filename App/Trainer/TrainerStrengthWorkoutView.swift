@@ -29,7 +29,7 @@ struct TrainerStrengthWorkoutView: View {
         .navigationTitle(TrainerText.strengthTitle)
         .sheet(item: $swapping) { exercise in
             if let day, let workout = app.trainer.strengthWorkout(sessionId: sessionId, day: day) {
-                TrainerSwapSheet(exercise: exercise, alternatives: app.trainer.strengthAlternatives(exerciseId: exercise.exerciseId, in: workout)) { choice in
+                TrainerSwapSheet(exercise: exercise, alternatives: app.trainer.strengthAlternatives(exerciseId: exercise.exerciseId, in: workout, day: day)) { choice in
                     TrainerStrengthPrefsStore().swap(exercise.replacedId ?? exercise.exerciseId, to: choice.id, on: iso)
                     revision += 1
                 }
