@@ -38,4 +38,12 @@ git log "$LAST_TAG"..HEAD --no-merges --format='  %s'
 $DRY_RUN && exit 0
 
 sed -i '' -E "s/^( *MARKETING_VERSION: )\"[^\"]*\"/\1\"$VERSION\"/; s/^( *CURRENT_PROJECT_VERSION: )\"[^\"]*\"/\1\"$BUILD\"/" project.yml
-echo "project.yml atualizado. Commit: chore(release): v$VERSION · tag: v$VERSION"
+
+APP_PATHS=(App Packages Widgets Shared)
+APP_CHANGED=false
+git diff --quiet "$LAST_TAG"..HEAD -- "${APP_PATHS[@]}" || APP_CHANGED=true
+NOTES=$(git log "$LAST_TAG"..HEAD --no-merges --format='%s' -- "${APP_PATHS[@]}" | grep -E '^(feat|fix)(\([^)]*\))?!?: ' || true)
+python3 -I scripts/release_version_file.py --version "$VERSION" --build "$BUILD" --app-changed "$APP_CHANGED" --notes "$NOTES" --out server/landing/versao.json
+sed -i '' -E "s/^Versão atual: \`[^\`]*\`/Versão atual: \`$VERSION\`/" README.md
+
+echo "project.yml, README.md e server/landing/versao.json atualizados. Commit: chore(release): v$VERSION · tag: v$VERSION · depois: vercel deploy --prod"
