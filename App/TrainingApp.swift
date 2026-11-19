@@ -7,6 +7,7 @@ struct TrainingApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage(AppConstants.appearanceDefaultsKey) private var appearance = AppearanceOption.system.rawValue
     @AppStorage(AccentThemeConstants.defaultsKey) private var accentTheme = AccentTheme.pista.rawValue
+    @AppStorage(AppIconConstants.defaultsKey) private var iconStyle = AppIconStyle.system.rawValue
 
     init() {
         let reference = AppSessionReference()
@@ -22,7 +23,7 @@ struct TrainingApp: App {
             SessionRootView(session: session)
                 .preferredColorScheme(AppearanceOption(rawValue: appearance)?.colorScheme)
                 .environment(\.accentTheme, AccentTheme.stored(accentTheme))
-                .task { AppIconSwitcher.apply(AccentTheme.stored(accentTheme)) }
+                .task { AppIconSwitcher.apply(AccentTheme.stored(accentTheme), style: AppIconStyle.stored(iconStyle)) }
                 .tint(BrandColors.accent)
         }
         .onChange(of: scenePhase, initial: true) { _, phase in

@@ -46,8 +46,49 @@ import Testing
 
 @MainActor
 @Suite struct AppIconSwitcherTests {
-    @Test func lilacUsesTheAlternateIcon() {
-        #expect(AppIconSwitcher.iconName(for: .pista) == nil)
-        #expect(AppIconSwitcher.iconName(for: .lilac) == "AppIconLilac")
+    @Test func iconNamePerThemeAndStyle() {
+        #expect(AppIconSwitcher.iconName(for: .pista, style: .system) == nil)
+        #expect(AppIconSwitcher.iconName(for: .lilac, style: .system) == "AppIconLilac")
+        #expect(AppIconSwitcher.iconName(for: .pista, style: .light) == "AppIconPistaLight")
+        #expect(AppIconSwitcher.iconName(for: .pista, style: .dark) == "AppIconPistaDark")
+        #expect(AppIconSwitcher.iconName(for: .lilac, style: .light) == "AppIconLilacLight")
+        #expect(AppIconSwitcher.iconName(for: .lilac, style: .dark) == "AppIconLilacDark")
+    }
+
+    @Test func storedStyleFallsBackToSystem() {
+        #expect(AppIconStyle.stored("dark") == .dark)
+        #expect(AppIconStyle.stored("x") == .system)
+    }
+
+    @Test func everyIconAndPreviewIsInTheBundle() throws {
+        let alternates = try #require(Bundle.main.object(forInfoDictionaryKey: "CFBundleIcons") as? [String: Any])["CFBundleAlternateIcons"] as? [String: Any]
+        for theme in AccentTheme.allCases {
+            for style in AppIconStyle.allCases {
+                if let name = AppIconSwitcher.iconName(for: theme, style: style) {
+                    #expect(alternates?[name] != nil, "\(name)")
+                }
+            }
+            let previews = AppIconSwitcher.previewNames(for: theme)
+            #expect(UIImage(named: previews.light) != nil)
+            #expect(UIImage(named: previews.dark) != nil)
+        }
+    }
+
+    @Test func iconPickerRenders() throws {
+        let output = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"].map { URL(filePath: $0, directoryHint: .isDirectory) }
+        for theme in AccentTheme.allCases {
+            let content = AppIconStylePicker(selection: .constant(AppIconStyle.system.rawValue), theme: theme)
+                .padding(16)
+                .frame(width: 390)
+                .background(BrandColors.background)
+                .environment(\.accentTheme, theme)
+                .environment(\.colorScheme, .dark)
+            let renderer = ImageRenderer(content: content)
+            renderer.scale = 2
+            let image = try #require(renderer.uiImage)
+            if let output, let data = image.pngData() {
+                try data.write(to: output.appending(path: "icon-picker-\(theme.rawValue).png"))
+            }
+        }
     }
 }

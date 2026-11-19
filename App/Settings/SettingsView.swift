@@ -15,6 +15,7 @@ struct SettingsView: View {
     @AppStorage(BackgroundConstants.noticeMinimumMinutesDefaultsKey) private var noticeMinimumMinutes = BackgroundConstants.defaultMinimumMinutes
     @AppStorage(AppConstants.appearanceDefaultsKey, store: .standard) private var appearance = AppearanceOption.system.rawValue
     @AppStorage(AccentThemeConstants.defaultsKey, store: .standard) private var accentTheme = AccentTheme.pista.rawValue
+    @AppStorage(AppIconConstants.defaultsKey, store: .standard) private var iconStyle = AppIconStyle.system.rawValue
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: SettingsGroup = SettingsView.initialGroup()
     var embedded = false
@@ -316,12 +317,21 @@ struct SettingsView: View {
         }
         Section {
             AccentThemePicker(selection: $accentTheme)
-                .onChange(of: accentTheme) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(raw)) }
+                .onChange(of: accentTheme) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(raw), style: AppIconStyle.stored(iconStyle)) }
                 .dsCardRow()
         } header: {
             Text(AccentThemeConstants.colorTitle)
         } footer: {
             Text(AccentThemeConstants.colorFooter)
+        }
+        Section {
+            AppIconStylePicker(selection: $iconStyle, theme: AccentTheme.stored(accentTheme))
+                .onChange(of: iconStyle) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(accentTheme), style: AppIconStyle.stored(raw)) }
+                .dsCardRow()
+        } header: {
+            Text(AppIconConstants.sectionTitle)
+        } footer: {
+            Text(AppIconConstants.sectionFooter)
         }
         Section {
             AccentThemePreview()
