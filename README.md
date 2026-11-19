@@ -7,12 +7,38 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/adrianogl/training/tags"><img alt="Versão" src="https://img.shields.io/github/v/tag/adrianogl/training?sort=semver&label=vers%C3%A3o&color=c8f05a&labelColor=07080a"></a>
+  <img alt="iOS e iPadOS 26+" src="https://img.shields.io/badge/iOS%20%7C%20iPadOS-26%2B-000000?logo=apple&logoColor=white">
+  <img alt="Swift 6.2" src="https://img.shields.io/badge/Swift-6.2-F05138?logo=swift&logoColor=white">
+  <img alt="SwiftUI" src="https://img.shields.io/badge/SwiftUI-SwiftData-0D96F6?logo=swift&logoColor=white">
+  <img alt="Foundation Models" src="https://img.shields.io/badge/IA-Foundation%20Models%20no%20aparelho-6E56CF">
+  <a href="https://github.com/adrianogl/training/commits/main"><img alt="Último commit" src="https://img.shields.io/github/last-commit/adrianogl/training?label=%C3%BAltimo%20commit"></a>
+</p>
+
+<p align="center">
+  <img alt="Garmin Connect" src="https://img.shields.io/badge/Garmin-Connect-007CC3?logo=garmin&logoColor=white">
+  <img alt="Apple Watch" src="https://img.shields.io/badge/Apple%20Watch-WorkoutKit-000000?logo=apple&logoColor=white">
+  <img alt="Connect IQ" src="https://img.shields.io/badge/Connect%20IQ-Forerunner%20965-007CC3?logo=garmin&logoColor=white">
+  <img alt="Strava" src="https://img.shields.io/badge/Strava-integra%C3%A7%C3%A3o-FC4C02?logo=strava&logoColor=white">
+  <img alt="MFIT" src="https://img.shields.io/badge/MFIT-for%C3%A7a-1F8A70">
+  <img alt="MCP" src="https://img.shields.io/badge/MCP-Claude-D97757?logo=anthropic&logoColor=white">
+</p>
+
+<p align="center">
+  <img alt="Node 22" src="https://img.shields.io/badge/Node-22-5FA04E?logo=nodedotjs&logoColor=white">
+  <img alt="Vercel" src="https://img.shields.io/badge/Vercel-Functions%20%2B%20Cron-000000?logo=vercel&logoColor=white">
+  <img alt="Neon Postgres" src="https://img.shields.io/badge/Postgres-Neon-00E599?logo=postgresql&logoColor=white">
+  <img alt="Sem telemetria" src="https://img.shields.io/badge/telemetria-nenhuma-2EA043">
+  <img alt="Fora da App Store" src="https://img.shields.io/badge/distribui%C3%A7%C3%A3o-fora%20da%20App%20Store-8F959C">
+</p>
+
+<p align="center">
   <img alt="Telas Evolução no iPad e Hoje no iPhone, com números de exemplo" src="docs/assets/cover.png" width="100%">
 </p>
 
 App nativo de iPhone e iPad para corrida. Lê sono, HRV e treinos do Garmin ou do Apple Watch e calcula no aparelho a prontidão do dia, a análise de cada treino, a evolução, a previsão de prova e um plano com corrida e força. O que o app faz para quem usa está na landing, em [training.aglv.dev](https://training.aglv.dev). Este README é para quem vai rodar ou mexer no código.
 
-Versão atual: `1.7.2` (ver [Versão](#versão)).
+Versão atual: `1.10.0` (ver [Versão](#versão)).
 
 ## Estrutura do repositório
 
@@ -25,7 +51,7 @@ Versão atual: `1.7.2` (ver [Versão](#versão)).
 | `server/` | API na Vercel (Node 22 + Neon Postgres) e a landing em `server/landing/` ([README](server/README.md)) |
 | `docs/regras/` | Regras de análise ([`analise.md`](docs/regras/analise.md)) e de prescrição ([`prescricao.md`](docs/regras/prescricao.md)) |
 | `docs/superpowers/` | Specs e planos de design das primeiras versões |
-| `scripts/` | `dev-run.sh` (simulador) e `release.sh` (versão) |
+| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
 | `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
 
 | Módulo do `TrainingKit` | Papel |
@@ -44,6 +70,7 @@ Versão atual: `1.7.2` (ver [Versão](#versão)).
 - **Apple Watch:** o app lê o Apple Saúde (treinos, rotas, FC, HRV, sono e FC de repouso) e manda os treinos do plano para o relógio pelo WorkoutKit. Nada do Apple Saúde vai para o servidor.
 - **No aparelho:** dados diários, atividades e tudo o que é calculado ficam em SwiftData. Os `.FIT` são baixados, processados e descartados.
 - **No servidor:** conta e sessões, convites, a sessão da Garmin, o token do Strava, a nota que o mostrador lê, os tokens do MCP e os registros que sincronizam entre aparelhos (provas, metas, decisões, plano do treinador, leituras, preferências e conversas). Os registros chegam em JSON e o servidor cifra com `DATA_KEY` (AES-256-GCM) antes de gravar.
+- **Catálogo de força:** o treinador, a troca de exercício e os treinos do Claude usam o catálogo oficial de exercícios da Garmin (cerca de 1.350 exercícios, com nome em pt-BR e id `CATEGORIA/EXERCICIO`), embutido no app. O `scripts/garmin-catalog.py` gera o catálogo e deriva equipamento, padrão de movimento e região de dor. Os treinos do MFIT seguem com os exercícios do professor.
 - **Texto e conversa:** Foundation Models da Apple, no aparelho, a partir de números já calculados. Sem o modelo, o app usa templates com os mesmos números.
 
 As fórmulas e os limites estão em `docs/regras/`. Mudança de regra atualiza esses arquivos no mesmo commit.
@@ -109,6 +136,7 @@ swift test --package-path Packages/TrainingKit  # TrainingKit
 npm --prefix server ci
 npm --prefix server test                        # servidor, contra PGlite, sem rede
 npm --prefix server run typecheck
+python3 scripts/test_garmin_catalog.py           # script do catálogo de força
 ```
 
 ## Servidor
@@ -122,7 +150,18 @@ DATABASE_URL=... npm run migrate
 vercel deploy --prod
 ```
 
-O mínimo é `DATABASE_URL`, `DATA_KEY` e `ADMIN_EMAILS`. Os e-mails de convite e senha pedem `RESEND_API_KEY`, `MAIL_FROM` e `APP_URL`; o Strava pede `STRAVA_CLIENT_ID` e `STRAVA_CLIENT_SECRET`. Depois, aponte `remoteSyncBaseURL` em `App/AppConstants.swift` para o seu domínio.
+O mínimo é `DATABASE_URL`, `DATA_KEY` e `ADMIN_EMAILS`. Os e-mails de convite e senha pedem `RESEND_API_KEY`, `MAIL_FROM` e `APP_URL`; o Strava pede `STRAVA_CLIENT_ID` e `STRAVA_CLIENT_SECRET`; o aviso mensal do catálogo pede `CRON_SECRET`. Depois, aponte `remoteSyncBaseURL` em `App/AppConstants.swift` para o seu domínio.
+
+### Aviso do catálogo da Garmin
+
+Um Vercel Cron chama `/api/cron/garmin-catalog` no dia 1 de cada mês, às 9h de Brasília. Ele compara a lista de exercícios da Garmin com o retrato em `server/src/garminCatalogSnapshot.ts` e, se algo mudou, manda e-mail para `ADMIN_EMAILS` com os exercícios novos, removidos e renomeados. Para atualizar:
+
+```bash
+python3 scripts/garmin-catalog.py   # baixa a lista, regenera o catálogo do app e o retrato, e mostra o que mudou
+cd Packages/TrainingKit && WRITE_FIXTURES=1 swift test --filter StrengthCatalogFixtureTests
+```
+
+Revise a classificação dos novos (correções em `scripts/garmin-catalog-overrides.json`), faça o commit e o deploy. Depois do deploy, o aviso para.
 
 O build da Vercel roda as migrations e copia `server/landing/` para `public/`. A landing é HTML e CSS estáticos; `link.html` atende os links de e-mail (`/convite`, `/confirmar`, `/redefinir-senha`) com o botão "Abrir no app".
 
@@ -139,7 +178,7 @@ scripts/release.sh --dry-run   # mostra a próxima versão e os commits
 scripts/release.sh             # grava MARKETING_VERSION e CURRENT_PROJECT_VERSION no project.yml
 ```
 
-Depois: commit `chore(release): vX.Y.Z`, tag `vX.Y.Z` e push com `--tags`. O rodapé de Ajustes mostra a versão, o build, o commit e o horário do build.
+Depois: atualizar "Versão atual" neste README, commit `chore(release): vX.Y.Z`, tag `vX.Y.Z` e push com `--tags`. O badge de versão lê a última tag do GitHub. O rodapé de Ajustes mostra a versão, o build, o commit e o horário do build.
 
 ## Privacidade
 
