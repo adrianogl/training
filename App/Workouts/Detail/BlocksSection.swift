@@ -44,6 +44,7 @@ struct BlocksSection: View {
     private func row(position: Int, block: WorkoutBlock) -> some View {
         let bar = bars.indices.contains(position) ? bars[position] : nil
         let canExpand = blocks.count > 1 && (block.laps.count > 1 || (showsTarget && block.prescribed != nil))
+        let isRecovery = block.kind == .recovery
         return VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .center, spacing: 8) {
                 line(block, bar: bar, indent: 0)
@@ -56,7 +57,7 @@ struct BlocksSection: View {
                 details(block)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, isRecovery ? WorkoutDetailConstants.recoveryRowPadding : WorkoutDetailConstants.rowPadding)
         .opacity(block.status == .notExecuted ? 0.4 : 1)
         .contentShape(Rectangle())
         .onTapGesture {
@@ -160,10 +161,11 @@ struct BlocksSection: View {
                 .lineLimit(1)
         } else {
             let name = BlockNaming.tableLabel(block)
+            let isRecovery = block.kind == .recovery
             VStack(alignment: .leading, spacing: 1) {
                 Text(name.title)
-                    .font(.footnote)
-                    .foregroundStyle(BrandColors.text.opacity(0.85))
+                    .font(isRecovery ? .caption : .footnote)
+                    .foregroundStyle(isRecovery ? BrandColors.dim : BrandColors.text.opacity(0.85))
                 if let detail = name.detail {
                     Text(detail)
                         .font(.caption2.monospacedDigit())

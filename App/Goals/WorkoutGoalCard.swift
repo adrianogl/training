@@ -2,10 +2,13 @@ import SwiftUI
 
 struct WorkoutGoalCard: View {
     let entries: [WorkoutGoalEntry]
+    var showsLabel = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            DSCardLabel(WorkoutGoalConstants.cardTitle)
+            if showsLabel {
+                DSCardLabel(WorkoutGoalConstants.cardTitle)
+            }
             ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 VStack(alignment: .leading, spacing: 6) {

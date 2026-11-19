@@ -6,7 +6,7 @@ struct ZoneRuler: View {
     var body: some View {
         let range = data.range
         VStack(alignment: .leading, spacing: 6) {
-            bar(title: WorkoutDetailConstants.rulerWatchTitle, zones: data.watch, range: range)
+            bar(title: data.threshold == nil ? nil : WorkoutDetailConstants.rulerWatchTitle, zones: data.watch, range: range)
             if let threshold = data.threshold, let title = data.thresholdTitle {
                 bar(title: title, zones: threshold, range: range)
                     .padding(.top, 10)
@@ -21,13 +21,15 @@ struct ZoneRuler: View {
         .brandCard()
     }
 
-    private func bar(title: String, zones: ZoneBar, range: ClosedRange<Int>) -> some View {
+    private func bar(title: String?, zones: ZoneBar, range: ClosedRange<Int>) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.caption2.weight(.medium))
-                .tracking(0.6)
-                .textCase(.uppercase)
-                .foregroundStyle(BrandColors.dim)
+            if let title {
+                Text(title)
+                    .font(.caption2.weight(.medium))
+                    .tracking(0.6)
+                    .textCase(.uppercase)
+                    .foregroundStyle(BrandColors.dim)
+            }
             band(zones.segments(in: range))
             scale(zones.marks(in: range))
             if let time = zones.timeText {
