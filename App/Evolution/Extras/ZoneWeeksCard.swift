@@ -27,6 +27,11 @@ struct ZoneWeeksCard: View {
                 }
             }
             .frame(height: 150)
+            HStack(spacing: DSSpacing.s3) {
+                ForEach(Array(C.zoneLabels.enumerated()), id: \.offset) { index, label in
+                    DSLegendItem(text: label, color: BrandColors.zone(index + 1), mark: .square)
+                }
+            }
             if let share = EvolutionExtras.easyShare(weeks) {
                 Text(String(format: C.zonesFootFormat, Int((share * 100).rounded()), C.zoneWeeks))
                     .font(.caption).foregroundStyle(BrandColors.dim)
@@ -46,33 +51,51 @@ struct RecordsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             DSCardLabel(C.recordsTitle)
-            if records.isEmpty {
-                Text(C.recordsEmpty).font(.subheadline).foregroundStyle(BrandColors.dim)
-            }
-            ForEach(Array(records.enumerated()), id: \.offset) { index, record in
+            ForEach(Array(C.records.enumerated()), id: \.offset) { index, target in
                 if index > 0 { Divider().overlay(BrandColors.line) }
-                HStack(alignment: .firstTextBaseline) {
-                    Text(record.label).font(.subheadline.weight(.semibold)).frame(width: 64, alignment: .leading)
-                    Text(WorkoutFormat.clock(record.seconds)).font(BrandFonts.number(18))
-                    if let meters = record.meters, meters > 0 {
-                        Text(WorkoutListModel.paceText(secondsPerKilometer: record.seconds / (meters / WorkoutConstants.metersPerKilometer)))
-                            .font(BrandFonts.number(13))
-                            .foregroundStyle(BrandColors.dim)
-                    }
-                    if now.timeIntervalSince(record.date) <= Double(C.recentDays) * 86_400 {
-                        DSChip(text: C.newRecord, tone: .accent, style: .solid)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(record.date.formatted(.dateTime.day().month(.abbreviated).year().locale(WorkoutConstants.locale)))
-                            .font(.caption).foregroundStyle(BrandColors.dim)
-                        Text(record.source).font(.caption2).foregroundStyle(BrandColors.dim).lineLimit(1)
-                    }
-                }
-                .foregroundStyle(BrandColors.text)
+                row(target.label, record: records.first { $0.label == target.label })
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .brandCard()
+    }
+
+    private func row(_ label: String, record: PersonalRecord?) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(label)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .fixedSize()
+                .frame(minWidth: C.recordLabelWidth, alignment: .leading)
+            if let record {
+                Text(WorkoutFormat.clock(record.seconds)).font(BrandFonts.number(18)).lineLimit(1).fixedSize()
+                if let meters = record.meters, meters > 0 {
+                    Text(WorkoutListModel.paceText(secondsPerKilometer: record.seconds / (meters / WorkoutConstants.metersPerKilometer)))
+                        .font(BrandFonts.number(13))
+                        .foregroundStyle(BrandColors.dim)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+                if now.timeIntervalSince(record.date) <= Double(C.recentDays) * 86_400 {
+                    DSChip(text: C.newRecord, tone: .accent, style: .solid)
+                }
+                Spacer(minLength: 4)
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(dateText(record.date)).font(.caption).foregroundStyle(BrandColors.dim)
+                    Text(record.source).font(.caption2).foregroundStyle(BrandColors.dim).lineLimit(1)
+                }
+            } else {
+                Text(C.recordMissing).font(.footnote).foregroundStyle(BrandColors.dim)
+                Spacer(minLength: 0)
+            }
+        }
+        .foregroundStyle(BrandColors.text)
+    }
+
+    private func dateText(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = WorkoutConstants.locale
+        formatter.dateFormat = C.recordDateFormat
+        return formatter.string(from: date)
     }
 }

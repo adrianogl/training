@@ -5,7 +5,6 @@ import TrainingCore
 struct MetricChartMarker: Sendable, Identifiable, Codable {
     let date: Date
     let name: String
-    var showsLabel = true
 
     var id: Date { date }
 }
@@ -36,12 +35,10 @@ struct MetricChartData: Sendable, Codable {
         let anchored = average.last.map { [$0] + projection } ?? projection
         let first = average.first?.date ?? today.chartDate
         let last = (projection.last?.date ?? today.chartDate)
-        let visibleMarkers = compact ? [] : labeled(
-            markers
-                .map { MetricChartMarker(date: $0.day.chartDate, name: $0.name) }
-                .filter { $0.date >= first && $0.date <= last },
-            span: last.timeIntervalSince(first)
-        )
+        let visibleMarkers = compact ? [] : markers
+            .map { MetricChartMarker(date: $0.day.chartDate, name: $0.name) }
+            .filter { $0.date >= first && $0.date <= last }
+            .sorted { $0.date < $1.date }
         var raceDayPoint: ChartPoint?
         if let value = series.raceDayValue, let raceDay { raceDayPoint = ChartPoint(date: raceDay.chartDate, value: value) }
         return MetricChartData(
@@ -56,17 +53,6 @@ struct MetricChartData: Sendable, Codable {
             raceDayPoint: raceDayPoint,
             todayDate: today.chartDate
         )
-    }
-
-    private static func labeled(_ markers: [MetricChartMarker], span: TimeInterval) -> [MetricChartMarker] {
-        let gap = span * EvolutionConstants.markerLabelGapShare
-        var labeledDates: [Date] = []
-        return markers.sorted { $0.date > $1.date }.map { marker in
-            var marker = marker
-            marker.showsLabel = labeledDates.allSatisfy { abs($0.timeIntervalSince(marker.date)) >= gap }
-            if marker.showsLabel { labeledDates.append(marker.date) }
-            return marker
-        }
     }
 
     private static func downsample(_ points: [ChartPoint], limit: Int) -> [ChartPoint] {

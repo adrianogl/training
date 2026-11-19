@@ -45,9 +45,17 @@ public struct TemplateInsightNarrator: InsightNarrator {
         case .worse: text = String(format: Constants.overallWorse, facts.worsened, facts.total)
         }
         if let gap = facts.goalGapSeconds {
-            text += String(format: Constants.goalGapSuffix, WorkoutFormat.clock(gap))
+            text += goalGap(gap)
         }
         return text
+    }
+
+    static func goalGap(_ gap: Double) -> String {
+        typealias Constants = InsightNarrativeConstants
+        let seconds = abs(gap.rounded())
+        guard seconds > 0 else { return Constants.goalReachedSuffix }
+        let amount = seconds < 60 ? String(format: Constants.gapSecondsFormat, Int(seconds)) : WorkoutFormat.clock(seconds)
+        return String(format: gap > 0 ? Constants.goalGapSuffix : Constants.goalAheadSuffix, amount)
     }
 
     private static func name(_ component: ReadinessComponent) -> String {

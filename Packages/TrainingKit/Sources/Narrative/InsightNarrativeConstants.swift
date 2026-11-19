@@ -39,10 +39,13 @@ enum InsightNarrativeConstants {
     static let aboveGoalWord = "acima"
     static let belowGoalWord = "abaixo"
 
-    static let overallBetter = "Melhor que há 3 meses: %d de %d indicadores melhoraram."
+    static let overallBetter = "%d de %d indicadores melhoraram."
     static let overallStable = "Estável em relação a 3 meses atrás."
-    static let overallWorse = "Pior que há 3 meses: %d de %d indicadores pioraram."
+    static let overallWorse = "%d de %d indicadores pioraram."
     static let goalGapSuffix = " Faltam %@ para a meta."
+    static let goalAheadSuffix = " A previsão já está %@ abaixo da meta."
+    static let goalReachedSuffix = " A previsão está na meta."
+    static let gapSecondsFormat = "%d s"
 
     static let readinessInstructions = """
     Você é um treinador de corrida e escreve, em português do Brasil, uma frase curta sobre a prontidão do atleta para treinar hoje.
@@ -52,7 +55,7 @@ enum InsightNarrativeConstants {
     """
 
     static let overallInstructions = """
-    Você é um treinador de corrida e escreve, em português do Brasil, uma frase curta sobre o estado geral do atleta comparado a 3 meses atrás.
+    Você é um treinador de corrida e escreve, em português do Brasil, uma frase curta sobre o estado geral do atleta. O título já mostra o período da comparação; não repita o período.
     Use só os fatos recebidos e cite todos os números deles, no mesmo formato. Não invente números e não use número que não esteja nos fatos.
     Mantenha a classificação da frase de referência, usando uma das palavras dela que indicam a direção. Não troque por classificação oposta.
     Tom calmo e direto, sem ponto de exclamação e sem emoji. Devolva só a frase.

@@ -15,7 +15,9 @@ struct StrengthLoadRow: View {
                 }
             }
             Spacer(minLength: 6)
-            StrengthSparkline(values: series.points.map(\.top), marksRecord: series.isNewRecord)
+            if series.points.count > 1 {
+                StrengthSparkline(values: series.points.map(\.top), marksRecord: series.isNewRecord)
+            }
             VStack(alignment: .trailing, spacing: 1) {
                 Text(StrengthText.weightLabel(series.current)).font(BrandFonts.number(17)).foregroundStyle(BrandColors.text)
                 Text(series.change.map(StrengthText.changeLabel) ?? StrengthText.firstRecord)
@@ -23,7 +25,7 @@ struct StrengthLoadRow: View {
                     .foregroundStyle((series.change ?? 0) > 0 ? BrandColors.accent : (series.change ?? 0) < 0 ? BrandColors.attention : BrandColors.dim)
             }
             .frame(width: 70, alignment: .trailing)
-            CardLinkBadge()
+            CardLinkChevron()
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
@@ -55,18 +57,7 @@ struct StrengthLoadsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             if showsHeader {
-                NavigationLink {
-                    StrengthLoadsView(model: model)
-                } label: {
-                    HStack {
-                        DSCardLabel(StrengthText.loadsTitle)
-                        if !model.loadSeries.isEmpty { CardLinkBadge() }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.cardLink)
-                .disabled(model.loadSeries.isEmpty)
-                .padding(.bottom, 4)
+                DSCardLabel(StrengthText.loadsTitle).padding(.bottom, 4)
             }
             if model.loadSeries.isEmpty {
                 Text(StrengthText.loadsEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
@@ -80,11 +71,11 @@ struct StrengthLoadsCard: View {
                 .buttonStyle(.cardLink)
                 .overlay(alignment: .top) { if index > 0 { Divider().overlay(BrandColors.line) } }
             }
-            if !showsHeader && model.loadSeries.count > StrengthConstants.loadsCardLimit {
+            if showsHeader ? !model.loadSeries.isEmpty : model.loadSeries.count > StrengthConstants.loadsCardLimit {
                 NavigationLink {
                     StrengthLoadsView(model: model)
                 } label: {
-                    CardLinkFooter(title: StrengthText.seeAll).padding(.top, 4)
+                    CardLinkFooter(title: showsHeader ? StrengthText.seeAllLoads : StrengthText.seeAll).padding(.top, 4)
                 }
                 .buttonStyle(.cardLink)
             }
@@ -100,9 +91,13 @@ struct StrengthLoadsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(StrengthText.loadsTitle).font(BrandFonts.display(24)).foregroundStyle(BrandColors.text)
-                Text(StrengthText.loadsSubtitle).font(.footnote).foregroundStyle(BrandColors.dim)
                 VStack(spacing: 0) {
+                    HStack(alignment: .firstTextBaseline) {
+                        DSCardLabel(StrengthText.loadsCardTitle)
+                        Spacer()
+                        Text(StrengthText.loadsSubtitle).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                    .padding(.bottom, 4)
                     if model.loadSeries.isEmpty {
                         Text(StrengthText.loadsEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
@@ -120,6 +115,7 @@ struct StrengthLoadsView: View {
                 Text(StrengthText.loadsNote).font(.caption).foregroundStyle(BrandColors.dim)
             }
             .padding(.horizontal, BrandConstants.screenPadding)
+            .padding(.top, 8)
             .padding(.bottom, 24)
         }
         .background(BrandBackground())
@@ -137,11 +133,12 @@ struct StrengthLoadDetailView: View {
             if let series = model.loadSeries(key: key) {
                 StrengthLoadDetailContent(series: series)
                     .padding(.horizontal, BrandConstants.screenPadding)
+                    .padding(.top, 8)
                     .padding(.bottom, 24)
             }
         }
         .background(BrandBackground())
-        .navigationTitle(StrengthText.loadsTitle)
+        .navigationTitle(StrengthText.loadDetailTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -151,20 +148,32 @@ struct StrengthLoadDetailContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(series.name).font(BrandFonts.display(24)).foregroundStyle(BrandColors.text)
-            StrengthWorkoutTags(series: series)
-            HStack(spacing: 6) {
-                stat(StrengthText.weightLabel(series.current), StrengthText.currentLoad)
-                if let change = series.change, let first = series.points.first {
-                    stat(StrengthText.changeLabel(change), StrengthText.sinceLabel(first.day))
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .firstTextBaseline) {
+                    DSCardLabel(series.workouts.joined(separator: " · "))
+                    Spacer()
+                    if series.isNewRecord { StrengthRecordBadge() }
                 }
-                if let record = series.record {
-                    stat(StrengthText.weightLabel(record.top), StrengthText.recordLabel(record.day))
-                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(StrengthConstants.recordGold, lineWidth: series.isNewRecord ? 1.5 : 0))
+                Text(series.name).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .top, spacing: 8) {
+                    stat(StrengthText.weightLabel(series.current), StrengthText.currentLoad)
+                    if let change = series.change, let first = series.points.first {
+                        stat(StrengthText.changeLabel(change), StrengthText.sinceLabel(first.day), color: change < 0 ? BrandColors.attention : change > 0 ? BrandColors.accent : BrandColors.text)
+                    }
+                    if let record = series.record {
+                        stat(StrengthText.weightLabel(record.top), StrengthText.recordLabel(record.day), color: series.isNewRecord ? StrengthConstants.recordGold : BrandColors.text)
+                    }
                 }
             }
-            chart(series).brandCard()
-            DSCardLabel(StrengthText.records).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .brandCard()
+            section(StrengthText.loadChartTitle)
+            VStack(alignment: .leading, spacing: 8) {
+                chart(series)
+                DSLegendItem(text: StrengthText.loadChartLegend, color: color(series.workouts.first ?? "", in: series), mark: .square)
+            }
+            .brandCard()
+            section(StrengthText.records)
             VStack(spacing: 0) {
                 ForEach(Array(series.points.reversed().enumerated()), id: \.element.id) { index, point in
                     HStack(spacing: 10) {
@@ -213,8 +222,15 @@ struct StrengthLoadDetailContent: View {
         return StrengthConstants.workoutColors[index % StrengthConstants.workoutColors.count]
     }
 
-    private func stat(_ value: String, _ label: String) -> some View {
-        DSStat(value: value, label: label, boxed: true)
+    private func stat(_ value: String, _ label: String, color: Color = BrandColors.text) -> some View {
+        DSStat(value: value, label: label, color: color)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func section(_ title: String) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, DSSpacing.sectionTop - 10)
+            .padding(.bottom, DSSpacing.sectionBottom - 10)
     }
 }
 

@@ -24,7 +24,7 @@ private let breakdown = ReadinessBreakdown(score: 74, normal: 70, factors: [])
     }
 
     @Test func overallBetterAcceptsMelhor() async {
-        let generated = "Você está melhor que há 3 meses: 5 de 8 indicadores melhoraram."
+        let generated = "Você está melhor: 5 de 8 indicadores melhoraram."
         let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: generated))
         let text = await narrator.overallSentence(facts(.better))
         #expect(text == generated)
@@ -37,14 +37,15 @@ private let breakdown = ReadinessBreakdown(score: 74, normal: 70, factors: [])
     }
 
     @Test func goalGapDirectionChecked() async {
-        for gap in [125.0, -125.0] {
+        for (gap, word) in [(125.0, "acima"), (125.0, "abaixo"), (-125.0, "acima")] {
             let withGap = facts(.stable, goalGap: gap)
-            for word in ["acima", "abaixo"] {
-                let output = "Estável em relação a 3 meses atrás, previsão \(word) da meta: faltam 2:05."
-                let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: output))
-                #expect(await narrator.overallSentence(withGap) == TemplateInsightNarrator.overallSentence(withGap))
-            }
+            let output = "Estável em relação a 3 meses atrás, previsão \(word) da meta: 2:05."
+            let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: output))
+            #expect(await narrator.overallSentence(withGap) == TemplateInsightNarrator.overallSentence(withGap))
         }
+        let ahead = "Estável em relação a 3 meses atrás, com a previsão 2:05 abaixo da meta."
+        let aheadNarrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: ahead))
+        #expect(await aheadNarrator.overallSentence(facts(.stable, goalGap: -125)) == ahead)
         let noGap = facts(.stable)
         let output = "Estável em relação a 3 meses atrás, com a previsão acima do que você esperava."
         let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: output))
@@ -52,13 +53,13 @@ private let breakdown = ReadinessBreakdown(score: 74, normal: 70, factors: [])
     }
 
     @Test func worseAcceptsPiorou() async {
-        let generated = "Você piorou em relação a 3 meses atrás: 5 de 8 indicadores."
+        let generated = "Você piorou: 5 de 8 indicadores."
         let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: generated))
         #expect(await narrator.overallSentence(facts(.worse)) == generated)
     }
 
     @Test func betterAcceptsMelhoraram() async {
-        let generated = "Em relação a 3 meses atrás, 5 de 8 indicadores melhoraram."
+        let generated = "No período, 5 de 8 indicadores melhoraram."
         let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: generated))
         #expect(await narrator.overallSentence(facts(.better)) == generated)
     }
@@ -92,7 +93,7 @@ private let breakdown = ReadinessBreakdown(score: 74, normal: 70, factors: [])
         let narrator = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: "Melhor que há 3 meses: 5 de 8 indicadores pioraram."))
         let worse = facts(.worse)
         #expect(await narrator.overallSentence(worse) == TemplateInsightNarrator.overallSentence(worse))
-        let melhora = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: "Pior que há 3 meses, sem melhora: 5 de 8 indicadores pioraram."))
-        #expect(await melhora.overallSentence(worse) == "Pior que há 3 meses, sem melhora: 5 de 8 indicadores pioraram.")
+        let melhora = FoundationModelsInsightNarrator(generator: FixedInsightGenerator(output: "Pior, sem melhora: 5 de 8 indicadores pioraram."))
+        #expect(await melhora.overallSentence(worse) == "Pior, sem melhora: 5 de 8 indicadores pioraram.")
     }
 }

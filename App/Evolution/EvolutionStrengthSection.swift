@@ -7,7 +7,11 @@ struct EvolutionStrengthGroupsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(StrengthText.groupsTitle)
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(StrengthText.groupsShortTitle)
+                Spacer()
+                Text(StrengthText.thisWeek).font(.caption).foregroundStyle(BrandColors.dim)
+            }
             let totals = model.weekGroupTotals
             let top = max(totals.first?.sets ?? 1, 1)
             if totals.isEmpty {
@@ -46,7 +50,7 @@ struct EvolutionStrengthFrequencyCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text(StrengthText.perWeek).font(.caption).foregroundStyle(BrandColors.dim)
+                DSCardLabel(StrengthText.perWeekTitle)
                 Spacer()
                 Text("\(StrengthText.average) \(StrengthText.averageLabel(model.averagePerWeek))").font(.caption).foregroundStyle(BrandColors.dim)
             }

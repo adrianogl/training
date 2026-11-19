@@ -114,6 +114,11 @@ import TrainingCore
             .map { StrengthGroupTotal(group: $0.key, sets: $0.value, level: StrengthMuscles.level($0.value, scale: .week)) }
     }
 
+    var volumeWeekStarts: [Day] {
+        let start = today().weekStart.adding(days: -7 * (C.volumeWeeks - 1))
+        return (0..<C.volumeWeeks).map { start.adding(days: 7 * $0) }
+    }
+
     var volumeRows: [StrengthVolumeRow] {
         let start = today().weekStart.adding(days: -7 * (C.volumeWeeks - 1))
         let perWeek: [[MuscleGroup: Double]] = (0..<C.volumeWeeks).map { index in
