@@ -117,3 +117,7 @@ O cadastro é só por convite. Criam conta sem convite apenas os e-mails de `ADM
 | `GET /api/v1/invites/preview?c=` | Nome, e-mail e quem convidou, para a tela de convite do app; 404 `invalid_invite` |
 
 O convite vale 7 dias e uma conta. `POST /api/v1/auth/signup` aceita `inviteToken`; sem ele, responde 403 `invite_required`.
+
+## MCP
+
+O endpoint `/mcp` serve o Claude Desktop e o Claude Code com o token gerado em Ajustes › Claude. As ferramentas de força são `contexto_forca`, `validar_treinos` e `salvar_treinos`. Só para contas administradoras, `avaliacoes_imagens` lista as avaliações "Não corresponde" das imagens dos exercícios e `resolver_avaliacao` registra a decisão (trocar a imagem ou usar o desenho).
