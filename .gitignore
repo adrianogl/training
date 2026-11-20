@@ -1,5 +1,6 @@
 .build/
-DerivedData/
+DerivedData*/
+build/
 *.xcuserstate
 .DS_Store
 **/garmin-data/
@@ -19,3 +20,4 @@ Watchface/bin/
 *.pem
 server/web/node_modules/
 __pycache__/
+.claude/worktrees/

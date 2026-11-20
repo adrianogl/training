@@ -17,7 +17,9 @@ targets:
     type: application
     platform: iOS
     sources:
-      - App
+      - path: App
+        excludes:
+          - "**/CLAUDE.md"
       - Shared
       - path: server/landing/versao.json
         buildPhase: resources

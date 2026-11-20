@@ -53,6 +53,7 @@ Versão atual: `1.27.2` (ver [Versão](#versão)).
 | `docs/superpowers/` | Specs e planos de design das primeiras versões |
 | `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`), `auto_install.py` (reinstalação automática) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
 | `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
+| `CLAUDE.md` | Comandos, convenções e cuidados para agentes, na raiz e em `App/`, `Packages/TrainingKit/`, `server/` e `Watchface/` |
 
 | Módulo do `TrainingKit` | Papel |
 | --- | --- |
