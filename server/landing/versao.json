@@ -1,8 +1,8 @@
 {
-  "versao": "1.26.0",
-  "build": 35,
-  "versao_app": "1.26.0",
+  "versao": "1.26.1",
+  "build": 36,
+  "versao_app": "1.26.1",
   "notas": [
-    "Padroniza ajustes, edição, readequação e mudanças do plano"
+    "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
   ]
 }
