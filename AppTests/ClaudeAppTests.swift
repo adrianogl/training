@@ -72,3 +72,15 @@ import TrainingCore
         #expect(decoded.overridesMFIT == false)
     }
 }
+
+@Suite struct ClaudeTextTests {
+    @Test func pluralizesInboxCounts() {
+        #expect(ClaudeText.inboxCount(total: 1, valid: 0) == "1 dia · 0 válidos · 1 recusado")
+        #expect(ClaudeText.inboxCount(total: 3, valid: 1) == "3 dias · 1 válido · 2 recusados")
+    }
+
+    @Test func pluralizesApplyButton() {
+        #expect(ClaudeText.apply(1) == "Aplicar 1 dia")
+        #expect(ClaudeText.apply(2) == "Aplicar 2 dias")
+    }
+}

@@ -31,7 +31,7 @@ struct ClaudeImportSheet: View {
                             }
                         }
                         .brandCard()
-                        Button(String(format: ClaudeText.applyFormat, validCount)) {
+                        Button(ClaudeText.apply(validCount)) {
                             onApply()
                             message = ClaudeText.applied
                         }

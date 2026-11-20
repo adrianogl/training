@@ -21,7 +21,6 @@ enum ClaudeText {
         "Regras de força e o formato da resposta",
     ]
     static let importTitle = "Treinos do Claude"
-    static let applyFormat = "Aplicar %d dia(s)"
     static let copyErrors = "Copiar erros para o Claude"
     static let errorsCopied = "Erros copiados. Cole na conversa com o Claude para ele corrigir."
     static let applied = "Aplicado."
@@ -48,7 +47,19 @@ enum ClaudeText {
     static let noToken = "Nenhum token ativo."
     static let needsSync = "Ative a sincronização com o servidor em Ajustes para usar o Claude."
     static let inboxTitle = "O Claude enviou treinos"
-    static let inboxCountFormat = "%d dia(s) · %d válido(s) · %d recusado(s)"
+    static func apply(_ days: Int) -> String {
+        days == 1 ? "Aplicar 1 dia" : "Aplicar \(days) dias"
+    }
+
+    static func inboxCount(total: Int, valid: Int) -> String {
+        let refused = total - valid
+        let parts = [
+            total == 1 ? "1 dia" : "\(total) dias",
+            valid == 1 ? "1 válido" : "\(valid) válidos",
+            refused == 1 ? "1 recusado" : "\(refused) recusados",
+        ]
+        return parts.joined(separator: " · ")
+    }
     static let review = "Revisar e aplicar"
     static let replacesNote = "Troca o treino do MFIT só neste dia e tira o do professor do Garmin."
     static let discard = "Descartar"

@@ -115,7 +115,7 @@ struct TrainerStrengthView: View {
             if let summary = preview.summary {
                 Text("\"\(summary)\"").font(.footnote).foregroundStyle(BrandColors.text)
             }
-            Text(String(format: ClaudeText.inboxCountFormat, preview.results.count, valid, preview.results.count - valid))
+            Text(ClaudeText.inboxCount(total: preview.results.count, valid: valid))
                 .font(.caption).foregroundStyle(BrandColors.dim)
             Button(ClaudeText.review) { claudeImport = preview }
                 .buttonStyle(.ds(.primary))

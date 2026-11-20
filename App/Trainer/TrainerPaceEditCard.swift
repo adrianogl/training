@@ -10,7 +10,6 @@ struct TrainerPaceEditCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(TrainerText.pacesTitle)
             ForEach(TrainerConstants.paceKinds, id: \.self) { kind in
                 if let base = historyValue(kind) {
                     row(kind, base: base)
