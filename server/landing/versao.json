@@ -1,8 +1,8 @@
 {
-  "versao": "1.22.1",
-  "build": 31,
-  "versao_app": "1.22.1",
+  "versao": "1.23.0",
+  "build": 32,
+  "versao_app": "1.23.0",
   "notas": [
-    "Reprova texto gerado que fala com \"vocês\" ou afirma o que os fatos não dizem"
+    "Passa mais métricas do treino para o texto gerado"
   ]
 }
