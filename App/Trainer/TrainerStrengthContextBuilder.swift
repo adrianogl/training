@@ -54,7 +54,7 @@ enum TrainerStrengthContextBuilder {
                 .compactMap { latestByKey[MFITParser.exerciseKey($0)] }
                 .max { $0.day < $1.day }
             guard let latest, let top = latest.loads.max() else { continue }
-            result[exercise.id] = StrengthLoadRecord(weight: top, completedAllSets: latest.loads.count >= TrainerStrengthConstants.completedSets)
+            result[exercise.id] = StrengthLoadRecord(weight: top, completedAllSets: latest.loads.count >= TrainerStrengthConstants.completedSets, day: latest.day)
         }
         return result
     }
