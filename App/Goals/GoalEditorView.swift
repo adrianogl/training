@@ -25,7 +25,7 @@ struct GoalEditorView: View {
     var body: some View {
         Form {
             if goalId == nil {
-                Section(C.kindLabel) {
+                Section {
                     Picker(C.kindLabel, selection: $draft.kind) {
                         ForEach(GoalKind.allCases, id: \.self) { kind in
                             Text(C.kindTitles[kind] ?? "").tag(kind)
@@ -33,6 +33,8 @@ struct GoalEditorView: View {
                     }
                     .pickerStyle(.segmented)
                     Text(C.kindHints[draft.kind] ?? "").font(.caption).foregroundStyle(BrandColors.dim)
+                } header: {
+                    DSSectionTitle(C.kindLabel)
                 }
             }
             Section {

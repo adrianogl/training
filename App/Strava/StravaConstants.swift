@@ -16,6 +16,7 @@ enum StravaConstants {
     static let longerBeatKm = 0.1
 
     static let sectionTitle = "Strava"
+    static let formTitle = "Conexão"
     static let settingsSummaryOff = "Toque para conectar"
     static let statusConnected = "conectado"
     static let statusDisconnected = "desconectado"

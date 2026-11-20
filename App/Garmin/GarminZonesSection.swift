@@ -32,7 +32,7 @@ struct GarminZonesSection: View {
                 Text(C.noThreshold).foregroundStyle(BrandColors.dim)
             }
         } header: {
-            Text(C.sectionTitle)
+            DSSectionTitle(C.sectionTitle)
         } footer: {
             Text(C.note)
         }

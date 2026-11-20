@@ -16,7 +16,7 @@ struct GoalsManageView: View {
                     }
                 }
             } header: {
-                Text(C.weeklyTitle)
+                DSSectionTitle(C.weeklyTitle)
             } footer: {
                 Text(C.weeklyFooter)
             }

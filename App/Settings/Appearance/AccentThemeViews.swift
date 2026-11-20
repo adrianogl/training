@@ -76,17 +76,14 @@ struct AccentThemePreview: View {
             }
             .brandCard()
             VStack(alignment: .leading, spacing: DSSpacing.s2) {
-                HStack {
-                    Text(C.previewWeek).font(.subheadline).foregroundStyle(BrandColors.text)
-                    Spacer()
-                    CardLinkBadge()
-                }
+                Text(C.previewWeek).font(.subheadline).foregroundStyle(BrandColors.text)
                 DSProgressBar(value: C.previewShare)
                 HStack(spacing: 6) {
                     DSChip(text: C.previewOnPace, tone: .accent)
                     DSChip(text: C.sampleChip, tone: .accent, style: .solid)
                     DSChip(text: C.previewStrength, tone: .strength)
                 }
+                CardLinkFooter(title: CardLinkConstants.week)
             }
             .brandCard()
             Text(C.previewSend)

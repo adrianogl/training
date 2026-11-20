@@ -12,7 +12,7 @@ enum RemoteSyncSettingsConstants {
     static let showKeyHint = "Face ID"
     static let clipboardLifetime: TimeInterval = 120
     static let cancel = "Cancelar"
-    static let watchSectionTitle = "Relógio"
+    static let watchSectionTitle = "Token do mostrador"
     static let watchNeedsSync = "Ligue a sincronização entre aparelhos para gerar o token do relógio."
     static let watchOffDescription = "Gere um token para o mostrador TrainingFace mostrar a prontidão de hoje."
     static let watchGenerate = "Gerar token do relógio"

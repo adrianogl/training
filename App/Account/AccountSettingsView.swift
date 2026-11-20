@@ -18,7 +18,7 @@ struct AccountSettingsView: View {
                     Button(C.resend) { Task { await model.resendVerification() } }
                 }
             } header: {
-                Text(C.accountTitle)
+                DSSectionTitle(C.accountTitle)
             } footer: {
                 if model.user?.emailVerified == false { Text(C.unverified) }
             }
@@ -26,7 +26,7 @@ struct AccountSettingsView: View {
                 NavigationLink(C.changePasswordTitle) { ChangePasswordView(model: model) }
             }
             if !model.sessions.isEmpty {
-                Section(C.sessionsTitle) {
+                Section {
                     ForEach(model.sessions) { session in
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
@@ -42,6 +42,8 @@ struct AccountSettingsView: View {
                             }
                         }
                     }
+                } header: {
+                    DSSectionTitle(C.sessionsTitle)
                 }
             }
             Section {

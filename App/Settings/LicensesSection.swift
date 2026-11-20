@@ -8,7 +8,7 @@ struct LicensesSection: View {
                 .foregroundStyle(BrandColors.dim)
                 .textSelection(.enabled)
         } header: {
-            Text("\(LicensesConstants.bodyMapTitle) · \(LicensesConstants.bodyMapSource)")
+            DSSectionTitle("\(LicensesConstants.bodyMapTitle) · \(LicensesConstants.bodyMapSource)")
         }
     }
 }

@@ -45,7 +45,7 @@ struct RemoteSyncSection: View {
             }
             .disabled(model.status == .syncing)
         } header: {
-            Text(C.sectionTitle)
+            DSSectionTitle(C.sectionTitle)
         } footer: {
             Text(C.accountNote)
         }
@@ -107,7 +107,7 @@ struct RemoteSyncSection: View {
                 Text(error).font(.footnote).foregroundStyle(BrandColors.danger)
             }
         } header: {
-            Text(C.watchSectionTitle)
+            DSSectionTitle(C.watchSectionTitle)
         } footer: {
             Text(C.watchNote)
         }

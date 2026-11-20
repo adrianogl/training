@@ -67,6 +67,16 @@ targets:
           /usr/libexec/PlistBuddy -c "Delete :TrainingBuiltAt" "$PLIST" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :TrainingCommit string $COMMIT" "$PLIST"
           /usr/libexec/PlistBuddy -c "Add :TrainingBuiltAt string $BUILT" "$PLIST"
+      - name: Brand logos
+        basedOnDependencyAnalysis: false
+        script: |
+          SRC="$HOME/.config/training-sync/brand-logos"
+          DST="${TARGET_BUILD_DIR:?}/${UNLOCALIZED_RESOURCES_FOLDER_PATH:?}/BrandLogos"
+          rm -rf "$DST"
+          if [ -d "$SRC" ]; then
+            mkdir -p "$DST"
+            cp "$SRC"/*.png "$DST"/ 2>/dev/null || true
+          fi
   TrainingWidgets:
     type: app-extension
     platform: iOS
