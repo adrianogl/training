@@ -12,7 +12,7 @@ struct ExerciseFeedbackTests {
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let url = folder.appending(path: "feedback.json")
         let defaults = UserDefaults(suiteName: "feedback-" + UUID().uuidString)!
-        let store = ExerciseFeedbackStore(url: url)
+        let store = ExerciseFeedbackStore(url: url, stamps: SyncDocumentStamp(defaults: defaults, syncedKey: ExerciseFeedbackConstants.syncedStampKey, documentKey: ExerciseFeedbackConstants.documentStampKey))
         return (store, ExerciseFeedbackSyncStore(store: store, defaults: defaults), url)
     }
 
@@ -46,7 +46,7 @@ struct ExerciseFeedbackTests {
         let blobs = sync.pendingBlobs()
         #expect(blobs.count == 1)
         #expect(blobs.first?.id == "exerciseFeedback")
-        #expect(blobs.first?.updatedAt == base.addingTimeInterval(5))
+        #expect((blobs.first?.updatedAt ?? .distantPast) >= base.addingTimeInterval(5))
         sync.markBlobsPushed(blobs)
         #expect(sync.pendingBlobs().isEmpty)
         try? store.save(entry(at: 9))
@@ -61,7 +61,7 @@ struct ExerciseFeedbackTests {
         sync.markBlobsPushed(first)
         let pending = sync.pendingBlobs()
         #expect(pending.count == 1)
-        #expect(pending.first?.updatedAt == base.addingTimeInterval(9))
+        #expect((pending.first?.updatedAt ?? .distantPast) >= base.addingTimeInterval(9))
     }
 
     @Test func unaccepted_mark_keeps_pending() {
@@ -75,7 +75,7 @@ struct ExerciseFeedbackTests {
         sync.markBlobsPushed([RemoteBlob(id: "exerciseFeedback", data: Data(), updatedAt: base.addingTimeInterval(1))])
         #expect(sync.pendingBlobs().isEmpty)
         try? store.save(entry(at: 3))
-        #expect(sync.pendingBlobs().isEmpty)
+        #expect(sync.pendingBlobs().count == 1)
     }
 
     @Test func concurrent_saves_and_merge_lose_nothing() {
@@ -218,11 +218,11 @@ struct ExerciseFeedbackTests {
         let pushedB = syncB.pendingBlobs()
         accept(pushedB, into: &server)
         syncB.markBlobsPushed(pushedB)
-        #expect(server?.updatedAt == base.addingTimeInterval(5))
+        #expect(server?.updatedAt == pushedA[0].updatedAt)
         #expect(syncB.apply(server!))
         let next = syncB.pendingBlobs()
         #expect(next.count == 1)
-        #expect(next[0].updatedAt > base.addingTimeInterval(5))
+        #expect(next[0].updatedAt > pushedA[0].updatedAt)
         #expect(try JSONDecoder().decode([ExerciseFeedback].self, from: next[0].data).count == 2)
         accept(next, into: &server)
         #expect(try JSONDecoder().decode([ExerciseFeedback].self, from: server!.data).count == 2)
@@ -235,5 +235,31 @@ struct ExerciseFeedbackTests {
         let remote = syncA.pendingBlobs()
         #expect(syncB.apply(remote[0]))
         #expect(syncB.pendingBlobs().isEmpty)
+    }
+
+    @Test func save_between_pending_and_mark_is_pushed() throws {
+        let (store, sync, _) = makeStore()
+        try store.save(entry(at: 5))
+        let first = sync.pendingBlobs()
+        try store.save(entry(key: .catalog("y"), at: 5))
+        sync.markBlobsPushed(first)
+        let next = sync.pendingBlobs()
+        #expect(next.count == 1)
+        #expect(try JSONDecoder().decode([ExerciseFeedback].self, from: next[0].data).count == 2)
+    }
+
+    @Test func save_after_future_remote_stamp_is_pushed() throws {
+        let (storeA, syncA, _) = makeStore()
+        let (storeB, syncB, _) = makeStore()
+        try storeA.save(entry(at: 5))
+        try storeB.save(entry(key: .catalog("y"), at: 5))
+        #expect(syncB.apply(syncA.pendingBlobs()[0]))
+        let pushed = syncB.pendingBlobs()
+        syncB.markBlobsPushed(pushed)
+        #expect(syncB.pendingBlobs().isEmpty)
+        try storeB.save(entry(key: .catalog("z"), at: 0))
+        let next = syncB.pendingBlobs()
+        #expect(next.count == 1)
+        #expect(next[0].updatedAt > pushed[0].updatedAt)
     }
 }

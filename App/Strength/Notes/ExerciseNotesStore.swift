@@ -2,6 +2,7 @@ import Foundation
 
 struct ExerciseNotesStore: Sendable {
     let url: URL
+    let stamps: SyncDocumentStamp?
     var moveAside: (@Sendable (URL, URL) throws -> Void)?
 
     private var file: JSONFileStore<ExerciseNote> {
@@ -9,8 +10,11 @@ struct ExerciseNotesStore: Sendable {
         return JSONFileStore(url: url, moveAside: moveAside)
     }
 
-    init(url: URL = AccountScope.current.exerciseNotesURL) {
+    init(url: URL = AccountScope.current.exerciseNotesURL, stamps: SyncDocumentStamp? = SyncDocumentStamp(
+        defaults: AccountScope.current.defaults, syncedKey: ExerciseNotesConstants.syncedStampKey, documentKey: ExerciseNotesConstants.documentStampKey
+    )) {
         self.url = url
+        self.stamps = stamps
     }
 
     func all() -> [ExerciseNote] {
@@ -26,6 +30,7 @@ struct ExerciseNotesStore: Sendable {
     }
 
     func save(_ note: ExerciseNote) throws {
+        defer { stamps?.bumpForLocalChange(newestEntry: all().map(\.updatedAt).max()) }
         try file.mutate { notes in
             if let index = notes.firstIndex(where: { $0.id == note.id }) {
                 notes[index] = note
@@ -37,6 +42,7 @@ struct ExerciseNotesStore: Sendable {
     }
 
     func delete(_ id: UUID, at now: Date = .now) throws {
+        defer { stamps?.bumpForLocalChange(newestEntry: all().map(\.updatedAt).max()) }
         try file.mutate { notes in
             guard let index = notes.firstIndex(where: { $0.id == id }), !notes[index].deleted else { return false }
             notes[index].deleted = true

@@ -2,6 +2,7 @@ import Foundation
 
 struct ExerciseFeedbackStore: Sendable {
     let url: URL
+    let stamps: SyncDocumentStamp?
     var moveAside: (@Sendable (URL, URL) throws -> Void)?
 
     private var file: JSONFileStore<ExerciseFeedback> {
@@ -9,8 +10,9 @@ struct ExerciseFeedbackStore: Sendable {
         return JSONFileStore(url: url, moveAside: moveAside)
     }
 
-    init(url: URL) {
+    init(url: URL, stamps: SyncDocumentStamp? = nil) {
         self.url = url
+        self.stamps = stamps
     }
 
     func all() -> [ExerciseFeedback] {
@@ -18,6 +20,7 @@ struct ExerciseFeedbackStore: Sendable {
     }
 
     func save(_ entry: ExerciseFeedback) throws {
+        defer { stamps?.bumpForLocalChange(newestEntry: all().map(\.updatedAt).max()) }
         try file.mutate { entries in
             if let index = entries.firstIndex(where: { $0.id == entry.id }) {
                 entries[index] = entry

@@ -33,9 +33,7 @@ struct ExerciseFeedbackSyncStore: RemoteBlobStore {
     func apply(_ blob: RemoteBlob) -> Bool {
         guard blob.id == C.blobId, let remote = try? JSONDecoder().decode([ExerciseFeedback].self, from: blob.data) else { return false }
         let changed = store.merge(remote)
-        let remoteById = Dictionary(remote.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-        let localHasExtra = store.all().contains { remoteById[$0.id] != $0 }
-        stamps.noteRemote(stamp: blob.updatedAt, localHasExtra: localHasExtra)
+        stamps.reconcile(remote: remote, local: store.all(), remoteStamp: blob.updatedAt)
         return changed
     }
 }

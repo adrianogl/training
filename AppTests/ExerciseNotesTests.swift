@@ -11,8 +11,9 @@ struct ExerciseNotesTests {
         let folder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let url = folder.appending(path: "notes.json")
-        let store = ExerciseNotesStore(url: url)
-        return (store, ExerciseNotesSyncStore(store: store, defaults: UserDefaults(suiteName: "notes-" + UUID().uuidString)!), url)
+        let defaults = UserDefaults(suiteName: "notes-" + UUID().uuidString)!
+        let store = ExerciseNotesStore(url: url, stamps: SyncDocumentStamp(defaults: defaults, syncedKey: ExerciseNotesConstants.syncedStampKey, documentKey: ExerciseNotesConstants.documentStampKey))
+        return (store, ExerciseNotesSyncStore(store: store, defaults: defaults), url)
     }
 
     private func note(id: UUID = UUID(), key: ExerciseKey? = nil, text: String = "joelho para fora", at offset: TimeInterval = 0, deleted: Bool = false) -> ExerciseNote {
@@ -101,11 +102,11 @@ struct ExerciseNotesTests {
         let pushedB = syncB.pendingBlobs()
         accept(pushedB, into: &server)
         syncB.markBlobsPushed(pushedB)
-        #expect(server?.updatedAt == base.addingTimeInterval(5))
+        #expect(server?.updatedAt == pushedA[0].updatedAt)
         #expect(syncB.apply(server!))
         let next = syncB.pendingBlobs()
         #expect(next.count == 1)
-        #expect(next[0].updatedAt > base.addingTimeInterval(5))
+        #expect(next[0].updatedAt > pushedA[0].updatedAt)
         #expect(try JSONDecoder().decode([ExerciseNote].self, from: next[0].data).count == 2)
         accept(next, into: &server)
         #expect(try JSONDecoder().decode([ExerciseNote].self, from: server!.data).count == 2)
@@ -118,5 +119,31 @@ struct ExerciseNotesTests {
         let remote = syncA.pendingBlobs()
         #expect(syncB.apply(remote[0]))
         #expect(syncB.pendingBlobs().isEmpty)
+    }
+
+    @Test func save_between_pending_and_mark_is_pushed() throws {
+        let (store, sync, _) = makeStore()
+        try store.save(note(at: 5))
+        let first = sync.pendingBlobs()
+        try store.save(note(text: "Y", at: 5))
+        sync.markBlobsPushed(first)
+        let next = sync.pendingBlobs()
+        #expect(next.count == 1)
+        #expect(try JSONDecoder().decode([ExerciseNote].self, from: next[0].data).count == 2)
+    }
+
+    @Test func save_after_future_remote_stamp_is_pushed() throws {
+        let (storeA, syncA, _) = makeStore()
+        let (storeB, syncB, _) = makeStore()
+        try storeA.save(note(at: 5))
+        try storeB.save(note(text: "Y", at: 5))
+        #expect(syncB.apply(syncA.pendingBlobs()[0]))
+        let pushed = syncB.pendingBlobs()
+        syncB.markBlobsPushed(pushed)
+        #expect(syncB.pendingBlobs().isEmpty)
+        try storeB.save(note(text: "Z", at: 0))
+        let next = syncB.pendingBlobs()
+        #expect(next.count == 1)
+        #expect(next[0].updatedAt > pushed[0].updatedAt)
     }
 }
