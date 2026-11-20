@@ -36,9 +36,7 @@ struct RaceTargetCard<Footer: View>: View {
                 GoalPredictionBar(today: prediction, target: goal).frame(height: GoalsConstants.barHeight)
             }
             if let weather {
-                Text(RaceWeatherText.list(weather) + RaceWeatherConstants.separator + RaceWeatherText.detail(weather))
-                    .font(.caption)
-                    .foregroundStyle(weather.effect.isHeat ? BrandColors.race : BrandColors.dim)
+                weatherBox(weather)
             }
             Text([target.distanceText, target.gapText].compactMap { $0 }.joined(separator: " · "))
                 .font(.caption)
@@ -48,5 +46,25 @@ struct RaceTargetCard<Footer: View>: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
         .contentShape(Rectangle())
+    }
+
+    private func weatherBox(_ weather: RaceWeatherReading) -> some View {
+        let tint = RaceWeatherText.tint(weather)
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: RunWeatherBandConstants.symbol).font(.caption.weight(.semibold))
+                Text(String(format: RunWeatherBandConstants.degreeFormat, Int(weather.effect.weather.temperature.rounded())))
+                    .font(BrandFonts.number(C.targetClockFontSize))
+                Text(RaceWeatherText.cost(weather)).font(.footnote.weight(.semibold))
+            }
+            .foregroundStyle(tint)
+            Text(RaceWeatherText.context(weather))
+                .font(.caption)
+                .foregroundStyle(BrandColors.text.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(RunWeatherBandConstants.padding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(tint.opacity(RunWeatherBandConstants.backgroundOpacity), in: RoundedRectangle(cornerRadius: RunWeatherBandConstants.cornerRadius, style: .continuous))
     }
 }

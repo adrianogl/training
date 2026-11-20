@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum DSRowAccessory {
-    case none, link, disclosure(expanded: Bool)
+    case none, link, chevron, disclosure(expanded: Bool)
 }
 
 struct DSRow<Trailing: View>: View {
@@ -24,6 +24,7 @@ struct DSRow<Trailing: View>: View {
             switch accessory {
             case .none: EmptyView()
             case .link: CardLinkBadge()
+            case .chevron: CardLinkChevron()
             case .disclosure(let expanded): CardDisclosure(expanded: expanded)
             }
         }

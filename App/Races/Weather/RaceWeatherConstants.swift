@@ -24,4 +24,8 @@ enum RaceWeatherConstants {
     static let typicalWord = "típico"
     static let listFormat = "%d °C · %@"
     static let strategySuffixFormat = " · clima previsto +%@"
+    static let costFormat = "+%@ pelo %@"
+    static let heatWord = "calor"
+    static let coldWord = "frio"
+    static let neutralCaption = "clima sem efeito no tempo"
 }
