@@ -120,4 +120,4 @@ O convite vale 7 dias e uma conta. `POST /api/v1/auth/signup` aceita `inviteToke
 
 ## MCP
 
-O endpoint `/mcp` serve o Claude Desktop e o Claude Code com o token gerado em Ajustes › Claude. As ferramentas de força são `contexto_forca`, `validar_treinos` e `salvar_treinos`. Só para contas administradoras, `avaliacoes_imagens` lista as avaliações "Não corresponde" das imagens dos exercícios e `resolver_avaliacao` registra a decisão (trocar a imagem ou usar o desenho).
+O endpoint `/mcp` serve o Claude Desktop e o Claude Code com o token gerado em Ajustes › Claude. As ferramentas de força são `contexto_forca`, `validar_treinos` e `salvar_treinos`. Só para contas administradoras, `avaliacoes_imagens` lista as avaliações "Não corresponde" das imagens dos exercícios e `resolver_avaliacao` registra a resolução, com a nota do que mudou.
