@@ -38,7 +38,7 @@
 
 App nativo de iPhone e iPad para corrida. Lê sono, HRV e treinos do Garmin ou do Apple Watch e calcula no aparelho a prontidão do dia, a análise de cada treino, a evolução, a previsão de prova e um plano com corrida e força. O que o app faz para quem usa está na landing, em [training.aglv.dev](https://training.aglv.dev). Este README é para quem vai rodar ou mexer no código.
 
-Versão atual: `1.20.0` (ver [Versão](#versão)).
+Versão atual: `1.21.0` (ver [Versão](#versão)).
 
 ## Estrutura do repositório
 
