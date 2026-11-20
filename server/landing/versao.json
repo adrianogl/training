@@ -1,8 +1,8 @@
 {
-  "versao": "1.24.0",
-  "build": 33,
-  "versao_app": "1.24.0",
+  "versao": "1.25.0",
+  "build": 34,
+  "versao_app": "1.25.0",
   "notas": [
-    "Organiza o plano, junta corrida e força por dia e tira a comparação"
+    "Padroniza as telas do dia, da força e do envio"
   ]
 }
