@@ -49,7 +49,7 @@ struct SettingsView: View {
                 .listRowInsets(EdgeInsets())
             }
             ForEach(SettingsSection.allCases) { section in
-                Section(section.title) {
+                Section {
                     ForEach(section.groups.filter(isVisible)) { group in
                         if sizeClass == .regular {
                             Button { selection = group } label: { groupRow(group) }
@@ -60,6 +60,8 @@ struct SettingsView: View {
                                 .listRowBackground(BrandColors.card)
                         }
                     }
+                } header: {
+                    DSSectionTitle(section.title)
                 }
             }
             buildFooter
@@ -110,10 +112,17 @@ struct SettingsView: View {
             }
             Spacer(minLength: 0)
             if let connection = connection(group) {
-                Text(connection.text)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(connection.isConnected ? BrandColors.accent : BrandColors.dim)
-                    .lineLimit(1)
+                if connection.isConnected {
+                    Circle()
+                        .fill(BrandColors.accent)
+                        .frame(width: AppConstants.settingsStatusDotSize, height: AppConstants.settingsStatusDotSize)
+                        .accessibilityLabel(connection.text)
+                } else {
+                    Text(connection.text)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(BrandColors.dim)
+                        .lineLimit(1)
+                }
             }
         }
         .contentShape(Rectangle())

@@ -7,9 +7,9 @@ enum SettingsGroup: String, CaseIterable, Identifiable, Hashable, Codable {
 
     var section: SettingsSection {
         switch self {
-        case .account, .invites, .device, .garmin, .mfit, .strava, .watch, .claude: .connections
-        case .notice: .notices
-        case .appearance, .data, .licenses: .app
+        case .account, .invites: .account
+        case .device, .garmin, .mfit, .strava, .watch, .claude: .connections
+        case .notice, .appearance, .data, .licenses: .app
         }
     }
 
