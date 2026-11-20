@@ -1,11 +1,17 @@
 {
-  "versao": "1.27.1",
-  "build": 37,
-  "versao_app": "1.27.1",
+  "versao": "1.27.2",
+  "build": 38,
+  "versao_app": "1.27.2",
   "notas": [
-    "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
+    "Mostra as notas da versão instalada no aviso"
   ],
   "historico": [
+    {
+      "versao": "1.27.2",
+      "notas": [
+        "Mostra as notas da versão instalada no aviso"
+      ]
+    },
     {
       "versao": "1.27.1",
       "notas": [
