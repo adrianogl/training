@@ -10,16 +10,23 @@ struct StrengthWorkoutView: View {
         ScrollView {
             if let workout = model.workout(id: workoutId) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(workout.title).font(BrandFonts.display(24)).foregroundStyle(BrandColors.text)
-                    Text(StrengthText.workoutSubtitle).font(.footnote).foregroundStyle(BrandColors.dim)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(workout.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
+                        Text(StrengthText.workoutSubtitle).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .brandCard()
+                    StrengthSection(title: StrengthText.musclesTitle)
                     VStack(spacing: 8) {
                         BodyMapView(levels: model.levels(for: workout), height: StrengthConstants.detailMapHeight)
                         BodyMapLegend()
                     }
                     .brandCard()
-                    StrengthBlockList(title: StrengthText.inOrder, blocks: workout.blocks)
+                    StrengthSection(title: StrengthText.inOrder)
+                    StrengthBlockList(blocks: workout.blocks)
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
+                .padding(.top, 8)
                 .padding(.bottom, 24)
             }
         }
@@ -37,27 +44,32 @@ struct StrengthSessionView: View {
         ScrollView {
             if let session = model.session(id: sessionId) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(session.title).font(BrandFonts.display(24)).foregroundStyle(BrandColors.text)
-                    Text(StrengthText.dayLabel(session.day)).font(.footnote).foregroundStyle(BrandColors.dim)
-                    HStack(spacing: 6) {
-                        stat(session.minutes, StrengthText.minutes)
-                        stat(session.averageHR, StrengthText.averageHR)
-                        stat(session.maxHR, StrengthText.maxHR)
-                        stat(session.effort, StrengthText.effort)
+                    VStack(alignment: .leading, spacing: 4) {
+                        DSCardLabel(StrengthText.dayLabel(session.day))
+                        Text(session.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
+                        HStack(alignment: .top, spacing: 12) {
+                            stat(session.minutes, StrengthText.minutes)
+                            stat(session.averageHR, StrengthText.averageHR)
+                            stat(session.maxHR, StrengthText.maxHR)
+                            stat(session.effort, StrengthText.effort)
+                        }
+                        .padding(.top, 10)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .brandCard()
                     let blocks = model.blocks(forSession: sessionId)
                     if blocks.isEmpty {
-                        Text(StrengthText.noWorkout).font(.footnote).foregroundStyle(BrandColors.dim).brandCard()
+                        DSNotice(tone: .info, text: StrengthText.noWorkout)
                     } else {
-                        VStack(spacing: 6) {
-                            BodyMapView(levels: model.levels(forSession: sessionId), height: StrengthConstants.detailMapHeight)
-                            Text(StrengthText.workedMuscles).font(.caption).foregroundStyle(BrandColors.dim)
-                        }
-                        .brandCard()
-                        StrengthBlockList(title: StrengthText.sessionWorkout, blocks: blocks)
+                        StrengthSection(title: StrengthText.musclesTitle)
+                        BodyMapView(levels: model.levels(forSession: sessionId), height: StrengthConstants.detailMapHeight)
+                            .brandCard()
+                        StrengthSection(title: StrengthText.sessionWorkout)
+                        StrengthBlockList(blocks: blocks)
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
+                .padding(.top, 8)
                 .padding(.bottom, 24)
             }
         }
@@ -67,7 +79,7 @@ struct StrengthSessionView: View {
     }
 
     private func stat(_ value: Int?, _ label: String) -> some View {
-        DSStat(value: value.map(String.init), label: label, boxed: true)
+        DSStat(value: value.map(String.init), label: label, size: .large)
     }
 }
 

@@ -2,14 +2,11 @@ import GarminAPI
 import SwiftUI
 
 struct StrengthBlockList: View {
-    let title: String
     let blocks: [StrengthBlock]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(title).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
-                .padding(.bottom, 6)
-            StrengthBlockRows(blocks: blocks)
+            StrengthBlockRows(blocks: blocks, showsFirstDivider: false)
         }
         .brandCard()
     }
