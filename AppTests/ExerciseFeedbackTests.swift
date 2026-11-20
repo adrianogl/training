@@ -199,4 +199,41 @@ struct ExerciseFeedbackTests {
         #expect(sync.handles("exerciseFeedback"))
         #expect(!sync.handles("strengthContext"))
     }
+
+    private func accept(_ blobs: [RemoteBlob], into server: inout RemoteBlob?) {
+        for blob in blobs where server == nil || RemoteTimestamp.milliseconds(blob.updatedAt) > RemoteTimestamp.milliseconds(server!.updatedAt) {
+            server = blob
+        }
+    }
+
+    @Test func union_after_pull_is_pushed_with_newer_stamp() throws {
+        let (storeA, syncA, _) = makeStore()
+        let (storeB, syncB, _) = makeStore()
+        var server: RemoteBlob?
+        try storeA.save(entry(at: 5))
+        let pushedA = syncA.pendingBlobs()
+        accept(pushedA, into: &server)
+        syncA.markBlobsPushed(pushedA)
+        try storeB.save(entry(key: .catalog("other"), at: 3))
+        let pushedB = syncB.pendingBlobs()
+        accept(pushedB, into: &server)
+        syncB.markBlobsPushed(pushedB)
+        #expect(server?.updatedAt == base.addingTimeInterval(5))
+        #expect(syncB.apply(server!))
+        let next = syncB.pendingBlobs()
+        #expect(next.count == 1)
+        #expect(next[0].updatedAt > base.addingTimeInterval(5))
+        #expect(try JSONDecoder().decode([ExerciseFeedback].self, from: next[0].data).count == 2)
+        accept(next, into: &server)
+        #expect(try JSONDecoder().decode([ExerciseFeedback].self, from: server!.data).count == 2)
+    }
+
+    @Test func echo_of_remote_does_not_repush() throws {
+        let (storeA, syncA, _) = makeStore()
+        let (_, syncB, _) = makeStore()
+        try storeA.save(entry(at: 5))
+        let remote = syncA.pendingBlobs()
+        #expect(syncB.apply(remote[0]))
+        #expect(syncB.pendingBlobs().isEmpty)
+    }
 }

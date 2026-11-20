@@ -25,13 +25,19 @@ enum ClaudeContextBuilder {
     }
 
     static func notesByExercise(_ notes: [ExerciseNote]) -> [String: [String]]? {
-        let active = notes.filter { !$0.deleted && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.sorted { $0.createdAt < $1.createdAt }
+        let active = notes.filter { !$0.deleted && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         guard !active.isEmpty else { return nil }
-        return Dictionary(grouping: active, by: { note -> String in
+        let grouped = Dictionary(grouping: active, by: { note -> String in
             switch note.exercise {
             case .catalog(let id), .mfit(let id): id
             }
-        }).mapValues { $0.map(\.text) }
+        })
+        return grouped.mapValues { group in
+            group.sorted { $0.createdAt > $1.createdAt }
+                .prefix(ExerciseNotesConstants.maxNotesPerExercise)
+                .reversed()
+                .map { String($0.text.prefix(ExerciseNotesConstants.maxNoteLength)) }
+        }
     }
 
     static func catalog(_ input: ClaudeContextInput) -> [CatalogExercise] {
