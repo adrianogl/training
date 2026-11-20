@@ -1,8 +1,8 @@
 {
-  "versao": "1.27.0",
-  "build": 36,
-  "versao_app": "1.27.0",
+  "versao": "1.27.1",
+  "build": 37,
+  "versao_app": "1.27.1",
   "notas": [
-    "Avisa a instalação e abre a tela de cada notificação"
+    "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
   ]
 }
