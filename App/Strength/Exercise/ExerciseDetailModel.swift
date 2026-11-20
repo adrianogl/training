@@ -75,6 +75,16 @@ import Observation
         return StrengthLoadSuggestion.isPerHand(suggestion, for: exercise)
     }
 
+    func showNext() {
+        guard currentIndex + 1 < media.count else { return }
+        currentId = media[currentIndex + 1].id
+    }
+
+    func showPrevious() {
+        guard currentIndex > 0 else { return }
+        currentId = media[currentIndex - 1].id
+    }
+
     func alternativeName(_ media: ExerciseMedia) -> String {
         catalog.exerciseName(forMediaId: media.id) ?? input.name
     }

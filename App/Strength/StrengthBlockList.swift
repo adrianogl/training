@@ -18,6 +18,7 @@ struct StrengthBlockRows: View {
     var showsFirstDivider = true
     var workoutDay: String?
     @State private var detail: ExerciseDetailInput?
+    @State private var revision = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -25,7 +26,8 @@ struct StrengthBlockRows: View {
                 row(index + 1, block, divider: showsFirstDivider || index > 0)
             }
         }
-        .sheet(item: $detail) { input in ExerciseDetailSheet(input: input) }
+        .id(revision)
+        .sheet(item: $detail, onDismiss: { revision += 1 }) { input in ExerciseDetailSheet(input: input) }
     }
 
     private func row(_ number: Int, _ block: StrengthBlock, divider: Bool) -> some View {

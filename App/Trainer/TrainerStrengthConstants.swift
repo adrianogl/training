@@ -13,7 +13,7 @@ enum TrainerStrengthConstants {
     static let placeOrder: [StrengthPlace] = [.gym, .home, .bodyweight]
     static let regionOrder: [BodyRegion] = [.knee, .calfAchilles, .lowerBack, .hip, .shoulder]
     static let swapSymbol = "arrow.triangle.2.circlepath"
-    static let openSymbol = "chevron.right"
+    static let swapTargetWidth: CGFloat = 28
     static let painSymbol = "bandage"
     static let suggestionSymbol = "sparkles"
     static let rowSpacing: CGFloat = 10

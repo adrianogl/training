@@ -44,6 +44,7 @@ enum TrainerStrengthText {
     static let suggestedLoadFormat = "%@ kg sugerida"
     static let baseFormat = "Base: %@, %@ kg em %@"
     static let firstTime = "Primeira vez: comece leve e registre a carga"
+    static let restShortFormat = "%d s ›"
 
     static func sourceName(_ source: TrainerStrengthSource) -> String {
         switch source {
@@ -99,6 +100,10 @@ enum TrainerStrengthText {
     static func dose(_ exercise: GeneratedExercise) -> String {
         let amount = exercise.seconds.map { "\($0) s" } ?? exercise.reps.map(String.init) ?? ""
         return "\(exercise.sets) × \(amount)\(exercise.perSide ? " cada" : "")"
+    }
+
+    static func rowDose(_ exercise: GeneratedExercise) -> String {
+        [dose(exercise), exercise.weight.map { "\(kilograms($0)) kg" }].compactMap { $0 }.joined(separator: " · ")
     }
 
     static func load(_ exercise: GeneratedExercise) -> String? {

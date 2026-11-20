@@ -115,10 +115,16 @@ struct TrainerExerciseRow: View {
                     ExerciseThumbnail(key: .catalog(exercise.exerciseId), pattern: StrengthCatalog.exercise(exercise.exerciseId)?.pattern)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).multilineTextAlignment(.leading)
-                        loadLine
+                        HStack(spacing: 4) {
+                            Text(TrainerStrengthText.rowDose(exercise)).font(.caption.monospacedDigit()).foregroundStyle(BrandColors.dim).lineLimit(1).fixedSize()
+                            if exercise.suggestedLoad != nil, exercise.replacedName == nil { SuggestedLoadPill() }
+                        }
+                        if let replaced = exercise.replacedName {
+                            Text(String(format: TrainerStrengthText.replacedFormat, replaced)).font(.caption).foregroundStyle(BrandColors.accent)
+                        }
                     }
                     Spacer(minLength: 6)
-                    Text(TrainerStrengthText.dose(exercise)).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
+                    Text(String(format: TrainerStrengthText.restShortFormat, exercise.restSeconds)).font(.footnote.monospacedDigit()).foregroundStyle(BrandColors.dim).lineLimit(1).fixedSize()
                 }
                 .contentShape(Rectangle())
             }
@@ -126,24 +132,11 @@ struct TrainerExerciseRow: View {
             .accessibilityLabel(String(format: ExerciseDetailText.openFormat, exercise.name))
             Button(action: onSwap) {
                 Image(systemName: TrainerStrengthConstants.swapSymbol).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.strength)
+                    .frame(minWidth: TrainerStrengthConstants.swapTargetWidth, minHeight: ExerciseDetailConstants.minTarget)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(String(format: TrainerStrengthText.swapTitleFormat, exercise.name))
-            Image(systemName: TrainerStrengthConstants.openSymbol).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim.opacity(0.6)).accessibilityHidden(true)
-        }
-    }
-
-    @ViewBuilder
-    private var loadLine: some View {
-        if exercise.replacedName == nil, exercise.suggestedLoad != nil, let weight = exercise.weight {
-            HStack(spacing: 4) {
-                Text("\(TrainerStrengthText.kilograms(weight)) kg").font(.caption).foregroundStyle(BrandColors.dim)
-                SuggestedLoadPill()
-            }
-        } else if let load = TrainerStrengthText.load(exercise) {
-            Text(load)
-                .font(.caption)
-                .foregroundStyle(exercise.replacedName == nil ? BrandColors.dim : BrandColors.accent)
         }
     }
 }

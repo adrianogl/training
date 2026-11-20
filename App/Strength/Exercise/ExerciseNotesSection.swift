@@ -22,14 +22,16 @@ struct ExerciseNotesSection: View {
             HStack {
                 Text(ExerciseDetailText.notesTitle).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.dim)
                 Spacer()
-                Button(ExerciseDetailText.addNote) { model.addNote() }
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(BrandColors.text)
-                    .frame(minHeight: 32)
-                    .buttonStyle(.plain)
+                Button { model.addNote() } label: {
+                    Text(ExerciseDetailText.addNote)
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(BrandColors.text)
+                        .frame(minHeight: ExerciseDetailConstants.minTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 12)
-            .padding(.vertical, 2)
             ForEach(model.notes) { note in
                 item(text: note.text, caption: ExerciseDetailText.shortDate(note.createdAt), dimmed: false)
                     .contentShape(Rectangle())

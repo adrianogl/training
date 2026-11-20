@@ -45,20 +45,26 @@ struct ExerciseFeedbackSection: View {
 
     private func banner(tone: Color, title: String, detail: String?) -> some View {
         let shape = RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous)
-        return HStack(alignment: .firstTextBaseline, spacing: DSSpacing.s2) {
+        return HStack(alignment: .center, spacing: DSSpacing.s2) {
             Image(systemName: tone == BrandColors.accent ? "checkmark" : "xmark").font(.footnote.weight(.bold)).foregroundStyle(tone)
             (Text(title).bold().foregroundStyle(tone) + Text(detail.map { " " + $0 } ?? "").foregroundStyle(BrandColors.text))
                 .font(.footnote)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: DSSpacing.s2)
-            Button(ExerciseDetailText.undo) { model.undo() }
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(BrandColors.text)
-                .underline()
-                .buttonStyle(.plain)
+            Button { model.undo() } label: {
+                Text(ExerciseDetailText.undo)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(BrandColors.text)
+                    .underline()
+                    .padding(.horizontal, DSSpacing.s2)
+                    .frame(minWidth: ExerciseDetailConstants.minTarget, minHeight: ExerciseDetailConstants.minTarget)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, DSSpacing.s3)
+        .padding(.leading, 12)
+        .padding(.trailing, DSSpacing.s1)
+        .padding(.vertical, DSSpacing.s1)
         .background(tone.opacity(ExerciseDetailConstants.tintOpacity), in: shape)
         .overlay(shape.strokeBorder(tone.opacity(ExerciseDetailConstants.borderOpacity), lineWidth: 1))
     }
@@ -115,7 +121,7 @@ struct ExerciseFeedbackSection: View {
     private var drawingNote: some View {
         let shape = RoundedRectangle(cornerRadius: DSRadius.medium, style: .continuous)
         return VStack(alignment: .leading, spacing: DSSpacing.s2) {
-            (Text(ExerciseDetailText.noneMatched).bold().foregroundStyle(BrandColors.attention) + Text(" " + ExerciseDetailText.tellDifference).foregroundStyle(BrandColors.text))
+            (Text(ExerciseDetailText.noneMatchedTitle(searchedWger: model.alternativeSource == .wger)).bold().foregroundStyle(BrandColors.attention) + Text(" " + ExerciseDetailText.switchedToDrawing + " " + ExerciseDetailText.tellDifference).foregroundStyle(BrandColors.text))
                 .font(.footnote)
             TextField("", text: $model.suggestion, axis: .vertical)
                 .lineLimit(3...6)

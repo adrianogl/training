@@ -13,7 +13,7 @@ import UIKit
     )
 
     private static let singleLegDeadlift = ExerciseDetailInput(
-        key: .catalog("DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL"), name: "Terra com uma perna", dose: "3 × 10 cada", load: "8 kg",
+        key: .catalog("DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL"), name: "Terra com uma perna", dose: "3 × 10 por lado", load: "8 kg",
         suggestedLoad: SuggestedLoad(weight: 8, baseId: "DEADLIFT/ROMANIAN_DEADLIFT", baseWeight: 40, baseDay: "2026-11-14"),
         pattern: .hinge, mfitNote: nil, workoutDay: "2026-11-20", rest: "descanso 60 s"
     )
@@ -130,6 +130,35 @@ import UIKit
         #expect(detail.draft?.text == "Pausa embaixo.")
     }
 
+    @Test func load_calculation_line_matches_mock() throws {
+        let line = try #require(ExerciseDetailText.calculation(Self.singleLegDeadlift.suggestedLoad!, key: Self.singleLegDeadlift.key))
+        #expect(line == "40 kg → unilateral, metade (20 kg) → halter, dividido nas duas mãos (10 kg) → menos 20% por ser a primeira vez = 8 kg, arredondado para baixo")
+    }
+
+    @Test func trainer_input_header_with_suggestion_follows_mock() {
+        let exercise = GeneratedExercise(exerciseId: "DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL", name: "Terra com uma perna", category: "DEADLIFT", exerciseName: nil, sets: 3, reps: 10, seconds: nil, restSeconds: 60, weight: 8, perSide: true, suggestedLoad: Self.singleLegDeadlift.suggestedLoad)
+        #expect(ExerciseDetailText.header(.trainer(exercise, day: nil)) == "3 × 10 por lado · descanso 60 s")
+        let plain = GeneratedExercise(exerciseId: "SQUAT/GOBLET_SQUAT", name: "Agachamento goblet", category: "SQUAT", exerciseName: nil, sets: 3, reps: 10, seconds: nil, restSeconds: 60, weight: 16, perSide: false)
+        #expect(ExerciseDetailText.header(.trainer(plain, day: nil)) == "3 × 10 · 16 kg · descanso 60 s")
+    }
+
+    @Test func adjustable_carousel_moves_current_page() {
+        let detail = model(stores: makeStores())
+        detail.showNext()
+        #expect(detail.currentIndex == 1)
+        detail.showPrevious()
+        detail.showPrevious()
+        #expect(detail.currentIndex == 0)
+        #expect(ExerciseDetailText.carouselValue(detail) == "1 de \(detail.media.count), free-exercise-db · domínio público")
+    }
+
+    @Test func none_matched_copy_depends_on_wger_search() {
+        let detail = model(stores: makeStores())
+        detail.markDoesNotMatch()
+        #expect(ExerciseDetailText.noneMatched(searchedWger: detail.alternativeSource == .wger) == "Nenhuma foto servia. Passou para o desenho do padrão.")
+        #expect(ExerciseDetailText.noneMatched(searchedWger: true) == "Nenhuma foto servia, nem na wger. Passou para o desenho do padrão.")
+    }
+
     @Test func carousel_first_and_second_image() async throws {
         let stores = makeStores()
         let first = model(stores: stores)
@@ -159,6 +188,7 @@ import UIKit
         let stores = makeStores()
         let detail = model(stores: stores)
         detail.markDoesNotMatch()
+        detail.searchWger()
         detail.useDrawing()
         detail.suggestion = "Peso no peito, não nas costas."
         try await snapshot(ExerciseDetailScreen(model: detail), "desenho-com-campo")

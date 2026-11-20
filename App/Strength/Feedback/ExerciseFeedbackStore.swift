@@ -35,6 +35,12 @@ struct ExerciseFeedbackStore: Sendable {
         all().filter { $0.exercise == key && $0.mediaId == mediaId }.max { $0.updatedAt < $1.updatedAt }
     }
 
+    func pending() -> [ExerciseFeedback] {
+        let entries = all()
+        let undone = Set(entries.compactMap(\.undoes))
+        return entries.filter { $0.status == .pending && $0.undoes == nil && !undone.contains($0.id) }
+    }
+
     func preferredChoice(for key: ExerciseKey) -> ExerciseFeedback? {
         let entries = all().filter { $0.exercise == key }
         let undone = Set(entries.compactMap(\.undoes))

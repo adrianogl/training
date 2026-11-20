@@ -9,6 +9,8 @@ enum ExerciseDetailConstants {
     static let thumbnailSize: CGFloat = 44
     static let thumbnailCorner: CGFloat = 10
     static let dotSize: CGFloat = 6
+    static let minTarget: CGFloat = 44
+    static let thumbnailDrawingScale: CGFloat = 1.5
     static let imagesFolder = "Images"
     static let wgerAnimatedExtension = "gif"
     static let editorMinHeight: CGFloat = 84

@@ -117,4 +117,21 @@ import TrainingCore
         #expect(exercise("SQUAT/GOBLET_SQUAT").takesLoad)
         #expect(!StrengthCatalog.all.filter { $0.equipment == .bodyweight }.contains { $0.takesLoad })
     }
+
+    @Test func steps_match_suggested_weight_for_rdl_to_single_leg_dumbbell() throws {
+        let target = exercise("DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL")
+        let suggestion = try #require(StrengthLoadSuggestion.suggest(for: target, history: ["DEADLIFT/ROMANIAN_DEADLIFT": record(40)]))
+        let steps = try #require(StrengthLoadSuggestion.steps(for: target, suggestion: suggestion))
+        #expect(steps.map(\.kind) == [.unilateral, .perHand, .firstTime])
+        #expect(steps.map(\.weight) == [20, 10, 8])
+        #expect(steps.map(\.share) == [0.5, 0.5, 0.8])
+    }
+
+    @Test func steps_same_equipment_only_first_time() throws {
+        let target = exercise("SQUAT/DUMBBELL_FRONT_SQUAT")
+        let suggestion = try #require(StrengthLoadSuggestion.suggest(for: target, history: ["SQUAT/GOBLET_SQUAT": record(16)]))
+        let steps = try #require(StrengthLoadSuggestion.steps(for: target, suggestion: suggestion))
+        #expect(steps.map(\.kind) == [.firstTime])
+        #expect(suggestion.weight == 12)
+    }
 }

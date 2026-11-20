@@ -11,3 +11,13 @@ public struct SuggestedLoad: Codable, Sendable, Equatable {
         self.baseDay = baseDay
     }
 }
+
+public enum SuggestionStepKind: String, Sendable, Equatable {
+    case unilateral, perHand, firstTime
+}
+
+public struct SuggestionStep: Sendable, Equatable {
+    public let kind: SuggestionStepKind
+    public let share: Double
+    public let weight: Double
+}

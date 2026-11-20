@@ -83,7 +83,16 @@ struct ExerciseMediaCarousel: View {
             .scrollTargetBehavior(.paging)
             .scrollIndicators(.hidden)
             .scrollPosition(id: $model.currentId)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel(ExerciseDetailText.carouselLabel)
+            .accessibilityValue(ExerciseDetailText.carouselValue(model))
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: model.showNext()
+                case .decrement: model.showPrevious()
+                @unknown default: break
+                }
+            }
             if model.media.count > 1 {
                 HStack(spacing: DSSpacing.s2 - 2) {
                     ForEach(Array(model.media.enumerated()), id: \.element.id) { index, _ in
@@ -123,7 +132,7 @@ struct ExerciseThumbnail: View {
             if let media = firstMedia {
                 if media.source == .drawing, let pattern = media.pattern {
                     ExercisePatternFigure(pattern: pattern, progress: 1)
-                        .padding(2)
+                        .scaleEffect(ExerciseDetailConstants.thumbnailDrawingScale)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(BrandColors.track)
                 } else if let image = media.frames.first.flatMap(ExerciseImageLoader.image) {

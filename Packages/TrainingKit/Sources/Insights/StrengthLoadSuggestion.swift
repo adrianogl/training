@@ -4,18 +4,31 @@ public enum StrengthLoadSuggestion {
     public static func suggest(for exercise: CatalogExercise, history: [String: StrengthLoadRecord]) -> SuggestedLoad? {
         guard let increment = C.increments[exercise.equipment] else { return nil }
         guard let base = base(for: exercise, history: history) else { return nil }
-        var share = C.firstTimeShare
-        if base.exercise.equipment == .barbell, C.handheld.contains(exercise.equipment) { share *= C.perHandShare }
-        if exercise.unilateral && !base.exercise.unilateral { share *= C.unilateralShare }
-        let raw = base.record.weight * share
+        let raw = steps(from: base.exercise, weight: base.record.weight, to: exercise).last?.weight ?? base.record.weight
         let rounded = (raw / increment).rounded(.down) * increment
         guard rounded >= increment else { return nil }
         return SuggestedLoad(weight: rounded, baseId: base.exercise.id, baseWeight: base.record.weight, baseDay: base.record.day)
     }
 
+    public static func steps(for exercise: CatalogExercise, suggestion: SuggestedLoad) -> [SuggestionStep]? {
+        guard let base = StrengthCatalog.exercise(suggestion.baseId) else { return nil }
+        return steps(from: base, weight: suggestion.baseWeight, to: exercise)
+    }
+
     public static func isPerHand(_ suggestion: SuggestedLoad, for exercise: CatalogExercise) -> Bool {
-        guard let base = StrengthCatalog.exercise(suggestion.baseId) else { return false }
-        return base.equipment == .barbell && C.handheld.contains(exercise.equipment)
+        steps(for: exercise, suggestion: suggestion)?.contains { $0.kind == .perHand } ?? false
+    }
+
+    private static func steps(from base: CatalogExercise, weight: Double, to exercise: CatalogExercise) -> [SuggestionStep] {
+        var shares: [(SuggestionStepKind, Double)] = []
+        if exercise.unilateral && !base.unilateral { shares.append((.unilateral, C.unilateralShare)) }
+        if base.equipment == .barbell, C.handheld.contains(exercise.equipment) { shares.append((.perHand, C.perHandShare)) }
+        shares.append((.firstTime, C.firstTimeShare))
+        var current = weight
+        return shares.map { kind, share in
+            current *= share
+            return SuggestionStep(kind: kind, share: share, weight: current)
+        }
     }
 
     private static func base(for exercise: CatalogExercise, history: [String: StrengthLoadRecord]) -> (exercise: CatalogExercise, record: StrengthLoadRecord)? {

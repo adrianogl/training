@@ -262,4 +262,35 @@ struct ExerciseFeedbackTests {
         #expect(next.count == 1)
         #expect(next[0].updatedAt > pushed[0].updatedAt)
     }
+
+    private func undo(_ target: ExerciseFeedback, at offset: TimeInterval) -> ExerciseFeedback {
+        ExerciseFeedback(
+            id: UUID(), exercise: target.exercise, exerciseName: target.exerciseName, mediaId: target.mediaId, verdict: target.verdict,
+            chosenMediaId: nil, noneMatched: false, note: nil, createdAt: base.addingTimeInterval(offset), updatedAt: base.addingTimeInterval(offset),
+            workoutDay: nil, status: .resolved, resolution: nil, resolvedIn: nil, undoes: target.id
+        )
+    }
+
+    @Test func pending_excludes_undone_and_undo_entries() throws {
+        let (store, _, _) = makeStore()
+        let kept = entry(media: "freeExerciseDb:K.jpg", at: 1)
+        let withdrawn = entry(media: "freeExerciseDb:W.jpg", chosen: "freeExerciseDb:X.jpg", at: 2)
+        let resolved = entry(media: "freeExerciseDb:R.jpg", at: 3, status: .resolved)
+        try store.save(kept)
+        try store.save(withdrawn)
+        try store.save(resolved)
+        try store.save(undo(withdrawn, at: 4))
+        #expect(store.pending().map(\.id) == [kept.id])
+    }
+
+    @Test func undoing_choice_falls_back_to_previous_choice() throws {
+        let (store, _, _) = makeStore()
+        let first = entry(media: "freeExerciseDb:A.jpg", chosen: "freeExerciseDb:B.jpg", at: 1)
+        let second = entry(media: "freeExerciseDb:B.jpg", chosen: "freeExerciseDb:C.jpg", at: 2)
+        try store.save(first)
+        try store.save(second)
+        #expect(store.preferredMediaId(for: key) == "freeExerciseDb:C.jpg")
+        try store.save(undo(second, at: 3))
+        #expect(store.preferredMediaId(for: key) == "freeExerciseDb:B.jpg")
+    }
 }

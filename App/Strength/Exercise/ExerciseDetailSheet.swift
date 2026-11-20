@@ -11,11 +11,17 @@ struct ExerciseDetailSheet: View {
         self.input = input
     }
 
+    @State private var model: ExerciseDetailModel?
+
     var body: some View {
         Group {
-            if let feedbackStore, let notesStore {
-                ExerciseDetailScreen(model: ExerciseDetailModel(input: input, feedback: feedbackStore, notes: notesStore))
+            if let model {
+                ExerciseDetailScreen(model: model)
             }
+        }
+        .onAppear {
+            guard model == nil, let feedbackStore, let notesStore else { return }
+            model = ExerciseDetailModel(input: input, feedback: feedbackStore, notes: notesStore)
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -95,6 +101,9 @@ struct ExerciseLoadBlock: View {
                     }
                 }
                 Text(TrainerStrengthText.baseLine(suggestion)).font(.footnote).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
+                if let calculation = ExerciseDetailText.calculation(suggestion, key: input.key) {
+                    Text(calculation).font(.footnote).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, DSSpacing.s3)
@@ -118,6 +127,8 @@ struct SuggestedLoadPill: View {
     var body: some View {
         Text(ExerciseDetailText.suggestedPill)
             .font(.caption2.weight(.bold))
+            .lineLimit(1)
+            .fixedSize()
             .foregroundStyle(BrandColors.attention)
             .padding(.horizontal, 7)
             .padding(.vertical, 1)
@@ -131,7 +142,7 @@ extension ExerciseDetailInput {
         return ExerciseDetailInput(
             key: .catalog(exercise.exerciseId),
             name: exercise.name,
-            dose: TrainerStrengthText.dose(exercise),
+            dose: ExerciseDetailText.dose(exercise),
             load: exercise.weight.map { "\(TrainerStrengthText.kilograms($0)) kg" },
             suggestedLoad: exercise.suggestedLoad,
             pattern: catalogExercise?.pattern ?? StrengthCatalog.pattern(garminCategory: exercise.category),
