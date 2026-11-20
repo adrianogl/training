@@ -4,6 +4,7 @@ import SwiftUI
 struct DetailedAnalysisView: View {
     let activityId: Int64
     let goalEntries: [WorkoutGoalEntry]
+    var extraFacts: [String] = []
     @Environment(\.modelContext) private var context
     @State private var model: DetailedAnalysisModel?
 
@@ -25,7 +26,7 @@ struct DetailedAnalysisView: View {
         .navigationTitle(C.screenTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            let loaded = DetailedAnalysisModel(activityId: activityId, goalEntries: goalEntries, context: context)
+            let loaded = DetailedAnalysisModel(activityId: activityId, goalEntries: goalEntries, extraFacts: extraFacts, context: context)
             model = loaded
             await loaded.generateCoach()
         }

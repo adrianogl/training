@@ -7,6 +7,7 @@ struct WorkoutAnalysisCard: View {
     let activityId: Int64
     let goalEntries: [WorkoutGoalEntry]
     var aboveExpected: [AboveExpectedSignal] = []
+    var extraFacts: [String] = []
     var framed = true
     var showsLabel = true
     @State private var showsAll = false
@@ -47,7 +48,11 @@ struct WorkoutAnalysisCard: View {
             detailedLink
         }
         .brandCard(framed: framed)
-        .task(id: summary) { await generateCoach() }
+        .task(id: facts) { await generateCoach() }
+    }
+
+    private var facts: [String] {
+        summary.coachFacts + extraFacts
     }
 
     private var showsSkeleton: Bool {
@@ -57,7 +62,7 @@ struct WorkoutAnalysisCard: View {
     private func generateCoach() async {
         coach = nil
         timedOut = false
-        let facts = summary.coachFacts
+        let facts = facts
         if let cached = await CoachFeedbackCache.shared.cached(for: facts) {
             coach = cached
             return
@@ -75,7 +80,7 @@ struct WorkoutAnalysisCard: View {
 
     private var detailedLink: some View {
         NavigationLink {
-            DetailedAnalysisView(activityId: activityId, goalEntries: goalEntries)
+            DetailedAnalysisView(activityId: activityId, goalEntries: goalEntries, extraFacts: extraFacts)
         } label: {
             Text(DetailedScreenConstants.buttonTitle + " ›")
                 .font(.subheadline.weight(.semibold))

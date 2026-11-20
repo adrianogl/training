@@ -17,7 +17,7 @@ import WorkoutAnalysis
     private let store = GeneratedTextStore()
     private typealias C = DetailedScreenConstants
 
-    init(activityId: Int64, goalEntries: [WorkoutGoalEntry], context: ModelContext) {
+    init(activityId: Int64, goalEntries: [WorkoutGoalEntry], extraFacts: [String] = [], context: ModelContext) {
         let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
         defer { isLoaded = true }
         guard let record = records.first(where: { $0.activityId == activityId }) else { return }
@@ -35,7 +35,9 @@ import WorkoutAnalysis
         let name = record.displayTitle
         title = (record.distance ?? 0) > 0 ? "\(name) · \(WorkoutFormat.kilometers(record.distance ?? 0)) km" : name
         dateText = record.start.formatted(.dateTime.weekday(.wide).day().month(.wide).locale(WorkoutFormat.locale))
-        sections = analysis.map(DetailedCoach.sections(for:)) ?? []
+        sections = (analysis.map(DetailedCoach.sections(for:)) ?? []).map { section in
+            section.part == .workout ? DetailedCoachSection(part: section.part, facts: section.facts + extraFacts) : section
+        }
         states = Dictionary(uniqueKeysWithValues: sections.map { ($0.part, CoachPartState.pending) })
     }
 
