@@ -36,6 +36,8 @@ import TrainingCore
     let strava: StravaModel
     let trainer: TrainerModel
     let garminZones: GarminZonesModel
+    let exerciseFeedback: ExerciseFeedbackStore
+    let exerciseNotes: ExerciseNotesStore
     let snapshots: ScreenSnapshotStore
     let appUpdate = AppUpdateModel()
     let installExpiry = InstallExpiryModel()
@@ -107,6 +109,10 @@ import TrainingCore
         let watch = storedWatch ?? (keyed ? WatchKind.garmin : nil)
         if storedWatch == nil { watch?.store(in: scope.defaults) }
         self.watchKind = watch
+        let exerciseFeedback = ExerciseFeedbackStore(url: scope.exerciseFeedbackURL, stamps: SyncDocumentStamp(defaults: remoteDefaults, syncedKey: ExerciseFeedbackConstants.syncedStampKey, documentKey: ExerciseFeedbackConstants.documentStampKey))
+        let exerciseNotes = ExerciseNotesStore(url: scope.exerciseNotesURL, stamps: SyncDocumentStamp(defaults: remoteDefaults, syncedKey: ExerciseNotesConstants.syncedStampKey, documentKey: ExerciseNotesConstants.documentStampKey))
+        self.exerciseFeedback = exerciseFeedback
+        self.exerciseNotes = exerciseNotes
         self.remoteSync = RemoteSyncModel(
             container: container,
             keyStore: remoteKeyStore,
@@ -121,8 +127,8 @@ import TrainingCore
                 PreferenceSyncStore(defaults: remoteDefaults),
                 ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
-                ExerciseFeedbackSyncStore(store: ExerciseFeedbackStore(url: scope.exerciseFeedbackURL, stamps: SyncDocumentStamp(defaults: remoteDefaults, syncedKey: ExerciseFeedbackConstants.syncedStampKey, documentKey: ExerciseFeedbackConstants.documentStampKey)), defaults: remoteDefaults),
-                ExerciseNotesSyncStore(store: ExerciseNotesStore(url: scope.exerciseNotesURL, stamps: SyncDocumentStamp(defaults: remoteDefaults, syncedKey: ExerciseNotesConstants.syncedStampKey, documentKey: ExerciseNotesConstants.documentStampKey)), defaults: remoteDefaults),
+                ExerciseFeedbackSyncStore(store: exerciseFeedback, defaults: remoteDefaults),
+                ExerciseNotesSyncStore(store: exerciseNotes, defaults: remoteDefaults),
                 ClaudeContextSyncStore(defaults: remoteDefaults),
                 ClaudeInboxSyncStore(defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: watchTokenStore, defaults: remoteDefaults),

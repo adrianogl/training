@@ -106,4 +106,15 @@ import TrainingCore
         #expect(result.exercises.first?.weight == nil)
         #expect(result.exercises.first?.suggestedLoad == nil)
     }
+
+    @Test func per_hand_only_from_barbell_to_handheld() {
+        let fromBarbell = SuggestedLoad(weight: 8, baseId: "DEADLIFT/ROMANIAN_DEADLIFT", baseWeight: 40, baseDay: nil)
+        #expect(StrengthLoadSuggestion.isPerHand(fromBarbell, for: exercise("DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL")))
+        #expect(!StrengthLoadSuggestion.isPerHand(fromBarbell, for: exercise("DEADLIFT/SINGLE_LEG_BARBELL_DEADLIFT")))
+    }
+
+    @Test func takes_load_follows_loaded_equipment() {
+        #expect(exercise("SQUAT/GOBLET_SQUAT").takesLoad)
+        #expect(!StrengthCatalog.all.filter { $0.equipment == .bodyweight }.contains { $0.takesLoad })
+    }
 }

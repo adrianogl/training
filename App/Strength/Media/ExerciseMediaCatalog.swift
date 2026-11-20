@@ -11,9 +11,37 @@ struct ExerciseMediaCatalog: Sendable {
     }()
 
     private let file: ExerciseMediaFile?
+    private let catalogIdByMediaId: [String: String]
 
     init(data: Data) {
-        file = try? JSONDecoder().decode(ExerciseMediaFile.self, from: data)
+        let decoded = try? JSONDecoder().decode(ExerciseMediaFile.self, from: data)
+        file = decoded
+        var index: [String: String] = [:]
+        for (id, entries) in decoded?.mediaByCatalogId ?? [:] {
+            for entry in entries {
+                for frame in entry.frames where index["\(entry.source.rawValue):\(frame)"] == nil {
+                    index["\(entry.source.rawValue):\(frame)"] = id
+                }
+            }
+        }
+        catalogIdByMediaId = index
+    }
+
+    func media(withId id: String) -> ExerciseMedia? {
+        let drawingPrefix = "\(ExerciseMediaConstants.drawingIdPrefix):"
+        if id.hasPrefix(drawingPrefix) {
+            return MovementPattern(rawValue: String(id.dropFirst(drawingPrefix.count))).map(drawing(for:))
+        }
+        guard let catalogId = catalogIdByMediaId[id] else { return nil }
+        return photos(forCatalogId: catalogId).first { $0.id == id }
+    }
+
+    func exerciseName(forMediaId id: String) -> String? {
+        catalogIdByMediaId[id].flatMap { StrengthCatalog.exercise($0)?.name }
+    }
+
+    func steps(for pattern: MovementPattern) -> [String] {
+        file?.stepsByPattern[pattern.rawValue]?.steps ?? []
     }
 
     func key(forMFITName name: String, category: String?) -> ExerciseKey {
@@ -89,7 +117,7 @@ struct ExerciseMediaCatalog: Sendable {
     private func drawing(for pattern: MovementPattern) -> ExerciseMedia {
         ExerciseMedia(
             id: "\(ExerciseMediaConstants.drawingIdPrefix):\(pattern.rawValue)", source: .drawing, frames: [], equivalent: false,
-            steps: file?.stepsByPattern[pattern.rawValue]?.steps ?? [], author: nil, license: nil, link: nil, pattern: pattern
+            steps: steps(for: pattern), author: nil, license: nil, link: nil, pattern: pattern
         )
     }
 

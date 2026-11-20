@@ -23,4 +23,5 @@ struct ExerciseFeedback: Codable, Sendable, Equatable, Identifiable {
     var status: ExerciseFeedbackStatus
     var resolution: String?
     var resolvedIn: String?
+    var undoes: UUID? = nil
 }

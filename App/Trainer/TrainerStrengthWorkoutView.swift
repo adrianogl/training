@@ -9,6 +9,7 @@ struct TrainerStrengthWorkoutView: View {
     @State private var revision = 0
     @State private var swapping: GeneratedExercise?
     @State private var showsPain = false
+    @State private var detail: ExerciseDetailInput?
 
     private var day: Day? { Day(iso: iso) }
 
@@ -42,6 +43,7 @@ struct TrainerStrengthWorkoutView: View {
             }
         }
         .sheet(isPresented: $showsPain, onDismiss: { revision += 1 }) { TrainerPainSheet() }
+        .sheet(item: $detail, onDismiss: { revision += 1 }) { input in ExerciseDetailSheet(input: input) }
     }
 
     @ViewBuilder
@@ -81,7 +83,8 @@ struct TrainerStrengthWorkoutView: View {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
                     if index > 0 { Divider().overlay(BrandColors.line) }
-                    exerciseRow(exercise).padding(.vertical, 9)
+                    TrainerExerciseRow(exercise: exercise, onOpen: { detail = .trainer(exercise, day: iso) }, onSwap: { swapping = exercise })
+                        .padding(.vertical, 9)
                 }
             }
             .brandCard()
@@ -98,24 +101,49 @@ struct TrainerStrengthWorkoutView: View {
             .buttonStyle(.ds(.secondary))
         }
     }
+}
 
-    private func exerciseRow(_ exercise: GeneratedExercise) -> some View {
+struct TrainerExerciseRow: View {
+    let exercise: GeneratedExercise
+    let onOpen: () -> Void
+    let onSwap: () -> Void
+
+    var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                if let load = TrainerStrengthText.load(exercise) {
-                    Text(load)
-                        .font(.caption)
-                        .foregroundStyle(exercise.replacedName == nil ? BrandColors.dim : BrandColors.accent)
+            Button(action: onOpen) {
+                HStack(alignment: .center, spacing: 12) {
+                    ExerciseThumbnail(key: .catalog(exercise.exerciseId), pattern: StrengthCatalog.exercise(exercise.exerciseId)?.pattern)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).multilineTextAlignment(.leading)
+                        loadLine
+                    }
+                    Spacer(minLength: 6)
+                    Text(TrainerStrengthText.dose(exercise)).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
                 }
+                .contentShape(Rectangle())
             }
-            Spacer(minLength: 6)
-            Text(TrainerStrengthText.dose(exercise)).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
-            Button { swapping = exercise } label: {
+            .buttonStyle(.plain)
+            .accessibilityLabel(String(format: ExerciseDetailText.openFormat, exercise.name))
+            Button(action: onSwap) {
                 Image(systemName: TrainerStrengthConstants.swapSymbol).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.strength)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(String(format: TrainerStrengthText.swapTitleFormat, exercise.name))
+            Image(systemName: TrainerStrengthConstants.openSymbol).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim.opacity(0.6)).accessibilityHidden(true)
+        }
+    }
+
+    @ViewBuilder
+    private var loadLine: some View {
+        if exercise.replacedName == nil, exercise.suggestedLoad != nil, let weight = exercise.weight {
+            HStack(spacing: 4) {
+                Text("\(TrainerStrengthText.kilograms(weight)) kg").font(.caption).foregroundStyle(BrandColors.dim)
+                SuggestedLoadPill()
+            }
+        } else if let load = TrainerStrengthText.load(exercise) {
+            Text(load)
+                .font(.caption)
+                .foregroundStyle(exercise.replacedName == nil ? BrandColors.dim : BrandColors.accent)
         }
     }
 }

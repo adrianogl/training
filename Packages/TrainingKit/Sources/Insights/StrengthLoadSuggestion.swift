@@ -13,6 +13,11 @@ public enum StrengthLoadSuggestion {
         return SuggestedLoad(weight: rounded, baseId: base.exercise.id, baseWeight: base.record.weight, baseDay: base.record.day)
     }
 
+    public static func isPerHand(_ suggestion: SuggestedLoad, for exercise: CatalogExercise) -> Bool {
+        guard let base = StrengthCatalog.exercise(suggestion.baseId) else { return false }
+        return base.equipment == .barbell && C.handheld.contains(exercise.equipment)
+    }
+
     private static func base(for exercise: CatalogExercise, history: [String: StrengthLoadRecord]) -> (exercise: CatalogExercise, record: StrengthLoadRecord)? {
         let candidates: [(exercise: CatalogExercise, record: StrengthLoadRecord)] = StrengthCatalog.all.compactMap { other in
             guard other.id != exercise.id, other.pattern == exercise.pattern || other.category == exercise.category, let record = history[other.id] else { return nil }

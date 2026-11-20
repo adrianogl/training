@@ -35,11 +35,16 @@ struct ExerciseFeedbackStore: Sendable {
         all().filter { $0.exercise == key && $0.mediaId == mediaId }.max { $0.updatedAt < $1.updatedAt }
     }
 
+    func preferredChoice(for key: ExerciseKey) -> ExerciseFeedback? {
+        let entries = all().filter { $0.exercise == key }
+        let undone = Set(entries.compactMap(\.undoes))
+        return entries
+            .filter { $0.chosenMediaId != nil && !undone.contains($0.id) }
+            .max { $0.updatedAt < $1.updatedAt }
+    }
+
     func preferredMediaId(for key: ExerciseKey) -> String? {
-        all()
-            .filter { $0.exercise == key && $0.chosenMediaId != nil }
-            .max { $0.updatedAt < $1.updatedAt }?
-            .chosenMediaId
+        preferredChoice(for: key)?.chosenMediaId
     }
 
     func merge(_ remote: [ExerciseFeedback]) -> Bool {

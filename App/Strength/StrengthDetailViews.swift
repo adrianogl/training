@@ -23,7 +23,7 @@ struct StrengthWorkoutView: View {
                     }
                     .brandCard()
                     StrengthSection(title: StrengthText.inOrder)
-                    StrengthBlockList(blocks: workout.blocks)
+                    StrengthBlockList(blocks: workout.blocks, workoutDay: workout.day)
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
                 .padding(.top, 8)
@@ -68,7 +68,7 @@ struct StrengthSessionView: View {
                         }
                         .brandCard()
                         StrengthSection(title: StrengthText.sessionWorkout)
-                        StrengthBlockList(blocks: blocks)
+                        StrengthBlockList(blocks: blocks, workoutDay: session.day.iso)
                     }
                 }
                 .padding(.horizontal, BrandConstants.screenPadding)
