@@ -20,6 +20,7 @@ struct CompletedRaceView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 header
+                section(RacesConstants.howItWentSection)
                 pair {
                     resultCard
                     if !summary.splits.isEmpty {
@@ -27,11 +28,12 @@ struct CompletedRaceView: View {
                     }
                 }
                 if summary.resultSeconds != nil, let comparison = RacePlanComparisonBuilder.build(splits: summary.splits, plan: plan) {
+                    section(RacePlanConstants.title)
                     RacePlanCard(comparison: comparison, resultSeconds: summary.resultSeconds, eveSeconds: summary.eveSeconds) { showsPlanPicker = true }
                 }
+                section(RacesConstants.lessonTitle)
                 if summary.resultSeconds == nil {
                     VStack(alignment: .leading, spacing: 6) {
-                        DSCardLabel(RacesConstants.lessonTitle)
                         Text(RacesConstants.lessonNoResult)
                             .font(.footnote)
                             .foregroundStyle(BrandColors.dim)
@@ -42,7 +44,8 @@ struct CompletedRaceView: View {
                         columns: summary.lesson,
                         onDevice: false,
                         title: RacesConstants.lessonTitle,
-                        expectedTitle: RacesConstants.lessonNextTitle
+                        expectedTitle: RacesConstants.lessonNextTitle,
+                        showsLabel: false
                     )
                     AskIntelligenceButton(title: WorkoutChatConstants.askRace) { showsChat = true }
                         .padding(.top, 8)
@@ -149,14 +152,12 @@ struct CompletedRaceView: View {
                         actionButton(RacesConstants.chooseActivity) { showsPicker = true }
                     }
                 } else {
-                    HStack {
-                        NavigationLink(RacesConstants.openActivity, value: activityId)
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(BrandColors.accent)
-                        Spacer()
+                    HStack(spacing: 16) {
                         actionButton(RacesConstants.changeActivity) { showsPicker = true }
                         actionButton(RacesConstants.unlinkActivity) { model.unlinkResult(raceId: summary.info.id) }
                     }
+                    NavigationLink(value: activityId) { CardLinkFooter(title: CardLinkConstants.workout) }
+                        .buttonStyle(.cardLink)
                 }
             } else {
                 Text(RacesConstants.noActivity).font(.caption).foregroundStyle(BrandColors.dim)
@@ -164,6 +165,10 @@ struct CompletedRaceView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func section(_ title: String) -> some View {
+        DSSectionTitle(title).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
     }
 
     private func actionButton(_ title: String, action: @escaping () -> Void) -> some View {

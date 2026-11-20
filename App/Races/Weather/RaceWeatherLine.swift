@@ -9,22 +9,22 @@ struct RaceWeatherLine: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: B.padding) {
-                Text(String(format: B.degreeFormat, Int(reading.effect.weather.temperature.rounded())))
-                    .font(BrandFonts.number(B.degreeFontSize))
-                    .foregroundStyle(tint)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(RaceWeatherText.lead(reading))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(BrandColors.text)
-                    Text(RaceWeatherText.detail(reading))
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Image(systemName: B.symbol).font(.subheadline.weight(.semibold))
+                    Text(String(format: B.degreeFormat, Int(reading.effect.weather.temperature.rounded())))
+                        .font(BrandFonts.number(B.degreeFontSize))
+                    Text(RaceWeatherText.cost(reading)).font(.subheadline.weight(.semibold))
                 }
-                Spacer(minLength: 0)
+                .foregroundStyle(tint)
+                Text(RaceWeatherText.context(reading))
+                    .font(.footnote)
+                    .foregroundStyle(BrandColors.text.opacity(0.85))
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(B.padding)
-            .background(tint.opacity(B.backgroundOpacity), in: RoundedRectangle(cornerRadius: B.cornerRadius))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(tint.opacity(B.backgroundOpacity), in: RoundedRectangle(cornerRadius: B.cornerRadius, style: .continuous))
             if let goal = RaceWeatherText.goal(reading, goalSeconds: goalSeconds) {
                 Text(goal)
                     .font(.footnote)

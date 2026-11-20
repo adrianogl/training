@@ -5,16 +5,19 @@ struct AnalysisCard: View {
     let onDevice: Bool
     var title = WorkoutDetailConstants.analysisTitle
     var expectedTitle = WorkoutDetailConstants.analysisExpected
+    var showsLabel = true
     @Environment(\.horizontalSizeClass) private var sizeClass
 
     private typealias C = WorkoutDetailConstants
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                DSCardLabel(title)
-                Spacer()
-                if onDevice { OnDeviceCaption() }
+            if showsLabel || onDevice {
+                HStack {
+                    if showsLabel { DSCardLabel(title) }
+                    Spacer()
+                    if onDevice { OnDeviceCaption() }
+                }
             }
             if sizeClass == .regular {
                 HStack(alignment: .top, spacing: 16) {

@@ -13,8 +13,7 @@ struct RacePlanCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            DSCardLabel(C.title)
-            HStack(spacing: 6) {
+            HStack(alignment: .top, spacing: 12) {
                 stat(resultSeconds.map(WorkoutFormat.clock) ?? "—", C.yourTime)
                 stat(comparison.planSeconds.map(WorkoutFormat.clock) ?? "—", comparison.sourceName == nil ? C.appStrategyLabel : C.paceProLabel)
                 stat(eveSeconds.map(WorkoutFormat.clock) ?? "—", C.eveLabel)
@@ -32,16 +31,22 @@ struct RacePlanCard: View {
                 .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
-            Text(C.cumulativeTitle).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
+        }
+        .brandCard()
+        VStack(alignment: .leading, spacing: 10) {
+            DSCardLabel(C.cumulativeTitle)
             chart
-            Text(C.tableTitle).font(.caption.weight(.semibold)).tracking(1).textCase(.uppercase).foregroundStyle(BrandColors.dim)
+        }
+        .brandCard()
+        VStack(alignment: .leading, spacing: 10) {
+            DSCardLabel(C.tableTitle)
             table
         }
         .brandCard()
     }
 
     private func stat(_ value: String, _ label: String) -> some View {
-        DSStat(value: value, label: label, boxed: true)
+        DSStat(value: value, label: label, size: .large)
     }
 
     private var chart: some View {

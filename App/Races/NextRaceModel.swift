@@ -141,7 +141,7 @@ import TrainingCore
         }
         let base = "\(C.targetPrefix): \(source) \(TodayText.goalClock(target.seconds))"
         guard let weather, weather.source == .forecast, weather.effect.paceFactor > 0 else { return base }
-        return base + String(format: RaceWeatherConstants.strategySuffixFormat, RunWeatherText.percent(weather.effect.paceFactor))
+        return base + String(format: RaceWeatherConstants.strategySuffixFormat, RaceWeatherText.cost(weather))
     }
 
     func elapsed(through index: Int) -> Double {
