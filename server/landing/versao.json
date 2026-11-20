@@ -1,8 +1,8 @@
 {
-  "versao": "1.19.0",
-  "build": 27,
-  "versao_app": "1.19.0",
+  "versao": "1.20.0",
+  "build": 28,
+  "versao_app": "1.20.0",
   "notas": [
-    "Padroniza a lista de provas e o clima da prova-alvo"
+    "Organiza o detalhe da prova futura e da concluída"
   ]
 }
