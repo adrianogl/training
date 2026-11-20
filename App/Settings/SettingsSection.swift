@@ -1,12 +1,12 @@
 enum SettingsSection: String, CaseIterable, Identifiable {
-    case connections, notices, app
+    case account, connections, app
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .connections: "Conta e conexões"
-        case .notices: "Avisos"
+        case .account: "Conta"
+        case .connections: "Conexões"
         case .app: "App"
         }
     }
