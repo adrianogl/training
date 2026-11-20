@@ -9,7 +9,9 @@ public enum ClaudeStrengthApply {
         }
         if overriding { return fallback }
         var result = imported
-        result.exercises = result.exercises.map { suggesting($0, context: context) }
+        if session.source == .trainer {
+            result.exercises = result.exercises.map { suggesting($0, context: context) }
+        }
         guard !context.pain.isEmpty else { return result }
         result.exercises.removeAll { StrengthCatalog.exercise($0.exerciseId)?.loads.isDisjoint(with: context.pain) == false }
         if result.exercises.count != imported.exercises.count {

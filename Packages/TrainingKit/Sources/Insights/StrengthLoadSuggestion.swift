@@ -15,7 +15,7 @@ public enum StrengthLoadSuggestion {
 
     private static func base(for exercise: CatalogExercise, history: [String: StrengthLoadRecord]) -> (exercise: CatalogExercise, record: StrengthLoadRecord)? {
         let candidates: [(exercise: CatalogExercise, record: StrengthLoadRecord)] = StrengthCatalog.all.compactMap { other in
-            guard other.id != exercise.id, other.pattern == exercise.pattern, let record = history[other.id] else { return nil }
+            guard other.id != exercise.id, other.pattern == exercise.pattern || other.category == exercise.category, let record = history[other.id] else { return nil }
             guard !(other.unilateral && !exercise.unilateral) else { return nil }
             return (other, record)
         }
