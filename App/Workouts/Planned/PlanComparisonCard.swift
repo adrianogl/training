@@ -11,12 +11,15 @@ struct PlanComparisonCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                if showsLabel { DSCardLabel(title) }
-                Spacer()
-                DSChip(text: String(format: C.compareScoreFormat, rows.filter(\.ok).count, rows.count), tone: rows.allSatisfy(\.ok) ? .accent : .attention)
+            if showsLabel {
+                HStack {
+                    DSCardLabel(title)
+                    Spacer()
+                    score
+                }
             }
             HStack {
+                if !showsLabel { score }
                 Spacer()
                 Text(C.planned).frame(width: C.compareColumn, alignment: .trailing)
                 Text(C.done).frame(width: C.compareColumn, alignment: .trailing)
@@ -42,5 +45,9 @@ struct PlanComparisonCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard(framed: framed)
+    }
+
+    private var score: some View {
+        DSChip(text: String(format: C.compareScoreFormat, rows.filter(\.ok).count, rows.count), tone: rows.allSatisfy(\.ok) ? .accent : .attention)
     }
 }
