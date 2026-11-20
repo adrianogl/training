@@ -1,8 +1,8 @@
 {
-  "versao": "1.18.0",
-  "build": 24,
-  "versao_app": "1.18.0",
+  "versao": "1.18.1",
+  "build": 25,
+  "versao_app": "1.18.1",
   "notas": [
-    "Organiza o detalhe da sessão de força"
+    "Mostra a legenda de cores no boneco da sessão"
   ]
 }
