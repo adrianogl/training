@@ -1,6 +1,7 @@
 import Insights
 import SwiftUI
 import TrainingCore
+import WorkoutAnalysis
 
 struct TrainerPlanHeaderCard: View {
     let plan: TrainerPlan
@@ -97,22 +98,25 @@ struct TrainerPlanGoalRow: View {
     var weekProgress: String?
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Text(TrainerText.goalGlyph(plan.target))
-                .font(.system(size: 15, weight: .heavy))
-                .foregroundStyle(BrandColors.race)
-                .frame(width: TrainerConstants.goalIconSize, height: TrainerConstants.goalIconSize)
-                .background(BrandColors.raceGlow, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(TrainerText.targetTitle(plan.target)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(TrainerText.goalCaption(plan: plan, weeks: weeksToTarget)).font(.caption).foregroundStyle(BrandColors.dim)
-                if let line = TrainerEngine.goalPaceSummary(target: plan.target, paces: plan.paces) {
-                    Text(line).font(.caption).foregroundStyle(BrandColors.dim)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(TrainerText.goalLabel)
+                Spacer(minLength: 6)
+                if let weekProgress {
+                    Text(weekProgress).font(.caption).foregroundStyle(BrandColors.dim)
                 }
             }
-            Spacer(minLength: 6)
-            if let weekProgress {
-                Text(weekProgress).font(.caption).foregroundStyle(BrandColors.dim)
+            Text(TrainerText.targetTitle(plan.target)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
+            Text(TrainerText.goalCaption(plan: plan, weeks: weeksToTarget)).font(.caption).foregroundStyle(BrandColors.dim)
+            if let needed = TrainerEngine.requiredThreshold(target: plan.target) {
+                HStack(alignment: .top, spacing: 12) {
+                    DSStat(value: WorkoutFormat.clock(plan.paces.threshold), label: TrainerText.thresholdNowLabel)
+                    DSStat(value: "~" + WorkoutFormat.clock(needed), label: TrainerText.thresholdNeededLabel)
+                }
+                .padding(.top, 4)
+                Text(TrainerText.thresholdGap(current: plan.paces.threshold, needed: needed))
+                    .font(.footnote)
+                    .foregroundStyle(plan.paces.threshold > needed ? BrandColors.attention : BrandColors.accent)
             }
         }
     }

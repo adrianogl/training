@@ -12,7 +12,6 @@ struct TrainerView: View {
     @State private var confirmsEnd = false
     @State private var toggledWeeks: Set<String> = []
     @State private var highlightedWeek: String?
-    @State private var tab: TrainerTab = .plan
     @State private var showsAdjustments = false
     @State private var showsSend = false
     @AppStorage(TrainerMFITConstants.keptDefaultsKey, store: AccountScope.current.defaults) private var keptSwaps = ""
@@ -139,31 +138,38 @@ struct TrainerView: View {
     }
 
     private func shortcuts(_ proxy: ScrollViewProxy) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                NavigationLink(value: TrainerRoute.strength) { shortcutLabel(TrainerStrengthText.shortcutStrength, symbol: "dumbbell") }
-                    .buttonStyle(.plain)
-                Button { showsSend = true } label: { shortcutLabel(TrainerStrengthText.shortcutSend, symbol: "applewatch") }
-                    .buttonStyle(.plain)
-                Button {
-                    withAnimation { showsAdjustments = true }
-                    Task {
-                        try? await Task.sleep(for: .seconds(TrainerConstants.tabSwitchSeconds))
-                        withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
-                    }
-                } label: { shortcutLabel(TrainerStrengthText.shortcutAdjustments, symbol: "slider.horizontal.3") }
-                    .buttonStyle(.plain)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            NavigationLink(value: TrainerRoute.strength) { actionRow(TrainerStrengthText.shortcutStrength, symbol: "dumbbell") }
+                .buttonStyle(.plain)
+            Divider().overlay(BrandColors.line)
+            Button { showsSend = true } label: { actionRow(TrainerStrengthText.shortcutSend, symbol: "applewatch") }
+                .buttonStyle(.plain)
+            Divider().overlay(BrandColors.line)
+            Button {
+                withAnimation { showsAdjustments = true }
+                Task {
+                    try? await Task.sleep(for: .seconds(TrainerConstants.tabSwitchSeconds))
+                    withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
+                }
+            } label: { actionRow(TrainerStrengthText.shortcutAdjustments, symbol: "slider.horizontal.3") }
+                .buttonStyle(.plain)
         }
+        .brandCard()
     }
 
-    private func shortcutLabel(_ title: String, symbol: String) -> some View {
-        Label(title, systemImage: symbol)
-            .font(.footnote.weight(.semibold))
-            .foregroundStyle(BrandColors.text)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 7)
-            .background(BrandColors.track, in: Capsule())
+    private func actionRow(_ title: String, symbol: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.accent)
+                .frame(width: TrainerConstants.actionIconSize, height: TrainerConstants.actionIconSize)
+                .background(BrandColors.accentFill.opacity(0.14), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+            Spacer(minLength: 8)
+            CardLinkChevron()
+        }
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
     }
 
     @ViewBuilder
@@ -199,16 +205,8 @@ struct TrainerView: View {
 
     @ViewBuilder
     private func activeContent(_ plan: TrainerPlan) -> some View {
-        let compareWeeks = model.compareWeeks
-        if !compareWeeks.isEmpty {
-            TrainerTabPicker(tab: $tab)
-        }
-        if tab == .compare && !compareWeeks.isEmpty {
-            TrainerCompareView(weeks: compareWeeks, weekIndex: { model.weekIndex(of: $0.start) })
-        } else {
-            planBody(plan)
-                .syncSkeleton(model.isAdjusting, height: SkeletonConstants.trainerWeekHeight)
-        }
+        planBody(plan)
+            .syncSkeleton(model.isAdjusting, height: SkeletonConstants.trainerWeekHeight)
     }
 
     @ViewBuilder
@@ -248,11 +246,6 @@ struct TrainerView: View {
         ForEach(model.weekGroups) { group in
             weekSection(group)
         }
-        Button { showsSend = true } label: {
-            Label(app.watchKind == .appleWatch ? TrainerSendText.appleOpenButton : TrainerSendText.openButton, systemImage: "applewatch")
-        }
-        .buttonStyle(.ds(.primary))
-        .padding(.top, 4)
         adjustments(plan)
         AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
         if model.saveFailed {
@@ -287,12 +280,7 @@ struct TrainerView: View {
     }
 
     private func select(_ start: Day, proxy: ScrollViewProxy) {
-        guard tab != .plan else { return reveal(start, proxy: proxy) }
-        tab = .plan
-        Task {
-            try? await Task.sleep(for: .seconds(TrainerConstants.tabSwitchSeconds))
-            reveal(start, proxy: proxy)
-        }
+        reveal(start, proxy: proxy)
     }
 
     private func isOpen(_ group: TrainerWeekGroup) -> Bool {
