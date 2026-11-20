@@ -19,7 +19,9 @@ targets:
     sources:
       - path: App
         excludes:
-          - Strength/Media/**
+          - Strength/Media/Images/**
+          - Strength/Media/exercise-media.json
+          - Strength/Media/CREDITS.md
       - path: App/Strength/Media/exercise-media.json
         buildPhase: resources
       - path: App/Strength/Media/Images
