@@ -361,10 +361,24 @@ def wger_credit(item):
     return author, license_name
 
 
+MODIFIER_TOKENS = {
+    "WEIGHTED", "OVERHEAD", "ALTERNATING", "SINGLE", "BAND", "BANDED", "SMITH", "ELEVATED", "ASSISTED", "DECLINE",
+    "INCLINE", "ISOMETRIC", "REVERSE", "WIDE", "NARROW", "STABILITY",
+}
+
+
+def modifier_rank(entry_id):
+    exercise = entry_id.split("/")[-1]
+    parts = exercise.split("_")
+    return (sum(1 for part in parts if part in MODIFIER_TOKENS), len(exercise), entry_id)
+
+
 def mfit_map(catalog):
     result = {}
-    for entry in sorted(catalog, key=lambda item: item["id"]):
-        result.setdefault(norm(entry["nome"]), entry["id"])
+    for entry in catalog:
+        key = norm(entry["nome"])
+        if key not in result or modifier_rank(entry["id"]) < modifier_rank(result[key]):
+            result[key] = entry["id"]
     return result
 
 

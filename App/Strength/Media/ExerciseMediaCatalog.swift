@@ -18,7 +18,7 @@ struct ExerciseMediaCatalog: Sendable {
 
     func key(forMFITName name: String, category: String?) -> ExerciseKey {
         if let id = file?.catalogIdByMFITName[Self.normalize(name)] { return .catalog(id) }
-        return .mfit(category ?? "")
+        return .mfit(Self.normalize(name))
     }
 
     func media(for key: ExerciseKey, fallback: MovementPattern?) -> [ExerciseMedia] {
@@ -31,20 +31,24 @@ struct ExerciseMediaCatalog: Sendable {
         return items
     }
 
-    func alternatives(for key: ExerciseKey, source: ExerciseMediaSource, excluding: Set<String>, limit: Int) -> [ExerciseMedia] {
-        guard let file, limit > 0, source != .drawing, let pattern = Self.pattern(of: key) else { return [] }
+    func alternatives(for key: ExerciseKey, source: ExerciseMediaSource, excluding: Set<String>, limit: Int, fallback: MovementPattern?) -> [ExerciseMedia] {
+        guard let file, limit > 0, source != .drawing, let pattern = Self.pattern(of: key) ?? fallback else { return [] }
         let own: CatalogExercise? = {
-            if case .catalog(let id) = key { return StrengthCatalog.exercise(id) }
+            if case .catalog(let id) = key { return StrengthCatalog.exercise(StrengthCatalog.canonicalId(id)) }
             return nil
         }()
         var blocked = excluding
         if let own { blocked.formUnion(photos(forCatalogId: own.id).map(\.id)) }
-        let ownTokens = own.map { Self.tokens($0.name) } ?? []
+        let ownTokens: Set<String> = {
+            if let own { return Self.tokens(own.name) }
+            if case .mfit(let name) = key { return Self.tokens(name) }
+            return []
+        }()
 
         var seen = Set<String>()
         var ranked: [(media: ExerciseMedia, sharesEquipment: Bool, overlap: Int)] = []
         for id in file.mediaByCatalogId.keys.sorted() {
-            guard id != own?.id, let candidate = StrengthCatalog.exercise(id), candidate.pattern == pattern else { continue }
+            guard StrengthCatalog.canonicalId(id) != own?.id, let candidate = StrengthCatalog.exercise(id), candidate.pattern == pattern else { continue }
             let sharesEquipment = own.map { $0.equipment == candidate.equipment } ?? false
             let overlap = ownTokens.intersection(Self.tokens(candidate.name)).count
             for media in photos(forCatalogId: id) where media.source == source {
@@ -63,7 +67,7 @@ struct ExerciseMediaCatalog: Sendable {
     private static func pattern(of key: ExerciseKey) -> MovementPattern? {
         switch key {
         case .catalog(let id): StrengthCatalog.exercise(id)?.pattern
-        case .mfit(let category): category.isEmpty ? nil : StrengthCatalog.pattern(garminCategory: category)
+        case .mfit: nil
         }
     }
 

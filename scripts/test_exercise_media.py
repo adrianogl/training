@@ -80,6 +80,22 @@ class ExerciseMediaTests(unittest.TestCase):
         catalog = [{"id": "SQUAT/GOBLET_SQUAT", "nome": "Agachamento  Goblet"}]
         self.assertEqual(media.mfit_map(catalog), {"agachamento goblet": "SQUAT/GOBLET_SQUAT"})
 
+    def test_mfit_map_prefers_plainer_id_for_duplicated_name(self):
+        catalog = [{"id": "LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT", "nome": "Agachamento Búlgaro"},
+                   {"id": "SQUAT/BULGARIAN_SPLIT_SQUAT", "nome": "Agachamento Bulgaro"},
+                   {"id": "LUNGE/WEIGHTED_BULGARIAN_SPLIT_SQUAT", "nome": "agachamento bulgaro"}]
+        self.assertEqual(media.mfit_map(catalog)["agachamento bulgaro"], "SQUAT/BULGARIAN_SPLIT_SQUAT")
+
+    def test_mfit_map_never_picks_modified_id_when_plainer_exists(self):
+        catalog = media.load_catalog()
+        groups = {}
+        for entry in catalog:
+            groups.setdefault(media.norm(entry["nome"]), []).append(entry["id"])
+        mapping = media.mfit_map(catalog)
+        for name, ids in groups.items():
+            best = min(media.modifier_rank(i) for i in ids)
+            self.assertEqual(media.modifier_rank(mapping[name]), best, name)
+
 
 if __name__ == "__main__":
     unittest.main()
