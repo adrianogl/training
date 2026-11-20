@@ -101,11 +101,7 @@ struct SettingsView: View {
 
     private func groupRow(_ group: SettingsGroup) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: group.systemImage)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: AppConstants.settingsIconSize, height: AppConstants.settingsIconSize)
-                .background(group.tint, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            groupIcon(group)
             VStack(alignment: .leading, spacing: 2) {
                 Text(group.title).font(.body.weight(.semibold)).foregroundStyle(BrandColors.text)
                 Text(status(group)).font(.caption).foregroundStyle(BrandColors.dim).lineLimit(1)
@@ -126,6 +122,24 @@ struct SettingsView: View {
             }
         }
         .contentShape(Rectangle())
+    }
+
+    @ViewBuilder
+    private func groupIcon(_ group: SettingsGroup) -> some View {
+        if let logo = BrandLogo.image(for: group) {
+            Image(uiImage: logo)
+                .resizable()
+                .scaledToFill()
+                .frame(width: AppConstants.settingsIconSize, height: AppConstants.settingsIconSize)
+                .clipShape(RoundedRectangle(cornerRadius: BrandLogoConstants.cornerRadius, style: .continuous))
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: group.systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: AppConstants.settingsIconSize, height: AppConstants.settingsIconSize)
+                .background(group.tint, in: RoundedRectangle(cornerRadius: BrandLogoConstants.cornerRadius, style: .continuous))
+        }
     }
 
     private func connection(_ group: SettingsGroup) -> (text: String, isConnected: Bool)? {
@@ -199,9 +213,11 @@ struct SettingsView: View {
             case .data:
                 dataSection
                 if let storeError = model.storeError {
-                    Section("Banco local") {
+                    Section {
                         Text("Não abriu o banco local, o app está usando memória: \(storeError)")
                             .foregroundStyle(BrandColors.danger)
+                    } header: {
+                        DSSectionTitle("Banco local")
                     }
                 }
             }
@@ -223,7 +239,7 @@ struct SettingsView: View {
                 Text(keyMessage).font(.footnote).foregroundStyle(BrandColors.dim)
             }
         } header: {
-            Text("Chave da Personal API")
+            DSSectionTitle("Chave da Personal API")
         } footer: {
             VStack(alignment: .leading, spacing: 6) {
                 Text(model.hasKey ? "Há uma chave guardada no Keychain deste aparelho." : "Nenhuma chave guardada neste aparelho.")
@@ -235,7 +251,7 @@ struct SettingsView: View {
     }
 
     private var connectionSection: some View {
-        Section("Conexão") {
+        Section {
             Button("Testar conexão") {
                 Task { await model.testConnection() }
             }
@@ -254,11 +270,13 @@ struct SettingsView: View {
             case .failed(let failure):
                 FailureView(failure: failure) { showsKeyHelp = true }
             }
+        } header: {
+            DSSectionTitle("Conexão")
         }
     }
 
     private var syncSection: some View {
-        Section("Sincronização") {
+        Section {
             if case .running(let progress) = model.syncStatus {
                 ProgressView(value: progress) {
                     Text("Sincronizando \(Int((progress * 100).rounded(.down)))%")
@@ -273,6 +291,8 @@ struct SettingsView: View {
                 FailureView(failure: failure) { showsKeyHelp = true }
             }
             LabeledContent("Último sync", value: lastSyncText)
+        } header: {
+            DSSectionTitle("Sincronização")
         }
     }
 
@@ -286,7 +306,7 @@ struct SettingsView: View {
             DatePicker("Horário mínimo", selection: noticeMinimumTime, displayedComponents: .hourAndMinute)
                 .disabled(!noticeEnabled)
         } header: {
-            Text("Aviso de manhã")
+            DSSectionTitle("Aviso de manhã")
         } footer: {
             Text("Avisa a prontidão do dia quando o HRV e o sono da noite chegam, nunca antes do horário mínimo. O iOS decide quando o app acorda, então em alguns dias o aviso não sai.")
         }
@@ -307,7 +327,7 @@ struct SettingsView: View {
                     }
                 }
         } header: {
-            Text("Aviso de treino")
+            DSSectionTitle("Aviso de treino")
         } footer: {
             Text("Quando o relógio sincroniza, o Garmin Connect grava o treino no Apple Health e o app avisa com a nota e o ponto principal da análise. Precisa da integração do Garmin Connect com o Apple Health ligada.")
         }
@@ -323,7 +343,7 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
         } header: {
-            Text(AccentThemeConstants.modeTitle)
+            DSSectionTitle(AccentThemeConstants.modeTitle)
         } footer: {
             Text(AccentThemeConstants.modeFooter)
         }
@@ -332,7 +352,7 @@ struct SettingsView: View {
                 .onChange(of: accentTheme) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(raw), style: AppIconStyle.stored(iconStyle)) }
                 .dsCardRow()
         } header: {
-            Text(AccentThemeConstants.colorTitle)
+            DSSectionTitle(AccentThemeConstants.colorTitle)
         } footer: {
             Text(AccentThemeConstants.colorFooter)
         }
@@ -341,7 +361,7 @@ struct SettingsView: View {
                 .onChange(of: iconStyle) { _, raw in AppIconSwitcher.apply(AccentTheme.stored(accentTheme), style: AppIconStyle.stored(raw)) }
                 .dsCardRow()
         } header: {
-            Text(AppIconConstants.sectionTitle)
+            DSSectionTitle(AppIconConstants.sectionTitle)
         } footer: {
             Text(AppIconConstants.sectionFooter)
         }
@@ -349,7 +369,7 @@ struct SettingsView: View {
             AccentThemePreview()
                 .dsCardRow()
         } header: {
-            Text(AccentThemeConstants.previewTitle)
+            DSSectionTitle(AccentThemeConstants.previewTitle)
         }
     }
 
@@ -376,7 +396,7 @@ struct SettingsView: View {
                 Text(deleteMessage).font(.footnote).foregroundStyle(BrandColors.dim)
             }
         } header: {
-            Text("Dados locais")
+            DSSectionTitle("Neste aparelho")
         }
     }
 

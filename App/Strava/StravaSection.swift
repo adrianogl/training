@@ -32,7 +32,7 @@ struct StravaSection: View {
                 Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
             }
         } header: {
-            Text(C.sectionTitle)
+            DSSectionTitle(C.formTitle)
         } footer: {
             Text(C.footer)
         }

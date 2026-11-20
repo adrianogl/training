@@ -21,13 +21,15 @@ struct GoalsSection: View {
                 Label(C.newGoal, systemImage: "plus.circle.fill").foregroundStyle(BrandColors.accent)
             }
         } header: {
-            Text(C.sectionTitle)
+            DSSectionTitle(C.sectionTitle)
         } footer: {
             Text(C.footer)
         }
         if !archived.isEmpty {
-            Section(C.archivedTitle) {
+            Section {
                 ForEach(archived) { goal in row(goal) }
+            } header: {
+                DSSectionTitle(C.archivedTitle)
             }
         }
     }

@@ -67,7 +67,7 @@ struct InvitesView: View {
     }
 
     private func requests(_ items: [AdminInviteRequest]) -> some View {
-        Section(C.requestsTitle) {
+        Section {
             if items.isEmpty {
                 Text(C.noRequests).foregroundStyle(BrandColors.dim)
             }
@@ -89,11 +89,13 @@ struct InvitesView: View {
                 }
                 .padding(.vertical, 4)
             }
+        } header: {
+            DSSectionTitle(C.requestsTitle)
         }
     }
 
     private func invites(_ items: [AdminInvite]) -> some View {
-        Section(C.invitesTitle) {
+        Section {
             if items.isEmpty {
                 Text(C.noInvites).foregroundStyle(BrandColors.dim)
             }
@@ -119,11 +121,13 @@ struct InvitesView: View {
                 }
                 .disabled(invite.status == .accepted)
             }
+        } header: {
+            DSSectionTitle(C.invitesTitle)
         }
     }
 
     private func people(_ users: [AdminUser]) -> some View {
-        Section(C.peopleTitle) {
+        Section {
             ForEach(users) { user in
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
@@ -137,6 +141,8 @@ struct InvitesView: View {
                     }
                 }
             }
+        } header: {
+            DSSectionTitle(C.peopleTitle)
         }
     }
 }

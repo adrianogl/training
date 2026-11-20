@@ -38,7 +38,7 @@ struct MFITAccountSection: View {
                 Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
             }
         } header: {
-            Text(C.sectionTitle)
+            DSSectionTitle(C.sectionTitle)
         } footer: {
             Text(C.footer)
         }
@@ -56,7 +56,7 @@ struct MFITAccountSection: View {
                     }
                 }
             } header: {
-                Text(C.daysTitle)
+                DSSectionTitle(C.daysTitle)
             } footer: {
                 Text(C.daysFooter)
             }

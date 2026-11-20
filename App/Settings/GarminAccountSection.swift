@@ -43,7 +43,7 @@ struct GarminAccountSection: View {
                 Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
             }
         } header: {
-            Text(C.sectionTitle)
+            DSSectionTitle(C.sectionTitle)
         } footer: {
             Text(C.footer)
         }
