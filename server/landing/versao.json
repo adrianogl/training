@@ -1,8 +1,8 @@
 {
-  "versao": "1.22.0",
-  "build": 30,
-  "versao_app": "1.22.0",
+  "versao": "1.22.1",
+  "build": 31,
+  "versao_app": "1.22.1",
   "notas": [
-    "Padroniza as telas internas e usa os ícones oficiais das conexões"
+    "Reprova texto gerado que fala com \"vocês\" ou afirma o que os fatos não dizem"
   ]
 }
