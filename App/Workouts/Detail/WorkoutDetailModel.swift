@@ -36,6 +36,10 @@ import WorkoutAnalysis
     private(set) var shareInput: WorkoutShareInput?
     private(set) var shareSource: ShareSource?
     private(set) var localDay: String?
+    private(set) var readinessScore: Int?
+    private(set) var weekKilometers: Double?
+    private(set) var daysSinceHard: Int?
+    private(set) var performanceCondition: Int?
     private(set) var workoutName: String?
     private(set) var completedCheck: CompletedCheck?
     private(set) var chatContext: WorkoutChatContext?
@@ -95,6 +99,13 @@ import WorkoutAnalysis
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
         localDay = record.localDay
+        readinessScore = record.localDay.flatMap { Self.readinessScore(context: context, day: $0) }
+        performanceCondition = record.performanceCondition
+        if isRun, let day = record.localDay.flatMap(Day.init(iso:)) {
+            let runs = records.filter { ActivityTypeKey.isRun($0.typeKey) && $0.start <= record.start }
+            weekKilometers = Self.weekKilometers(runs, weekStart: day.weekStart)
+            daysSinceHard = Self.daysSinceHard(runs.filter { $0.activityId != record.activityId }, day: day)
+        }
         workoutName = record.workoutName
         if let meters = record.distance, meters > 0 {
             let kilometers = meters / WorkoutConstants.metersPerKilometer
@@ -122,6 +133,25 @@ import WorkoutAnalysis
                 blocks: blocks, comparisonRows: comparisonRows, analysis: analysisSummary
             )
         }
+    }
+
+    private static func weekKilometers(_ runs: [ActivityRecord], weekStart: Day) -> Double {
+        runs.filter { run in run.localDay.flatMap(Day.init(iso:)).map { $0 >= weekStart } ?? false }
+            .reduce(0) { $0 + ($1.distance ?? 0) } / WorkoutConstants.metersPerKilometer
+    }
+
+    private static func daysSinceHard(_ runs: [ActivityRecord], day: Day) -> Int? {
+        let hard = runs.first { run in
+            (run.aerobicTrainingEffect ?? 0) >= PlannedBriefingConstants.hardAerobicEffect
+                || (run.anaerobicTrainingEffect ?? 0) >= PlannedBriefingConstants.hardAnaerobicEffect
+        }
+        return hard?.localDay.flatMap(Day.init(iso:)).map { $0.days(until: day) }
+    }
+
+    private static func readinessScore(context: ModelContext, day: String) -> Int? {
+        var descriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == day })
+        descriptor.fetchLimit = 1
+        return (try? context.fetch(descriptor))?.first?.readinessScore
     }
 
     var analysisSummary: WorkoutAnalysisSummary {

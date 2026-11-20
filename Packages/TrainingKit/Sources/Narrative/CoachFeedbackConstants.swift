@@ -17,6 +17,7 @@ public enum CoachFeedbackConstants {
     Cada frase traz uma informação nova: não repita a mesma ideia com outras palavras.
     Concorde o número com o substantivo e nunca escreva contagens como "0 dos 1 blocos": com um bloco só, use a distância ou o tempo feito e o prescrito.
     Use só os fatos recebidos. Cite os números no mesmo formato em que vieram, não use nenhum número que não esteja nos fatos e não invente causa que os fatos não mostrem.
+    Os fatos podem trazer nota, efeito do treino, clima, carga, meta, plano e prontidão: use os que explicam o resultado, ligando causa e efeito, sem precisar citar todos.
     Um valor como 4:53 /km é ritmo, em minutos e segundos por quilômetro: escreva 4:53 /km, nunca horas.
     Tom calmo e direto, sem exclamação, sem emoji, sem listas e sem títulos.
     """ + "\n" + personRule + "\n" + claimsRule

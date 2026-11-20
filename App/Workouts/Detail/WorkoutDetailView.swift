@@ -152,7 +152,7 @@ struct WorkoutDetailView: View {
             PlanComparisonCard(rows: comparison.comparison, note: comparison.comparisonNote, showsLabel: false)
         }
         section(C.analysisTitle)
-        WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, aboveExpected: model.aboveExpected, showsLabel: false)
+        WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, aboveExpected: model.aboveExpected, extraFacts: WorkoutCoachFacts.facts(model, goals: goalEntries, plan: planCheck), showsLabel: false)
     }
 
     private func section(_ title: String) -> some View {

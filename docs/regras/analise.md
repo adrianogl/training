@@ -214,7 +214,7 @@ Arquivos: `Insights/DetailedAnalysis*.swift`. Testes: `InsightsTests/DetailedAna
 
 ## Texto gerado no aparelho
 
-O texto do treinador é escrito pelo modelo do aparelho (Apple Intelligence) a partir dos fatos da análise. Arquivos: `Narrative/CoachFeedback*.swift`, `Narrative/NarrativeCheck.swift`. Testes: `NarrativeTests/CoachFeedbackTests.swift`, `NarratorTests.swift`.
+O texto do treinador é escrito pelo modelo do aparelho (Apple Intelligence) a partir dos fatos da análise. Além dos achados, os fatos trazem nota e partes, efeito do treino segundo o relógio, planejado × feito, custo do clima, carga comparada com os últimos 90 dias, treinos parecidos, metas, prontidão do dia, condição de performance no início, km da semana até o treino e dias desde o último treino forte (`WorkoutCoachFacts`). A análise detalhada recebe os mesmos fatos na parte "O treino". Arquivos: `Narrative/CoachFeedback*.swift`, `Narrative/NarrativeCheck.swift`. Testes: `NarrativeTests/CoachFeedbackTests.swift`, `NarratorTests.swift`.
 
 - O texto só usa números que estão nos fatos e no mesmo formato. Um ritmo como `4:53` conta como um número só.
 - "Hora", "minuto" e "segundo" só passam se estiverem nos fatos.
