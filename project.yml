@@ -19,6 +19,8 @@ targets:
     sources:
       - App
       - Shared
+      - path: server/landing/versao.json
+        buildPhase: resources
     dependencies:
       - target: TrainingWidgets
         embed: true

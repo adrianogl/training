@@ -5,6 +5,12 @@ struct AppRelease: Codable, Equatable, Sendable {
     let build: Int
     let versao_app: String
     let notas: [String]
+    var historico: [AppReleaseNotes]? = nil
+}
+
+struct AppReleaseNotes: Codable, Equatable, Sendable {
+    let versao: String
+    let notas: [String]
 }
 
 struct AppUpdate: Equatable, Sendable {
