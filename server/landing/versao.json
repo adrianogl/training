@@ -1,8 +1,8 @@
 {
-  "versao": "1.18.1",
-  "build": 25,
-  "versao_app": "1.18.1",
+  "versao": "1.18.2",
+  "build": 26,
+  "versao_app": "1.18.2",
   "notas": [
-    "Mostra a legenda de cores no boneco da sessão"
+    "Usa uma coluna só no iPad quando a tela fica estreita"
   ]
 }
