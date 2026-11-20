@@ -1,8 +1,8 @@
 {
-  "versao": "1.26.0",
-  "build": 35,
-  "versao_app": "1.26.0",
+  "versao": "1.27.0",
+  "build": 36,
+  "versao_app": "1.27.0",
   "notas": [
-    "Padroniza ajustes, edição, readequação e mudanças do plano"
+    "Avisa a instalação e abre a tela de cada notificação"
   ]
 }
