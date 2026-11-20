@@ -5,6 +5,7 @@ import TrainingCore
 struct StrengthPlanStore: Sendable {
     let url: URL
     let stamps: SyncDocumentStamp?
+    var moveAside: @Sendable (URL, URL) throws -> Void = { try FileManager.default.moveItem(at: $0, to: $1) }
 
     private static let lock = NSLock()
 
@@ -29,6 +30,7 @@ struct StrengthPlanStore: Sendable {
 
     func save(_ plan: StrengthPlan, at now: Date = .now) throws {
         let updated = try Self.lock.withLock { () -> Date in
+            try preserveCorruptFile()
             var doc = load()
             doc.plan = plan
             doc.updatedAt = max(now, doc.updatedAt.addingTimeInterval(0.001))
@@ -40,6 +42,7 @@ struct StrengthPlanStore: Sendable {
 
     func clear(at now: Date = .now) throws {
         let updated = try Self.lock.withLock { () -> Date? in
+            try preserveCorruptFile()
             var doc = load()
             guard doc.plan != nil else { return nil }
             doc.plan = nil
@@ -52,29 +55,26 @@ struct StrengthPlanStore: Sendable {
 
     @discardableResult
     func migrateIfNeeded(sessions: [TrainerStrengthSession], runningPlanEnd: Day?, today: Day, now: Date = .now) throws -> Bool {
-        let existing = document()
-        guard existing.plan == nil, !existing.migrated else { return false }
-        guard let plan = StrengthPlanMigration.migrate(sessions: sessions, runningPlanEnd: runningPlanEnd, today: today, now: now) else {
-            try Self.lock.withLock {
-                var doc = load()
-                doc.migrated = true
-                try write(doc)
-            }
-            return false
-        }
         try Self.lock.withLock {
+            try preserveCorruptFile()
             var doc = load()
+            guard doc.plan == nil, !doc.migrated else { return false }
             doc.migrated = true
+            let plan = StrengthPlanMigration.migrate(sessions: sessions, runningPlanEnd: runningPlanEnd, today: today, now: now)
+            if let plan {
+                doc.plan = plan
+                doc.updatedAt = StrengthPlanStoreConstants.migratedStamp
+            }
             try write(doc)
+            return plan != nil
         }
-        try save(plan, at: now)
-        return true
     }
 
     func merge(remote: StrengthPlanDocument) -> Bool {
         let applied = try? Self.lock.withLock { () -> Bool in
+            try preserveCorruptFile()
             let local = load()
-            guard remote.updatedAt > local.updatedAt else { return false }
+            guard Self.remoteWins(remote, over: local) else { return false }
             var incoming = remote
             incoming.migrated = remote.migrated || local.migrated
             guard incoming != local else { return false }
@@ -82,6 +82,19 @@ struct StrengthPlanStore: Sendable {
             return true
         }
         return applied ?? false
+    }
+
+    private static func remoteWins(_ remote: StrengthPlanDocument, over local: StrengthPlanDocument) -> Bool {
+        if remote.updatedAt != local.updatedAt { return remote.updatedAt > local.updatedAt }
+        guard let remotePlan = remote.plan, let localPlan = local.plan else { return false }
+        return remotePlan.id.uuidString > localPlan.id.uuidString
+    }
+
+    private func preserveCorruptFile() throws {
+        guard let data = try? Data(contentsOf: url), (try? JSONDecoder().decode(StrengthPlanDocument.self, from: data)) == nil else { return }
+        let stamp = Int(Date().timeIntervalSince1970 * 1_000)
+        let aside = url.deletingLastPathComponent().appending(path: url.lastPathComponent + ".corrupt-\(stamp)")
+        try moveAside(url, aside)
     }
 
     private func load() -> StrengthPlanDocument {

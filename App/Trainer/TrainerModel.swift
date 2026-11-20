@@ -370,6 +370,11 @@ import TrainingCore
         TrainerEngine.paces(history: history, today: currentDay)
     }
 
+    func reloadStrengthPlan() {
+        let latest = strengthPlanStore.current()
+        if latest != strengthPlan { strengthPlan = latest }
+    }
+
     func reloadFromStore() {
         let stamp = store.updatedAt()
         guard stamp != loadedStamp else { return }
@@ -622,7 +627,7 @@ import TrainingCore
         persist(filled)
     }
 
-    private func migrateStrengthPlan() {
+    func migrateStrengthPlan() {
         let sessions = strengthSessions
         let runningEnd = plan.flatMap { $0.endedOn == nil ? Self.runningPlanEnd($0) : nil }
         _ = try? strengthPlanStore.migrateIfNeeded(sessions: sessions, runningPlanEnd: runningEnd, today: currentDay)
