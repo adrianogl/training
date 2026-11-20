@@ -1,8 +1,8 @@
 {
-  "versao": "1.16.1",
-  "build": 22,
-  "versao_app": "1.16.1",
+  "versao": "1.17.0",
+  "build": 23,
+  "versao_app": "1.17.0",
   "notas": [
-    "Tira o espaço vazio no topo do planejado × feito"
+    "Organiza a análise detalhada"
   ]
 }
