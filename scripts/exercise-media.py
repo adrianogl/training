@@ -32,6 +32,8 @@ EQUIPMENT_WORDS = {"dumbbell", "barbell", "kettlebell", "cable", "machine", "ban
                    "medicine", "suspension", "trx", "bodyweight", "weighted", "resistance", "ez", "bar", "plate"}
 GENERIC_WORDS = {"ab", "abs", "exercise", "alternating", "standing", "seated", "lying", "single", "one", "arm", "leg", "wide", "close", "grip", "and"}
 MIN_EQUIVALENT_SCORE = 0.3
+WGER_DEFAULT_AUTHOR = "Colaboradores do wger.de"
+LICENSE_NAMES = {"CC-BY-SA 4": "CC-BY-SA 4.0", "CC-BY-SA 3": "CC-BY-SA 3.0"}
 
 PADRAO_MUSCLES = {
     "squat": {"quadriceps", "glutes"},
@@ -353,6 +355,12 @@ def merge_review(files, removals):
     return {key: value for key, value in merged.items() if value}
 
 
+def wger_credit(item):
+    author = item.get("autor") or WGER_DEFAULT_AUTHOR
+    license_name = LICENSE_NAMES.get(item.get("licenca", ""), item.get("licenca", ""))
+    return author, license_name
+
+
 def mfit_map(catalog):
     result = {}
     for entry in sorted(catalog, key=lambda item: item["id"]):
@@ -462,10 +470,11 @@ def command_emitir():
                 else:
                     missing.add(item["id"])
             else:
-                entry.update({"autor": item.get("autor", ""), "licenca": item.get("licenca", ""), "link": item.get("link", "")})
-                authors = item.get("autores") or [item.get("autor", "")] * len(names)
-                for name, author in zip(names, authors):
-                    credits.append(f"- `{name}`: {author or 'autor não informado'}, {item.get('licenca', '')}, {item.get('link', '')}")
+                author, license_name = wger_credit(item)
+                entry.update({"autor": author, "licenca": license_name, "link": item.get("link", "")})
+                authors = item.get("autores") or [author] * len(names)
+                for name, frame_author in zip(names, authors):
+                    credits.append(f"- `{name}`: {frame_author or WGER_DEFAULT_AUTHOR}, {license_name}, {item.get('link', '')}")
             midias[catalog_id].append(entry)
     if missing:
         print("sem tradução dos passos:", sorted(missing), file=sys.stderr)

@@ -71,6 +71,11 @@ class ExerciseMediaTests(unittest.TestCase):
             merged = media.merge_review([handle.name], [("A/ONE", "a:1"), ("A/TWO", "a:1")])
         self.assertEqual(merged, {"A/ONE": ["a:2"]})
 
+    def test_wger_credit_defaults_author_and_normalizes_license(self):
+        self.assertEqual(media.wger_credit({"autor": "", "licenca": "CC-BY-SA 4"}), ("Colaboradores do wger.de", "CC-BY-SA 4.0"))
+        self.assertEqual(media.wger_credit({"autor": "philip", "licenca": "CC-BY-SA 3"}), ("philip", "CC-BY-SA 3.0"))
+        self.assertEqual(media.wger_credit({"autor": "x", "licenca": "CC0"}), ("x", "CC0"))
+
     def test_mfit_map_normalizes_catalog_names(self):
         catalog = [{"id": "SQUAT/GOBLET_SQUAT", "nome": "Agachamento  Goblet"}]
         self.assertEqual(media.mfit_map(catalog), {"agachamento goblet": "SQUAT/GOBLET_SQUAT"})
