@@ -30,7 +30,7 @@ function isPending(entry: FeedbackEntry, undone: Set<string>): boolean {
 function parseEntries(text: string): FeedbackEntry[] | null {
   try {
     const parsed: unknown = JSON.parse(text)
-    return Array.isArray(parsed) ? (parsed as FeedbackEntry[]) : null
+    return Array.isArray(parsed) ? (parsed.filter((item) => typeof item === 'object' && item !== null && !Array.isArray(item)) as FeedbackEntry[]) : null
   } catch {
     return null
   }
@@ -38,7 +38,16 @@ function parseEntries(text: string): FeedbackEntry[] | null {
 
 function pendingOf(entries: FeedbackEntry[]): FeedbackEntry[] {
   const undone = new Set(entries.flatMap((entry) => (typeof entry.undoes === 'string' ? [entry.undoes] : [])))
-  return entries.filter((entry) => entry.verdict === FEEDBACK.doesNotMatch && isPending(entry, undone))
+  return entries.filter((entry) => typeof entry.id === 'string' && entry.verdict === FEEDBACK.doesNotMatch && isPending(entry, undone))
+}
+
+async function loadEntries(sql: Sql, key: Buffer, account: string): Promise<FeedbackEntry[] | null> {
+  try {
+    const blob = await readBlob(sql, key, account, FEEDBACK.blobId)
+    return blob === null ? null : parseEntries(blob.text)
+  } catch {
+    return null
+  }
 }
 
 async function accountsWithFeedback(sql: Sql, prefix?: string): Promise<string[]> {
@@ -55,8 +64,7 @@ async function accountsWithFeedback(sql: Sql, prefix?: string): Promise<string[]
 export async function listFeedback(sql: Sql, key: Buffer): Promise<FeedbackResult> {
   const items: PendingFeedback[] = []
   for (const account of await accountsWithFeedback(sql)) {
-    const blob = await readBlob(sql, key, account, FEEDBACK.blobId)
-    const entries = blob === null ? null : parseEntries(blob.text)
+    const entries = await loadEntries(sql, key, account)
     if (entries === null) continue
     for (const entry of pendingOf(entries)) items.push({ account, entry })
   }
@@ -71,7 +79,7 @@ export async function listFeedback(sql: Sql, key: Buffer): Promise<FeedbackResul
           media: entry.mediaId,
           alternative: entry.chosenMediaId ?? MCP_TEXT.feedbackNoAlternative,
           note: entry.note ?? MCP_TEXT.feedbackNoNote,
-          date: dateFromReference(entry.createdAt).toISOString().slice(0, 10),
+          date: typeof entry.createdAt === 'number' && Number.isFinite(entry.createdAt) ? dateFromReference(entry.createdAt).toISOString().slice(0, 10) : '',
         }),
       )
       .join('\n\n'),
@@ -86,17 +94,23 @@ export async function resolveFeedback(sql: Sql, key: Buffer, args: Record<string
   const accounts = await accountsWithFeedback(sql, prefix)
   const account = accounts[0]
   if (accounts.length !== 1 || account === undefined) return fail(MCP_TEXT.feedbackAccountNotFound(conta as string))
-  const blob = await readBlob(sql, key, account, FEEDBACK.blobId)
-  const entries = blob === null ? null : parseEntries(blob.text)
-  if (blob === null || entries === null) return fail(MCP_TEXT.feedbackEntryNotFound)
-  const target = pendingOf(entries).find((entry) => entry.id === id)
-  if (target === undefined) return fail(MCP_TEXT.feedbackEntryNotFound)
-  const newest = Math.max(...entries.map((entry) => entry.updatedAt))
-  const stamp = Math.max(now.getTime() / 1000 - FEEDBACK.referenceEpochSeconds, newest + FEEDBACK.minimumBumpSeconds)
-  const updated = entries.map((entry) =>
-    entry === target ? { ...entry, status: FEEDBACK.resolved, resolution: resolucao, resolvedIn: versao, updatedAt: stamp } : entry,
-  )
-  const serverTime = new Date(Math.max(now.getTime(), Date.parse(blob.updatedAt) + FEEDBACK.minimumBumpSeconds * 1000, dateFromReference(stamp).getTime()))
-  const saved = await writeBlob(sql, key, account, FEEDBACK.blobId, JSON.stringify(updated), serverTime)
-  return saved ? ok(MCP_TEXT.feedbackResolved(target.id, shortAccount(account))) : fail(MCP_TEXT.feedbackSaveFailed)
+  const attempts = FEEDBACK.resolveAttempts
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const blob = await readBlob(sql, key, account, FEEDBACK.blobId).catch(() => null)
+    const entries = blob === null ? null : parseEntries(blob.text)
+    if (blob === null || entries === null) return fail(MCP_TEXT.feedbackEntryNotFound)
+    const target = pendingOf(entries).find((entry) => entry.id === id)
+    if (target === undefined) return fail(MCP_TEXT.feedbackEntryNotFound)
+    const stamps = entries.map((entry) => entry.updatedAt).filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+    const newest = stamps.length === 0 ? -Infinity : Math.max(...stamps)
+    const stamp = Math.max(now.getTime() / 1000 - FEEDBACK.referenceEpochSeconds, newest + FEEDBACK.minimumBumpSeconds)
+    const updated = entries.map((entry) =>
+      entry === target ? { ...entry, status: FEEDBACK.resolved, resolution: resolucao, resolvedIn: versao, updatedAt: stamp } : entry,
+    )
+    const serverTime = new Date(Math.max(now.getTime(), Date.parse(blob.updatedAt) + FEEDBACK.minimumBumpSeconds * 1000, dateFromReference(stamp).getTime()))
+    if (await writeBlob(sql, key, account, FEEDBACK.blobId, JSON.stringify(updated), serverTime)) {
+      return ok(MCP_TEXT.feedbackResolved(target.id, shortAccount(account)))
+    }
+  }
+  return fail(MCP_TEXT.feedbackSaveFailed)
 }

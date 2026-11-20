@@ -24,6 +24,7 @@ export const FEEDBACK = {
   accountPrefixPattern: /^[0-9a-f]{1,64}$/,
   referenceEpochSeconds: 978307200,
   minimumBumpSeconds: 1,
+  resolveAttempts: 2,
   doesNotMatch: 'doesNotMatch',
   pending: 'pending',
   resolved: 'resolved',

@@ -138,4 +138,74 @@ describe('MCP de avaliações de imagem', () => {
     const text: string = (await call(adminMcp, 'avaliacoes_imagens')).result.content[0].text
     expect(text).not.toContain('NOTA PRIVADA')
   })
+
+  it('keeps unknown keys and undoes after resolve', async () => {
+    const target = '11111111-1111-1111-1111-111111111111'
+    const other = entry('22222222-2222-2222-2222-222222222222', { undoes: '99999999-9999-9999-9999-999999999999', futureField: { a: [1, 2] } })
+    await feedbackBlob(otherAccount, [entry(target, { extra: 'x' }), other])
+    await call(adminMcp, 'resolver_avaliacao', { conta: otherAccount.slice(0, 8), id: target, resolucao: 'ok', versao: '1' })
+    const entries = JSON.parse((await readBlob(sql, key, otherAccount, 'exerciseFeedback'))?.text ?? '[]')
+    expect(entries[0].extra).toBe('x')
+    expect(entries[1]).toEqual(other)
+  })
+
+  it('rejects an ambiguous prefix', async () => {
+    await feedbackBlob(adminAccount, [entry('11111111-1111-1111-1111-111111111111')])
+    await feedbackBlob(otherAccount, [entry('22222222-2222-2222-2222-222222222222')])
+    const result = await call(adminMcp, 'resolver_avaliacao', { conta: '', id: '11111111-1111-1111-1111-111111111111', resolucao: 'a', versao: '1' })
+    expect(result.result.isError).toBe(true)
+    const shared = await call(adminMcp, 'resolver_avaliacao', { conta: '0123456789abcdef'.slice(0, 0) + '0', id: 'x', resolucao: 'a', versao: '1' })
+    expect(shared.result.isError).toBe(true)
+  })
+
+  it('skips a corrupt account in the list', async () => {
+    await writeBlob(sql, key, adminAccount, 'exerciseFeedback', 'isto não é json', now)
+    await feedbackBlob(otherAccount, [null, 3, entry('22222222-2222-2222-2222-222222222222', { updatedAt: undefined })])
+    const text: string = (await call(adminMcp, 'avaliacoes_imagens')).result.content[0].text
+    expect(text).toContain('22222222-2222-2222-2222-222222222222')
+  })
+
+  function racing(times: number): Sql {
+    let injected = 0
+    const wrapped = (async (text: string, params: unknown[] = []) => {
+      const rows = await sql(text, params)
+      if (text.includes("id = $2 and not deleted") && params[0] === otherAccount && params[1] === 'exerciseFeedback' && injected < times) {
+        injected += 1
+        const current = await readBlob(sql, key, otherAccount, 'exerciseFeedback')
+        await writeBlob(sql, key, otherAccount, 'exerciseFeedback', current?.text ?? '[]', new Date(now.getTime() + injected * 3_600_000))
+      }
+      return rows
+    }) as Sql
+    return Object.assign(wrapped, { transaction: sql.transaction })
+  }
+
+  const resolveWith = async (wrapped: Sql, target: string) => {
+    const response = await mcpRoute(
+      makeRequest('POST', '/mcp', {
+        token: adminMcp,
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'resolver_avaliacao', arguments: { conta: otherAccount.slice(0, 8), id: target, resolucao: 'ok', versao: '1' } } }),
+      }),
+      wrapped, key, () => now,
+    )
+    return JSON.parse(await response.text()).result
+  }
+
+  it('resolve_retries_when_write_is_ignored', async () => {
+    const target = '11111111-1111-1111-1111-111111111111'
+    await feedbackBlob(otherAccount, [entry(target)])
+    const result = await resolveWith(racing(1), target)
+    expect(result.isError).toBeUndefined()
+    const entries = JSON.parse((await readBlob(sql, key, otherAccount, 'exerciseFeedback'))?.text ?? '[]')
+    expect(entries[0].status).toBe('resolved')
+  })
+
+  it('resolve_reports_failure_when_write_is_ignored', async () => {
+    const target = '11111111-1111-1111-1111-111111111111'
+    await feedbackBlob(otherAccount, [entry(target)])
+    const result = await resolveWith(racing(10), target)
+    expect(result.isError).toBe(true)
+    expect(result.content[0].text).toContain('Não deu para gravar')
+    const entries = JSON.parse((await readBlob(sql, key, otherAccount, 'exerciseFeedback'))?.text ?? '[]')
+    expect(entries[0].status).toBe('pending')
+  })
 })

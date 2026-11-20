@@ -22,7 +22,7 @@ export async function writeBlob(sql: Sql, key: Buffer, accountId: string, id: st
   const payload = JSON.stringify({ data: Buffer.from(text, 'utf8').toString('base64') })
   const records = sealPlainRecords([{ kind: 'preference', id, updatedAt: now.toISOString(), deleted: false, payload, format: 'plain' }], key, accountId)
   const outcome = await pushRecords(sql, accountId, records, limitsFromEnv(process.env).maxAccountBytes)
-  return outcome.status === 'ok'
+  return outcome.status === 'ok' && !outcome.result.ignored.some((ignored) => ignored.kind === 'preference' && ignored.id === id)
 }
 
 export async function withinRateLimit(sql: Sql, accountPrefix: string): Promise<boolean> {
