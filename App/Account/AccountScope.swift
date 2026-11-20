@@ -37,6 +37,7 @@ final class AccountScope: Sendable {
 
     var trainerURL: URL { supportFolder.appending(path: TrainerConstants.storeFileName) }
     var strengthProgramURL: URL { supportFolder.appending(path: StrengthConstants.programFileName) }
+    var exerciseFeedbackURL: URL { supportFolder.appending(path: ExerciseFeedbackConstants.fileName) }
     var paceProURL: URL { supportFolder.appending(path: RacePlanConstants.cacheFileName) }
 
     var snapshotsFolder: URL { cachesFolder.appending(path: ScreenSnapshotConstants.directoryName, directoryHint: .isDirectory) }
