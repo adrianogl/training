@@ -219,6 +219,9 @@ O texto do treinador é escrito pelo modelo do aparelho (Apple Intelligence) a p
 - O texto só usa números que estão nos fatos e no mesmo formato. Um ritmo como `4:53` conta como um número só.
 - "Hora", "minuto" e "segundo" só passam se estiverem nos fatos.
 - Sem exclamação, lista ou título. No máximo 700 caracteres e 6 frases.
+- O texto fala com uma pessoa só: "você". "Vocês" e "o atleta" reprovam o texto.
+- Afirmações que o modelo costuma inventar só passam se estiverem nos fatos: fora, acima ou abaixo do alvo, não cumpriu, piorou, melhorou, eventos, lesão, dor, estresse, desconforto, doença, cansaço, fadiga, chuva, vento, calor, frio, sono, alimentação, hidratação. A lista fica em `CoachFeedbackConstants.backedClaims`.
+- Quando as regras mudam, a versão do cache (`GeneratedTextConstants.version`) sobe e os textos já aprovados são gerados de novo.
 - Se o texto não passa na checagem, o app mostra o texto padrão montado dos fatos.
 - O texto aprovado vai pelo sync, cifrado, e os outros aparelhos usam o mesmo. Se dois aparelhos gerarem para os mesmos fatos, vale o mais recente (`GeneratedTextStore`, registro `narrative` no servidor).
 

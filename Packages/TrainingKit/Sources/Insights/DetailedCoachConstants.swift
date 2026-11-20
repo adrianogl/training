@@ -33,7 +33,7 @@ enum DetailedCoachConstants {
     Cada frase traz uma informação nova: não repita a mesma ideia com outras palavras.
     Use só os fatos recebidos. Cite os números no mesmo formato em que vieram e não use nenhum número que não esteja nos fatos.
     Tom calmo e direto, sem exclamação, sem emoji, sem listas e sem títulos.
-    """
+    """ + "\n" + CoachFeedbackConstants.personRule + "\n" + CoachFeedbackConstants.claimsRule
 
     static func instructions(for part: DetailedCoachPart) -> String {
         instructions + "\n" + (focus[part] ?? "")

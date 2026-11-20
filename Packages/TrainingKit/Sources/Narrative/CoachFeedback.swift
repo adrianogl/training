@@ -60,5 +60,26 @@ public enum CoachFeedback {
             && !CoachFeedbackConstants.forbidden.contains { text.contains($0) }
             && Set(NarrativeCheck.numbers(in: text)).isSubset(of: Set(NarrativeCheck.numbers(in: source)))
             && !NarrativeCheck.addsTimeUnit(text, source: source)
+            && !usesForbiddenWord(text)
+            && !addsClaim(text, source: source)
+    }
+
+    static func usesForbiddenWord(_ text: String) -> Bool {
+        folded(text).split { !$0.isLetter }.contains { CoachFeedbackConstants.forbiddenWords.contains(String($0)) }
+    }
+
+    static func addsClaim(_ text: String, source: String) -> Bool {
+        let written = folded(text)
+        let known = folded(source)
+        return CoachFeedbackConstants.backedClaims.contains { mentions(written, $0) && !mentions(known, $0) }
+    }
+
+    private static func mentions(_ text: String, _ claim: String) -> Bool {
+        if claim.contains(" ") { return text.contains(claim) }
+        return text.split { !$0.isLetter }.contains { $0.hasPrefix(claim) }
+    }
+
+    private static func folded(_ text: String) -> String {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
     }
 }
