@@ -20,6 +20,7 @@ struct TrainerStrengthView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrainerStrengthConstants.rowSpacing) {
+                section(TrainerStrengthText.daysTitle, first: true)
                 daysCard
                 if model.suggestedStrength() != sessions, sessions.contains(where: { $0.source == .trainer }) {
                     suggestionCard
@@ -28,6 +29,7 @@ struct TrainerStrengthView: View {
                     inboxCard(inbox, preview: preview)
                 }
                 if sessions.contains(where: { $0.source == .trainer }) {
+                    section(ClaudeText.source)
                     claudeCard
                 }
                 Button { showsPain = true } label: {
@@ -38,6 +40,7 @@ struct TrainerStrengthView: View {
                     Text(TrainerStrengthText.mfitReadOnly).font(.footnote).foregroundStyle(BrandColors.dim).padding(.horizontal, 2)
                 }
                 if model.plan == nil {
+                    section(TrainerStrengthText.upcomingTitle)
                     upcomingCard
                     Button { showsSend = true } label: {
                         Label(app.watchKind == .appleWatch ? TrainerSendText.appleOpenButton : TrainerSendText.openButton, systemImage: "applewatch")
@@ -129,9 +132,6 @@ struct TrainerStrengthView: View {
 
     private var claudeCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(ClaudeText.source, systemImage: ClaudeConstants.symbol)
-                .font(.footnote.weight(.bold))
-                .foregroundStyle(ClaudeConstants.color)
             Button(ClaudeText.askButton) { showsClaudeRequest = true }
                 .buttonStyle(.ds(.secondary))
             Button(ClaudeText.pasteButton) { pasteFromClaude() }
@@ -159,7 +159,6 @@ struct TrainerStrengthView: View {
         let days = (0..<TrainerSendConstants.windowDays).map { model.currentDay.adding(days: $0) }
         let entries = days.flatMap { day in model.trainerSessions(on: day).map { (day: day, session: $0) } }
         return VStack(alignment: .leading, spacing: 4) {
-            DSCardLabel(TrainerStrengthText.upcomingTitle)
             if entries.isEmpty {
                 Text(TrainerStrengthText.upcomingEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }
@@ -177,7 +176,7 @@ struct TrainerStrengthView: View {
                         }
                         Spacer(minLength: 6)
                         if model.isClaudeDay(entry.day) { ClaudeSourceChip() }
-                        CardLinkBadge()
+                        CardLinkChevron()
                     }
                     .padding(.vertical, 6)
                     .contentShape(Rectangle())
@@ -188,15 +187,20 @@ struct TrainerStrengthView: View {
         .brandCard()
     }
 
+    private func section(_ title: String, first: Bool = false) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, first ? 4 : DSSpacing.sectionTop - TrainerStrengthConstants.rowSpacing)
+            .padding(.bottom, DSSpacing.sectionBottom - TrainerStrengthConstants.rowSpacing)
+    }
+
     private var daysCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(TrainerStrengthText.daysTitle)
             HStack(spacing: 6) {
                 ForEach(1...TrainerConstants.weekdayCount, id: \.self) { weekday in
                     dayChip(weekday)
                 }
             }
-            DSCardLabel(TrainerStrengthText.perDayTitle).padding(.top, 4)
+            .padding(.bottom, 4)
             if sessions.isEmpty {
                 Text(TrainerText.strengthEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
             }
@@ -248,7 +252,7 @@ struct TrainerStrengthView: View {
             Spacer(minLength: 6)
             TrainerStrengthSourceChip(source: session.source)
             if session.source == .trainer {
-                CardLinkBadge()
+                CardLinkChevron()
             }
         }
         .padding(.vertical, 6)

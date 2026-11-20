@@ -3,7 +3,6 @@ import Insights
 
 enum TrainerStrengthText {
     static let daysTitle = "Dias de força"
-    static let perDayTitle = "Fonte e foco de cada dia"
     static let sourceLabel = "Fonte"
     static let focusLabel = "Foco"
     static let intensityLabel = "Intensidade"

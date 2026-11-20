@@ -40,28 +40,23 @@ struct TrainerDayView: View {
     private func content(_ row: TrainerDayRow) -> some View {
         let bestTime = row.workout.kind == .long && row.run == nil ? TrainerBestTimeBuilder.make(weather: weather) : nil
         let workout = displayed(row.workout, heat: bestTime?.heat)
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(workout.title).font(.title2.weight(.bold)).foregroundStyle(BrandColors.text)
+                Text(workout.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
                 if workout.edited && workout.kind != .off {
                     Text(TrainerText.editedStatus).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
                 }
             }
             Text(subtitle(workout)).font(.caption).foregroundStyle(BrandColors.dim)
-            if !row.strength.isEmpty {
-                HStack(spacing: 8) {
-                    ForEach(row.strength) { line in
-                        if line.source == .trainer {
-                            NavigationLink(value: TrainerRoute.strengthDay(iso, line.id)) { TrainerStrengthTag(line: line) }
-                                .buttonStyle(.plain)
-                        } else {
-                            TrainerStrengthTag(line: line)
-                        }
-                    }
-                }
+            if workout.kind != .off {
+                numbers(workout, estimate: app.trainer.timeEstimate(workout, run: row.run))
+                    .padding(.top, 8)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .brandCard()
         if !workout.steps.isEmpty {
+            section(TrainerText.structureTitle)
             VStack(alignment: .leading, spacing: 10) {
                 TrainerShapeChart(bars: TrainerText.shapeBars(workout.steps))
                 TrainerStepList(rows: TrainerText.stepRows(workout))
@@ -71,19 +66,49 @@ struct TrainerDayView: View {
         if let bestTime {
             TrainerBestTimeCard(bestTime: bestTime, hasBlocks: TrainerEngine.plannedPauses(of: workout) > 0)
         }
+        section(TrainerText.whyTitle)
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(TrainerText.whyTitle)
             Text(workout.rationale).font(.footnote).foregroundStyle(BrandColors.text)
             if let method = workout.method {
                 Text(TrainerText.methodLine(method)).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.dim)
             }
-            numbers(workout, estimate: app.trainer.timeEstimate(workout, run: row.run))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
+        if !row.strength.isEmpty {
+            section(TrainerText.strengthDayTitle)
+            ForEach(row.strength) { line in
+                strengthCard(line)
+            }
+        }
         if let run = row.run {
+            section(TrainerText.doneTitle)
             runCard(run)
         }
         AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
+    }
+
+    private func section(_ title: String) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, DSSpacing.sectionTop - TrainerConstants.detailSpacing)
+            .padding(.bottom, DSSpacing.sectionBottom - TrainerConstants.detailSpacing)
+    }
+
+    @ViewBuilder
+    private func strengthCard(_ line: TrainerStrengthLine) -> some View {
+        let card = VStack(alignment: .leading, spacing: 10) {
+            TrainerStrengthLineView(line: line, showsDateColumn: false)
+            if line.source == .trainer {
+                CardLinkFooter(title: CardLinkConstants.workout)
+            }
+        }
+        .brandCard()
+        if line.source == .trainer {
+            NavigationLink(value: TrainerRoute.strengthDay(iso, line.id)) { card }
+                .buttonStyle(.cardLink)
+        } else {
+            card
+        }
     }
 
     private func subtitle(_ workout: TrainerWorkout) -> String {
@@ -107,16 +132,13 @@ struct TrainerDayView: View {
         }
         if let estimate { items.append((RunTimeText.range(estimate), RunTimeConstants.label)) }
         if let note = workout.note, !note.isEmpty { items.append((note, TrainerText.notePrefix)) }
-        return HStack(spacing: 8) {
+        return HStack(alignment: .top, spacing: 12) {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 VStack(alignment: .leading, spacing: 1) {
                     Text(item.0).font(BrandFonts.number(17)).foregroundStyle(BrandColors.text).lineLimit(2).minimumScaleFactor(0.7)
                     Text(item.1).font(.caption2).foregroundStyle(BrandColors.dim)
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
         }
     }
@@ -129,7 +151,6 @@ struct TrainerDayView: View {
         if let pauses = run.pauses { items.append((TrainerText.runPauses, "\(pauses)")) }
         if let fade = run.fadeKm { items.append((TrainerText.runFade, "\(fade)")) }
         return VStack(alignment: .leading, spacing: 6) {
-            DSCardLabel(TrainerText.doneTitle)
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 HStack {
                     Text(item.0).font(.footnote).foregroundStyle(BrandColors.dim)
@@ -137,6 +158,9 @@ struct TrainerDayView: View {
                     Text(item.1).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text).monospacedDigit()
                 }
             }
+            NavigationLink { WorkoutDetailView(activityId: run.activityId) } label: { CardLinkFooter(title: CardLinkConstants.workout) }
+                .buttonStyle(.cardLink)
+                .padding(.top, 4)
         }
         .brandCard()
     }

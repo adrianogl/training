@@ -29,7 +29,7 @@ struct TrainerSendSheet: View {
         let pending = items.filter { !excluded.contains($0.key) && TrainerSendBuilder.status($0, records: records) != .current }
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: TrainerSendConstants.rowSpacing) {
                     Picker(TrainerSendText.title, selection: $filter) {
                         ForEach(TrainerSendFilter.allCases) { Text(TrainerSendText.filterName($0)).tag($0) }
                     }
@@ -37,8 +37,8 @@ struct TrainerSendSheet: View {
                     if filter != .strength, !effective.runFromTrainer {
                         Text(TrainerSendText.runFromAdvisory).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
+                    section(TrainerSendText.windowLabel)
                     VStack(alignment: .leading, spacing: 0) {
-                        DSCardLabel(TrainerSendText.windowLabel).padding(.bottom, 6)
                         if items.isEmpty {
                             Text(TrainerSendText.empty).font(.footnote).foregroundStyle(BrandColors.dim).padding(.vertical, 8)
                         }
@@ -49,7 +49,7 @@ struct TrainerSendSheet: View {
                     }
                     .brandCard()
                     if !stale.isEmpty {
-                        Text(String(format: TrainerSendText.removedFormat, stale.count)).font(.footnote).foregroundStyle(BrandColors.attention)
+                        Text(TrainerSendText.removed(stale.count)).font(.footnote).foregroundStyle(BrandColors.attention)
                     }
                     Text(isApple ? TrainerSendText.appleOnlyApp : app.garminAccount.client == nil ? TrainerSendText.needsLogin : TrainerSendText.onlyApp)
                         .font(.caption).foregroundStyle(BrandColors.dim)
@@ -61,7 +61,12 @@ struct TrainerSendSheet: View {
                     if let message {
                         Text(message).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.accent)
                     }
-                    if app.watchKind != .appleWatch { settingsCard }
+                    if app.watchKind != .appleWatch {
+                        section(TrainerSendText.runSection)
+                        runCard
+                        section(TrainerSendText.autoLabel)
+                        autoCard
+                    }
                 }
                 .id(revision)
                 .padding(.horizontal, BrandConstants.screenPadding)
@@ -102,14 +107,23 @@ struct TrainerSendSheet: View {
         .disabled(status == .current)
     }
 
-    private var settingsCard: some View {
+    private func section(_ title: String) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, DSSpacing.sectionTop - TrainerSendConstants.rowSpacing)
+            .padding(.bottom, DSSpacing.sectionBottom - TrainerSendConstants.rowSpacing)
+    }
+
+    private var runCard: some View {
+        Toggle(TrainerSendText.runToggle, isOn: Binding(get: { settings.runFromTrainer }, set: { value in
+            settings.runFromTrainer = value
+            store.save(settings)
+        }))
+        .tint(BrandColors.accentFill)
+        .brandCard()
+    }
+
+    private var autoCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Toggle(TrainerSendText.runToggle, isOn: Binding(get: { settings.runFromTrainer }, set: { value in
-                settings.runFromTrainer = value
-                store.save(settings)
-            }))
-            .tint(BrandColors.accentFill)
-            Text(TrainerSendText.autoLabel).font(.caption.weight(.bold)).foregroundStyle(BrandColors.dim)
             Picker(TrainerSendText.autoLabel, selection: Binding(get: { settings.auto }, set: { value in
                 settings.auto = value
                 store.save(settings)
@@ -126,7 +140,7 @@ struct TrainerSendSheet: View {
     private func buttonTitle(_ count: Int) -> String {
         if sending { return TrainerSendText.sending }
         let done = app.watchKind == .appleWatch ? TrainerSendText.appleUpToDate : TrainerSendText.upToDate
-        return count == 0 ? done : String(format: TrainerSendText.sendFormat, count)
+        return count == 0 ? done : TrainerSendText.sendTitle(count)
     }
 
     private func send(_ items: [TrainerSendItem], stale: [(key: String, record: TrainerSentRecord)]) {

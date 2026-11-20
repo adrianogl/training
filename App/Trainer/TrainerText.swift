@@ -25,6 +25,7 @@ enum TrainerText {
         (.general, "base geral"), (.base, "base"), (.build, "construção"), (.specific, "específico"), (.taper, "polimento"),
     ]
     static let restTitle = "Folga"
+    static let strengthDayTitle = "Força do dia"
     static let goalLabel = "Objetivo"
     static let thresholdNowLabel = "limiar hoje"
     static let thresholdNeededLabel = "limiar que a meta pede"

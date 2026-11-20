@@ -2,17 +2,6 @@ import Insights
 import SwiftUI
 import TrainingCore
 
-
-struct TrainerStrengthTag: View {
-    let line: TrainerStrengthLine
-
-    var body: some View {
-        Text(TrainerText.strengthTag(line))
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(BrandColors.strength)
-    }
-}
-
 struct TrainerDayTagView: View {
     let tag: TrainerDayTag
 

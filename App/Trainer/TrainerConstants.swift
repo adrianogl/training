@@ -5,6 +5,7 @@ import SwiftUI
 
 enum TrainerConstants {
     static let tagSpacing: CGFloat = 6
+    static let detailSpacing: CGFloat = 10
     static let actionIconSize: CGFloat = 30
     static let strengthDone = "feita"
     static let strengthTitle = "Força"
