@@ -28,6 +28,7 @@ struct RootView: View {
         .fullScreenCover(isPresented: Binding(get: { model.watchKind == nil }, set: { _ in })) {
             WatchChoiceView { model.chooseWatch($0) }
         }
+        .onChange(of: usesSidebar) { _, _ in resetNavigationForLayoutChange() }
         .onChange(of: section) { _, value in sectionRaw = value.rawValue }
         .onChange(of: sidebarSelection) { _, value in sidebarRaw = (value ?? .today).rawValue }
         .onChange(of: todayPath) { _, value in todayPathData = NavigationRestoration.encode(value) }
@@ -117,6 +118,12 @@ struct RootView: View {
         }
         let debugPath = Self.initialTodayPath()
         if !debugPath.isEmpty { todayPath = debugPath }
+    }
+
+    private func resetNavigationForLayoutChange() {
+        todayPath = []
+        trainerPath = []
+        morePath = NavigationPath()
     }
 
     private func follow() {
