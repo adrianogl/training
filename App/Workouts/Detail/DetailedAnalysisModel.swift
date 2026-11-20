@@ -105,7 +105,7 @@ import WorkoutAnalysis
             run.percentOfDistance.map { percent in
                 SimilarBar(
                     id: run.activityId,
-                    label: run.activityId == analysis.current.activityId ? C.legendToday : run.start.formatted(.dateTime.day().month(.abbreviated).locale(WorkoutFormat.locale)),
+                    label: run.activityId == analysis.current.activityId ? C.legendToday : run.start.formatted(.dateTime.day(.twoDigits).month(.twoDigits).locale(WorkoutFormat.locale)),
                     percent: percent,
                     role: run.activityId == analysis.current.activityId ? .today : run.isClean ? .clean : run.isComplete ? .complete : .partial
                 )

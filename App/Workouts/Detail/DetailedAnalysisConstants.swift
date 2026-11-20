@@ -51,7 +51,6 @@ enum DetailedScreenConstants {
     static let barCornerRadius: CGFloat = 3
     static let glyphSize: CGFloat = 22
     static let badgeSize: CGFloat = 20
-    static let columnWeights: [Double] = [1, 1]
     static let contentMaxWidth: CGFloat = 640
     static let fixSymbol = "exclamationmark"
     static let goodSymbol = "arrow.up.right"

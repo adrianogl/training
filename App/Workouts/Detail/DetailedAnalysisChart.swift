@@ -10,12 +10,11 @@ struct DetailedKilometerChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.kmTitle)
             paceChart
             if analysis.splits.contains(where: { $0.heartRate != nil }) {
                 heartRateChart
             }
-            HStack(spacing: 12) {
+            DSFlowLayout(spacing: DSSpacing.s3) {
                 legend(C.paceLegend, color: BrandColors.fitness)
                 legend(C.heartRateLegend, color: BrandColors.race)
             }
@@ -116,7 +115,6 @@ struct DetailedSimilarChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(C.similarTitle)
             Chart(bars) { bar in
                 BarMark(x: .value("treino", bar.label), y: .value("%", bar.percent))
                     .foregroundStyle(color(bar.role))
@@ -129,7 +127,7 @@ struct DetailedSimilarChart: View {
             .chartYScale(domain: 0...max(110, (bars.map(\.percent).max() ?? 100) + 10))
             .chartYAxis(.hidden)
             .frame(height: C.similarChartHeight)
-            HStack(spacing: 12) {
+            DSFlowLayout(spacing: DSSpacing.s3) {
                 legend(C.legendClean, color: BrandColors.accentFill)
                 legend(C.legendComplete, color: BrandColors.fitness)
                 legend(C.legendPartial, color: BrandColors.fitness.opacity(C.partialOpacity))
