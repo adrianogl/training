@@ -25,6 +25,11 @@ enum TrainerText {
         (.general, "base geral"), (.base, "base"), (.build, "construção"), (.specific, "específico"), (.taper, "polimento"),
     ]
     static let restTitle = "Folga"
+    static let goalLabel = "Objetivo"
+    static let thresholdNowLabel = "limiar hoje"
+    static let thresholdNeededLabel = "limiar que a meta pede"
+    static let thresholdGapFormat = "O limiar precisa cair %d s/km até a prova."
+    static let thresholdReady = "Seu limiar já está no ritmo que a meta pede."
     static let raceCell = "prova"
     static let recoveryWeek = "recup."
     static let longRun = "longão"
@@ -297,9 +302,13 @@ enum TrainerText {
         "\(WorkoutFormat.clock(Double(pace)))/km até \(kilometers) km"
     }
 
+    static func thresholdGap(current: Double, needed: Double) -> String {
+        let gap = Int(current.rounded()) - Int(needed.rounded())
+        return gap > 0 ? String(format: thresholdGapFormat, gap) : thresholdReady
+    }
+
     static func goalCaption(plan: TrainerPlan, weeks: Int?) -> String {
         var parts: [String] = []
-        if let pace = plan.target.goalPace, plan.target.kind == .paceDistance { parts.append("meta \(WorkoutFormat.clock(pace))/km") }
         if let seconds = plan.target.goalSeconds { parts.append(String(format: goalFormat, WorkoutFormat.clock(seconds))) }
         if let weeks { parts.append("\(weeks) \(weeks == 1 ? "semana" : "semanas")") }
         parts.append("versão \(plan.versions.last?.number ?? 1)")

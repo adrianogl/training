@@ -33,7 +33,7 @@ struct TrainerDayLineView: View {
             Text(line.detail).font(.caption).foregroundStyle(BrandColors.dim)
         }
         if !line.tags.isEmpty {
-            HStack(spacing: 6) {
+            DSFlowLayout(spacing: TrainerConstants.tagSpacing) {
                 ForEach(line.tags) { TrainerDayTagView(tag: $0) }
             }
             .padding(.top, 2)
@@ -48,27 +48,15 @@ struct TrainerDayRowView: View {
     var body: some View {
         let workout = row.workout
         let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
-        HStack(spacing: 10) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(TrainerText.weekdayShort(workout.day))
-                    .font(.caption)
-                    .foregroundStyle(BrandColors.dim)
-                Text("\(workout.day.day)")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(BrandColors.text)
+        VStack(alignment: .leading, spacing: 10) {
+            summary(row)
+            ForEach(row.strength) { line in
+                Divider().overlay(BrandColors.line).padding(.leading, TrainerConstants.dayDateWidth + 10)
+                TrainerStrengthLineView(line: line)
             }
-            .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
-            kindBar(workout.kind)
-            VStack(alignment: .leading, spacing: 2) {
-                TrainerDayLineView(line: TrainerText.dayLine(workout, strength: row.strength, longStage: row.longStage, estimate: row.estimate), titleFont: .subheadline)
+            if workout.kind != .off || !row.strength.isEmpty {
+                CardLinkFooter(title: CardLinkConstants.details)
             }
-            Spacer(minLength: 6)
-            if let status = TrainerText.status(for: row) {
-                Text(status.text)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(TrainerConstants.color(for: status.tone))
-            }
-            CardLinkBadge()
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -82,6 +70,31 @@ struct TrainerDayRowView: View {
         }
         .opacity(workout.kind == .off ? 0.55 : 1)
         .contentShape(shape)
+    }
+
+    private func summary(_ row: TrainerDayRow) -> some View {
+        let workout = row.workout
+        return HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(TrainerText.weekdayShort(workout.day))
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.dim)
+                Text("\(workout.day.day)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(BrandColors.text)
+            }
+            .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
+            kindBar(workout.kind)
+            VStack(alignment: .leading, spacing: 2) {
+                TrainerDayLineView(line: TrainerText.dayLine(workout, longStage: row.longStage, estimate: row.estimate), titleFont: .subheadline)
+            }
+            Spacer(minLength: 6)
+            if let status = TrainerText.status(for: row) {
+                Text(status.text)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(TrainerConstants.color(for: status.tone))
+            }
+        }
     }
 
     @ViewBuilder
@@ -114,7 +127,7 @@ struct TrainerWeekStrip: View {
                     }
                 }
             }
-            HStack(spacing: 12) {
+            DSFlowLayout(spacing: 12) {
                 ForEach(TrainerText.phases, id: \.0) { phase, name in
                     HStack(spacing: 5) {
                         Capsule().fill(TrainerConstants.color(for: phase)).frame(width: 9, height: 4)

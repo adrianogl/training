@@ -4,6 +4,10 @@ import Metrics
 import SwiftUI
 
 enum TrainerConstants {
+    static let tagSpacing: CGFloat = 6
+    static let actionIconSize: CGFloat = 30
+    static let strengthDone = "feita"
+    static let strengthTitle = "Força"
     static let nestedStepInset: CGFloat = 18
     static let storeFileName = "trainer-plan.json"
     static let seenVersionDefaultsKey = "trainerSeenVersion"
@@ -92,7 +96,7 @@ enum TrainerConstants {
 
     static func color(for phase: TrainerPhase) -> Color {
         switch phase {
-        case .general: BrandColors.zones[0]
+        case .general: BrandColors.dim
         case .base: BrandColors.fitness
         case .build: BrandColors.attention
         case .specific: BrandColors.race

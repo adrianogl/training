@@ -10,13 +10,6 @@ enum TrainerRoute: Hashable, Codable {
     case strengthDay(String, UUID)
 }
 
-enum TrainerTab: String, CaseIterable, Identifiable {
-    case plan
-    case compare
-
-    var id: String { rawValue }
-}
-
 enum TrainerTargetMode: String, CaseIterable, Identifiable {
     case race
     case text
