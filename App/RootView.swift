@@ -17,6 +17,7 @@ struct RootView: View {
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     @State private var layout: RootLayout?
     @State private var swappingLayout = false
+    @State private var latestSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
         Group {
@@ -27,13 +28,17 @@ struct RootView: View {
             }
         }
         .onAppear {
+            latestSizeClass = sizeClass
             layout = layout ?? targetLayout
             applyRestoration()
         }
         .fullScreenCover(isPresented: Binding(get: { model.watchKind == nil }, set: { _ in })) {
             WatchChoiceView { model.chooseWatch($0) }
         }
-        .onChange(of: sizeClass) { _, _ in beginLayoutSwap() }
+        .onChange(of: sizeClass) { _, value in
+            latestSizeClass = value
+            beginLayoutSwap()
+        }
         .onChange(of: section) { _, value in sectionRaw = value.rawValue }
         .onChange(of: sidebarSelection) { _, value in sidebarRaw = (value ?? .today).rawValue }
         .onChange(of: todayPath) { _, value in todayPathData = NavigationRestoration.encode(value) }
@@ -61,7 +66,7 @@ struct RootView: View {
     }
 
     private var targetLayout: RootLayout {
-        RootLayout.target(sizeClass: sizeClass, idiom: UIDevice.current.userInterfaceIdiom)
+        RootLayout.target(sizeClass: latestSizeClass ?? sizeClass, idiom: UIDevice.current.userInterfaceIdiom)
     }
 
     private var usesSidebar: Bool {
@@ -130,15 +135,15 @@ struct RootView: View {
     }
 
     private func beginLayoutSwap() {
-        let target = targetLayout
-        guard target != layout, !swappingLayout else { return }
+        guard RootLayout.swapAction(current: layout, target: targetLayout, swapping: swappingLayout) == .begin else { return }
         swappingLayout = true
         todayPath = []
         trainerPath = []
         morePath = NavigationPath()
         Task { @MainActor in
-            layout = target
+            layout = targetLayout
             swappingLayout = false
+            beginLayoutSwap()
             follow()
         }
     }
