@@ -20,7 +20,7 @@ struct GoalsListCard: View {
             }
             if weeklyGoal > 0 {
                 Button { onOpen(.all) } label: {
-                    DSRow(title: C.weeklyTitle, accessory: .link) {
+                    DSRow(title: C.weeklyTitle, accessory: .chevron) {
                         Text(String(format: C.weeklyPerWeekFormat, weeklyGoal)).font(.caption).foregroundStyle(BrandColors.dim)
                     }
                 }
@@ -42,7 +42,7 @@ struct GoalsListCard: View {
     }
 
     private func row(_ snapshot: GoalSnapshot) -> some View {
-        DSRow(title: GoalsText.title(snapshot), subtitle: GoalsText.subtitle(snapshot), accessory: .link) {
+        DSRow(title: GoalsText.title(snapshot), subtitle: GoalsText.subtitle(snapshot), accessory: .chevron) {
             if let status = GoalsText.status(snapshot) {
                 GoalStatusChip(status: status)
             }

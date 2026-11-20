@@ -252,6 +252,15 @@ private struct RaceRow: View {
     let row: RaceRowData
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            summary
+            CardLinkFooter(title: CardLinkConstants.race)
+        }
+        .brandCard()
+        .contentShape(Rectangle())
+    }
+
+    private var summary: some View {
         HStack(alignment: .center, spacing: 12) {
             Text(row.priority)
                 .font(BrandFonts.number(20))
@@ -274,14 +283,11 @@ private struct RaceRow: View {
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
-                Text(row.distanceText).font(BrandFonts.number(22)).foregroundStyle(BrandColors.text)
+                Text(row.distanceText).font(BrandFonts.number(22)).foregroundStyle(BrandColors.text).fixedSize()
                 if let result = row.resultText {
-                    Text(result).font(BrandFonts.number(15)).foregroundStyle(BrandColors.dim)
+                    Text(result).font(BrandFonts.number(15)).foregroundStyle(BrandColors.dim).fixedSize()
                 }
             }
-            CardLinkBadge()
         }
-        .brandCard()
-        .contentShape(Rectangle())
     }
 }

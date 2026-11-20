@@ -34,9 +34,7 @@ struct RaceWeatherLine: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var tint: Color {
-        reading.effect.isCold ? BrandColors.fitness : reading.effect.isHeat ? BrandColors.race : BrandColors.dim
-    }
+    private var tint: Color { RaceWeatherText.tint(reading) }
 }
 
 enum RaceWeatherText {
@@ -64,6 +62,26 @@ enum RaceWeatherText {
         let word = reading.source == .forecast ? C.forecastWord : C.typicalWord
         let format = gap > 0 ? C.goalAboveFormat : C.goalBelowFormat
         return String(format: format, WorkoutFormat.clock(goalSeconds), WorkoutFormat.clock(abs(gap)), word)
+    }
+
+    static func tint(_ reading: RaceWeatherReading) -> Color {
+        reading.effect.isCold ? BrandColors.fitness : reading.effect.isHeat ? BrandColors.race : BrandColors.dim
+    }
+
+    static func cost(_ reading: RaceWeatherReading) -> String {
+        let seconds = reading.adjustedSeconds - reading.predictionSeconds
+        guard reading.effect.paceFactor > 0, seconds >= 1 else { return C.neutralCaption }
+        return String(format: C.costFormat, WorkoutFormat.clock(seconds), reading.effect.isCold ? C.coldWord : C.heatWord)
+    }
+
+    static func context(_ reading: RaceWeatherReading) -> String {
+        let dew = reading.effect.isCold ? nil : reading.effect.weather.dewPoint.map { String(format: C.dewPointFormat, Int($0.rounded())) }
+        return [
+            lead(reading),
+            dew,
+            String(format: C.hoursFormat, reading.startHour, reading.endHour),
+            reading.source == .forecast ? C.forecastLabel : C.typicalLabel,
+        ].compactMap { $0 }.joined(separator: C.separator)
     }
 
     static func list(_ reading: RaceWeatherReading) -> String {
