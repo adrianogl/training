@@ -15,9 +15,9 @@ import Testing
         return defaults
     }
 
-    private func model(_ defaults: UserDefaults, version: String = "1.26.0", expiry: Date? = nil, background: Bool, scheduler: FakeNotificationScheduler) -> InstallNoticeModel {
+    private func model(_ defaults: UserDefaults, version: String = "1.26.0", expiry: Date? = nil, bundled: AppRelease? = nil, background: Bool, scheduler: FakeNotificationScheduler) -> InstallNoticeModel {
         InstallNoticeModel(
-            defaults: defaults, version: version, expiry: expiry ?? self.expiry, scheduler: scheduler, isActive: { !background }, settle: {},
+            defaults: defaults, version: version, expiry: expiry ?? self.expiry, bundled: bundled, scheduler: scheduler, isActive: { !background }, settle: {},
             now: { Date(timeIntervalSince1970: 1_799_900_000) }, calendar: Calendar(identifier: .gregorian)
         )
     }
@@ -61,6 +61,27 @@ import Testing
         #expect(InstallNoticeModel.notes(release: serverOnly, from: "1.26.0", to: "1.26.1").isEmpty)
         #expect(InstallNoticeModel.notes(release: serverOnly, from: "1.25.0", to: "1.26.1") == ["Velha"])
         #expect(InstallNoticeModel.notes(release: release, from: "1.24.0", to: "1.25.0").isEmpty)
+    }
+
+    @Test func notesComeFromTheReleaseBundledInTheInstalledBuild() async {
+        let store = defaults(lastVersion: "1.25.0")
+        store.set(try! JSONEncoder().encode(AppRelease(versao: "1.25.0", build: 34, versao_app: "1.25.0", notas: ["Antiga"])), forKey: AppUpdateConstants.releaseDefaultsKey)
+        let bundled = AppRelease(versao: "1.26.0", build: 35, versao_app: "1.26.0", notas: ["Nova"])
+        let model = model(store, bundled: bundled, background: false, scheduler: FakeNotificationScheduler())
+        await model.check()
+        #expect(model.card?.notes == ["Nova"])
+    }
+
+    @Test func skippedVersionsAddTheirNotesNewestFirst() {
+        let history = AppRelease(versao: "1.27.1", build: 37, versao_app: "1.27.1", notas: ["Alinha o pedido"], historico: [
+            AppReleaseNotes(versao: "1.27.1", notas: ["Alinha o pedido"]),
+            AppReleaseNotes(versao: "1.27.0", notas: ["Avisa a instalação", "Alinha o pedido"]),
+            AppReleaseNotes(versao: "1.26.0", notas: ["Padroniza ajustes"]),
+            AppReleaseNotes(versao: "1.25.0", notas: ["Já instalada"]),
+        ])
+        #expect(InstallNoticeModel.notes(release: history, from: "1.25.0", to: "1.27.1") == ["Alinha o pedido", "Avisa a instalação", "Padroniza ajustes"])
+        #expect(InstallNoticeModel.notes(release: history, from: "1.26.0", to: "1.27.0") == ["Avisa a instalação", "Alinha o pedido"])
+        #expect(AppVersion.update(for: history, installed: "1.26.0")?.notes == ["Alinha o pedido", "Avisa a instalação"])
     }
 
     @Test func sameVersionWithNewProfileIsARenewal() async {

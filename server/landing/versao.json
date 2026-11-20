@@ -4,5 +4,25 @@
   "versao_app": "1.27.1",
   "notas": [
     "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
+  ],
+  "historico": [
+    {
+      "versao": "1.27.1",
+      "notas": [
+        "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
+      ]
+    },
+    {
+      "versao": "1.27.0",
+      "notas": [
+        "Avisa a instalação e abre a tela de cada notificação"
+      ]
+    },
+    {
+      "versao": "1.26.0",
+      "notas": [
+        "Padroniza ajustes, edição, readequação e mudanças do plano"
+      ]
+    }
   ]
 }

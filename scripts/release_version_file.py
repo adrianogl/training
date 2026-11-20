@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 MAX_NOTES = 3
+MAX_HISTORY = 10
 PREFIX = re.compile(r"^(feat|fix)(\([^)]*\))?!?:\s*")
 
 
@@ -16,11 +17,21 @@ def notes_from(subjects):
     return notes[:MAX_NOTES]
 
 
+def history_from(current):
+    if "historico" in current:
+        return current["historico"]
+    if "versao_app" in current:
+        return [{"versao": current["versao_app"], "notas": current.get("notas", [])}]
+    return []
+
+
 def version_file(current, version, build, app_changed, subjects):
-    data = {"versao": version, "build": build, "versao_app": current.get("versao_app", version), "notas": current.get("notas", [])}
+    data = {"versao": version, "build": build, "versao_app": current.get("versao_app", version), "notas": current.get("notas", []),
+            "historico": history_from(current)}
     if app_changed:
         data["versao_app"] = version
         data["notas"] = notes_from(subjects)
+        data["historico"] = ([{"versao": version, "notas": data["notas"]}] + data["historico"])[:MAX_HISTORY]
     return data
 
 

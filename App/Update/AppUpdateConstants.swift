@@ -2,6 +2,7 @@ import Foundation
 
 enum AppUpdateConstants {
     static let filePath = "versao.json"
+    static let bundledResource = "versao"
     static let checkInterval: TimeInterval = 6 * 60 * 60
     static let notifyHour = 8
     static let notificationId = "app-update"

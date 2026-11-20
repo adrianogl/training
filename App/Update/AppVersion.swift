@@ -19,6 +19,24 @@ enum AppVersion {
 
     static func update(for release: AppRelease, installed: String) -> AppUpdate? {
         guard isNewer(release.versao_app, than: installed) else { return nil }
-        return AppUpdate(latest: release.versao, installed: installed, notes: Array(release.notas.prefix(AppUpdateConstants.maxNotes)))
+        let notes = notes(in: release, after: installed, upTo: release.versao_app)
+        return AppUpdate(latest: release.versao, installed: installed, notes: Array(notes.prefix(AppUpdateConstants.maxNotes)))
+    }
+
+    static func notes(in release: AppRelease, after previous: String, upTo version: String) -> [String] {
+        let entries = release.historico ?? [AppReleaseNotes(versao: release.versao_app, notas: release.notas)]
+        let notes = entries
+            .filter { !isNewer($0.versao, than: version) && (previous.isEmpty || isNewer($0.versao, than: previous)) }
+            .sorted { isNewer($0.versao, than: $1.versao) }
+            .flatMap(\.notas)
+        return notes.reduce(into: []) { unique, note in
+            if !unique.contains(note) { unique.append(note) }
+        }
+    }
+
+    static func bundledRelease(_ bundle: Bundle = .main) -> AppRelease? {
+        bundle.url(forResource: AppUpdateConstants.bundledResource, withExtension: "json")
+            .flatMap { try? Data(contentsOf: $0) }
+            .flatMap { try? JSONDecoder().decode(AppRelease.self, from: $0) }
     }
 }

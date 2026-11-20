@@ -10,6 +10,7 @@ import UIKit
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let version: String
     @ObservationIgnored private let expiry: Date?
+    @ObservationIgnored private let bundled: AppRelease?
     @ObservationIgnored private let scheduler: any NotificationScheduling
     @ObservationIgnored private let isActive: @MainActor () -> Bool
     @ObservationIgnored private let settle: @Sendable () async -> Void
@@ -18,6 +19,7 @@ import UIKit
 
     init(
         defaults: UserDefaults = .standard, version: String = AppBuildInfo().version, expiry: Date? = ProvisioningProfile.expiration(),
+        bundled: AppRelease? = AppVersion.bundledRelease(),
         scheduler: any NotificationScheduling = UserNotificationScheduler(),
         isActive: @escaping @MainActor () -> Bool = { UIApplication.shared.applicationState == .active },
         settle: @escaping @Sendable () async -> Void = { try? await Task.sleep(for: InstallNoticeConstants.settleDelay) },
@@ -26,6 +28,7 @@ import UIKit
         self.defaults = defaults
         self.version = version
         self.expiry = expiry
+        self.bundled = bundled
         self.scheduler = scheduler
         self.isActive = isActive
         self.settle = settle
@@ -43,7 +46,7 @@ import UIKit
         let event = Self.event(
             lastVersion: defaults.string(forKey: C.versionDefaultsKey), lastExpiry: defaults.object(forKey: C.expiryDefaultsKey) as? Date,
             version: version, expiry: expiry, ranBefore: defaults.object(forKey: AppUpdateConstants.lastCheckDefaultsKey) != nil,
-            release: cachedRelease()
+            release: bundled ?? cachedRelease()
         )
         defaults.set(version, forKey: C.versionDefaultsKey)
         if let expiry { defaults.set(expiry, forKey: C.expiryDefaultsKey) }
@@ -76,9 +79,8 @@ import UIKit
     }
 
     nonisolated static func notes(release: AppRelease?, from previous: String, to version: String) -> [String] {
-        guard let release, !AppVersion.isNewer(release.versao_app, than: version),
-              previous.isEmpty || AppVersion.isNewer(release.versao_app, than: previous) else { return [] }
-        return Array(release.notas.prefix(InstallNoticeConstants.maxNotes))
+        guard let release else { return [] }
+        return Array(AppVersion.notes(in: release, after: previous, upTo: version).prefix(InstallNoticeConstants.maxNotes))
     }
 
     nonisolated static func link(_ event: InstallEvent) -> String {
