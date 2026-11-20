@@ -104,6 +104,7 @@ enum TodayConstants {
     static let sidebarRaceTitle = "Prova-alvo"
 
     static let rowSpacing: Double = 12
+    static let twoColumnMinWidth: Double = 600
     static let heroGaugeSize: Double = 150
     static let compactGaugeSize: Double = 112
     static let gaugeLineWidth: Double = 12

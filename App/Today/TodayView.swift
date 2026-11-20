@@ -7,6 +7,7 @@ struct TodayView: View {
     @Environment(AppModel.self) private var app
     @Environment(\.modelContext) private var context
     @Environment(\.horizontalSizeClass) private var sizeClass
+    @State private var contentWidth: Double = 0
     @AppStorage(AppConstants.weeklyGoalDefaultsKey) private var weeklyGoal = 0
     @Binding var path: [TodayRoute]
     var openSettings: () -> Void = {}
@@ -40,6 +41,7 @@ struct TodayView: View {
                     }
                     if let model, model.isLoaded, !app.showsSkeleton {
                         cards(model)
+                            .onGeometryChange(for: Double.self) { $0.size.width } action: { contentWidth = $0 }
                     } else if app.showsSkeleton {
                         FirstSyncView()
                     } else {
@@ -153,10 +155,14 @@ struct TodayView: View {
         await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: text, at: sunday)
     }
 
+    private var twoColumns: Bool {
+        sizeClass == .regular && contentWidth >= TodayConstants.twoColumnMinWidth
+    }
+
     @ViewBuilder
     private func cards(_ model: TodayModel) -> some View {
         let spacing = TodayConstants.rowSpacing
-        if sizeClass == .regular {
+        if twoColumns {
             ProportionalHStack(weights: [1, 1], spacing: spacing) {
                 VStack(alignment: .leading, spacing: spacing) {
                     nowBlock(model)
@@ -204,7 +210,7 @@ struct TodayView: View {
 
     @ViewBuilder
     private func weekBlock(_ model: TodayModel) -> some View {
-        blockLabel(TodayConstants.blockWeek, first: sizeClass == .regular)
+        blockLabel(TodayConstants.blockWeek, first: twoColumns)
         let report = model.shownWeekReport(trainer: trainerWorkouts)
         let isCurrentWeek = report.start == Day.today().weekStart
         TodayWeekCard(
