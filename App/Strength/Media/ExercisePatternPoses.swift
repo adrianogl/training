@@ -251,40 +251,42 @@ enum ExercisePatternPoses {
                     hand: CGPoint(x: 70, y: 34)
                 ),
                 end: FigurePose(
-                    head: CGPoint(x: 62, y: 24),
-                    neck: CGPoint(x: 61, y: 36),
-                    hip: CGPoint(x: 59, y: 78),
-                    knee: CGPoint(x: 65, y: 100),
-                    ankle: CGPoint(x: 45, y: 94),
-                    toe: CGPoint(x: 39, y: 102),
-                    shoulder: CGPoint(x: 61, y: 42),
-                    elbow: CGPoint(x: 72, y: 54),
+                    head: CGPoint(x: 58, y: 20),
+                    neck: CGPoint(x: 61, y: 32),
+                    hip: CGPoint(x: 59, y: 74),
+                    knee: CGPoint(x: 65, y: 96),
+                    ankle: CGPoint(x: 45, y: 90),
+                    toe: CGPoint(x: 39, y: 98),
+                    shoulder: CGPoint(x: 61, y: 38),
+                    elbow: CGPoint(x: 72, y: 52),
                     hand: CGPoint(x: 70, y: 34)
                 )
             )
         case .antiExtension:
             (
                 start: FigurePose(
-                    head: CGPoint(x: 104, y: 102),
-                    neck: CGPoint(x: 93, y: 104),
-                    hip: CGPoint(x: 51, y: 110),
-                    knee: CGPoint(x: 25, y: 114),
-                    ankle: CGPoint(x: -2, y: 118),
-                    toe: CGPoint(x: 4, y: 128),
-                    shoulder: CGPoint(x: 87, y: 105),
-                    elbow: CGPoint(x: 87, y: 125),
-                    hand: CGPoint(x: 105, y: 125)
+                    head: CGPoint(x: 86, y: 78),
+                    neck: CGPoint(x: 76, y: 82),
+                    hip: CGPoint(x: 40, y: 100),
+                    knee: CGPoint(x: 30, y: 124),
+                    ankle: CGPoint(x: 6, y: 124),
+                    toe: CGPoint(x: 2, y: 128),
+                    shoulder: CGPoint(x: 71, y: 84),
+                    elbow: CGPoint(x: 74, y: 100),
+                    hand: CGPoint(x: 76, y: 117),
+                    weight: CGPoint(x: 76, y: 122)
                 ),
                 end: FigurePose(
-                    head: CGPoint(x: 104, y: 100),
-                    neck: CGPoint(x: 93, y: 103),
-                    hip: CGPoint(x: 51, y: 107),
-                    knee: CGPoint(x: 24, y: 112),
-                    ankle: CGPoint(x: -2, y: 118),
-                    toe: CGPoint(x: 4, y: 128),
-                    shoulder: CGPoint(x: 87, y: 104),
-                    elbow: CGPoint(x: 87, y: 125),
-                    hand: CGPoint(x: 105, y: 125)
+                    head: CGPoint(x: 107, y: 104),
+                    neck: CGPoint(x: 96, y: 108),
+                    hip: CGPoint(x: 55, y: 114),
+                    knee: CGPoint(x: 30, y: 124),
+                    ankle: CGPoint(x: 6, y: 124),
+                    toe: CGPoint(x: 2, y: 128),
+                    shoulder: CGPoint(x: 90, y: 109),
+                    elbow: CGPoint(x: 106, y: 113),
+                    hand: CGPoint(x: 122, y: 117),
+                    weight: CGPoint(x: 122, y: 122)
                 )
             )
         case .antiRotation:
@@ -317,28 +319,30 @@ enum ExercisePatternPoses {
         case .lateralCore:
             (
                 start: FigurePose(
-                    head: CGPoint(x: 100, y: 96),
-                    neck: CGPoint(x: 89, y: 100),
-                    hip: CGPoint(x: 50, y: 118),
-                    knee: CGPoint(x: 25, y: 121),
-                    ankle: CGPoint(x: 0, y: 122),
+                    head: CGPoint(x: 102, y: 93),
+                    neck: CGPoint(x: 92, y: 98),
+                    hip: CGPoint(x: 52, y: 121),
+                    knee: CGPoint(x: 28, y: 123),
+                    ankle: CGPoint(x: 4, y: 122),
                     toe: CGPoint(x: 10, y: 128),
-                    shoulder: CGPoint(x: 84, y: 102),
-                    elbow: CGPoint(x: 84, y: 84),
-                    hand: CGPoint(x: 84, y: 66),
-                    backArm: [CGPoint(x: 84, y: 102), CGPoint(x: 84, y: 124), CGPoint(x: 100, y: 124)]
+                    shoulder: CGPoint(x: 87, y: 101),
+                    elbow: CGPoint(x: 70, y: 110),
+                    hand: CGPoint(x: 54, y: 116),
+                    backLeg: [CGPoint(x: 28, y: 123), CGPoint(x: 4, y: 122), CGPoint(x: 10, y: 128)],
+                    backArm: [CGPoint(x: 87, y: 101), CGPoint(x: 89, y: 125), CGPoint(x: 101, y: 126)]
                 ),
                 end: FigurePose(
-                    head: CGPoint(x: 100, y: 96),
-                    neck: CGPoint(x: 89, y: 100),
-                    hip: CGPoint(x: 48, y: 110),
-                    knee: CGPoint(x: 24, y: 113),
-                    ankle: CGPoint(x: 0, y: 122),
+                    head: CGPoint(x: 107, y: 91),
+                    neck: CGPoint(x: 96, y: 94),
+                    hip: CGPoint(x: 56, y: 106),
+                    knee: CGPoint(x: 30, y: 114),
+                    ankle: CGPoint(x: 4, y: 122),
                     toe: CGPoint(x: 10, y: 128),
-                    shoulder: CGPoint(x: 84, y: 102),
-                    elbow: CGPoint(x: 84, y: 84),
-                    hand: CGPoint(x: 84, y: 66),
-                    backArm: [CGPoint(x: 84, y: 102), CGPoint(x: 84, y: 124), CGPoint(x: 100, y: 124)]
+                    shoulder: CGPoint(x: 90, y: 96),
+                    elbow: CGPoint(x: 90, y: 77),
+                    hand: CGPoint(x: 90, y: 58),
+                    backLeg: [CGPoint(x: 31, y: 98), CGPoint(x: 8, y: 90), CGPoint(x: 4, y: 96)],
+                    backArm: [CGPoint(x: 90, y: 96), CGPoint(x: 89, y: 125), CGPoint(x: 101, y: 126)]
                 )
             )
         case .mobilityHip:
@@ -410,15 +414,15 @@ enum ExercisePatternPoses {
                     backArm: [CGPoint(x: 76, y: 93), CGPoint(x: 77, y: 110), CGPoint(x: 78, y: 127)]
                 ),
                 end: FigurePose(
-                    head: CGPoint(x: 90, y: 80),
+                    head: CGPoint(x: 90, y: 84),
                     neck: CGPoint(x: 81, y: 88),
                     hip: CGPoint(x: 40, y: 96),
                     knee: CGPoint(x: 40, y: 124),
                     ankle: CGPoint(x: 14, y: 124),
                     toe: CGPoint(x: 8, y: 128),
                     shoulder: CGPoint(x: 76, y: 89),
-                    elbow: CGPoint(x: 74, y: 72),
-                    hand: CGPoint(x: 72, y: 54),
+                    elbow: CGPoint(x: 66, y: 74),
+                    hand: CGPoint(x: 56, y: 60),
                     backArm: [CGPoint(x: 76, y: 89), CGPoint(x: 77, y: 110), CGPoint(x: 78, y: 127)]
                 )
             )
@@ -429,7 +433,7 @@ enum ExercisePatternPoses {
         switch pattern {
         case .calf: [[CGPoint(x: 96, y: 30), CGPoint(x: 96, y: 128)]]
         case .verticalPush: [[CGPoint(x: 32, y: 106), CGPoint(x: 72, y: 106)], [CGPoint(x: 38, y: 106), CGPoint(x: 38, y: 128)], [CGPoint(x: 66, y: 106), CGPoint(x: 66, y: 128)]]
-        case .verticalPull: [[CGPoint(x: 30, y: 34), CGPoint(x: 110, y: 34)]]
+        case .verticalPull: [[CGPoint(x: 68, y: 34), CGPoint(x: 84, y: 34)], [CGPoint(x: 84, y: 34), CGPoint(x: 84, y: 22), CGPoint(x: 110, y: 22)]]
         case .mobilityAnkle: [[CGPoint(x: 104, y: 60), CGPoint(x: 104, y: 128)]]
         default: []
         }

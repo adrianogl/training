@@ -55,10 +55,11 @@ struct ExercisePatternFigure: View {
                 y: (size.height - constants.viewBox.height * scale) / 2
             )
             context.scaleBy(x: scale, y: scale)
-            if showsGround {
-                context.stroke(polyline(constants.ground), with: .color(BrandColors.line), style: stroke(constants.groundWidth))
-            }
             context.translateBy(x: constants.figureOffset.x, y: constants.figureOffset.y)
+            context.scaleBy(x: constants.figureScale, y: constants.figureScale)
+            if showsGround {
+                context.stroke(polyline(constants.ground), with: .color(BrandColors.dim.opacity(constants.groundOpacity)), style: stroke(constants.groundWidth))
+            }
             for prop in props {
                 context.stroke(polyline(prop), with: .color(BrandColors.dim), style: stroke(constants.propWidth))
             }

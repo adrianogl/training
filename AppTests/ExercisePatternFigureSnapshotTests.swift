@@ -14,6 +14,46 @@ import Testing
         }
     }
 
+    @Test func every_pose_fits_inside_frame_with_margin() {
+        let constants = ExercisePatternFigureConstants.self
+        let frame = CGRect(origin: .zero, size: constants.viewBox).insetBy(dx: constants.frameMargin, dy: constants.frameMargin)
+        func place(_ point: CGPoint) -> CGPoint {
+            CGPoint(x: constants.figureOffset.x + point.x * constants.figureScale, y: constants.figureOffset.y + point.y * constants.figureScale)
+        }
+        func circle(_ center: CGPoint, _ radius: CGFloat) -> [CGPoint] {
+            [CGPoint(x: center.x - radius, y: center.y - radius), CGPoint(x: center.x + radius, y: center.y + radius)]
+        }
+        for pattern in MovementPattern.allCases {
+            let fixed = ExercisePatternPoses.props(pattern).flatMap { $0 } + (ExercisePatternPoses.showsGround(pattern) ? constants.ground : [])
+            for progress in [0, 0.5, 1.0] {
+                let pose = ExercisePatternPoses.pose(pattern, progress: progress)
+                var points = [pose.neck, pose.hip, pose.knee, pose.ankle, pose.toe, pose.shoulder, pose.elbow, pose.hand]
+                points += pose.backLeg + pose.backArm + fixed + circle(pose.head, constants.headRadius)
+                if let weight = pose.weight { points += circle(weight, constants.weightRadius) }
+                for point in points.map(place) {
+                    #expect(frame.contains(point), "\(pattern) \(progress) \(point)")
+                }
+            }
+        }
+    }
+
+    @Test func pull_up_head_stays_clear_of_bar() {
+        let clearance = ExercisePatternFigureConstants.headRadius + ExercisePatternFigureConstants.propWidth / 2
+        func distance(_ point: CGPoint, _ a: CGPoint, _ b: CGPoint) -> CGFloat {
+            let dx = b.x - a.x, dy = b.y - a.y
+            let t = max(0, min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / (dx * dx + dy * dy)))
+            return hypot(point.x - (a.x + t * dx), point.y - (a.y + t * dy))
+        }
+        let segments = ExercisePatternPoses.props(.verticalPull).flatMap { line in zip(line, line.dropFirst()).map { ($0, $1) } }
+        #expect(!segments.isEmpty)
+        for step in 0...20 {
+            let head = ExercisePatternPoses.pose(.verticalPull, progress: Double(step) / 20).head
+            for (a, b) in segments {
+                #expect(distance(head, a, b) > clearance, "\(step)")
+            }
+        }
+    }
+
     @Test func squat_and_hinge_end_poses_match_mock() {
         let squat = ExercisePatternPoses.poses(.squat).end
         #expect(squat.neck == CGPoint(x: 52, y: 56))

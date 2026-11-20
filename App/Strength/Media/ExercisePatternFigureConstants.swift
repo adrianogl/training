@@ -2,9 +2,12 @@ import SwiftUI
 
 enum ExercisePatternFigureConstants {
     static let viewBox = CGSize(width: 180, height: 120)
-    static let figureOffset = CGPoint(x: 30, y: -16)
-    static let ground = [CGPoint(x: 20, y: 112), CGPoint(x: 160, y: 112)]
-    static let groundWidth: CGFloat = 2
+    static let figureOffset = CGPoint(x: 38.5, y: -2.5)
+    static let figureScale: CGFloat = 0.88
+    static let frameMargin: CGFloat = 4
+    static let ground = [CGPoint(x: -10, y: 128), CGPoint(x: 130, y: 128)]
+    static let groundOpacity = 0.35
+    static let groundWidth: CGFloat = 2.5
     static let bodyWidth: CGFloat = 5
     static let armWidth: CGFloat = 4
     static let propWidth: CGFloat = 3
