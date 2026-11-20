@@ -1,8 +1,8 @@
 {
-  "versao": "1.23.0",
-  "build": 32,
-  "versao_app": "1.23.0",
+  "versao": "1.24.0",
+  "build": 33,
+  "versao_app": "1.24.0",
   "notas": [
-    "Passa mais métricas do treino para o texto gerado"
+    "Organiza o plano, junta corrida e força por dia e tira a comparação"
   ]
 }
