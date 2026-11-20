@@ -38,6 +38,7 @@ import TrainingCore
     let garminZones: GarminZonesModel
     let exerciseFeedback: ExerciseFeedbackStore
     let exerciseNotes: ExerciseNotesStore
+    let strengthPlanStore: StrengthPlanStore
     let snapshots: ScreenSnapshotStore
     let appUpdate = AppUpdateModel()
     let installExpiry = InstallExpiryModel()
@@ -113,6 +114,8 @@ import TrainingCore
         let exerciseNotes = ExerciseNotesStore(url: scope.exerciseNotesURL, stamps: SyncDocumentStamp(defaults: remoteDefaults, syncedKey: ExerciseNotesConstants.syncedStampKey, documentKey: ExerciseNotesConstants.documentStampKey))
         self.exerciseFeedback = exerciseFeedback
         self.exerciseNotes = exerciseNotes
+        let strengthPlanStore = StrengthPlanStore(url: scope.strengthPlanURL, stamps: SyncDocumentStamp(defaults: remoteDefaults, syncedKey: StrengthPlanStoreConstants.syncedStampKey, documentKey: StrengthPlanStoreConstants.documentStampKey))
+        self.strengthPlanStore = strengthPlanStore
         self.remoteSync = RemoteSyncModel(
             container: container,
             keyStore: remoteKeyStore,
@@ -129,6 +132,7 @@ import TrainingCore
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
                 ExerciseFeedbackSyncStore(store: exerciseFeedback, defaults: remoteDefaults),
                 ExerciseNotesSyncStore(store: exerciseNotes, defaults: remoteDefaults),
+                StrengthPlanSyncStore(store: strengthPlanStore, defaults: remoteDefaults),
                 ClaudeContextSyncStore(defaults: remoteDefaults),
                 ClaudeInboxSyncStore(defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: watchTokenStore, defaults: remoteDefaults),
@@ -146,7 +150,7 @@ import TrainingCore
         )
         self.account = account ?? AccountModel(transport: transport, baseURL: remoteBaseURL)
         self.strava = StravaModel(container: container, defaults: remoteDefaults)
-        self.trainer = TrainerModel(container: container, store: trainerStore, defaults: remoteDefaults)
+        self.trainer = TrainerModel(container: container, store: trainerStore, defaults: remoteDefaults, strengthPlanStore: strengthPlanStore)
         self.garminZones = GarminZonesModel(defaults: remoteDefaults)
         self.snapshots = snapshots
         remoteSync.accountToken = { [weak self] in self?.account.token }

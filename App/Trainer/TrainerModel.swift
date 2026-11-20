@@ -19,6 +19,7 @@ import TrainingCore
     private(set) var saveFailed = false
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []
     private(set) var standaloneStrength: [TrainerStrengthSession] = []
+    private(set) var strengthPlan: StrengthPlan?
     private(set) var keptReadinessDay: String?
     private(set) var seenCycleEnd: Day?
     private(set) var cycleSummaries: [TrainerCycleSummary]
@@ -28,6 +29,7 @@ import TrainingCore
     @ObservationIgnored private let today: @Sendable () -> Day
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
+    @ObservationIgnored private let strengthPlanStore: StrengthPlanStore
     @ObservationIgnored private var autoTask: Task<Void, Never>?
     @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var loadedStamp: Date?
@@ -36,8 +38,11 @@ import TrainingCore
 
     init(
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
-        defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil
+        defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil,
+        strengthPlanStore: StrengthPlanStore = StrengthPlanStore()
     ) {
+        self.strengthPlanStore = strengthPlanStore
+        self.strengthPlan = strengthPlanStore.current()
         self.container = container
         self.store = store
         self.today = today
@@ -370,6 +375,7 @@ import TrainingCore
         guard stamp != loadedStamp else { return }
         loadedStamp = stamp
         plan = store.load()
+        strengthPlan = strengthPlanStore.current()
         seenVersion = store.seenVersion
         fillMissingWeeks()
     }
@@ -383,6 +389,7 @@ import TrainingCore
         isLoaded = true
         fillMissingWeeks()
         migrateStrength()
+        migrateStrengthPlan()
         await notifySignals(applyPending())
     }
 
@@ -613,6 +620,17 @@ import TrainingCore
         guard let current = plan, current.endedOn == nil,
               let filled = TrainerEngine.fillMissingWeeks(current, history: history, today: currentDay) else { return }
         persist(filled)
+    }
+
+    private func migrateStrengthPlan() {
+        let sessions = strengthSessions
+        let runningEnd = plan.flatMap { $0.endedOn == nil ? Self.runningPlanEnd($0) : nil }
+        _ = try? strengthPlanStore.migrateIfNeeded(sessions: sessions, runningPlanEnd: runningEnd, today: currentDay)
+        strengthPlan = strengthPlanStore.current()
+    }
+
+    private static func runningPlanEnd(_ plan: TrainerPlan) -> Day? {
+        plan.target.date ?? plan.weeks.last.map { $0.start.adding(days: 6) }
     }
 
     private func migrateStrength() {
