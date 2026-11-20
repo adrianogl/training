@@ -4,6 +4,7 @@ import SwiftUI
 import TrainingCore
 
 enum StrengthConstants {
+    static let detailRowSpacing: CGFloat = 10
     static let typeKey = "strength_training"
     static let programFileName = "strength-mfit.json"
     static let weekdaysDefaultsKey = "strengthWeekdays"
