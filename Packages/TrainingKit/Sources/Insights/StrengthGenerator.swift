@@ -129,11 +129,15 @@ public enum StrengthGenerator {
             replacedId = candidate.id
         }
         let prescription = prescription(exercise, intensity: plan.intensity, recovery: plan.adjustments.contains(.recoveryWeek))
-        let weight = C.loadedEquipment.contains(exercise.equipment) ? StrengthProgression.next(context.loads[exercise.id]) : nil
+        let loaded = C.loadedEquipment.contains(exercise.equipment)
+        let progressed = loaded ? StrengthProgression.next(context.loads[exercise.id]) : nil
+        let suggestion = loaded && progressed == nil ? StrengthLoadSuggestion.suggest(for: exercise, history: context.loads) : nil
+        let weight = progressed ?? suggestion?.weight
         return GeneratedExercise(
             exerciseId: exercise.id, name: exercise.name, category: exercise.category, exerciseName: exercise.exerciseName,
             sets: prescription.sets, reps: prescription.reps, seconds: prescription.seconds, restSeconds: prescription.rest,
-            weight: weight, perSide: exercise.unilateral, replacedName: replaced, replacedId: replacedId
+            weight: weight, perSide: exercise.unilateral, replacedName: replaced, replacedId: replacedId,
+            suggestedLoad: suggestion
         )
     }
 

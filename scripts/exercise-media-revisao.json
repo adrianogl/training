@@ -1,0 +1,1599 @@
+{
+ "BANDED_EXERCISES/CALF_RAISES": [
+  "freeExerciseDb:Calf_Raises_-_With_Bands"
+ ],
+ "BANDED_EXERCISES/DEADLIFT": [
+  "freeExerciseDb:Deadlift_with_Bands"
+ ],
+ "BANDED_EXERCISES/EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation_with_Band"
+ ],
+ "BANDED_EXERCISES/FRONT_RAISE": [
+  "freeExerciseDb:Front_Cable_Raise",
+  "freeExerciseDb:Front_Plate_Raise",
+  "wger:256"
+ ],
+ "BANDED_EXERCISES/HAMSTRING_CURLS": [
+  "freeExerciseDb:Seated_Band_Hamstring_Curl"
+ ],
+ "BANDED_EXERCISES/HIP_EXTENSION": [
+  "freeExerciseDb:Hip_Extension_with_Bands"
+ ],
+ "BANDED_EXERCISES/INTERNAL_ROTATION": [
+  "freeExerciseDb:Internal_Rotation_with_Band"
+ ],
+ "BANDED_EXERCISES/LATERAL_RAISE": [
+  "freeExerciseDb:Lateral_Raise_-_With_Bands",
+  "freeExerciseDb:Side_Lateral_Raise",
+  "wger:348"
+ ],
+ "BANDED_EXERCISES/PLANK": [
+  "freeExerciseDb:Plank",
+  "wger:458"
+ ],
+ "BANDED_EXERCISES/PULL_APART": [
+  "freeExerciseDb:Band_Pull_Apart"
+ ],
+ "BANDED_EXERCISES/PUSH_UPS": [
+  "wger:1551"
+ ],
+ "BANDED_EXERCISES/REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "BANDED_EXERCISES/SHOULDER_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation_with_Band"
+ ],
+ "BANDED_EXERCISES/TRICEP_EXTENSION": [
+  "freeExerciseDb:Speed_Band_Overhead_Triceps",
+  "wger:659"
+ ],
+ "BANDED_EXERCISES/TRICEP_KICKBACK": [
+  "freeExerciseDb:Tricep_Dumbbell_Kickback"
+ ],
+ "BANDED_EXERCISES/UPRIGHT_ROW": [
+  "freeExerciseDb:Upright_Row_-_With_Bands"
+ ],
+ "BENCH_PRESS/ALTERNATING_DUMBBELL_CHEST_PRESS": [
+  "freeExerciseDb:Dumbbell_Bench_Press"
+ ],
+ "BENCH_PRESS/ALTERNATING_DUMBBELL_CHEST_PRESS_ON_SWISS_BALL": [
+  "freeExerciseDb:Dumbbell_Bench_Press"
+ ],
+ "BENCH_PRESS/BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip",
+  "freeExerciseDb:Wide-Grip_Barbell_Bench_Press",
+  "freeExerciseDb:Close-Grip_Barbell_Bench_Press"
+ ],
+ "BENCH_PRESS/BARBELL_BOARD_BENCH_PRESS": [
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip",
+  "freeExerciseDb:Board_Press"
+ ],
+ "BENCH_PRESS/BARBELL_FLOOR_PRESS": [
+  "freeExerciseDb:Floor_Press",
+  "freeExerciseDb:Floor_Press_with_Chains",
+  "wger:1084"
+ ],
+ "BENCH_PRESS/BENCH_PRESS": [
+  "freeExerciseDb:Bench_Press_-_Powerlifting",
+  "freeExerciseDb:Bench_Press_with_Chains",
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip",
+  "freeExerciseDb:Wide-Grip_Barbell_Bench_Press",
+  "wger:73"
+ ],
+ "BENCH_PRESS/CLOSE_GRIP_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Close-Grip_Barbell_Bench_Press",
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip"
+ ],
+ "BENCH_PRESS/DECLINE_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Decline_Barbell_Bench_Press",
+  "freeExerciseDb:Wide-Grip_Decline_Barbell_Bench_Press",
+  "wger:185"
+ ],
+ "BENCH_PRESS/DECLINE_DUMBBELL_BENCH_PRESS": [
+  "freeExerciseDb:Decline_Dumbbell_Bench_Press"
+ ],
+ "BENCH_PRESS/DUMBBELL_BENCH_PRESS": [
+  "freeExerciseDb:Dumbbell_Bench_Press",
+  "freeExerciseDb:Dumbbell_Bench_Press_with_Neutral_Grip"
+ ],
+ "BENCH_PRESS/DUMBBELL_FLOOR_PRESS": [
+  "freeExerciseDb:Dumbbell_Floor_Press",
+  "freeExerciseDb:Alternating_Floor_Press",
+  "wger:1084"
+ ],
+ "BENCH_PRESS/INCLINE_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Barbell_Incline_Bench_Press_-_Medium_Grip",
+  "wger:538"
+ ],
+ "BENCH_PRESS/INCLINE_DUMBBELL_BENCH_PRESS": [
+  "freeExerciseDb:Incline_Dumbbell_Press",
+  "freeExerciseDb:Hammer_Grip_Incline_DB_Bench_Press",
+  "wger:537"
+ ],
+ "BENCH_PRESS/INCLINE_SMITH_MACHINE_BENCH_PRESS": [
+  "freeExerciseDb:Smith_Machine_Incline_Bench_Press",
+  "wger:925"
+ ],
+ "BENCH_PRESS/ISOMETRIC_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip"
+ ],
+ "BENCH_PRESS/NEUTRAL_GRIP_DUMBBELL_BENCH_PRESS": [
+  "freeExerciseDb:Dumbbell_Bench_Press_with_Neutral_Grip",
+  "freeExerciseDb:Dumbbell_Bench_Press"
+ ],
+ "BENCH_PRESS/NEUTRAL_GRIP_DUMBBELL_INCLINE_BENCH_PRESS": [
+  "freeExerciseDb:Hammer_Grip_Incline_DB_Bench_Press",
+  "freeExerciseDb:Incline_Dumbbell_Press",
+  "wger:537"
+ ],
+ "BENCH_PRESS/ONE_ARM_FLOOR_PRESS": [
+  "freeExerciseDb:One_Arm_Floor_Press",
+  "freeExerciseDb:One-Arm_Kettlebell_Floor_Press"
+ ],
+ "BENCH_PRESS/REVERSE_GRIP_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Reverse_Triceps_Bench_Press"
+ ],
+ "BENCH_PRESS/REVERSE_GRIP_INCLINE_BENCH_PRESS": [
+  "freeExerciseDb:Barbell_Incline_Bench_Press_-_Medium_Grip"
+ ],
+ "BENCH_PRESS/SINGLE_ARM_CABLE_CHEST_PRESS": [
+  "freeExerciseDb:Standing_Cable_Chest_Press",
+  "freeExerciseDb:Cable_Chest_Press"
+ ],
+ "BENCH_PRESS/SINGLE_ARM_DUMBBELL_BENCH_PRESS": [
+  "freeExerciseDb:One_Arm_Dumbbell_Bench_Press",
+  "freeExerciseDb:Dumbbell_Bench_Press"
+ ],
+ "BENCH_PRESS/SMITH_MACHINE_BENCH_PRESS": [
+  "freeExerciseDb:Smith_Machine_Bench_Press",
+  "freeExerciseDb:Smith_Machine_Close-Grip_Bench_Press"
+ ],
+ "BENCH_PRESS/SWISS_BALL_DUMBBELL_CHEST_PRESS": [
+  "freeExerciseDb:Dumbbell_Bench_Press",
+  "wger:75"
+ ],
+ "BENCH_PRESS/TRIPLE_STOP_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip"
+ ],
+ "BENCH_PRESS/WEIGHTED_ONE_ARM_FLOOR_PRESS": [
+  "freeExerciseDb:One_Arm_Floor_Press",
+  "freeExerciseDb:One-Arm_Kettlebell_Floor_Press",
+  "freeExerciseDb:Dumbbell_Floor_Press"
+ ],
+ "BENCH_PRESS/WIDE_GRIP_BARBELL_BENCH_PRESS": [
+  "freeExerciseDb:Wide-Grip_Barbell_Bench_Press",
+  "freeExerciseDb:Barbell_Bench_Press_-_Medium_Grip"
+ ],
+ "CALF_RAISE/CALF_RAISE": [
+  "wger:622",
+  "wger:1243"
+ ],
+ "CALF_RAISE/DONKEY_CALF_RAISE": [
+  "freeExerciseDb:Donkey_Calf_Raises"
+ ],
+ "CALF_RAISE/SEATED_CALF_RAISE": [
+  "freeExerciseDb:Seated_Calf_Raise",
+  "freeExerciseDb:Barbell_Seated_Calf_Raise"
+ ],
+ "CALF_RAISE/SEATED_DUMBBELL_TOE_RAISE": [
+  "freeExerciseDb:Dumbbell_Seated_One-Leg_Calf_Raise",
+  "wger:1620"
+ ],
+ "CALF_RAISE/SINGLE_LEG_DECLINE_PUSH_UP": [
+  "freeExerciseDb:Decline_Push-Up"
+ ],
+ "CALF_RAISE/SINGLE_LEG_DONKEY_CALF_RAISE": [
+  "freeExerciseDb:Donkey_Calf_Raises"
+ ],
+ "CALF_RAISE/SINGLE_LEG_STANDING_CALF_RAISE": [
+  "freeExerciseDb:Standing_Calf_Raises",
+  "wger:622"
+ ],
+ "CALF_RAISE/SINGLE_LEG_STANDING_DUMBBELL_CALF_RAISE": [
+  "freeExerciseDb:Standing_Dumbbell_Calf_Raise"
+ ],
+ "CALF_RAISE/STANDING_BARBELL_CALF_RAISE": [
+  "freeExerciseDb:Standing_Barbell_Calf_Raise"
+ ],
+ "CALF_RAISE/STANDING_CALF_RAISE": [
+  "freeExerciseDb:Standing_Calf_Raises",
+  "wger:622"
+ ],
+ "CALF_RAISE/STANDING_DUMBBELL_CALF_RAISE": [
+  "freeExerciseDb:Standing_Dumbbell_Calf_Raise"
+ ],
+ "CALF_RAISE/WEIGHTED_DONKEY_CALF_RAISE": [
+  "freeExerciseDb:Donkey_Calf_Raises"
+ ],
+ "CALF_RAISE/WEIGHTED_SEATED_CALF_RAISE": [
+  "freeExerciseDb:Seated_Calf_Raise",
+  "wger:1620"
+ ],
+ "CALF_RAISE/WEIGHTED_SINGLE_LEG_BENT_KNEE_CALF_RAISE": [
+  "freeExerciseDb:Dumbbell_Seated_One-Leg_Calf_Raise"
+ ],
+ "CALF_RAISE/WEIGHTED_SINGLE_LEG_DONKEY_CALF_RAISE": [
+  "freeExerciseDb:Donkey_Calf_Raises"
+ ],
+ "CALF_RAISE/WEIGHTED_STANDING_CALF_RAISE": [
+  "freeExerciseDb:Standing_Dumbbell_Calf_Raise",
+  "freeExerciseDb:Standing_Calf_Raises",
+  "wger:622"
+ ],
+ "CALF_RAISE/_3_WAY_CALF_RAISE": [
+  "wger:622"
+ ],
+ "CALF_RAISE/_3_WAY_SINGLE_LEG_CALF_RAISE": [
+  "wger:622"
+ ],
+ "CALF_RAISE/_3_WAY_WEIGHTED_CALF_RAISE": [
+  "freeExerciseDb:Standing_Dumbbell_Calf_Raise"
+ ],
+ "CALF_RAISE/_3_WAY_WEIGHTED_SINGLE_LEG_CALF_RAISE": [
+  "freeExerciseDb:Standing_Dumbbell_Calf_Raise"
+ ],
+ "CARRY/FARMERS_WALK": [
+  "freeExerciseDb:Farmers_Walk"
+ ],
+ "CHOP/CABLE_PULL_THROUGH": [
+  "freeExerciseDb:Pull_Through"
+ ],
+ "CHOP/CABLE_ROTATIONAL_LIFT": [
+  "freeExerciseDb:Standing_Cable_Lift"
+ ],
+ "CORE/BARBELL_ROLLOUT": [
+  "freeExerciseDb:Barbell_Ab_Rollout",
+  "freeExerciseDb:Barbell_Ab_Rollout_-_On_Knees",
+  "wger:41"
+ ],
+ "CORE/BODY_BAR_OBLIQUE_TWIST": [
+  "freeExerciseDb:Seated_Barbell_Twist"
+ ],
+ "CORE/CABLE_CORE_PRESS": [
+  "freeExerciseDb:Pallof_Press",
+  "wger:1194"
+ ],
+ "CORE/CABLE_SIDE_BEND": [
+  "freeExerciseDb:One-Arm_High-Pulley_Cable_Side_Bends"
+ ],
+ "CORE/ELEVATED_FEET_RUSSIAN_TWIST": [
+  "freeExerciseDb:Russian_Twist",
+  "wger:1193"
+ ],
+ "CORE/GHD_BACK_EXTENSIONS": [
+  "wger:1348"
+ ],
+ "CORE/INCHWORM": [
+  "freeExerciseDb:Inchworm"
+ ],
+ "CORE/KETTLEBELL_WINDMILL": [
+  "freeExerciseDb:Kettlebell_Windmill"
+ ],
+ "CORE/RUSSIAN_TWIST": [
+  "freeExerciseDb:Russian_Twist",
+  "wger:1193"
+ ],
+ "CORE/SIDE_BEND": [
+  "wger:1188"
+ ],
+ "CORE/WEIGHTED_BARBELL_ROLLOUT": [
+  "freeExerciseDb:Barbell_Ab_Rollout",
+  "wger:41"
+ ],
+ "CORE/WEIGHTED_ELEVATED_FEET_RUSSIAN_TWIST": [
+  "wger:1193"
+ ],
+ "CORE/WEIGHTED_GHD_BACK_EXTENSIONS": [
+  "wger:1348"
+ ],
+ "CORE/WEIGHTED_SIDE_BEND": [
+  "freeExerciseDb:Dumbbell_Side_Bend",
+  "wger:1188",
+  "wger:1650"
+ ],
+ "CORE/WEIGHTED_WINDMILL_SWITCHES": [
+  "freeExerciseDb:Kettlebell_Windmill"
+ ],
+ "CRUNCH/CABLE_CRUNCH": [
+  "freeExerciseDb:Cable_Crunch",
+  "freeExerciseDb:Rope_Crunch"
+ ],
+ "CRUNCH/CROSS_LEG_REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/CRUNCH": [
+  "freeExerciseDb:Crunch_-_Legs_On_Exercise_Ball",
+  "wger:1648"
+ ],
+ "CRUNCH/DOUBLE_CRUNCH": [
+  "freeExerciseDb:Tuck_Crunch"
+ ],
+ "CRUNCH/ELBOW_TO_KNEE_CRUNCH": [
+  "freeExerciseDb:Elbow_to_Knee"
+ ],
+ "CRUNCH/FLUTTER_KICKS": [
+  "freeExerciseDb:Flutter_Kicks"
+ ],
+ "CRUNCH/FOAM_ROLLER_REVERSE_CRUNCH_ON_BENCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/HANGING_KNEE_RAISE_OBLIQUE_CRUNCH": [
+  "wger:2675"
+ ],
+ "CRUNCH/HIP_CROSSOVER": [
+  "wger:1863"
+ ],
+ "CRUNCH/INCLINE_REVERSE_CRUNCH": [
+  "freeExerciseDb:Decline_Reverse_Crunch",
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/KNEELING_CABLE_CRUNCH": [
+  "freeExerciseDb:Cable_Crunch"
+ ],
+ "CRUNCH/KNEELING_OBLIQUE_CABLE_CRUNCH": [
+  "freeExerciseDb:Kneeling_Cable_Crunch_With_Alternating_Oblique_Twists"
+ ],
+ "CRUNCH/KNEES_TO_ELBOW": [
+  "freeExerciseDb:Elbow_to_Knee"
+ ],
+ "CRUNCH/LEG_EXTENSIONS": [
+  "freeExerciseDb:Leg_Extensions",
+  "wger:369"
+ ],
+ "CRUNCH/RAISED_LEGS_CRUNCH": [
+  "freeExerciseDb:Crunch_-_Legs_On_Exercise_Ball"
+ ],
+ "CRUNCH/REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/REVERSE_CRUNCH_ON_A_BENCH": [
+  "freeExerciseDb:Reverse_Crunch",
+  "freeExerciseDb:Decline_Reverse_Crunch"
+ ],
+ "CRUNCH/REVERSE_CURL_AND_LIFT": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/SEATED_LEG_U": [
+  "freeExerciseDb:Seated_Leg_Tucks"
+ ],
+ "CRUNCH/SINGLE_LEG_REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/STANDING_CABLE_CRUNCH": [
+  "freeExerciseDb:Cable_Crunch"
+ ],
+ "CRUNCH/STRAIGHT_LEG_CRUNCH_WITH_BALL": [
+  "freeExerciseDb:Crunch_-_Legs_On_Exercise_Ball"
+ ],
+ "CRUNCH/SWISS_BALL_CRUNCH": [
+  "freeExerciseDb:Exercise_Ball_Crunch"
+ ],
+ "CRUNCH/WEIGHTED_CROSS_LEG_REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/WEIGHTED_CRUNCH": [
+  "wger:1648"
+ ],
+ "CRUNCH/WEIGHTED_ELBOW_TO_KNEE_CRUNCH": [
+  "freeExerciseDb:Elbow_to_Knee"
+ ],
+ "CRUNCH/WEIGHTED_FLUTTER_KICKS": [
+  "freeExerciseDb:Flutter_Kicks"
+ ],
+ "CRUNCH/WEIGHTED_HANGING_KNEE_RAISE_OBLIQUE_CRUNCH": [
+  "wger:2675"
+ ],
+ "CRUNCH/WEIGHTED_HIP_CROSSOVER": [
+  "wger:1863"
+ ],
+ "CRUNCH/WEIGHTED_INCLINE_REVERSE_CRUNCH": [
+  "freeExerciseDb:Decline_Reverse_Crunch",
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/WEIGHTED_LEG_EXTENSIONS": [
+  "freeExerciseDb:Leg_Extensions",
+  "wger:369"
+ ],
+ "CRUNCH/WEIGHTED_REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/WEIGHTED_REVERSE_CRUNCH_ON_A_BENCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/WEIGHTED_SEATED_LEG_U": [
+  "freeExerciseDb:Seated_Leg_Tucks"
+ ],
+ "CRUNCH/WEIGHTED_SINGLE_LEG_REVERSE_CRUNCH": [
+  "freeExerciseDb:Reverse_Crunch"
+ ],
+ "CRUNCH/WEIGHTED_SWISS_BALL_CRUNCH": [
+  "freeExerciseDb:Exercise_Ball_Crunch"
+ ],
+ "CURL/ALTERNATING_DUMBBELL_BICEPS_CURL": [
+  "freeExerciseDb:Dumbbell_Alternate_Bicep_Curl",
+  "wger:1192",
+  "wger:1012"
+ ],
+ "CURL/ALTERNATING_INCLINE_DUMBBELL_BICEPS_CURL": [
+  "freeExerciseDb:Alternate_Incline_Dumbbell_Curl"
+ ],
+ "CURL/BARBELL_BICEPS_CURL": [
+  "freeExerciseDb:Barbell_Curl",
+  "wger:91"
+ ],
+ "CURL/CABLE_BICEPS_CURL": [
+  "freeExerciseDb:Standing_Biceps_Cable_Curl",
+  "wger:95",
+  "wger:912"
+ ],
+ "CURL/CABLE_HAMMER_CURL": [
+  "freeExerciseDb:Cable_Hammer_Curls_-_Rope_Attachment",
+  "wger:275"
+ ],
+ "CURL/CLOSE_GRIP_EZ_BAR_BICEPS_CURL": [
+  "freeExerciseDb:Close-Grip_EZ_Bar_Curl"
+ ],
+ "CURL/CROSS_BODY_DUMBBELL_HAMMER_CURL": [
+  "freeExerciseDb:Cross_Body_Hammer_Curl"
+ ],
+ "CURL/CURL": [
+  "freeExerciseDb:Dumbbell_Bicep_Curl"
+ ],
+ "CURL/DUMBBELL_BICEPS_CURL": [
+  "freeExerciseDb:Dumbbell_Bicep_Curl",
+  "wger:92"
+ ],
+ "CURL/DUMBBELL_HAMMER_CURL": [
+  "freeExerciseDb:Hammer_Curls",
+  "wger:272"
+ ],
+ "CURL/EZ_BAR_PREACHER_CURL": [
+  "freeExerciseDb:Preacher_Curl",
+  "wger:465"
+ ],
+ "CURL/INCLINE_DUMBBELL_BICEPS_CURL": [
+  "freeExerciseDb:Incline_Dumbbell_Curl",
+  "wger:204"
+ ],
+ "CURL/INCLINE_OFFSET_THUMB_DUMBBELL_CURL": [
+  "freeExerciseDb:Incline_Dumbbell_Curl"
+ ],
+ "CURL/KETTLEBELL_BICEPS_CURL": [
+  "freeExerciseDb:Dumbbell_Bicep_Curl",
+  "wger:92"
+ ],
+ "CURL/LYING_CONCENTRATION_CABLE_CURL": [
+  "freeExerciseDb:Lying_Cable_Curl"
+ ],
+ "CURL/ONE_ARM_CONCENTRATION_CURL": [
+  "freeExerciseDb:Concentration_Curls"
+ ],
+ "CURL/PREACHER_CURL_WITH_CABLE": [
+  "freeExerciseDb:Cable_Preacher_Curl"
+ ],
+ "CURL/REVERSE_EZ_BAR_CURL": [
+  "freeExerciseDb:Reverse_Barbell_Curl",
+  "wger:1290"
+ ],
+ "CURL/REVERSE_GRIP_BARBELL_BICEPS_CURL": [
+  "freeExerciseDb:Reverse_Barbell_Curl",
+  "wger:1290"
+ ],
+ "CURL/SEATED_DUMBBELL_BICEPS_CURL": [
+  "freeExerciseDb:Seated_Dumbbell_Curl"
+ ],
+ "CURL/STANDING_ALTERNATING_DUMBBELL_CURLS": [
+  "freeExerciseDb:Dumbbell_Alternate_Bicep_Curl",
+  "wger:1192"
+ ],
+ "CURL/STANDING_DUMBBELL_BICEPS_CURL": [
+  "freeExerciseDb:Dumbbell_Bicep_Curl",
+  "wger:92"
+ ],
+ "CURL/STANDING_EZ_BAR_BICEPS_CURL": [
+  "freeExerciseDb:EZ-Bar_Curl",
+  "wger:94"
+ ],
+ "CURL/STANDING_ZOTTMAN_BICEPS_CURL": [
+  "freeExerciseDb:Zottman_Curl"
+ ],
+ "CURL/SWISS_BALL_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Dumbbell_One-Arm_Triceps_Extension",
+  "freeExerciseDb:Standing_Dumbbell_Triceps_Extension",
+  "wger:1336"
+ ],
+ "CURL/WIDE_GRIP_EZ_BAR_BICEPS_CURL": [
+  "freeExerciseDb:Wide-Grip_Standing_Barbell_Curl"
+ ],
+ "DEADLIFT/BARBELL_DEADLIFT": [
+  "freeExerciseDb:Barbell_Deadlift",
+  "wger:184"
+ ],
+ "DEADLIFT/BARBELL_DEFICIT_DEADLIFT": [
+  "freeExerciseDb:Deficit_Deadlift"
+ ],
+ "DEADLIFT/BARBELL_STRAIGHT_LEG_DEADLIFT": [
+  "freeExerciseDb:Stiff-Legged_Barbell_Deadlift"
+ ],
+ "DEADLIFT/DEADLIFT": [
+  "freeExerciseDb:Barbell_Deadlift",
+  "wger:184"
+ ],
+ "DEADLIFT/DUMBBELL_STRAIGHT_LEG_DEADLIFT": [
+  "freeExerciseDb:Stiff-Legged_Dumbbell_Deadlift"
+ ],
+ "DEADLIFT/KETTLEBELL_DEADLIFT": [
+  "wger:1003"
+ ],
+ "DEADLIFT/KETTLEBELL_SUMO_DEADLIFT": [
+  "wger:1612"
+ ],
+ "DEADLIFT/RACK_PULL": [
+  "freeExerciseDb:Rack_Pulls"
+ ],
+ "DEADLIFT/ROMANIAN_DEADLIFT": [
+  "freeExerciseDb:Romanian_Deadlift",
+  "wger:507"
+ ],
+ "DEADLIFT/SINGLE_ARM_DEADLIFT": [
+  "freeExerciseDb:One-Arm_Side_Deadlift"
+ ],
+ "DEADLIFT/SUMO_DEADLIFT": [
+  "freeExerciseDb:Sumo_Deadlift",
+  "wger:630"
+ ],
+ "DEADLIFT/TRAP_BAR_DEADLIFT": [
+  "freeExerciseDb:Trap_Bar_Deadlift"
+ ],
+ "FLYE/CABLE_CROSSOVER": [
+  "freeExerciseDb:Cable_Crossover",
+  "freeExerciseDb:Low_Cable_Crossover",
+  "wger:323"
+ ],
+ "FLYE/DECLINE_DUMBBELL_FLYE": [
+  "freeExerciseDb:Decline_Dumbbell_Flyes"
+ ],
+ "FLYE/DUMBBELL_FLYE": [
+  "freeExerciseDb:Dumbbell_Flyes",
+  "wger:238"
+ ],
+ "FLYE/INCLINE_DUMBBELL_FLYE": [
+  "freeExerciseDb:Incline_Dumbbell_Flyes",
+  "wger:308"
+ ],
+ "FLYE/INCLINE_REVERSE_FLYE": [
+  "wger:828"
+ ],
+ "FLYE/KETTLEBELL_FLYE": [
+  "freeExerciseDb:Dumbbell_Flyes"
+ ],
+ "FLYE/SWISS_BALL_DUMBBELL_FLYE": [
+  "freeExerciseDb:Dumbbell_Flyes",
+  "wger:238"
+ ],
+ "HIP_RAISE/BARBELL_HIP_THRUST_WITH_BENCH": [
+  "freeExerciseDb:Barbell_Hip_Thrust"
+ ],
+ "HIP_RAISE/HIP_RAISE_WITH_FEET_ON_SWISS_BALL": [
+  "freeExerciseDb:Physioball_Hip_Bridge"
+ ],
+ "HIP_RAISE/KETTLEBELL_SWING": [
+  "wger:960"
+ ],
+ "HIP_RAISE/WEIGHTED_HIP_RAISE_WITH_FEET_ON_SWISS_BALL": [
+  "freeExerciseDb:Physioball_Hip_Bridge"
+ ],
+ "HIP_STABILITY/DEAD_BUG": [
+  "freeExerciseDb:Dead_Bug"
+ ],
+ "HIP_STABILITY/WEIGHTED_DEAD_BUG": [
+  "freeExerciseDb:Dead_Bug"
+ ],
+ "HIP_SWING/ONE_ARM_SWING": [
+  "freeExerciseDb:One-Arm_Kettlebell_Swings"
+ ],
+ "HIP_SWING/SINGLE_ARM_DUMBBELL_SWING": [
+  "freeExerciseDb:One-Arm_Kettlebell_Swings"
+ ],
+ "HIP_SWING/SINGLE_ARM_KETTLEBELL_SWING": [
+  "freeExerciseDb:One-Arm_Kettlebell_Swings"
+ ],
+ "HYPEREXTENSION/BENT_KNEE_REVERSE_HYPEREXTENSION": [
+  "freeExerciseDb:Reverse_Hyperextension"
+ ],
+ "HYPEREXTENSION/HYPEREXTENSION": [
+  "freeExerciseDb:Hyperextensions_Back_Extensions",
+  "wger:301"
+ ],
+ "HYPEREXTENSION/KNEE_RAISES": [
+  "wger:978"
+ ],
+ "HYPEREXTENSION/SUPERMAN_FROM_FLOOR": [
+  "freeExerciseDb:Superman"
+ ],
+ "HYPEREXTENSION/WEIGHTED_BENT_KNEE_REVERSE_HYPEREXTENSION": [
+  "freeExerciseDb:Reverse_Hyperextension"
+ ],
+ "HYPEREXTENSION/WEIGHTED_KNEE_RAISES": [
+  "wger:978"
+ ],
+ "LATERAL_RAISE/ALTERNATING_LATERAL_RAISE_WITH_STATIC_HOLD": [
+  "freeExerciseDb:Side_Lateral_Raise"
+ ],
+ "LATERAL_RAISE/CABLE_FRONT_RAISE": [
+  "freeExerciseDb:Front_Cable_Raise",
+  "wger:1745"
+ ],
+ "LATERAL_RAISE/DUMBBELL_LATERAL_RAISE": [
+  "wger:348"
+ ],
+ "LATERAL_RAISE/FRONT_RAISE": [
+  "freeExerciseDb:Front_Dumbbell_Raise",
+  "freeExerciseDb:Front_Two-Dumbbell_Raise",
+  "wger:256"
+ ],
+ "LATERAL_RAISE/LEANING_DUMBBELL_LATERAL_RAISE": [
+  "wger:348"
+ ],
+ "LATERAL_RAISE/ONE_ARM_CABLE_LATERAL_RAISE": [
+  "freeExerciseDb:Cable_Seated_Lateral_Raise",
+  "wger:1378"
+ ],
+ "LATERAL_RAISE/PLATE_RAISES": [
+  "freeExerciseDb:Front_Plate_Raise"
+ ],
+ "LATERAL_RAISE/RING_DIP": [
+  "freeExerciseDb:Ring_Dips",
+  "wger:2767"
+ ],
+ "LATERAL_RAISE/SEATED_LATERAL_RAISE": [
+  "freeExerciseDb:Seated_Side_Lateral_Raise",
+  "freeExerciseDb:Side_Lateral_Raise"
+ ],
+ "LATERAL_RAISE/SEATED_REAR_LATERAL_RAISE": [
+  "freeExerciseDb:Seated_Bent-Over_Rear_Delt_Raise"
+ ],
+ "LATERAL_RAISE/SUSPENDED_ROW": [
+  "freeExerciseDb:Suspended_Row",
+  "freeExerciseDb:Inverted_Row_with_Straps"
+ ],
+ "LATERAL_RAISE/WEIGHTED_RING_DIP": [
+  "freeExerciseDb:Ring_Dips",
+  "wger:2767"
+ ],
+ "LATERAL_RAISE/_45_DEGREE_CABLE_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation_with_Cable"
+ ],
+ "LEG_CURL/BAND_GOOD_MORNING": [
+  "freeExerciseDb:Band_Good_Morning"
+ ],
+ "LEG_CURL/BAR_GOOD_MORNING": [
+  "freeExerciseDb:Good_Morning",
+  "wger:1392"
+ ],
+ "LEG_CURL/GOOD_MORNING": [
+  "freeExerciseDb:Good_Morning",
+  "wger:1392"
+ ],
+ "LEG_CURL/LEG_CURL": [
+  "freeExerciseDb:Lying_Leg_Curls",
+  "wger:364"
+ ],
+ "LEG_CURL/SEATED_BARBELL_GOOD_MORNING": [
+  "freeExerciseDb:Seated_Good_Mornings"
+ ],
+ "LEG_CURL/SWISS_BALL_HIP_RAISE_AND_LEG_CURL": [
+  "freeExerciseDb:Ball_Leg_Curl"
+ ],
+ "LEG_CURL/WEIGHTED_LEG_CURL": [
+  "freeExerciseDb:Lying_Leg_Curls",
+  "wger:364"
+ ],
+ "LEG_RAISE/HANGING_KNEE_RAISE": [
+  "freeExerciseDb:Hanging_Leg_Raise"
+ ],
+ "LEG_RAISE/HANGING_LEG_RAISE": [
+  "freeExerciseDb:Hanging_Leg_Raise"
+ ],
+ "LEG_RAISE/HANGING_SINGLE_LEG_RAISE": [
+  "freeExerciseDb:Hanging_Leg_Raise"
+ ],
+ "LEG_RAISE/LEG_RAISE": [
+  "freeExerciseDb:Flat_Bench_Lying_Leg_Raise",
+  "wger:377"
+ ],
+ "LEG_RAISE/LYING_STRAIGHT_LEG_RAISE": [
+  "freeExerciseDb:Flat_Bench_Lying_Leg_Raise",
+  "wger:377"
+ ],
+ "LEG_RAISE/QUADRUPED_LEG_RAISE": [
+  "wger:957"
+ ],
+ "LEG_RAISE/WEIGHTED_HANGING_KNEE_RAISE": [
+  "freeExerciseDb:Hanging_Leg_Raise"
+ ],
+ "LEG_RAISE/WEIGHTED_HANGING_LEG_RAISE": [
+  "freeExerciseDb:Hanging_Leg_Raise"
+ ],
+ "LEG_RAISE/WEIGHTED_HANGING_SINGLE_LEG_RAISE": [
+  "freeExerciseDb:Hanging_Leg_Raise"
+ ],
+ "LEG_RAISE/WEIGHTED_LYING_STRAIGHT_LEG_RAISE": [
+  "wger:377"
+ ],
+ "LEG_RAISE/WEIGHTED_QUADRUPED_LEG_RAISE": [
+  "wger:957"
+ ],
+ "LUNGE/REVERSE_BOX_LUNGE": [
+  "wger:999"
+ ],
+ "LUNGE/REVERSE_DUMBBELL_BOX_LUNGE": [
+  "freeExerciseDb:Dumbbell_Rear_Lunge",
+  "wger:1651"
+ ],
+ "LUNGE/REVERSE_LUNGE_WITH_REACH_BACK": [
+  "wger:999"
+ ],
+ "LUNGE/REVERSE_SLIDING_LUNGE": [
+  "wger:999"
+ ],
+ "LUNGE/SCISSOR_POWER_SWITCH": [
+  "freeExerciseDb:Scissors_Jump"
+ ],
+ "LUNGE/SIFF_JUMP_LUNGE": [
+  "freeExerciseDb:Split_Jump"
+ ],
+ "LUNGE/SLIDING_LATERAL_LUNGE": [
+  "wger:1604"
+ ],
+ "LUNGE/WALKING_BARBELL_LUNGE": [
+  "freeExerciseDb:Barbell_Walking_Lunge"
+ ],
+ "LUNGE/WALKING_DUMBBELL_LUNGE": [
+  "wger:206"
+ ],
+ "LUNGE/WALKING_LUNGE": [
+  "freeExerciseDb:Bodyweight_Walking_Lunge"
+ ],
+ "LUNGE/WEIGHTED_LUNGE": [
+  "freeExerciseDb:Dumbbell_Lunges"
+ ],
+ "LUNGE/WEIGHTED_WALKING_LUNGE": [
+  "wger:206"
+ ],
+ "PLANK/CROSS_BODY_MOUNTAIN_CLIMBER": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/ELEVATED_FEET_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/EXTENDED_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/KNEELING_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/MODIFIED_MOUNTAIN_CLIMBER_AND_EXTENSION": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/MOUNTAIN_CLIMBER": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/MOUNTAIN_CLIMBER_ON_SLIDING_DISCS": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/MOUNTAIN_CLIMBER_WITH_HANDS_ON_BENCH": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/PLANK": [
+  "freeExerciseDb:Plank",
+  "wger:458",
+  "wger:1307"
+ ],
+ "PLANK/PLANK_WITH_ARM_RAISE": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/PLANK_WITH_KNEE_TO_ELBOW": [
+  "freeExerciseDb:Plank",
+  "wger:1307"
+ ],
+ "PLANK/PLANK_WITH_LEG_LIFT": [
+  "freeExerciseDb:Plank",
+  "wger:1307"
+ ],
+ "PLANK/SINGLE_LEG_ELEVATED_FEET_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/STRAIGHT_ARM_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/STRAIGHT_ARM_PLANK_WITH_SHOULDER_TOUCH": [
+  "freeExerciseDb:Plank",
+  "wger:1091"
+ ],
+ "PLANK/TWO_POINT_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/WEIGHTED_CROSS_BODY_MOUNTAIN_CLIMBER": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/WEIGHTED_MOUNTAIN_CLIMBER": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/WEIGHTED_MOUNTAIN_CLIMBER_ON_SLIDING_DISCS": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/WEIGHTED_MOUNTAIN_CLIMBER_WITH_HANDS_ON_BENCH": [
+  "freeExerciseDb:Mountain_Climbers"
+ ],
+ "PLANK/WEIGHTED_PLANK": [
+  "freeExerciseDb:Plank",
+  "wger:458"
+ ],
+ "PLANK/WIDE_STANCE_PLANK_WITH_DIAGONAL_ARM_LIFT": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/WIDE_STANCE_PLANK_WITH_DIAGONAL_LEG_LIFT": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/WIDE_STANCE_PLANK_WITH_LEG_LIFT": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLANK/_45_DEGREE_PLANK": [
+  "freeExerciseDb:Plank"
+ ],
+ "PLYO/ALTERNATING_JUMP_LUNGE": [
+  "freeExerciseDb:Scissors_Jump"
+ ],
+ "PLYO/BARBELL_JUMP_SQUAT": [
+  "freeExerciseDb:Weighted_Jump_Squat"
+ ],
+ "PLYO/BODY_WEIGHT_JUMP_SQUAT": [
+  "freeExerciseDb:Freehand_Jump_Squat"
+ ],
+ "PLYO/BOX_JUMP": [
+  "freeExerciseDb:Front_Box_Jump"
+ ],
+ "PLYO/DEPTH_JUMP": [
+  "freeExerciseDb:Depth_Jump_Leap",
+  "freeExerciseDb:Linear_Depth_Jump"
+ ],
+ "PLYO/HIGH_BOX_JUMP": [
+  "freeExerciseDb:Front_Box_Jump"
+ ],
+ "PLYO/JUMP_SQUAT": [
+  "freeExerciseDb:Freehand_Jump_Squat"
+ ],
+ "PLYO/LATERAL_LEAP_AND_HOP": [
+  "freeExerciseDb:Single-Leg_Lateral_Hop"
+ ],
+ "PLYO/MEDICINE_BALL_OVERHEAD_THROWS": [
+  "freeExerciseDb:Catch_and_Overhead_Throw"
+ ],
+ "PLYO/STAR_JUMP_SQUATS": [
+  "freeExerciseDb:Star_Jump"
+ ],
+ "PLYO/WEIGHTED_JUMP_SQUAT": [
+  "freeExerciseDb:Weighted_Jump_Squat"
+ ],
+ "PULL_UP/BAND_ASSISTED_PULL_UP": [
+  "freeExerciseDb:Band_Assisted_Pull-Up"
+ ],
+ "PULL_UP/CHIN_UP": [
+  "freeExerciseDb:Chin-Up",
+  "wger:152"
+ ],
+ "PULL_UP/CLOSE_GRIP_LAT_PULLDOWN": [
+  "freeExerciseDb:Close-Grip_Front_Lat_Pulldown",
+  "wger:158"
+ ],
+ "PULL_UP/EZ_BAR_PULLOVER": [
+  "freeExerciseDb:Bent-Arm_Barbell_Pullover"
+ ],
+ "PULL_UP/LAT_PULLDOWN": [
+  "freeExerciseDb:Wide-Grip_Lat_Pulldown"
+ ],
+ "PULL_UP/MIXED_GRIP_CHIN_UP": [
+  "freeExerciseDb:Mixed_Grip_Chin"
+ ],
+ "PULL_UP/PULL_UP": [
+  "wger:475"
+ ],
+ "PULL_UP/STRAIGHT_ARM_PULLDOWN": [
+  "freeExerciseDb:Straight-Arm_Pulldown",
+  "freeExerciseDb:Rope_Straight-Arm_Pulldown",
+  "wger:1726"
+ ],
+ "PULL_UP/WEIGHTED_CHIN_UP": [
+  "freeExerciseDb:Chin-Up",
+  "wger:152"
+ ],
+ "PULL_UP/WEIGHTED_MIXED_GRIP_CHIN_UP": [
+  "freeExerciseDb:Mixed_Grip_Chin"
+ ],
+ "PULL_UP/WEIGHTED_PULL_UP": [
+  "wger:475"
+ ],
+ "PULL_UP/WEIGHTED_WIDE_GRIP_PULL_UP": [
+  "freeExerciseDb:Wide-Grip_Rear_Pull-Up"
+ ],
+ "PULL_UP/WIDE_GRIP_LAT_PULLDOWN": [
+  "freeExerciseDb:Wide-Grip_Lat_Pulldown"
+ ],
+ "PULL_UP/WIDE_GRIP_PULL_UP": [
+  "freeExerciseDb:Wide-Grip_Rear_Pull-Up"
+ ],
+ "PUSH_UP/CHEST_PRESS_WITH_BAND": [
+  "freeExerciseDb:Bench_Press_-_With_Bands",
+  "freeExerciseDb:Cable_Chest_Press"
+ ],
+ "PUSH_UP/CLAPPING_PUSH_UP": [
+  "freeExerciseDb:Plyo_Push-up",
+  "wger:1554"
+ ],
+ "PUSH_UP/CLOSE_HANDS_PUSH_UP": [
+  "freeExerciseDb:Close-Grip_Push-Up_off_of_a_Dumbbell"
+ ],
+ "PUSH_UP/DECLINE_PUSH_UP": [
+  "freeExerciseDb:Decline_Push-Up",
+  "wger:1112"
+ ],
+ "PUSH_UP/DYNAMIC_PUSH_UP": [
+  "wger:1551"
+ ],
+ "PUSH_UP/EXPLOSIVE_PUSH_UP": [
+  "freeExerciseDb:Plyo_Push-up",
+  "wger:2529"
+ ],
+ "PUSH_UP/HINDU_PUSH_UP": [
+  "wger:1080"
+ ],
+ "PUSH_UP/INCLINE_PUSH_UP": [
+  "freeExerciseDb:Incline_Push-Up",
+  "freeExerciseDb:Incline_Push-Up_Wide",
+  "freeExerciseDb:Incline_Push-Up_Medium"
+ ],
+ "PUSH_UP/MEDICINE_BALL_CHEST_PASS": [
+  "freeExerciseDb:Medicine_Ball_Chest_Pass"
+ ],
+ "PUSH_UP/ONE_ARM_PUSH_UP": [
+  "freeExerciseDb:Single-Arm_Push-Up"
+ ],
+ "PUSH_UP/PIKE_PUSH_UP": [
+  "wger:454"
+ ],
+ "PUSH_UP/PUSH_UP": [
+  "freeExerciseDb:Push-Up_Wide",
+  "wger:1551"
+ ],
+ "PUSH_UP/PUSH_UP_WITH_FEET_ON_SWISS_BALL": [
+  "freeExerciseDb:Push-Ups_With_Feet_On_An_Exercise_Ball"
+ ],
+ "PUSH_UP/RING_PUSH_UP": [
+  "wger:2764"
+ ],
+ "PUSH_UP/SUSPENDED_PUSH_UP": [
+  "freeExerciseDb:Suspended_Push-Up"
+ ],
+ "PUSH_UP/WEIGHTED_DECLINE_PUSH_UP": [
+  "freeExerciseDb:Decline_Push-Up",
+  "wger:1112"
+ ],
+ "PUSH_UP/WEIGHTED_HINDU_PUSH_UP": [
+  "wger:1080"
+ ],
+ "PUSH_UP/WEIGHTED_INCLINE_PUSH_UP": [
+  "freeExerciseDb:Incline_Push-Up",
+  "freeExerciseDb:Incline_Push-Up_Wide"
+ ],
+ "PUSH_UP/WEIGHTED_ONE_ARM_PUSH_UP": [
+  "freeExerciseDb:Single-Arm_Push-Up"
+ ],
+ "PUSH_UP/WEIGHTED_PIKE_PUSH_UP": [
+  "wger:454"
+ ],
+ "PUSH_UP/WEIGHTED_PUSH_UP": [
+  "freeExerciseDb:Push-Up_Wide",
+  "wger:1902",
+  "wger:1551"
+ ],
+ "PUSH_UP/WEIGHTED_PUSH_UP_WITH_FEET_ON_SWISS_BALL": [
+  "freeExerciseDb:Push-Ups_With_Feet_On_An_Exercise_Ball"
+ ],
+ "PUSH_UP/WEIGHTED_RING_PUSH_UP": [
+  "wger:2764"
+ ],
+ "PUSH_UP/WEIGHTED_SUSPENDED_PUSH_UP": [
+  "freeExerciseDb:Suspended_Push-Up"
+ ],
+ "PUSH_UP/WEIGHTED_WIDE_HANDS_PUSH_UP": [
+  "freeExerciseDb:Push-Up_Wide"
+ ],
+ "PUSH_UP/WIDE_GRIP_PUSH_UP": [
+  "freeExerciseDb:Push-Up_Wide"
+ ],
+ "PUSH_UP/WIDE_HANDS_PUSH_UP": [
+  "freeExerciseDb:Push-Up_Wide"
+ ],
+ "ROW/ALTERNATING_DUMBBELL_ROW": [
+  "freeExerciseDb:Alternating_Kettlebell_Row"
+ ],
+ "ROW/BANDED_FACE_PULLS": [
+  "freeExerciseDb:Face_Pull"
+ ],
+ "ROW/BARBELL_BENCH_PULL": [
+  "freeExerciseDb:Incline_Bench_Pull"
+ ],
+ "ROW/BENT_OVER_ROW_WITH_BARBELL": [
+  "freeExerciseDb:Bent_Over_Barbell_Row",
+  "wger:83"
+ ],
+ "ROW/BENT_OVER_ROW_WITH_DUMBELL": [
+  "freeExerciseDb:Bent_Over_Two-Dumbbell_Row",
+  "freeExerciseDb:Bent_Over_Two-Dumbbell_Row_With_Palms_In"
+ ],
+ "ROW/CHEST_SUPPORTED_DUMBBELL_ROW": [
+  "wger:1283"
+ ],
+ "ROW/ELEVATED_FEET_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row"
+ ],
+ "ROW/FACE_PULL": [
+  "freeExerciseDb:Face_Pull"
+ ],
+ "ROW/INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row",
+  "wger:1198"
+ ],
+ "ROW/KETTLEBELL_ROW": [
+  "freeExerciseDb:Two-Arm_Kettlebell_Row"
+ ],
+ "ROW/MODIFIED_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row"
+ ],
+ "ROW/NEUTRAL_GRIP_ALTERNATING_DUMBBELL_ROW": [
+  "freeExerciseDb:Alternating_Kettlebell_Row"
+ ],
+ "ROW/ONE_ARM_BENT_OVER_ROW": [
+  "freeExerciseDb:One-Arm_Dumbbell_Row",
+  "freeExerciseDb:One-Arm_Kettlebell_Row",
+  "wger:81",
+  "wger:1186"
+ ],
+ "ROW/RENEGADE_ROW": [
+  "freeExerciseDb:Alternating_Renegade_Row"
+ ],
+ "ROW/REVERSE_GRIP_BARBELL_ROW": [
+  "freeExerciseDb:Reverse_Grip_Bent-Over_Rows"
+ ],
+ "ROW/SEATED_CABLE_ROW": [
+  "freeExerciseDb:Seated_Cable_Rows",
+  "wger:1117"
+ ],
+ "ROW/SINGLE_ARM_CABLE_ROW": [
+  "freeExerciseDb:Seated_One-arm_Cable_Pulley_Rows"
+ ],
+ "ROW/SINGLE_ARM_NEUTRAL_GRIP_DUMBBELL_ROW": [
+  "freeExerciseDb:One-Arm_Dumbbell_Row",
+  "wger:81"
+ ],
+ "ROW/SUSPENDED_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row_with_Straps",
+  "freeExerciseDb:Suspended_Row"
+ ],
+ "ROW/TRX_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row_with_Straps",
+  "freeExerciseDb:Suspended_Row"
+ ],
+ "ROW/T_BAR_ROW": [
+  "freeExerciseDb:T-Bar_Row_with_Handle",
+  "wger:513"
+ ],
+ "ROW/V_GRIP_CABLE_ROW": [
+  "freeExerciseDb:Seated_Cable_Rows"
+ ],
+ "ROW/WEIGHTED_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row",
+  "wger:1198"
+ ],
+ "ROW/WEIGHTED_MODIFIED_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row"
+ ],
+ "ROW/WEIGHTED_SUSPENDED_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row_with_Straps",
+  "freeExerciseDb:Suspended_Row"
+ ],
+ "ROW/WEIGHTED_TRX_INVERTED_ROW": [
+  "freeExerciseDb:Inverted_Row_with_Straps",
+  "freeExerciseDb:Suspended_Row"
+ ],
+ "ROW/WIDE_GRIP_SEATED_CABLE_ROW": [
+  "freeExerciseDb:Seated_Cable_Rows",
+  "wger:1117"
+ ],
+ "SHOULDER_PRESS/ALTERNATING_DUMBBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Standing_Alternating_Dumbbell_Press",
+  "freeExerciseDb:Dumbbell_Shoulder_Press",
+  "wger:567"
+ ],
+ "SHOULDER_PRESS/ARNOLD_PRESS": [
+  "freeExerciseDb:Arnold_Dumbbell_Press",
+  "freeExerciseDb:Kettlebell_Arnold_Press"
+ ],
+ "SHOULDER_PRESS/BARBELL_PUSH_PRESS": [
+  "freeExerciseDb:Push_Press"
+ ],
+ "SHOULDER_PRESS/BARBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Barbell_Shoulder_Press",
+  "freeExerciseDb:Standing_Military_Press",
+  "wger:566"
+ ],
+ "SHOULDER_PRESS/DUMBBELL_ALTERNATING_SHOULDER_PRESS_AND_TWIST": [
+  "freeExerciseDb:Standing_Alternating_Dumbbell_Press",
+  "freeExerciseDb:Arnold_Dumbbell_Press"
+ ],
+ "SHOULDER_PRESS/DUMBBELL_FRONT_RAISE": [
+  "freeExerciseDb:Front_Dumbbell_Raise",
+  "freeExerciseDb:Front_Two-Dumbbell_Raise",
+  "wger:256"
+ ],
+ "SHOULDER_PRESS/DUMBBELL_PUSH_PRESS": [
+  "freeExerciseDb:Double_Kettlebell_Push_Press",
+  "freeExerciseDb:Dumbbell_Shoulder_Press",
+  "wger:567"
+ ],
+ "SHOULDER_PRESS/DUMBBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Dumbbell_Shoulder_Press",
+  "freeExerciseDb:Seated_Dumbbell_Press",
+  "wger:567"
+ ],
+ "SHOULDER_PRESS/MILITARY_PRESS": [
+  "freeExerciseDb:Standing_Military_Press",
+  "freeExerciseDb:Barbell_Shoulder_Press"
+ ],
+ "SHOULDER_PRESS/ONE_ARM_PUSH_PRESS": [
+  "freeExerciseDb:One-Arm_Kettlebell_Push_Press",
+  "freeExerciseDb:Dumbbell_One-Arm_Shoulder_Press"
+ ],
+ "SHOULDER_PRESS/OVERHEAD_BARBELL_PRESS": [
+  "freeExerciseDb:Barbell_Shoulder_Press",
+  "wger:1893"
+ ],
+ "SHOULDER_PRESS/OVERHEAD_DUMBBELL_PRESS": [
+  "freeExerciseDb:Dumbbell_Shoulder_Press"
+ ],
+ "SHOULDER_PRESS/SEATED_BARBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Seated_Barbell_Military_Press",
+  "freeExerciseDb:Barbell_Shoulder_Press",
+  "wger:566"
+ ],
+ "SHOULDER_PRESS/SEATED_DUMBBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Seated_Dumbbell_Press",
+  "freeExerciseDb:Dumbbell_Shoulder_Press",
+  "wger:567"
+ ],
+ "SHOULDER_PRESS/SINGLE_ARM_DUMBBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Dumbbell_One-Arm_Shoulder_Press",
+  "wger:1968"
+ ],
+ "SHOULDER_PRESS/SMITH_MACHINE_OVERHEAD_PRESS": [
+  "freeExerciseDb:Smith_Machine_Overhead_Shoulder_Press"
+ ],
+ "SHOULDER_PRESS/STRICT_PRESS": [
+  "freeExerciseDb:Standing_Military_Press",
+  "freeExerciseDb:Barbell_Shoulder_Press"
+ ],
+ "SHOULDER_PRESS/SWISS_BALL_DUMBBELL_SHOULDER_PRESS": [
+  "freeExerciseDb:Dumbbell_Shoulder_Press",
+  "wger:567"
+ ],
+ "SHOULDER_PRESS/WEIGHT_PLATE_FRONT_RAISE": [
+  "freeExerciseDb:Front_Plate_Raise"
+ ],
+ "SHOULDER_STABILITY/BAND_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation_with_Band"
+ ],
+ "SHOULDER_STABILITY/BAND_INTERNAL_ROTATION": [
+  "freeExerciseDb:Internal_Rotation_with_Band"
+ ],
+ "SHOULDER_STABILITY/CABLE_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation_with_Cable"
+ ],
+ "SHOULDER_STABILITY/CABLE_INTERNAL_ROTATION": [
+  "freeExerciseDb:Cable_Internal_Rotation"
+ ],
+ "SHOULDER_STABILITY/LYING_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation"
+ ],
+ "SHOULDER_STABILITY/SEATED_DUMBBELL_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation"
+ ],
+ "SHOULDER_STABILITY/_90_DEGREE_CABLE_EXTERNAL_ROTATION": [
+  "freeExerciseDb:External_Rotation_with_Cable"
+ ],
+ "SHRUG/BARBELL_SHRUG": [
+  "freeExerciseDb:Barbell_Shrug",
+  "wger:571"
+ ],
+ "SHRUG/BARBELL_UPRIGHT_ROW": [
+  "freeExerciseDb:Upright_Barbell_Row"
+ ],
+ "SHRUG/BEHIND_THE_BACK_SMITH_MACHINE_SHRUG": [
+  "freeExerciseDb:Smith_Machine_Behind_the_Back_Shrug"
+ ],
+ "SHRUG/DUMBBELL_SHRUG": [
+  "freeExerciseDb:Dumbbell_Shrug",
+  "wger:572"
+ ],
+ "SHRUG/DUMBBELL_UPRIGHT_ROW": [
+  "freeExerciseDb:Standing_Dumbbell_Upright_Row",
+  "wger:694"
+ ],
+ "SHRUG/SHRUG": [
+  "freeExerciseDb:Dumbbell_Shrug"
+ ],
+ "SHRUG/UPRIGHT_ROW": [
+  "freeExerciseDb:Standing_Dumbbell_Upright_Row",
+  "wger:694"
+ ],
+ "SHRUG/WIDE_GRIP_BARBELL_SHRUG": [
+  "freeExerciseDb:Barbell_Shrug",
+  "wger:571"
+ ],
+ "SIT_UP/CROSSED_ARMS_SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/GET_UP_SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/MODIFIED_SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/NEGATIVE_SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/ONE_ARM_FULL_SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/WEIGHTED_GET_UP_SIT_UP": [
+  "freeExerciseDb:Press_Sit-Up",
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SIT_UP/WEIGHTED_SIT_UP": [
+  "freeExerciseDb:Sit-Up"
+ ],
+ "SQUAT/AIR_SQUAT": [
+  "freeExerciseDb:Bodyweight_Squat"
+ ],
+ "SQUAT/ALTERNATING_BOX_DUMBBELL_STEP_UPS": [
+  "freeExerciseDb:Dumbbell_Step_Ups"
+ ],
+ "SQUAT/BACK_SQUATS": [
+  "freeExerciseDb:Barbell_Squat"
+ ],
+ "SQUAT/BACK_SQUAT_WITH_BODY_BAR": [
+  "freeExerciseDb:Barbell_Squat"
+ ],
+ "SQUAT/BARBELL_BACK_SQUAT": [
+  "freeExerciseDb:Barbell_Squat",
+  "freeExerciseDb:Barbell_Full_Squat",
+  "wger:1801"
+ ],
+ "SQUAT/BARBELL_BOX_SQUAT": [
+  "freeExerciseDb:Barbell_Squat_To_A_Bench",
+  "freeExerciseDb:Box_Squat"
+ ],
+ "SQUAT/BARBELL_FRONT_SQUAT": [
+  "freeExerciseDb:Front_Barbell_Squat",
+  "freeExerciseDb:Front_Squat_Clean_Grip",
+  "wger:257"
+ ],
+ "SQUAT/BARBELL_HACK_SQUAT": [
+  "freeExerciseDb:Barbell_Hack_Squat"
+ ],
+ "SQUAT/BARBELL_HALF_SQUAT": [
+  "freeExerciseDb:Barbell_Squat"
+ ],
+ "SQUAT/BARBELL_QUARTER_SQUAT": [
+  "freeExerciseDb:Barbell_Squat"
+ ],
+ "SQUAT/BARBELL_STEP_UP": [
+  "freeExerciseDb:Barbell_Step_Ups"
+ ],
+ "SQUAT/CROSSED_ARM_BARBELL_FRONT_SQUAT": [
+  "freeExerciseDb:Front_Barbell_Squat"
+ ],
+ "SQUAT/DUMBBELL_FRONT_SQUAT": [
+  "freeExerciseDb:Front_Squats_With_Two_Kettlebells",
+  "wger:1640"
+ ],
+ "SQUAT/DUMBBELL_OVERHEAD_SQUAT_SINGLE_ARM": [
+  "freeExerciseDb:One-Arm_Overhead_Kettlebell_Squats"
+ ],
+ "SQUAT/DUMBBELL_SPLIT_SQUAT": [
+  "freeExerciseDb:Split_Squat_with_Dumbbells"
+ ],
+ "SQUAT/DUMBBELL_SQUAT": [
+  "freeExerciseDb:Dumbbell_Squat"
+ ],
+ "SQUAT/DUMBBELL_STEP_UP": [
+  "freeExerciseDb:Dumbbell_Step_Ups"
+ ],
+ "SQUAT/DUMBBELL_THRUSTERS": [
+  "freeExerciseDb:Kettlebell_Thruster"
+ ],
+ "SQUAT/GOBLET_SQUAT": [
+  "freeExerciseDb:Goblet_Squat",
+  "wger:203"
+ ],
+ "SQUAT/KETTLEBELL_SQUAT": [
+  "freeExerciseDb:Front_Squats_With_Two_Kettlebells",
+  "freeExerciseDb:Goblet_Squat"
+ ],
+ "SQUAT/LEG_PRESS": [
+  "freeExerciseDb:Leg_Press",
+  "wger:371"
+ ],
+ "SQUAT/OVERHEAD_BARBELL_SQUAT": [
+  "freeExerciseDb:Overhead_Squat"
+ ],
+ "SQUAT/OVERHEAD_SQUAT": [
+  "freeExerciseDb:Overhead_Squat"
+ ],
+ "SQUAT/PISTOL_SQUAT": [
+  "wger:456"
+ ],
+ "SQUAT/SAFETY_BAR_SQUAT": [
+  "freeExerciseDb:Barbell_Squat"
+ ],
+ "SQUAT/SQUAT": [
+  "freeExerciseDb:Bodyweight_Squat"
+ ],
+ "SQUAT/SQUATS_WITH_BAND": [
+  "freeExerciseDb:Squats_-_With_Bands",
+  "freeExerciseDb:Squat_with_Bands"
+ ],
+ "SQUAT/STEP_UP": [
+  "wger:981"
+ ],
+ "SQUAT/WALL_BALL": [
+  "wger:1100"
+ ],
+ "SQUAT/WEIGHTED_BACK_SQUATS": [
+  "freeExerciseDb:Dumbbell_Squat"
+ ],
+ "SQUAT/WEIGHTED_PISTOL_SQUAT": [
+  "freeExerciseDb:Kettlebell_Pistol_Squat"
+ ],
+ "SQUAT/WEIGHTED_PLIE_SQUAT": [
+  "freeExerciseDb:Plie_Dumbbell_Squat"
+ ],
+ "SQUAT/WEIGHTED_SQUAT": [
+  "freeExerciseDb:Dumbbell_Squat"
+ ],
+ "SQUAT/WEIGHTED_STEP_UP": [
+  "freeExerciseDb:Dumbbell_Step_Ups"
+ ],
+ "SQUAT/WIDE_STANCE_BARBELL_SQUAT": [
+  "freeExerciseDb:Wide_Stance_Barbell_Squat"
+ ],
+ "SQUAT/WIDE_STANCE_GOBLET_SQUAT": [
+  "freeExerciseDb:Goblet_Squat"
+ ],
+ "SQUAT/ZERCHER_SQUAT": [
+  "freeExerciseDb:Zercher_Squats"
+ ],
+ "SUSPENSION/DIP": [
+  "freeExerciseDb:Ring_Dips"
+ ],
+ "SUSPENSION/PLANK": [
+  "freeExerciseDb:Plank",
+  "wger:458"
+ ],
+ "SUSPENSION/PUSH_UP": [
+  "freeExerciseDb:Suspended_Push-Up",
+  "wger:1551"
+ ],
+ "SUSPENSION/ROW": [
+  "freeExerciseDb:Suspended_Row"
+ ],
+ "SUSPENSION/TRICEP_PRESS": [
+  "freeExerciseDb:Body_Tricep_Press"
+ ],
+ "TRICEPS_EXTENSION/ALTERNATING_DUMBBELL_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Lying_Dumbbell_Tricep_Extension"
+ ],
+ "TRICEPS_EXTENSION/BENCH_DIP": [
+  "freeExerciseDb:Bench_Dips",
+  "freeExerciseDb:Weighted_Bench_Dip"
+ ],
+ "TRICEPS_EXTENSION/CABLE_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Cable_Lying_Triceps_Extension",
+  "wger:659"
+ ],
+ "TRICEPS_EXTENSION/CABLE_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Cable_Rope_Overhead_Triceps_Extension",
+  "freeExerciseDb:Triceps_Overhead_Extension_with_Rope"
+ ],
+ "TRICEPS_EXTENSION/DUMBBELL_KICKBACK": [
+  "freeExerciseDb:Tricep_Dumbbell_Kickback"
+ ],
+ "TRICEPS_EXTENSION/DUMBBELL_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Lying_Dumbbell_Tricep_Extension"
+ ],
+ "TRICEPS_EXTENSION/EZ_BAR_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Overhead_Barbell_Triceps_Extension",
+  "wger:1519"
+ ],
+ "TRICEPS_EXTENSION/INCLINE_EZ_BAR_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Incline_Barbell_Triceps_Extension"
+ ],
+ "TRICEPS_EXTENSION/LYING_EZ_BAR_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Decline_EZ_Bar_Triceps_Extension",
+  "freeExerciseDb:Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head",
+  "wger:50"
+ ],
+ "TRICEPS_EXTENSION/OVERHEAD_DUMBBELL_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Dumbbell_Triceps_Extension",
+  "freeExerciseDb:Dumbbell_One-Arm_Triceps_Extension",
+  "wger:1336"
+ ],
+ "TRICEPS_EXTENSION/REVERSE_GRIP_PRESSDOWN": [
+  "freeExerciseDb:Reverse_Grip_Triceps_Pushdown"
+ ],
+ "TRICEPS_EXTENSION/REVERSE_GRIP_TRICEPS_PRESSDOWN": [
+  "freeExerciseDb:Reverse_Grip_Triceps_Pushdown"
+ ],
+ "TRICEPS_EXTENSION/ROPE_PRESSDOWN": [
+  "freeExerciseDb:Triceps_Pushdown_-_Rope_Attachment",
+  "wger:1900"
+ ],
+ "TRICEPS_EXTENSION/SEATED_BARBELL_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Overhead_Barbell_Triceps_Extension",
+  "wger:1519"
+ ],
+ "TRICEPS_EXTENSION/SEATED_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Dumbbell_Triceps_Extension",
+  "wger:1336"
+ ],
+ "TRICEPS_EXTENSION/SEATED_EZ_BAR_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Overhead_Barbell_Triceps_Extension",
+  "wger:1519"
+ ],
+ "TRICEPS_EXTENSION/SEATED_SINGLE_ARM_OVERHEAD_DUMBBELL_EXTENSION": [
+  "freeExerciseDb:One_Arm_Supinated_Dumbbell_Triceps_Extension",
+  "freeExerciseDb:Dumbbell_One-Arm_Triceps_Extension"
+ ],
+ "TRICEPS_EXTENSION/SINGLE_ARM_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_One-Arm_Dumbbell_Triceps_Extension",
+  "freeExerciseDb:Dumbbell_One-Arm_Triceps_Extension",
+  "wger:1336"
+ ],
+ "TRICEPS_EXTENSION/SINGLE_DUMBBELL_SEATED_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Dumbbell_Triceps_Extension",
+  "wger:1336"
+ ],
+ "TRICEPS_EXTENSION/STATIC_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Lying_Dumbbell_Tricep_Extension"
+ ],
+ "TRICEPS_EXTENSION/SWISS_BALL_DUMBBELL_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Lying_Dumbbell_Tricep_Extension"
+ ],
+ "TRICEPS_EXTENSION/SWISS_BALL_EZ_BAR_LYING_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Decline_EZ_Bar_Triceps_Extension",
+  "freeExerciseDb:Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head",
+  "wger:50"
+ ],
+ "TRICEPS_EXTENSION/SWISS_BALL_EZ_BAR_OVERHEAD_TRICEPS_EXTENSION": [
+  "freeExerciseDb:Standing_Overhead_Barbell_Triceps_Extension",
+  "wger:1519"
+ ],
+ "TRICEPS_EXTENSION/TABLETOP_DIP": [
+  "freeExerciseDb:Bench_Dips"
+ ],
+ "TRICEPS_EXTENSION/TRICEPS_PRESS": [
+  "freeExerciseDb:Seated_Triceps_Press"
+ ],
+ "TRICEPS_EXTENSION/TRICEPS_PRESSDOWN": [
+  "freeExerciseDb:Triceps_Pushdown",
+  "wger:1185",
+  "wger:805"
+ ],
+ "TRICEPS_EXTENSION/WEIGHTED_BENCH_DIP": [
+  "freeExerciseDb:Bench_Dips",
+  "freeExerciseDb:Weighted_Bench_Dip"
+ ],
+ "TRICEPS_EXTENSION/WEIGHTED_DIP": [
+  "wger:194"
+ ],
+ "WARM_UP/ANKLE_CIRCLES": [
+  "freeExerciseDb:Ankle_Circles",
+  "wger:1864"
+ ],
+ "WARM_UP/ANKLE_DORSIFLEXION_WITH_BAND": [
+  "wger:1804"
+ ],
+ "WARM_UP/ARM_CIRCLES": [
+  "freeExerciseDb:Arm_Circles"
+ ],
+ "WARM_UP/BICEPS_STRETCH": [
+  "freeExerciseDb:Standing_Biceps_Stretch"
+ ],
+ "WARM_UP/CAT_CAMEL": [
+  "freeExerciseDb:Cat_Stretch"
+ ],
+ "WARM_UP/GROINERS": [
+  "freeExerciseDb:Groiners"
+ ],
+ "WARM_UP/SHOULDER_CIRCLES": [
+  "freeExerciseDb:Shoulder_Circles"
+ ],
+ "WARM_UP/STANDING_HAMSTRING_STRETCH": [
+  "freeExerciseDb:Standing_Hamstring_and_Calf_Stretch"
+ ],
+ "WARM_UP/STRETCH_CALF": [
+  "freeExerciseDb:Seated_Calf_Stretch",
+  "freeExerciseDb:Standing_Gastrocnemius_Calf_Stretch",
+  "freeExerciseDb:Calf_Stretch_Hands_Against_Wall",
+  "wger:1239",
+  "wger:1876"
+ ],
+ "WARM_UP/STRETCH_CAT_COW": [
+  "freeExerciseDb:Cat_Stretch"
+ ],
+ "WARM_UP/STRETCH_CHILDS_POSE": [
+  "freeExerciseDb:Childs_Pose",
+  "wger:1002"
+ ],
+ "WARM_UP/STRETCH_HAMSTRING": [
+  "freeExerciseDb:Hamstring_Stretch"
+ ],
+ "WARM_UP/STRETCH_HIP_FLEXOR_AND_QUAD": [
+  "freeExerciseDb:Intermediate_Hip_Flexor_and_Quad_Stretch",
+  "wger:1867"
+ ],
+ "WARM_UP/STRETCH_LAT": [
+  "freeExerciseDb:Overhead_Lat"
+ ],
+ "WARM_UP/STRETCH_LUNGE_WITH_SPINAL_TWIST": [
+  "wger:1868"
+ ],
+ "WARM_UP/STRETCH_LUNGING_HIP_FLEXOR": [
+  "freeExerciseDb:Kneeling_Hip_Flexor",
+  "wger:1867"
+ ],
+ "WARM_UP/STRETCH_LYING_KNEE_TO_CHEST": [
+  "freeExerciseDb:One_Knee_To_Chest",
+  "wger:1452"
+ ],
+ "WARM_UP/STRETCH_PIGEON_POSE": [
+  "wger:1872"
+ ],
+ "WARM_UP/STRETCH_QUAD": [
+  "freeExerciseDb:All_Fours_Quad_Stretch"
+ ],
+ "WARM_UP/STRETCH_SHOULDER": [
+  "freeExerciseDb:Shoulder_Stretch"
+ ],
+ "WARM_UP/STRETCH_SIDE": [
+  "wger:1861"
+ ],
+ "WARM_UP/STRETCH_STANDING_IT_BAND": [
+  "wger:1875"
+ ],
+ "WARM_UP/STRETCH_STRADDLE": [
+  "freeExerciseDb:The_Straddle"
+ ],
+ "WARM_UP/STRETCH_TRICEPS": [
+  "freeExerciseDb:Triceps_Stretch"
+ ],
+ "WARM_UP/STRETCH_WALL_CHEST_AND_SHOULDER": [
+  "freeExerciseDb:Chest_And_Front_Of_Shoulder_Stretch"
+ ],
+ "WARM_UP/WALKING_HIGH_KNEES": [
+  "wger:1965"
+ ]
+}

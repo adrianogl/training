@@ -53,4 +53,8 @@ public struct CatalogExercise: Codable, Sendable, Equatable, Identifiable {
     public var isMobility: Bool {
         StrengthCatalogConstants.mobilityPatterns.contains(pattern)
     }
+
+    public var takesLoad: Bool {
+        StrengthGeneratorConstants.loadedEquipment.contains(equipment)
+    }
 }

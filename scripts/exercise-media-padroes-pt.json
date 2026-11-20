@@ -1,0 +1,82 @@
+{
+ "squat": [
+  "Pés na largura dos ombros, pontas levemente para fora e peito erguido.",
+  "Desça jogando o quadril para trás e flexionando os joelhos, na direção dos dedos dos pés, sem tirar os calcanhares do chão.",
+  "Suba empurrando o chão com o pé inteiro e estenda quadril e joelhos."
+ ],
+ "hinge": [
+  "Pés na largura do quadril, joelhos levemente flexionados e coluna neutra.",
+  "Leve o quadril para trás e incline o tronco, sentindo o alongamento dos posteriores.",
+  "Suba estendendo o quadril e contraindo os glúteos, sem arquear a lombar."
+ ],
+ "singleLeg": [
+  "Apoie o peso na perna de trabalho, com o tronco ereto e o abdômen firme.",
+  "Desça devagar, com o joelho alinhado ao pé, sem deixar a perna girar para dentro.",
+  "Suba empurrando o chão com o calcanhar e faça todas as repetições antes de trocar de perna."
+ ],
+ "calf": [
+  "Apoie a ponta dos pés, com os calcanhares livres para descer.",
+  "Suba o máximo que conseguir e segure um segundo no alto.",
+  "Desça devagar até alongar bem as panturrilhas."
+ ],
+ "hipStability": [
+  "Posicione o quadril alinhado e o abdômen firme, sem balançar o tronco.",
+  "Leve a perna para o movimento prescrito, sem girar o quadril nem a lombar.",
+  "Volte com controle e mantenha a tensão no glúteo durante toda a série."
+ ],
+ "plyo": [
+  "Comece com os pés estáveis e o abdômen firme.",
+  "Agache um pouco e salte com explosão, estendendo quadril, joelhos e tornozelos.",
+  "Aterrisse suave, com os joelhos flexionados, e recomece só com o corpo equilibrado."
+ ],
+ "horizontalPush": [
+  "Posicione as escápulas firmes e o corpo estável, com os pés bem apoiados.",
+  "Empurre o peso à frente ou o corpo para longe do apoio, estendendo os cotovelos sem travar com força.",
+  "Volte com controle até sentir o alongamento do peito."
+ ],
+ "horizontalPull": [
+  "Posicione o tronco estável, com a coluna neutra e os ombros longe das orelhas.",
+  "Puxe o peso em direção ao tronco, levando os cotovelos para trás e juntando as escápulas.",
+  "Estenda os braços devagar, sem soltar o peso de uma vez."
+ ],
+ "verticalPush": [
+  "Fique firme, com o abdômen contraído e as costelas fechadas.",
+  "Empurre o peso acima da cabeça até estender os braços, sem arquear a lombar.",
+  "Desça com controle até a altura dos ombros."
+ ],
+ "verticalPull": [
+  "Segure com a pegada prescrita e comece com os braços estendidos e os ombros firmes.",
+  "Puxe os cotovelos para baixo, em direção ao corpo, até o peito se aproximar da barra ou do puxador.",
+  "Volte devagar até estender os braços."
+ ],
+ "antiExtension": [
+  "Contraia o abdômen e mantenha a lombar neutra, sem deixar a barriga cair.",
+  "Faça o movimento prescrito sem arquear as costas.",
+  "Respire de forma contínua e volte com controle."
+ ],
+ "antiRotation": [
+  "Fique estável, com o abdômen firme e o quadril alinhado.",
+  "Faça o movimento prescrito sem deixar o tronco girar para fora do eixo.",
+  "Volte com controle e repita dos dois lados."
+ ],
+ "lateralCore": [
+  "Alinhe a cabeça, o tronco e as pernas e contraia o abdômen.",
+  "Faça o movimento prescrito sem deixar o quadril cair nem girar.",
+  "Mantenha a respiração e repita dos dois lados."
+ ],
+ "mobilityHip": [
+  "Posicione-se com conforto e mantenha o tronco relaxado.",
+  "Vá até sentir um alongamento leve, sem dor.",
+  "Segure e respire fundo, soltando um pouco mais a cada expiração."
+ ],
+ "mobilityAnkle": [
+  "Apoie o pé inteiro e mantenha o calcanhar no chão.",
+  "Leve o joelho à frente até sentir o alongamento no tornozelo, sem dor.",
+  "Respire e volte devagar."
+ ],
+ "mobilityThoracic": [
+  "Posicione o corpo com conforto e a coluna alongada.",
+  "Faça o movimento prescrito, abrindo o peito e girando a parte de cima das costas, sem dor.",
+  "Respire fundo e solte um pouco mais a cada expiração."
+ ]
+}

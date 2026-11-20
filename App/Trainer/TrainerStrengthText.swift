@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import TrainingCore
 
 enum TrainerStrengthText {
     static let daysTitle = "Dias de força"
@@ -40,6 +41,10 @@ enum TrainerStrengthText {
     static let shortcutStrength = "Força"
     static let shortcutSend = "Enviar ao Garmin"
     static let shortcutAdjustments = "Ajustes do plano"
+    static let suggestedLoadFormat = "%@ kg sugerida"
+    static let baseFormat = "Base: %@, %@ kg em %@"
+    static let firstTime = "Primeira vez: comece leve e registre a carga"
+    static let restShortFormat = "%d s ›"
 
     static func sourceName(_ source: TrainerStrengthSource) -> String {
         switch source {
@@ -97,10 +102,26 @@ enum TrainerStrengthText {
         return "\(exercise.sets) × \(amount)\(exercise.perSide ? " cada" : "")"
     }
 
+    static func rowDose(_ exercise: GeneratedExercise) -> String {
+        let amount = exercise.seconds.map { "\($0) s" } ?? exercise.reps.map(String.init) ?? ""
+        return ["\(exercise.sets) × \(amount)", exercise.weight.map { "\(kilograms($0)) kg" }].compactMap { $0 }.joined(separator: " · ")
+    }
+
     static func load(_ exercise: GeneratedExercise) -> String? {
         if let replaced = exercise.replacedName { return String(format: replacedFormat, replaced) }
         guard let weight = exercise.weight else { return nil }
+        if exercise.suggestedLoad != nil { return String(format: suggestedLoadFormat, kilograms(weight)) }
         return "\(Int(weight.rounded())) kg"
+    }
+
+    static func kilograms(_ weight: Double) -> String {
+        weight.rounded() == weight ? String(Int(weight)) : String(format: "%.1f", weight).replacingOccurrences(of: ".", with: ",")
+    }
+
+    static func baseLine(_ suggestion: SuggestedLoad) -> String {
+        let name = StrengthCatalog.exercise(suggestion.baseId)?.name ?? suggestion.baseId
+        let date = suggestion.baseDay.flatMap(Day.init(iso:)).map { String(format: "%02d/%02d", $0.day, $0.month) } ?? "data desconhecida"
+        return String(format: baseFormat, name, kilograms(suggestion.baseWeight), date)
     }
 
     static func adjustmentTitle(_ adjustment: StrengthAdjustment) -> String {

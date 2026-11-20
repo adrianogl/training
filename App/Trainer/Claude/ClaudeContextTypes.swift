@@ -18,6 +18,7 @@ struct ClaudeContextInput {
     let pain: Set<BodyRegion>
     let loads: [String: Double]
     let race: ClaudeRaceTarget?
+    var notes: [ExerciseNote] = []
 }
 
 struct ClaudeContextPayload: Codable, Equatable {
@@ -64,6 +65,7 @@ struct ClaudeContextPayload: Codable, Equatable {
     let prontidao: [Readiness]
     let dor: [String]
     let ultimas_cargas_kg: [String: Double]
+    let observacoes: [String: [String]]?
     let catalogo_formato: String
     let catalogo: [String]
     let regras: [String]

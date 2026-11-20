@@ -20,13 +20,13 @@ import TrainingCore
             MFITLoadRecord(exercise: "Agachamento livre", key: MFITParser.exerciseKey("Agachamento livre"), day: "2026-11-12", loads: [60, 60, 60], workoutId: 2),
         ]
         let loads = TrainerStrengthContextBuilder.loads(records)
-        #expect(loads["SQUAT/BARBELL_BACK_SQUAT"] == StrengthLoadRecord(weight: 60, completedAllSets: true))
+        #expect(loads["SQUAT/BARBELL_BACK_SQUAT"] == StrengthLoadRecord(weight: 60, completedAllSets: true, day: "2026-11-12"))
         #expect(loads["SQUAT/LEG_PRESS"] == nil)
     }
 
     @Test func loadsAlsoMatchTheGarminName() {
         let records = [MFITLoadRecord(exercise: "Agachamento Goblet", key: MFITParser.exerciseKey("Agachamento Goblet"), day: "2026-11-12", loads: [20, 20], workoutId: 1)]
-        #expect(TrainerStrengthContextBuilder.loads(records)["SQUAT/GOBLET_SQUAT"] == StrengthLoadRecord(weight: 20, completedAllSets: false))
+        #expect(TrainerStrengthContextBuilder.loads(records)["SQUAT/GOBLET_SQUAT"] == StrengthLoadRecord(weight: 20, completedAllSets: false, day: "2026-11-12"))
     }
 
     @Test func coveredPatternsComeFromTheMFITWeek() {

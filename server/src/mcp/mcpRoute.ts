@@ -7,7 +7,7 @@ import { recordRequest } from '../requestLog.js'
 import { JSON_RPC, MCP } from './mcpConstants.js'
 import { withinRateLimit } from './mcpStore.js'
 import { MCP_TEXT } from './mcpText.js'
-import { TOOLS, callTool } from './mcpTools.js'
+import { toolsFor, callTool } from './mcpTools.js'
 
 interface RpcMessage {
   jsonrpc?: string
@@ -48,7 +48,7 @@ async function handle(message: RpcMessage, sql: Sql, key: Buffer, accountId: str
     case 'ping':
       return rpcResult(message.id, {})
     case 'tools/list':
-      return rpcResult(message.id, { tools: TOOLS })
+      return rpcResult(message.id, { tools: await toolsFor(sql, accountId) })
     case 'tools/call': {
       const name = typeof message.params?.name === 'string' ? message.params.name : ''
       const args = (message.params?.arguments ?? {}) as Record<string, unknown>

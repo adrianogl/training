@@ -1,10 +1,12 @@
 public struct StrengthLoadRecord: Codable, Sendable, Equatable {
     public var weight: Double
     public var completedAllSets: Bool
+    public var day: String?
 
-    public init(weight: Double, completedAllSets: Bool) {
+    public init(weight: Double, completedAllSets: Bool, day: String? = nil) {
         self.weight = weight
         self.completedAllSets = completedAllSets
+        self.day = day
     }
 }
 
@@ -60,12 +62,14 @@ public struct GeneratedExercise: Codable, Sendable, Equatable, Identifiable {
     public var perSide: Bool
     public var replacedName: String?
     public var replacedId: String?
+    public var suggestedLoad: SuggestedLoad?
 
     public var id: String { exerciseId }
 
     public init(
         exerciseId: String, name: String, category: String, exerciseName: String?, sets: Int, reps: Int?, seconds: Int?,
-        restSeconds: Int, weight: Double?, perSide: Bool, replacedName: String? = nil, replacedId: String? = nil
+        restSeconds: Int, weight: Double?, perSide: Bool, replacedName: String? = nil, replacedId: String? = nil,
+        suggestedLoad: SuggestedLoad? = nil
     ) {
         self.exerciseId = exerciseId
         self.name = name
@@ -79,6 +83,7 @@ public struct GeneratedExercise: Codable, Sendable, Equatable, Identifiable {
         self.perSide = perSide
         self.replacedName = replacedName
         self.replacedId = replacedId
+        self.suggestedLoad = suggestedLoad
     }
 
     var workSeconds: Double {

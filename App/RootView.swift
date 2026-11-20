@@ -15,18 +15,29 @@ struct RootView: View {
     @State private var morePath = NavigationPath()
     @State private var trainerPath: [TrainerRoute] = []
     @State private var columnVisibility = NavigationSplitViewVisibility.all
+    @State private var layout: RootLayout?
+    @State private var swappingLayout = false
+    @State private var latestSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
         Group {
-            if sizeClass == .regular {
+            if usesSidebar {
                 splitView
             } else {
                 tabView
             }
         }
-        .onAppear(perform: applyRestoration)
+        .onAppear {
+            latestSizeClass = sizeClass
+            layout = layout ?? targetLayout
+            applyRestoration()
+        }
         .fullScreenCover(isPresented: Binding(get: { model.watchKind == nil }, set: { _ in })) {
             WatchChoiceView { model.chooseWatch($0) }
+        }
+        .onChange(of: sizeClass) { _, value in
+            latestSizeClass = value
+            beginLayoutSwap()
         }
         .onChange(of: section) { _, value in sectionRaw = value.rawValue }
         .onChange(of: sidebarSelection) { _, value in sidebarRaw = (value ?? .today).rawValue }
@@ -52,6 +63,14 @@ struct RootView: View {
             DeepLinkCenter.shared.open(url)
         }
         .onChange(of: DeepLinkCenter.shared.pending, initial: true) { _, _ in follow() }
+    }
+
+    private var targetLayout: RootLayout {
+        RootLayout.target(sizeClass: latestSizeClass ?? sizeClass, idiom: UIDevice.current.userInterfaceIdiom)
+    }
+
+    private var usesSidebar: Bool {
+        (layout ?? targetLayout) == .sidebar
     }
 
     private var tabView: some View {
@@ -115,7 +134,22 @@ struct RootView: View {
         if !debugPath.isEmpty { todayPath = debugPath }
     }
 
+    private func beginLayoutSwap() {
+        guard RootLayout.swapAction(current: layout, target: targetLayout, swapping: swappingLayout) == .begin else { return }
+        swappingLayout = true
+        todayPath = []
+        trainerPath = []
+        morePath = NavigationPath()
+        Task { @MainActor in
+            layout = targetLayout
+            swappingLayout = false
+            beginLayoutSwap()
+            follow()
+        }
+    }
+
     private func follow() {
+        guard !swappingLayout else { return }
         applyRestoration()
         guard let link = DeepLinkCenter.shared.pending else { return }
         open(link.section)
@@ -125,7 +159,7 @@ struct RootView: View {
         case .section(.today):
             todayPath = []
         case .trainer(let route):
-            if sizeClass == .regular {
+            if usesSidebar {
                 trainerPath = [route]
             } else {
                 morePath.append(route)
@@ -139,7 +173,7 @@ struct RootView: View {
 
     private func open(_ target: AppSection) {
         sidebarSelection = target == .more ? .today : target
-        if sizeClass != .regular && target.isInMore {
+        if !usesSidebar && target.isInMore {
             section = .more
             var path = NavigationPath()
             path.append(target)
