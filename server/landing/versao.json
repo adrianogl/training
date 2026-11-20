@@ -1,8 +1,9 @@
 {
-  "versao": "1.15.0",
-  "build": 20,
-  "versao_app": "1.15.0",
+  "versao": "1.16.0",
+  "build": 21,
+  "versao_app": "1.16.0",
   "notas": [
-    "Padroniza a lista e o topo do detalhe do treino"
+    "Organiza as seções do detalhe da corrida",
+    "Mostra melhor km e fc máxima no topo do detalhe"
   ]
 }
