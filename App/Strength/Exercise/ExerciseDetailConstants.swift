@@ -5,6 +5,8 @@ enum ExerciseDetailConstants {
     static let frameSeconds = 0.9
     static let alternativesLimit = 3
     static let mediaAspect: CGFloat = 3 / 2
+    static let notesAnchor = "exerciseNotes"
+    static let landscapeMediaHeight: CGFloat = 220
     static let mediaCorner: CGFloat = 26
     static let thumbnailSize: CGFloat = 44
     static let thumbnailCorner: CGFloat = 10

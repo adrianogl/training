@@ -59,6 +59,11 @@ struct ExerciseMediaView: View {
 
 struct ExerciseMediaCarousel: View {
     @Bindable var model: ExerciseDetailModel
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    private var maxMediaWidth: CGFloat {
+        verticalSizeClass == .compact ? ExerciseDetailConstants.landscapeMediaHeight * ExerciseDetailConstants.mediaAspect : .infinity
+    }
 
     var body: some View {
         VStack(spacing: DSSpacing.s2) {
@@ -67,6 +72,7 @@ struct ExerciseMediaCarousel: View {
                     ForEach(model.media) { item in
                         ExerciseMediaView(media: item)
                             .aspectRatio(ExerciseDetailConstants.mediaAspect, contentMode: .fit)
+                            .frame(maxWidth: maxMediaWidth)
                             .clipShape(RoundedRectangle(cornerRadius: ExerciseDetailConstants.mediaCorner, style: .continuous))
                             .overlay {
                                 if item.source == .drawing {

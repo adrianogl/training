@@ -18,7 +18,7 @@ struct RootView: View {
 
     var body: some View {
         Group {
-            if sizeClass == .regular {
+            if usesSidebar {
                 splitView
             } else {
                 tabView
@@ -52,6 +52,10 @@ struct RootView: View {
             DeepLinkCenter.shared.open(url)
         }
         .onChange(of: DeepLinkCenter.shared.pending, initial: true) { _, _ in follow() }
+    }
+
+    private var usesSidebar: Bool {
+        sizeClass == .regular && UIDevice.current.userInterfaceIdiom != .phone
     }
 
     private var tabView: some View {
@@ -125,7 +129,7 @@ struct RootView: View {
         case .section(.today):
             todayPath = []
         case .trainer(let route):
-            if sizeClass == .regular {
+            if usesSidebar {
                 trainerPath = [route]
             } else {
                 morePath.append(route)
@@ -139,7 +143,7 @@ struct RootView: View {
 
     private func open(_ target: AppSection) {
         sidebarSelection = target == .more ? .today : target
-        if sizeClass != .regular && target.isInMore {
+        if !usesSidebar && target.isInMore {
             section = .more
             var path = NavigationPath()
             path.append(target)

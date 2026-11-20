@@ -58,7 +58,7 @@ targets:
         INFOPLIST_KEY_NSHealthShareUsageDescription: "O app lê do Apple Saúde os treinos, rotas, frequência cardíaca, HRV, FC de repouso e sono para analisar os treinos e calcular a prontidão. Os dados ficam neste iPhone."
         CODE_SIGN_ENTITLEMENTS: App/trAIning.entitlements
         INFOPLIST_KEY_NSFaceIDUsageDescription: "O app pede o Face ID para mostrar ou copiar a chave de sincronização entre aparelhos."
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
         MARKETING_VERSION: "1.27.2"

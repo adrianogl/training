@@ -1,6 +1,7 @@
 import GarminAPI
 import Insights
 import SwiftUI
+import UIKit
 
 struct ExerciseDetailSheet: View {
     let input: ExerciseDetailInput
@@ -31,12 +32,23 @@ struct ExerciseDetailSheet: View {
 
 struct ExerciseDetailScreen: View {
     @State private var model: ExerciseDetailModel
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     init(model: ExerciseDetailModel) {
         _model = State(initialValue: model)
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
+            scroll
+                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
+                    guard verticalSizeClass == .compact, model.draft != nil else { return }
+                    withAnimation { proxy.scrollTo(ExerciseDetailConstants.notesAnchor, anchor: .bottom) }
+                }
+        }
+    }
+
+    private var scroll: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DSSpacing.s4) {
                 header
@@ -44,7 +56,7 @@ struct ExerciseDetailScreen: View {
                 ExerciseFeedbackSection(model: model)
                 ExerciseLoadBlock(input: model.input, perHand: model.isPerHand)
                 steps
-                ExerciseNotesSection(model: model)
+                ExerciseNotesSection(model: model).id(ExerciseDetailConstants.notesAnchor)
             }
             .padding(.horizontal, BrandConstants.screenPadding)
             .padding(.top, DSSpacing.s6)
