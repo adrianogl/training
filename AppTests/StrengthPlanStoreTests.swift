@@ -166,4 +166,15 @@ struct StrengthPlanStoreTests {
         #expect(migrated.migrated)
         #expect(store.current() == migrated)
     }
+
+    @Test func migrated_stamp_formats_as_server_valid_string() {
+        #expect(RemoteTimestamp.string(from: StrengthPlanStoreConstants.migratedStamp) == "2000-01-01T00:00:00.001Z")
+    }
+
+    @Test func migrated_plan_is_pushed_with_server_valid_stamp() throws {
+        let (store, sync) = makeStore()
+        try store.migrateIfNeeded(sessions: [session(2)], runningPlanEnd: nil, today: today, now: base)
+        let blob = try #require(sync.pendingBlobs().first)
+        #expect(RemoteTimestamp.string(from: blob.updatedAt) == "2000-01-01T00:00:00.001Z")
+    }
 }

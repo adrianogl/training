@@ -5,5 +5,5 @@ enum StrengthPlanStoreConstants {
     static let blobId = "strengthPlan"
     static let syncedStampKey = "strengthPlanSynced"
     static let documentStampKey = "strengthPlanDocument"
-    static let migratedStamp = Date(timeIntervalSince1970: Date.distantPast.timeIntervalSince1970 + 0.001)
+    static let migratedStamp = Date(timeIntervalSince1970: 946_684_800.001)
 }
