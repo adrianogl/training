@@ -1,9 +1,8 @@
 {
-  "versao": "1.16.0",
-  "build": 21,
-  "versao_app": "1.16.0",
+  "versao": "1.16.1",
+  "build": 22,
+  "versao_app": "1.16.1",
   "notas": [
-    "Organiza as seções do detalhe da corrida",
-    "Mostra melhor km e fc máxima no topo do detalhe"
+    "Tira o espaço vazio no topo do planejado × feito"
   ]
 }
