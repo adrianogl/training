@@ -20,23 +20,25 @@ struct ClaudeRequestSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text(ClaudeText.periodLabel).font(.caption.weight(.bold)).foregroundStyle(BrandColors.dim)
+                    section(ClaudeText.periodLabel, first: true)
                     Picker(ClaudeText.periodLabel, selection: $period) {
                         ForEach(ClaudeRequestPeriod.allCases) { Text(ClaudeText.periodName($0, race: race?.name)).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(ClaudeText.includesTitle).font(.caption.weight(.bold)).foregroundStyle(BrandColors.dim)
+                        DSCardLabel(ClaudeText.includesTitle)
                         ForEach(ClaudeText.includes, id: \.self) { line in
                             Label(line, systemImage: "checkmark").font(.footnote).foregroundStyle(BrandColors.text)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .brandCard()
-                    Text(ClaudeText.extraLabel).font(.caption.weight(.bold)).foregroundStyle(BrandColors.dim)
+                    section(ClaudeText.extraLabel)
                     TextField(ClaudeText.extraPlaceholder, text: $extra, axis: .vertical)
                         .lineLimit(2...4)
                         .padding(10)
                         .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .brandCard()
                     Button(ClaudeText.copy) {
                         UIPasteboard.general.string = ClaudeContextBuilder.text(app.trainer.claudeContextInput(period, race: race), extra: extra)
                         copied = true
@@ -57,5 +59,11 @@ struct ClaudeRequestSheet: View {
                 ToolbarItem(placement: .cancellationAction) { Button(ClaudeText.close) { dismiss() } }
             }
         }
+    }
+
+    private func section(_ title: String, first: Bool = false) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, first ? 4 : DSSpacing.sectionTop - 12)
+            .padding(.bottom, DSSpacing.sectionBottom - 12)
     }
 }

@@ -6,7 +6,7 @@ struct TrainerCycleBanner: View {
     let dated: Bool
 
     var body: some View {
-        DSNotice(tone: .success, title: TrainerCycleText.bannerTitle, text: TrainerCycleText.banner(review, dated: dated), trailing: CardLinkBadge())
+        DSNotice(tone: .success, title: TrainerCycleText.bannerTitle, text: TrainerCycleText.banner(review, dated: dated), trailing: CardLinkChevron())
     }
 }
 
