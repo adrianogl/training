@@ -12,8 +12,7 @@ struct DetailedKPIRow: View {
                 DSStat(
                     value: tile.value,
                     label: tile.caption + (tile.average.map { " · " + String(format: C.averageFormat, $0) } ?? ""),
-                    color: tile.isWorse ? BrandColors.attention : BrandColors.text,
-                    boxed: true
+                    color: tile.isWorse ? BrandColors.attention : BrandColors.text
                 )
             }
         }
@@ -27,7 +26,6 @@ struct DetailedFindingsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(C.findingsTitle)
             ForEach(Array(findings.enumerated()), id: \.element.id) { index, finding in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 HStack(alignment: .top, spacing: 8) {
@@ -65,7 +63,6 @@ struct DetailedRecommendationsCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            DSCardLabel(C.recommendationsTitle)
             ForEach(Array(recommendations.enumerated()), id: \.element.id) { index, item in
                 HStack(alignment: .top, spacing: 8) {
                     Text("\(index + 1)")
@@ -93,7 +90,6 @@ struct DetailedCoachCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            DSCardLabel(C.coachTitle)
             ForEach(sections) { section in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(section.part.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
@@ -110,6 +106,7 @@ struct DetailedCoachCard: View {
             }
         }
         .frame(maxWidth: C.contentMaxWidth, alignment: .leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
     }
 
