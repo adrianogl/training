@@ -6,7 +6,7 @@ enum TrainerSendText {
     static let windowLabel = "Próximos 7 dias"
     static let empty = "Nada para enviar nesses dias."
     static let runFromAdvisory = "A corrida vem da assessoria. Ligue \"Corrida do treinador\" quando passar a seguir o treinador."
-    static let runToggle = "Corrida do treinador"
+    static let runToggle = "Enviar as corridas do plano"
     static let autoLabel = "Envio automático"
     static let autoHint = "Ligado, o app manda sozinho quando o plano mudar, sempre para os próximos 7 dias."
     static let onlyApp = "Só treinos criados pelo app são trocados ou apagados no Garmin."
@@ -14,8 +14,11 @@ enum TrainerSendText {
     static let statusNew = "novo"
     static let statusChanged = "mudou"
     static let statusCurrent = "no Garmin"
-    static let removedFormat = "%d treino(s) que saíram do plano serão apagados do Garmin."
-    static let sendFormat = "Enviar %d treino(s)"
+    static let removedOne = "1 treino que saiu do plano será apagado do Garmin."
+    static let removedFormat = "%d treinos que saíram do plano serão apagados do Garmin."
+    static let sendOne = "Enviar 1 treino"
+    static let sendFormat = "Enviar %d treinos"
+    static let runSection = "Corrida do treinador"
     static let upToDate = "Tudo já está no Garmin"
     static let sending = "Enviando…"
     static let resultFormat = "%d enviado(s), %d apagado(s)"
@@ -50,5 +53,13 @@ enum TrainerSendText {
         case .changed: statusChanged
         case .current: statusCurrent
         }
+    }
+
+    static func sendTitle(_ count: Int) -> String {
+        count == 1 ? sendOne : String(format: sendFormat, count)
+    }
+
+    static func removed(_ count: Int) -> String {
+        count == 1 ? removedOne : String(format: removedFormat, count)
     }
 }

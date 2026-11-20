@@ -2,10 +2,13 @@ import SwiftUI
 
 struct TrainerStrengthLineView: View {
     let line: TrainerStrengthLine
+    var showsDateColumn = true
 
     var body: some View {
         HStack(spacing: 10) {
-            Color.clear.frame(width: TrainerConstants.dayDateWidth, height: 1)
+            if showsDateColumn {
+                Color.clear.frame(width: TrainerConstants.dayDateWidth, height: 1)
+            }
             RoundedRectangle(cornerRadius: 3)
                 .fill(BrandColors.strength)
                 .frame(width: TrainerConstants.dayBarWidth)

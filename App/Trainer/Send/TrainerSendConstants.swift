@@ -2,6 +2,7 @@ import Foundation
 import Insights
 
 enum TrainerSendConstants {
+    static let rowSpacing: CGFloat = 12
     static let secondsPerRep = 4
     static let scheduledHour = 6
     static let recordsKey = "trainerSendRecords"
