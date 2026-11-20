@@ -62,8 +62,11 @@ struct StrengthSessionView: View {
                         DSNotice(tone: .info, text: StrengthText.noWorkout)
                     } else {
                         StrengthSection(title: StrengthText.musclesTitle)
-                        BodyMapView(levels: model.levels(forSession: sessionId), height: StrengthConstants.detailMapHeight)
-                            .brandCard()
+                        VStack(spacing: 8) {
+                            BodyMapView(levels: model.levels(forSession: sessionId), height: StrengthConstants.detailMapHeight)
+                            BodyMapLegend()
+                        }
+                        .brandCard()
                         StrengthSection(title: StrengthText.sessionWorkout)
                         StrengthBlockList(blocks: blocks)
                     }
