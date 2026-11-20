@@ -12,6 +12,8 @@ enum ClaudeConstants {
     static let contextSyncedKey = "claudeContextSynced"
     static let inboxKey = "claudeInbox"
     static let inboxSeenKey = "claudeInboxSeen"
+    static let inboxNotifiedKey = "claudeInboxNotified"
+    static let inboxNotificationId = "claude-inbox"
     static let mcpTokenCreatedKey = "claudeMcpTokenCreated"
     static let overrideIdPrefix = "00000000-0000-4000-9000-0000"
     static let mcpURL = "https://training.aglv.dev/mcp"

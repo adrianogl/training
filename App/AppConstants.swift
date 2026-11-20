@@ -13,7 +13,6 @@ enum AppConstants {
     static let narrativeBackfillLimit = 10
     static let narrativeScanLimit = 30
     static let urlScheme = "training"
-    static let readinessDeepLinkPath = "/prontidao"
     static let initialSectionDefaultsKey = "initialSection"
     static let openTodayDefaultsKey = "openToday"
     static let todayScrollDefaultsKey = "todayScroll"

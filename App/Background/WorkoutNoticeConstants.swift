@@ -16,7 +16,6 @@ enum WorkoutNoticeConstants {
     static let matchTolerance: TimeInterval = 10 * 60
     static let notifiedLimit = 30
     static let idPrefix = "workout-finished-"
-    static let deepLink = "training://treinos"
     static let titleScoreFormat = "%@ · nota %d"
     static let fallbackName = "Corrida"
     static let statsFormat = "%@ km · %@/km"

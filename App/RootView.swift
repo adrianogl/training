@@ -13,6 +13,7 @@ struct RootView: View {
     @State private var sidebarSelection: AppSection? = .today
     @State private var todayPath: [TodayRoute] = []
     @State private var morePath = NavigationPath()
+    @State private var trainerPath: [TrainerRoute] = []
     @State private var columnVisibility = NavigationSplitViewVisibility.all
 
     var body: some View {
@@ -48,12 +49,9 @@ struct RootView: View {
                 Task { await model.strava.refreshStatus() }
                 return
             }
-            guard let target = AppSection(url: url) else { return }
-            open(target)
-            if target == .today {
-                todayPath = url.path() == AppConstants.readinessDeepLinkPath ? [.readiness] : []
-            }
+            DeepLinkCenter.shared.open(url)
         }
+        .onChange(of: DeepLinkCenter.shared.pending, initial: true) { _, _ in follow() }
     }
 
     private var tabView: some View {
@@ -90,7 +88,7 @@ struct RootView: View {
         case .today: TodayView(path: $todayPath) { open(.settings) }
         case .evolution: EvolutionView()
         case .races: RaceListView()
-        case .trainer: NavigationStack { TrainerView() }
+        case .trainer: NavigationStack(path: $trainerPath) { TrainerView() }
         case .workouts: WorkoutListView()
         case .settings: SettingsView()
         case .more: MoreView(path: $morePath)
@@ -115,6 +113,28 @@ struct RootView: View {
         }
         let debugPath = Self.initialTodayPath()
         if !debugPath.isEmpty { todayPath = debugPath }
+    }
+
+    private func follow() {
+        applyRestoration()
+        guard let link = DeepLinkCenter.shared.pending else { return }
+        open(link.section)
+        switch link {
+        case .readiness:
+            todayPath = [.readiness]
+        case .section(.today):
+            todayPath = []
+        case .trainer(let route):
+            if sizeClass == .regular {
+                trainerPath = [route]
+            } else {
+                morePath.append(route)
+            }
+        case .workout, .section:
+            break
+        }
+        if case .workout = link { return }
+        _ = DeepLinkCenter.shared.take()
     }
 
     private func open(_ target: AppSection) {

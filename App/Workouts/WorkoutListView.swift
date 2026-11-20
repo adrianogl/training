@@ -73,6 +73,7 @@ struct WorkoutListView: View {
         }
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { availableWidth = $0 }
         .onAppear(perform: applyRestoration)
+        .onChange(of: DeepLinkCenter.shared.pending, initial: true) { _, _ in openLinkedWorkout() }
         .onChange(of: path) { _, value in pathData = NavigationRestoration.encode(value) }
         .onChange(of: selection) { _, value in selectionData = value.map { NavigationRestoration.encode($0) } ?? Data() }
         .task {
@@ -120,6 +121,13 @@ struct WorkoutListView: View {
         guard !debugPath.isEmpty else { return }
         path = debugPath
         selection = debugPath.first
+    }
+
+    private func openLinkedWorkout() {
+        guard case .workout(let id) = DeepLinkCenter.shared.take({ if case .workout = $0 { true } else { false } }) else { return }
+        applyRestoration()
+        path = [.activity(id)]
+        selection = .activity(id)
     }
 
     private func applyStrength(_ cache: StrengthProgramCache, today: Day) {

@@ -121,7 +121,7 @@ import UIKit
             return
         }
         if !notifiedIds.contains(content.activityId) {
-            await scheduler.schedule(id: C.idPrefix + String(content.activityId), title: content.title, text: content.body, link: C.deepLink, at: nil)
+            await scheduler.schedule(id: C.idPrefix + String(content.activityId), title: content.title, text: content.body, link: DeepLink.workoutURL(content.activityId), at: nil)
             rememberActivity(content.activityId)
             C.logger.info("aviso agendado, atividade \(content.activityId)")
         }

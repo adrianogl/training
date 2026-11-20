@@ -143,6 +143,8 @@ python3 scripts/auto_install.py --test-notify                  # notificação e
 
 Os aparelhos precisam estar desbloqueados na mesma rede do Mac, ou ligados por cabo. Se a instalação ainda falhar às 12h do 6º dia, o Mac mostra uma notificação e manda um iMessage para o número da configuração. O log fica em `~/.config/training-sync/auto-install.log`.
 
+Depois de cada instalação, o script abre o app em segundo plano (`xcrun devicectl device process launch --no-activate --device <UDID> dev.aglv.training`), sem trazer para a tela. Faça o mesmo ao instalar à mão: é isso que faz o aparelho avisar na hora.
+
 ### Simulador
 
 `scripts/dev-run.sh` gera o projeto, cria um simulador, compila, instala e abre o app. O script copia um banco de `garmin-data/snapshot/` (pasta fora do git) para o simulador; sem ele, use `--snapshot <pasta>` com um `store.sqlite` seu. Se existir `~/.config/garmin/connect-personal-api-key`, a chave vai para o app pela variável `TRAINING_API_KEY`.
@@ -210,6 +212,27 @@ Depois: commit `chore(release): vX.Y.Z`, tag `vX.Y.Z`, push com `--tags` e `verc
 ### Aviso de versão nova
 
 O app lê `versao.json` do servidor ao abrir (no máximo a cada 6 horas) e no refresh em background. O arquivo guarda a última versão, a última versão que mudou o app (`versao_app`) e até 3 notas tiradas dos commits `feat` e `fix` que mexeram em `App/`, `Packages/`, `Widgets/` ou `Shared/`. Quando a versão instalada é anterior a `versao_app`, o Hoje mostra um aviso com as notas, o rodapé de Ajustes ganha uma linha e o app agenda uma notificação diária às 8h, cancelada quando a versão nova é instalada. Release só de servidor, landing ou docs não gera aviso. O rodapé de Ajustes mostra a versão, o build, o commit e o horário do build.
+
+### Aviso de versão instalada
+
+Ao abrir, inclusive em segundo plano logo depois da instalação, o app compara a versão com a última que rodou no aparelho. Versão nova gera a notificação "trAIning X instalado" com as notas do `versao.json` e abre Ajustes. Mesma versão com perfil de validade mais longa gera "Instalação renovada". Na mesma passada, o app cancela o aviso de versão disponível e recalcula os avisos de validade, que antes continuavam chegando depois da instalação. Se o app só perceber a troca quando for aberto na tela, o Hoje mostra um cartão verde com as novidades até o fim do dia.
+
+### Notificações
+
+Toda notificação abre a tela da ação relacionada:
+
+| Notificação | Abre |
+| --- | --- |
+| Prontidão da manhã | Hoje › Prontidão |
+| Treino terminado | o treino |
+| Ajuste do treinador por sinais | Treinador › Mudanças do plano |
+| Véspera e manhã de prova | Provas |
+| Versão disponível, validade da instalação, instalação renovada | Hoje |
+| Versão instalada | Ajustes |
+| Garmin ou Strava desconectado | Ajustes |
+| Treinos de força do Claude | Treinador › Força |
+
+Garmin desconectado sai só quando a sincronização em segundo plano recebe chave recusada, uma vez até a conexão voltar. Strava desconectado sai quando a sessão expira. Treinos do Claude saem uma vez por lote recebido. As três esperam até 7h quando chegam entre 22h e 7h.
 
 ## Privacidade
 

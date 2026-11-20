@@ -87,7 +87,7 @@ private final class SignalClock: @unchecked Sendable {
         #expect(scheduled[id]?.at == nil)
         let headers = await setup.scheduler.headers
         #expect(headers[id]?.title == "Plano atualizado")
-        #expect(headers[id]?.link == "training://treinador")
+        #expect(headers[id]?.link == "training://treinador/mudancas")
     }
 
     @Test func secondAdjustOnTheSameDayDoesNotNotifyAgain() async throws {

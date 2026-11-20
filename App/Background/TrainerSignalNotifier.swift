@@ -35,11 +35,7 @@ import Insights
     }
 
     func deliveryDate() -> Date? {
-        let current = now()
-        let hour = calendar.component(.hour, from: current)
-        guard hour >= C.quietStartHour || hour < C.quietEndHour else { return nil }
-        let day = hour >= C.quietStartHour ? calendar.date(byAdding: .day, value: 1, to: current) ?? current : current
-        return calendar.date(bySettingHour: C.quietEndHour, minute: 0, second: 0, of: day)
+        QuietHours.deliveryDate(now: now(), calendar: calendar)
     }
 
     private static func key(_ version: TrainerVersion, plan: TrainerPlan) -> String {
