@@ -1,0 +1,186 @@
+# Créditos das imagens
+
+As imagens dos exercícios vêm do free-exercise-db (https://github.com/yuhonas/free-exercise-db), em domínio público (Unlicense).
+
+As imagens abaixo vêm do wger (https://wger.de), com a licença e o autor indicados em cada linha.
+
+- `wger_1002_ddf91765-8045-4087-bece-de17f33332ce.jpg`: autor não informado, CC-BY-SA 4, https://wger.de/en/exercise/1002/view/
+- `wger_1003_772d6e47-3865-4944-9255-7435d0b06782.jpg`: autor não informado, CC-BY-SA 4, https://wger.de/en/exercise/1003/view/
+- `wger_1003_a2b47fa8-79b4-4a21-920b-48765f562bc4.jpg`: autor não informado, CC-BY-SA 4, https://wger.de/en/exercise/1003/view/
+- `wger_100_Decline-bench-press-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/185/view/
+- `wger_100_Decline-bench-press-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/185/view/
+- `wger_1012_8270fdb8-28f1-4eff-b410-af8642085b3f.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/1012/view/
+- `wger_106_T-bar-row-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/513/view/
+- `wger_106_T-bar-row-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/513/view/
+- `wger_1080_c4bf7ba1-6058-4d14-928f-7187885d5d57.jpg`: Imobard, CC-BY-SA 4, https://wger.de/en/exercise/1080/view/
+- `wger_1084_91dd5a95-1c45-46f2-a074-de41b6ad599b.jpg`: admin, CC-BY-SA 4, https://wger.de/en/exercise/1084/view/
+- `wger_1091_50c8912d-54ef-46c9-99d1-633b6196aa1e.jpg`: clafal, CC-BY-SA 4, https://wger.de/en/exercise/1091/view/
+- `wger_109_Barbell-rear-delt-row-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/83/view/
+- `wger_109_Barbell-rear-delt-row-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/83/view/
+- `wger_1100_ab203e0c-8220-4537-987c-871eb259d687.jpg`: philip, CC-BY-SA 4, https://wger.de/en/exercise/1100/view/
+- `wger_1112_81f40bee-4adf-4317-8476-1a87706e3031.jpg`: anon1337, CC-BY-SA 4, https://wger.de/en/exercise/1112/view/
+- `wger_1117_2555c4c3-a84d-47db-b83b-cbf721f12e45.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/1117/view/
+- `wger_1117_e74255c0-67a0-4309-b78d-2d79e6ff8c11.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/1117/view/
+- `wger_113_Walking-lunges-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/206/view/
+- `wger_113_Walking-lunges-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/206/view/
+- `wger_113_Walking-lunges-3.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/206/view/
+- `wger_113_Walking-lunges-4.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/206/view/
+- `wger_1185_c5ca283d-8958-4fd8-9d59-a3f52a3ac66b.jpg`: anto.kreegyr, CC-BY-SA 4, https://wger.de/en/exercise/1185/view/
+- `wger_1186_1987a039-cf35-437e-bbdc-40c53dd7d053.jpg`: anto.kreegyr, CC-BY-SA 4, https://wger.de/en/exercise/1186/view/
+- `wger_1188_43e714e4-b736-4f3a-8ab4-97821fdff86a.jpg`: autor não informado, CC-BY-SA 4, https://wger.de/en/exercise/1188/view/
+- `wger_1192_651a4535-8210-4dbd-8f06-61d95fdd9963.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/1192/view/
+- `wger_1193_70ca5d80-3847-4a8c-8882-c6e9e485e29e.jpg`: lion, CC-BY-SA 4, https://wger.de/en/exercise/1193/view/
+- `wger_1194_0506cb82-b7d6-4e1a-92c9-cfbcfbcd5776.jpg`: prevail90, CC-BY-SA 4, https://wger.de/en/exercise/1194/view/
+- `wger_1194_074e1766-4208-4a67-a211-9721772d99b0.jpg`: prevail90, CC-BY-SA 4, https://wger.de/en/exercise/1194/view/
+- `wger_1194_34c03421-0803-4859-a2b0-5710f2bd94cd.jpg`: prevail90, CC-BY-SA 4, https://wger.de/en/exercise/1194/view/
+- `wger_1198_864906ac-4ac7-4e52-a886-c6bb97950a9f.jpg`: Gavru, CC-BY-SA 4, https://wger.de/en/exercise/1198/view/
+- `wger_119_seated-barbell-shoulder-press-large-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/566/view/
+- `wger_119_seated-barbell-shoulder-press-large-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/566/view/
+- `wger_1239_5026373a-a7b4-4e26-a0aa-c46634205196.jpg`: erikocobra, CC-BY-SA 4, https://wger.de/en/exercise/1239/view/
+- `wger_123_dumbbell-shoulder-press-large-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/567/view/
+- `wger_123_dumbbell-shoulder-press-large-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/567/view/
+- `wger_1243_53d4fabe-c994-4907-873f-8d82813a9832.jpg`: erikocobra, CC-BY-SA 4, https://wger.de/en/exercise/1243/view/
+- `wger_125_Leg-raises-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/377/view/
+- `wger_125_Leg-raises-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/377/view/
+- `wger_1283_e7262f70-7512-408a-8d00-4c499ef632fc.jpg`: carlos3c, CC-BY-SA 4, https://wger.de/en/exercise/1283/view/
+- `wger_128_Hyperextensions-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/301/view/
+- `wger_128_Hyperextensions-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/301/view/
+- `wger_1290_c05818bf-1c81-46df-9f24-42e354265388.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/1290/view/
+- `wger_129_Standing-biceps-curl-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/95/view/
+- `wger_129_Standing-biceps-curl-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/95/view/
+- `wger_1307_321d796a-f394-40b8-a1ea-874bbed6ecee.jpg`: hektkaso, CC-BY-SA 4, https://wger.de/en/exercise/1307/view/
+- `wger_1336_ebf88217-df26-4ef7-94cb-f0c2220c6abe.jpg`: Anastasious, CC-BY-SA 4, https://wger.de/en/exercise/1336/view/
+- `wger_1348_a3769120-2445-49f2-97d3-afc1238bfc2a.jpg`: Anastasious, CC-BY-SA 4, https://wger.de/en/exercise/1348/view/
+- `wger_1378_7c1fcf34-fb7e-45e7-a0c1-51f296235315.jpg`: carlos3c, CC-BY-SA 4, https://wger.de/en/exercise/1378/view/
+- `wger_138_Hammer-curls-with-rope-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/275/view/
+- `wger_138_Hammer-curls-with-rope-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/275/view/
+- `wger_1392_a02c9c7d-f42d-43e0-9946-1b99b014daee.jpg`: Everkinetic, CC-BY-SA 4, https://wger.de/en/exercise/1392/view/
+- `wger_1392_af848376-3db3-4b16-a056-4aa936d49da4.jpg`: Everkinetic, CC-BY-SA 4, https://wger.de/en/exercise/1392/view/
+- `wger_1452_85a6b9de-4eec-445b-8ebb-f1950b076aba.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1452/view/
+- `wger_148_lateral-dumbbell-raises-large-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/348/view/
+- `wger_148_lateral-dumbbell-raises-large-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/348/view/
+- `wger_150_Barbell-shrugs-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/571/view/
+- `wger_150_Barbell-shrugs-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/571/view/
+- `wger_1519_fab7f641-27d4-40b5-8edd-1a0a137bfd94.gif`: benjamin.yildiz@proton.me, CC-BY-SA 4, https://wger.de/en/exercise/1519/view/
+- `wger_151_Dumbbell-shrugs-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/572/view/
+- `wger_151_Dumbbell-shrugs-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/572/view/
+- `wger_152_6c1a7459-266d-491a-bd50-7cbaea2bc771.jpg`: Everkinetic, CC0, https://wger.de/en/exercise/152/view/
+- `wger_152_b2c5a9f9-8beb-41f7-841c-9664d22a427e.jpg`: Everkinetic, CC0, https://wger.de/en/exercise/152/view/
+- `wger_1551_a6a9e561-3965-45c6-9f2b-ee671e1a3a45.jpg`: Settebello, CC-BY-SA 4, https://wger.de/en/exercise/1551/view/
+- `wger_1554_49207a62-8799-4b47-8c0b-7bde02926f3d.jpg`: Settebello, CC-BY-SA 4, https://wger.de/en/exercise/1554/view/
+- `wger_158_02e8a7c3-dc67-434e-a4bc-77fdecf84b49.jpg`: Franpol, CC-BY-SA 3, https://wger.de/en/exercise/158/view/
+- `wger_158_0d51a0f2-622f-434b-beb8-1a003c54712a.jpg`: Franpol, CC-BY-SA 3, https://wger.de/en/exercise/158/view/
+- `wger_1604_7695428e-bfed-4021-b987-498d93153995.jpg`: RiccaBaro, CC-BY-SA 4, https://wger.de/en/exercise/1604/view/
+- `wger_1612_3dc33f57-2786-4305-8b91-e011d7055923.jpg`: Tierrasverdes, CC-BY-SA 4, https://wger.de/en/exercise/1612/view/
+- `wger_1612_e719b872-d122-4e2d-be17-bd2babfe457a.jpg`: Tierrasverdes, CC-BY-SA 4, https://wger.de/en/exercise/1612/view/
+- `wger_1620_edd40e39-e337-4460-a8dd-6127d40ddd16.jpg`: AlucardEvil40, CC-BY-SA 4, https://wger.de/en/exercise/1620/view/
+- `wger_1640_bdea82f1-15ef-4649-8b5a-1303cfc178e7.jpg`: AlucardEvil40, CC-BY-SA 4, https://wger.de/en/exercise/1640/view/
+- `wger_1648_63ae02d6-6dd9-4e9e-84da-d4905e78a33c.jpg`: AlucardEvil40, CC-BY-SA 4, https://wger.de/en/exercise/1648/view/
+- `wger_1650_1d7a5336-ec0b-4898-a474-78ba32789bf3.jpg`: AlucardEvil40, CC-BY-SA 4, https://wger.de/en/exercise/1650/view/
+- `wger_1651_04ab2679-a04d-4d05-9c85-0d36e898328c.jpg`: AlucardEvil40, CC-BY-SA 4, https://wger.de/en/exercise/1651/view/
+- `wger_16_Incline-press-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/537/view/
+- `wger_16_Incline-press-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/537/view/
+- `wger_1726_2e7e541b-5f55-405a-ae78-3e71b3f42db4.jpg`: barry, CC-BY-SA 4, https://wger.de/en/exercise/1726/view/
+- `wger_1745_9c92843a-6b90-428b-a868-9af4b11bad38.jpg`: Tierrasverdes, CC-BY-SA 4, https://wger.de/en/exercise/1745/view/
+- `wger_1801_60043328-1cfb-4289-9865-aaf64d5aaa28.jpg`: Workout Guru, CC-BY-SA 4, https://wger.de/en/exercise/1801/view/
+- `wger_1801_68720d5e-f422-47ac-81e4-c7b51144d302.jpg`: Workout Guru, CC-BY-SA 4, https://wger.de/en/exercise/1801/view/
+- `wger_1804_691c69b8-c3db-4177-8435-dd3a97d88542.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1804/view/
+- `wger_184_1709c405-620a-4d07-9658-fade2b66a2df.jpg`: philip, CC-BY-SA 3, https://wger.de/en/exercise/184/view/
+- `wger_1861_0ffe4e99-71ad-47fb-b98c-1f243faa0499.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1861/view/
+- `wger_1863_5f29959d-0fd1-46d2-98b7-0c2cb5d9ee13.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1863/view/
+- `wger_1864_5970cdd8-0123-4eba-a921-2157fb6adacf.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1864/view/
+- `wger_1867_767631e5-10d2-46b8-b03f-cc298f96963b.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1867/view/
+- `wger_1868_446e7065-215d-4a91-9da7-9416101442bb.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1868/view/
+- `wger_1872_df982df1-512a-4eb9-acd9-68cc1c265df6.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1872/view/
+- `wger_1875_e1128391-4b73-43a9-ab27-657d8bb43083.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1875/view/
+- `wger_1876_ca7b3fe7-5908-4ec2-9d85-7fa1b80bb105.jpg`: Davidgj32, CC-BY-SA 4, https://wger.de/en/exercise/1876/view/
+- `wger_1893_7dbad19e-0616-41fd-9d7d-3e21649c0eea.jpg`: nishant0712, CC-BY-SA 4, https://wger.de/en/exercise/1893/view/
+- `wger_1900_a8243245-8f8f-4e2b-93ca-694d416cb11d.jpg`: nishant0712, CC-BY-SA 4, https://wger.de/en/exercise/1900/view/
+- `wger_1902_d0c3f170-543c-4be4-bc70-5c6dc606406c.jpg`: nishant0712, CC-BY-SA 4, https://wger.de/en/exercise/1902/view/
+- `wger_191_Front-squat-1-857x1024.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/257/view/
+- `wger_191_Front-squat-2-857x1024.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/257/view/
+- `wger_192_Bench-press-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/73/view/
+- `wger_192_Bench-press-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/73/view/
+- `wger_193_Preacher-curl-3-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/465/view/
+- `wger_193_Preacher-curl-3-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/465/view/
+- `wger_194_34600351-8b0b-4cb0-8daa-583537be15b0.jpg`: cshep442, CC0, https://wger.de/en/exercise/194/view/
+- `wger_1965_03c08a42-dedb-4a46-8d15-acaf497a35a2.jpg`: Anon#2, CC-BY-SA 4, https://wger.de/en/exercise/1965/view/
+- `wger_1968_cd92e973-a0d9-4e5f-9011-5369012598d3.jpg`: evtimovgeorg, CC-BY-SA 4, https://wger.de/en/exercise/1968/view/
+- `wger_203_1c052351-2af0-4227-aeb0-244008e4b0a8.jpg`: philip, CC-BY-SA 4, https://wger.de/en/exercise/203/view/
+- `wger_203_2ab30113-4e08-4d39-9d23-d901ce2c0971.jpg`: philip, CC-BY-SA 4, https://wger.de/en/exercise/203/view/
+- `wger_203_300a44ac-4368-48e2-8b18-beea32ab915d.gif`: philip, CC-BY-SA 4, https://wger.de/en/exercise/203/view/
+- `wger_204_83c52f8a-afc9-4fe2-b2ac-3f89f25958e5.jpg`: yuhonas/free-exercise-db, CC-BY-SA 4, https://wger.de/en/exercise/204/view/
+- `wger_204_ba0f511b-708f-439d-8a51-522221be7ca7.jpg`: yuhonas/free-exercise-db, CC-BY-SA 4, https://wger.de/en/exercise/204/view/
+- `wger_206_6ec66efd-e74f-4142-bed1-0a0ac74e3294.jpg`: nishant0712, CC-BY-SA 3, https://wger.de/en/exercise/206/view/
+- `wger_238_2fc242d3-5bdd-4f97-99bd-678adb8c96fc.jpg`: cshep442, CC-BY-SA 3, https://wger.de/en/exercise/238/view/
+- `wger_238_c6464fb3-1924-4ff1-adfa-fd36da9b5d13.jpg`: cshep442, CC-BY-SA 3, https://wger.de/en/exercise/238/view/
+- `wger_2529_e97b7a36-3414-4c4f-9d66-fe37182e829b.jpg`: ege, CC-BY-SA 4, https://wger.de/en/exercise/2529/view/
+- `wger_256_b7def5bc-2352-499b-b9e5-fff741003831.jpg`: philip, CC-BY-SA 3, https://wger.de/en/exercise/256/view/
+- `wger_2675_6165b802-9139-4a27-8892-946aa19c2b5c.jpg`: fen, CC-BY-SA 4, https://wger.de/en/exercise/2675/view/
+- `wger_2764_a197c5ad-4fe4-4499-ab54-8e69321c7774.jpg`: tuna2, CC-BY-SA 4, https://wger.de/en/exercise/2764/view/
+- `wger_2767_2a170b24-77a5-4f0b-8bd8-aba00768fd2d.jpg`: tuna2, CC-BY-SA 4, https://wger.de/en/exercise/2767/view/
+- `wger_301_2d5c2f99-b8ff-4095-b515-4c2a85afde70.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/301/view/
+- `wger_308_2ca22a0a-9843-4bb4-9d12-faf5c8c89180.jpg`: yuhonas/free-exercise-db, CC-BY-SA 3, https://wger.de/en/exercise/308/view/
+- `wger_308_dd825dd1-8b8c-4db1-bbdd-f2c81e65b7ff.jpg`: yuhonas/free-exercise-db, CC-BY-SA 3, https://wger.de/en/exercise/308/view/
+- `wger_364_b318dde9-f5f2-489f-940a-cd864affb9e3.jpg`: Franpol, CC0, https://wger.de/en/exercise/364/view/
+- `wger_369_4d621b17-f6cb-4107-97c0-9f44e9a2dbc6.jpg`: Franpol, CC0, https://wger.de/en/exercise/369/view/
+- `wger_369_78c915d1-e46d-4d30-8124-65d68664c3ef.jpg`: Franpol, CC0, https://wger.de/en/exercise/369/view/
+- `wger_371_d2136f96-3a43-4d4c-9944-1919c4ca1ce1.jpg`: BFad07, CC0, https://wger.de/en/exercise/371/view/
+- `wger_41_34b37423-269f-43d4-9d29-d2a90eeaa6b4.jpg`: sevae, CC-BY-SA 4, https://wger.de/en/exercise/41/view/
+- `wger_41_Incline-bench-press-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/538/view/
+- `wger_41_Incline-bench-press-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/538/view/
+- `wger_454_447f3c17-405f-46e0-b138-65c2a8caaab0.jpg`: Nash, CC-BY-SA 4, https://wger.de/en/exercise/454/view/
+- `wger_456_3b681e59-377b-40db-9113-ca5873ce084b.jpg`: wakanda90, CC-BY-SA 3, https://wger.de/en/exercise/456/view/
+- `wger_456_93716d06-c378-49b8-820a-8bf3e1d7e45c.jpg`: wakanda90, CC-BY-SA 3, https://wger.de/en/exercise/456/view/
+- `wger_456_b8f007b1-d43f-416d-a44b-fb3c15291414.jpg`: wakanda90, CC-BY-SA 3, https://wger.de/en/exercise/456/view/
+- `wger_456_c51d875b-0c07-495e-a7cf-08893a9f125d.jpg`: wakanda90, CC-BY-SA 3, https://wger.de/en/exercise/456/view/
+- `wger_458_122735cf-f940-4de8-aa30-49a1da148319.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_167db646-9acb-4426-a383-c7e7dc92e3ec.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_2c43d623-5898-4669-b5f8-eb3e1c38cd29.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_902e6836-394e-458b-b94e-101d714294e2.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_b180ce8b-a2c2-40da-924f-998d97aebb63.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_bce9a15d-d080-4fb0-bc30-f80778b38793.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_d1ca4a79-f299-4e70-a391-3e9526c3b141.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_458_e13f92a4-69ae-4043-ae1f-70f155a53024.jpg`: utkb, CC-BY-SA 3, https://wger.de/en/exercise/458/view/
+- `wger_475_b0554016-16fd-4dbe-be47-a2a17d16ae0e.jpg`: Imobard, CC-BY-SA 3, https://wger.de/en/exercise/475/view/
+- `wger_507_13d526ab-12fc-461e-828a-051dd7c13fb1.jpg`: pjwirth, CC-BY-SA 4, https://wger.de/en/exercise/507/view/
+- `wger_50_44cf2c72-a78a-4d5e-a8b5-a02c6ea61fb4.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/50/view/
+- `wger_50_60c68ac5-70c7-4ed6-bfc1-99bed63a472a.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/50/view/
+- `wger_50_695ced5c-9961-4076-add2-cb250d01089e.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/50/view/
+- `wger_50_69b519d8-4861-4bb1-b504-3887aa30e7d8.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/50/view/
+- `wger_537_9f3c7817-3e3d-417d-8b08-2c0a1aa5fe03.jpg`: erikocobra, CC-BY-SA 3, https://wger.de/en/exercise/537/view/
+- `wger_537_d44aeb87-d654-4033-ad2a-368946b0a97e.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/537/view/
+- `wger_538_a1c23996-c8aa-42e3-9dfc-bed0654d849f.jpg`: Franpol, CC-BY-SA 3, https://wger.de/en/exercise/538/view/
+- `wger_572_9e730259-1dcd-4b5e-b4cc-9ebc0cfda75c.jpg`: AlucardEvil40, CC-BY-SA 3, https://wger.de/en/exercise/572/view/
+- `wger_622_0705bc22-fadd-4c19-9c94-649a0b1f927f.jpg`: clafal, CC-BY-SA 3, https://wger.de/en/exercise/622/view/
+- `wger_622_9a429bd0-afd3-4ad0-8043-e9beec901c81.jpg`: clafal, CC-BY-SA 3, https://wger.de/en/exercise/622/view/
+- `wger_622_d6d57067-97de-462e-a8bb-15228d730323.jpg`: clafal, CC-BY-SA 3, https://wger.de/en/exercise/622/view/
+- `wger_630_b0f0c7d8-5878-4d9e-b820-21acc013741d.jpg`: magdy, CC-BY-SA 4, https://wger.de/en/exercise/630/view/
+- `wger_659_a60452f1-e2ea-43fe-baa6-c1a2208d060c.jpg`: Franpol, CC-BY-SA 3, https://wger.de/en/exercise/659/view/
+- `wger_694_119e6823-6960-4341-a9e1-aaf78d7fb57c.jpg`: cshep442, CC-BY-SA 4, https://wger.de/en/exercise/694/view/
+- `wger_694_2e69c005-b241-4806-8557-fc5a4d5ee44d.jpg`: cshep442, CC-BY-SA 4, https://wger.de/en/exercise/694/view/
+- `wger_71_Cable-crossover-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/323/view/
+- `wger_71_Cable-crossover-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/323/view/
+- `wger_74_Bicep-curls-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/91/view/
+- `wger_74_Bicep-curls-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/91/view/
+- `wger_75_7b700f5d-17fc-41a9-bd41-e98e45c15768.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/75/view/
+- `wger_805_7a437824-e2cc-46e1-804a-674f0ea31d25.jpg`: cshep442, CC-BY-SA 4, https://wger.de/en/exercise/805/view/
+- `wger_81_Biceps-curl-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/92/view/
+- `wger_81_Biceps-curl-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/92/view/
+- `wger_81_a751a438-ae2d-4751-8d61-cef0e9292174.jpg`: Franpol, CC-BY-SA 4, https://wger.de/en/exercise/81/view/
+- `wger_828_2e959dab-f39b-4c7c-9063-eb43064ab5eb.jpg`: cshep442, CC-BY-SA 4, https://wger.de/en/exercise/828/view/
+- `wger_828_abfc7700-fadf-4f2d-ac84-e045e590a2fe.jpg`: cshep442, CC-BY-SA 4, https://wger.de/en/exercise/828/view/
+- `wger_86_Bicep-hammer-curl-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/272/view/
+- `wger_86_Bicep-hammer-curl-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/272/view/
+- `wger_912_e10a034f-6370-4dd6-b1c2-416b27844529.jpg`: novadani, CC-BY-SA 4, https://wger.de/en/exercise/912/view/
+- `wger_925_67dbb1c9-b378-46f9-adb6-1f55b3d3007a.jpg`: novadani, CC-BY-SA 4, https://wger.de/en/exercise/925/view/
+- `wger_94_6dee2f60-aea2-4f2d-9bf6-aef50c4f9483.jpg`: Franpol, CC-BY-SA 3, https://wger.de/en/exercise/94/view/
+- `wger_957_0fd94587-6021-4763-856e-7227f5fcba2a.jpg`: utkb, CC-BY-SA 4, https://wger.de/en/exercise/957/view/
+- `wger_960_da4d0560-da89-4bb5-b91f-746458fb04ad.jpg`: clafal, CC-BY-SA 4, https://wger.de/en/exercise/960/view/
+- `wger_978_d3ffe51f-7eb8-4cc9-9eae-105847af3005.jpg`: clafal, CC-BY-SA 4, https://wger.de/en/exercise/978/view/
+- `wger_97_Dumbbell-bench-press-1.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/75/view/
+- `wger_97_Dumbbell-bench-press-2.jpg`: Everkinetic, CC-BY-SA 3, https://wger.de/en/exercise/75/view/
+- `wger_981_f9377a7e-eb58-4cca-b805-2d36863aeb03.jpg`: autor não informado, CC-BY-SA 4, https://wger.de/en/exercise/981/view/
+- `wger_999_8548b2d2-004d-48b4-95fd-b1b25f4e53d0.jpg`: philip, CC-BY-SA 4, https://wger.de/en/exercise/999/view/
+- `wger_999_d0931eb3-8db0-4049-bb08-aa4036072056.jpg`: philip, CC-BY-SA 4, https://wger.de/en/exercise/999/view/

@@ -51,11 +51,29 @@ class ExerciseMediaTests(unittest.TestCase):
         self.assertFalse(result["b"]["revisado"])
         self.assertFalse(result["c"]["revisado"])
 
-    def test_emit_keeps_only_reviewed(self):
+    def test_emit_keeps_only_reviewed_in_review_order(self):
         candidates = {"versao": 1, "ids": {
-            "A/ONE": {"proprios": [{"id": "x", "revisado": True}], "equivalentes": [{"id": "y", "revisado": False}], "wger": []},
-            "A/TWO": {"proprios": [{"id": "z", "revisado": False}], "equivalentes": [], "wger": []}}}
-        self.assertEqual(media.reviewed_only(candidates), {"A/ONE": [{"id": "x", "revisado": True}]})
+            "A/ONE": {"proprios": [{"origem": "freeExerciseDb", "id": "x", "equivalente": False}],
+                      "equivalentes": [{"origem": "freeExerciseDb", "id": "y", "equivalente": True}],
+                      "wger": [{"origem": "wger", "id": "7", "equivalente": False}]},
+            "A/TWO": {"proprios": [{"origem": "freeExerciseDb", "id": "z", "equivalente": False}], "equivalentes": [], "wger": []}}}
+        review = {"A/ONE": ["wger:7", "freeExerciseDb:x"]}
+        selected = media.select_reviewed(candidates, review)
+        self.assertEqual(list(selected), ["A/ONE"])
+        self.assertEqual([item["id"] for item in selected["A/ONE"]], ["7", "x"])
+
+    def test_merge_review_applies_removals(self):
+        import json
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".json") as handle:
+            json.dump({"A/ONE": ["a:1", "a:2"], "A/TWO": ["a:1"]}, handle)
+            handle.flush()
+            merged = media.merge_review([handle.name], [("A/ONE", "a:1"), ("A/TWO", "a:1")])
+        self.assertEqual(merged, {"A/ONE": ["a:2"]})
+
+    def test_mfit_map_normalizes_catalog_names(self):
+        catalog = [{"id": "SQUAT/GOBLET_SQUAT", "nome": "Agachamento  Goblet"}]
+        self.assertEqual(media.mfit_map(catalog), {"agachamento goblet": "SQUAT/GOBLET_SQUAT"})
 
 
 if __name__ == "__main__":

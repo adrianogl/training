@@ -12,6 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "Packages/TrainingKit/Sources/Insights/GarminStrengthCatalogData.swift"
 CANDIDATES = ROOT / "tasks/exercise-media-candidatos.json"
+REVIEW = ROOT / "scripts/exercise-media-revisao.json"
+STEPS_PT = ROOT / "scripts/exercise-media-passos-pt.json"
 MEDIA_DIR = ROOT / "App/Strength/Media"
 CACHE = Path.home() / ".cache/training/exercise-media"
 FED_URL = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
@@ -256,7 +258,7 @@ def candidate(item, score, reviewed, equivalent):
         "confianca": round(score, 3),
         "revisado": reviewed,
     }
-    for key in ("passos", "autor", "licenca", "link"):
+    for key in ("passos", "autor", "autores", "licenca", "link"):
         if key in item:
             result[key] = item[key]
     return result
@@ -292,6 +294,7 @@ def wger_pool(raw):
             continue
         license_info = item.get("license") or {}
         author = next((i.get("license_author") for i in item["images"] if i.get("license_author")), None) or item.get("license_author") or ""
+        authors = [i.get("license_author") or author for i in item["images"]]
         pool.append({
             "origem": "wger",
             "id": str(item["id"]),
@@ -300,6 +303,7 @@ def wger_pool(raw):
             "equipamento": [e["name"] for e in item.get("equipment", [])],
             "quadros": [i["image"] for i in item["images"]],
             "autor": author,
+            "autores": authors,
             "licenca": license_info.get("short_name", ""),
             "link": f"https://wger.de/en/exercise/{item['id']}/view/",
         })
@@ -322,17 +326,37 @@ def build(catalog, fed, wger):
     return {"versao": 1, "ids": result}
 
 
-def reviewed_only(candidates):
+def candidate_ref(item):
+    return f"{item['origem']}:{item['id']}"
+
+
+def select_reviewed(candidates, review):
     result = {}
-    for catalog_id, block in candidates["ids"].items():
-        kept = [
-            item
-            for kind in ("proprios", "equivalentes", "wger")
-            for item in block.get(kind, [])
-            if item.get("revisado") is True
-        ]
+    for catalog_id, refs in review.items():
+        block = candidates["ids"].get(catalog_id)
+        if not block or not refs:
+            continue
+        by_ref = {candidate_ref(item): item for kind in ("proprios", "equivalentes", "wger") for item in block.get(kind, [])}
+        kept = [by_ref[ref] for ref in refs if ref in by_ref]
         if kept:
             result[catalog_id] = kept
+    return result
+
+
+def merge_review(files, removals):
+    merged = {}
+    for path in files:
+        merged.update(json.loads(Path(path).read_text()))
+    for catalog_id, ref in removals:
+        if catalog_id in merged:
+            merged[catalog_id] = [item for item in merged[catalog_id] if item != ref]
+    return {key: value for key, value in merged.items() if value}
+
+
+def mfit_map(catalog):
+    result = {}
+    for entry in sorted(catalog, key=lambda item: item["id"]):
+        result.setdefault(norm(entry["nome"]), entry["id"])
     return result
 
 
@@ -373,6 +397,11 @@ def frame_name(origin, frame):
     return frame.replace("/", "_")
 
 
+def longest_side(path):
+    output = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", str(path)], check=True, capture_output=True, text=True).stdout
+    return max(int(value) for value in re.findall(r"pixel(?:Width|Height): (\d+)", output))
+
+
 def copy_frame(origin, frame, destination):
     source = CACHE / "images" / frame_name(origin, frame)
     url = frame if origin == "wger" else FED_IMAGE_URL + frame
@@ -381,42 +410,84 @@ def copy_frame(origin, frame, destination):
     if source.suffix.lower() == ".gif":
         shutil.copyfile(source, destination)
         return
-    subprocess.run(
-        ["sips", "-Z", str(MAX_SIDE), "-s", "format", "jpeg", "-s", "formatOptions", str(JPG_QUALITY), str(source), "--out", str(destination)],
-        check=True,
-        stdout=subprocess.DEVNULL,
-    )
+    command = ["sips", "-s", "format", "jpeg", "-s", "formatOptions", str(JPG_QUALITY)]
+    if longest_side(source) > MAX_SIDE:
+        command += ["-Z", str(MAX_SIDE)]
+    subprocess.run(command + [str(source), "--out", str(destination)], check=True, stdout=subprocess.DEVNULL)
+
+
+def image_name(origin, frame):
+    name = frame_name(origin, frame)
+    suffix = ".gif" if name.lower().endswith(".gif") else ".jpg"
+    return str(Path(name).with_suffix(suffix))
+
+
+def command_revisar(args):
+    removals = []
+    files = []
+    iterator = iter(args)
+    for arg in iterator:
+        if arg == "--remover":
+            catalog_id, ref = next(iterator).split("=", 1)
+            removals.append((catalog_id, ref))
+        else:
+            files.append(arg)
+    merged = merge_review(files, removals)
+    REVIEW.write_text(json.dumps(merged, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
+    print("ids", len(merged))
 
 
 def command_emitir():
-    reviewed_file = json.loads(CANDIDATES.read_text())
-    selected = reviewed_only(reviewed_file)
+    candidates = json.loads(CANDIDATES.read_text())
+    selected = select_reviewed(candidates, json.loads(REVIEW.read_text()))
+    steps_pt = json.loads(STEPS_PT.read_text())
     images_dir = MEDIA_DIR / "Images"
+    if images_dir.exists():
+        shutil.rmtree(images_dir)
     midias = {}
     credits = []
+    missing = set()
     for catalog_id, items in sorted(selected.items()):
         midias[catalog_id] = []
         for item in items:
             names = []
             for frame in item["quadros"]:
-                name = frame_name(item["origem"], frame)
-                name = str(Path(name).with_suffix(".gif" if name.lower().endswith(".gif") else ".jpg"))
+                name = image_name(item["origem"], frame)
                 copy_frame(item["origem"], frame, images_dir / name)
                 names.append(name)
             entry = {"origem": item["origem"], "quadros": names, "equivalente": item["equivalente"]}
-            for key in ("passos", "autor", "licenca", "link"):
-                if item.get(key):
-                    entry[key] = item[key]
+            if item["origem"] == "freeExerciseDb":
+                if item["id"] in steps_pt:
+                    entry["passos"] = steps_pt[item["id"]]
+                else:
+                    missing.add(item["id"])
+            else:
+                entry.update({"autor": item.get("autor", ""), "licenca": item.get("licenca", ""), "link": item.get("link", "")})
+                authors = item.get("autores") or [item.get("autor", "")] * len(names)
+                for name, author in zip(names, authors):
+                    credits.append(f"- `{name}`: {author or 'autor não informado'}, {item.get('licenca', '')}, {item.get('link', '')}")
             midias[catalog_id].append(entry)
-            if item["origem"] == "wger":
-                credits.append(f"- {catalog_id}: {item['nome']} por {item.get('autor') or 'autor não informado'}, {item.get('licenca', '')}, {item.get('link', '')}")
-    output = {"versao": 1, "midias": midias, "mfit": reviewed_file.get("mfit", {}), "padroes": reviewed_file.get("padroes", {})}
+    if missing:
+        print("sem tradução dos passos:", sorted(missing), file=sys.stderr)
+        sys.exit(1)
+    patterns = json.loads(STEPS_PT.with_name("exercise-media-padroes-pt.json").read_text())
+    output = {
+        "versao": 1,
+        "midias": midias,
+        "mfit": mfit_map(load_catalog()),
+        "padroes": {key: {"passos": value} for key, value in patterns.items()},
+    }
     (MEDIA_DIR / "exercise-media.json").write_text(json.dumps(output, ensure_ascii=False, indent=1, sort_keys=True) + "\n")
-    header = "# Créditos das imagens\n\nImagens do free-exercise-db (Unlicense) e do wger (licenças abaixo).\n\n"
-    (MEDIA_DIR / "CREDITS.md").write_text(header + "\n".join(credits) + "\n")
-    total = sum(path.stat().st_size for path in images_dir.glob("*") if path.is_file())
-    megabytes = total / 1_000_000
-    print(f"imagens: {megabytes:.1f} MB")
+    header = (
+        "# Créditos das imagens\n\n"
+        "As imagens dos exercícios vêm do free-exercise-db (https://github.com/yuhonas/free-exercise-db), "
+        "em domínio público (Unlicense).\n\n"
+        "As imagens abaixo vêm do wger (https://wger.de), com a licença e o autor indicados em cada linha.\n\n"
+    )
+    (MEDIA_DIR / "CREDITS.md").write_text(header + "\n".join(sorted(set(credits))) + "\n")
+    files = [path for path in images_dir.glob("*") if path.is_file()]
+    megabytes = sum(path.stat().st_size for path in files) / 1_000_000
+    print(f"ids: {len(midias)}, imagens: {len(files)}, total: {megabytes:.1f} MB")
     if megabytes > SIZE_LIMIT_MB:
         print(f"acima de {SIZE_LIMIT_MB} MB", file=sys.stderr)
         sys.exit(1)
@@ -424,10 +495,13 @@ def command_emitir():
 
 def main(argv):
     commands = {"candidatos": command_candidatos, "emitir": command_emitir}
-    if len(argv) != 2 or argv[1] not in commands:
-        print("uso: exercise-media.py candidatos|emitir", file=sys.stderr)
+    if len(argv) >= 2 and argv[1] == "revisar":
+        command_revisar(argv[2:])
+    elif len(argv) == 2 and argv[1] in commands:
+        commands[argv[1]]()
+    else:
+        print("uso: exercise-media.py candidatos|revisar <arquivos> [--remover ID=REF]|emitir", file=sys.stderr)
         sys.exit(2)
-    commands[argv[1]]()
 
 
 if __name__ == "__main__":

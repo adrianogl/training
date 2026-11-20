@@ -17,7 +17,14 @@ targets:
     type: application
     platform: iOS
     sources:
-      - App
+      - path: App
+        excludes:
+          - Strength/Media/**
+      - path: App/Strength/Media/exercise-media.json
+        buildPhase: resources
+      - path: App/Strength/Media/Images
+        type: folder
+        buildPhase: resources
       - Shared
       - path: server/landing/versao.json
         buildPhase: resources

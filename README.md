@@ -51,7 +51,7 @@ Versão atual: `1.27.2` (ver [Versão](#versão)).
 | `server/` | API na Vercel (Node 22 + Neon Postgres) e a landing em `server/landing/` ([README](server/README.md)) |
 | `docs/regras/` | Regras de análise ([`analise.md`](docs/regras/analise.md)) e de prescrição ([`prescricao.md`](docs/regras/prescricao.md)) |
 | `docs/superpowers/` | Specs e planos de design das primeiras versões |
-| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`), `auto_install.py` (reinstalação automática) e `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) |
+| `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`), `auto_install.py` (reinstalação automática), `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) e `exercise-media.py` (imagens e passos dos exercícios de força em `App/Strength/Media`) |
 | `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
 
 | Módulo do `TrainingKit` | Papel |
@@ -164,6 +164,7 @@ npm --prefix server ci
 npm --prefix server test                        # servidor, contra PGlite, sem rede
 npm --prefix server run typecheck
 python3 scripts/test_garmin_catalog.py           # script do catálogo de força
+python3 scripts/test_exercise_media.py           # script das imagens dos exercícios
 python3 scripts/test_release_version_file.py     # versao.json da release
 python3 scripts/test_auto_install.py             # datas da reinstalação automática
 ```
