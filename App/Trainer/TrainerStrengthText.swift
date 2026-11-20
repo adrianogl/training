@@ -103,7 +103,8 @@ enum TrainerStrengthText {
     }
 
     static func rowDose(_ exercise: GeneratedExercise) -> String {
-        [dose(exercise), exercise.weight.map { "\(kilograms($0)) kg" }].compactMap { $0 }.joined(separator: " · ")
+        let amount = exercise.seconds.map { "\($0) s" } ?? exercise.reps.map(String.init) ?? ""
+        return ["\(exercise.sets) × \(amount)", exercise.weight.map { "\(kilograms($0)) kg" }].compactMap { $0 }.joined(separator: " · ")
     }
 
     static func load(_ exercise: GeneratedExercise) -> String? {

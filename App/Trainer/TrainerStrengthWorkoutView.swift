@@ -109,7 +109,7 @@ struct TrainerExerciseRow: View {
     let onSwap: () -> Void
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .center, spacing: 0) {
             Button(action: onOpen) {
                 HStack(alignment: .center, spacing: 12) {
                     ExerciseThumbnail(key: .catalog(exercise.exerciseId), pattern: StrengthCatalog.exercise(exercise.exerciseId)?.pattern)
@@ -132,7 +132,7 @@ struct TrainerExerciseRow: View {
             .accessibilityLabel(String(format: ExerciseDetailText.openFormat, exercise.name))
             Button(action: onSwap) {
                 Image(systemName: TrainerStrengthConstants.swapSymbol).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.strength)
-                    .frame(minWidth: TrainerStrengthConstants.swapTargetWidth, minHeight: ExerciseDetailConstants.minTarget)
+                    .frame(width: ExerciseDetailConstants.minTarget, height: ExerciseDetailConstants.minTarget)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

@@ -142,6 +142,11 @@ import UIKit
         #expect(ExerciseDetailText.header(.trainer(plain, day: nil)) == "3 × 10 · 16 kg · descanso 60 s")
     }
 
+    @Test func row_dose_has_no_per_side_suffix() {
+        let exercise = GeneratedExercise(exerciseId: "DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL", name: "Terra com uma perna", category: "DEADLIFT", exerciseName: nil, sets: 3, reps: 10, seconds: nil, restSeconds: 60, weight: 8, perSide: true)
+        #expect(TrainerStrengthText.rowDose(exercise) == "3 × 10 · 8 kg")
+    }
+
     @Test func adjustable_carousel_moves_current_page() {
         let detail = model(stores: makeStores())
         detail.showNext()
@@ -216,7 +221,7 @@ import UIKit
     @Test func workout_rows_with_thumbnails() async throws {
         let exercises = [
             GeneratedExercise(exerciseId: "SQUAT/GOBLET_SQUAT", name: "Agachamento goblet", category: "SQUAT", exerciseName: "GOBLET_SQUAT", sets: 3, reps: 10, seconds: nil, restSeconds: 60, weight: 16, perSide: false),
-            GeneratedExercise(exerciseId: "DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL", name: "Terra com uma perna", category: "DEADLIFT", exerciseName: nil, sets: 3, reps: 10, seconds: nil, restSeconds: 60, weight: 8, perSide: true, suggestedLoad: Self.singleLegDeadlift.suggestedLoad),
+            GeneratedExercise(exerciseId: "DEADLIFT/SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL", name: "Levantamento terra com uma perna", category: "DEADLIFT", exerciseName: nil, sets: 3, reps: 10, seconds: nil, restSeconds: 60, weight: 8, perSide: true, suggestedLoad: Self.singleLegDeadlift.suggestedLoad),
             GeneratedExercise(exerciseId: "CALF_RAISE/SINGLE_LEG_STANDING_CALF_RAISE", name: "Panturrilha unilateral", category: "CALF_RAISE", exerciseName: nil, sets: 3, reps: 12, seconds: nil, restSeconds: 45, weight: nil, perSide: true),
         ]
         let rows = VStack(alignment: .leading, spacing: 0) {
