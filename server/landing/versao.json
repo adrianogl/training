@@ -1,8 +1,8 @@
 {
-  "versao": "1.17.0",
-  "build": 23,
-  "versao_app": "1.17.0",
+  "versao": "1.18.0",
+  "build": 24,
+  "versao_app": "1.18.0",
   "notas": [
-    "Organiza a análise detalhada"
+    "Organiza o detalhe da sessão de força"
   ]
 }
