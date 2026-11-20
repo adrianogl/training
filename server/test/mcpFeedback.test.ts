@@ -19,6 +19,7 @@ const adminAccount = idOf(adminKey)
 const otherAccount = idOf(otherKey)
 
 let sql: Sql
+const shortOf = (account: string) => account.slice(0, 8)
 
 function entry(id: string, overrides: Record<string, unknown> = {}) {
   return {
@@ -150,12 +151,20 @@ describe('MCP de avaliações de imagem', () => {
   })
 
   it('rejects an ambiguous prefix', async () => {
-    await feedbackBlob(adminAccount, [entry('11111111-1111-1111-1111-111111111111')])
-    await feedbackBlob(otherAccount, [entry('22222222-2222-2222-2222-222222222222')])
-    const result = await call(adminMcp, 'resolver_avaliacao', { conta: '', id: '11111111-1111-1111-1111-111111111111', resolucao: 'a', versao: '1' })
+    const sibling = Array.from({ length: 200 }, (_, index) => makeToken(index + 3)).find((token) => idOf(token)[0] === otherAccount[0])
+    expect(sibling).toBeDefined()
+    const siblingToken = sibling as string
+    await createAccountRoute(makeRequest('POST', '/api/v1/account', { token: siblingToken, ip: '2.2.2.2' }), sql, new Date())
+    const targetId = '11111111-1111-1111-1111-111111111111'
+    await feedbackBlob(otherAccount, [entry(targetId)])
+    await feedbackBlob(idOf(siblingToken), [entry(targetId)])
+    const beforeOther = await readBlob(sql, key, otherAccount, 'exerciseFeedback')
+    const beforeSibling = await readBlob(sql, key, idOf(siblingToken), 'exerciseFeedback')
+    const result = await call(adminMcp, 'resolver_avaliacao', { conta: otherAccount[0], id: targetId, resolucao: 'a', versao: '1' })
     expect(result.result.isError).toBe(true)
-    const shared = await call(adminMcp, 'resolver_avaliacao', { conta: '0123456789abcdef'.slice(0, 0) + '0', id: 'x', resolucao: 'a', versao: '1' })
-    expect(shared.result.isError).toBe(true)
+    expect(result.result.content[0].text).toContain('ambígua')
+    expect(await readBlob(sql, key, otherAccount, 'exerciseFeedback')).toEqual(beforeOther)
+    expect(await readBlob(sql, key, idOf(siblingToken), 'exerciseFeedback')).toEqual(beforeSibling)
   })
 
   it('skips a corrupt account in the list', async () => {
@@ -163,6 +172,7 @@ describe('MCP de avaliações de imagem', () => {
     await feedbackBlob(otherAccount, [null, 3, entry('22222222-2222-2222-2222-222222222222', { updatedAt: undefined })])
     const text: string = (await call(adminMcp, 'avaliacoes_imagens')).result.content[0].text
     expect(text).toContain('22222222-2222-2222-2222-222222222222')
+    expect(text).not.toContain(shortOf(adminAccount))
   })
 
   function racing(times: number): Sql {
