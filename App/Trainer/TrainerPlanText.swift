@@ -10,9 +10,4 @@ extension TrainerText {
         guard let index, total > 0 else { return nil }
         return "semana \(index) de \(total)"
     }
-
-    static func adjustmentsSummary(strength: [TrainerStrengthSession], longMode: TrainerLongMode) -> String {
-        let strengthPart = strength.isEmpty ? "Força" : "Força \(strength.count)×/semana"
-        return [strengthPart, "Longão \(longModeName(longMode).lowercased())", "Paces", askButton].joined(separator: " · ")
-    }
 }

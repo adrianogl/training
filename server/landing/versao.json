@@ -1,8 +1,8 @@
 {
-  "versao": "1.25.0",
-  "build": 34,
-  "versao_app": "1.25.0",
+  "versao": "1.26.0",
+  "build": 35,
+  "versao_app": "1.26.0",
   "notas": [
-    "Padroniza as telas do dia, da força e do envio"
+    "Padroniza ajustes, edição, readequação e mudanças do plano"
   ]
 }

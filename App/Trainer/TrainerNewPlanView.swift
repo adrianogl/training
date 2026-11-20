@@ -33,6 +33,7 @@ struct TrainerNewPlanView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
+                    section(TrainerText.goalLabel, first: true)
                     Picker("", selection: $mode) {
                         Text(TrainerText.targetRace).tag(TrainerTargetMode.race)
                         Text(TrainerText.targetText).tag(TrainerTargetMode.text)
@@ -40,10 +41,15 @@ struct TrainerNewPlanView: View {
                     }
                     .pickerStyle(.segmented)
                     targetCard
+                    section(TrainerText.volumeSection)
                     volumeCard
+                    if !isEditing { lightWeeksCard }
+                    section(TrainerText.daysSection)
                     daysCards
+                    section(isEditing ? TrainerText.strengthLongSection : TrainerText.longModeTitle)
                     if isEditing { strengthLink }
                     TrainerLongModeCard(mode: longMode, suggestion: model.longSuggestion) { longMode = $0 }
+                    section(TrainerText.pacesSection)
                     if isEditing {
                         TrainerPaceEditCard(
                             history: model.previewPaces(), racePace: target().flatMap { TrainerEngine.racePace($0) },
@@ -51,7 +57,6 @@ struct TrainerNewPlanView: View {
                         )
                         TrainerEditPreviewCard(lines: TrainerText.previewLines(preview))
                     } else {
-                        lightWeeksCard
                         if model.previewPaces().easyRuns == 0 {
                             TrainerRecentRaceCard(overrides: $paceOverrides)
                         }
@@ -132,10 +137,16 @@ struct TrainerNewPlanView: View {
     private var strengthLink: some View {
         let sessions = model.plan?.strength ?? []
         return NavigationLink(value: TrainerRoute.strength) {
-            DSRow(title: TrainerText.strengthTitle, subtitle: sessions.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(sessions), accessory: .link)
+            DSRow(title: TrainerText.strengthTitle, subtitle: sessions.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(sessions), accessory: .chevron)
                 .brandCard()
         }
         .buttonStyle(.cardLink)
+    }
+
+    private func section(_ title: String, first: Bool = false) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, first ? 4 : DSSpacing.sectionTop - 10)
+            .padding(.bottom, DSSpacing.sectionBottom - 10)
     }
 
     private func prefill() {
@@ -313,7 +324,6 @@ struct TrainerNewPlanView: View {
     private var pacesCard: some View {
         let paces = TrainerEngine.previewing(model.previewPaces(), overrides: paceOverrides)
         return VStack(alignment: .leading, spacing: 8) {
-            DSCardLabel(TrainerText.pacesTitle)
             HStack(spacing: 8) {
                 paceTile(paces.easy, TrainerText.paceEasy, runs: paces.easyRuns)
                 paceTile(paces.threshold, TrainerText.paceThreshold, runs: paces.thresholdRuns)

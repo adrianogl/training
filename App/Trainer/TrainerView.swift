@@ -12,7 +12,6 @@ struct TrainerView: View {
     @State private var confirmsEnd = false
     @State private var toggledWeeks: Set<String> = []
     @State private var highlightedWeek: String?
-    @State private var showsAdjustments = false
     @State private var showsSend = false
     @AppStorage(TrainerMFITConstants.keptDefaultsKey, store: AccountScope.current.defaults) private var keptSwaps = ""
 
@@ -146,11 +145,7 @@ struct TrainerView: View {
                 .buttonStyle(.plain)
             Divider().overlay(BrandColors.line)
             Button {
-                withAnimation { showsAdjustments = true }
-                Task {
-                    try? await Task.sleep(for: .seconds(TrainerConstants.tabSwitchSeconds))
-                    withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
-                }
+                withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
             } label: { actionRow(TrainerStrengthText.shortcutAdjustments, symbol: "slider.horizontal.3") }
                 .buttonStyle(.plain)
         }
@@ -235,7 +230,7 @@ struct TrainerView: View {
 
     private func updatedBanner(_ version: TrainerVersion) -> some View {
         NavigationLink(value: TrainerRoute.changes) {
-            DSNotice(tone: .success, title: TrainerText.updatedBanner, text: TrainerText.triggerText(version), trailing: CardLinkBadge())
+            DSNotice(tone: .success, title: TrainerText.updatedBanner, text: TrainerText.triggerText(version), trailing: CardLinkChevron())
         }
         .buttonStyle(.cardLink)
     }
@@ -255,28 +250,21 @@ struct TrainerView: View {
 
     @ViewBuilder
     private func adjustments(_ plan: TrainerPlan) -> some View {
-        Button { withAnimation { showsAdjustments.toggle() } } label: {
-            DSRow(title: TrainerText.adjustmentsTitle, subtitle: TrainerText.adjustmentsSummary(strength: plan.strength, longMode: plan.longMode), accessory: .disclosure(expanded: showsAdjustments))
-                .brandCard()
-            .contentShape(Rectangle())
+        DSSectionTitle(TrainerText.adjustmentsTitle)
+            .padding(.top, DSSpacing.sectionTop)
+            .padding(.bottom, DSSpacing.sectionBottom)
+            .id(TrainerConstants.adjustmentsAnchor)
+        TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in
+            Task { await model.setLongMode(mode) }
         }
-        .buttonStyle(.plain)
-        .padding(.top, 6)
-        .id(TrainerConstants.adjustmentsAnchor)
-        if showsAdjustments {
-            strengthCard(plan)
-            TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in
-                Task { await model.setLongMode(mode) }
-            }
-            Button { showsEdit = true } label: {
-                Label(TrainerText.editPacesButton, systemImage: "slider.horizontal.3")
-            }
-            .buttonStyle(.ds(.secondary))
-            Button { showsRequest = true } label: {
-                Label(TrainerText.askButton, systemImage: "square.and.pencil")
-            }
-            .buttonStyle(.ds(.secondary))
+        VStack(alignment: .leading, spacing: 0) {
+            Button { showsEdit = true } label: { actionRow(TrainerText.editPacesButton, symbol: "pencil") }
+                .buttonStyle(.plain)
+            Divider().overlay(BrandColors.line)
+            Button { showsRequest = true } label: { actionRow(TrainerText.askButton, symbol: "square.and.pencil") }
+                .buttonStyle(.plain)
         }
+        .brandCard()
     }
 
     private func select(_ start: Day, proxy: ScrollViewProxy) {
@@ -338,14 +326,6 @@ struct TrainerView: View {
         .background(highlightedWeek == group.id ? BrandColors.accentGlow : Color.clear, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .opacity(group.isPast ? 0.7 : 1)
         .id(group.id)
-    }
-
-    private func strengthCard(_ plan: TrainerPlan) -> some View {
-        NavigationLink(value: TrainerRoute.strength) {
-            DSRow(title: TrainerText.strengthTitle, subtitle: plan.strength.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(plan.strength), accessory: .link)
-                .brandCard()
-        }
-        .buttonStyle(.cardLink)
     }
 }
 

@@ -10,13 +10,14 @@ struct TrainerChangesView: View {
         let current = versions.first { $0.number == selected } ?? versions.first
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text(TrainerText.changesTitle).font(BrandFonts.largeTitle).foregroundStyle(BrandColors.text)
                 if let current {
                     TrainerVersionCard(version: current)
                 }
                 if versions.count > 1 {
+                    DSSectionTitle(TrainerText.versionsTitle)
+                        .padding(.top, DSSpacing.sectionTop - 10)
+                        .padding(.bottom, DSSpacing.sectionBottom - 10)
                     VStack(alignment: .leading, spacing: 8) {
-                        DSCardLabel(TrainerText.versionsTitle)
                         ForEach(versions, id: \.number) { version in
                             Button { selected = version.number } label: {
                                 HStack {
@@ -40,6 +41,7 @@ struct TrainerChangesView: View {
             .padding(.bottom, 24)
         }
         .background(BrandBackground())
+        .navigationTitle(TrainerText.changesTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { app.trainer.markSeen() }
     }
