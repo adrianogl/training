@@ -40,7 +40,8 @@ extension TrainerModel {
         return ClaudeContextInput(
             today: currentDay, first: first, last: last, trainerSessions: strengthSessions, mfit: mfitWeek,
             runs: claudeRuns(first: first, last: last), readiness: readiness, pain: TrainerStrengthPrefsStore().load().pain,
-            loads: TrainerStrengthContextBuilder.loads(cache.loads).mapValues(\.weight), race: race
+            loads: TrainerStrengthContextBuilder.loads(cache.loads).mapValues(\.weight), race: race,
+            notes: ExerciseNotesStore().allActive()
         )
     }
 

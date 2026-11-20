@@ -122,6 +122,7 @@ import TrainingCore
                 ChatSyncStore(folders: scope.chats.syncFolders, defaults: remoteDefaults),
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
                 ExerciseFeedbackSyncStore(store: ExerciseFeedbackStore(url: scope.exerciseFeedbackURL), defaults: remoteDefaults),
+                ExerciseNotesSyncStore(store: ExerciseNotesStore(url: scope.exerciseNotesURL), defaults: remoteDefaults),
                 ClaudeContextSyncStore(defaults: remoteDefaults),
                 ClaudeInboxSyncStore(defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: watchTokenStore, defaults: remoteDefaults),

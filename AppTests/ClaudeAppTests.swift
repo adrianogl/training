@@ -31,6 +31,18 @@ import TrainingCore
         #expect(payload.dias_do_treinador.first?.dia_da_semana == "ter")
     }
 
+    @Test func context_includes_notes_for_exercise() throws {
+        func note(_ text: String, deleted: Bool = false) -> ExerciseNote {
+            ExerciseNote(id: UUID(), exercise: .catalog("SQUAT/GOBLET_SQUAT"), text: text, createdAt: .now, updatedAt: .now, deleted: deleted)
+        }
+        var withNotes = input()
+        withNotes.notes = [note("joelho para fora"), note("apagada", deleted: true)]
+        let text = ClaudeContextBuilder.text(withNotes, extra: nil)
+        #expect(text.contains("\"observacoes\":{\"SQUAT/GOBLET_SQUAT\":[\"joelho para fora\"]}"))
+        #expect(!text.contains("apagada"))
+        #expect(!ClaudeContextBuilder.text(input(), extra: nil).contains("\"observacoes\":"))
+    }
+
     @Test func storeAppliesValidDaysAndDropsPastOnes() {
         let store = ClaudeStrengthStore(defaults: UserDefaults(suiteName: "claude-\(UUID())")!)
         let workout = GeneratedStrengthWorkout(weekday: 2, group: .core, intensity: .light, minutes: 25, place: .home, exercises: [], adjustments: [])

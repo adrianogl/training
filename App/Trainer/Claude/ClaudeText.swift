@@ -112,6 +112,7 @@ enum ClaudeText {
     - Use só exercícios do "catalogo", pelo "id" (categoria/exercício do catálogo oficial da Garmin). Cada linha segue "catalogo_formato". Respeite o "local" de cada dia (academia, casa ou só peso do corpo): equipamentos kettlebell, medicineBall, suspension e swissBall só na academia.
     - Os dias do MFIT são do professor: complemente o que ele já trabalha. Se precisar trocar o treino do professor num dia (por exemplo, perto da prova), monte o treino desse dia com \"substitui_mfit\": true; o app troca o treino do professor só naquela data e tira o dele do Garmin.
     - Siga as "regras". Periodize ao longo do período: progressão de carga e volume, semanas mais leves e redução perto da prova.
+    - Respeite as "observacoes" do atleta sobre a execução de cada exercício (a chave é o "id" do catálogo ou o nome no MFIT).
     - A corrida só é conhecida para as primeiras semanas; nas outras, mantenha o padrão da semana conhecida.
     - Responda apenas com o JSON no formato de "formato_da_resposta", sem texto antes ou depois. Em "porque", explique em uma frase a escolha do dia.
     """

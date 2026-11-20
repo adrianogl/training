@@ -17,10 +17,21 @@ enum ClaudeContextBuilder {
             prontidao: input.readiness.keys.sorted().compactMap { day in input.readiness[day].map { .init(dia: day.iso, nota: $0) } },
             dor: input.pain.map(\.rawValue).sorted(),
             ultimas_cargas_kg: input.loads,
+            observacoes: notesByExercise(input.notes),
             catalogo_formato: ClaudeText.catalogFormat,
             catalogo: catalog(input).map(StrengthCatalog.contextLine),
             regras: ClaudeText.rules
         )
+    }
+
+    static func notesByExercise(_ notes: [ExerciseNote]) -> [String: [String]]? {
+        let active = notes.filter { !$0.deleted && !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.sorted { $0.createdAt < $1.createdAt }
+        guard !active.isEmpty else { return nil }
+        return Dictionary(grouping: active, by: { note -> String in
+            switch note.exercise {
+            case .catalog(let id), .mfit(let id): id
+            }
+        }).mapValues { $0.map(\.text) }
     }
 
     static func catalog(_ input: ClaudeContextInput) -> [CatalogExercise] {

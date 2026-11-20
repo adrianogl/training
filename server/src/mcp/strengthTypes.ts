@@ -18,6 +18,7 @@ export interface StrengthContext {
   prontidao: { dia: string; nota: number }[]
   dor: string[]
   ultimas_cargas_kg: Record<string, number>
+  observacoes?: Record<string, string[]>
   catalogo_formato?: string
   catalogo: (ContextExercise | string)[]
   regras: string[]

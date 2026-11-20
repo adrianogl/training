@@ -2,27 +2,29 @@ import Foundation
 
 struct ExerciseFeedbackStore: Sendable {
     let url: URL
+    var moveAside: (@Sendable (URL, URL) throws -> Void)?
 
-    private static let lock = NSLock()
+    private var file: JSONFileStore<ExerciseFeedback> {
+        guard let moveAside else { return JSONFileStore(url: url) }
+        return JSONFileStore(url: url, moveAside: moveAside)
+    }
 
     init(url: URL) {
         self.url = url
     }
 
     func all() -> [ExerciseFeedback] {
-        Self.lock.withLock { read() }
+        file.read()
     }
 
     func save(_ entry: ExerciseFeedback) throws {
-        try Self.lock.withLock {
-            preserveCorruptFile()
-            var entries = read()
+        try file.mutate { entries in
             if let index = entries.firstIndex(where: { $0.id == entry.id }) {
                 entries[index] = entry
             } else {
                 entries.append(entry)
             }
-            try write(entries)
+            return true
         }
     }
 
@@ -38,9 +40,7 @@ struct ExerciseFeedbackStore: Sendable {
     }
 
     func merge(_ remote: [ExerciseFeedback]) -> Bool {
-        Self.lock.withLock {
-            preserveCorruptFile()
-            var entries = read()
+        let applied = try? file.mutate { entries in
             var changed = false
             for incoming in remote {
                 if let index = entries.firstIndex(where: { $0.id == incoming.id }) {
@@ -55,28 +55,8 @@ struct ExerciseFeedbackStore: Sendable {
                     changed = true
                 }
             }
-            guard changed else { return false }
-            return (try? write(entries)) != nil
+            return changed
         }
-    }
-
-    private func read() -> [ExerciseFeedback] {
-        guard let data = try? Data(contentsOf: url) else { return [] }
-        return (try? JSONDecoder().decode([ExerciseFeedback].self, from: data)) ?? []
-    }
-
-    private func preserveCorruptFile() {
-        guard let data = try? Data(contentsOf: url), (try? JSONDecoder().decode([ExerciseFeedback].self, from: data)) == nil else { return }
-        let stamp = Int(Date().timeIntervalSince1970 * 1_000)
-        let aside = url.deletingLastPathComponent().appending(path: url.lastPathComponent + ".corrupt-\(stamp)")
-        try? FileManager.default.moveItem(at: url, to: aside)
-    }
-
-    private func write(_ entries: [ExerciseFeedback]) throws {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.sortedKeys]
-        let data = try encoder.encode(entries)
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try data.write(to: url, options: .atomic)
+        return applied ?? false
     }
 }

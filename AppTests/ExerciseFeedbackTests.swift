@@ -103,6 +103,17 @@ struct ExerciseFeedbackTests {
         #expect(try Data(contentsOf: kept[0]) == garbage)
     }
 
+    @Test func corrupt_file_that_cannot_be_moved_is_not_overwritten() throws {
+        let (original, _, url) = makeStore()
+        let garbage = Data("nao e json".utf8)
+        try garbage.write(to: url)
+        var store = original
+        store.moveAside = { _, _ in throw CocoaError(.fileWriteNoPermission) }
+        #expect(throws: (any Error).self) { try store.save(entry()) }
+        #expect(!store.merge([entry()]))
+        #expect(try Data(contentsOf: url) == garbage)
+    }
+
     @Test func same_stamp_resolution_is_applied() {
         let (store, _, _) = makeStore()
         let id = UUID()
