@@ -1,8 +1,8 @@
 {
-  "versao": "1.18.2",
-  "build": 26,
-  "versao_app": "1.18.2",
+  "versao": "1.19.0",
+  "build": 27,
+  "versao_app": "1.19.0",
   "notas": [
-    "Usa uma coluna só no iPad quando a tela fica estreita"
+    "Padroniza a lista de provas e o clima da prova-alvo"
   ]
 }
