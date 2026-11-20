@@ -1,8 +1,8 @@
 {
-  "versao": "1.21.0",
-  "build": 29,
-  "versao_app": "1.21.0",
+  "versao": "1.22.0",
+  "build": 30,
+  "versao_app": "1.22.0",
   "notas": [
-    "Reorganiza as seções e mostra conexão com ponto verde"
+    "Padroniza as telas internas e usa os ícones oficiais das conexões"
   ]
 }
