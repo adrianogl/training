@@ -62,7 +62,7 @@ import Testing
         let sections = try sections()
         let workout = try #require(sections.first { $0.part == .workout })
         let context = try #require(sections.first { $0.part == .context })
-        let sentence = "O pace ficou estável nos primeiros quilômetros e a frequência cardíaca subiu devagar enquanto o atleta mantinha o mesmo ritmo do começo ao fim."
+        let sentence = "O pace ficou estável nos primeiros quilômetros e a frequência cardíaca subiu devagar enquanto você mantinha o mesmo ritmo do começo ao fim."
         let text = Array(repeating: sentence, count: 6).joined(separator: " ")
 
         #expect(text.count > 700 && text.count <= 900)

@@ -32,4 +32,26 @@ private struct FixedFeedback: FeedbackGenerator {
         #expect(await CoachFeedback.rewrite(facts: paceFacts, generator: FixedFeedback(text: split)) == nil)
         #expect(await CoachFeedback.rewrite(facts: paceFacts, generator: FixedFeedback(text: right)) == right)
     }
+
+    @Test func rejectsPluralYouAndThirdPerson() async {
+        let plural = "Vocês fizeram sete dos nove tiros no alvo, a 3:45/km."
+        let third = "O atleta fez sete dos nove tiros no alvo, a 3:45/km."
+        #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: plural)) == nil)
+        #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: third)) == nil)
+    }
+
+    @Test func rejectsClaimsTheFactsDoNotBack() async {
+        let events = "Sete dos nove tiros saíram no alvo, a 3:45/km, apesar dos eventos violentos da semana."
+        let offTarget = "Os tiros saíram fora do alvo, a 3:45/km."
+        let tired = "O cansaço apareceu no terceiro tiro, em Z3 com 148 bpm."
+        #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: events)) == nil)
+        #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: offTarget)) == nil)
+        #expect(await CoachFeedback.rewrite(facts: facts, generator: FixedFeedback(text: tired)) == nil)
+    }
+
+    @Test func acceptsClaimsPresentInTheFacts() async {
+        let hotFacts = ["O calor custou cerca de 6 s/km.", "Os 8 tiros saíram fora do alvo."]
+        let text = "O calor custou cerca de 6 s/km e os 8 tiros saíram fora do alvo. O corredor manteve o ritmo."
+        #expect(await CoachFeedback.rewrite(facts: hotFacts, generator: FixedFeedback(text: text)) == text)
+    }
 }
