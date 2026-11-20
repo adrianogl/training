@@ -17,3 +17,16 @@ export const JSON_RPC = {
   invalidParams: -32602,
   internalError: -32603,
 } as const
+
+export const FEEDBACK = {
+  blobId: 'exerciseFeedback',
+  accountPrefixLength: 8,
+  accountPrefixPattern: /^[0-9a-f]{1,64}$/,
+  referenceEpochSeconds: 978307200,
+  minimumBumpSeconds: 1,
+  doesNotMatch: 'doesNotMatch',
+  pending: 'pending',
+  resolved: 'resolved',
+  listTool: 'avaliacoes_imagens',
+  resolveTool: 'resolver_avaliacao',
+} as const
