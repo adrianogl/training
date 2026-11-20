@@ -34,7 +34,7 @@ struct ExerciseFeedbackTests {
     @Test func save_writes_file_before_sync() throws {
         let (store, _, url) = makeStore()
         let saved = entry()
-        store.save(saved)
+        try store.save(saved)
         let data = try Data(contentsOf: url)
         let decoded = try JSONDecoder().decode([ExerciseFeedback].self, from: data)
         #expect(decoded == [saved])
@@ -42,28 +42,101 @@ struct ExerciseFeedbackTests {
 
     @Test func pending_until_pushed_then_not_pending() {
         let (store, sync, _) = makeStore()
-        store.save(entry(at: 5))
+        try? store.save(entry(at: 5))
         let blobs = sync.pendingBlobs()
         #expect(blobs.count == 1)
         #expect(blobs.first?.id == "exerciseFeedback")
         #expect(blobs.first?.updatedAt == base.addingTimeInterval(5))
         sync.markBlobsPushed(blobs)
         #expect(sync.pendingBlobs().isEmpty)
-        store.save(entry(at: 9))
+        try? store.save(entry(at: 9))
         #expect(sync.pendingBlobs().count == 1)
     }
 
-    @Test func push_failure_keeps_pending() {
+    @Test func stale_mark_keeps_newer_entry_pending() {
         let (store, sync, _) = makeStore()
-        store.save(entry())
+        try? store.save(entry(at: 5))
+        let first = sync.pendingBlobs()
+        try? store.save(entry(at: 9))
+        sync.markBlobsPushed(first)
+        let pending = sync.pendingBlobs()
+        #expect(pending.count == 1)
+        #expect(pending.first?.updatedAt == base.addingTimeInterval(9))
+    }
+
+    @Test func unaccepted_mark_keeps_pending() {
+        let (store, sync, _) = makeStore()
+        try? store.save(entry(at: 5))
+        let blobs = sync.pendingBlobs()
+        sync.markBlobsPushed([])
+        sync.markBlobsPushed([RemoteBlob(id: "strengthContext", data: Data(), updatedAt: base.addingTimeInterval(50))])
         #expect(sync.pendingBlobs().count == 1)
-        #expect(sync.pendingBlobs().count == 1)
+        sync.markBlobsPushed(blobs)
+        sync.markBlobsPushed([RemoteBlob(id: "exerciseFeedback", data: Data(), updatedAt: base.addingTimeInterval(1))])
+        #expect(sync.pendingBlobs().isEmpty)
+        try? store.save(entry(at: 3))
+        #expect(sync.pendingBlobs().isEmpty)
+    }
+
+    @Test func concurrent_saves_and_merge_lose_nothing() {
+        let (store, _, _) = makeStore()
+        let remote = (0..<10).map { entry(at: Double(1_000 + $0)) }
+        DispatchQueue.concurrentPerform(iterations: 51) { index in
+            if index == 50 {
+                _ = store.merge(remote)
+            } else {
+                try? store.save(entry(at: Double(index)))
+            }
+        }
+        #expect(store.all().count == 60)
+    }
+
+    @Test func corrupt_file_is_preserved_not_overwritten() throws {
+        let (store, _, url) = makeStore()
+        let garbage = Data("nao e json".utf8)
+        try garbage.write(to: url)
+        try store.save(entry())
+        #expect(store.all().count == 1)
+        let siblings = try FileManager.default.contentsOfDirectory(at: url.deletingLastPathComponent(), includingPropertiesForKeys: nil)
+        let kept = siblings.filter { $0.lastPathComponent.contains(".corrupt-") }
+        #expect(kept.count == 1)
+        #expect(try Data(contentsOf: kept[0]) == garbage)
+    }
+
+    @Test func same_stamp_resolution_is_applied() {
+        let (store, _, _) = makeStore()
+        let id = UUID()
+        try? store.save(entry(id: id, at: 4))
+        var resolved = entry(id: id, at: 4, status: .resolved)
+        resolved.resolution = "ok"
+        #expect(store.merge([resolved]))
+        #expect(store.all().first?.status == .resolved)
+        #expect(!store.merge([entry(id: id, at: 4)]))
+        #expect(store.all().first?.status == .resolved)
+    }
+
+    @Test func apply_rejects_invalid_or_foreign_blob() {
+        let (store, sync, _) = makeStore()
+        #expect(!sync.apply(RemoteBlob(id: "exerciseFeedback", data: Data("x".utf8), updatedAt: base)))
+        let data = (try? JSONEncoder().encode([entry()])) ?? Data()
+        #expect(!sync.apply(RemoteBlob(id: "strengthContext", data: data, updatedAt: base)))
+        #expect(store.all().isEmpty)
+    }
+
+    @Test func latest_returns_newest_for_key_and_media() {
+        let (store, _, _) = makeStore()
+        try? store.save(entry(media: "wger:1", at: 1))
+        try? store.save(entry(media: "wger:1", at: 7))
+        try? store.save(entry(media: "wger:2", at: 9))
+        #expect(store.latest(for: key, mediaId: "wger:1")?.updatedAt == base.addingTimeInterval(7))
+        #expect(store.latest(for: key, mediaId: "wger:3") == nil)
+        #expect(store.latest(for: .mfit("x"), mediaId: "wger:1") == nil)
     }
 
     @Test func merge_keeps_union_newest_entry_wins() {
         let (store, _, _) = makeStore()
         let shared = UUID()
-        store.save(entry(id: shared, at: 1))
+        try? store.save(entry(id: shared, at: 1))
         var newer = entry(id: shared, at: 10)
         newer.note = "remoto"
         let other = entry(at: 2)
@@ -80,7 +153,7 @@ struct ExerciseFeedbackTests {
     @Test func merge_never_deletes_local_only_entry() {
         let (store, _, _) = makeStore()
         let local = entry(at: 1)
-        store.save(local)
+        try? store.save(local)
         #expect(!store.merge([]))
         #expect(store.all() == [local])
     }
@@ -88,7 +161,7 @@ struct ExerciseFeedbackTests {
     @Test func resolved_status_from_remote_is_applied() throws {
         let (store, sync, _) = makeStore()
         let id = UUID()
-        store.save(entry(id: id, at: 1))
+        try? store.save(entry(id: id, at: 1))
         var resolved = entry(id: id, at: 20, status: .resolved)
         resolved.resolution = "troca da imagem"
         resolved.resolvedIn = "1.4.0"
@@ -102,10 +175,10 @@ struct ExerciseFeedbackTests {
 
     @Test func preferred_media_is_latest_chosen_alternative() {
         let (store, _, _) = makeStore()
-        store.save(entry(chosen: "wger:1", at: 1))
-        store.save(entry(chosen: "wger:2", at: 5))
-        store.save(entry(at: 9))
-        store.save(entry(key: .catalog("other"), chosen: "wger:9", at: 20))
+        try? store.save(entry(chosen: "wger:1", at: 1))
+        try? store.save(entry(chosen: "wger:2", at: 5))
+        try? store.save(entry(at: 9))
+        try? store.save(entry(key: .catalog("other"), chosen: "wger:9", at: 20))
         #expect(store.preferredMediaId(for: key) == "wger:2")
         #expect(store.preferredMediaId(for: .mfit("remada")) == nil)
     }
