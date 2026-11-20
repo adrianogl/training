@@ -35,6 +35,10 @@ struct TodayView: View {
                         InstallExpiryNotice(title: app.installExpiry.title, text: app.installExpiry.text)
                             .padding(.bottom, DSSpacing.s3)
                     }
+                    if app.installNotice.showsCard, let card = app.installNotice.card {
+                        InstalledNotice(card: card, dismiss: app.installNotice.dismiss)
+                            .padding(.bottom, DSSpacing.s3)
+                    }
                     if app.appUpdate.showsNotice, let update = app.appUpdate.update {
                         AppUpdateNotice(update: update, openSettings: openSettings, dismiss: app.appUpdate.dismiss)
                             .padding(.bottom, DSSpacing.s3)

@@ -14,6 +14,7 @@ import TrainingCore
     private(set) var message: String?
     private(set) var ledger: StravaSendLedger
     @ObservationIgnored var link: (@MainActor () -> StravaClient?)?
+    @ObservationIgnored var connectionChanged: (@MainActor (Bool) async -> Void)?
     @ObservationIgnored private let container: ModelContainer
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let authenticator: any StravaWebAuthenticating
@@ -44,6 +45,7 @@ import TrainingCore
         do {
             status = try await client.status()
             message = nil
+            if status.connected { await connectionChanged?(true) }
         } catch StravaLinkError.notConfigured {
             message = C.unavailable
         } catch {
@@ -143,6 +145,7 @@ import TrainingCore
             return .notConnected
         } catch StravaLinkError.sessionExpired {
             status = .disconnected
+            await connectionChanged?(false)
             return .notConnected
         } catch {
             return .failed

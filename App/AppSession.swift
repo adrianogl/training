@@ -3,6 +3,7 @@ import Foundation
 import GarminAPI
 import Observation
 import RemoteSync
+import UIKit
 import UserNotifications
 
 @MainActor @Observable final class AppSession {
@@ -88,6 +89,11 @@ import UserNotifications
     static func startLiveBackgroundWork(_ model: AppModel) {
         WorkoutFinishNotifier.shared.start(model: model)
         BackgroundSync.schedule(readinessComplete: false)
+        let task = UIApplication.shared.beginBackgroundTask()
+        Task {
+            await model.refreshInstallState()
+            UIApplication.shared.endBackgroundTask(task)
+        }
     }
 
     static func stopLiveBackgroundWork() {

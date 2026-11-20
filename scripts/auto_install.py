@@ -13,6 +13,7 @@ LOG_FILE = CONFIG_DIR / "auto-install.log"
 PROFILES_DIR = Path.home() / "Library/Developer/Xcode/UserData/Provisioning Profiles"
 APP_PATH = "DerivedData/Build/Products/Debug-iphoneos/trAIning.app"
 BUNDLE_PREFIX = "dev.aglv.training"
+BUNDLE_ID = BUNDLE_PREFIX
 REINSTALL_DAYS = 2
 NOTIFY_DAYS = 1
 NOTIFY_HOUR = 12
@@ -130,6 +131,10 @@ def install(config, device):
     return result.returncode == 0 and "App installed" in result.stdout, (result.stderr or result.stdout).strip().splitlines()[-1:]
 
 
+def wake(device):
+    return run(["xcrun", "devicectl", "device", "process", "launch", "--no-activate", "--device", device["id"], BUNDLE_ID]).returncode == 0
+
+
 def notify(config, text, name):
     subprocess.run(["osascript", "-e", NOTIFICATION_SCRIPT, text, TITLE, name])
     if config.get("imessage"):
@@ -179,7 +184,8 @@ def main():
             ok, detail = install(config, device)
             if ok:
                 state[device["id"]] = {"expires": iso(expiry)}
-                log(f"{device['name']}: instalado, vence em {expiry.astimezone():%d/%m %H:%M}", now)
+                awake = "app aberto em segundo plano" if wake(device) else "app não abriu, avisa na próxima abertura"
+                log(f"{device['name']}: instalado, vence em {expiry.astimezone():%d/%m %H:%M}, {awake}", now)
             else:
                 log(f"{device['name']}: falhou ({' '.join(detail)})", now)
     for device in due:

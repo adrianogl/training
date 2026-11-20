@@ -39,7 +39,10 @@ import TrainingCore
     let snapshots: ScreenSnapshotStore
     let appUpdate = AppUpdateModel()
     let installExpiry = InstallExpiryModel()
+    let installNotice = InstallNoticeModel()
     @ObservationIgnored let notifier: MorningNotifier
+    @ObservationIgnored let connections = ConnectionNotifier()
+    @ObservationIgnored let claudeInbox = ClaudeInboxNotifier()
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
     @ObservationIgnored private let today: @Sendable () -> Day
@@ -148,6 +151,7 @@ import TrainingCore
             guard let self else { return }
             if kinds.contains(.chat) { Task { await self.scope.chats.reload() } }
             if kinds.contains(.preference) {
+                Task { await self.claudeInbox.check() }
                 self.trainer.reloadKeptReadiness()
                 self.mfitAccount.reloadFromStore()
                 self.hasKey = self.currentKey() != nil
@@ -161,6 +165,10 @@ import TrainingCore
         strava.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }
             return StravaClient(baseURL: remoteBaseURL, token: token, transport: transport)
+        }
+        strava.connectionChanged = { [weak self] connected in
+            guard let self else { return }
+            if connected { await self.connections.restored(.strava) } else { await self.connections.lost(.strava) }
         }
     }
 
@@ -272,11 +280,14 @@ import TrainingCore
         await workouts.refresh(model: self)
     }
 
+    func refreshInstallState() async {
+        await installNotice.check()
+        await appUpdate.refresh()
+        await installExpiry.refresh()
+    }
+
     func activate(force: Bool = false) {
-        Task {
-            await appUpdate.refresh()
-            await installExpiry.refresh()
-        }
+        Task { await refreshInstallState() }
         guard autoSyncEnabled, force || returnsFromBackground else { return }
         returnsFromBackground = false
         let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, readinessComplete: todayReadinessComplete, now: .now)
@@ -381,6 +392,7 @@ import TrainingCore
         }
         syncTask = task
         await task.value
+        await reportGarminConnection(trigger: trigger)
         if syncStatus != .idle { await remoteSync.syncNow() }
         if let finished = finishedSummary {
             finishedSummary = nil
@@ -388,6 +400,14 @@ import TrainingCore
         }
         if syncStatus.isFinished { await garminZones.sync(container: container, client: garminAccount.client) }
         return syncStatus.isFinished
+    }
+
+    private func reportGarminConnection(trigger: SyncTrigger) async {
+        switch syncStatus {
+        case .failed(.invalidKey) where trigger.runsInBackground: await connections.lost(.garmin)
+        case .finished: await connections.restored(.garmin)
+        default: break
+        }
     }
 
     nonisolated static func watchReadiness(summary: TodaySummary, day: Day, garmin: GarminReadinessScore? = nil) -> WatchReadiness {
