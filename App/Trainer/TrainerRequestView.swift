@@ -50,13 +50,11 @@ struct TrainerRequestView: View {
 
     private var form: some View {
         VStack(alignment: .leading, spacing: 10) {
+            section(TrainerText.requestWhy, first: true)
             VStack(alignment: .leading, spacing: 10) {
-                DSCardLabel(TrainerText.requestWhy)
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(TrainerConstants.shortcuts) { item in
-                            chip(item)
-                        }
+                DSFlowLayout(spacing: 6) {
+                    ForEach(TrainerConstants.shortcuts) { item in
+                        chip(item)
                     }
                 }
                 TextField(TrainerText.requestPlaceholder, text: $text, axis: .vertical)
@@ -66,6 +64,7 @@ struct TrainerRequestView: View {
                     .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.45), lineWidth: 1))
             }
             .brandCard()
+            section(TrainerText.requestPeriod)
             VStack(alignment: .leading, spacing: 8) {
                 DatePicker(TrainerText.requestFrom, selection: $from, displayedComponents: .date).font(.footnote)
                 Toggle(TrainerText.requestUntilToggle, isOn: $hasUntil).font(.footnote)
@@ -85,6 +84,12 @@ struct TrainerRequestView: View {
                 .disabled(!canSubmit || model.isWorking)
                 .opacity(canSubmit ? 1 : 0.5)
         }
+    }
+
+    private func section(_ title: String, first: Bool = false) -> some View {
+        DSSectionTitle(title)
+            .padding(.top, first ? 4 : DSSpacing.sectionTop - 10)
+            .padding(.bottom, DSSpacing.sectionBottom - 10)
     }
 
     private func chip(_ item: TrainerRequestShortcut) -> some View {
