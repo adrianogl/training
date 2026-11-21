@@ -26,6 +26,7 @@ struct WorkoutListView: View {
     @State private var strengthProgram: MFITProgram?
     @State private var weeksCache = WorkoutWeeksCache()
     @State private var activeGoals: [GoalSnapshot] = []
+    @State private var trainerPlanned: [TrainerPlannedStrength] = []
     @AppStorage(WorkoutCalendarConstants.modeKey) private var modeRaw = WorkoutListMode.list.rawValue
     @State private var calendarMonth = WorkoutCalendarModel.monthStart(Day.today())
     @State private var calendarDay = Day.today()
@@ -53,8 +54,7 @@ struct WorkoutListView: View {
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
         let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
         let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))
-        let trainerStrength = model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays)
-        let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned + trainerStrength.map(\.workout), doneStrengthDays: doneDays, filter: kindFilter)
+        let plannedItems = WorkoutListModel.plannedItems(runs: visibility.visible, strength: strengthPlanned + trainerPlanned.map(\.workout), doneStrengthDays: doneDays, filter: kindFilter)
         Group {
             if isSplit {
                 HStack(spacing: 0) {
@@ -93,6 +93,8 @@ struct WorkoutListView: View {
         .task(id: selection) {
             chatCounts = await WorkoutChatStore.shared.questionCounts()
         }
+        .task(id: trainerPlannedKey) { refreshTrainerPlanned() }
+        .onAppear { refreshTrainerPlanned() }
         .task(id: model.mfitAccount.revision) {
             guard model.mfitAccount.isSignedIn else { strengthPlanned = []; strengthDoneDays = []; strengthProgram = nil; return }
             let today = Day.today()
@@ -120,7 +122,22 @@ struct WorkoutListView: View {
 
     private func trainerStrength(_ id: Int64) -> TrainerPlannedStrength? {
         guard id < 0 else { return nil }
-        return model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays).first { $0.workout.id == id }
+        return trainerPlanned.first { $0.workout.id == id }
+            ?? model.trainer.plannedStrength(from: Day.today(), days: WorkoutConstants.plannedDays).first { $0.workout.id == id }
+    }
+
+    private var plannedEnd: Day {
+        WorkoutListModel.plannedEnd(today: Day.today(), mfitEnd: strengthProgram?.end, planEnd: model.trainer.strengthPlan?.end)
+    }
+
+    private var trainerPlannedKey: String {
+        let sessions = model.trainer.strengthSessions.map { "\($0.id)\($0.group)\($0.minutes)\($0.place)" }.joined(separator: ",")
+        return "\(Day.today().iso)|\(plannedEnd.iso)|\(sessions)"
+    }
+
+    private func refreshTrainerPlanned() {
+        let today = Day.today()
+        trainerPlanned = model.trainer.plannedStrength(from: today, days: today.days(until: plannedEnd))
     }
 
     private func applyRestoration() {
@@ -143,7 +160,8 @@ struct WorkoutListView: View {
 
     private func applyStrength(_ cache: StrengthProgramCache, today: Day) {
         strengthProgram = cache.program
-        strengthPlanned = StrengthSchedule().workouts(cache.program, from: today, through: today.adding(days: WorkoutConstants.plannedDays))
+        let end = WorkoutListModel.plannedEnd(today: today, mfitEnd: cache.program?.end, planEnd: model.trainer.strengthPlan?.end)
+        strengthPlanned = StrengthSchedule().workouts(cache.program, from: today, through: end)
         strengthDoneDays = Set(cache.known.flatMap { $0.completions.map(\.day) })
     }
 
@@ -231,8 +249,18 @@ struct WorkoutListView: View {
                         }
                         .buttonStyle(.plain)
                         .padding(.top, 8)
-                        ForEach(showsPlanned ? plannedItems : plannedItems.filter { $0.day == today }) { item in
-                            plannedRow(item, today: today, selected: selected)
+                        if showsPlanned {
+                            ForEach(WorkoutListModel.plannedGroups(plannedItems)) { group in
+                                Text(WorkoutListModel.weekLabel(group.start))
+                                    .font(.caption)
+                                    .foregroundStyle(BrandColors.dim)
+                                    .padding(.top, 4)
+                                ForEach(group.items) { item in plannedRow(item, today: today, selected: selected) }
+                            }
+                        } else {
+                            ForEach(plannedItems.filter { $0.day == today }) { item in
+                                plannedRow(item, today: today, selected: selected)
+                            }
                         }
                     }
                     if weeks.isEmpty && model.showsSkeleton {

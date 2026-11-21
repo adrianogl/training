@@ -95,6 +95,19 @@ enum WorkoutListModel {
         return (runItems + strengthItems).sorted { $0.day == $1.day ? $0.id < $1.id : $0.day > $1.day }
     }
 
+    static func plannedEnd(today: Day, mfitEnd: String?, planEnd: Day?) -> Day {
+        let minimum = today.adding(days: WorkoutConstants.plannedDays)
+        let maximum = today.adding(days: WorkoutConstants.plannedMaxDays)
+        let latest = ([minimum, planEnd, mfitEnd.flatMap(Day.init(iso:))].compactMap { $0 }).max() ?? minimum
+        return min(latest, maximum)
+    }
+
+    static func plannedGroups(_ items: [WorkoutPlannedItem]) -> [WorkoutPlannedWeek] {
+        Dictionary(grouping: items) { Day(iso: $0.day)?.weekStart ?? Day(year: 1970, month: 1, day: 1) }
+            .map { WorkoutPlannedWeek(start: $0.key, items: $0.value.sorted { $0.day == $1.day ? $0.id < $1.id : $0.day > $1.day }) }
+            .sorted { $0.start > $1.start }
+    }
+
     static func weekLabel(_ start: Day) -> String {
         let end = start.adding(days: 6)
         let formatter = DateFormatter()
