@@ -18,7 +18,8 @@ enum TrainerStrengthConstants {
     static let rowSpacing: CGFloat = 10
     static let workoutTitle = "Força"
     static let exercisesTitle = "Exercícios"
-    static let bannerCorner: CGFloat = 14
+    static let bannerCorner = DSRadius.card
+    static let bannerPadding = BrandConstants.cardPadding
     static let bannerBorder: CGFloat = 1.5
     static let bannerTint = 0.10
     static let dayChipCorner: CGFloat = 10

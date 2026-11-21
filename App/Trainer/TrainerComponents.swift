@@ -36,7 +36,7 @@ struct TrainerDayRowView: View {
 
     var body: some View {
         let workout = row.workout
-        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: TrainerConstants.dayRowCorner, style: .continuous)
         VStack(alignment: .leading, spacing: 10) {
             summary(row)
             ForEach(row.strength) { line in

@@ -322,8 +322,8 @@ struct TrainerView: View {
                 }
             }
         }
-        .padding(6)
-        .background(highlightedWeek == group.id ? BrandColors.accentGlow : Color.clear, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(TrainerConstants.weekGroupPadding)
+        .background(highlightedWeek == group.id ? BrandColors.accentGlow : Color.clear, in: RoundedRectangle(cornerRadius: TrainerConstants.weekGroupCorner, style: .continuous))
         .opacity(group.isPast ? 0.7 : 1)
         .id(group.id)
     }
