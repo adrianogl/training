@@ -312,21 +312,6 @@ import TrainingCore
         TrainerEngine.detectStrength(history: history, today: currentDay)
     }
 
-    func strengthRows() -> [TrainerStrengthRow] {
-        guard let plan else { return [] }
-        let now = currentDay
-        let since = now.adding(days: -TrainerConstants.strengthWeeks * TrainerConstants.weekdayCount)
-        return plan.strength.sorted { $0.weekday < $1.weekday }.map { session in
-            let scoped = Self.strengthHistory(history, for: session, plan: strengthPlan)
-            let seconds = scoped.strength
-                .filter { $0.day > since && $0.day <= now && $0.day.weekStart.days(until: $0.day) + 1 == session.weekday }
-                .map(\.seconds)
-            let minutes = seconds.isEmpty ? nil : Int((seconds.reduce(0, +) / Double(seconds.count) / 60).rounded())
-            let done = TrainerEngine.strengthWeeksDone(session, history: scoped, today: now)
-            return TrainerStrengthRow(session: session, caption: TrainerText.strengthCaption(done: done, minutes: minutes))
-        }
-    }
-
     func saveStrength(_ sessions: [TrainerStrengthSession]) async {
         let trainer = sessions.filter { $0.source == .trainer }
         if var current = strengthPlan {

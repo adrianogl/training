@@ -68,13 +68,6 @@ struct TrainerStrengthLine: Identifiable, Equatable {
     var isClaude = false
 }
 
-struct TrainerStrengthRow: Identifiable, Equatable {
-    let session: TrainerStrengthSession
-    let caption: String
-
-    var id: UUID { session.id }
-}
-
 struct TrainerWeekGroup: Identifiable, Equatable {
     let start: Day
     let title: String
