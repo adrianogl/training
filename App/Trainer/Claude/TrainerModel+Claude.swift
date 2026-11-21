@@ -3,7 +3,15 @@ import Insights
 import TrainingCore
 
 extension TrainerModel {
+    var claudeBuildingPlan: StrengthPlan? {
+        guard let strengthPlan, strengthPlan.builder == .claude, currentDay.adding(days: 1) <= strengthPlan.end else { return nil }
+        return strengthPlan
+    }
+
     func claudePeriod(_ period: ClaudeRequestPeriod, race: ClaudeRaceTarget?) -> (first: Day, last: Day) {
+        if let plan = claudeBuildingPlan {
+            return (max(plan.start, currentDay.adding(days: 1)), plan.end)
+        }
         switch period {
         case .nextWeek:
             let first = currentDay.weekStart.adding(days: TrainerConstants.weekdayCount)
@@ -41,20 +49,20 @@ extension TrainerModel {
             today: currentDay, first: first, last: last, trainerSessions: strengthSessions, mfit: mfitWeek,
             runs: claudeRuns(first: first, last: last), readiness: readiness, pain: TrainerStrengthPrefsStore().load().pain,
             loads: TrainerStrengthContextBuilder.loads(cache.loads).mapValues(\.weight), race: race,
-            notes: ExerciseNotesStore().allActive()
+            notes: ExerciseNotesStore().allActive(), planLocked: claudeBuildingPlan != nil
         )
     }
 
     func claudeValidationContext(_ input: ClaudeContextInput) -> ClaudeValidationContext {
         ClaudeValidationContext(
             today: input.today, first: input.first, last: input.last, trainerSessions: input.trainerSessions,
-            mfitWeekdays: Set(strengthSessions.filter { $0.source == .mfit }.map(\.weekday)),
+            mfitWeekdays: claudeBuildingPlan == nil ? Set(strengthSessions.filter { $0.source == .mfit }.map(\.weekday)) : [],
             runKinds: input.runs.mapValues(\.kind), raceDay: input.race?.day, pain: input.pain, lastLoads: input.loads
         )
     }
 
     func isClaudeDay(_ day: Day) -> Bool {
-        ClaudeStrengthStore().workout(on: day) != nil
+        claudeWorkout(on: day) != nil
     }
 }
 
@@ -71,15 +79,39 @@ extension TrainerModel {
     }
 
     func claudeInboxResults(_ inbox: ClaudeInbox, race: ClaudeRaceTarget?) -> ClaudeImportState {
+        claudeImportState(parsing: inbox.json, race: race)
+    }
+
+    func claudeImportState(parsing text: String, race: ClaudeRaceTarget?) -> ClaudeImportState {
         do {
-            let response = try ClaudeStrengthParser.parse(inbox.json)
+            let response = try ClaudeStrengthParser.parse(text)
             var context = claudeValidationContext(claudeContextInput(.untilRace, race: race))
-            context.first = currentDay.adding(days: 1)
-            return ClaudeImportState(summary: response.summary, results: ClaudeStrengthValidator.validate(response, context: context), failure: nil)
+            let plan = claudeBuildingPlan
+            if plan == nil { context.first = currentDay.adding(days: 1) }
+            var results = ClaudeStrengthValidator.validate(response, context: context)
+            if plan != nil {
+                results = results.map { result in
+                    var result = result
+                    result.replacesMFIT = false
+                    result.warnings.removeAll { $0 == .replacesMFIT }
+                    return result
+                }
+            }
+            return ClaudeImportState(summary: response.summary, results: results, failure: nil, planId: plan?.id)
         } catch ClaudeStrengthParseError.unsupportedVersion(let version) {
             return ClaudeImportState(summary: nil, results: [], failure: String(format: ClaudeText.unsupportedFormat, version))
         } catch {
             return ClaudeImportState(summary: nil, results: [], failure: ClaudeText.invalidJSON)
         }
+    }
+
+    func planNotice(for state: ClaudeImportState) -> String? {
+        guard let plan = claudeBuildingPlan, plan.id == state.planId,
+              state.results.contains(where: { $0.errors.contains(.outOfPeriod) || $0.errors.contains(.notTrainerDay) }) else { return nil }
+        return ClaudeText.outsidePlanNotice(plan)
+    }
+
+    func applyClaudeImport(_ state: ClaudeImportState) {
+        claudeStore.apply(state.results, summary: state.summary, planId: state.planId)
     }
 }

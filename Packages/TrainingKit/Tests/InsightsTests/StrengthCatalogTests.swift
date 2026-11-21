@@ -17,7 +17,7 @@ import Testing
     @Test func everyFocusHasExercisesInEveryPlace() {
         for group in TrainerStrengthGroup.allCases {
             for place in StrengthPlace.allCases {
-                let available = StrengthCatalog.all.filter { $0.focus.contains(group) && $0.fits(place) }
+                let available = StrengthCatalog.all.filter { (group == .mobility ? $0.isMobility : $0.focus.contains(group)) && $0.fits(place) }
                 #expect(available.count >= 6, "\(group) \(place) tem \(available.count)")
             }
         }

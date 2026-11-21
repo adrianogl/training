@@ -48,12 +48,12 @@ struct TrainerStrengthWorkoutView: View {
 
     @ViewBuilder
     private func content(_ workout: GeneratedStrengthWorkout) -> some View {
-        let stored = day.flatMap { ClaudeStrengthStore().workout(on: $0) }
+        let stored = day.flatMap { app.trainer.claudeWorkout(on: $0) }
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 DSCardLabel(dayLabel)
                 Spacer()
-                if stored != nil { ClaudeSourceChip() } else { TrainerStrengthSourceChip(source: .trainer) }
+                if day.map(app.trainer.isFreeClaudeDay) == true { ClaudeSourceChip() } else { TrainerStrengthSourceChip(source: .trainer) }
             }
             Text(TrainerStrengthText.focusName(workout.group)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
             Text(TrainerStrengthText.meta(workout)).font(.caption).foregroundStyle(BrandColors.dim)
@@ -95,7 +95,7 @@ struct TrainerStrengthWorkoutView: View {
         .buttonStyle(.ds(.secondary))
         if let day, stored != nil {
             Button(ClaudeText.backToGenerator) {
-                ClaudeStrengthStore().remove(day)
+                app.trainer.claudeStore.remove(day)
                 revision += 1
             }
             .buttonStyle(.ds(.secondary))

@@ -600,6 +600,7 @@ enum TrainerText {
         case .lower: "MMII"
         case .fullBody: "Full body"
         case .core: "Core"
+        case .mobility: "Mobilidade"
         }
     }
 
@@ -609,6 +610,7 @@ enum TrainerText {
         case .lower: "MMII"
         case .fullBody: "Full"
         case .core: "Core"
+        case .mobility: "Mob."
         }
     }
 

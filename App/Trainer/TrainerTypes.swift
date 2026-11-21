@@ -65,6 +65,7 @@ struct TrainerStrengthLine: Identifiable, Equatable {
     let name: String
     let isDone: Bool
     var source: TrainerStrengthSource = .mfit
+    var isClaude = false
 }
 
 struct TrainerStrengthRow: Identifiable, Equatable {

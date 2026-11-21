@@ -19,7 +19,7 @@ public enum StrengthSessions {
         switch group {
         case .lower: intensity == .light ? .light : .heavy
         case .fullBody: intensity == .heavy ? .heavy : .light
-        case .upper, .core: .light
+        case .upper, .core, .mobility: .light
         }
     }
 }

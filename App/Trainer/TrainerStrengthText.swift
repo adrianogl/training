@@ -53,12 +53,20 @@ enum TrainerStrengthText {
         }
     }
 
+    static func chipName(_ source: TrainerStrengthSource) -> String {
+        switch source {
+        case .mfit: "MFIT"
+        case .trainer: "Plano"
+        }
+    }
+
     static func focusName(_ group: TrainerStrengthGroup) -> String {
         switch group {
         case .upper: "Superiores"
         case .lower: "Pernas"
         case .fullBody: "Corpo inteiro"
         case .core: "Mobilidade e core"
+        case .mobility: "Mobilidade"
         }
     }
 

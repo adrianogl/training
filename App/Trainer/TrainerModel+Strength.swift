@@ -3,16 +3,43 @@ import Insights
 import TrainingCore
 
 extension TrainerModel {
-    var strengthSessions: [TrainerStrengthSession] { plan?.strength ?? standaloneStrength }
+    var legacyStrengthSessions: [TrainerStrengthSession] { plan?.strength ?? standaloneStrength }
+
+    var strengthSessions: [TrainerStrengthSession] {
+        legacyStrengthSessions.filter { $0.source == .mfit } + (strengthPlan?.sessions.filter { $0.source == .trainer } ?? [])
+    }
+
+    func isStrengthPlanActive(on day: Day) -> Bool {
+        strengthPlan?.isActive(on: day) ?? false
+    }
 
     func trainerSessions(on day: Day) -> [TrainerStrengthSession] {
         if let override = claudeOverride(on: day) { return [override] }
+        guard isStrengthPlanActive(on: day) else { return [] }
         let weekday = day.weekStart.days(until: day) + 1
         return strengthSessions.filter { $0.source == .trainer && $0.weekday == weekday }
     }
 
+    func claudeWorkout(on day: Day) -> ClaudeStoredWorkout? {
+        guard let stored = claudeStore.workout(on: day) else { return nil }
+        guard let planId = stored.planId else { return stored }
+        guard let strengthPlan, strengthPlan.id == planId, strengthPlan.isActive(on: day) else { return nil }
+        return stored
+    }
+
+    func isFreeClaudeDay(_ day: Day) -> Bool {
+        claudeWorkout(on: day).map { $0.planId == nil } ?? false
+    }
+
+    static func strengthHistory(_ history: TrainerHistory, for session: TrainerStrengthSession, plan: StrengthPlan?) -> TrainerHistory {
+        guard session.source == .trainer else { return history }
+        var scoped = history
+        scoped.strength = history.strength.filter { plan?.isActive(on: $0.day) ?? false }
+        return scoped
+    }
+
     func claudeOverride(on day: Day) -> TrainerStrengthSession? {
-        guard let stored = ClaudeStrengthStore().workout(on: day), stored.overridesMFIT else { return nil }
+        guard let stored = claudeWorkout(on: day), stored.overridesMFIT else { return nil }
         let workout = stored.workout
         let id = UUID(uuidString: ClaudeConstants.overrideIdPrefix + day.iso.replacingOccurrences(of: "-", with: "")) ?? UUID()
         return TrainerStrengthSession(
@@ -37,7 +64,7 @@ extension TrainerModel {
             readiness: day == currentDay ? history.readiness[day] : nil,
             prefs: TrainerStrengthPrefsStore().load(), cache: StrengthProgramStore().load(), schedule: StrengthSchedule()
         )
-        if let stored = ClaudeStrengthStore().workout(on: day), session.source == .trainer {
+        if let stored = claudeWorkout(on: day), session.source == .trainer {
             return ClaudeStrengthApply.apply(stored.workout, session: session, context: context)
         }
         return StrengthGenerator.workout(for: session, context: context)

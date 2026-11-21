@@ -5,7 +5,7 @@ enum TrainerMFITConstants {
     static let source = "vem do MFIT"
     static let lightLeg = "perna leve"
     static let heavyLeg = "perna pesada"
-    static let regionNames: [TrainerStrengthGroup: String] = [.upper: "superiores", .lower: "pernas", .fullBody: "corpo todo", .core: "core"]
+    static let regionNames: [TrainerStrengthGroup: String] = [.upper: "superiores", .lower: "pernas", .fullBody: "corpo todo", .core: "core", .mobility: "mobilidade"]
     static let keptDefaultsKey = "trainerLegSwapKept"
     static let swapButton = "Trocar dias"
     static let keepButton = "Manter"

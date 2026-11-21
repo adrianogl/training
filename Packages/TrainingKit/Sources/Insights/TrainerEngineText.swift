@@ -397,6 +397,7 @@ enum TrainerEngineText {
         case .lower: "MMII"
         case .fullBody: "Full body"
         case .core: "Core"
+        case .mobility: "Mobilidade"
         }
     }
 

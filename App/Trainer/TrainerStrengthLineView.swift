@@ -27,7 +27,11 @@ struct TrainerStrengthLineView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(BrandColors.accent)
             }
-            TrainerStrengthSourceChip(source: line.source)
+            if line.isClaude {
+                ClaudeSourceChip()
+            } else {
+                TrainerStrengthSourceChip(source: line.source)
+            }
         }
     }
 }

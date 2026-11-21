@@ -166,9 +166,19 @@ Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.
 - **Volume de corrida:** a força (segunda superiores, quarta pernas, sexta corpo inteiro) não reduz o volume de corrida. O plano só mostra a força.
 - **Dias:** o treinador avisa quando limiar, VO2 ou longão cai no dia seguinte a um dia de pernas, e sugere trocar o dia.
 - **Fonte por dia:** cada dia de força vem do MFIT (professor, só leitura) ou do treinador. Quando o MFIT muda, só os dias do MFIT são trocados; os do treinador ficam, exceto num dia que o MFIT passou a ocupar, em que o MFIT vence (`StrengthSessions.merge`). Na edição, os dias do MFIT não aparecem para escolha.
-- **Foco do dia do treinador:** superiores, pernas, corpo inteiro ou mobilidade e core, com intensidade (leve, moderada, pesada), duração e local (academia, casa, só peso do corpo). Pernas moderada ou pesada e corpo inteiro pesado contam como dia de perna pesada.
+- **Foco do dia do treinador:** superiores, pernas, corpo inteiro, mobilidade e core ou só mobilidade, com intensidade (leve, moderada, pesada), duração e local (academia, casa, só peso do corpo). Pernas moderada ou pesada e corpo inteiro pesado contam como dia de perna pesada.
 
 - **Sem plano do treinador:** a força funciona do mesmo jeito, guardada à parte (`TrainerStrengthStandaloneStore`) e levada para o plano quando ele é criado. O dia de corrida forte vem do nome do treino da assessoria no Garmin (`ExternalDayKind`): limiar, ritmo e tempo contam como limiar; VO2, intervalado, tiro e fartlek como VO2; longo, longão ou 18 km ou mais como longão; "prova" sem "ritmo" como prova. Semana de recuperação e semana da prova só se aplicam com plano.
+
+### Plano de força
+
+- **Plano:** objetivo (Mobilidade, Força ou Prevenção), dias com foco, minutos e local, validade, data de início e quem monta (Treinador ou Claude). Só um plano ativo por vez.
+- **Validade:** até a prova, de 1 a 24 semanas ou até uma data. Os treinos do plano aparecem só entre o início e o fim; fora disso, nenhum dia do plano aparece.
+- **MFIT em paralelo:** o MFIT nunca é substituído pelo plano. Num dia com os dois, a semana e o Hoje mostram dois cards, "MFIT" e "Plano".
+- **Mobilidade:** foco próprio, só exercícios de mobilidade, sem carga.
+- **Fim do plano:** a notificação "Plano de <objetivo> terminou" com "Foram X de Y treinos" sai às 21h do último dia de treino ou logo depois do último treino concluído, o que vier primeiro, uma vez por plano e só no iPhone. A tela Força oferece "Montar próximo plano" e "Repetir o mesmo plano" (mesmas sessões, a partir do próximo dia de treino).
+- **Claude:** quando o plano é do Claude, o pedido usa o período e os dias do plano, e o resultado fora do plano é rejeitado.
+- **Migração:** na primeira abertura, as sessões do treinador existentes viram um plano que termina junto com o plano de corrida (ou em 12 semanas, sem plano de corrida), com um aviso único para ajustar.
 
 ### Sugestão de dias e foco
 
@@ -195,6 +205,7 @@ Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog*.swift`,
 - **Escolha:** dentro de cada padrão, nesta ordem: exercício composto antes de isolado; equipamento preferido do local (barra, máquina, cabo, halter, kettlebell, elástico, peso do corpo, medicine ball, bola suíça, suspensão; puxada vertical começa pelo cabo; pliometria, anti-extensão e mobilidade começam pelo peso do corpo); exercício simples (até 4 palavras, sem combinação como "_TO_" ou "_AND_" e sem variação avançada) antes de variação com `WEIGHTED_` e antes de combinação; e por fim uma ordem embaralhada que muda a cada bloco de 4 semanas (blocos contados a partir de 05/01/2026). Dentro do bloco o exercício se repete e a carga progride.
 - **Tamanho:** até 8 exercícios por treino, 12 em mobilidade e core; o resto do tempo vira série extra.
 - **Duração:** o treino fecha na duração escolhida com 5 min de tolerância. Quando o limite de exercícios chega antes, sobe até 4 séries a mais por exercício.
+- **Foco mobilidade:** escolhe só exercícios de mobilidade de quadril, tornozelo e torácica, leve, sem carga nem sugestão de carga; perna leve. O gerador usa o mesmo caminho da semana da prova.
 - **Dia de qualidade:** pernas ou corpo inteiro viram mobilidade e core, leve. Superiores e mobilidade ficam como estão. "Manter original" desfaz.
 - **Semana de recuperação:** duração e séries a 70%.
 - **Semana da prova:** nos 3 dias antes da prova, sem força; de 4 a 7 dias antes, só mobilidade, 15 min.

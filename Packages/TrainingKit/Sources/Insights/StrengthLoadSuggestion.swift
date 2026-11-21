@@ -2,7 +2,7 @@ public enum StrengthLoadSuggestion {
     private typealias C = StrengthLoadSuggestionConstants
 
     public static func suggest(for exercise: CatalogExercise, history: [String: StrengthLoadRecord]) -> SuggestedLoad? {
-        guard let increment = C.increments[exercise.equipment] else { return nil }
+        guard !exercise.isMobility, let increment = C.increments[exercise.equipment] else { return nil }
         guard let base = base(for: exercise, history: history) else { return nil }
         let raw = steps(from: base.exercise, weight: base.record.weight, to: exercise).last?.weight ?? base.record.weight
         let rounded = (raw / increment).rounded(.down) * increment

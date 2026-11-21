@@ -8,6 +8,7 @@ export const ISSUE = {
   wrongPlace: (id: string) => `"${id}" não cabe no local do dia`,
   painRegion: (id: string) => `"${id}" carrega uma região com dor marcada`,
   doseOutOfRange: (id: string) => `"${id}" com séries, repetições, segundos ou descanso fora da faixa`,
+  invalidFocus: (value: string) => `foco "${value}" inválido; use upper, lower, fullBody, core ou mobility`,
   noExercises: 'sem exercícios',
   tooManyExercises: 'mais de 12 exercícios',
   heavyLegsBeforeQuality: 'perna pesada nas 48 h antes de limiar, VO2 ou longão',

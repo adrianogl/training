@@ -63,7 +63,7 @@ enum TrainerConstants {
         "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
     ]
     static let longModes: [TrainerLongMode] = [.continuous, .blocks]
-    static let strengthGroups: [TrainerStrengthGroup] = [.upper, .lower, .fullBody, .core]
+    static let strengthGroups: [TrainerStrengthGroup] = [.upper, .lower, .fullBody, .core, .mobility]
     static let adjustmentsAnchor = "trainerAdjustmentsAnchor"
     static let locale = Locale(identifier: "pt_BR")
 

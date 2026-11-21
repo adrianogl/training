@@ -19,6 +19,7 @@ struct ClaudeContextInput {
     let loads: [String: Double]
     let race: ClaudeRaceTarget?
     var notes: [ExerciseNote] = []
+    var planLocked = false
 }
 
 struct ClaudeContextPayload: Codable, Equatable {

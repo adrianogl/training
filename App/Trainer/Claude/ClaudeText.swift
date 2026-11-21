@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import TrainingCore
 
 enum ClaudeText {
     static let source = "Claude"
@@ -79,6 +80,24 @@ enum ClaudeText {
 
     static let errorsIntro = "O app recusou estes pontos. Corrija e devolva o JSON completo de novo, no mesmo formato:"
 
+    static let planInstruction = "Plano com período fixo: monte um treino para cada dia de \"dias_do_treinador\" em todas as semanas do período, com o foco, os minutos e o local de cada dia. Não use \"substitui_mfit\"."
+
+    static func planObjective(_ objective: StrengthObjective) -> String {
+        switch objective {
+        case .mobility: "mobilidade"
+        case .strength: "força"
+        case .prevention: "prevenção"
+        }
+    }
+
+    static func planPeriodLine(_ plan: StrengthPlan, first: Day) -> String {
+        "Plano de \(planObjective(plan.objective)) · \(TrainerText.dayMonth(first)) a \(TrainerText.dayMonth(plan.end))"
+    }
+
+    static func outsidePlanNotice(_ plan: StrengthPlan) -> String {
+        "Dia fora do plano (\(TrainerText.dayMonth(plan.start)) a \(TrainerText.dayMonth(plan.end)), nos dias de força dele): esses treinos não serão aplicados."
+    }
+
     static func periodName(_ period: ClaudeRequestPeriod, race: String?) -> String {
         switch period {
         case .nextWeek: "Próxima semana"
@@ -138,7 +157,7 @@ enum ClaudeText {
       "treinos": [
         {
           "dia": "AAAA-MM-DD",
-          "foco": "upper | lower | fullBody | core",
+          "foco": "upper | lower | fullBody | core | mobility",
           "minutos": 25,
           "local": "gym | home | bodyweight",
           "porque": "uma frase",

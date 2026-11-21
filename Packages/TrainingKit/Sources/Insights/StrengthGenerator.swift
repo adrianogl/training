@@ -46,7 +46,7 @@ public enum StrengthGenerator {
     }
 
     private static func plan(for session: TrainerStrengthSession, context: StrengthContext) -> Plan {
-        var plan = Plan(group: session.group, intensity: session.intensity, minutes: Double(session.minutes), mobilityOnly: false, adjustments: [], empty: false)
+        var plan = Plan(group: session.group, intensity: session.group == .mobility ? .light : session.intensity, minutes: Double(session.minutes), mobilityOnly: session.group == .mobility, adjustments: [], empty: false)
         if let days = context.daysToRace, days >= 0, days <= C.raceWeekDays {
             if days <= C.raceRestDays {
                 plan.empty = true
@@ -72,7 +72,7 @@ public enum StrengthGenerator {
 
     private static func select(plan: Plan, place: StrengthPlace, context: StrengthContext) -> [GeneratedExercise] {
         var pool = StrengthCatalog.all.filter { exercise in
-            exercise.focus.contains(plan.group) && exercise.fits(place) && exercise.loads.isDisjoint(with: context.pain)
+            (plan.group == .mobility || exercise.focus.contains(plan.group)) && exercise.fits(place) && exercise.loads.isDisjoint(with: context.pain)
                 && (!plan.mobilityOnly || exercise.isMobility)
         }
         var order = plan.mobilityOnly ? C.mobilityOrder : C.patternOrder[plan.group] ?? []
@@ -89,7 +89,7 @@ public enum StrengthGenerator {
         var used: Set<String> = []
         var total = 0.0
         var progressed = true
-        let limit = plan.group == .core ? C.maxCoreExercises : C.maxExercises
+        let limit = plan.group == .core || plan.group == .mobility ? C.maxCoreExercises : C.maxExercises
         while total < target - tolerance, progressed, chosen.count < limit {
             progressed = false
             for pattern in order where total < target - tolerance && chosen.count < limit {
