@@ -1,6 +1,7 @@
 import Foundation
 import Insights
 import Storage
+import SwiftData
 import Sync
 import Testing
 import TrainingCore
@@ -172,6 +173,52 @@ import TrainingCore
         var renamed = longer
         renamed.endedNotifiedAt = Date()
         await model.saveStrengthPlan(renamed)
+        #expect(store.current()?.endedNotifiedAt != nil)
+    }
+
+    @MainActor private func makeModel(today: Day, scheduler: FakeNotificationScheduler, container: ModelContainer) -> (TrainerModel, StrengthPlanStore) {
+        let folder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        let defaults = UserDefaults(suiteName: "planend-" + UUID().uuidString)!
+        let store = StrengthPlanStore(url: folder.appending(path: "plan.json"), stamps: nil)
+        let model = TrainerModel(
+            container: container, store: TrainerStore(url: folder.appending(path: "trainer.json"), defaults: defaults), today: { today },
+            defaults: defaults, strengthPlanStore: store, claudeStore: ClaudeStrengthStore(defaults: UserDefaults(suiteName: "planend-c-" + UUID().uuidString)!),
+            planEndScheduler: scheduler, canNotifyPlanEnd: true
+        )
+        return (model, store)
+    }
+
+    @MainActor @Test func remote_end_cancels_scheduled_notification() async throws {
+        let scheduler = FakeNotificationScheduler()
+        let future = Day(year: 2030, month: 1, day: 7)
+        let (model, store) = makeModel(today: future, scheduler: scheduler, container: try TrainingSchema.container(inMemory: true))
+        try store.save(StrengthPlan(objective: .strength, sessions: [session(1)], start: future, validity: .weeks(1), builder: .trainer))
+        await model.reloadRemoteStrengthPlan()
+        #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId]?.at == date(future, hour: 21))
+        try store.clear()
+        await model.reloadRemoteStrengthPlan()
+        #expect(model.strengthPlan == nil)
+        #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId] == nil)
+    }
+
+    @MainActor @Test func consecutive_checks_after_last_workout_deliver_once() async throws {
+        let scheduler = FakeNotificationScheduler()
+        let future = Day(year: 2030, month: 1, day: 7)
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = ModelContext(container)
+        context.insert(ActivityRecord(
+            activityId: 1, typeKey: "strength_training", name: "Força", start: date(future, hour: 12),
+            distance: 0, duration: 1_800, movingDuration: 1_800
+        ))
+        try context.save()
+        let (model, store) = makeModel(today: future, scheduler: scheduler, container: container)
+        await model.load()
+        try store.save(StrengthPlan(objective: .strength, sessions: [session(1)], start: future, validity: .weeks(1), builder: .trainer))
+        model.reloadStrengthPlan()
+        async let first: Void = model.checkStrengthPlanEnd()
+        async let second: Void = model.checkStrengthPlanEnd()
+        _ = await (first, second)
+        #expect(await scheduler.delivered == [StrengthPlanEndConstants.notificationId])
         #expect(store.current()?.endedNotifiedAt != nil)
     }
 }

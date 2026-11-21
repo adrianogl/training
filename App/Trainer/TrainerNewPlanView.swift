@@ -46,8 +46,8 @@ struct TrainerNewPlanView: View {
                     if !isEditing { lightWeeksCard }
                     section(TrainerText.daysSection)
                     daysCards
-                    section(isEditing ? TrainerText.strengthLongSection : TrainerText.longModeTitle)
-                    if isEditing { strengthLink }
+                    section(followsStrengthPlan ? TrainerText.strengthLongSection : TrainerText.longModeTitle)
+                    if followsStrengthPlan { strengthLink }
                     TrainerLongModeCard(mode: longMode, suggestion: model.longSuggestion) { longMode = $0 }
                     section(TrainerText.pacesSection)
                     if isEditing {
@@ -98,7 +98,7 @@ struct TrainerNewPlanView: View {
             if startKilometers == nil { startKilometers = averageKilometers }
             if !strengthLoaded {
                 strengthLoaded = true
-                strength = model.previewStrength()
+                strength = model.strengthPlan == nil ? model.previewStrength() : model.strengthSessions
             }
         }
     }
@@ -129,13 +129,17 @@ struct TrainerNewPlanView: View {
             suggested: TrainerEngine.suggestedStructure(dayPreference),
             meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal),
             peakMeters: peak,
-            warnings: TrainerEngine.dayWarnings(structure: structure, strength: strength, peakMeters: peak, paces: paces, target: goal),
-            showsStrength: !isEditing
+            warnings: TrainerEngine.dayWarnings(structure: structure, strength: followsStrengthPlan ? model.strengthSessions : strength, peakMeters: peak, paces: paces, target: goal),
+            showsStrength: !followsStrengthPlan
         )
     }
 
+    private var followsStrengthPlan: Bool {
+        isEditing || model.strengthPlan != nil
+    }
+
     private var strengthLink: some View {
-        let sessions = model.plan?.strength ?? []
+        let sessions = model.strengthSessions
         return NavigationLink(value: TrainerRoute.strength) {
             DSRow(title: TrainerText.strengthTitle, subtitle: sessions.isEmpty ? TrainerText.strengthCardEmpty : TrainerText.strengthSummary(sessions), accessory: .chevron)
                 .brandCard()

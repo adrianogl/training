@@ -215,12 +215,37 @@ import TrainingCore
 
     @Test func save_without_plan_keeps_free_claude_days() async throws {
         let (model, _, claude) = try makeModel()
-        await createRunningPlan(model, strength: [session(4)])
+        await createRunningPlan(model, strength: [session(4, source: .mfit)])
         #expect(model.strengthPlan == nil)
         store(claude, day: nextThursday, planId: nil)
         await model.saveStrength([session(2)])
         #expect(claude.workout(on: nextThursday) != nil)
         #expect(model.strengthPlan?.sessions.map(\.weekday) == [2])
+    }
+
+    @Test func creating_running_plan_keeps_strength_plan_and_engine_in_sync() async throws {
+        let (model, planStore, _) = try makeModel()
+        let plan = StrengthPlan(objective: .strength, sessions: [session(2)], start: nextMonday, validity: .weeks(4), builder: .trainer)
+        try activate(plan, in: model, store: planStore)
+        await createRunningPlan(model, strength: [session(4), session(3, source: .mfit)])
+        #expect(planStore.current()?.sessions == plan.sessions)
+        #expect(model.plan?.strength.filter { $0.source == .trainer }.map(\.weekday) == [2])
+        #expect(model.plan?.strength.contains { $0.source == .mfit && $0.weekday == 3 } == true)
+        #expect(model.strengthSessions.map(\.weekday).sorted() == [2, 3])
+    }
+
+    @Test func creating_running_plan_without_strength_plan_creates_one_from_form() async throws {
+        let (model, planStore, _) = try makeModel()
+        await createRunningPlan(model, strength: [session(4), session(3, source: .mfit)])
+        let created = try #require(planStore.current())
+        #expect(created.sessions.map(\.weekday) == [4])
+        #expect(created.sessions.allSatisfy { $0.source == .trainer })
+        #expect(!created.migrated)
+        #expect(created.validity == .untilDate(today.adding(days: 70)))
+        #expect(model.strengthPlan == created)
+        #expect(model.plan?.strength.filter { $0.source == .trainer }.map(\.weekday) == [4])
+        #expect(model.plan?.strength.contains { $0.source == .mfit && $0.weekday == 3 } == true)
+        #expect(model.strengthSessions.map(\.weekday).sorted() == [3, 4])
     }
 
     @Test func weeks_done_counts_only_within_validity() {

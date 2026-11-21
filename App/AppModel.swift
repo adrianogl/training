@@ -163,7 +163,7 @@ import TrainingCore
             guard let self else { return }
             if kinds.contains(.chat) { Task { await self.scope.chats.reload() } }
             if kinds.contains(.preference) {
-                self.trainer.reloadStrengthPlan()
+                Task { await self.trainer.reloadRemoteStrengthPlan() }
                 Task { await self.claudeInbox.check() }
                 self.trainer.reloadKeptReadiness()
                 self.mfitAccount.reloadFromStore()

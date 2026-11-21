@@ -35,6 +35,7 @@ import TrainingCore
     @ObservationIgnored let canNotifyPlanEnd: Bool
     @ObservationIgnored let claudeStore: ClaudeStrengthStore
     @ObservationIgnored private var autoTask: Task<Void, Never>?
+    @ObservationIgnored var planEndCheck: Task<Void, Never>?
     @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var loadedStamp: Date?
     @ObservationIgnored private var reviewCache: (day: Day, review: TrainerCycleReview?)?
@@ -458,6 +459,11 @@ import TrainingCore
         if latest != strengthPlan { strengthPlan = latest }
     }
 
+    func reloadRemoteStrengthPlan() async {
+        reloadStrengthPlan()
+        await checkStrengthPlanEnd()
+    }
+
     func reloadFromStore() {
         let stamp = store.updatedAt()
         guard stamp != loadedStamp else { return }
@@ -585,8 +591,10 @@ import TrainingCore
         if plan != nil { cycleHistory = await loadCycleHistory() }
         let previous = plan
         let review = cycleReview
+        let form = strength.isEmpty ? standaloneStrength : strength
+        let trainer = strengthPlanStore.current().map { $0.sessions.filter { $0.source == .trainer } } ?? form.filter { $0.source == .trainer }
         let created = TrainerEngine.create(
-            target: target, structure: structure, strength: strength.isEmpty ? standaloneStrength : strength, history: history, today: currentDay, now: .now,
+            target: target, structure: structure, strength: form.filter { $0.source == .mfit } + trainer, history: history, today: currentDay, now: .now,
             startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, dayPreference: dayPreference,
             paceOverrides: paceOverrides
         )
@@ -595,6 +603,16 @@ import TrainingCore
         cycleHistory = history
         store.markStrengthMigrated()
         markSeen()
+        await createStrengthPlanIfMissing(trainer)
+    }
+
+    private func createStrengthPlanIfMissing(_ trainer: [TrainerStrengthSession]) async {
+        guard strengthPlanStore.current() == nil, !trainer.isEmpty,
+              var created = StrengthPlanMigration.migrate(sessions: trainer, runningPlanEnd: runningPlanEndForStrength, today: currentDay) else { return }
+        created.migrated = false
+        try? strengthPlanStore.save(created)
+        strengthPlan = strengthPlanStore.current()
+        await checkStrengthPlanEnd()
     }
 
     @discardableResult

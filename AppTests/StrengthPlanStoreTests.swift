@@ -151,14 +151,19 @@ struct StrengthPlanStoreTests {
         let (store, _) = makeStore()
         let monday = today.weekStart
         let race = monday.adding(days: 70)
-        let model = TrainerModel(
+        let trainerURL = FileManager.default.temporaryDirectory.appending(path: "t-\(UUID().uuidString).json")
+        let trainerDefaults = UserDefaults(suiteName: "t-\(UUID().uuidString)")!
+        let (legacyStore, _) = makeStore()
+        let legacy = TrainerModel(
             container: try TrainingSchema.container(inMemory: true),
-            store: TrainerStore(url: FileManager.default.temporaryDirectory.appending(path: "t-\(UUID().uuidString).json"), defaults: UserDefaults(suiteName: "t-\(UUID().uuidString)")!),
-            today: { monday },
-            strengthPlanStore: store
+            store: TrainerStore(url: trainerURL, defaults: trainerDefaults), today: { monday }, strengthPlanStore: legacyStore
         )
         let target = TrainerTarget(kind: .race, name: "Meia", date: race, distanceMeters: 21_097.5, goalSeconds: 5_940)
-        await model.createPlan(target: target, structure: TrainerEngine.defaultStructure, strength: [session(2), session(3, source: .mfit)], startMeters: 60_000, peakMeters: 80_000)
+        await legacy.createPlan(target: target, structure: TrainerEngine.defaultStructure, strength: [session(2), session(3, source: .mfit)], startMeters: 60_000, peakMeters: 80_000)
+        let model = TrainerModel(
+            container: try TrainingSchema.container(inMemory: true),
+            store: TrainerStore(url: trainerURL, defaults: trainerDefaults), today: { monday }, strengthPlanStore: store
+        )
         model.migrateStrengthPlan()
         let migrated = try #require(model.strengthPlan)
         #expect(migrated.validity == .untilDate(race))
