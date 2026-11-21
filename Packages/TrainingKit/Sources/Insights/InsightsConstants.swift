@@ -38,6 +38,8 @@ enum InsightsConstants {
     ]
     static let periodDays: [MetricPeriod: Int] = [.sixMonths: 182, .oneYear: 365, .twoYears: 730]
     static let predictionDistances: [MetricKind: Double] = [
+        .prediction1k: 1_000,
+        .prediction3k: 3_000,
         .prediction5k: 5_000,
         .prediction10k: 10_000,
         .predictionHalf: 21_097.5,
@@ -60,10 +62,12 @@ enum InsightsConstants {
         .loadFocus: "Carga aeróbica leve",
         .thresholdPace: "Pace de limiar",
         .thresholdHeartRate: "FC de limiar",
+        .prediction1k: "Previsão de 1 km",
+        .prediction3k: "Previsão de 3 km",
         .prediction5k: "Previsão de 5 km",
         .prediction10k: "Previsão de 10 km",
-        .predictionHalf: "Previsão de 21,1 km",
-        .predictionFull: "Previsão de 42,2 km",
+        .predictionHalf: "Previsão da meia maratona",
+        .predictionFull: "Previsão da maratona",
         .durability: "Desacoplamento",
         .hillStrength: "Força em subida",
         .cadence: "Cadência",
@@ -85,6 +89,8 @@ enum InsightsConstants {
         .thresholdHeartRate: .number(decimals: 0, unit: " bpm"),
         .prediction5k: .duration,
         .prediction10k: .duration,
+        .prediction1k: .duration,
+        .prediction3k: .duration,
         .predictionHalf: .duration,
         .predictionFull: .duration,
         .durability: .number(decimals: 1, unit: "%"),

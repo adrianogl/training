@@ -84,4 +84,16 @@ import TrainingCore
         #expect(series.points.last?.1 == 1_500)
         #expect(series.reading.contains("caiu"))
     }
+
+    @Test func shortPredictionsUseTheSameEfforts() throws {
+        let context = try makeContext(improvingRuns())
+        let one = try metricSeries(.prediction1k, context: context, today: fixtureToday, period: .sixMonths)
+        let three = try metricSeries(.prediction3k, context: context, today: fixtureToday, period: .sixMonths)
+        let five = try metricSeries(.prediction5k, context: context, today: fixtureToday, period: .sixMonths)
+        let oneLast = try #require(one.points.last?.1)
+        let threeLast = try #require(three.points.last?.1)
+        let fiveLast = try #require(five.points.last?.1)
+        #expect(oneLast < threeLast && threeLast < fiveLast)
+        #expect(MetricKind.predictionKinds == [.prediction1k, .prediction3k, .prediction5k, .prediction10k, .predictionHalf, .predictionFull])
+    }
 }

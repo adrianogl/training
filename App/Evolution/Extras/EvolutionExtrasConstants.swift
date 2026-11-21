@@ -11,7 +11,7 @@ enum EvolutionExtrasConstants {
     static let newRecord = "novo"
     static let recentDays = 7
     static let secondsPerDay = 86_400.0
-    static let records: [(label: String, meters: Double)] = [("1 km", 1_000), ("5 km", 5_000), ("10 km", 10_000), ("21,1 km", 21_097.5), ("42,2 km", 42_195)]
+    static let records: [(label: String, meters: Double)] = [("1 km", 1_000), ("3 km", 3_000), ("5 km", 5_000), ("10 km", 10_000), ("Meia maratona", 21_097.5), ("Maratona", 42_195)]
     static let splitSource = "melhor trecho"
     static let runSource = "corrida"
     static let recordDateFormat = "dd/MM/yy"

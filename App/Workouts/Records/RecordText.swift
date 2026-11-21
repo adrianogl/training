@@ -8,10 +8,14 @@ enum RecordText {
         C.labels[meters] ?? WorkoutFormat.kilometers(meters) + " km"
     }
 
+    static func inPhrase(_ meters: Double) -> String {
+        C.inPhrases[meters] ?? String(format: C.inPhraseFallbackFormat, label(meters))
+    }
+
     static func title(_ hit: RecordHit) -> String {
         let meters = hit.effort.meters
         if hit.isFirst { return C.firstTitles[meters] ?? label(meters) }
-        return String(format: meters == C.singleMeters ? C.recordInSingular : C.recordInPlural, label(meters))
+        return String(format: C.recordTitleFormat, inPhrase(meters))
     }
 
     static func gain(_ seconds: Double) -> String {
@@ -28,23 +32,24 @@ enum RecordText {
     static func body(_ hit: RecordHit) -> String {
         let time = WorkoutFormat.clock(hit.effort.seconds)
         guard let previous = hit.previousSeconds, let gain = hit.gainSeconds else {
-            return String(format: C.firstBodyFormat, time, label(hit.effort.meters))
+            return String(format: C.firstBodyFormat, time, inPhrase(hit.effort.meters))
         }
         let when = hit.previousStart.map(day) ?? ""
         if hit.effort.source == .segment {
-            return String(format: C.segmentBodyFormat, label(hit.effort.meters), time, self.gain(gain), WorkoutFormat.clock(previous), when)
+            return String(format: C.segmentBodyFormat, label(hit.effort.meters).lowercased(), time, self.gain(gain), WorkoutFormat.clock(previous), when)
         }
         return String(format: C.wholeBodyFormat, time, self.gain(gain), WorkoutFormat.clock(previous), when)
     }
 
     static func near(_ near: RecordNear) -> String {
-        String(format: C.nearBodyFormat, WorkoutFormat.clock(near.effort.seconds), label(near.effort.meters), gain(near.gapSeconds))
+        String(format: C.nearBodyFormat, WorkoutFormat.clock(near.effort.seconds), inPhrase(near.effort.meters), gain(near.gapSeconds))
     }
 
     static func item(_ hit: RecordHit) -> String {
         let time = WorkoutFormat.clock(hit.effort.seconds)
-        guard let gain = hit.gainSeconds else { return String(format: C.listFirstFormat, label(hit.effort.meters), time) }
-        return String(format: C.listItemFormat, label(hit.effort.meters), time, self.gain(gain))
+        let name = label(hit.effort.meters).lowercased()
+        guard let gain = hit.gainSeconds else { return String(format: C.listFirstFormat, name, time) }
+        return String(format: C.listItemFormat, name, time, self.gain(gain))
     }
 
     static func counts(records: Int, goals: Int) -> String {
@@ -72,7 +77,8 @@ enum RecordText {
 
     static func pill(_ records: [RecordHit]) -> String? {
         guard let first = records.first else { return nil }
-        return records.count == 1 ? String(format: C.pillSingleFormat, label(first.effort.meters)) : String(format: C.pillCountFormat, records.count)
+        let meters = first.effort.meters
+        return records.count == 1 ? String(format: C.pillSingleFormat, C.pillLabels[meters] ?? label(meters)) : String(format: C.pillCountFormat, records.count)
     }
 
     static func goalPill(_ count: Int) -> String? {

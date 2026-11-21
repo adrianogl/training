@@ -182,6 +182,7 @@ A versão 4 do processamento do FIT passou a guardar a cadência, o contato com 
 Arquivos: `App/Races/Weather/`, `Reports/ReportBuilder.swift`. Testes: `AppTests/RunWeatherTests.swift`.
 
 - Os esforços que alimentam a previsão (melhor 1 km, melhor 5 km, sessões de limiar e VO2, provas) entram pelo equivalente em clima ameno.
+- A Evolução mostra a previsão de 1 km, 3 km, 5 km, 10 km, meia maratona e maratona (`MetricKind.predictionKinds`), todas pelo mesmo Riegel. A de 1 km é a menos confiável, porque a fórmula extrapola mal para provas curtas.
 - Prova com horário de largada e local (primeiro ponto do GPX ou a cidade, convertida em coordenada no aparelho) mostra a previsão no clima do dia, nas horas da largada até a chegada prevista.
 - Até 16 dias antes vale a previsão do tempo, guardada por 3 h. Antes disso, a média das mesmas horas e data nos últimos 5 anos, guardada por 24 h (`RaceWeatherConstants`).
 - A estratégia de ritmo por km usa o tempo-alvo ajustado só quando há previsão do tempo.
@@ -201,9 +202,9 @@ Arquivos: `GarminAPI/GarminRaceEvents*.swift`, `App/Races/Garmin/`. Testes: `Gar
 
 | Regra | Valor | Onde |
 | --- | --- | --- |
-| Distâncias | 1, 5, 10, 21,1 e 42,2 km | `PersonalRecordsConstants.distances` |
+| Distâncias | 1 km, 3 km, 5 km, 10 km, meia maratona e maratona, as mesmas das previsões da Evolução | `PersonalRecordsConstants.distances` |
 | Corrida inteira | distância entre 99% e 103% da distância do recorde; o tempo em movimento é ajustado para a distância exata | `wholeRunLow`, `wholeRunHigh` |
-| Melhor trecho | 1, 5, 10 e 21,1 km pelas amostras do FIT, interpolando o início do trecho; buraco maior que 30 s entre amostras não vale. Sem amostras, 1 e 5 km usam o melhor trecho da Garmin | `bestSegment`, `segmentMaximumGap` |
+| Melhor trecho | 1, 3, 5 e 10 km e meia maratona pelas amostras do FIT, interpolando o início do trecho; buraco maior que 30 s entre amostras não vale. Sem amostras, 1 e 5 km usam o melhor trecho da Garmin | `bestSegment`, `segmentMaximumGap` |
 | Recorde | mais rápido que o melhor tempo dos treinos anteriores na mesma distância. Empate não conta | `PersonalRecords.timeline` |
 | Primeira vez | sem tempo anterior na distância: "Primeira meia maratona", não "Recorde" | `RecordHit.isFirst` |
 | Quase recorde | até 2% acima do recorde, sem recorde no treino: "a 8 s do recorde" | `nearShare` |

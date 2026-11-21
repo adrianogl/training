@@ -48,7 +48,7 @@ enum EvolutionConstants {
         MetricGroup(title: "Volume e carga", kinds: [.monthlyVolume, .loadFocus, .zoneDistribution]),
         MetricGroup(title: "Recuperação", kinds: [.restingHeartRate, .hrv, .sleep, .bodyBattery]),
         MetricGroup(title: "Técnica de corrida", kinds: [.cadence, .groundContact, .verticalOscillation]),
-        MetricGroup(title: predictionsGroupTitle, kinds: [.prediction5k, .prediction10k, .predictionHalf, .predictionFull]),
+        MetricGroup(title: predictionsGroupTitle, kinds: MetricKind.predictionKinds),
     ]
     static let groupChipSpacing: Double = 6
     static let heatmapWeekdayLabels = ["S", "", "Q", "", "S", "", "D"]
@@ -71,7 +71,7 @@ enum EvolutionConstants {
 
     static let cardKinds: [MetricKind] = [
         .vo2max, .zone2Pace, .fitness, .monthlyVolume, .loadFocus, .thresholdPace, .thresholdHeartRate,
-        .prediction5k, .prediction10k, .predictionHalf, .predictionFull,
+        .prediction1k, .prediction3k, .prediction5k, .prediction10k, .predictionHalf, .predictionFull,
         .durability, .hillStrength, .cadence, .groundContact, .verticalOscillation,
         .restingHeartRate, .hrv, .sleep, .bodyBattery, .zoneDistribution,
     ]
@@ -84,10 +84,12 @@ enum EvolutionConstants {
         .loadFocus: "Carga aeróbica leve",
         .thresholdPace: "Pace de limiar",
         .thresholdHeartRate: "FC de limiar",
+        .prediction1k: "Previsão de 1 km",
+        .prediction3k: "Previsão de 3 km",
         .prediction5k: "Previsão de 5 km",
         .prediction10k: "Previsão de 10 km",
-        .predictionHalf: "Previsão de 21,1 km",
-        .predictionFull: "Previsão de 42,2 km",
+        .predictionHalf: "Previsão da meia maratona",
+        .predictionFull: "Previsão da maratona",
         .durability: "Durabilidade",
         .hillStrength: "Força em subida",
         .cadence: "Cadência",
@@ -108,6 +110,8 @@ enum EvolutionConstants {
         .loadFocus: .number(decimals: 0, unit: "%"),
         .thresholdPace: .pace,
         .thresholdHeartRate: .number(decimals: 0, unit: " bpm"),
+        .prediction1k: .duration,
+        .prediction3k: .duration,
         .prediction5k: .duration,
         .prediction10k: .duration,
         .predictionHalf: .duration,
@@ -135,14 +139,14 @@ enum EvolutionConstants {
     static let windowedIndicators: Set<IndicatorKind> = [.zone2Pace, .thresholdPace]
 
     static let lowerIsBetter: Set<MetricKind> = [
-        .zone2Pace, .thresholdPace, .prediction5k, .prediction10k, .predictionHalf, .predictionFull,
+        .zone2Pace, .thresholdPace, .prediction1k, .prediction3k, .prediction5k, .prediction10k, .predictionHalf, .predictionFull,
         .restingHeartRate, .durability, .groundContact, .verticalOscillation,
     ]
     static let higherIsBetter: Set<MetricKind> = [
         .vo2max, .fitness, .monthlyVolume, .hillStrength, .hrv, .sleep, .bodyBattery, .zoneDistribution,
     ]
     static let reversedAxis: Set<MetricKind> = [
-        .zone2Pace, .thresholdPace, .prediction5k, .prediction10k, .predictionHalf, .predictionFull,
+        .zone2Pace, .thresholdPace, .prediction1k, .prediction3k, .prediction5k, .prediction10k, .predictionHalf, .predictionFull,
     ]
 
     static let detailCurrent = "Atual"
