@@ -1,13 +1,19 @@
 {
-  "versao": "1.29.0",
-  "build": 40,
-  "versao_app": "1.29.0",
+  "versao": "1.29.1",
+  "build": 41,
+  "versao_app": "1.29.1",
   "notas": [
-    "Plano de força com objetivo, dias e validade",
-    "Mobilidade como foco próprio de força",
-    "Aviso quando o plano de força termina"
+    "Tenta de novo o aviso de treino no mesmo acordar e com dados novos do Health",
+    "Manda o aviso de prontidão quando o sono chega no Apple Health"
   ],
   "historico": [
+    {
+      "versao": "1.29.1",
+      "notas": [
+        "Tenta de novo o aviso de treino no mesmo acordar e com dados novos do Health",
+        "Manda o aviso de prontidão quando o sono chega no Apple Health"
+      ]
+    },
     {
       "versao": "1.29.0",
       "notas": [
