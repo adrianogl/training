@@ -244,14 +244,14 @@ Arquivos: `App/Trainer/Send/AppleWorkoutBuilder.swift`. Testes: `AppTests/AppleW
 
 ## Treinos de força do Claude
 
-Arquivos: `Insights/ClaudeStrength*.swift`, `App/Trainer/Claude/*`. Testes: `InsightsTests/ClaudeStrengthTests.swift`, `AppTests/ClaudeAppTests.swift`.
+Arquivos: `Insights/ClaudeStrength*.swift`, `App/Trainer/Claude/*`. Testes: `InsightsTests/ClaudeStrengthTests.swift`, `AppTests/ClaudeAppTests.swift`, `AppTests/StrengthPlanScheduleTests.swift`.
 
 - **Pedido:** a tela Força copia um pacote com instruções, contexto (dias do treinador e do MFIT, corrida do período, prontidão de 7 dias, dor, últimas cargas, catálogo, regras e prova) e o formato da resposta. O catálogo vai filtrado pelos locais dos dias do treinador e sem os exercícios que carregam região com dor, uma linha por exercício no formato `id|padrao|equipamento|regioes|focos|marcas` (`u` unilateral, `i` isometria). Período: próxima semana (segunda a domingo) ou até a véspera da prova-alvo; sem prova, 12 semanas.
 - **Formato:** JSON `versao` 1, com `treinos` por `dia`, `foco`, `minutos`, `local`, `porque` e `exercicios` (`id` do catálogo, `series`, `reps` ou `segundos`, `descanso`, `kg`).
 - **Erros que bloqueiam o dia:** data inválida, dia passado ou fora do período, dia do MFIT, dia sem força do treinador, exercício fora do catálogo ou do local, exercício em região com dor, séries fora de 1–6, reps fora de 1–30, segundos fora de 10–120, descanso fora de 0–240, mais de 12 exercícios, perna pesada (2 ou mais exercícios de agachamento, terra, unilateral ou pliometria com barra, máquina, halter ou kettlebell) nas 48 h antes de limiar, VO2 ou longão, e força nos 3 dias antes da prova.
 - **Avisos:** duração estimada a mais de 10 min dos minutos do dia; carga mais de 5% acima da última.
 - **Substituir o MFIT:** um dia do MFIT só é aceito com `"substitui_mfit": true` (aviso, não erro). Ao aplicar, aquela data fica só com o treino do Claude: o treino do professor some da semana, do card do Hoje e do aviso da manhã, e o app tira do calendário do Garmin o treino de força agendado naquele dia que não foi criado por ele (o treino continua na biblioteca). As outras datas do mesmo dia da semana seguem com o MFIT.
-- **Uso:** os dias aplicados substituem o gerador naquela data. Prontidão abaixo de 50 e semana da prova trocam pelo treino do gerador com o aviso; dor marcada depois tira os exercícios afetados. Mudar o foco de um dia na tela Força apaga os treinos do Claude desse dia da semana. "Voltar ao gerador" apaga o daquele dia. Treinos de dias passados são descartados.
+- **Uso:** os dias aplicados substituem o gerador naquela data. Prontidão abaixo de 50 e semana da prova trocam pelo treino do gerador com o aviso; dor marcada depois tira os exercícios afetados. Os treinos do Claude de um plano saem quando o dia da semana deixa o plano ou o plano termina. Mudar só o foco de um dia que continua no plano mantém o treino do Claude, e o card do dia avisa "Montado para <foco do treino>. O plano agora pede <foco do plano>." (`StrengthPlanText.claudeFocusChanged`). "Voltar ao gerador" apaga o daquele dia. Treinos de dias passados são descartados.
 
 ## MCP de força
 

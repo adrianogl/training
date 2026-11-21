@@ -335,7 +335,7 @@ import TrainingCore
         var updated = edited
         if let previous = strengthPlanStore.current() ?? strengthPlan {
             let left = previous.id == updated.id
-                ? Self.changedWeekdays(from: previous.sessions, to: updated.sessions)
+                ? Self.leftWeekdays(from: previous.sessions, to: updated.sessions)
                 : Set(previous.sessions.map(\.weekday))
             claudeStore.removePlanWeekdays(left, planId: previous.id)
             if previous.id == updated.id {
@@ -370,10 +370,9 @@ import TrainingCore
         defaults.set(dismissedMigrationPlanId, forKey: StrengthPlanUIConstants.migrationDismissedKey)
     }
 
-    private static func changedWeekdays(from old: [TrainerStrengthSession], to new: [TrainerStrengthSession]) -> Set<Int> {
-        let before = Dictionary(old.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
-        let after = Dictionary(new.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
-        return Set(before.keys.filter { after[$0] != before[$0] })
+    private static func leftWeekdays(from old: [TrainerStrengthSession], to new: [TrainerStrengthSession]) -> Set<Int> {
+        let after = Set(new.filter { $0.source == .trainer }.map(\.weekday))
+        return Set(old.filter { $0.source == .trainer }.map(\.weekday)).subtracting(after)
     }
 
     private var runningPlanEndForStrength: Day? {
