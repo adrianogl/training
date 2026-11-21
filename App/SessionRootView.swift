@@ -4,7 +4,7 @@ struct SessionRootView: View {
     let session: AppSession
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var showsIntro = ProcessInfo.processInfo.environment[AppConstants.testHostEnvironmentVariable] == nil
+    @State private var showsIntro = ProcessInfo.processInfo.environment[AppConstants.testHostEnvironmentVariable] == nil && IntroPolicy.shows()
 
     var body: some View {
         Group {

@@ -43,6 +43,8 @@ enum AppConstants {
     static let introDuration = Duration.milliseconds(2000)
     static let introReducedMotionDuration = Duration.milliseconds(500)
     static let introFadeSeconds = 0.35
+    static let introSkipInterval: TimeInterval = 6 * 60 * 60
+    static let introLastActiveKey = "intro.lastActive"
     static let remoteSyncKeychainAccount = "remote-sync-key"
     static let watchTokenKeychainAccount = "watch-token"
     static let garminSessionKeychainAccount = "garmin-account-session"

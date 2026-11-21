@@ -29,8 +29,10 @@ struct TrainingApp: App {
         .onChange(of: scenePhase, initial: true) { _, phase in
             switch phase {
             case .active:
+                IntroPolicy.markActive()
                 session.model?.activate()
             case .background:
+                IntroPolicy.markActive()
                 session.model?.enteredBackground()
             default:
                 break
