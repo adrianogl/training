@@ -63,8 +63,8 @@ struct TrainerStrengthView: View {
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }
         .sheet(isPresented: $showsClaudeRequest) { ClaudeRequestSheet(race: raceTarget) }
         .sheet(item: $claudeImport) { state in
-            ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure) {
-                model.claudeStore.apply(state.results, summary: state.summary)
+            ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure, planNotice: model.claudeBuildingPlan.flatMap { $0.id == state.planId ? ClaudeText.outsidePlanNotice($0) : nil }) {
+                model.applyClaudeImport(state)
                 unscheduleReplacedMFIT(state.results)
                 if let inbox, state.id == inboxPreview?.id {
                     ClaudeMailbox().markSeen(inbox)
@@ -141,18 +141,7 @@ struct TrainerStrengthView: View {
     }
 
     private func pasteFromClaude() {
-        let text = UIPasteboard.general.string ?? ""
-        do {
-            let response = try ClaudeStrengthParser.parse(text)
-            let input = model.claudeContextInput(.untilRace, race: raceTarget)
-            var context = model.claudeValidationContext(input)
-            context.first = model.currentDay.adding(days: 1)
-            claudeImport = ClaudeImportState(summary: response.summary, results: ClaudeStrengthValidator.validate(response, context: context), failure: nil)
-        } catch ClaudeStrengthParseError.unsupportedVersion(let version) {
-            claudeImport = ClaudeImportState(summary: nil, results: [], failure: String(format: ClaudeText.unsupportedFormat, version))
-        } catch {
-            claudeImport = ClaudeImportState(summary: nil, results: [], failure: ClaudeText.invalidJSON)
-        }
+        claudeImport = model.claudeImportState(parsing: UIPasteboard.general.string ?? "", race: raceTarget)
     }
 
     private var upcomingCard: some View {

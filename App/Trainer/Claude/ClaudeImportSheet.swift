@@ -8,6 +8,7 @@ struct ClaudeImportSheet: View {
     let summary: String?
     let results: [ClaudeDayResult]
     let failure: String?
+    var planNotice: String?
     let onApply: () -> Void
     @State private var message: String?
 
@@ -19,6 +20,9 @@ struct ClaudeImportSheet: View {
                 VStack(alignment: .leading, spacing: 12) {
                     if let failure {
                         Text(failure).font(.footnote).foregroundStyle(BrandColors.danger)
+                    }
+                    if let planNotice, results.contains(where: { $0.errors.contains(.outOfPeriod) }) {
+                        Text(planNotice).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.attention)
                     }
                     if let summary {
                         Text("\"\(summary)\"").font(.footnote).foregroundStyle(BrandColors.dim)

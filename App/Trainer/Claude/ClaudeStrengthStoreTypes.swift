@@ -22,4 +22,5 @@ struct ClaudeImportState: Identifiable {
     let summary: String?
     let results: [ClaudeDayResult]
     let failure: String?
+    var planId: UUID?
 }

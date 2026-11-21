@@ -53,6 +53,7 @@ enum ClaudeContextBuilder {
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         let context = (try? encoder.encode(payload(input))).map { String(decoding: $0, as: UTF8.self) } ?? "{}"
         var parts = [ClaudeText.instructions]
+        if input.planLocked { parts.append(ClaudeText.planInstruction) }
         if let extra, !extra.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             parts.append("Pedido do atleta: \(extra)")
         }
