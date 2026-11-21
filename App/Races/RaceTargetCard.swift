@@ -33,7 +33,7 @@ struct RaceTargetCard<Footer: View>: View {
             }
             .font(.caption)
             if let prediction = target.predictionSeconds, let goal = target.goalSeconds {
-                GoalPredictionBar(today: prediction, target: goal).frame(height: GoalsConstants.barHeight)
+                GoalPredictionBar(today: prediction, target: goal)
             }
             if let weather {
                 weatherBox(weather)
