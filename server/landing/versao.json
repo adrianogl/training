@@ -1,11 +1,17 @@
 {
-  "versao": "1.32.1",
-  "build": 45,
-  "versao_app": "1.32.1",
+  "versao": "1.33.0",
+  "build": 46,
+  "versao_app": "1.33.0",
   "notas": [
-    "Depois de atualizar, as telas abrem já com os dados da versão nova"
+    "Previsões da Evolução mostram quanto você está abaixo ou acima do seu recorde em cada distância"
   ],
   "historico": [
+    {
+      "versao": "1.33.0",
+      "notas": [
+        "Previsões da Evolução mostram quanto você está abaixo ou acima do seu recorde em cada distância"
+      ]
+    },
     {
       "versao": "1.32.1",
       "notas": [
@@ -69,12 +75,6 @@
       "versao": "1.27.1",
       "notas": [
         "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
-      ]
-    },
-    {
-      "versao": "1.27.0",
-      "notas": [
-        "Avisa a instalação e abre a tela de cada notificação"
       ]
     }
   ]
