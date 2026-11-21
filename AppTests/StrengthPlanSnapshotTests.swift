@@ -57,15 +57,15 @@ import TrainingCore
         })
     }
 
+    @Test func futureCard() throws {
+        try Self.render("2b-future", StrengthPlanCard(summary: StrengthPlanDraftLogic.cardSummary(Self.plan(), done: 0, today: Day(iso: "2026-11-20")!)) {})
+    }
+
     @Test func dayWithBoth() throws {
         try Self.render("3-day", Group {
-            StrengthDayCard(model: StrengthDayCardModel(
-                source: .mfit, isClaude: false, minutes: 45, title: "Treino B · inferiores", subtitle: "6 exercícios · 18 séries",
-                isDone: false, showsLink: true
-            ))
-            StrengthDayCard(model: StrengthDayCardModel(
-                source: .trainer, isClaude: false, minutes: 20, title: "Mobilidade",
-                subtitle: StrengthPlanText.dayPlanSubtitle(exercises: 7, week: 3, weeks: 8), isDone: false, showsLink: true
+            StrengthDayCard(model: StrengthPlanDraftLogic.mfitDayCard(title: "Treino B · inferiores", exercises: 6, sets: 18))
+            StrengthDayCard(model: StrengthPlanDraftLogic.planDayCard(
+                group: .mobility, minutes: 20, exercises: 7, week: 3, weeks: 8, note: nil, isClaude: false, isDone: false
             ))
         })
     }

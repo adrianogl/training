@@ -83,7 +83,26 @@ enum StrengthPlanDraftLogic {
         return StrengthPlanCardSummary(
             label: StrengthPlanText.cardLabel, builder: StrengthPlanText.builderName(plan.builder), title: StrengthPlanText.cardTitle(plan),
             period: StrengthPlanText.cardPeriod(plan), share: planned == 0 ? 0 : Double(done) / Double(planned),
-            progress: StrengthPlanText.progress(week: plan.week(on: today), weeks: plan.totalWeeks, done: done, planned: planned)
+            progress: today < plan.start
+                ? StrengthPlanText.startsOn(plan.start)
+                : StrengthPlanText.progress(week: plan.week(on: today), weeks: plan.totalWeeks, done: done, planned: planned)
+        )
+    }
+
+    static func mfitDayCard(title: String, exercises: Int, sets: Int) -> StrengthDayCardModel {
+        StrengthDayCardModel(
+            source: .mfit, isClaude: false, minutes: nil, title: title,
+            subtitle: StrengthText.countLabel(exercises: exercises, sets: sets), isDone: false, showsLink: true
+        )
+    }
+
+    static func planDayCard(
+        group: TrainerStrengthGroup, minutes: Double, exercises: Int, week: Int?, weeks: Int, note: String?, isClaude: Bool, isDone: Bool
+    ) -> StrengthDayCardModel {
+        StrengthDayCardModel(
+            source: .trainer, isClaude: isClaude, minutes: Int(minutes.rounded()), title: TrainerStrengthText.focusName(group),
+            subtitle: StrengthPlanText.dayPlanSubtitle(exercises: exercises, week: week, weeks: weeks),
+            note: note, isDone: isDone, showsLink: true
         )
     }
 

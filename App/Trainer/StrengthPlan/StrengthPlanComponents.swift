@@ -22,6 +22,7 @@ struct StrengthPlanSegmented<Value: Hashable>: View {
                                 RoundedRectangle(cornerRadius: StrengthPlanUIConstants.segmentRadius, style: .continuous).fill(BrandColors.track)
                             }
                         }
+                        .frame(minHeight: StrengthPlanUIConstants.hitSize)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -30,7 +31,7 @@ struct StrengthPlanSegmented<Value: Hashable>: View {
                 .accessibilityAddTraits(selected ? .isSelected : [])
             }
         }
-        .padding(StrengthPlanUIConstants.segmentPadding)
+        .padding(.horizontal, StrengthPlanUIConstants.segmentPadding)
         .background(BrandColors.track, in: RoundedRectangle(cornerRadius: StrengthPlanUIConstants.innerRadius, style: .continuous))
     }
 }
@@ -69,21 +70,5 @@ struct StrengthPlanMeter: View {
 
     var body: some View {
         DSProgressBar(value: share, color: BrandColors.text.opacity(StrengthPlanUIConstants.meterOpacity), height: StrengthPlanUIConstants.meterHeight)
-    }
-}
-
-struct StrengthPlanFooterLink: View {
-    let title: String
-
-    var body: some View {
-        VStack(spacing: CardLinkConstants.footerSpacing) {
-            Rectangle().fill(BrandColors.line).frame(height: 1)
-            HStack {
-                Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Spacer(minLength: DSSpacing.s2)
-                CardLinkChevron()
-            }
-        }
-        .contentShape(Rectangle())
     }
 }

@@ -13,6 +13,7 @@ enum StrengthPlanUIConstants {
     static let segmentRadius: CGFloat = 9
     static let segmentPadding: CGFloat = 3
     static let segmentHeight: CGFloat = 32
+    static let hitSize: CGFloat = 44
     static let rowMinHeight: CGFloat = 44
     static let dayColumnWidth: CGFloat = 44
     static let meterHeight: CGFloat = 6

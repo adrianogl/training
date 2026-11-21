@@ -11,7 +11,7 @@ struct StrengthPlanCard: View {
             Text(summary.period).font(.footnote).foregroundStyle(BrandColors.dim)
             StrengthPlanMeter(share: summary.share)
             Text(summary.progress).font(.footnote).foregroundStyle(BrandColors.dim)
-            Button(action: onEdit) { StrengthPlanFooterLink(title: StrengthPlanText.editPlan) }
+            Button(action: onEdit) { CardLinkFooter(title: StrengthPlanText.editPlan) }
                 .buttonStyle(.plain)
         }
         .brandCard()

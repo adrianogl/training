@@ -53,11 +53,10 @@ extension TrainerModel {
     func planDayCard(_ workout: GeneratedStrengthWorkout, day: Day, isClaude: Bool, isDone: Bool) -> StrengthDayCardModel {
         let active = strengthPlan.flatMap { $0.isActive(on: day) ? $0 : nil }
         let week = isClaude ? nil : active?.week(on: day)
-        return StrengthDayCardModel(
-            source: .trainer, isClaude: isClaude, minutes: Int(workout.estimatedMinutes.rounded()),
-            title: TrainerStrengthText.focusName(workout.group),
-            subtitle: StrengthPlanText.dayPlanSubtitle(exercises: workout.exercises.count, week: week, weeks: active?.totalWeeks ?? 0),
-            note: workout.adjustments.first.map(TrainerStrengthText.adjustmentTitle), isDone: isDone, showsLink: true
+        return StrengthPlanDraftLogic.planDayCard(
+            group: workout.group, minutes: workout.estimatedMinutes, exercises: workout.exercises.count, week: week,
+            weeks: active?.totalWeeks ?? 0, note: workout.adjustments.first.map(TrainerStrengthText.adjustmentTitle),
+            isClaude: isClaude, isDone: isDone
         )
     }
 }

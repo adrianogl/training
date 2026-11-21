@@ -40,10 +40,8 @@ struct TodayStrengthCard<Label: View>: View {
         NavigationLink {
             StrengthPlannedDetailView(workoutId: workout.id)
         } label: {
-            StrengthDayCard(model: StrengthDayCardModel(
-                source: .mfit, isClaude: false, minutes: nil, title: workout.title,
-                subtitle: StrengthText.countLabel(exercises: workout.blocks.flatMap(\.exercises).count, sets: workout.totalSets),
-                isDone: false, showsLink: true
+            StrengthDayCard(model: StrengthPlanDraftLogic.mfitDayCard(
+                title: workout.title, exercises: workout.blocks.flatMap(\.exercises).count, sets: workout.totalSets
             ))
         }
         .buttonStyle(.cardLink)

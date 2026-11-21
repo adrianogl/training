@@ -117,6 +117,7 @@ import TrainingCore
         #expect(card.title == "Mobilidade · ter e qui")
         #expect(card.period == "24/11 a 18/01 · 20 min · casa")
         #expect(card.progress == "Semana 3 de 8 · 6 de 16 treinos feitos")
+        #expect(StrengthPlanDraftLogic.cardSummary(value, done: 0, today: Day(iso: "2026-11-20")!).progress == "Começa em ter. 24/11")
         #expect(StrengthPlanText.summary(end: value.end, planned: value.plannedCount()) == "Termina seg. 18/01 · 16 treinos")
         let ended = StrengthPlanDraftLogic.endedSummary(value, done: 15)
         #expect(ended.title == "Plano de mobilidade terminou em 18/01")

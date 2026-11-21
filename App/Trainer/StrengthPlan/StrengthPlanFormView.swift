@@ -190,7 +190,7 @@ struct StrengthPlanFormContent: View {
     }
 
     private var weeksStepper: some View {
-        HStack(spacing: DSSpacing.s3) {
+        HStack(spacing: 0) {
             stepButton(C.stepperSymbolMinus, enabled: draft.weeks > C.weeksRange.lowerBound) { draft.weeks -= 1 }
             Text(StrengthPlanText.weeks(draft.weeks)).font(.subheadline).foregroundStyle(BrandColors.dim).monospacedDigit()
             stepButton(C.stepperSymbolPlus, enabled: draft.weeks < C.weeksRange.upperBound) { draft.weeks += 1 }
@@ -202,6 +202,8 @@ struct StrengthPlanFormContent: View {
             Image(systemName: symbol).font(.caption.weight(.bold)).foregroundStyle(BrandColors.text)
                 .frame(width: C.segmentHeight, height: C.segmentHeight)
                 .background(BrandColors.track, in: Circle())
+                .frame(width: C.hitSize, height: C.hitSize)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!enabled)

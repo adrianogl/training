@@ -118,6 +118,10 @@ enum StrengthPlanText {
         return parts.joined(separator: " · ")
     }
 
+    static func startsOn(_ day: Day) -> String {
+        "\(startLabel) \(weekdayDate(day))"
+    }
+
     static func progress(week: Int, weeks: Int, done: Int, planned: Int) -> String {
         "Semana \(week) de \(weeks) · \(done) de \(planned) treinos feitos"
     }
