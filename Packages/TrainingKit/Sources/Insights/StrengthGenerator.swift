@@ -46,8 +46,7 @@ public enum StrengthGenerator {
     }
 
     private static func plan(for session: TrainerStrengthSession, context: StrengthContext) -> Plan {
-        var plan = Plan(group: session.group, intensity: session.intensity, minutes: Double(session.minutes), mobilityOnly: session.group == .mobility, adjustments: [], empty: false)
-        if session.group == .mobility { plan.intensity = .light }
+        var plan = Plan(group: session.group, intensity: session.group == .mobility ? .light : session.intensity, minutes: Double(session.minutes), mobilityOnly: session.group == .mobility, adjustments: [], empty: false)
         if let days = context.daysToRace, days >= 0, days <= C.raceWeekDays {
             if days <= C.raceRestDays {
                 plan.empty = true

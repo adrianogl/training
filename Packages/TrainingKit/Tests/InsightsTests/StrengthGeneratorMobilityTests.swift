@@ -41,4 +41,10 @@ import TrainingCore
             #expect(StrengthSessions.legLoad(group: .mobility, intensity: intensity) == .light)
         }
     }
+
+    @Test func unknown_group_value_decodes_as_core_without_dropping_plan() throws {
+        let json = #"[{"id":"6F1B1E2A-1111-4222-8333-444455556666","weekday":2,"group":"yoga","legLoad":"light","name":"X"},{"id":"6F1B1E2A-1111-4222-8333-444455556667","weekday":4,"group":"upper","legLoad":"light","name":"Y"}]"#
+        let sessions = try JSONDecoder().decode([TrainerStrengthSession].self, from: Data(json.utf8))
+        #expect(sessions.map(\.group) == [.core, .upper])
+    }
 }

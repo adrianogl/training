@@ -244,6 +244,11 @@ public enum TrainerStrengthGroup: String, Codable, Sendable, CaseIterable {
     case fullBody
     case core
     case mobility
+
+    public init(from decoder: any Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+        self = Self(rawValue: value) ?? .core
+    }
 }
 
 public enum TrainerStrengthLoad: String, Codable, Sendable, CaseIterable {

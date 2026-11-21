@@ -16,6 +16,7 @@ export const STRENGTH = {
   catalogListSeparator: ',',
   catalogUnilateral: 'u',
   catalogTimed: 'i',
+  groups: ['upper', 'lower', 'fullBody', 'core', 'mobility'],
   weekdays: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'],
   qualityKinds: ['threshold', 'vo2max', 'long', 'race'],
   legPatterns: ['squat', 'hinge', 'singleLeg', 'plyo'],
