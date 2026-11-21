@@ -100,7 +100,7 @@ import TrainingCore
     }
 
     @Test func selectedGroupFallsBackToFirst() {
-        #expect(MetricGroup.selected(EvolutionConstants.predictionsGroupTitle)?.kinds.first == .prediction5k)
+        #expect(MetricGroup.selected(EvolutionConstants.predictionsGroupTitle)?.kinds.first == .prediction1k)
         #expect(MetricGroup.selected("inexistente")?.title == EvolutionConstants.metricGroups.first?.title)
         #expect(MetricGroup.selected("x", in: []) == nil)
         #expect(Set(EvolutionConstants.metricGroups.flatMap(\.kinds)) == Set(EvolutionConstants.cardKinds))

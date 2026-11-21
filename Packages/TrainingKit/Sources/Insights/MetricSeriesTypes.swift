@@ -3,9 +3,11 @@ import TrainingCore
 
 public enum MetricKind: String, CaseIterable, Sendable, Codable {
     case vo2max, zone2Pace, fitness, monthlyVolume, loadFocus, thresholdPace, thresholdHeartRate
-    case prediction5k, prediction10k, predictionHalf, predictionFull
+    case prediction1k, prediction3k, prediction5k, prediction10k, predictionHalf, predictionFull
     case durability, hillStrength, cadence, groundContact, verticalOscillation
     case restingHeartRate, hrv, sleep, bodyBattery, zoneDistribution
+
+    public static let predictionKinds: [MetricKind] = [.prediction1k, .prediction3k, .prediction5k, .prediction10k, .predictionHalf, .predictionFull]
 }
 
 public enum MetricPeriod: String, CaseIterable, Sendable, Codable {

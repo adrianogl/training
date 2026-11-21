@@ -50,7 +50,7 @@ import WorkoutAnalysis
         )
 
         #expect(content.title == "Primeira meia maratona · Meia · nota 90")
-        #expect(content.body == "1:52:10 nos 21,1 km, o primeiro tempo na distância. Boa prova.")
+        #expect(content.body == "1:52:10 na meia maratona, o primeiro tempo na distância. Boa prova.")
     }
 
     @Test func severalRecordsAndGoalsAreCountedAndListed() {
@@ -61,7 +61,7 @@ import WorkoutAnalysis
         )
 
         #expect(content.title == "2 recordes e 2 metas · Prova Meia de Floripa · nota 94")
-        #expect(content.body.hasPrefix("Recordes: 21,1 km em 1:49:58 (−2:12) e 5 km em 23:30 (−11 s). Metas: "))
+        #expect(content.body.hasPrefix("Recordes: meia maratona em 1:49:58 (−2:12) e 5 km em 23:30 (−11 s). Metas: "))
     }
 
     @Test func nearRecordShowsTheGap() {

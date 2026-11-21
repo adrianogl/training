@@ -42,7 +42,8 @@ import Testing
     @Test func effortsTakeTheWholeRunAndTheSegments() {
         let record = ActivityRecord(activityId: 1, typeKey: "running", name: "Ritmo", start: .now, distance: 5_000, duration: 1_440)
         let efforts = PersonalRecords.efforts(record: record, samples: samples(paces: [300, 290, 280, 290, 280]))
-        #expect(efforts.map(\.meters) == [1_000, 5_000])
+        #expect(efforts.map(\.meters) == [1_000, 3_000, 5_000])
+        #expect(efforts.first { $0.meters == 3_000 }?.seconds == 850)
         #expect(efforts.first { $0.meters == 5_000 }?.seconds == 1_440)
         #expect(efforts.first { $0.meters == 1_000 }?.seconds == 280)
     }
@@ -111,5 +112,11 @@ import Testing
         ])
         #expect(standings.map(\.meters) == [1_000, 5_000])
         #expect(standings.first { $0.meters == 5_000 }?.activityId == 2)
+    }
+
+    @Test func distancesIncludeThreeKilometers() {
+        #expect(PersonalRecordsConstants.distances == [1_000, 3_000, 5_000, 10_000, 21_097.5, 42_195])
+        #expect(PersonalRecordsConstants.segmentDistances.contains(3_000))
+        #expect(PersonalRecordsConstants.effortsVersion == 2)
     }
 }
