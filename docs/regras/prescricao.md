@@ -170,6 +170,16 @@ Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.
 
 - **Sem plano do treinador:** a força funciona do mesmo jeito, guardada à parte (`TrainerStrengthStandaloneStore`) e levada para o plano quando ele é criado. O dia de corrida forte vem do nome do treino da assessoria no Garmin (`ExternalDayKind`): limiar, ritmo e tempo contam como limiar; VO2, intervalado, tiro e fartlek como VO2; longo, longão ou 18 km ou mais como longão; "prova" sem "ritmo" como prova. Semana de recuperação e semana da prova só se aplicam com plano.
 
+### Plano de força
+
+- **Plano:** objetivo (Mobilidade, Força ou Prevenção), dias com foco, minutos e local, validade, data de início e quem monta (Treinador ou Claude). Só um plano ativo por vez.
+- **Validade:** até a prova, de 1 a 24 semanas ou até uma data. Os treinos do plano aparecem só entre o início e o fim; fora disso, nenhum dia do plano aparece.
+- **MFIT em paralelo:** o MFIT nunca é substituído pelo plano. Num dia com os dois, a semana e o Hoje mostram dois cards, "MFIT" e "Plano".
+- **Mobilidade:** foco próprio, só exercícios de mobilidade, sem carga.
+- **Fim do plano:** a notificação "Plano de <objetivo> terminou" com "Foram X de Y treinos" sai às 21h do último dia de treino ou logo depois do último treino concluído, o que vier primeiro, uma vez por plano e só no iPhone. A tela Força oferece "Montar próximo plano" e "Repetir o mesmo plano" (mesmas sessões, a partir do próximo dia de treino).
+- **Claude:** quando o plano é do Claude, o pedido usa o período e os dias do plano, e o resultado fora do plano é rejeitado.
+- **Migração:** na primeira abertura, as sessões do treinador existentes viram um plano que termina junto com o plano de corrida (ou em 12 semanas, sem plano de corrida), com um aviso único para ajustar.
+
 ### Sugestão de dias e foco
 
 Arquivo: `Insights/StrengthSessions.swift`. Testes: `InsightsTests/StrengthDayTests.swift`.
