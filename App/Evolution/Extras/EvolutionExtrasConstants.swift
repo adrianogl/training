@@ -7,6 +7,7 @@ enum EvolutionExtrasConstants {
     static let zonesTitle = "Tempo por zona por semana"
     static let zonesFootFormat = "%d%% do tempo em Z1–Z2 nas últimas %d semanas."
     static let recordsTitle = "Recordes pessoais"
+    static let recordTimeTemplate = "0:00:00"
     static let recordsEmpty = "Sem corridas suficientes para recordes."
     static let newRecord = "novo"
     static let recentDays = 7
@@ -16,6 +17,5 @@ enum EvolutionExtrasConstants {
     static let runSource = "corrida"
     static let recordDateFormat = "dd/MM/yy"
     static let recordMissing = "ainda sem"
-    static let recordLabelWidth: CGFloat = 62
     static let zoneLabels = ["Z1", "Z2", "Z3", "Z4", "Z5"]
 }

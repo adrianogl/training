@@ -69,15 +69,22 @@ struct RecordsCard: View {
 
     private func row(_ label: String, record: PersonalRecord?) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(label)
-                .font(.subheadline.weight(.semibold))
-                .lineLimit(1)
-                .fixedSize()
-                .frame(minWidth: C.recordLabelWidth, alignment: .leading)
+            ZStack(alignment: .leading) {
+                ForEach(C.records.map(\.label), id: \.self) { Text($0).hidden() }
+                Text(label)
+            }
+            .font(.subheadline.weight(.semibold))
+            .lineLimit(1)
+            .fixedSize()
             if let record {
                 let isRecent = now.timeIntervalSince(record.date) <= Double(C.recentDays) * C.secondsPerDay
-                Text(WorkoutFormat.clock(record.seconds)).font(BrandFonts.number(18)).lineLimit(1).fixedSize()
-                    .foregroundStyle(isRecent ? BrandColors.record : BrandColors.text)
+                ZStack(alignment: .leading) {
+                    Text(C.recordTimeTemplate).hidden()
+                    Text(WorkoutFormat.clock(record.seconds)).foregroundStyle(isRecent ? BrandColors.record : BrandColors.text)
+                }
+                .font(BrandFonts.number(18))
+                .lineLimit(1)
+                .fixedSize()
                 if let meters = record.meters, meters > 0 {
                     Text(WorkoutListModel.paceText(secondsPerKilometer: record.seconds / (meters / WorkoutConstants.metersPerKilometer)))
                         .font(BrandFonts.number(13))
