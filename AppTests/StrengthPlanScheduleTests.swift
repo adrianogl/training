@@ -182,6 +182,14 @@ import TrainingCore
         #expect(model.planDayCard(workout(2), day: nextTuesday, isClaude: false, isDone: false).note == nil)
     }
 
+    @Test func active_plan_objective_reaches_the_generator() throws {
+        let (model, planStore, _) = try makeModel()
+        let plan = StrengthPlan(objective: .performance, sessions: [session(2, group: .lower)], start: nextMonday, validity: .weeks(4), builder: .trainer)
+        try activate(plan, in: model, store: planStore)
+        let workout = try #require(model.strengthWorkout(sessionId: plan.sessions[0].id, day: nextTuesday))
+        #expect(workout.exercises.first.flatMap { StrengthCatalog.exercise($0.exerciseId)?.pattern } == .singleLeg)
+    }
+
     @Test func editing_sessions_updates_active_plan_and_keeps_mfit() async throws {
         let (model, planStore, _) = try makeModel()
         await createRunningPlan(model, strength: [session(3, source: .mfit)])

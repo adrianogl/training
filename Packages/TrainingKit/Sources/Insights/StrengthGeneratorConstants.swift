@@ -26,6 +26,12 @@ enum StrengthGeneratorConstants {
         .mobility: mobilityOrder,
         .core: [.mobilityHip, .antiRotation, .mobilityAnkle, .antiExtension, .hipStability, .mobilityThoracic, .lateralCore, .singleLeg, .hinge, .calf],
     ]
+    static let performanceOrder: [TrainerStrengthGroup: [MovementPattern]] = [
+        .lower: [.singleLeg, .plyo, .calf, .hipStability, .squat, .hinge, .lateralCore],
+        .fullBody: [.singleLeg, .hinge, .plyo, .calf, .squat, .horizontalPull, .hipStability, .antiExtension, .horizontalPush, .lateralCore],
+    ]
+    static let maintenanceExcluded: Set<MovementPattern> = [.plyo]
+    static let staticMobilityWord = "STRETCH"
     static let equipmentPreference: [StrengthEquipment] = [.barbell, .machine, .cable, .dumbbell, .kettlebell, .band, .bodyweight, .medicineBall, .swissBall, .suspension]
     static let comboWords: Set<Substring> = ["TO", "AND", "CIRCUIT", "MATRIX", "COMBO"]
     static let simpleTokenLimit = 4

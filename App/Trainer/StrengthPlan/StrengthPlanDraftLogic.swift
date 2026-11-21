@@ -42,6 +42,8 @@ enum StrengthPlanDraftLogic {
         case .mobility: (group, intensity, minutes, place) = (.mobility, .light, 20, .home)
         case .strength: (group, intensity, minutes, place) = (.fullBody, .moderate, 45, .gym)
         case .prevention: (group, intensity, minutes, place) = (.fullBody, .light, 30, .gym)
+        case .performance: (group, intensity, minutes, place) = (.lower, .moderate, 40, .gym)
+        case .maintenance: (group, intensity, minutes, place) = (.fullBody, .light, 25, .gym)
         }
         return TrainerStrengthSession(
             weekday: weekday, group: group, legLoad: StrengthSessions.legLoad(group: group, intensity: intensity),
