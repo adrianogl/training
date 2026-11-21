@@ -1,9 +1,10 @@
 import Foundation
+import HealthKit
 import os
 
 enum WorkoutNoticeConstants {
     static let enabledKey = "workoutNoticeEnabled"
-    static let permissionRequestedKey = "workoutNoticePermissionRequested"
+    static let permissionRequestedKey = "workoutNoticePermissionRequested.wake"
     static let enabledAtKey = "workoutNoticeEnabledAt"
     static let notifiedKey = "workoutNoticeNotifiedIds"
     static let notifiedWorkoutsKey = "workoutNoticeNotifiedWorkouts"
@@ -11,6 +12,10 @@ enum WorkoutNoticeConstants {
     static let logger = Logger(subsystem: "trAIning", category: "WorkoutNotice")
     static let backgroundTaskName = "workout-notice"
     static let retryDelay: TimeInterval = 5 * 60
+    static let quickRetryDelay: Duration = .seconds(15)
+    static let quickRetryLimit = 6
+    static let quickRetryMinimumRemaining: TimeInterval = 20
+    static let wakeTypes: [HKQuantityTypeIdentifier] = [.heartRate, .distanceWalkingRunning, .activeEnergyBurned]
     static let defaultEnabled = true
     static let recentWindow: TimeInterval = 6 * 60 * 60
     static let matchTolerance: TimeInterval = 10 * 60

@@ -241,6 +241,8 @@ Toda notificação abre a tela da ação relacionada:
 
 A prontidão da manhã sai quando o app encontra HRV e sono da noite numa sincronização em segundo plano. Há dois gatilhos: o sono novo no Apple Health, que o Garmin Connect grava ao sincronizar o relógio e acorda o app na hora, e o refresh em background a partir das 4h, que tenta de hora em hora até as 11h e fica a critério do iOS. Com o app aberto na tela, o sono do Health não dispara sync.
 
+O aviso de treino terminado sai quando o treino entra no Apple Health e a nota fica pronta. Se a nota ainda não saiu, o app sincroniza de novo a cada 15 s enquanto o iOS dá tempo em segundo plano, até 6 vezes. Enquanto houver treino pendente, cada FC, distância ou caloria nova que o Garmin Connect grava no Health acorda o app para mais uma tentativa. O refresh em background 5 min depois fica como reserva.
+
 Garmin desconectado sai só quando a sincronização em segundo plano recebe chave recusada, uma vez até a conexão voltar. Strava desconectado sai quando a sessão expira. Treinos do Claude saem uma vez por lote recebido. As três esperam até 7h quando chegam entre 22h e 7h.
 
 ## Privacidade

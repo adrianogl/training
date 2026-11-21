@@ -14,6 +14,11 @@ import UIKit
     private var backgroundTask = UIBackgroundTaskIdentifier.invalid
     private weak var model: AppModel?
 
+    func requestAccess() async {
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        try? await store.requestAuthorization(toShare: [], read: [type])
+    }
+
     func start(model: AppModel) {
         guard HKHealthStore.isHealthDataAvailable() else { return }
         self.model = model
