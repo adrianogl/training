@@ -49,6 +49,7 @@ enum TrainerConstants {
     static let lightWeekChoices = 12
     static let goalPaceRange = 150...480
     static let goalPaceStep = 5
+    static let defaultLongPace = 360.0
     static let goalPaceDefault = 240
     static let goalDistanceRange = 3...100
     static let goalDistanceDefault = 21

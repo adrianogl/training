@@ -25,21 +25,43 @@ Testes: `MetricsTests/ReadinessTests.swift`, `ReadinessBreakdownTests.swift`, `I
 
 ### Ajuste para hoje
 
-O card "Treino de hoje" do Garmin mostra um ajuste pelo veredito quando o treinador não tem sugestão própria. A frase depende do tipo do treino (`PlanText.shape`):
+O card "Treino de hoje" recalcula o ritmo de cada passo ativo que tem pace-alvo. Passo de aquecimento, trote e descanso não mudam. A conta sai de três fatores, somados em s/km, em `Insights/DayAdjust.swift`.
 
-| Tipo | Como reconhece |
+| Fator | Regra | Constante |
+| --- | --- | --- |
+| Prontidão ≥ 70 | sem ajuste | `DayAdjustConstants.readinessSteps` |
+| Prontidão 60 a 69 | + 3 s/km | `readinessSteps` |
+| Prontidão 50 a 59 | + 6 s/km, e encurta o treino (tabela abaixo) | `readinessSteps`, `shortenShare` |
+| Prontidão abaixo de 50 | sem faixa: o card mostra a frase de descanso | `restBelow` |
+| Calor | `WeatherAdjustment.heatFactor(temperatura, ponto de orvalho)` × (1 − aclimatação) × pace médio do bloco, arredondado. A aclimatação conta as corridas quentes dos últimos 14 dias (`hotSessions`). Abaixo de 3 s/km no bloco, o calor é ignorado; se nenhum bloco chega a 3 s/km, o calor não entra como motivo | `WeatherAdjustment`, `RunWeatherConstants.minimumHeatSeconds` |
+| Perna pesada no dia anterior | + 3 s/km em qualquer treino | `heavyLegsSeconds` |
+
+A perna pesada vem de `StrengthModel.legDay`, com uma sessão de força feita ontem. Conta quando a sessão casa com um treino conhecido do MFIT com pelo menos 50% das séries em perna, ou quando o treino de força planejado para ontem era de perna pesada: do treinador com foco pernas moderada ou pesada, ou corpo inteiro pesada (`TrainerModel.plannedLegs`), ou o treino do Claude aplicado para ontem com perna pesada (`ClaudeStrengthValidator.isHeavyLegs`).
+
+| Tipo | Encurtamento com prontidão 50 a 59 |
 | --- | --- |
-| Intervalado | tem repetição ou mais de um bloco ativo |
-| Longão | não é intervalado e o nome fala em longão ou a distância chega a 14 km (`isLongRun`) |
-| Contínuo | o resto |
+| Intervalado | uma repetição a menos. Sem grupo de repetição, sai o último bloco ativo e a recuperação antes dele; bloco ativo único não é cortado |
+| Contínuo | 20% mais curto |
+| Longão | último bloco 20% mais curto |
 
-| Veredito | Contínuo | Intervalado | Longão |
+O tipo vem de `PlanText.shape`: intervalado tem repetição ou mais de um bloco ativo; longão não é intervalado e o nome fala em longão ou a distância chega a 14 km (`isLongRun`); contínuo é o resto.
+
+- O ajuste mostrado e o teto de 15 s/km (`maximumSeconds`) usam o bloco mais ajustado. Acima do teto, o card mostra a frase de troca.
+- O horário do clima é a mediana da hora de início das corridas dos últimos 30 dias (`usualWindowDays`), 7h sem corrida (`defaultHour`). Usa a hora mais próxima com previsão.
+- Sem previsão, ou sem ponto de orvalho na hora escolhida, o calor não entra e o motivo aparece como "sem previsão do tempo".
+- O card mostra a faixa nova com "era …", o aviso "Ajuste para hoje · +N s/km nos tiros/no ritmo/no longão" e um chip por motivo. Sem mudança, não há aviso. A sugestão própria do treinador por prontidão tem prioridade.
+- A notificação da manhã acrescenta, antes da linha de força, algo como "Tiros em 4:10–4:18 por calor e prontidão.". Usa o mesmo treino do card: o primeiro treino do dia que ainda não foi feito (`TodayWorkoutPicker.pending`). Só entra quando o aviso é enviado e espera no máximo 5 s pela previsão. Se o app for aberto durante a espera, o aviso não sai.
+
+Frases de troca e de descanso:
+
+- **Troca** (ajuste acima de 15 s/km): "O pace subiria mais de 15 s/km por <motivos>: troque por rodagem leve em Z1–Z2 ou descanse.", com os motivos na mesma ordem da notificação ("por calor e prontidão") e os chips embaixo.
+- **Descanso** (prontidão abaixo de 50), por tipo de treino:
+
+| Prontidão abaixo de 50 | Contínuo | Intervalado | Longão |
 | --- | --- | --- | --- |
-| Forte | siga o plano | siga o plano | siga o plano |
-| Moderado | lado mais lento da faixa, segurar o ritmo se a FC subir | blocos fortes no lado mais lento, parar um bloco antes se a FC subir | lado mais lento, encurtar o final se a FC subir |
-| Descanso | encurtar e ficar em Z1–Z2, ou descansar | trocar por rodagem leve em Z1–Z2, ou descansar | trocar o longão por rodagem leve em Z1–Z2, ou descansar |
+| Frase | encurtar e ficar em Z1–Z2, ou descansar | trocar por rodagem leve em Z1–Z2, ou descansar | trocar o longão por rodagem leve em Z1–Z2, ou descansar |
 
-Textos em `App/Today/TodayConstants.swift`. Testes: `AppTests/PlanAdjustTests.swift`.
+Arquivos: `Insights/DayAdjust.swift`, `App/Today/DayAdjustText.swift`, `App/Today/TodayConstants.swift`. Testes: `InsightsTests/DayAdjustTests.swift`, `AppTests/DayAdjustTextTests.swift`, `AppTests/PlanAdjustTests.swift`.
 
 ## Zonas de FC no Garmin
 

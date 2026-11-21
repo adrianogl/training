@@ -189,10 +189,14 @@ struct TodayView: View {
         }
     }
 
+    private func legDay(_ model: TodayModel) -> StrengthLegDay? {
+        strength.legDay(before: model.today, planned: app.trainer.plannedLegs(on: model.today.adding(days: -1)))
+    }
+
     @ViewBuilder
     private func nowBlock(_ model: TodayModel) -> some View {
         blockLabel(TodayConstants.blockNow, first: true)
-        ReadinessHeroCard(model: model, overload: model.overload, recovery: model.recoveryEstimate(trainer: trainerWorkouts), legDay: strength.legDay(before: model.today))
+        ReadinessHeroCard(model: model, overload: model.overload, recovery: model.recoveryEstimate(trainer: trainerWorkouts), legDay: legDay(model))
             .syncSkeleton(app.isRefreshing && model.summary.readinessFromYesterday && model.summary.readinessMissingNight != true, height: SkeletonConstants.readinessHeight)
     }
 
@@ -203,7 +207,7 @@ struct TodayView: View {
             SkeletonCards(heights: [SkeletonConstants.todayWorkoutHeight])
         } else if let pick = workoutPick(model) {
             blockLabel(TodayConstants.blockToday)
-            TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick, legDay: strength.legDay(before: model.today))
+            TodayWorkoutCard(model: model, trainer: app.trainer, pick: pick, legDay: legDay(model))
         }
         if model.plannedLoaded && strength.isLoaded && app.trainer.isLoaded {
             TodayStrengthCard(showsLabel: workoutPick(model) == nil) {

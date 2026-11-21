@@ -160,10 +160,7 @@ enum TrainerEngineConstants {
     static let longFadeBlockShare = 0.4
     static let longHistoryRuns = 4
     static let longSuggestionMinimum = 2
-    static let heatThreshold = 24.0
-    static let heatStrong = 28.0
-    static let heatPaceOffset = 5.0
-    static let heatStrongPaceOffset = 10.0
+    static let heatBlockFactor = 0.045
     static let heatBlockReduction = 1_000.0
     static let paceChangeSeconds = 2.0
     static let externalLongShare = 0.85

@@ -39,22 +39,4 @@ import Testing
         let repeatStep = PlannedStep(kind: .other, repeats: 3, children: [PlannedStep(kind: .active, meters: 2_000), PlannedStep(kind: .recovery, meters: 1_000)])
         #expect(PlanText.shape(plan("Longão 20 km com 3 × 2 km", meters: 20_000, steps: [easy, repeatStep])) == .intervals)
     }
-
-    @Test func moderateAdviceMatchesTheWorkout() {
-        let continuous = PlanText.adjust(.moderate, shape: .continuous)
-        #expect(continuous?.contains("blocos") == false)
-        #expect(continuous?.contains("lado mais lento da faixa") == true)
-        #expect(PlanText.adjust(.moderate, shape: .intervals)?.contains("blocos fortes") == true)
-        #expect(PlanText.adjust(.moderate, shape: .long)?.contains("longão") == true)
-    }
-
-    @Test func noRestAdviceSuggestsAnEasyRunWhenItIsAlreadyEasy() {
-        #expect(PlanText.adjust(.rest, shape: .continuous)?.contains("troque por rodagem leve") == false)
-        #expect(PlanText.adjust(.rest, shape: .intervals)?.contains("troque por rodagem leve") == true)
-    }
-
-    @Test func hardAdviceIsTheSameForEveryShape() {
-        let texts = Set(PlannedWorkoutShape.allCases.compactMap { PlanText.adjust(.hard, shape: $0) })
-        #expect(texts.count == 1)
-    }
 }

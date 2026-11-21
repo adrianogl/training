@@ -112,3 +112,8 @@ struct StrengthLegDay: Equatable {
     let sets: Int
     let legSets: Int
 }
+
+struct StrengthPlannedLegs: Equatable, Sendable {
+    let sets: Int
+    let legSets: Int
+}

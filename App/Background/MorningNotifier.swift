@@ -34,7 +34,7 @@ import TrainingCore
         defaults.set(now, forKey: C.lastAppOpenDefaultsKey)
     }
 
-    func evaluate(summary: TodaySummary, now: Date, lastAppOpen: Date?, settings: MorningNoticeSettings, strengthLine: String? = nil) async {
+    func evaluate(summary: TodaySummary, now: Date, lastAppOpen: Date?, settings: MorningNoticeSettings, strengthLine: String? = nil, runLine: () async -> String? = { nil }) async {
         guard settings.enabled,
               let breakdown = summary.readiness,
               let verdict = summary.verdict,
@@ -42,11 +42,13 @@ import TrainingCore
         else { return }
         let day = dayKey(now)
         let readyAt = readyTime(day: day, now: now)
-        if let lastAppOpen, dayKey(lastAppOpen) == day, lastAppOpen >= readyAt { return }
+        if opened(lastAppOpen, day: day, readyAt: readyAt) { return }
         let id = notificationId(day: day)
         if defaults.string(forKey: C.notifiedDayDefaultsKey) == day, await scheduler.pending().contains(id) == false { return }
         let minimum = calendar.date(byAdding: .minute, value: settings.minimumMinutes, to: calendar.startOfDay(for: now)) ?? now
-        let text = [morningNotificationText(breakdown, verdict: verdict), strengthLine].compactMap { $0 }.joined(separator: " ")
+        let run = await runLine()
+        if opened(self.lastAppOpen, day: day, readyAt: readyAt) { return }
+        let text = [morningNotificationText(breakdown, verdict: verdict), run, strengthLine].compactMap { $0 }.joined(separator: " ")
         await scheduler.schedule(id: id, text: text, at: now < minimum ? minimum : nil)
         defaults.set(day, forKey: C.notifiedDayDefaultsKey)
     }
@@ -55,6 +57,11 @@ import TrainingCore
         guard !summary.readinessFromYesterday, let breakdown = summary.readiness else { return false }
         let present = Set(breakdown.factors.filter { $0.todayScore != nil }.map(\.component))
         return present.contains(.hrv) && present.contains(.sleep)
+    }
+
+    private func opened(_ lastAppOpen: Date?, day: String, readyAt: Date) -> Bool {
+        guard let lastAppOpen else { return false }
+        return dayKey(lastAppOpen) == day && lastAppOpen >= readyAt
     }
 
     private func readyTime(day: String, now: Date) -> Date {

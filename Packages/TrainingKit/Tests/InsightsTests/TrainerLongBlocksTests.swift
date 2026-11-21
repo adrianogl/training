@@ -293,14 +293,16 @@ import WorkoutAnalysis
     }
 
     @Test func heatAddsPaceAndShrinksTheBlocks() {
-        #expect(TrainerHeat.assess(temperature: 24).isHot == false)
-        let warm = TrainerHeat.assess(temperature: 26)
-        #expect(warm.paceOffset == 5)
-        #expect(warm.blockReduction == 1_000)
-        let hot = TrainerHeat.assess(temperature: 29)
-        #expect(hot.paceOffset == 10)
-        #expect(TrainerHeat.assess(temperature: 28).paceOffset == 10)
-        #expect(TrainerHeat.assess(temperature: 24.5).paceOffset == 5)
+        #expect(TrainerHeat.assess(temperature: 15, dewPoint: 5, pace: 300).isHot == false)
+        #expect(TrainerHeat.assess(temperature: 30, dewPoint: nil, pace: 300).isHot == false)
+        let warm = TrainerHeat.assess(temperature: 27, dewPoint: 22, pace: 300)
+        let factor = WeatherAdjustment.heatFactor(temperature: 27, dewPoint: 22)
+        #expect(warm.paceOffset == Int((factor * 300).rounded()))
+        #expect(warm.blockReduction == (factor >= 0.045 ? 1_000 : 0))
+        let mild = TrainerHeat.assess(temperature: 22, dewPoint: 14, pace: 300)
+        #expect(mild.blockReduction == 0)
+        let adapted = TrainerHeat.assess(temperature: 27, dewPoint: 22, pace: 300, hotSessions: 5)
+        #expect(adapted.paceOffset < warm.paceOffset)
 
         var current = plan()
         current.longStage = 2
@@ -311,6 +313,19 @@ import WorkoutAnalysis
         #expect((TrainerEngine.blockSizes(of: adjusted).max() ?? 0) <= baseMax - 1_000 + 1)
         #expect(steadyKilometers(adjusted) == base.totalMeters)
         #expect((adjusted.paceLow ?? 0) > (base.paceLow ?? 0))
-        #expect(TrainerHeat.assess(temperature: 22).apply(to: base, longPace: current.paces.long) == base)
+        #expect(TrainerHeat.assess(temperature: 15, dewPoint: 5, pace: 300).apply(to: base, longPace: current.paces.long) == base)
+    }
+
+    @Test func mildHeatBelowThreeSecondsIsNotHot() {
+        let raw = Int((WeatherAdjustment.heatFactor(temperature: 18, dewPoint: 10) * 300).rounded())
+        #expect(raw > 0 && raw < RunWeatherConstants.minimumHeatSeconds)
+        let mild = TrainerHeat.assess(temperature: 18, dewPoint: 10, pace: 300)
+        #expect(mild.isHot == false)
+        #expect(mild.paceOffset == 0)
+        #expect(mild.blockReduction == 0)
+        var current = plan()
+        current.longStage = 2
+        let base = longWorkout(TrainerEngine.adjust(current, history: history(), today: monday, now: now, trigger: .strengthChanged))
+        #expect(mild.apply(to: base, longPace: current.paces.long) == base)
     }
 }

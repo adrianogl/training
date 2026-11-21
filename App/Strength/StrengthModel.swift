@@ -34,14 +34,30 @@ import TrainingCore
         Dictionary(weekWorkouts.compactMap { workout in Day(iso: workout.day).map { ($0, workout.title) } }) { first, _ in first }
     }
 
-    func legDay(before day: Day) -> StrengthLegDay? {
+    func legDay(before day: Day, planned: StrengthPlannedLegs? = nil) -> StrengthLegDay? {
+        Self.legDay(sessions: sessions, known: known, planned: planned, before: day)
+    }
+
+    nonisolated static func legDay(
+        in context: ModelContext, store: StrengthProgramStore = StrengthProgramStore(), planned: StrengthPlannedLegs? = nil, before day: Day
+    ) -> StrengthLegDay? {
+        let known = store.load().known
+        let sessions = Self.sessions(records: records(in: context), known: known)
+        return legDay(sessions: sessions, known: Dictionary(known.map { ($0.id, $0) }) { first, _ in first }, planned: planned, before: day)
+    }
+
+    nonisolated static func legDay(
+        sessions: [StrengthSession], known: [Int64: MFITWorkout], planned: StrengthPlannedLegs? = nil, before day: Day
+    ) -> StrengthLegDay? {
         let yesterday = day.adding(days: -1)
-        for session in sessions where session.day == yesterday {
-            let entries = Self.entries(blocks(forSession: session.id))
+        let done = sessions.filter { $0.day == yesterday }
+        for session in done {
+            let entries = Self.entries(session.workoutId.flatMap { known[$0]?.blocks } ?? [])
             guard StrengthMuscles.isLegDay(entries) else { continue }
             return StrengthLegDay(title: StrengthText.shortTitle(session.title), sets: entries.reduce(0) { $0 + $1.sets }, legSets: StrengthMuscles.legSets(entries))
         }
-        return nil
+        guard let planned, let session = done.first(where: { $0.workoutId.flatMap { known[$0] } == nil }) else { return nil }
+        return StrengthLegDay(title: StrengthText.shortTitle(session.title), sets: planned.sets, legSets: planned.legSets)
     }
 
     func weekSummary(start: Day) -> WeeklyStrengthSummary? {
@@ -208,7 +224,7 @@ import TrainingCore
         .sorted { ($0.points.last?.day ?? .today(), $1.name) > ($1.points.last?.day ?? .today(), $0.name) }
     }
 
-    private static func entries(_ blocks: [StrengthBlock]) -> [(category: String?, sets: Int)] {
+    nonisolated private static func entries(_ blocks: [StrengthBlock]) -> [(category: String?, sets: Int)] {
         blocks.flatMap { block in block.exercises.map { (category: $0.category, sets: block.sets) } }
     }
 
@@ -234,7 +250,7 @@ import TrainingCore
         }
     }
 
-    static func sessions(records: [Record], known: [MFITWorkout]) -> [StrengthSession] {
+    nonisolated static func sessions(records: [Record], known: [MFITWorkout]) -> [StrengthSession] {
         let completions = known.flatMap { workout in workout.completions.map { (workout: workout, completion: $0) } }
         var used: Set<String> = []
         var result: [StrengthSession] = records.map { record in
@@ -270,7 +286,7 @@ import TrainingCore
         return result.sorted { $0.day > $1.day }
     }
 
-    private static func key(_ workout: MFITWorkout, _ completion: MFITCompletion) -> String {
+    nonisolated private static func key(_ workout: MFITWorkout, _ completion: MFITCompletion) -> String {
         "\(workout.id)-\(completion.day)"
     }
 
