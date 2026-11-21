@@ -18,3 +18,11 @@ struct AppUpdate: Equatable, Sendable {
     let installed: String
     let notes: [String]
 }
+
+struct AppVersionSummary: Equatable, Sendable {
+    let installed: String
+    let latest: String?
+    let hasUpdate: Bool
+    let notesVersion: String?
+    let notes: [String]
+}

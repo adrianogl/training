@@ -64,6 +64,7 @@ struct SettingsView: View {
                     DSSectionTitle(section.title)
                 }
             }
+            SettingsVersionSection(summary: model.appUpdate.summary, build: AppBuildInfo().build)
             buildFooter
         }
         .scrollContentBackground(.hidden)
@@ -87,9 +88,6 @@ struct SettingsView: View {
         return VStack(spacing: 2) {
             Text(info.versionLine)
             if let built = info.builtLine() { Text(built) }
-            if let update = model.appUpdate.update {
-                Text(AppUpdateText.footer(update)).foregroundStyle(BrandColors.attention).fontWeight(.semibold)
-            }
         }
         .font(.caption)
         .foregroundStyle(BrandColors.dim)

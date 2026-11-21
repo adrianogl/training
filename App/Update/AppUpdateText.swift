@@ -13,10 +13,6 @@ enum AppUpdateText {
             : "Este aparelho está na \(update.installed). Instale pelo Mac para receber as novidades:"
     }
 
-    static func footer(_ update: AppUpdate) -> String {
-        "Versão \(update.latest) disponível. Instale pelo Mac."
-    }
-
     static let openSettings = "Ver em Ajustes"
     static let dismiss = "Agora não"
 }

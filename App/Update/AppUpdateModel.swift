@@ -5,6 +5,7 @@ import Observation
     private typealias C = AppUpdateConstants
 
     private(set) var update: AppUpdate?
+    private(set) var summary: AppVersionSummary
     private(set) var dismissedDay: String?
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -30,7 +31,9 @@ import Observation
         self.now = now
         self.calendar = calendar
         dismissedDay = defaults.string(forKey: C.dismissedDayDefaultsKey)
-        update = cachedRelease().flatMap { AppVersion.update(for: $0, installed: installed) }
+        let cached = Self.cachedRelease(defaults)
+        update = cached.flatMap { AppVersion.update(for: $0, installed: installed) }
+        summary = AppVersion.summary(release: Self.newest(cached, AppVersion.bundledRelease()), installed: installed)
     }
 
     var showsNotice: Bool {
@@ -47,6 +50,7 @@ import Observation
         defaults.set(data, forKey: C.releaseDefaultsKey)
         defaults.set(current, forKey: C.lastCheckDefaultsKey)
         update = AppVersion.update(for: release, installed: installed)
+        summary = AppVersion.summary(release: Self.newest(release, AppVersion.bundledRelease()), installed: installed)
         await syncNotification()
     }
 
@@ -66,7 +70,12 @@ import Observation
         )
     }
 
-    private func cachedRelease() -> AppRelease? {
+    private static func newest(_ first: AppRelease?, _ second: AppRelease?) -> AppRelease? {
+        guard let first, let second else { return first ?? second }
+        return AppVersion.isNewer(second.versao, than: first.versao) ? second : first
+    }
+
+    private static func cachedRelease(_ defaults: UserDefaults) -> AppRelease? {
         defaults.data(forKey: C.releaseDefaultsKey).flatMap { try? JSONDecoder().decode(AppRelease.self, from: $0) }
     }
 
