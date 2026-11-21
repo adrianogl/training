@@ -29,12 +29,6 @@ extension TrainerEngine {
         return plan.strength.filter { $0.weekday == weekday }.map { (session: $0, done: done) }
     }
 
-    public static func strengthWeeksDone(_ session: TrainerStrengthSession, history: TrainerHistory, today: Day) -> Int {
-        let since = today.adding(days: -C.strengthWindowDays)
-        let days = history.strength.filter { $0.day > since && $0.day <= today && weekdayNumber($0.day) == session.weekday }.map(\.day)
-        return Set(days).count
-    }
-
     static func weekdayNumber(_ day: Day) -> Int {
         day.weekStart.days(until: day) + 1
     }

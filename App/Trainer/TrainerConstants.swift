@@ -23,7 +23,6 @@ enum TrainerConstants {
     static let scoreboardWeeks = 12
     static let readinessEasyKilometers = 8
     static let externalWeeksAhead = 2
-    static let strengthWeeks = 4
     static let historyDays = 120
     static let deepAnalysisDays = 28
     static let highlightSeconds = 1.2

@@ -614,12 +614,6 @@ enum TrainerText {
         }
     }
 
-    static func strengthCaption(done: Int, minutes: Int?) -> String {
-        var text = "\(done) de \(C.strengthWeeks) semanas"
-        if let minutes { text += " · ~\(minutes) min" }
-        return text
-    }
-
     static func strengthTag(_ line: TrainerStrengthLine) -> String {
         let mark = line.isDone ? "✓" : "+"
         return line.source == .trainer ? "\(mark) \(line.name) · \(TrainerStrengthText.sourceName(line.source).lowercased())" : "\(mark) \(line.name)"
