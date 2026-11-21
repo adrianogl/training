@@ -446,18 +446,15 @@ enum TrainerText {
     }
 
     static func heatWarning(_ heat: TrainerHeat, hasBlocks: Bool) -> String {
-        let limit = temperature(TrainerHeat.threshold)
-        let pace = "o pace sobe \(Int(heat.paceOffset)) s/km"
-        return hasBlocks
-            ? "Mesmo no horário mais fresco passa de \(limit): \(pace) e os blocos ficam 1 km menores."
-            : "Mesmo no horário mais fresco passa de \(limit): \(pace)."
+        let dew = heat.dewPoint.map { temperature($0) } ?? ""
+        let base = "Mesmo no horário mais fresco, calor de \(temperature(heat.temperature)) com orvalho de \(dew): o pace sobe \(heat.paceOffset) s/km"
+        return hasBlocks && heat.blockReduction > 0 ? "\(base) e os blocos ficam 1 km menores." : "\(base)."
     }
 
-    static func heatLater(hour: Int, hasBlocks: Bool) -> String {
-        let limit = temperature(TrainerHeat.threshold)
-        return hasBlocks
-            ? "A partir das \(hour)h passa de \(limit). Com calor, o pace sobe 5 a 10 s/km e os blocos ficam 1 km menores."
-            : "A partir das \(hour)h passa de \(limit). Com calor, o pace sobe 5 a 10 s/km."
+    static func heatLater(hour: Int, hasBlocks: Bool, blockReduction: Double) -> String {
+        hasBlocks && blockReduction > 0
+            ? "A partir das \(hour)h o calor passa a pesar no pace e os blocos ficam 1 km menores."
+            : "A partir das \(hour)h o calor passa a pesar no pace."
     }
 
     static func seriesTitle(_ repeats: Int) -> String {

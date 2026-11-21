@@ -46,7 +46,7 @@ struct TrainerBestTimeCard: View {
             if bestTime.heat.isHot {
                 Text(TrainerText.heatWarning(bestTime.heat, hasBlocks: hasBlocks)).font(.footnote).foregroundStyle(BrandColors.dim)
             } else if let later = bestTime.laterHotHour {
-                Text(TrainerText.heatLater(hour: later, hasBlocks: hasBlocks)).font(.footnote).foregroundStyle(BrandColors.dim)
+                Text(TrainerText.heatLater(hour: later, hasBlocks: hasBlocks, blockReduction: bestTime.laterBlockReduction)).font(.footnote).foregroundStyle(BrandColors.dim)
             }
         }
         .brandCard()

@@ -208,15 +208,38 @@ enum TodayConstants {
     static let planShapeDefaultPace = 330.0
     static let planShapeLevels: [PlannedStepKind: Int] = [.warmup: 2, .active: 4, .recovery: 1, .cooldown: 1, .rest: 1, .other: 2]
     static let planAdjustTitle = "Ajuste para hoje"
-    static let planAdjustHard = "Prontidão boa: siga o plano como está."
-    static let planAdjustModerate: [PlannedWorkoutShape: String] = [
-        .continuous: "Prontidão moderada: fique no lado mais lento da faixa e segure o ritmo se a FC subir demais.",
-        .intervals: "Prontidão moderada: faça os blocos fortes no lado mais lento da faixa e pare um bloco antes se a FC subir demais.",
-        .long: "Prontidão moderada: faça o longão no lado mais lento da faixa e encurte o final se a FC subir demais.",
-    ]
     static let planAdjustRest: [PlannedWorkoutShape: String] = [
         .continuous: "Prontidão baixa: encurte a corrida e fique em Z1–Z2, ou descanse hoje.",
         .intervals: "Prontidão baixa: troque por rodagem leve em Z1–Z2 ou descanse hoje.",
         .long: "Prontidão baixa: troque o longão por rodagem leve em Z1–Z2 ou descanse hoje.",
     ]
+    static let dayAdjustSwapFormat = "O pace subiria mais de %d s/km por %@: troque por rodagem leve em Z1–Z2 ou descanse."
+    static let dayAdjustSwapPlainFormat = "O pace subiria mais de %d s/km: troque por rodagem leve em Z1–Z2 ou descanse."
+    static let dayAdjustTitleFormat = "%@ · +%d s/km %@"
+    static let dayAdjustTitleTarget: [PlannedWorkoutShape: String] = [.intervals: "nos tiros", .continuous: "no ritmo", .long: "no longão"]
+    static let dayAdjustBodyFormat = "Pace recalculado para %@. %@"
+    static let dayAdjustBodyPlainFormat = "Pace recalculado. %@"
+    static let dayAdjustAdvice: [PlannedWorkoutShape: String] = [
+        .intervals: "Se a FC subir demais mesmo assim, pare um tiro antes.",
+        .continuous: "Se a FC subir demais mesmo assim, segure o ritmo.",
+        .long: "Se a FC subir demais mesmo assim, encurte o final.",
+    ]
+    static let dayAdjustHeatWords = (body: "o calor", morning: "calor")
+    static let dayAdjustReadinessWords = (body: "a prontidão", morning: "prontidão")
+    static let dayAdjustLegsWords = (body: "a perna de ontem", morning: "perna de ontem")
+    static let dayAdjustHeatChipFormat = "calor %d° · orvalho %d° às %dh · +%d s"
+    static let dayAdjustReadinessChipFormat = "prontidão %d · +%d s"
+    static let dayAdjustLegsChipFormat = "pernas ontem · +%d s"
+    static let dayAdjustNoForecastChip = "sem previsão do tempo"
+    static let dayAdjustMorningLead: [PlannedWorkoutShape: String] = [.intervals: "Tiros em", .continuous: "Ritmo em", .long: "Longão em"]
+    static let dayAdjustMorningFormat = "%@ %@ por %@."
+    static let dayAdjustMorningPlainFormat = "%@ %@."
+    static let dayAdjustRangeFormat = "%@–%@"
+    static let dayAdjustWasFormat = "era %@"
+    static let dayAdjustListSeparator = ", "
+    static let dayAdjustListLastSeparator = " e "
+    static let dayAdjustDetailSeparator = " · "
+    static let morningRunTimeout = Duration.seconds(5)
+    static let dayAdjustChipSpacing: CGFloat = 6
+    static let dayAdjustWasSpacing: CGFloat = 1
 }

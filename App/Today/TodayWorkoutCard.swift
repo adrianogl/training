@@ -10,15 +10,17 @@ struct TodayWorkoutCard: View {
     var legDay: StrengthLegDay?
 
     @State private var weather: [HourlyWeather] = []
+    @State private var todayWeather: [HourlyWeather]?
     private typealias C = TodayConstants
 
     var body: some View {
         let score = model.summary.readinessFromYesterday ? nil : model.summary.readiness?.score ?? model.fallbackScore
         let suggestion = trainer.readinessSuggestion(score: score, factor: TrainerModel.lowestFactor(model.summary.readiness))
+        let display = todayPlan.map { adjustDisplay($0, score: score, showsAdvice: suggestion == nil) }
         VStack(alignment: .leading, spacing: 12) {
-            header
+            header(display)
             switch pick.today {
-            case .garmin(let plan): garmin(plan, showsAdvice: suggestion == nil)
+            case .garmin(let plan): garmin(plan, display: display ?? DayAdjustText.display(.none, plan: plan, hour: usualHour))
             case .trainer(let row): TrainerDayLineView(line: TrainerText.dayLine(row.workout, strength: row.strength, longStage: row.longStage, estimate: row.estimate), titleFont: .title3)
             case nil: rest
             }
@@ -33,15 +35,36 @@ struct TodayWorkoutCard: View {
             guard pick.tomorrow != nil else { return }
             weather = await trainer.forecast(for: model.today.adding(days: 1))
         }
+        .task(id: todayPlan?.id) {
+            guard todayPlan != nil else { return }
+            todayWeather = await trainer.forecast(for: model.today)
+        }
     }
 
-    private var header: some View {
+    private var todayPlan: PlannedWorkout? {
+        guard case .garmin(let plan) = pick.today else { return nil }
+        return plan
+    }
+
+    private var usualHour: Int {
+        DayAdjust.usualHour(model.recentRunStarts, calendar: .current)
+    }
+
+    private func adjustDisplay(_ plan: PlannedWorkout, score: Int?, showsAdvice: Bool) -> DayAdjustDisplay {
+        guard showsAdvice, let forecast = todayWeather else { return DayAdjustText.display(.none, plan: plan, hour: usualHour) }
+        let input = DayAdjustText.input(
+            plan: plan, score: score, forecast: forecast, hour: usualHour, hotSessions: model.hotSessions, heavyLegs: legDay != nil
+        )
+        return DayAdjustText.display(DayAdjust.adjust(input), plan: plan, hour: usualHour)
+    }
+
+    private func header(_ display: DayAdjustDisplay?) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             DSCardLabel(title)
             Spacer()
             switch pick.today {
             case .garmin(let plan):
-                if let estimate = PlanText.estimate(plan, fallback: trainer.easyPaceBand) {
+                if let estimate = PlanText.estimate(PlanText.adjusted(plan, steps: display?.steps ?? plan.steps), fallback: trainer.easyPaceBand) {
                     Text(estimate).font(.caption).foregroundStyle(BrandColors.dim)
                 }
             case .trainer(let row):
@@ -64,22 +87,9 @@ struct TodayWorkoutCard: View {
         }
     }
 
-    private func garmin(_ plan: PlannedWorkout, showsAdvice: Bool) -> some View {
+    private func garmin(_ plan: PlannedWorkout, display: DayAdjustDisplay) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(PlanText.title(plan.title)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
-            if let single = PlanText.singleStep(plan.steps) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(single.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    Spacer()
-                    Text(single.detail).font(.subheadline).foregroundStyle(BrandColors.dim).monospacedDigit()
-                }
-            } else {
-                PlannedShape(steps: plan.steps).frame(height: C.planShapeHeight)
-                PlannedStepsList(steps: plan.steps)
-            }
-            if showsAdvice, let verdict = model.summary.verdict, let advice = PlanText.adjust(verdict, shape: PlanText.shape(plan)) {
-                DSNotice(tone: .attention, title: C.planAdjustTitle, text: advice)
-            }
+            TodayGarminPlanContent(plan: plan, display: display)
             NavigationLink(value: TodayRoute.planned(plan.id)) { CardLinkFooter(title: CardLinkConstants.workout) }
                 .buttonStyle(.cardLink)
         }
@@ -104,7 +114,7 @@ struct TodayWorkoutCard: View {
             case nil:
                 Text(C.workoutNothingTomorrow).font(.footnote).foregroundStyle(BrandColors.dim)
             }
-            if pick.tomorrow != nil, let best = TrainerBestTimeBuilder.make(weather: weather) {
+            if pick.tomorrow != nil, let best = TrainerBestTimeBuilder.make(weather: weather, longPace: trainer.plan?.paces.long) {
                 bestTime(best)
             }
         }
@@ -123,7 +133,7 @@ struct TodayWorkoutCard: View {
             if best.heat.isHot {
                 Text(TrainerText.heatWarning(best.heat, hasBlocks: hasBlocks)).font(.caption).foregroundStyle(BrandColors.dim)
             } else if let later = best.laterHotHour {
-                Text(TrainerText.heatLater(hour: later, hasBlocks: hasBlocks)).font(.caption).foregroundStyle(BrandColors.dim)
+                Text(TrainerText.heatLater(hour: later, hasBlocks: hasBlocks, blockReduction: best.laterBlockReduction)).font(.caption).foregroundStyle(BrandColors.dim)
             }
         }
         .padding(10)

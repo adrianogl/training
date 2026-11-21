@@ -28,32 +28,105 @@ struct PlannedShape: View {
 
 struct PlannedStepsList: View {
     let steps: [PlannedStep]
+    var original: [PlannedStep]?
 
     var body: some View {
+        let aligned = original.map { PlanText.aligned(steps, original: $0) } ?? steps.map { _ in nil }
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                 if index > 0 { Divider().overlay(BrandColors.line) }
+                let before = aligned[index]
                 if step.children.isEmpty {
-                    row(step, prefix: nil)
+                    row(step, original: before, prefix: nil, wasPrefix: nil)
                 } else {
                     ForEach(Array(step.children.enumerated()), id: \.offset) { childIndex, child in
-                        row(child, prefix: childIndex == 0 ? String(format: TodayConstants.planRepeatFormat, step.repeats) : nil)
+                        let first = childIndex == 0
+                        row(
+                            child,
+                            original: before?.children.indices.contains(childIndex) == true ? before?.children[childIndex] : nil,
+                            prefix: first ? String(format: TodayConstants.planRepeatFormat, step.repeats) : nil,
+                            wasPrefix: first ? before.flatMap { PlanText.wasRepeats(step, original: $0) } : nil
+                        )
                     }
                 }
             }
         }
     }
 
-    private func row(_ step: PlannedStep, prefix: String?) -> some View {
-        HStack(spacing: 8) {
+    private func row(_ step: PlannedStep, original: PlannedStep?, prefix: String?, wasPrefix: String?) -> some View {
+        let was = original.flatMap { PlanText.was(step, original: $0) }
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
             RoundedRectangle(cornerRadius: 3).fill(BrandColors.zone(PlanText.level(step))).frame(width: 10, height: 10)
-            Text([prefix, TodayConstants.planStepNames[step.kind]].compactMap { $0 }.joined(separator: " "))
-                .font(.footnote)
-                .foregroundStyle(BrandColors.text)
+            VStack(alignment: .leading, spacing: TodayConstants.dayAdjustWasSpacing) {
+                Text([prefix, TodayConstants.planStepNames[step.kind]].compactMap { $0 }.joined(separator: " "))
+                    .font(.footnote)
+                    .foregroundStyle(BrandColors.text)
+                if let wasPrefix { wasText(wasPrefix) }
+            }
             Spacer()
-            Text(PlanText.detail(step)).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
+            VStack(alignment: .trailing, spacing: TodayConstants.dayAdjustWasSpacing) {
+                if was == nil {
+                    Text(PlanText.detail(step)).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
+                } else {
+                    emphasized(step)
+                }
+                if let was { wasText(was) }
+            }
         }
         .padding(.vertical, 6)
+    }
+
+    private func emphasized(_ step: PlannedStep) -> some View {
+        let parts = PlanText.detailParts(step)
+        let lead = Text(parts.lead.map { $0 + TodayConstants.dayAdjustDetailSeparator } ?? "").foregroundStyle(BrandColors.dim)
+        let target = Text(parts.target ?? "").foregroundStyle(BrandColors.text).fontWeight(.semibold)
+        return Text("\(lead)\(target)").font(.footnote).monospacedDigit()
+    }
+
+    private func wasText(_ text: String) -> some View {
+        Text(text).font(.caption2).foregroundStyle(BrandColors.dim).monospacedDigit()
+    }
+}
+
+struct TodayGarminPlanContent: View {
+    let plan: PlannedWorkout
+    let display: DayAdjustDisplay
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(PlanText.title(plan.title)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
+            if let single = PlanText.singleStep(display.steps) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(single.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: TodayConstants.dayAdjustWasSpacing) {
+                        Text(single.detail).font(.subheadline).foregroundStyle(BrandColors.dim).monospacedDigit()
+                        if let was = singleWas {
+                            Text(was).font(.caption2).foregroundStyle(BrandColors.dim).monospacedDigit()
+                        }
+                    }
+                }
+            } else {
+                PlannedShape(steps: display.steps).frame(height: TodayConstants.planShapeHeight)
+                PlannedStepsList(steps: display.steps, original: display.original)
+            }
+            if let notice = display.notice {
+                DSNotice(tone: .attention, title: notice.title, text: notice.text) {
+                    DSFlowLayout(spacing: TodayConstants.dayAdjustChipSpacing) {
+                        ForEach(notice.chips, id: \.self) { DSChip(text: $0, tone: .attention) }
+                    }
+                }
+            } else if let fallback = display.fallback {
+                DSNotice(tone: .attention, title: TodayConstants.planAdjustTitle, text: fallback)
+            }
+        }
+    }
+
+    private var singleWas: String? {
+        guard let original = display.original,
+              let step = display.steps.flatMap(\.flattened).first,
+              let before = original.flatMap(\.flattened).first else { return nil }
+        return PlanText.was(step, original: before)
     }
 }
 
@@ -69,11 +142,55 @@ enum PlanText {
     }
 
     static func detail(_ step: PlannedStep) -> String {
+        let parts = detailParts(step)
+        return [parts.lead, parts.target].compactMap { $0 }.joined(separator: TodayConstants.dayAdjustDetailSeparator)
+    }
+
+    static func detailParts(_ step: PlannedStep) -> (lead: String?, target: String?) {
         var parts: [String] = []
         if let seconds = step.seconds { parts.append(String(format: TodayConstants.planMinutesFormat, Int((seconds / 60).rounded()))) }
         if let meters = step.meters { parts.append(distance(meters)) }
-        if let target = target(step) { parts.append(target) }
-        return parts.joined(separator: " · ")
+        return (parts.isEmpty ? nil : parts.joined(separator: TodayConstants.dayAdjustDetailSeparator), target(step))
+    }
+
+    static func was(_ step: PlannedStep, original: PlannedStep) -> String? {
+        var parts: [String] = []
+        if step.meters != original.meters, let meters = original.meters { parts.append(distance(meters)) }
+        if step.target != original.target, let target = original.target {
+            if case .pace(let fastest, let slowest) = target {
+                parts.append(DayAdjustText.range(fastest: fastest, slowest: slowest))
+            } else if let text = self.target(original) {
+                parts.append(text)
+            }
+        }
+        guard !parts.isEmpty else { return nil }
+        return String(format: TodayConstants.dayAdjustWasFormat, parts.joined(separator: TodayConstants.dayAdjustDetailSeparator))
+    }
+
+    static func wasRepeats(_ step: PlannedStep, original: PlannedStep) -> String? {
+        guard step.repeats != original.repeats else { return nil }
+        return String(format: TodayConstants.dayAdjustWasFormat, String(format: TodayConstants.planRepeatFormat, original.repeats))
+    }
+
+    static func aligned(_ steps: [PlannedStep], original: [PlannedStep]) -> [PlannedStep?] {
+        func same(_ lhs: PlannedStep, _ rhs: PlannedStep) -> Bool { lhs.kind == rhs.kind && lhs.children.count == rhs.children.count }
+        let limit = min(steps.count, original.count)
+        let prefix = (0..<limit).first { !same(steps[$0], original[$0]) } ?? limit
+        let suffix = (0..<(limit - prefix)).first { !same(steps[steps.count - 1 - $0], original[original.count - 1 - $0]) } ?? (limit - prefix)
+        return steps.indices.map { index in
+            if index < prefix { return original[index] }
+            if index >= steps.count - suffix { return original[original.count - (steps.count - index)] }
+            return nil
+        }
+    }
+
+    static func adjusted(_ plan: PlannedWorkout, steps: [PlannedStep]) -> PlannedWorkout {
+        var result = plan
+        let before = plan.steps.flatMap(\.flattened).compactMap(\.meters).reduce(0, +)
+        let after = steps.flatMap(\.flattened).compactMap(\.meters).reduce(0, +)
+        result.steps = steps
+        result.estimatedMeters = plan.estimatedMeters.map { $0 - before + after }
+        return result
     }
 
     static func target(_ step: PlannedStep) -> String? {
@@ -109,14 +226,6 @@ enum PlanText {
         if hasRepeat || activeBlocks > 1 { return .intervals }
         let meters = plan.estimatedMeters ?? plan.steps.flatMap(\.flattened).compactMap(\.meters).reduce(0, +)
         return isLongRun(name: plan.title, distanceMeters: meters, goalKm: nil) ? .long : .continuous
-    }
-
-    static func adjust(_ verdict: ReadinessVerdict, shape: PlannedWorkoutShape) -> String? {
-        switch verdict {
-        case .hard: TodayConstants.planAdjustHard
-        case .moderate: TodayConstants.planAdjustModerate[shape]
-        case .rest: TodayConstants.planAdjustRest[shape]
-        }
     }
 
     static func level(_ step: PlannedStep) -> Int {

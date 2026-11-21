@@ -68,6 +68,21 @@ struct TodayLoad: Sendable, Codable {
     let currentRuns: [ReportRun]
     let signals: [DailySignal]
     let goals: [GoalSnapshot]
+    let recentRunStarts: [Date]
+    let hotSessions: Int
+}
+
+struct DayAdjustNotice: Equatable {
+    let title: String
+    let text: String
+    let chips: [String]
+}
+
+struct DayAdjustDisplay: Equatable {
+    let steps: [PlannedStep]
+    let original: [PlannedStep]?
+    let notice: DayAdjustNotice?
+    let fallback: String?
 }
 
 struct WeekRun: Identifiable, Equatable, Sendable, Codable {

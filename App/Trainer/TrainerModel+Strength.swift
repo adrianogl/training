@@ -21,7 +21,11 @@ extension TrainerModel {
     }
 
     func claudeWorkout(on day: Day) -> ClaudeStoredWorkout? {
-        guard let stored = claudeStore.workout(on: day) else { return nil }
+        claudeWorkout(claudeStore.workout(on: day), day: day)
+    }
+
+    private func claudeWorkout(_ stored: ClaudeStoredWorkout?, day: Day) -> ClaudeStoredWorkout? {
+        guard let stored else { return nil }
         guard let planId = stored.planId else { return stored }
         guard let strengthPlan, strengthPlan.id == planId, strengthPlan.isActive(on: day) else { return nil }
         return stored
@@ -47,6 +51,18 @@ extension TrainerModel {
             legLoad: StrengthSessions.legLoad(group: workout.group, intensity: workout.intensity), name: TrainerStrengthText.focusName(workout.group),
             source: .trainer, intensity: workout.intensity, minutes: workout.minutes, place: workout.place
         )
+    }
+
+    func plannedLegs(on day: Day) -> StrengthPlannedLegs? {
+        if let stored = claudeWorkout(claudeStore.load(today: day)[day.iso], day: day), ClaudeStrengthValidator.isHeavyLegs(stored.workout) {
+            return Self.plannedLegs(stored.workout)
+        }
+        guard let session = trainerSessions(on: day).first(where: { $0.legLoad == .heavy }) else { return nil }
+        return strengthWorkout(sessionId: session.id, day: day).map(Self.plannedLegs) ?? StrengthPlannedLegs(sets: 0, legSets: 0)
+    }
+
+    static func plannedLegs(_ workout: GeneratedStrengthWorkout) -> StrengthPlannedLegs {
+        StrengthPlannedLegs(sets: workout.exercises.reduce(0) { $0 + $1.sets }, legSets: ClaudeStrengthValidator.legSets(workout))
     }
 
     func strengthDone(on day: Day) -> Bool {

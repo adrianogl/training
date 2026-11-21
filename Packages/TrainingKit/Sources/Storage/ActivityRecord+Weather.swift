@@ -17,9 +17,13 @@ extension ActivityRecord {
     }
 
     public func hotSessions(among runs: [ActivityRecord]) -> Int {
-        let since = start.addingTimeInterval(-Double(RunWeatherConstants.adaptationWindowDays) * 86_400)
+        Self.hotSessions(before: start, among: runs.filter { $0.activityId != activityId })
+    }
+
+    public static func hotSessions(before date: Date, among runs: [ActivityRecord]) -> Int {
+        let since = date.addingTimeInterval(-Double(RunWeatherConstants.adaptationWindowDays) * 86_400)
         return runs.filter { other in
-            other.activityId != activityId && other.start >= since && other.start < start
+            other.start >= since && other.start < date
                 && ActivityTypeKey.isRun(other.typeKey) && WeatherAdjustment.isHotSession(other.runWeather)
         }.count
     }

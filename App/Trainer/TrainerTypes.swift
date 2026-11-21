@@ -155,4 +155,5 @@ struct TrainerBestTime: Equatable {
     let temperature: Double
     let heat: TrainerHeat
     let laterHotHour: Int?
+    let laterBlockReduction: Double
 }

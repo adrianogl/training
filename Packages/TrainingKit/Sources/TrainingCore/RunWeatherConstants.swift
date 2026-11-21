@@ -20,6 +20,7 @@ public enum RunWeatherConstants {
     public static let headwindCost = 0.0025
     public static let tailwindShare = 0.5
     public static let windEffectSeconds = 3.0
+    public static let minimumHeatSeconds = 3
     public static let minimumHeadingMeters = 5.0
     public static let metersPerSecondToKmh = 3.6
 }

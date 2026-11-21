@@ -38,7 +38,7 @@ struct TrainerDayView: View {
 
     @ViewBuilder
     private func content(_ row: TrainerDayRow) -> some View {
-        let bestTime = row.workout.kind == .long && row.run == nil ? TrainerBestTimeBuilder.make(weather: weather) : nil
+        let bestTime = row.workout.kind == .long && row.run == nil ? TrainerBestTimeBuilder.make(weather: weather, longPace: app.trainer.plan?.paces.long) : nil
         let workout = displayed(row.workout, heat: bestTime?.heat)
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {

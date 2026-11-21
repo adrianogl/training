@@ -99,4 +99,14 @@ public enum ClaudeStrengthValidator {
     static func isHeavyLegs(_ exercises: [CatalogExercise]) -> Bool {
         exercises.filter { C.legPatterns.contains($0.pattern) && C.loadedEquipment.contains($0.equipment) }.count >= C.heavyLegExercises
     }
+
+    public static func isHeavyLegs(_ workout: GeneratedStrengthWorkout) -> Bool {
+        isHeavyLegs(workout.exercises.compactMap { StrengthCatalog.exercise($0.exerciseId) })
+    }
+
+    public static func legSets(_ workout: GeneratedStrengthWorkout) -> Int {
+        workout.exercises.filter { exercise in
+            StrengthCatalog.exercise(exercise.exerciseId).map { C.legPatterns.contains($0.pattern) } ?? false
+        }.reduce(0) { $0 + $1.sets }
+    }
 }

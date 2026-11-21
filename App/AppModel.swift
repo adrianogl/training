@@ -595,6 +595,31 @@ import WorkoutAnalysis
         return MorningStrengthText.line(mfitTitle: mfit, trainer: generated)
     }
 
+    private func morningRunLine(_ summary: TodaySummary) async -> String? {
+        guard watchKind != .appleWatch, garminAccount.client != nil else { return nil }
+        return await MorningRunRace.run(timeout: TodayConstants.morningRunTimeout) { @MainActor [self] in
+            await buildMorningRunLine(summary)
+        }
+    }
+
+    private func buildMorningRunLine(_ summary: TodaySummary) async -> String? {
+        guard let client = garminAccount.client else { return nil }
+        let day = Day.today()
+        guard let plans = try? await PlannedWorkouts.fetch(client: client, from: day, through: day),
+              !Task.isCancelled else { return nil }
+        let recent = TodayModel.recentRuns(context: container.mainContext)
+        guard let plan = DayAdjustText.pendingRun(plans, recent: recent, day: day) else { return nil }
+        let forecast = await trainer.forecast(for: day)
+        guard !Task.isCancelled else { return nil }
+        let planned = trainer.plannedLegs(on: day.adding(days: -1))
+        let heavyLegs = StrengthModel.legDay(in: container.mainContext, planned: planned, before: day) != nil
+        let score = summary.readinessFromYesterday ? nil : summary.readiness?.score ?? nil
+        let suggestion = trainer.readinessSuggestion(score: score, factor: TrainerModel.lowestFactor(summary.readiness))
+        return DayAdjustText.morningLine(
+            plan: plan, score: score, forecast: forecast, recent: recent, heavyLegs: heavyLegs, showsAdvice: suggestion == nil
+        )
+    }
+
     private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {
         readinessComplete = MorningNotifier.hasNightData(summary)
         readinessDay = today()
@@ -603,7 +628,7 @@ import WorkoutAnalysis
             await notifier.foregroundSyncFinished(summary: summary, now: .now)
             return
         }
-        await notifier.evaluate(summary: summary, now: .now, lastAppOpen: notifier.lastAppOpen, settings: notifier.settings, strengthLine: morningStrengthLine())
+        await notifier.evaluate(summary: summary, now: .now, lastAppOpen: notifier.lastAppOpen, settings: notifier.settings, strengthLine: morningStrengthLine(), runLine: { await self.morningRunLine(summary) })
     }
 
     private func updateProgress(_ fraction: Double) {

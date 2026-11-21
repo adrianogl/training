@@ -127,8 +127,7 @@ O descanso é de 60 s, e de 30 s no último estágio. O longão avança de está
 | Média da semana abaixo de 55 | volume × 0,9 | `readinessWeek`, `readinessScale` |
 | Dor | volume × 0,7 por 7 dias, mínimo 3 km e qualidade de até 6 km | `painScale`, `painPeriodDays` |
 | Viagem | corrida de 6 km por 1 dia | `travelRunMeters` |
-| Calor de 24 °C ou mais | ritmo + 5 s/km | `heatThreshold`, `heatPaceOffset` |
-| Calor de 28 °C ou mais | ritmo + 10 s/km e 1 km a menos de bloco | `heatStrong`, `heatStrongPaceOffset`, `heatBlockReduction` |
+| Calor no longão | ritmo + fator de calor (temperatura + ponto de orvalho, sem aclimatação) × pace do longão; com fator de 0,045 ou mais, 1 km a menos de bloco. Abaixo de 3 s/km, o calor é ignorado e o longão fica como está. Sem ponto de orvalho, sem ajuste | `TrainerHeat`, `heatBlockFactor`, `heatBlockReduction`, `RunWeatherConstants.minimumHeatSeconds` |
 | Treino feito | pelo menos 90% do prescrito | `doneShare` |
 | Longão falho | abaixo de 85% do prescrito; abaixo de 70%, o próximo longão fica 2 km menor | `longFailShare`, `longReduceShare`, `longReduceMeters` |
 | Gel no longão | só em longão de pelo menos 15 km, 2 km antes do km em que o último longão quebrou | `gelMinimumMeters`, `gelBeforeFadeKm` |

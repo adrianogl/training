@@ -73,6 +73,42 @@ actor FakeNotificationScheduler: NotificationScheduling {
         return summary
     }
 
+    @Test func appendsRunLineBeforeStrengthLine() async {
+        let (notifier, scheduler) = makeNotifier()
+        let base = morningNotificationText(summary().readiness!, verdict: .hard)
+
+        await notifier.evaluate(
+            summary: summary(), now: date(hour: 7), lastAppOpen: nil, settings: settings,
+            strengthLine: "Força: MMII.", runLine: { "Tiros em 4:08–4:16 por calor e prontidão." }
+        )
+
+        #expect(await scheduler.scheduled.values.first?.text == base + " Tiros em 4:08–4:16 por calor e prontidão. Força: MMII.")
+    }
+
+    @Test func appOpenedWhileRunLineLoadsSkipsTheNotice() async {
+        let (notifier, scheduler) = makeNotifier()
+
+        await notifier.evaluate(
+            summary: summary(), now: date(hour: 7), lastAppOpen: nil, settings: settings,
+            runLine: {
+                await notifier.appOpened(now: date(hour: 7, minute: 1))
+                return "Tiros em 4:08–4:16 por calor."
+            }
+        )
+
+        #expect(await scheduler.scheduled.isEmpty)
+        #expect(await scheduler.delivered.isEmpty)
+    }
+
+    @Test func nilRunLineKeepsBody() async {
+        let (notifier, scheduler) = makeNotifier()
+        let base = morningNotificationText(summary().readiness!, verdict: .hard)
+
+        await notifier.evaluate(summary: summary(), now: date(hour: 7), lastAppOpen: nil, settings: settings, strengthLine: "Força: MMII.", runLine: { nil })
+
+        #expect(await scheduler.scheduled.values.first?.text == base + " Força: MMII.")
+    }
+
     @Test func schedulesAtMinimumHourWhenEarly() async {
         let (notifier, scheduler) = makeNotifier()
 

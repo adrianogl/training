@@ -35,4 +35,13 @@ import TrainingCore
         #expect(StrengthText.legIntervalsAdvice(leg, slowPace: 231, reps: 5) == "Pernas do MMII de ontem: faça o aquecimento completo e segure o 1º tiro no topo da faixa (3:51/km). Se sentir peso, faça 4 tiros em vez de 5.")
         #expect(StrengthText.legIntervalsAdvice(leg, slowPace: nil, reps: nil) == "Pernas do MMII de ontem: faça o aquecimento completo e segure o 1º tiro no topo da faixa.")
     }
+
+    @Test func staticLegDayUsesSessionsWithoutViewModel() throws {
+        let legs = [StrengthBlock(exercises: [StrengthExercise(name: "Agachamento", detail: nil, category: "SQUAT", exerciseKey: nil, reps: 10, seconds: nil)], sets: 19, restSeconds: 60)]
+        let workout = MFITWorkout(id: 2, title: "MMII", order: 1, blocks: legs, completions: [])
+        let session = StrengthSession(id: 5, day: Day(iso: "2026-11-18")!, title: "MMII", minutes: 51, averageHR: 100, maxHR: 140, workoutId: 2, effort: 3)
+        let leg = StrengthModel.legDay(sessions: [session], known: [2: workout], before: Day(iso: "2026-11-19")!)
+        #expect(leg == StrengthLegDay(title: "MMII", sets: 19, legSets: 19))
+        #expect(StrengthModel.legDay(sessions: [session], known: [:], before: Day(iso: "2026-11-19")!) == nil)
+    }
 }
