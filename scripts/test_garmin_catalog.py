@@ -47,6 +47,12 @@ class GeneratedCatalogNamesTests(unittest.TestCase):
         self.assertIn("acima da cabeça", self.names["LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT"])
         self.assertIn("halter", self.names["LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT"])
 
+    def test_names_are_unique_except_known_garmin_twins(self):
+        from collections import Counter
+        twins = {"Flexão de braços com as mãos afastadas"}
+        repeated = {name for name, count in Counter(self.names.values()).items() if count > 1}
+        self.assertEqual(repeated, twins)
+
     def test_decline_dumbbell_bench_press_is_decline(self):
         name = self.names["BENCH_PRESS/DECLINE_DUMBBELL_BENCH_PRESS"]
         self.assertIn("declinado", name)

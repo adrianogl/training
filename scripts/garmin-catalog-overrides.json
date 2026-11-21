@@ -14,6 +14,9 @@
   "BENCH_PRESS/DECLINE_DUMBBELL_BENCH_PRESS": {
     "nome": "Supino declinado com halteres"
   },
+  "DEADLIFT/BARBELL_STRAIGHT_LEG_DEADLIFT": {
+    "nome": "Levantamento terra com pernas estendidas e barra"
+  },
   "DEADLIFT/SINGLE_LEG_RDL_CIRCUIT": {
     "nome": "Terra romeno unilateral",
     "equipamento": "bodyweight",
@@ -27,19 +30,37 @@
   "HIP_STABILITY/WEIGHTED_STANDING_REAR_LEG_RAISE": {
     "equipamento": "cable"
   },
+  "LUNGE/BARBELL_SPLIT_SQUAT": {
+    "nome": "Agachamento afundo com barra"
+  },
   "LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT": {
     "nome": "Agachamento búlgaro com halter acima da cabeça"
+  },
+  "LUNGE/OVERHEAD_DUMBBELL_LUNGE": {
+    "nome": "Afundo com halteres sobre a cabeça"
+  },
+  "LUNGE/SHIFTING_SIDE_LUNGE": {
+    "nome": "Afundo lateral alternado"
+  },
+  "LUNGE/WEIGHTED_SHIFTING_SIDE_LUNGE": {
+    "nome": "Afundo lateral alternado com peso"
   },
   "PLANK/SIDE_PLANK_WITH_FEET_ON_BENCH": {
     "regioes": [
       "hip"
     ]
   },
+  "PLANK/WIDE_STANCE_PLANK_WITH_DIAGONAL_LEG_LIFT": {
+    "nome": "Prancha frontal com elevação diagonal da perna"
+  },
   "PLYO/BARBELL_SPLIT_JUMP": {
     "nome": "Salto em afundo com barra"
   },
   "PLYO/JUMP_TRAP_BAR": {
     "nome": "Salto com barra hexagonal"
+  },
+  "PLYO/SQUAT_JUMPS_IN_AND_OUT": {
+    "nome": "Agachamento com salto abrindo e fechando"
   },
   "ROW/BARBELL_BENCH_PULL": {
     "nome": "Remada com barra deitado no banco"
@@ -61,6 +82,9 @@
   },
   "SQUAT/BELT_SQUAT": {
     "nome": "Agachamento com cinto"
+  },
+  "SQUAT/DUMBBELL_SPLIT_SQUAT": {
+    "nome": "Agachamento afundo com halteres"
   },
   "SQUAT/SAFETY_BAR_SQUAT": {
     "nome": "Agachamento com safety bar"
@@ -87,5 +111,8 @@
       "fullBody"
     ],
     "unilateral": true
+  },
+  "WARM_UP/STRETCH_LAT": {
+    "nome": "Alongamento do latíssimo"
   }
 }
