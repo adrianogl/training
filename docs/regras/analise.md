@@ -183,6 +183,7 @@ Arquivos: `App/Races/Weather/`, `Reports/ReportBuilder.swift`. Testes: `AppTests
 
 - Os esforços que alimentam a previsão (melhor 1 km, melhor 5 km, sessões de limiar e VO2, provas) entram pelo equivalente em clima ameno.
 - A Evolução mostra a previsão de 1 km, 3 km, 5 km, 10 km, meia maratona e maratona (`MetricKind.predictionKinds`), todas pelo mesmo Riegel. A de 1 km é a menos confiável, porque a fórmula extrapola mal para provas curtas.
+- Cada card de previsão compara com o RP da mesma distância (`EvolutionText.recordComparison`): mais rápido que o RP sai "★ 7 s abaixo do RP 3:38" em dourado, com a borda do card dourada; mais lento, "1 s acima do RP" em cinza; empate, "igual ao RP"; sem RP, "sem RP ainda".
 - Prova com horário de largada e local (primeiro ponto do GPX ou a cidade, convertida em coordenada no aparelho) mostra a previsão no clima do dia, nas horas da largada até a chegada prevista.
 - Até 16 dias antes vale a previsão do tempo, guardada por 3 h. Antes disso, a média das mesmas horas e data nos últimos 5 anos, guardada por 24 h (`RaceWeatherConstants`).
 - A estratégia de ritmo por km usa o tempo-alvo ajustado só quando há previsão do tempo.

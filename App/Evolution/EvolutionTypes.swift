@@ -127,3 +127,8 @@ struct HeatmapCell: Identifiable, Equatable {
 
     var id: Day { day }
 }
+
+struct PredictionRecordComparison: Equatable {
+    let text: String
+    let beats: Bool
+}

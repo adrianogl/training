@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import WorkoutAnalysis
 import Narrative
 
 enum EvolutionText {
@@ -67,6 +68,18 @@ enum EvolutionText {
         case .thresholdPace: C.metricNames[.thresholdPace] ?? ""
         case .monthlyVolume: C.metricNames[.monthlyVolume] ?? ""
         }
+    }
+
+    static func recordComparison(predicted: Double, meters: Double, records: [PersonalRecord]) -> PredictionRecordComparison? {
+        guard predicted > 0 else { return nil }
+        guard let record = EvolutionExtras.record(for: meters, in: records) else {
+            return PredictionRecordComparison(text: EvolutionConstants.recordMissing, beats: false)
+        }
+        let best = WorkoutFormat.clock(record.seconds)
+        let gap = (record.seconds - predicted).rounded()
+        if gap > 0 { return PredictionRecordComparison(text: String(format: EvolutionConstants.recordBeatFormat, RecordText.gain(gap), best), beats: true) }
+        if gap < 0 { return PredictionRecordComparison(text: String(format: EvolutionConstants.recordAboveFormat, RecordText.gain(-gap), best), beats: false) }
+        return PredictionRecordComparison(text: String(format: EvolutionConstants.recordEqualFormat, best), beats: false)
     }
 
     static func change(kind: MetricKind, stats: MetricStats) -> (text: String, trend: IndicatorTrend)? {
