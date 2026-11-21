@@ -29,7 +29,8 @@ import TrainingCore
     @ObservationIgnored private let today: @Sendable () -> Day
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
-    @ObservationIgnored private let strengthPlanStore: StrengthPlanStore
+    @ObservationIgnored let strengthPlanStore: StrengthPlanStore
+    @ObservationIgnored let planEndScheduler: any NotificationScheduling
     @ObservationIgnored let claudeStore: ClaudeStrengthStore
     @ObservationIgnored private var autoTask: Task<Void, Never>?
     @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
@@ -40,8 +41,10 @@ import TrainingCore
     init(
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
         defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil,
-        strengthPlanStore: StrengthPlanStore = StrengthPlanStore(), claudeStore: ClaudeStrengthStore = ClaudeStrengthStore()
+        strengthPlanStore: StrengthPlanStore = StrengthPlanStore(), claudeStore: ClaudeStrengthStore = ClaudeStrengthStore(),
+        planEndScheduler: any NotificationScheduling = UserNotificationScheduler()
     ) {
+        self.planEndScheduler = planEndScheduler
         self.strengthPlanStore = strengthPlanStore
         self.claudeStore = claudeStore
         self.strengthPlan = strengthPlanStore.current()
@@ -341,6 +344,7 @@ import TrainingCore
         try? strengthPlanStore.save(updated)
         strengthPlan = strengthPlanStore.current()
         await applyStrength(mfit + updated.sessions.filter { $0.source == .trainer })
+        await checkStrengthPlanEnd()
     }
 
     private static func changedWeekdays(from old: [TrainerStrengthSession], to new: [TrainerStrengthSession]) -> Set<Int> {
@@ -438,6 +442,7 @@ import TrainingCore
         migrateStrength()
         migrateStrengthPlan()
         await notifySignals(applyPending())
+        await checkStrengthPlanEnd()
     }
 
     func scheduleAutoAdjust() {
@@ -489,6 +494,7 @@ import TrainingCore
         guard !Task.isCancelled else { return [] }
         let created = applyPending()
         await notifySignals(created)
+        await checkStrengthPlanEnd()
         return created
     }
 
