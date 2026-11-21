@@ -4,7 +4,11 @@ import Insights
 enum StrengthPlanUIConstants {
     static let weeksRange = 1...24
     static let defaultWeeks = 8
-    static let objectiveOrder: [StrengthObjective] = [.mobility, .strength, .prevention]
+    static let objectiveOrder: [StrengthObjective] = [.performance, .strength, .prevention, .mobility, .maintenance]
+    static let optionDotSize: CGFloat = 20
+    static let optionDotInset: CGFloat = 4
+    static let optionBorder: CGFloat = 1.5
+    static let optionSelectedOpacity = 0.14
     static let validityOrder: [StrengthPlanValidityMode] = [.untilRace, .weeks, .untilDate]
     static let builderOrder: [StrengthPlanBuilder] = [.trainer, .claude]
     static let weekdayPlural = ["segundas", "terças", "quartas", "quintas", "sextas", "sábados", "domingos"]

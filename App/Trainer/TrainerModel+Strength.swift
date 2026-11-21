@@ -59,11 +59,14 @@ extension TrainerModel {
 
     func strengthWorkout(sessionId: UUID, day: Day) -> GeneratedStrengthWorkout? {
         guard let session = strengthSessions.first(where: { $0.id == sessionId }) ?? claudeOverride(on: day).flatMap({ $0.id == sessionId ? $0 : nil }) else { return nil }
-        let context = TrainerStrengthContextBuilder.context(
+        var context = TrainerStrengthContextBuilder.context(
             day: day, plan: plan, externalKind: externalWorkouts.first { $0.day == day }.map(ExternalDayKind.kind),
             readiness: day == currentDay ? history.readiness[day] : nil,
             prefs: TrainerStrengthPrefsStore().load(), cache: StrengthProgramStore().load(), schedule: StrengthSchedule()
         )
+        if session.source == .trainer, let active = strengthPlan, active.isActive(on: day) {
+            context.objective = active.objective
+        }
         if let stored = claudeWorkout(on: day), session.source == .trainer {
             return ClaudeStrengthApply.apply(stored.workout, session: session, context: context)
         }

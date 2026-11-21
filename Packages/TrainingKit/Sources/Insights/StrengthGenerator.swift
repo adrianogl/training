@@ -74,8 +74,9 @@ public enum StrengthGenerator {
         var pool = StrengthCatalog.all.filter { exercise in
             (plan.group == .mobility || exercise.focus.contains(plan.group)) && exercise.fits(place) && exercise.loads.isDisjoint(with: context.pain)
                 && (!plan.mobilityOnly || exercise.isMobility)
+                && !(plan.mobilityOnly && context.objective == .mobility && isStatic(exercise))
         }
-        var order = plan.mobilityOnly ? C.mobilityOrder : C.patternOrder[plan.group] ?? []
+        var order = plan.mobilityOnly ? C.mobilityOrder : objectiveOrder(plan.group, objective: context.objective)
         if pool.isEmpty {
             pool = StrengthCatalog.all.filter { $0.isMobility && $0.fits(place) && $0.loads.isEmpty }
             order = C.mobilityOrder
@@ -116,6 +117,19 @@ public enum StrengthGenerator {
             }
         }
         return chosen
+    }
+
+    private static func objectiveOrder(_ group: TrainerStrengthGroup, objective: StrengthObjective?) -> [MovementPattern] {
+        let base = C.patternOrder[group] ?? []
+        switch objective {
+        case .performance: return C.performanceOrder[group] ?? base
+        case .maintenance: return base.filter { !C.maintenanceExcluded.contains($0) }
+        default: return base
+        }
+    }
+
+    private static func isStatic(_ exercise: CatalogExercise) -> Bool {
+        exercise.timed || exercise.id.contains(C.staticMobilityWord)
     }
 
     private static func generated(_ candidate: CatalogExercise, plan: Plan, context: StrengthContext, used: Set<String>) -> GeneratedExercise {

@@ -44,17 +44,21 @@ enum StrengthPlanText {
 
     static func objectiveName(_ objective: StrengthObjective) -> String {
         switch objective {
-        case .mobility: "Mobilidade"
+        case .mobility: "Mobilidade para corrida"
         case .strength: "Força"
         case .prevention: "Prevenção"
+        case .performance: "Performance na corrida"
+        case .maintenance: "Manutenção"
         }
     }
 
     static func objectiveHint(_ objective: StrengthObjective) -> String {
         switch objective {
-        case .mobility: "Mobilidade: quadril, tornozelo e torácica, sem carga."
-        case .strength: "Força: foco que você escolher, intensidade moderada."
-        case .prevention: "Prevenção: corpo todo leve, com unilateral, panturrilha e quadril."
+        case .mobility: "Tornozelo, quadril e torácica, só exercícios dinâmicos e sem carga."
+        case .strength: "Foco que você escolher, com carga e intensidade moderada."
+        case .prevention: "Corpo todo leve, com unilateral, panturrilha e quadril."
+        case .performance: "Unilateral, pliometria, panturrilha e quadril primeiro. Pernas, 40 min, academia."
+        case .maintenance: "Para as semanas antes da prova: corpo todo leve, 25 min, sem pliometria."
         }
     }
 

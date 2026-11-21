@@ -172,10 +172,19 @@ Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.
 
 ### Plano de força
 
-- **Plano:** objetivo (Mobilidade, Força ou Prevenção), dias com foco, minutos e local, validade, data de início e quem monta (Treinador ou Claude). Só um plano ativo por vez.
+- **Plano:** objetivo (Performance na corrida, Força, Prevenção, Mobilidade para corrida ou Manutenção), dias com foco, minutos e local, validade, data de início e quem monta (Treinador ou Claude). Só um plano ativo por vez.
 - **Validade:** até a prova, de 1 a 24 semanas ou até uma data. Os treinos do plano aparecem só entre o início e o fim; fora disso, nenhum dia do plano aparece.
 - **MFIT em paralelo:** o MFIT nunca é substituído pelo plano. Num dia com os dois, a semana e o Hoje mostram dois cards, "MFIT" e "Plano".
 - **Mobilidade:** foco próprio, só exercícios de mobilidade, sem carga.
+- **Objetivo no gerador** (`StrengthContext.objective`, só nos dias do plano ativo):
+
+| Objetivo | Dia novo | Efeito na escolha |
+| --- | --- | --- |
+| Performance na corrida | pernas, moderada, 40 min, academia | unilateral, pliometria, panturrilha e estabilidade de quadril antes de agachamento e terra (`performanceOrder`) |
+| Força | corpo inteiro, moderada, 45 min, academia | ordem padrão do foco |
+| Prevenção | corpo inteiro, leve, 30 min, academia | ordem padrão do foco |
+| Mobilidade para corrida | mobilidade, leve, 20 min, casa | tornozelo, quadril e torácica só com exercícios dinâmicos: fica de fora alongamento (`STRETCH_`) e isometria |
+| Manutenção | corpo inteiro, leve, 25 min, academia | ordem padrão sem pliometria |
 - **Fim do plano:** a notificação "Plano de <objetivo> terminou" com "Foram X de Y treinos" sai às 21h do último dia de treino ou logo depois do último treino concluído, o que vier primeiro, uma vez por plano e só no iPhone. A tela Força oferece "Montar próximo plano" e "Repetir o mesmo plano" (mesmas sessões, a partir do próximo dia de treino).
 - **Claude:** quando o plano é do Claude, o pedido usa o período e os dias do plano, e o resultado fora do plano é rejeitado.
 - **Migração:** na primeira abertura, as sessões do treinador existentes viram um plano que termina junto com o plano de corrida (ou em 12 semanas, sem plano de corrida), com um aviso único para ajustar.

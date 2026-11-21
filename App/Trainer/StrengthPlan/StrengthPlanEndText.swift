@@ -11,9 +11,11 @@ enum StrengthPlanEndText {
 
     private static func name(_ objective: StrengthObjective) -> String {
         switch objective {
-        case .mobility: "mobilidade"
+        case .mobility: "mobilidade para corrida"
         case .strength: "força"
         case .prevention: "prevenção"
+        case .performance: "performance na corrida"
+        case .maintenance: "manutenção"
         }
     }
 }

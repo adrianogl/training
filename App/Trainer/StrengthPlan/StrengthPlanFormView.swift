@@ -113,8 +113,9 @@ struct StrengthPlanFormContent: View {
 
     private var objectiveCard: some View {
         VStack(alignment: .leading, spacing: C.spacing) {
-            StrengthPlanSegmented(options: C.objectiveOrder, selection: $draft.objective, name: StrengthPlanText.objectiveName)
-            Text(StrengthPlanText.objectiveHint(draft.objective)).font(.footnote).foregroundStyle(BrandColors.dim)
+            StrengthPlanOptionList(
+                options: C.objectiveOrder, selection: $draft.objective, name: StrengthPlanText.objectiveName, detail: StrengthPlanText.objectiveHint
+            )
         }
         .brandCard()
     }

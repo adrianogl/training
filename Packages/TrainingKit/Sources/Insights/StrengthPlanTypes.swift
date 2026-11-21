@@ -5,6 +5,8 @@ public enum StrengthObjective: String, Codable, Sendable, CaseIterable {
     case mobility
     case strength
     case prevention
+    case performance
+    case maintenance
 }
 
 public enum StrengthPlanValidity: Codable, Sendable, Equatable {

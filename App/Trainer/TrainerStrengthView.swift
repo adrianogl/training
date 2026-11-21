@@ -303,13 +303,7 @@ struct TrainerStrengthEditView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Picker(TrainerText.strengthDayLabel, selection: $session.weekday) {
-                            ForEach((1...TrainerConstants.weekdayCount).filter { !blockedDays.contains($0) }, id: \.self) { weekday in
-                                Text(TrainerConstants.weekdayFull[weekday - 1].capitalized).tag(weekday)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .tint(BrandColors.text)
+                        StrengthDayPicker(weekday: $session.weekday, blocked: blockedDays)
                         segmented(TrainerStrengthText.focusLabel, selection: $session.group, options: TrainerStrengthConstants.focusOrder, name: TrainerStrengthText.focusName)
                         segmented(TrainerStrengthText.intensityLabel, selection: $session.intensity, options: TrainerStrengthConstants.intensityOrder, name: TrainerStrengthText.intensityName)
                         segmented(TrainerStrengthText.durationLabel, selection: $session.minutes, options: TrainerStrengthConstants.minuteOptions) { String(format: TrainerStrengthText.minutesFormat, $0) }

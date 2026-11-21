@@ -160,4 +160,11 @@ enum TrainerStrengthText {
         default: false
         }
     }
+
+    static func dayCaption(selected: Int, blocked: Set<Int>) -> String {
+        let name = TrainerConstants.weekdayFull[selected - 1].capitalized
+        guard !blocked.isEmpty else { return name }
+        let taken = StrengthPlanText.join(blocked.sorted().map { TrainerConstants.weekdayFull[$0 - 1] })
+        return "\(name) · \(taken) \(blocked.count == 1 ? "já tem" : "já têm") treino no plano"
+    }
 }

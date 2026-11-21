@@ -23,4 +23,8 @@ enum TrainerStrengthConstants {
     static let bannerBorder: CGFloat = 1.5
     static let bannerTint = 0.10
     static let dayChipCorner: CGFloat = 10
+    static let weekdayLetters = ["S", "T", "Q", "Q", "S", "S", "D"]
+    static let dayButtonSize: CGFloat = 44
+    static let dayButtonSpacing: CGFloat = 6
+    static let dayBlockedOpacity = 0.35
 }
