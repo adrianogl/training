@@ -41,6 +41,7 @@ enum WorkoutConstants {
     static let plannedKind = "Treino planejado"
     static let plannedDetailSubtitle = "Planejado no Garmin Connect"
     static let plannedDays = 6
+    static let plannedMaxDays = 180
     static let plannedStructure = "Estrutura"
     static let plannedSteps = "Passos"
     static let plannedLastTime = "Da última vez que você fez"

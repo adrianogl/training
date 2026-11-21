@@ -79,3 +79,10 @@ enum WorkoutKindFilter: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 }
+
+struct WorkoutPlannedWeek: Identifiable {
+    let start: Day
+    let items: [WorkoutPlannedItem]
+
+    var id: String { start.iso }
+}
