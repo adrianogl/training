@@ -304,7 +304,7 @@ struct TrainerStrengthEditView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     VStack(alignment: .leading, spacing: 12) {
                         StrengthDayPicker(weekday: $session.weekday, blocked: blockedDays)
-                        segmented(TrainerStrengthText.focusLabel, selection: $session.group, options: TrainerStrengthConstants.focusOrder, name: TrainerStrengthText.focusName)
+                        StrengthFocusChips(selection: $session.group)
                         segmented(TrainerStrengthText.intensityLabel, selection: $session.intensity, options: TrainerStrengthConstants.intensityOrder, name: TrainerStrengthText.intensityName)
                         segmented(TrainerStrengthText.durationLabel, selection: $session.minutes, options: TrainerStrengthConstants.minuteOptions) { String(format: TrainerStrengthText.minutesFormat, $0) }
                         segmented(TrainerStrengthText.placeLabel, selection: $session.place, options: TrainerStrengthConstants.placeOrder, name: TrainerStrengthText.placeName)

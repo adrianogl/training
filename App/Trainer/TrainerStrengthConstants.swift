@@ -8,6 +8,8 @@ enum TrainerStrengthConstants {
     static let painReviewDays = 7
     static let minuteOptions = [15, 20, 25, 30, 45, 60]
     static let focusOrder: [TrainerStrengthGroup] = [.upper, .lower, .fullBody, .core, .mobility]
+    static let focusRows: [[TrainerStrengthGroup]] = [[.upper, .lower, .fullBody], [.core, .mobility]]
+    static let chipRadius: CGFloat = 12
     static let sourceOrder: [TrainerStrengthSource] = [.mfit, .trainer]
     static let intensityOrder: [TrainerStrengthIntensity] = [.light, .moderate, .heavy]
     static let placeOrder: [StrengthPlace] = [.gym, .home, .bodyweight]

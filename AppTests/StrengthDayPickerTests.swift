@@ -16,7 +16,10 @@ import Testing
 
     @MainActor @Test func pickerRenders() throws {
         guard let dir = ProcessInfo.processInfo.environment["SNAPSHOT_DIR"] else { return }
-        let view = StrengthDayPicker(weekday: .constant(2), blocked: [4])
+        let view = VStack(alignment: .leading, spacing: 12) {
+            StrengthDayPicker(weekday: .constant(2), blocked: [4])
+            StrengthFocusChips(selection: .constant(.core))
+        }
             .brandCard()
             .padding(16)
             .frame(width: 440)
