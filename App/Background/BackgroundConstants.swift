@@ -3,7 +3,7 @@ import Foundation
 enum BackgroundConstants {
     static let refreshTaskId = "dev.aglv.training.refresh"
     static let refreshHour = 4
-    static let retryInterval: TimeInterval = 60 * 60
+    static let retryInterval: TimeInterval = 15 * 60
     static let retryCeilingHour = 11
     static let notificationIdPrefix = "morning-readiness-"
     static let readinessDeepLink = "training://hoje/prontidao"

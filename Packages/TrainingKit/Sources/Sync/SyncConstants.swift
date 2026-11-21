@@ -13,6 +13,7 @@ public enum SyncConstants {
     static let activityPageSize = 50
     static let lightActivityPageSize = 10
     static let incrementalOverlapDays = 3
+    static let morningDaysBack = 1
     static let incrementalActivityOverlap: TimeInterval = 3 * 86_400
     static let chronicLoadDays = 28
     static let readinessVersion = 1

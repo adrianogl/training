@@ -48,6 +48,10 @@ public actor SyncEngine: ModelActor {
         try await singleFlight(.light) { try await self.performLight() }
     }
 
+    public func runMorning() async throws -> SyncReport {
+        try await singleFlight(.morning) { try await self.performMorning() }
+    }
+
     public func reprocess(limit: Int?) async throws -> SyncReport {
         try await singleFlight(.reprocess) { try await self.performReprocess(limit: limit) }
     }
@@ -209,7 +213,7 @@ public actor SyncEngine: ModelActor {
         return report
     }
 
-    private func syncState() throws -> SyncState {
+    func syncState() throws -> SyncState {
         let states = try modelContext.fetch(FetchDescriptor<SyncState>()).sorted { a, b in
             if a.firstLoadCompleted != b.firstLoadCompleted { return a.firstLoadCompleted }
             return (a.lastSync ?? .distantPast) > (b.lastSync ?? .distantPast)

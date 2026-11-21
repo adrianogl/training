@@ -57,6 +57,7 @@ import UIKit
         beginBackgroundTask(model: model)
         defer { endBackgroundTask() }
         C.logger.info("sono chegou, sync começou")
+        await model.quickMorningNotice()
         let synced = await model.syncNow(.background)
         await model.trainer.settleAutoAdjust()
         BackgroundSync.schedule(readinessComplete: model.todayReadinessComplete)
