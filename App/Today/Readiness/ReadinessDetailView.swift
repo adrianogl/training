@@ -105,16 +105,14 @@ struct ReadinessDetailView: View {
     }
 
     private var explanation: some View {
-        DisclosureGroup {
+        VStack(alignment: .leading, spacing: DSSpacing.s2) {
+            Text(C.detailExplanationTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
             Text(C.detailExplanation)
                 .font(.footnote)
                 .foregroundStyle(BrandColors.dim)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, DSSpacing.s2)
-        } label: {
-            Text(C.detailExplanationTitle).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
         }
-        .tint(BrandColors.dim)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
     }
 }
