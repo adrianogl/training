@@ -151,7 +151,7 @@ struct EvolutionView: View {
         } else {
             let available = MetricGroup.available(in: model.cardData, loading: model.isLoadingCards)
             if let group = MetricGroup.selected(selectedGroupTitle, in: available) {
-                MetricGroupCard(group: group.available(in: model.cardData) ?? group, data: model.cardData)
+                MetricGroupCard(group: group.available(in: model.cardData) ?? group, data: model.cardData, records: model.records)
                     .opacity(model.isLoadingCards ? 0.5 : 1)
             }
         }

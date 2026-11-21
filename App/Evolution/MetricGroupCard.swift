@@ -5,6 +5,7 @@ import SwiftUI
 struct MetricGroupCard: View {
     let group: MetricGroup
     let data: [MetricKind: MetricCardData]
+    var records: [PersonalRecord] = []
 
     private typealias C = EvolutionConstants
 
@@ -30,6 +31,7 @@ struct MetricGroupCard: View {
                 if featured { CardLinkFooter(title: CardLinkConstants.details) }
             }
             .brandCard(fillsHeight: !featured)
+            .recordCard(comparison(kind)?.beats == true)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.cardLink)
@@ -57,6 +59,12 @@ struct MetricGroupCard: View {
                 Text(WorkoutListModel.paceText(secondsPerKilometer: seconds / (meters / WorkoutConstants.metersPerKilometer)))
                     .font(BrandFonts.number(13))
                     .foregroundStyle(BrandColors.dim)
+                if let comparison = comparison(kind) {
+                    Text(comparison.text)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(comparison.beats ? BrandColors.record : BrandColors.dim)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer(minLength: 0)
             if !monthly.isEmpty {
@@ -70,6 +78,11 @@ struct MetricGroupCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func comparison(_ kind: MetricKind) -> PredictionRecordComparison? {
+        guard let meters = kind.predictionMeters, let seconds = data[kind]?.stats.current else { return nil }
+        return EvolutionText.recordComparison(predicted: seconds, meters: meters, records: records)
     }
 
     private func deltaText(_ change: (text: String, trend: IndicatorTrend)?) -> String {

@@ -42,6 +42,10 @@ enum EvolutionConstants {
     static let sparklineHeight: Double = 24
     static let monthlyBarHeight: Double = 56
     static let predictionsGroupTitle = "Previsões"
+    static let recordBeatFormat = "★ %@ abaixo do RP %@"
+    static let recordAboveFormat = "%@ acima do RP %@"
+    static let recordEqualFormat = "igual ao RP %@"
+    static let recordMissing = "sem RP ainda"
     static let metricGroups: [MetricGroup] = [
         MetricGroup(title: "Ritmo e limiar", kinds: [.thresholdPace, .zone2Pace, .thresholdHeartRate]),
         MetricGroup(title: "Capacidade", kinds: [.vo2max, .fitness, .hillStrength, .durability]),
