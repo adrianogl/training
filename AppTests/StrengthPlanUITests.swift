@@ -111,6 +111,17 @@ import TrainingCore
         #expect(StrengthPlanDraftLogic.defaultStart(empty.sessions, today: Day(iso: "2026-11-20")!) == start)
     }
 
+    @Test func claude_plan_starting_later_shows_start_date_in_the_card() {
+        var claude = plan()
+        claude.builder = .claude
+        let summary = StrengthPlanDraftLogic.cardSummary(claude, done: 0, today: start.adding(days: -3))
+        #expect(summary.progress == StrengthPlanText.startsOn(start))
+        #expect(summary.builder == StrengthPlanText.builderName(.claude))
+        #expect(summary.share == 0)
+        let started = StrengthPlanDraftLogic.cardSummary(claude, done: 0, today: start)
+        #expect(started.progress != StrengthPlanText.startsOn(start))
+    }
+
     @Test func texts_match_the_mock() {
         let value = plan()
         let card = StrengthPlanDraftLogic.cardSummary(value, done: 6, today: Day(iso: "2026-12-08")!)

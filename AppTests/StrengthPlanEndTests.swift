@@ -44,6 +44,20 @@ import TrainingCore
         #expect(header?.link == DeepLinkConstants.trainerStrength)
     }
 
+    @Test func claude_plan_starting_next_week_schedules_on_its_own_last_day() async {
+        let scheduler = FakeNotificationScheduler()
+        let future = start.adding(days: 7)
+        let claude = StrengthPlan(objective: .strength, sessions: [1, 3].map(session), start: future, validity: .weeks(1), builder: .claude)
+        let result = await StrengthPlanEndNotifier.check(
+            plan: claude, history: history([]), now: date(start, hour: 9), calendar: calendar, scheduler: scheduler
+        )
+        #expect(result == nil)
+        #expect(await scheduler.delivered.isEmpty)
+        let entry = await scheduler.scheduled[StrengthPlanEndConstants.notificationId]
+        #expect(entry?.at == date(future.adding(days: 2), hour: 21))
+        #expect(entry?.text == "Foram 0 de 2 treinos. Toque para montar o próximo.")
+    }
+
     @Test func fires_now_when_last_workout_done() async {
         let scheduler = FakeNotificationScheduler()
         let last = start.adding(days: 2)
