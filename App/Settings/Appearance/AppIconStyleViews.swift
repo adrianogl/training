@@ -24,7 +24,7 @@ struct AppIconStyleCard: View {
     private typealias C = AppIconConstants
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: DSRadius.card - 2, style: .continuous)
+        let shape = ConcentricRectangle.dsInner
         VStack(spacing: DSSpacing.s2) {
             icon
                 .frame(width: C.previewSize, height: C.previewSize)
@@ -39,7 +39,7 @@ struct AppIconStyleCard: View {
         .padding(.horizontal, DSSpacing.s2)
         .frame(maxWidth: .infinity)
         .background(BrandColors.card, in: shape)
-        .overlay(shape.strokeBorder(isSelected ? BrandColors.accentFill : BrandColors.cardBorder, lineWidth: isSelected ? 2 : 1))
+        .overlay(shape.stroke(isSelected ? BrandColors.accentFill : BrandColors.cardBorder, lineWidth: isSelected ? 2 : 1))
         .overlay(alignment: .topTrailing) {
             if isSelected {
                 Image(systemName: "checkmark")

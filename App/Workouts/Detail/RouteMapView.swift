@@ -37,7 +37,7 @@ struct RouteMapView: View {
         }
         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll))
         .frame(height: WorkoutDetailConstants.mapHeight)
-        .clipShape(RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius - 6, style: .continuous))
+        .clipShape(.dsInner)
         .allowsHitTesting(false)
         .accessibilityLabel("Mapa do percurso")
     }

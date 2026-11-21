@@ -9,7 +9,7 @@ enum StrengthPlanUIConstants {
     static let builderOrder: [StrengthPlanBuilder] = [.trainer, .claude]
     static let weekdayPlural = ["segundas", "terças", "quartas", "quintas", "sextas", "sábados", "domingos"]
     static let migrationDismissedKey = "strengthPlanMigrationDismissed"
-    static let innerRadius: CGFloat = 12
+    static let innerRadius = DSRadius.medium
     static let segmentRadius: CGFloat = 9
     static let segmentPadding: CGFloat = 3
     static let segmentHeight: CGFloat = 32
