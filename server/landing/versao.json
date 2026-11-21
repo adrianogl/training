@@ -1,13 +1,17 @@
 {
-  "versao": "1.32.0",
-  "build": 44,
-  "versao_app": "1.32.0",
+  "versao": "1.32.1",
+  "build": 45,
+  "versao_app": "1.32.1",
   "notas": [
-    "Plano de força com objetivos de performance na corrida, manutenção e mobilidade para corrida, e com o equipamento que você tem em casa",
-    "Evolução com previsões e recordes em 1 km, 3 km, 5 km, 10 km, meia maratona e maratona",
-    "Versão e novidades em Ajustes, escolha do dia e do foco mais clara, e o app abre direto se foi usado nas últimas 6 horas"
+    "Depois de atualizar, as telas abrem já com os dados da versão nova"
   ],
   "historico": [
+    {
+      "versao": "1.32.1",
+      "notas": [
+        "Depois de atualizar, as telas abrem já com os dados da versão nova"
+      ]
+    },
     {
       "versao": "1.32.0",
       "notas": [
@@ -71,12 +75,6 @@
       "versao": "1.27.0",
       "notas": [
         "Avisa a instalação e abre a tela de cada notificação"
-      ]
-    },
-    {
-      "versao": "1.26.0",
-      "notas": [
-        "Padroniza ajustes, edição, readequação e mudanças do plano"
       ]
     }
   ]
