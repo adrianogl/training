@@ -13,4 +13,8 @@ enum TrainerSendConstants {
     static let skippedKinds: Set<TrainerDayKind> = [.off, .race]
     static let runKeyPrefix = "run|"
     static let strengthKeyPrefix = "strength|"
+    static let mfitKeyPrefix = "mfit|"
+    static let mfitTitlePrefix = "MFIT · "
+    static let mfitFallbackCategory = "TOTAL_BODY"
+    static let mfitDaysWithoutEnd = 28
 }
