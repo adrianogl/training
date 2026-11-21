@@ -33,7 +33,7 @@
 </p>
 
 <p align="center">
-  <img alt="Telas Evolução no iPad e Hoje no iPhone, com números de exemplo" src="docs/assets/cover.png" width="100%">
+  <img alt="Hoje no iPad e no iPhone e o mostrador no Garmin, com números de exemplo" src="docs/assets/cover.png" width="100%">
 </p>
 
 App nativo de iPhone e iPad para corrida. Lê sono, HRV e treinos do Garmin ou do Apple Watch e calcula no aparelho a prontidão do dia, a análise de cada treino, a evolução, a previsão de prova e um plano com corrida e força. O que o app faz para quem usa está na landing, em [training.aglv.dev](https://training.aglv.dev). Este README é para quem vai rodar ou mexer no código.
@@ -78,6 +78,7 @@ Versão atual: `1.35.1` (ver [Versão](#versão)).
 - **MFIT no relógio:** com "Enviar os treinos do MFIT" ligado em Enviar ao Garmin, os treinos do professor vão para o calendário do Garmin até o fim da prescrição, com o exercício do catálogo da Garmin quando o nome casa e o nome do professor quando não casa. O envio automático leva junto.
 - **Calendário de treinos:** a aba Treinos alterna entre a lista por semana e o mês, com pontos por tipo (corrida feita, corrida planejada, força e MFIT) e os km de cada dia; tocar num dia mostra os treinos dele e o resumo do mês.
 - **Observações e carga sugerida:** cada exercício guarda observações permanentes, de qualquer origem (treinador, Claude ou MFIT), e elas entram no contexto de força do Claude. As observações das séries do MFIT aparecem só para leitura. Nos treinos do Treinador e do Claude, o exercício com carga que você nunca fez recebe uma carga sugerida pelo histórico do mesmo padrão de movimento ou da mesma categoria da Garmin, e o app mostra a conta. Treino do MFIT mantém a carga do professor. A regra está em [`docs/regras/prescricao.md`](docs/regras/prescricao.md).
+- **Previsões e recordes:** distâncias fixas (1 km, 3 km, 5 km, 10 km, meia e maratona), recorde casado pela distância em metros e cada previsão comparada ao recorde da mesma distância.
 - **Texto e conversa:** Foundation Models da Apple, no aparelho, a partir de números já calculados. Sem o modelo, o app usa templates com os mesmos números.
 
 As fórmulas e os limites estão em `docs/regras/`. Mudança de regra atualiza esses arquivos no mesmo commit.
@@ -116,10 +117,10 @@ Conecte o iPhone ou o iPad por cabo, escolha o aparelho como destino e rode. Na 
 | Onde | O que faz |
 | --- | --- |
 | Ajustes › Strava | Escreve o resumo do treino na descrição da atividade |
-| Ajustes › MFIT | Lê o programa de força que o professor montou no MFIT Personal |
+| Ajustes › MFIT | Lê o programa de força que o professor montou no MFIT Personal. Com "Enviar os treinos do MFIT" ligado, manda o programa ao Garmin até o fim da prescrição |
 | Ajustes › Claude | Gera um token para o Claude Desktop ou o Claude Code montarem treinos de força pelo MCP em `https://training.aglv.dev/mcp`. O app mostra o comando pronto; os treinos só entram depois que você revisa e aplica. Para administradores, o MCP também expõe `avaliacoes_imagens` e `resolver_avaliacao`, que listam e resolvem as avaliações de imagem dos exercícios |
 | Ajustes › Mostrador | Token do mostrador Garmin e a agenda no relógio |
-| Treinador › Enviar ao Garmin | Manda os treinos do treinador para o relógio: só força, só corrida ou os dois. O app só mexe nos treinos que ele mesmo criou |
+| Treinador › Enviar ao Garmin | Manda os treinos do treinador e, se ligado, os do MFIT para o relógio: só força, só corrida ou os dois. O app só mexe nos treinos que ele mesmo criou |
 
 ### Conta gratuita: reinstalar a cada 7 dias
 
@@ -216,6 +217,8 @@ scripts/release.sh             # grava a versão no project.yml, no README e em 
 ```
 
 Depois: commit `chore(release): vX.Y.Z`, tag `vX.Y.Z`, push com `--tags` e `vercel deploy --prod` (o deploy publica o `versao.json`). O badge de versão lê a última tag do GitHub.
+
+A capa (`docs/assets/cover.png`, 2560 × 1640) é o topo da landing em tema escuro, com 1440 px de largura. Quando o desenho do topo mudar, gere a capa de novo.
 
 ### Aviso de versão nova
 
