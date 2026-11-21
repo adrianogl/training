@@ -41,11 +41,18 @@ struct ExerciseDetailScreen: View {
     var body: some View {
         ScrollViewReader { proxy in
             scroll
-                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                    guard verticalSizeClass == .compact, model.draft != nil else { return }
-                    withAnimation { proxy.scrollTo(ExerciseDetailConstants.notesAnchor, anchor: .bottom) }
+                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidChangeFrameNotification)) { _ in
+                    revealNotes(proxy)
+                }
+                .onChange(of: verticalSizeClass) {
+                    revealNotes(proxy)
                 }
         }
+    }
+
+    private func revealNotes(_ proxy: ScrollViewProxy) {
+        guard model.draft != nil else { return }
+        withAnimation { proxy.scrollTo(ExerciseDetailConstants.notesAnchor, anchor: .bottom) }
     }
 
     private var scroll: some View {
