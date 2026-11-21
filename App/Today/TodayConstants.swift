@@ -208,9 +208,15 @@ enum TodayConstants {
     static let planShapeDefaultPace = 330.0
     static let planShapeLevels: [PlannedStepKind: Int] = [.warmup: 2, .active: 4, .recovery: 1, .cooldown: 1, .rest: 1, .other: 2]
     static let planAdjustTitle = "Ajuste para hoje"
-    static let planAdjust: [ReadinessVerdict: String] = [
-        .hard: "Prontidão boa: siga o plano como está.",
-        .moderate: "Prontidão moderada: faça os blocos fortes no lado mais lento da faixa e pare um bloco antes se a FC subir demais.",
-        .rest: "Prontidão baixa: troque por rodagem leve em Z1–Z2 ou descanse hoje.",
+    static let planAdjustHard = "Prontidão boa: siga o plano como está."
+    static let planAdjustModerate: [PlannedWorkoutShape: String] = [
+        .continuous: "Prontidão moderada: fique no lado mais lento da faixa e segure o ritmo se a FC subir demais.",
+        .intervals: "Prontidão moderada: faça os blocos fortes no lado mais lento da faixa e pare um bloco antes se a FC subir demais.",
+        .long: "Prontidão moderada: faça o longão no lado mais lento da faixa e encurte o final se a FC subir demais.",
+    ]
+    static let planAdjustRest: [PlannedWorkoutShape: String] = [
+        .continuous: "Prontidão baixa: encurte a corrida e fique em Z1–Z2, ou descanse hoje.",
+        .intervals: "Prontidão baixa: troque por rodagem leve em Z1–Z2 ou descanse hoje.",
+        .long: "Prontidão baixa: troque o longão por rodagem leve em Z1–Z2 ou descanse hoje.",
     ]
 }

@@ -23,6 +23,24 @@ A análise roda só no app, no pacote `Packages/TrainingKit` (módulos `WorkoutA
 
 Testes: `MetricsTests/ReadinessTests.swift`, `ReadinessBreakdownTests.swift`, `InsightsTests/MissingNightTests.swift`.
 
+### Ajuste para hoje
+
+O card "Treino de hoje" do Garmin mostra um ajuste pelo veredito quando o treinador não tem sugestão própria. A frase depende do tipo do treino (`PlanText.shape`):
+
+| Tipo | Como reconhece |
+| --- | --- |
+| Intervalado | tem repetição ou mais de um bloco ativo |
+| Longão | não é intervalado e o nome fala em longão ou a distância chega a 14 km (`isLongRun`) |
+| Contínuo | o resto |
+
+| Veredito | Contínuo | Intervalado | Longão |
+| --- | --- | --- | --- |
+| Forte | siga o plano | siga o plano | siga o plano |
+| Moderado | lado mais lento da faixa, segurar o ritmo se a FC subir | blocos fortes no lado mais lento, parar um bloco antes se a FC subir | lado mais lento, encurtar o final se a FC subir |
+| Descanso | encurtar e ficar em Z1–Z2, ou descansar | trocar por rodagem leve em Z1–Z2, ou descansar | trocar o longão por rodagem leve em Z1–Z2, ou descansar |
+
+Textos em `App/Today/TodayConstants.swift`. Testes: `AppTests/PlanAdjustTests.swift`.
+
 ## Zonas de FC no Garmin
 
 As zonas de corrida do app partem do limiar do relógio: Z2 a partir de 85%, Z3 90%, Z4 95% e Z5 no limiar. Depois de cada sincronização, se o limiar mudou ou se as zonas de corrida do Garmin estão diferentes, o app grava essas faixas no Garmin, com o interruptor "Manter iguais às do app" em Ajustes › Garmin. Só mexe no perfil de corrida, e o início da Z1 continua o do Garmin. Depois de gravar, o app lê de volta e avisa se não bater. Arquivos: `GarminAPI/HeartRateZoneProfiles.swift`, `App/Garmin/GarminZonesModel.swift`. Testes: `GarminAPITests/HeartRateZoneProfilesTests.swift`.
