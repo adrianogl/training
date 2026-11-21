@@ -6,4 +6,9 @@ struct TrainerStrengthPrefs: Codable, Equatable {
     var painMarkedAt: Date?
     var swaps: [String: [String: String]] = [:]
     var keptOriginal: Set<String> = []
+    var homeEquipment: Set<StrengthEquipment>?
+
+    var effectiveHomeEquipment: Set<StrengthEquipment> {
+        homeEquipment ?? StrengthCatalogConstants.defaultHomeEquipment
+    }
 }

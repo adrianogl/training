@@ -1,9 +1,11 @@
-enum StrengthCatalogConstants {
+public enum StrengthCatalogConstants {
     static let equipmentByPlace: [StrengthPlace: Set<StrengthEquipment>] = [
         .gym: [.barbell, .machine, .cable, .dumbbell, .kettlebell, .medicineBall, .suspension, .swissBall, .band, .bodyweight],
-        .home: [.dumbbell, .band, .bodyweight],
+        .home: defaultHomeEquipment.union([.bodyweight]),
         .bodyweight: [.bodyweight],
     ]
+    public static let defaultHomeEquipment: Set<StrengthEquipment> = [.dumbbell, .band]
+    public static let homeEquipmentOptions: [StrengthEquipment] = [.dumbbell, .band, .kettlebell, .swissBall, .medicineBall, .suspension, .barbell]
     static let mobilityPatterns: Set<MovementPattern> = [.mobilityHip, .mobilityAnkle, .mobilityThoracic]
     static let patternByGarminCategory: [String: MovementPattern] = [
         "SQUAT": .squat, "DEADLIFT": .hinge, "HIP_RAISE": .hinge, "LEG_CURL": .hinge, "LUNGE": .singleLeg,

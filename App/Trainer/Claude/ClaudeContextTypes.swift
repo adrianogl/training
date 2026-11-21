@@ -20,6 +20,7 @@ struct ClaudeContextInput {
     let race: ClaudeRaceTarget?
     var notes: [ExerciseNote] = []
     var planLocked = false
+    var homeEquipment: Set<StrengthEquipment> = StrengthCatalogConstants.defaultHomeEquipment
 }
 
 struct ClaudeContextPayload: Codable, Equatable {
@@ -65,6 +66,7 @@ struct ClaudeContextPayload: Codable, Equatable {
     let corrida: [Run]
     let prontidao: [Readiness]
     let dor: [String]
+    let equipamento_casa: [String]?
     let ultimas_cargas_kg: [String: Double]
     let observacoes: [String: [String]]?
     let catalogo_formato: String

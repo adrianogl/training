@@ -17,6 +17,7 @@ export interface StrengthContext {
   corrida: { dia: string; tipo: string; nome: string }[]
   prontidao: { dia: string; nota: number }[]
   dor: string[]
+  equipamento_casa?: string[]
   ultimas_cargas_kg: Record<string, number>
   observacoes?: Record<string, string[]>
   catalogo_formato?: string

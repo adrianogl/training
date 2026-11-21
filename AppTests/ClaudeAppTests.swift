@@ -31,6 +31,17 @@ import TrainingCore
         #expect(payload.dias_do_treinador.first?.dia_da_semana == "ter")
     }
 
+    @Test func context_sends_home_equipment_and_filters_the_catalog() {
+        let standard = ClaudeContextBuilder.payload(input())
+        #expect(standard.equipamento_casa == ["band", "dumbbell"])
+        #expect(!standard.catalogo.contains { $0.hasPrefix("CORE/KETTLEBELL_WINDMILL|") })
+        var withKettlebell = input()
+        withKettlebell.homeEquipment = [.kettlebell]
+        let payload = ClaudeContextBuilder.payload(withKettlebell)
+        #expect(payload.equipamento_casa == ["kettlebell"])
+        #expect(payload.catalogo.contains { $0.hasPrefix("CORE/KETTLEBELL_WINDMILL|") })
+    }
+
     @Test func context_includes_notes_for_exercise() throws {
         func note(_ text: String, deleted: Bool = false) -> ExerciseNote {
             ExerciseNote(id: UUID(), exercise: .catalog("SQUAT/GOBLET_SQUAT"), text: text, createdAt: .now, updatedAt: .now, deleted: deleted)

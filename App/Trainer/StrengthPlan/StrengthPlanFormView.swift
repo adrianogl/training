@@ -99,6 +99,10 @@ struct StrengthPlanFormContent: View {
             objectiveCard
             section(StrengthPlanText.daysTitle)
             daysCard
+            if draft.sessions.contains(where: { $0.place == .home }) {
+                section(StrengthPlanText.homeEquipmentTitle)
+                StrengthHomeEquipmentCard()
+            }
             section(StrengthPlanText.validityTitle)
             validityCard
             section(StrengthPlanText.builderTitle)

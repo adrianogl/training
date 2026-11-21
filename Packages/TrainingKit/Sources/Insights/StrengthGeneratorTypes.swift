@@ -22,13 +22,16 @@ public struct StrengthContext: Sendable, Equatable {
     public var keepOriginal: Bool
     public var block: Int
     public var objective: StrengthObjective?
+    public var homeEquipment: Set<StrengthEquipment>?
 
     public init(
         runKind: TrainerDayKind? = nil, isRecoveryWeek: Bool = false, daysToRace: Int? = nil, readiness: Int? = nil,
         pain: Set<BodyRegion> = [], coveredPatterns: Set<MovementPattern> = [], loads: [String: StrengthLoadRecord] = [:],
-        swaps: [String: String] = [:], keepOriginal: Bool = false, block: Int = 0, objective: StrengthObjective? = nil
+        swaps: [String: String] = [:], keepOriginal: Bool = false, block: Int = 0, objective: StrengthObjective? = nil,
+        homeEquipment: Set<StrengthEquipment>? = nil
     ) {
         self.objective = objective
+        self.homeEquipment = homeEquipment
         self.runKind = runKind
         self.isRecoveryWeek = isRecoveryWeek
         self.daysToRace = daysToRace

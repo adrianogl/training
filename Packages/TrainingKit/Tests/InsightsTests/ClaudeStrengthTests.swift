@@ -21,12 +21,13 @@ import TrainingCore
 
     private let mobility = #"{ "id": "mobilidade-90-90", "series": 2, "reps": 8, "descanso": 15 }, { "id": "pallof-elastico", "series": 3, "reps": 10, "descanso": 30 }, { "id": "prancha-lateral", "series": 3, "segundos": 30, "descanso": 30 }, { "id": "dead-bug", "series": 3, "reps": 10, "descanso": 30 }, { "id": "mobilidade-tornozelo", "series": 2, "reps": 8, "descanso": 15 }, { "id": "passaro-cao", "series": 3, "reps": 10, "descanso": 30 }"#
 
-    private func context(runKinds: [Day: TrainerDayKind] = [:], race: Day? = nil, pain: Set<BodyRegion> = [], loads: [String: Double] = [:]) -> ClaudeValidationContext {
+    private func context(runKinds: [Day: TrainerDayKind] = [:], race: Day? = nil, pain: Set<BodyRegion> = [], loads: [String: Double] = [:], home: Set<StrengthEquipment>? = nil) -> ClaudeValidationContext {
         let tuesday = TrainerStrengthSession(weekday: 2, group: .core, legLoad: .light, name: "Mob", source: .trainer, intensity: .light, minutes: 25, place: .home)
         let thursday = TrainerStrengthSession(weekday: 4, group: .lower, legLoad: .heavy, name: "Pernas", source: .trainer, intensity: .heavy, minutes: 45, place: .gym)
         return ClaudeValidationContext(
             today: Day(iso: "2026-11-22")!, first: monday, last: monday.adding(days: 6),
-            trainerSessions: [tuesday, thursday], mfitWeekdays: [1, 3, 5], runKinds: runKinds, raceDay: race, pain: pain, lastLoads: loads
+            trainerSessions: [tuesday, thursday], mfitWeekdays: [1, 3, 5], runKinds: runKinds, raceDay: race, pain: pain, lastLoads: loads,
+            homeEquipment: home
         )
     }
 
@@ -40,6 +41,15 @@ import TrainingCore
     @Test func rejectsUnknownVersionAndBrokenJSON() {
         #expect(throws: ClaudeStrengthParseError.unsupportedVersion(2)) { try ClaudeStrengthParser.parse(#"{ "versao": 2, "treinos": [] }"#) }
         #expect(throws: ClaudeStrengthParseError.invalid) { try ClaudeStrengthParser.parse("sem json aqui") }
+    }
+
+    @Test func homeEquipmentDecidesWhatClaudeCanUseAtHome() throws {
+        let kettlebell = #"{ "id": "CORE/KETTLEBELL_WINDMILL", "series": 3, "reps": 8, "descanso": 45 }"#
+        let response = try ClaudeStrengthParser.parse(json(day("2026-11-24", kettlebell)))
+        let blocked = ClaudeStrengthValidator.validate(response, context: context()).first?.errors ?? []
+        #expect(blocked.contains(.wrongPlace("CORE/KETTLEBELL_WINDMILL")))
+        let allowed = ClaudeStrengthValidator.validate(response, context: context(home: [.kettlebell])).first?.errors ?? []
+        #expect(!allowed.contains(.wrongPlace("CORE/KETTLEBELL_WINDMILL")))
     }
 
     @Test func validDayBecomesAWorkout() throws {
