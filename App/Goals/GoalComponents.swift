@@ -30,6 +30,8 @@ struct GoalPredictionBar: View {
                 Capsule().fill(BrandColors.accent).frame(width: 3, height: proxy.size.height * 2).offset(x: x(target) - 1.5)
             }
         }
+        .frame(height: GoalsConstants.barHeight)
+        .padding(.vertical, GoalsConstants.barHeight / 2)
         .accessibilityHidden(true)
     }
 }
