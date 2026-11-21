@@ -5,10 +5,17 @@ public func shareContent(record: WorkoutShareInput, enabled: Set<ShareField>, te
     let available = Set(availableShareFields(record))
     let shown = enabled.intersection(available)
     let labels = template == .strip || template == .blocks ? ShareConstants.shortLabels : ShareConstants.fullLabels
-    let values = ShareField.allCases.filter(shown.contains).compactMap { field -> ShareValue? in
+    let highlightsRecord = shown.contains(.record)
+    let wholeRecord = highlightsRecord && record.records.contains(where: \.isWholeRun)
+    var values = ShareField.allCases.filter(shown.contains).compactMap { field -> ShareValue? in
         guard let value = shareValue(field, record: record, template: template), let label = labels[field] else { return nil }
         let isBareDistance = field == .distance && template == .blocks
-        return ShareValue(field: field, value: value, label: isBareDistance ? ShareConstants.distanceUnit : label)
+        return ShareValue(field: field, value: value, label: isBareDistance ? ShareConstants.distanceUnit : label, isRecord: field == .time && wholeRecord)
+    }
+    if highlightsRecord {
+        values += record.records.filter { !$0.isWholeRun }.map {
+            ShareValue(field: .record, value: WorkoutFormat.clock($0.seconds), label: $0.label, isRecord: true)
+        }
     }
     return ShareContent(
         title: shown.contains(.title) ? [record.title, record.dateText].filter { !$0.isEmpty }.joined(separator: ShareConstants.titleSeparator) : nil,
@@ -25,6 +32,7 @@ public func availableShareFields(_ record: WorkoutShareInput) -> [ShareField] {
         case .route: record.route.count >= ShareConstants.minimumRoutePoints
         case .title: true
         case .readingLine: record.readingLine?.isEmpty == false
+        case .record: !record.records.isEmpty
         default: shareValue(field, record: record, template: .storiesDark) != nil
         }
     }
@@ -46,7 +54,7 @@ private func shareValue(_ field: ShareField, record: WorkoutShareInput, template
         return positive(record.activePaceSecondsPerKm).map(WorkoutFormat.clock)
     case .elevation:
         return positive(record.elevationGain).map { "+\(Int($0.rounded())) \(ShareConstants.elevationUnit)" }
-    case .route, .title, .readingLine:
+    case .route, .title, .readingLine, .record:
         return nil
     }
 }

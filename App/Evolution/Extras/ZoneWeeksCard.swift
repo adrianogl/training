@@ -45,6 +45,7 @@ struct ZoneWeeksCard: View {
 struct RecordsCard: View {
     let records: [PersonalRecord]
     let now: Date
+    @Environment(\.openURL) private var openURL
 
     private typealias C = EvolutionExtrasConstants
 
@@ -53,7 +54,13 @@ struct RecordsCard: View {
             DSCardLabel(C.recordsTitle)
             ForEach(Array(C.records.enumerated()), id: \.offset) { index, target in
                 if index > 0 { Divider().overlay(BrandColors.line) }
-                row(target.label, record: records.first { $0.label == target.label })
+                let record = records.first { $0.label == target.label }
+                if let id = record?.activityId, let url = URL(string: DeepLink.workoutURL(id)) {
+                    Button { openURL(url) } label: { row(target.label, record: record) }
+                        .buttonStyle(.plain)
+                } else {
+                    row(target.label, record: record)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -68,7 +75,9 @@ struct RecordsCard: View {
                 .fixedSize()
                 .frame(minWidth: C.recordLabelWidth, alignment: .leading)
             if let record {
+                let isRecent = now.timeIntervalSince(record.date) <= Double(C.recentDays) * C.secondsPerDay
                 Text(WorkoutFormat.clock(record.seconds)).font(BrandFonts.number(18)).lineLimit(1).fixedSize()
+                    .foregroundStyle(isRecent ? BrandColors.record : BrandColors.text)
                 if let meters = record.meters, meters > 0 {
                     Text(WorkoutListModel.paceText(secondsPerKilometer: record.seconds / (meters / WorkoutConstants.metersPerKilometer)))
                         .font(BrandFonts.number(13))
@@ -76,8 +85,8 @@ struct RecordsCard: View {
                         .lineLimit(1)
                         .fixedSize()
                 }
-                if now.timeIntervalSince(record.date) <= Double(C.recentDays) * 86_400 {
-                    DSChip(text: C.newRecord, tone: .accent, style: .solid)
+                if isRecent {
+                    DSChip(text: C.newRecord, tone: .record, style: .solid)
                 }
                 Spacer(minLength: 4)
                 VStack(alignment: .trailing, spacing: 1) {

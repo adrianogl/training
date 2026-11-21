@@ -89,6 +89,10 @@ struct WorkoutDetailView: View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
             let C = WorkoutDetailConstants.self
             howItWent(model)
+            if !model.recordHits.isEmpty {
+                section(RecordText.section(model.recordHits.count))
+                WorkoutRecordsCard(hits: model.recordHits, steps: model.recordSteps, activityId: activityId)
+            }
             if !goalEntries.isEmpty {
                 section(C.sectionGoal)
                 WorkoutGoalCard(entries: goalEntries, showsLabel: false)

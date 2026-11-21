@@ -58,6 +58,11 @@ enum ShareConstants {
     static let buttonCornerRadius = DSRadius.control
     static let buttonPadding: CGFloat = 13
     static let buttonFontSize: CGFloat = 15
+    static let recordMark = "RP"
+    static let recordMarkScale: CGFloat = 0.36
+    static let recordMarkMinimum: CGFloat = 8
+    static let recordMarkGap: CGFloat = 0.08
+    static let recordHiddenDefaultsKey = "shareRecordHidden"
 
     static let templateTitles: [ShareTemplate: String] = [
         .storiesDark: "Stories",
@@ -76,5 +81,6 @@ enum ShareConstants {
         .activePace: "Pace dos tiros",
         .elevation: "Desnível",
         .readingLine: "Frase da leitura",
+        .record: "Recorde pessoal",
     ]
 }

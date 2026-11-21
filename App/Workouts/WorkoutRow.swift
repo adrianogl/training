@@ -34,16 +34,9 @@ struct WorkoutRow: View {
                         .fixedSize()
                 }
             }
-            HStack(alignment: .center, spacing: 12) {
-                badges
-                Spacer(minLength: 8)
-                if let metrics = metricsText {
-                    Text(metrics)
-                        .font(BrandFonts.number(14))
-                        .foregroundStyle(BrandColors.dim)
-                        .lineLimit(1)
-                        .fixedSize()
-                }
+            ViewThatFits(in: .horizontal) {
+                badgeLine(showsKind: true)
+                badgeLine(showsKind: false)
             }
             if !row.zoneShares.isEmpty {
                 ZoneStrip(shares: row.zoneShares)
@@ -54,6 +47,7 @@ struct WorkoutRow: View {
         }
         .brandCard()
         .perfectScoreCard(score: row.score, activityId: row.activityId)
+        .recordCard(row.recordPill != nil && (row.score ?? 0) < ScoreConstants.perfectScore)
         .overlay {
             if isSelected {
                 RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
@@ -63,14 +57,34 @@ struct WorkoutRow: View {
         .contentShape(Rectangle())
     }
 
-    private var badges: some View {
+    private func badgeLine(showsKind: Bool) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            badges(showsKind: showsKind)
+            Spacer(minLength: 8)
+            if let metrics = metricsText {
+                Text(metrics)
+                    .font(BrandFonts.number(14))
+                    .foregroundStyle(BrandColors.dim)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
+        }
+    }
+
+    private func badges(showsKind: Bool) -> some View {
         HStack(spacing: 6) {
             if isNew {
                 NewBadge()
             }
-            if isFromPlan {
+            if let record = row.recordPill {
+                DSChip(text: RecordTextConstants.recordSymbol + record, tone: .record, style: .solid).fixedSize()
+            }
+            if let goal = row.goalPill {
+                DSChip(text: RecordTextConstants.goalSymbol + goal, tone: .accent, style: .solid).fixedSize()
+            }
+            if showsKind, isFromPlan {
                 DSChip(text: WorkoutConstants.fromPlan, tone: .accent).fixedSize()
-            } else if row.hasPrescription {
+            } else if showsKind, row.hasPrescription {
                 DSChip(text: WorkoutConstants.structured, tone: .neutral).fixedSize()
             }
             if row.isStrength {

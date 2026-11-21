@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum DSTone {
-    case neutral, accent, attention, danger, strength, race, fitness, claude
+    case neutral, accent, attention, danger, strength, race, fitness, claude, record
 
     var color: Color {
         switch self {
@@ -13,10 +13,17 @@ enum DSTone {
         case .race: BrandColors.race
         case .fitness: BrandColors.fitness
         case .claude: ClaudeConstants.color
+        case .record: BrandColors.record
         }
     }
 
-    var fill: Color { self == .accent ? BrandColors.accentFill : color }
+    var fill: Color {
+        switch self {
+        case .accent: BrandColors.accentFill
+        case .record: BrandColors.recordFill
+        default: color
+        }
+    }
 }
 
 enum DSChipStyle {

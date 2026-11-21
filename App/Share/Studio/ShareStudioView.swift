@@ -11,6 +11,7 @@ struct ShareStudioView: View {
     @AppStorage(ShareStudioConstants.coloringDefaultsKey) private var coloring: RouteColoring = .pace
     @AppStorage(ShareStudioConstants.hidesEndsDefaultsKey) private var hidesEnds = true
     @AppStorage(ShareConstants.fieldsDefaultsKey) private var fieldsText = ShareField.encode(ShareField.defaultEnabled)
+    @AppStorage(ShareConstants.recordHiddenDefaultsKey) private var recordHidden = false
     @State private var photoItem: PhotosPickerItem?
     @State private var photo: UIImage?
     @State private var staticPreview: UIImage?
@@ -26,6 +27,7 @@ struct ShareStudioView: View {
             case .animatedRoute, .animatedSquare, .photo: source.track.count >= 2
             case .series: source.series.count >= C.minimumSeriesBars
             case .evolution: source.evolution.count >= C.minimumEvolutionPoints
+            case .record: !source.recordHits.isEmpty
             case .sticker, .card, .blocks, .strip: true
             }
         }
@@ -39,14 +41,20 @@ struct ShareStudioView: View {
 
     private var settings: ShareSettings {
         let usedColoring = colorings.contains(coloring) ? coloring : .pace
-        return ShareSettings(format: current, aspect: aspect, coloring: usedColoring, hidesEnds: hidesEnds, fields: ShareField.decode(fieldsText))
+        return ShareSettings(format: current, aspect: aspect, coloring: usedColoring, hidesEnds: hidesEnds, fields: enabledFields)
+    }
+
+    private var enabledFields: Set<ShareField> {
+        var fields = ShareField.decode(fieldsText)
+        if recordHidden { fields.remove(.record) } else { fields.insert(.record) }
+        return fields
     }
 
     private var isAnimated: Bool { [.animatedRoute, .animatedSquare, .photo].contains(current) }
-    private var usesAspect: Bool { [.animatedRoute, .animatedSquare, .photo, .series, .evolution].contains(current) }
+    private var usesAspect: Bool { [.animatedRoute, .animatedSquare, .photo, .series, .evolution, .record].contains(current) }
     private var usesColoring: Bool { [.animatedRoute, .animatedSquare].contains(current) }
-    private var showsRoute: Bool { source.track.count >= 2 && ![.series, .evolution, .blocks].contains(current) }
-    private var usesFields: Bool { ![.series, .evolution].contains(current) }
+    private var showsRoute: Bool { source.track.count >= 2 && ![.series, .evolution, .record, .blocks].contains(current) }
+    private var usesFields: Bool { ![.series, .evolution, .record].contains(current) }
     private var isSticker: Bool { [.sticker, .strip].contains(current) }
     private var acceptsPhoto: Bool { ![.sticker, .strip, .blocks].contains(current) }
 
@@ -74,7 +82,7 @@ struct ShareStudioView: View {
                 }
             }
         }
-        .task(id: "\(current.rawValue)|\(aspect.rawValue)|\(hidesEnds)|\(fieldsText)|\(photo?.hash ?? 0)") {
+        .task(id: "\(current.rawValue)|\(aspect.rawValue)|\(hidesEnds)|\(fieldsText)|\(recordHidden)|\(photo?.hash ?? 0)") {
             staticPreview = isAnimated ? nil : ShareMediaExporter.image(source: source, settings: settings, photo: photo, scale: 2)
             #if DEBUG
             ShareDebugExport.runIfRequested(input: source.input, enabled: settings.fields)
@@ -277,12 +285,16 @@ struct ShareStudioView: View {
 
     private var toggles: some View {
         let fields = availableShareFields(source.input)
-        let enabled = ShareField.decode(fieldsText)
+        let enabled = enabledFields
         return VStack(spacing: 0) {
             ForEach(Array(fields.enumerated()), id: \.element) { index, field in
                 Toggle(ShareConstants.fieldTitles[field] ?? field.rawValue, isOn: Binding(
                     get: { enabled.contains(field) },
                     set: { isOn in
+                        if field == .record {
+                            recordHidden = !isOn
+                            return
+                        }
                         var updated = enabled
                         if isOn { updated.insert(field) } else { updated.remove(field) }
                         fieldsText = ShareField.encode(updated)

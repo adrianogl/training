@@ -17,6 +17,8 @@ struct WorkoutRowData: Identifiable, Hashable {
     let zoneShares: [Double]
     let weekStart: Day
     var isStrength = false
+    var recordPill: String?
+    var goalPill: String?
 
     var id: Int64 { activityId }
 }

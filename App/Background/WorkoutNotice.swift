@@ -22,18 +22,38 @@ enum WorkoutNotice {
         guard let score = analysis.score?.value else { return nil }
         let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks, workoutName: record.workoutName).feedback.first
         let goals = (try? goalSnapshots(context: context, today: Day.today())) ?? []
-        return content(record: record, score: score, opening: opening, goals: goals)
+        PersonalRecords.refreshEfforts(in: context)
+        let highlights = PersonalRecords.timeline(PersonalRecords.runEfforts(records))[record.activityId] ?? .empty
+        return content(record: record, score: score, opening: opening, goals: goals, records: highlights)
     }
 
-    static func content(record: ActivityRecord, score: Int?, opening: String?, goals: [GoalSnapshot] = []) -> WorkoutNoticeContent {
+    static func content(record: ActivityRecord, score: Int?, opening: String?, goals: [GoalSnapshot] = [], records: RunRecords = .empty) -> WorkoutNoticeContent {
         let name = record.workoutName.map(WorkoutTitle.clean) ?? (record.name.isEmpty ? C.fallbackName : record.name)
-        var title = score.map { String(format: C.titleScoreFormat, name, $0) } ?? name
+        let named = score.map { String(format: C.titleScoreFormat, name, $0) } ?? name
         var body = opening ?? stats(record)
-        if let goal = WorkoutNoticeGoals.evaluate(record: record, goals: goals) {
-            if let met = goal.metGoal { title = String(format: C.metTitleFormat, met, title) }
-            if let note = goal.note { body = body.isEmpty ? note : note + "\n" + body }
+        let goal = WorkoutNoticeGoals.evaluate(record: record, goals: goals)
+        let met = goal?.metGoals ?? []
+        let hits = records.records
+        let title: String
+        switch (hits.count, met.count) {
+        case (0, 0):
+            title = named
+            if let note = goal?.note { body = body.isEmpty ? note : note + "\n" + body }
+            if let near = records.near { body = joined(RecordText.near(near), body) }
+        case (0, 1):
+            title = String(format: C.metTitleFormat, met[0], named)
+        case (1, 0):
+            title = RecordText.title(hits[0]) + C.highlightSeparator + named
+            body = joined(RecordText.body(hits[0]), body)
+        default:
+            title = RecordText.counts(records: hits.count, goals: met.count) + C.highlightSeparator + named
+            body = joined(RecordText.summary(records: hits, goals: met), body)
         }
         return WorkoutNoticeContent(activityId: record.activityId, title: title, body: body)
+    }
+
+    private static func joined(_ highlight: String, _ body: String) -> String {
+        body.isEmpty ? highlight : highlight + C.highlightBodySeparator + body
     }
 
     static func stats(_ record: ActivityRecord) -> String {

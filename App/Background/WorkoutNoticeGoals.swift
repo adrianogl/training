@@ -15,20 +15,41 @@ enum WorkoutNoticeGoals {
             raceGoalKms: goals.filter { $0.kind == .time }.map(\.distanceKm)
         )
         let continuity = kind == .long && goals.contains { $0.kind == .continuousLong } ? self.continuity(record) : nil
+        var met: [String] = []
         var note: String?
         for goal in goals {
             switch goal.kind {
             case .continuousLong:
                 guard let continuity else { continue }
                 if continuity.meetsContinuousGoal(distanceKm: goal.distanceKm, paceSecondsPerKm: goal.paceSecondsPerKm ?? 0) {
-                    return WorkoutGoalNotice(metGoal: title(goal))
+                    met.append(title(goal))
+                } else if note == nil {
+                    note = nearMiss(continuity, goal: goal)
                 }
-                if note == nil { note = nearMiss(continuity, goal: goal) }
             case .time:
-                if kind == .race, meetsTime(record, goal: goal) { return WorkoutGoalNotice(metGoal: title(goal)) }
+                if kind == .race, meetsTime(record, goal: goal) { met.append(title(goal)) }
             }
         }
+        if !met.isEmpty { return WorkoutGoalNotice(metGoals: met) }
         return note.map { WorkoutGoalNotice(note: $0) }
+    }
+
+    static func metGoals(record: ActivityRecord, goals: [GoalSnapshot]) -> [String] {
+        let kind = classifyRun(
+            record,
+            longGoalKm: goals.filter { $0.kind == .continuousLong }.map(\.distanceKm).min(),
+            raceGoalKms: goals.filter { $0.kind == .time }.map(\.distanceKm)
+        )
+        return goals.compactMap { goal in
+            switch goal.kind {
+            case .time:
+                return kind == .race && meetsTime(record, goal: goal) ? title(goal) : nil
+            case .continuousLong:
+                guard case .continuousLong(let progress) = goal.progress,
+                      progress.runs.contains(where: { $0.activityId == record.activityId && $0.met == true }) else { return nil }
+                return title(goal)
+            }
+        }
     }
 
     private static func continuity(_ record: ActivityRecord) -> RunContinuity? {

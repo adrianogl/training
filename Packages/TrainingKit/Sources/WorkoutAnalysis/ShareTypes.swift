@@ -9,7 +9,7 @@ public enum ShareTemplate: String, CaseIterable, Codable, Sendable {
 }
 
 public enum ShareField: String, CaseIterable, Codable, Sendable {
-    case route, title, distance, time, avgPace, avgHeartRate, activePace, elevation, readingLine
+    case route, title, distance, time, avgPace, avgHeartRate, activePace, elevation, readingLine, record
 
     public static let defaultEnabled = Set(allCases).subtracting([.elevation, .readingLine])
 
@@ -26,11 +26,25 @@ public struct ShareValue: Sendable, Equatable {
     public var field: ShareField
     public var value: String
     public var label: String
+    public var isRecord: Bool
 
-    public init(field: ShareField, value: String, label: String) {
+    public init(field: ShareField, value: String, label: String, isRecord: Bool = false) {
         self.field = field
         self.value = value
         self.label = label
+        self.isRecord = isRecord
+    }
+}
+
+public struct ShareRecord: Sendable, Equatable {
+    public var label: String
+    public var seconds: Double
+    public var isWholeRun: Bool
+
+    public init(label: String, seconds: Double, isWholeRun: Bool) {
+        self.label = label
+        self.seconds = seconds
+        self.isWholeRun = isWholeRun
     }
 }
 
@@ -74,6 +88,7 @@ public struct WorkoutShareInput: Sendable, Equatable {
     public var route: [Coordinate]
     public var blocks: [WorkoutBlock]
     public var readingLine: String?
+    public var records: [ShareRecord] = []
 
     public init(
         title: String,

@@ -197,6 +197,26 @@ Arquivos: `GarminAPI/GarminRaceEvents*.swift`, `App/Races/Garmin/`. Testes: `Gar
 - Mudança de data, largada ou distância no Garmin depois de importar aparece como aviso, com "Atualizar" e "Manter". Nada muda sozinho.
 - O vínculo com o evento e as provas ignoradas ficam no aparelho (`GarminRaceLinkStore`). O app só lê o calendário do Garmin.
 
+## Recorde pessoal e meta cumprida
+
+| Regra | Valor | Onde |
+| --- | --- | --- |
+| Distâncias | 1, 5, 10, 21,1 e 42,2 km | `PersonalRecordsConstants.distances` |
+| Corrida inteira | distância entre 99% e 103% da distância do recorde; o tempo em movimento é ajustado para a distância exata | `wholeRunLow`, `wholeRunHigh` |
+| Melhor trecho | 1, 5, 10 e 21,1 km pelas amostras do FIT, interpolando o início do trecho; buraco maior que 30 s entre amostras não vale. Sem amostras, 1 e 5 km usam o melhor trecho da Garmin | `bestSegment`, `segmentMaximumGap` |
+| Recorde | mais rápido que o melhor tempo dos treinos anteriores na mesma distância. Empate não conta | `PersonalRecords.timeline` |
+| Primeira vez | sem tempo anterior na distância: "Primeira meia maratona", não "Recorde" | `RecordHit.isFirst` |
+| Quase recorde | até 2% acima do recorde, sem recorde no treino: "a 8 s do recorde" | `nearShare` |
+| Treinos antigos | o histórico não gera aviso; os selos da lista e do detalhe valem para todo o histórico, comparando cada treino com os anteriores | `PersonalRecordsStore` |
+
+- **Aviso de treino:** com um recorde ou uma meta, o título nomeia a distância ou a meta. Com vários, conta ("3 recordes e 2 metas") e o corpo lista todos, do mais longo ao mais curto.
+- **Lista:** pílula dourada "★ RP 5 km" ou "★ 3 RP" e borda dourada no card; meta cumprida em lime ("✓ Meta", "✓ 2 metas"). Se as pílulas não cabem, sai o chip "estruturado"/"do plano".
+- **Detalhe:** card de recordes com o tempo, a diferença e os recordes anteriores na distância em barras; com vários, uma linha por recorde.
+- **Compartilhar:** item "Recorde e meta" em Mostrar, ligado quando há recorde. O tempo do recorde fica dourado com "RP". O formato "Recorde" só aparece com recorde.
+- **Evolução:** recorde dos últimos 7 dias fica dourado com "novo", e tocar na linha abre o treino.
+
+Arquivos: `WorkoutAnalysis/PersonalRecords*.swift`, `App/Workouts/Records/*`, `App/Background/WorkoutNotice*.swift`. Testes: `WorkoutAnalysisTests/PersonalRecordsTests.swift`, `AppTests/WorkoutNoticeRecordsTests.swift`, `AppTests/RecordSnapshotTests.swift`.
+
 ## Nota do treino
 
 | Parte | Peso | Onde |

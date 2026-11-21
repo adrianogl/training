@@ -14,6 +14,6 @@ struct MorningNoticeSettings: Equatable, Sendable {
 }
 
 struct WorkoutGoalNotice: Equatable {
-    var metGoal: String?
+    var metGoals: [String] = []
     var note: String?
 }

@@ -35,6 +35,8 @@ import WorkoutAnalysis
     private(set) var ruler: ZoneRulerData?
     private(set) var shareInput: WorkoutShareInput?
     private(set) var shareSource: ShareSource?
+    private(set) var recordHits: [RecordHit] = []
+    private(set) var recordSteps: [RecordStep] = []
     private(set) var localDay: String?
     private(set) var readinessScore: Int?
     private(set) var weekKilometers: Double?
@@ -58,6 +60,13 @@ import WorkoutAnalysis
         hasPrescription = analysis.hasPrescription
         summary = Self.summary(record, isRun: isRun, hasPrescription: hasPrescription, records: records)
         weather = isRun ? record.weatherEffect(among: records) : nil
+        if isRun {
+            let efforts = PersonalRecords.runEfforts(records)
+            recordHits = PersonalRecords.timeline(efforts)[activityId]?.records ?? []
+            if recordHits.count == 1, let meters = recordHits.first?.effort.meters {
+                recordSteps = Array(PersonalRecords.progression(efforts, meters: meters, through: activityId).suffix(RecordCardConstants.historyLimit))
+            }
+        }
         zoneShares = Self.zoneShares(record.zoneSeconds)
         trainingEffect = TrainingEffectData(
             label: record.trainingEffectLabel,
@@ -98,6 +107,7 @@ import WorkoutAnalysis
         reading = WorkoutReading.resolve(stored: record.narrativeData, assessment: assessment, blocks: blocks, evolution: analysis.evolution)
         evolutionText = reading.evolution
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
+        shareInput?.records = recordHits.map { ShareRecord(label: RecordText.label($0.effort.meters), seconds: $0.effort.seconds, isWholeRun: $0.effort.source == .wholeRun) }
         localDay = record.localDay
         readinessScore = record.localDay.flatMap { Self.readinessScore(context: context, day: $0) }
         performanceCondition = record.performanceCondition
@@ -128,10 +138,14 @@ import WorkoutAnalysis
             )
         }
         shareSource = shareInput.map { input in
-            ShareSourceBuilder.source(
+            var source = ShareSourceBuilder.source(
                 input: input, route: Self.route(record), samples: samples, zoneFloors: analysis.zones?.floors ?? [],
                 blocks: blocks, comparisonRows: comparisonRows, analysis: analysisSummary
             )
+            source.recordHits = recordHits
+            source.recordSteps = recordSteps
+            source.recordActivityId = activityId
+            return source
         }
     }
 

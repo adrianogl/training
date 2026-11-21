@@ -1,4 +1,5 @@
 import GarminAPI
+import Insights
 import MFIT
 import Storage
 import SwiftData
@@ -23,6 +24,7 @@ struct WorkoutListView: View {
     @State private var strengthDoneDays: Set<String> = []
     @State private var strengthProgram: MFITProgram?
     @State private var weeksCache = WorkoutWeeksCache()
+    @State private var activeGoals: [GoalSnapshot] = []
 
     @State private var path: [WorkoutSelection] = []
     @State private var selection: WorkoutSelection?
@@ -41,7 +43,7 @@ struct WorkoutListView: View {
     }
 
     var body: some View {
-        let allWeeks = weeksCache.weeks(records: records, plannedKilometers: plannedWeeks)
+        let allWeeks = weeksCache.weeks(records: records, goals: activeGoals, plannedKilometers: plannedWeeks)
         let weeks = WorkoutListModel.filtered(allWeeks, by: kindFilter)
         let visibility = WorkoutListModel.visiblePlanned(planned: planned, rows: allWeeks.flatMap(\.rows).filter { !$0.isStrength }, from: Day.today().iso)
         let doneDays = strengthDoneDays.union(allWeeks.flatMap(\.rows).filter(\.isStrength).map(\.dayIso))
@@ -78,6 +80,9 @@ struct WorkoutListView: View {
         .onChange(of: selection) { _, value in selectionData = value.map { NavigationRestoration.encode($0) } ?? Data() }
         .task {
             model.scoreRefresher.refresh()
+        }
+        .task(id: records.count) {
+            activeGoals = (try? goalSnapshots(context: ModelContext(model.container), today: Day.today())) ?? []
         }
         .task(id: selection) {
             chatCounts = await WorkoutChatStore.shared.questionCounts()

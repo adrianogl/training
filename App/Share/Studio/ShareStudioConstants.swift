@@ -43,6 +43,7 @@ enum ShareStudioConstants {
         .photo: "Sobre foto",
         .series: "Série",
         .evolution: "Evolução",
+        .record: "Recorde",
         .sticker: "Adesivo",
         .card: "Cartão",
         .blocks: "Blocos",
@@ -54,6 +55,7 @@ enum ShareStudioConstants {
         .photo: "photo",
         .series: "chart.bar.fill",
         .evolution: "chart.line.uptrend.xyaxis",
+        .record: "trophy.fill",
         .sticker: "sparkles.rectangle.stack",
         .card: "rectangle.portrait",
         .blocks: "square.grid.3x1.below.line.grid.1x2",
@@ -93,5 +95,12 @@ enum ShareStudioConstants {
     static let higher = "maior"
     static let paceUnit = "/km"
     static let distanceUnit = "km"
+    static let recordTitle = "Recorde pessoal"
+    static let recordsTitleFormat = "%d recordes pessoais"
+    static let recordTimeSize: CGFloat = 76
+    static let recordRowTimeSize: CGFloat = 30
+    static let recordBarHeight: CGFloat = 7
+    static let recordDateWidth: CGFloat = 52
+    static let recordToday = "hoje"
     static let statLabels: [ShareField: String] = [.time: "tempo", .avgPace: "pace", .activePace: "pace nos blocos", .avgHeartRate: "FC média"]
 }
