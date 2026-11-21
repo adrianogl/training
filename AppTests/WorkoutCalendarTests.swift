@@ -48,6 +48,19 @@ import TrainingCore
         #expect(summary.strength == 1)
     }
 
+    @Test func plannedRangeCoversTheRestOfTheVisibleMonth() {
+        let today = Day(iso: "2026-11-21")!
+        #expect(WorkoutCalendarModel.plannedRange(month: Day(year: 2026, month: 11, day: 1), today: today) == today...Day(iso: "2026-11-30")!)
+        #expect(WorkoutCalendarModel.plannedRange(month: Day(year: 2026, month: 12, day: 1), today: today) == Day(iso: "2026-12-01")!...Day(iso: "2026-12-31")!)
+        #expect(WorkoutCalendarModel.plannedRange(month: Day(year: 2026, month: 10, day: 1), today: today) == nil)
+    }
+
+    @Test func changingMonthSelectsTodayOrTheFirstDay() {
+        let today = Day(iso: "2026-11-21")!
+        #expect(WorkoutCalendarModel.defaultSelection(month: Day(year: 2026, month: 11, day: 1), today: today) == today)
+        #expect(WorkoutCalendarModel.defaultSelection(month: Day(year: 2026, month: 12, day: 1), today: today) == Day(iso: "2026-12-01"))
+    }
+
     @Test func monthTitleIsInPortuguese() {
         #expect(WorkoutCalendarModel.title(Day(year: 2026, month: 11, day: 1)) == "Novembro de 2026")
         #expect(WorkoutCalendarModel.shift(Day(year: 2026, month: 12, day: 1), by: 1) == Day(year: 2027, month: 1, day: 1))

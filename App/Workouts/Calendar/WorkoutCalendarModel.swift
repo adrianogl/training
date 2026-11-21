@@ -27,6 +27,20 @@ enum WorkoutCalendarModel {
         return (0...start.days(until: end)).map { start.adding(days: $0) }
     }
 
+    static func monthEnd(_ month: Day) -> Day {
+        shift(monthStart(month), by: 1).adding(days: -1)
+    }
+
+    static func plannedRange(month: Day, today: Day) -> ClosedRange<Day>? {
+        let first = max(monthStart(month), today)
+        let last = monthEnd(month)
+        return first <= last ? first...last : nil
+    }
+
+    static func defaultSelection(month: Day, today: Day) -> Day {
+        monthStart(today) == monthStart(month) ? today : monthStart(month)
+    }
+
     static func days(rows: [WorkoutRowData], planned: [WorkoutPlannedItem], mfitIds: Set<String>) -> [String: WorkoutCalendarDay] {
         var result: [String: WorkoutCalendarDay] = [:]
         for row in rows {

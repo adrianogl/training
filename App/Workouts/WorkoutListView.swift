@@ -294,12 +294,21 @@ struct WorkoutListView: View {
     @ViewBuilder
     private func calendarSection(weeks: [WorkoutWeek], plannedItems: [WorkoutPlannedItem], visibility: PlannedVisibility, selected: WorkoutSelection?, today: String) -> some View {
         let rows = weeks.flatMap(\.rows)
-        let mfitIds = Set(strengthPlanned.map(WorkoutCalendarModel.key))
-        let days = WorkoutCalendarModel.days(rows: rows, planned: plannedItems, mfitIds: mfitIds)
+        let range = WorkoutCalendarModel.plannedRange(month: calendarMonth, today: Day.today())
+        let mfitMonth = range.map { StrengthSchedule().workouts(strengthProgram, from: $0.lowerBound, through: $0.upperBound) } ?? []
+        let trainerMonth = range.map { model.trainer.plannedStrength(from: $0.lowerBound, days: $0.lowerBound.days(until: $0.upperBound)).map(\.workout) } ?? []
+        let runs = plannedItems.filter { if case .run = $0 { return true } else { return false } }
+        let strengthItems = WorkoutListModel.plannedItems(runs: [], strength: mfitMonth + trainerMonth, doneStrengthDays: strengthDoneDays.union(rows.filter(\.isStrength).map(\.dayIso)), filter: kindFilter)
+        let calendarPlanned = runs + strengthItems
+        let mfitIds = Set(mfitMonth.map(WorkoutCalendarModel.key))
+        let days = WorkoutCalendarModel.days(rows: rows, planned: calendarPlanned, mfitIds: mfitIds)
         let dayRows = rows.filter { $0.dayIso == calendarDay.iso }
-        let dayPlanned = plannedItems.filter { $0.day == calendarDay.iso }
+        let dayPlanned = calendarPlanned.filter { $0.day == calendarDay.iso }
         let summary = WorkoutCalendarModel.summary(rows: rows, month: calendarMonth)
         WorkoutCalendarView(month: $calendarMonth, selected: $calendarDay, days: days, today: Day.today())
+            .onChange(of: calendarMonth) { _, month in
+                calendarDay = WorkoutCalendarModel.defaultSelection(month: month, today: Day.today())
+            }
         DSSectionTitle(WorkoutCalendarModel.dayTitle(calendarDay))
         if dayRows.isEmpty && dayPlanned.isEmpty {
             Text(WorkoutCalendarConstants.emptyDay).font(.footnote).foregroundStyle(BrandColors.dim).frame(maxWidth: .infinity, alignment: .leading).brandCard()
