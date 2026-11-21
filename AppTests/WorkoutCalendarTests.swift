@@ -15,12 +15,14 @@ import TrainingCore
         return data
     }
 
-    @Test func gridStartsOnMondayAndCoversTheWholeMonth() {
-        let grid = WorkoutCalendarModel.grid(month: Day(year: 2026, month: 11, day: 1))
-        #expect(grid.count % 7 == 0)
-        #expect(grid.first == Day(iso: "2026-10-26"))
-        #expect(grid.contains(Day(iso: "2026-11-30")!))
-        #expect(grid.last == Day(iso: "2026-12-06"))
+    @Test func gridStartsOnSundayAndCoversTheWholeMonth() {
+        let november = WorkoutCalendarModel.grid(month: Day(year: 2026, month: 11, day: 1))
+        #expect(november.count % 7 == 0)
+        #expect(november.first == Day(iso: "2026-11-01"))
+        #expect(november.last == Day(iso: "2026-12-05"))
+        let december = WorkoutCalendarModel.grid(month: Day(year: 2026, month: 12, day: 1))
+        #expect(december.first == Day(iso: "2026-11-29"))
+        #expect(december.last == Day(iso: "2027-01-02"))
     }
 
     @Test func daysMarkRunsStrengthPlannedAndMFIT() {

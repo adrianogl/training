@@ -21,10 +21,14 @@ enum WorkoutCalendarModel {
     static func grid(month: Day) -> [Day] {
         let first = monthStart(month)
         let next = shift(first, by: 1)
-        let start = first.weekStart
+        let start = sundayStart(first)
         let lastDay = next.adding(days: -1)
-        let end = lastDay.weekStart.adding(days: 6)
+        let end = sundayStart(lastDay).adding(days: 6)
         return (0...start.days(until: end)).map { start.adding(days: $0) }
+    }
+
+    static func sundayStart(_ day: Day) -> Day {
+        day.weekStart.adding(days: -1).adding(days: day.weekStart.adding(days: 6) == day ? 7 : 0)
     }
 
     static func monthEnd(_ month: Day) -> Day {
