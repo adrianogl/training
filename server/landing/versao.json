@@ -1,11 +1,19 @@
 {
-  "versao": "1.33.2",
-  "build": 48,
-  "versao_app": "1.33.2",
+  "versao": "1.34.0",
+  "build": 49,
+  "versao_app": "1.34.0",
   "notas": [
-    "O aviso de prontidão da manhã chega mais cedo"
+    "Treinos do MFIT vão para o relógio sozinhos até o fim da prescrição",
+    "Calendário do mês na aba Treinos"
   ],
   "historico": [
+    {
+      "versao": "1.34.0",
+      "notas": [
+        "Treinos do MFIT vão para o relógio sozinhos até o fim da prescrição",
+        "Calendário do mês na aba Treinos"
+      ]
+    },
     {
       "versao": "1.33.2",
       "notas": [
@@ -67,14 +75,6 @@
         "Plano de força com objetivo, dias e validade",
         "Mobilidade como foco próprio de força",
         "Aviso quando o plano de força termina"
-      ]
-    },
-    {
-      "versao": "1.28.0",
-      "notas": [
-        "Mostra imagens e passo a passo de cada exercício de força",
-        "Guarda observações por exercício e sugere a primeira carga",
-        "Permite usar o iPhone na horizontal"
       ]
     }
   ]
