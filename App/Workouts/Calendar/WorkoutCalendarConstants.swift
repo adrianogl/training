@@ -4,7 +4,7 @@ import Foundation
 enum WorkoutCalendarConstants {
     static let modeKey = "workouts.listMode"
     static let modeNames: [WorkoutListMode: String] = [.list: "Lista", .calendar: "Calendário"]
-    static let weekdayLetters = ["S", "T", "Q", "Q", "S", "S", "D"]
+    static let weekdayLetters = ["D", "S", "T", "Q", "Q", "S", "S"]
     static let monthFormat = "LLLL 'de' yyyy"
     static let dayTitleFormat = "EEEE, d 'de' MMMM"
     static let previousSymbol = "chevron.left"
