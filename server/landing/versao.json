@@ -1,11 +1,17 @@
 {
-  "versao": "1.35.0",
-  "build": 51,
-  "versao_app": "1.35.0",
+  "versao": "1.35.1",
+  "build": 52,
+  "versao_app": "1.35.1",
   "notas": [
-    "Próximos treinos vão até o fim do plano e da prescrição do MFIT"
+    "Calendário de treinos começa no domingo"
   ],
   "historico": [
+    {
+      "versao": "1.35.1",
+      "notas": [
+        "Calendário de treinos começa no domingo"
+      ]
+    },
     {
       "versao": "1.35.0",
       "notas": [
@@ -63,14 +69,6 @@
         "Recorde pessoal em destaque: no aviso, na lista, no treino e no compartilhamento, com o formato \"Recorde\"",
         "Meta cumprida aparece na lista e no aviso, mesmo com vários recordes na mesma corrida",
         "Banners da Força e dias da semana do treinador com os mesmos cantos dos cards"
-      ]
-    },
-    {
-      "versao": "1.30.0",
-      "notas": [
-        "Cards com cantos mais redondos e alinhados por dentro",
-        "O ajuste do treino de hoje agora fala de corrida contínua, intervalado ou longão",
-        "O treino do Claude fica no dia quando você muda só o foco, e o Salvar da observação não some ao girar o iPhone"
       ]
     }
   ]
