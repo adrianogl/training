@@ -58,6 +58,11 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
     expect(report?.erros).toEqual([])
   })
 
+  it('foco null conta como ausente', () => {
+    const [report] = validateResponse(response([{ ...day('2026-11-24', mobility), foco: null } as unknown as StrengthResponse['treinos'][number]]), context())
+    expect(report?.erros).toEqual([])
+  })
+
   it('recusa foco desconhecido', () => {
     const [report] = validateResponse(response([day('2026-11-24', mobility, 'yoga')]), context())
     expect(report?.erros).toContain('foco "yoga" inválido; use upper, lower, fullBody, core ou mobility')

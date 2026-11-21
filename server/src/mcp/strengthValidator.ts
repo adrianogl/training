@@ -91,7 +91,7 @@ function validateDay(entry: ResponseDay, context: StrengthContext): DayReport {
   }
   else if (session === undefined) report.erros.push(ISSUE.notTrainerDay)
 
-  if (entry.foco !== undefined && !(STRENGTH.groups as readonly string[]).includes(String(entry.foco))) report.erros.push(ISSUE.invalidFocus(String(entry.foco)))
+  if (entry.foco != null && !(STRENGTH.groups as readonly string[]).includes(String(entry.foco))) report.erros.push(ISSUE.invalidFocus(String(entry.foco)))
 
   const place = entry.local ?? session?.local ?? 'gym'
   const allowed = STRENGTH.equipmentByPlace[place] ?? []
