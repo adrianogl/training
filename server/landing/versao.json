@@ -1,12 +1,21 @@
 {
-  "versao": "1.29.1",
-  "build": 41,
-  "versao_app": "1.29.1",
+  "versao": "1.30.0",
+  "build": 42,
+  "versao_app": "1.30.0",
   "notas": [
-    "Tenta de novo o aviso de treino no mesmo acordar e com dados novos do Health",
-    "Manda o aviso de prontidão quando o sono chega no Apple Health"
+    "Cards com cantos mais redondos e alinhados por dentro",
+    "O ajuste do treino de hoje agora fala de corrida contínua, intervalado ou longão",
+    "O treino do Claude fica no dia quando você muda só o foco, e o Salvar da observação não some ao girar o iPhone"
   ],
   "historico": [
+    {
+      "versao": "1.30.0",
+      "notas": [
+        "Cards com cantos mais redondos e alinhados por dentro",
+        "O ajuste do treino de hoje agora fala de corrida contínua, intervalado ou longão",
+        "O treino do Claude fica no dia quando você muda só o foco, e o Salvar da observação não some ao girar o iPhone"
+      ]
+    },
     {
       "versao": "1.29.1",
       "notas": [
