@@ -23,6 +23,10 @@ enum EvolutionExtras {
         return weeks.flatMap { $0.seconds.prefix(C.easyZones) }.reduce(0, +) / total
     }
 
+    static func record(for meters: Double, in records: [PersonalRecord]) -> PersonalRecord? {
+        records.first { $0.meters == meters }
+    }
+
     static func records(_ runs: [ActivityRecord]) -> [PersonalRecord] {
         PersonalRecords.standings(PersonalRecords.runEfforts(runs)).map { standing in
             PersonalRecord(

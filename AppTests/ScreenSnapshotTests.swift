@@ -38,6 +38,13 @@ private struct SamplePayload: Codable, Equatable {
         #expect(ScreenSnapshotStore(directory: directory, version: 2).load(SamplePayload.self, for: .today) == nil)
     }
 
+    @Test func storeIgnoresSnapshotFromAnotherBuild() {
+        let directory = Self.directory()
+        ScreenSnapshotStore(directory: directory, build: "43").save(SamplePayload(name: "velho", values: [1]), for: .evolution)
+        #expect(ScreenSnapshotStore(directory: directory, build: "44").load(SamplePayload.self, for: .evolution) == nil)
+        #expect(ScreenSnapshotStore(directory: directory, build: "43").load(SamplePayload.self, for: .evolution) == SamplePayload(name: "velho", values: [1]))
+    }
+
     @Test func storeIgnoresCorruptedFile() throws {
         let directory = Self.directory()
         let store = ScreenSnapshotStore(directory: directory)
