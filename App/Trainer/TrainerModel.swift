@@ -31,6 +31,7 @@ import TrainingCore
     @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
     @ObservationIgnored let strengthPlanStore: StrengthPlanStore
     @ObservationIgnored let planEndScheduler: any NotificationScheduling
+    @ObservationIgnored let canNotifyPlanEnd: Bool
     @ObservationIgnored let claudeStore: ClaudeStrengthStore
     @ObservationIgnored private var autoTask: Task<Void, Never>?
     @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
@@ -42,8 +43,10 @@ import TrainingCore
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
         defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil,
         strengthPlanStore: StrengthPlanStore = StrengthPlanStore(), claudeStore: ClaudeStrengthStore = ClaudeStrengthStore(),
-        planEndScheduler: any NotificationScheduling = UserNotificationScheduler()
+        planEndScheduler: any NotificationScheduling = UserNotificationScheduler(),
+        canNotifyPlanEnd: Bool = StrengthPlanEndNotifier.runsOnPhone
     ) {
+        self.canNotifyPlanEnd = canNotifyPlanEnd
         self.planEndScheduler = planEndScheduler
         self.strengthPlanStore = strengthPlanStore
         self.claudeStore = claudeStore
@@ -334,12 +337,16 @@ import TrainingCore
         await saveStrengthPlan(updated, mfit: legacyStrengthSessions.filter { $0.source == .mfit })
     }
 
-    private func saveStrengthPlan(_ updated: StrengthPlan, mfit: [TrainerStrengthSession]) async {
+    private func saveStrengthPlan(_ edited: StrengthPlan, mfit: [TrainerStrengthSession]) async {
+        var updated = edited
         if let previous = strengthPlan {
             let left = previous.id == updated.id
                 ? Self.changedWeekdays(from: previous.sessions, to: updated.sessions)
                 : Set(previous.sessions.map(\.weekday))
             claudeStore.removePlanWeekdays(left, planId: previous.id)
+            if previous.id == updated.id, previous.end != updated.end || previous.lastSessionDay() != updated.lastSessionDay() {
+                updated.endedNotifiedAt = nil
+            }
         }
         try? strengthPlanStore.save(updated)
         strengthPlan = strengthPlanStore.current()

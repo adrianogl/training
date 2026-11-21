@@ -1,5 +1,7 @@
 import Foundation
 import Insights
+import Storage
+import Sync
 import Testing
 import TrainingCore
 @testable import trAIning
@@ -91,5 +93,85 @@ import TrainingCore
         let result = await StrengthPlanEndNotifier.check(plan: nil, history: history([]), now: now, calendar: calendar, scheduler: scheduler)
         #expect(result == nil)
         #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId] == nil)
+    }
+
+    @Test func ipad_never_schedules_or_fires() async {
+        let scheduler = FakeNotificationScheduler()
+        let last = start.adding(days: 2)
+        let before = await StrengthPlanEndNotifier.check(
+            plan: plan(), history: history([last]), now: date(last, hour: 14), calendar: calendar, scheduler: scheduler, canNotify: false
+        )
+        #expect(before == nil)
+        #expect(await scheduler.scheduled.isEmpty)
+        #expect(await scheduler.delivered.isEmpty)
+        let now = date(last, hour: 22)
+        let after = await StrengthPlanEndNotifier.check(
+            plan: plan(), history: history([]), now: now, calendar: calendar, scheduler: scheduler, canNotify: false
+        )
+        #expect(after?.endedNotifiedAt == now)
+        #expect(await scheduler.delivered.isEmpty)
+    }
+
+    @Test func failed_save_delivers_nothing() async {
+        struct Failure: Error {}
+        let scheduler = FakeNotificationScheduler()
+        let last = start.adding(days: 2)
+        let result = await StrengthPlanEndNotifier.check(
+            plan: plan(), history: history([last]), now: date(last, hour: 14), calendar: calendar, scheduler: scheduler,
+            save: { _ in throw Failure() }
+        )
+        #expect(result == nil)
+        #expect(await scheduler.delivered.isEmpty)
+    }
+
+    @Test func plan_without_sessions_cancels_without_marking() async {
+        let scheduler = FakeNotificationScheduler()
+        let now = date(start, hour: 9)
+        _ = await StrengthPlanEndNotifier.check(plan: plan(), history: history([]), now: now, calendar: calendar, scheduler: scheduler)
+        let result = await StrengthPlanEndNotifier.check(plan: plan(weekdays: []), history: history([]), now: now, calendar: calendar, scheduler: scheduler)
+        #expect(result == nil)
+        #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId] == nil)
+    }
+
+    @Test func reschedules_count_when_history_changes() async {
+        let scheduler = FakeNotificationScheduler()
+        let now = date(start, hour: 9)
+        _ = await StrengthPlanEndNotifier.check(plan: plan(), history: history([]), now: now, calendar: calendar, scheduler: scheduler)
+        #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId]?.text.hasPrefix("Foram 0 de 2") == true)
+        _ = await StrengthPlanEndNotifier.check(plan: plan(), history: history([start]), now: now, calendar: calendar, scheduler: scheduler)
+        #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId]?.text.hasPrefix("Foram 1 de 2") == true)
+    }
+
+    @Test func counts_only_plan_weekdays_within_validity() async {
+        let scheduler = FakeNotificationScheduler()
+        let outside = [start.adding(days: 1), start.adding(days: -7), start.adding(days: 7)]
+        _ = await StrengthPlanEndNotifier.check(
+            plan: plan(), history: history(outside + [start]), now: date(start, hour: 9), calendar: calendar, scheduler: scheduler
+        )
+        #expect(await scheduler.scheduled[StrengthPlanEndConstants.notificationId]?.text.hasPrefix("Foram 1 de 2") == true)
+    }
+
+    @MainActor @Test func extending_plan_resets_ended_mark() async throws {
+        let folder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        let defaults = UserDefaults(suiteName: "planend-" + UUID().uuidString)!
+        let store = StrengthPlanStore(url: folder.appending(path: "plan.json"), stamps: nil)
+        let model = TrainerModel(
+            container: try TrainingSchema.container(inMemory: true),
+            store: TrainerStore(url: folder.appending(path: "trainer.json"), defaults: defaults),
+            defaults: defaults, strengthPlanStore: store, claudeStore: ClaudeStrengthStore(defaults: UserDefaults(suiteName: "planend-c-" + UUID().uuidString)!),
+            planEndScheduler: FakeNotificationScheduler(), canNotifyPlanEnd: true
+        )
+        var ended = plan()
+        ended.endedNotifiedAt = Date()
+        try store.save(ended)
+        model.reloadStrengthPlan()
+        var longer = ended
+        longer.validity = .weeks(3)
+        await model.saveStrengthPlan(longer)
+        #expect(store.current()?.endedNotifiedAt == nil)
+        var renamed = longer
+        renamed.endedNotifiedAt = Date()
+        await model.saveStrengthPlan(renamed)
+        #expect(store.current()?.endedNotifiedAt != nil)
     }
 }
