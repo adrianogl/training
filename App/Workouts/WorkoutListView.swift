@@ -4,6 +4,7 @@ import MFIT
 import Storage
 import SwiftData
 import SwiftUI
+import WorkoutAnalysis
 import TrainingCore
 
 struct WorkoutListView: View {
@@ -25,6 +26,11 @@ struct WorkoutListView: View {
     @State private var strengthProgram: MFITProgram?
     @State private var weeksCache = WorkoutWeeksCache()
     @State private var activeGoals: [GoalSnapshot] = []
+    @AppStorage(WorkoutCalendarConstants.modeKey) private var modeRaw = WorkoutListMode.list.rawValue
+    @State private var calendarMonth = WorkoutCalendarModel.monthStart(Day.today())
+    @State private var calendarDay = Day.today()
+
+    private var mode: WorkoutListMode { WorkoutListMode(rawValue: modeRaw) ?? .list }
 
     @State private var path: [WorkoutSelection] = []
     @State private var selection: WorkoutSelection?
@@ -192,72 +198,80 @@ struct WorkoutListView: View {
                 DSScreenHeader(title: WorkoutConstants.listTitle) {
                     SyncStatusPill()
                 }
+                Picker(WorkoutCalendarConstants.modeNames[.calendar] ?? "", selection: $modeRaw) {
+                    ForEach(WorkoutListMode.allCases) { Text(WorkoutCalendarConstants.modeNames[$0] ?? "").tag($0.rawValue) }
+                }
+                .pickerStyle(.segmented)
                 if hasRuns {
                     WorkoutKindFilterBar(selection: $kindFilter)
                 }
-                if kindFilter == .strength, let program = strengthProgram {
-                    Text(StrengthText.programLabel(program.title, start: program.start.flatMap(Day.init(iso:)), end: program.end.flatMap(Day.init(iso:))) + WorkoutConstants.programSource)
-                        .font(BrandFonts.number(12))
-                        .foregroundStyle(BrandColors.dim)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .overlay(Capsule().strokeBorder(BrandColors.line))
-                }
-                if !plannedItems.isEmpty {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) { showsPlanned.toggle() }
-                    } label: {
-                        HStack(spacing: 6) {
-                            Text(String(format: WorkoutConstants.plannedHeaderFormat, WorkoutConstants.plannedTitle, plannedItems.count))
-                                .font(.caption)
-                                .foregroundStyle(BrandColors.dim)
-                            CardDisclosure(expanded: showsPlanned)
-                            Spacer()
-                        }
-                        .contentShape(Rectangle())
+                if mode == .calendar {
+                    calendarSection(weeks: weeks, plannedItems: plannedItems, visibility: visibility, selected: selected, today: today)
+                } else {
+                    if kindFilter == .strength, let program = strengthProgram {
+                        Text(StrengthText.programLabel(program.title, start: program.start.flatMap(Day.init(iso:)), end: program.end.flatMap(Day.init(iso:))) + WorkoutConstants.programSource)
+                            .font(BrandFonts.number(12))
+                            .foregroundStyle(BrandColors.dim)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .overlay(Capsule().strokeBorder(BrandColors.line))
                     }
-                    .buttonStyle(.plain)
-                    .padding(.top, 8)
-                    ForEach(showsPlanned ? plannedItems : plannedItems.filter { $0.day == today }) { item in
-                        plannedRow(item, today: today, selected: selected)
-                    }
-                }
-                if weeks.isEmpty && model.showsSkeleton {
-                    FirstSyncView()
-                } else if weeks.isEmpty && hasRuns {
-                    DSEmptyState(symbol: "line.3.horizontal.decrease", title: WorkoutConstants.emptyFilter, text: WorkoutConstants.emptyFilterText)
-                        .brandCard()
-                } else if weeks.isEmpty {
-                    DSEmptyState(symbol: "figure.run", title: WorkoutConstants.emptyList, text: WorkoutConstants.emptyListText)
-                        .brandCard()
-                }
-                ForEach(weeks) { week in
-                    VStack(alignment: .leading, spacing: 10) {
-                        if week.id == weeks.first?.id && !plannedItems.isEmpty && showsPlanned {
-                            Text(WorkoutConstants.upcomingMarker)
-                                .font(.caption2)
-                                .foregroundStyle(BrandColors.dim)
-                                .frame(maxWidth: .infinity, alignment: .center)
+                    if !plannedItems.isEmpty {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) { showsPlanned.toggle() }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Text(String(format: WorkoutConstants.plannedHeaderFormat, WorkoutConstants.plannedTitle, plannedItems.count))
+                                    .font(.caption)
+                                    .foregroundStyle(BrandColors.dim)
+                                CardDisclosure(expanded: showsPlanned)
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
                         }
-                        HStack {
-                            Text(WorkoutListModel.weekLabel(week.start))
-                            Spacer()
-                            Text(WorkoutListModel.weekSummary(week))
-                        }
-                        .font(.caption)
-                        .foregroundStyle(BrandColors.dim)
-                        if let progress = week.plannedProgress {
-                            weekBar(progress)
+                        .buttonStyle(.plain)
+                        .padding(.top, 8)
+                        ForEach(showsPlanned ? plannedItems : plannedItems.filter { $0.day == today }) { item in
+                            plannedRow(item, today: today, selected: selected)
                         }
                     }
-                    .padding(.top, 8)
-                    .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
-                    if model.isRefreshing && week.start == Day.today().weekStart {
-                        SkeletonCards(heights: [SkeletonConstants.workoutRowHeight])
+                    if weeks.isEmpty && model.showsSkeleton {
+                        FirstSyncView()
+                    } else if weeks.isEmpty && hasRuns {
+                        DSEmptyState(symbol: "line.3.horizontal.decrease", title: WorkoutConstants.emptyFilter, text: WorkoutConstants.emptyFilterText)
+                            .brandCard()
+                    } else if weeks.isEmpty {
+                        DSEmptyState(symbol: "figure.run", title: WorkoutConstants.emptyList, text: WorkoutConstants.emptyListText)
+                            .brandCard()
                     }
-                    ForEach(week.rows) { row in
-                        link(.activity(row.activityId)) {
-                            WorkoutRow(row: row, isSelected: isSplit && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
+                    ForEach(weeks) { week in
+                        VStack(alignment: .leading, spacing: 10) {
+                            if week.id == weeks.first?.id && !plannedItems.isEmpty && showsPlanned {
+                                Text(WorkoutConstants.upcomingMarker)
+                                    .font(.caption2)
+                                    .foregroundStyle(BrandColors.dim)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                            }
+                            HStack {
+                                Text(WorkoutListModel.weekLabel(week.start))
+                                Spacer()
+                                Text(WorkoutListModel.weekSummary(week))
+                            }
+                            .font(.caption)
+                            .foregroundStyle(BrandColors.dim)
+                            if let progress = week.plannedProgress {
+                                weekBar(progress)
+                            }
+                        }
+                        .padding(.top, 8)
+                        .id(week.id == weeks.first?.id ? WorkoutConstants.listTopAnchor : nil)
+                        if model.isRefreshing && week.start == Day.today().weekStart {
+                            SkeletonCards(heights: [SkeletonConstants.workoutRowHeight])
+                        }
+                        ForEach(week.rows) { row in
+                            link(.activity(row.activityId)) {
+                                WorkoutRow(row: row, isSelected: isSplit && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
+                            }
                         }
                     }
                 }
@@ -275,6 +289,42 @@ struct WorkoutListView: View {
         .onChange(of: plannedItems.map(\.id)) { scrollToLatest(proxy) }
         .toolbarVisibility(isSplit ? .automatic : .hidden, for: .navigationBar)
         }
+    }
+
+    @ViewBuilder
+    private func calendarSection(weeks: [WorkoutWeek], plannedItems: [WorkoutPlannedItem], visibility: PlannedVisibility, selected: WorkoutSelection?, today: String) -> some View {
+        let rows = weeks.flatMap(\.rows)
+        let mfitIds = Set(strengthPlanned.map(WorkoutCalendarModel.key))
+        let days = WorkoutCalendarModel.days(rows: rows, planned: plannedItems, mfitIds: mfitIds)
+        let dayRows = rows.filter { $0.dayIso == calendarDay.iso }
+        let dayPlanned = plannedItems.filter { $0.day == calendarDay.iso }
+        let summary = WorkoutCalendarModel.summary(rows: rows, month: calendarMonth)
+        WorkoutCalendarView(month: $calendarMonth, selected: $calendarDay, days: days, today: Day.today())
+        DSSectionTitle(WorkoutCalendarModel.dayTitle(calendarDay))
+        if dayRows.isEmpty && dayPlanned.isEmpty {
+            Text(WorkoutCalendarConstants.emptyDay).font(.footnote).foregroundStyle(BrandColors.dim).frame(maxWidth: .infinity, alignment: .leading).brandCard()
+        }
+        ForEach(dayPlanned) { item in plannedRow(item, today: today, selected: selected) }
+        ForEach(dayRows) { row in
+            link(.activity(row.activityId)) {
+                WorkoutRow(row: row, isSelected: isSplit && selected == .activity(row.activityId), hasChat: (chatCounts[row.activityId] ?? 0) > 0, isFromPlan: visibility.fromPlanIds.contains(row.activityId), isNew: model.newActivityIds.contains(row.activityId))
+            }
+        }
+        DSSectionTitle(WorkoutCalendarConstants.monthLabel)
+        VStack(spacing: DSSpacing.s2) {
+            HStack {
+                Text(WorkoutCalendarConstants.runLabel).foregroundStyle(BrandColors.dim)
+                Spacer()
+                Text(String(format: WorkoutCalendarConstants.runSummaryFormat, WorkoutFormat.kilometers(summary.kilometers * WorkoutConstants.metersPerKilometer), summary.runs)).fontWeight(.semibold)
+            }
+            HStack {
+                Text(WorkoutCalendarConstants.strengthLabel).foregroundStyle(BrandColors.dim)
+                Spacer()
+                Text(String(format: WorkoutCalendarConstants.strengthSummaryFormat, summary.strength)).fontWeight(.semibold)
+            }
+        }
+        .font(.subheadline)
+        .brandCard()
     }
 
     @ViewBuilder
