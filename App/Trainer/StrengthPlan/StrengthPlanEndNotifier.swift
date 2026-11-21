@@ -40,11 +40,7 @@ enum StrengthPlanEndNotifier {
     }
 
     private static func completed(_ plan: StrengthPlan, history: TrainerHistory) -> Int {
-        let weekdays = Set(plan.sessions.map(\.weekday))
-        let days = Set(history.strength.map(\.day)).filter { day in
-            plan.isActive(on: day) && weekdays.contains(day.weekStart.days(until: day) + 1)
-        }
-        return days.count
+        plan.doneCount(doneDays: Set(history.strength.map(\.day)))
     }
 
     private static func persisted(_ plan: StrengthPlan, at now: Date, save: @Sendable (StrengthPlan) throws -> Void) -> StrengthPlan? {

@@ -20,6 +20,7 @@ import TrainingCore
     private(set) var externalWorkouts: [TrainerExternalWorkout] = []
     private(set) var standaloneStrength: [TrainerStrengthSession] = []
     private(set) var strengthPlan: StrengthPlan?
+    private(set) var dismissedMigrationPlanId: String?
     private(set) var keptReadinessDay: String?
     private(set) var seenCycleEnd: Day?
     private(set) var cycleSummaries: [TrainerCycleSummary]
@@ -57,6 +58,7 @@ import TrainingCore
         self.defaults = defaults
         self.signalNotifier = signalNotifier ?? TrainerSignalNotifier(defaults: defaults)
         self.keptReadinessDay = defaults.string(forKey: TrainerConstants.readinessKeptDefaultsKey)
+        self.dismissedMigrationPlanId = defaults.string(forKey: StrengthPlanUIConstants.migrationDismissedKey)
         self.seenVersion = store.seenVersion
         self.seenCycleEnd = store.seenCycleEnd
         self.cycleSummaries = store.cycleSummaries()
@@ -299,6 +301,12 @@ import TrainingCore
         .sorted { $0.day < $1.day }
     }
 
+    func raceOption(id: String) -> TrainerRaceOption? {
+        let races = (try? container.mainContext.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))) ?? []
+        guard let race = races.first(where: { $0.id.uuidString == id }), let day = Day(iso: race.day) else { return nil }
+        return TrainerRaceOption(id: race.id, name: race.name, day: day, distance: race.distance, goalSeconds: race.goalSeconds)
+    }
+
     func previewStrength() -> [TrainerStrengthSession] {
         TrainerEngine.detectStrength(history: history, today: currentDay)
     }
@@ -339,19 +347,41 @@ import TrainingCore
 
     private func saveStrengthPlan(_ edited: StrengthPlan, mfit: [TrainerStrengthSession]) async {
         var updated = edited
-        if let previous = strengthPlan {
+        if let previous = strengthPlanStore.current() ?? strengthPlan {
             let left = previous.id == updated.id
                 ? Self.changedWeekdays(from: previous.sessions, to: updated.sessions)
                 : Set(previous.sessions.map(\.weekday))
             claudeStore.removePlanWeekdays(left, planId: previous.id)
-            if previous.id == updated.id, previous.end != updated.end || previous.lastSessionDay() != updated.lastSessionDay() {
-                updated.endedNotifiedAt = nil
+            if previous.id == updated.id {
+                let moved = previous.end != updated.end || previous.lastSessionDay() != updated.lastSessionDay()
+                updated.endedNotifiedAt = moved ? nil : previous.endedNotifiedAt ?? updated.endedNotifiedAt
             }
         }
         try? strengthPlanStore.save(updated)
         strengthPlan = strengthPlanStore.current()
         await applyStrength(mfit + updated.sessions.filter { $0.source == .trainer })
         await checkStrengthPlanEnd()
+    }
+
+    func endStrengthPlan() async {
+        if let previous = strengthPlanStore.current() ?? strengthPlan {
+            claudeStore.removePlanWeekdays(previous.weekdays, planId: previous.id)
+        }
+        try? strengthPlanStore.clear()
+        strengthPlan = strengthPlanStore.current()
+        await applyStrength(legacyStrengthSessions.filter { $0.source == .mfit })
+        await checkStrengthPlanEnd()
+    }
+
+    var showsStrengthMigrationNotice: Bool {
+        guard let strengthPlan, strengthPlan.migrated else { return false }
+        return dismissedMigrationPlanId != strengthPlan.id.uuidString
+    }
+
+    func dismissStrengthMigrationNotice() {
+        guard let strengthPlan else { return }
+        dismissedMigrationPlanId = strengthPlan.id.uuidString
+        defaults.set(dismissedMigrationPlanId, forKey: StrengthPlanUIConstants.migrationDismissedKey)
     }
 
     private static func changedWeekdays(from old: [TrainerStrengthSession], to new: [TrainerStrengthSession]) -> Set<Int> {

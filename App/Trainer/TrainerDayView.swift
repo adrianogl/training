@@ -96,13 +96,7 @@ struct TrainerDayView: View {
 
     @ViewBuilder
     private func strengthCard(_ line: TrainerStrengthLine) -> some View {
-        let card = VStack(alignment: .leading, spacing: 10) {
-            TrainerStrengthLineView(line: line, showsDateColumn: false)
-            if line.source == .trainer {
-                CardLinkFooter(title: CardLinkConstants.workout)
-            }
-        }
-        .brandCard()
+        let card = StrengthDayCard(model: app.trainer.strengthDayCard(line, day: Day(iso: iso) ?? app.trainer.currentDay))
         if line.source == .trainer {
             NavigationLink(value: TrainerRoute.strengthDay(iso, line.id)) { card }
                 .buttonStyle(.cardLink)

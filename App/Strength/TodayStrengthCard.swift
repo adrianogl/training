@@ -37,50 +37,24 @@ struct TodayStrengthCard<Label: View>: View {
     }
 
     private func mfitCard(_ workout: StrengthWorkout) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                DSCardLabel(TodayConstants.strengthTodayTitle)
-                Spacer()
-                TrainerStrengthSourceChip(source: .mfit)
-            }
-            Text(workout.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
-            Text(StrengthText.countLabel(exercises: workout.blocks.flatMap(\.exercises).count, sets: workout.totalSets))
-                .font(.caption).foregroundStyle(BrandColors.dim)
-            NavigationLink {
-                StrengthPlannedDetailView(workoutId: workout.id)
-            } label: {
-                CardLinkFooter(title: CardLinkConstants.workout)
-            }
-            .buttonStyle(.cardLink)
-            .padding(.top, 4)
+        NavigationLink {
+            StrengthPlannedDetailView(workoutId: workout.id)
+        } label: {
+            StrengthDayCard(model: StrengthDayCardModel(
+                source: .mfit, isClaude: false, minutes: nil, title: workout.title,
+                subtitle: StrengthText.countLabel(exercises: workout.blocks.flatMap(\.exercises).count, sets: workout.totalSets),
+                isDone: false, showsLink: true
+            ))
         }
-        .brandCard()
+        .buttonStyle(.cardLink)
     }
 
     private func planCard(session: TrainerStrengthSession, generated: GeneratedStrengthWorkout, day: Day) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                DSCardLabel(TodayConstants.strengthTodayTitle)
-                Spacer()
-                if app.trainer.isFreeClaudeDay(day) {
-                    ClaudeSourceChip()
-                } else {
-                    TrainerStrengthSourceChip(source: .trainer)
-                }
-            }
-            Text(TrainerStrengthText.focusName(generated.group)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
-            Text(TrainerStrengthText.meta(generated)).font(.caption).foregroundStyle(BrandColors.dim)
-            if let adjustment = generated.adjustments.first {
-                Text(TrainerStrengthText.adjustmentTitle(adjustment)).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.attention)
-            }
-            NavigationLink {
-                TrainerStrengthWorkoutView(iso: day.iso, sessionId: session.id)
-            } label: {
-                CardLinkFooter(title: CardLinkConstants.workout)
-            }
-            .buttonStyle(.cardLink)
-            .padding(.top, 4)
+        NavigationLink {
+            TrainerStrengthWorkoutView(iso: day.iso, sessionId: session.id)
+        } label: {
+            StrengthDayCard(model: app.trainer.planDayCard(generated, day: day, isClaude: app.trainer.isFreeClaudeDay(day), isDone: false))
         }
-        .brandCard()
+        .buttonStyle(.cardLink)
     }
 }

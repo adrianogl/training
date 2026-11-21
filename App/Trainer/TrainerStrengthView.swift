@@ -6,7 +6,8 @@ import UIKit
 
 struct TrainerStrengthView: View {
     @Environment(AppModel.self) private var app
-    @State private var editing: TrainerStrengthDraft?
+    @State private var formRequest: StrengthPlanFormRequest?
+    @State private var offersClaude = false
     @State private var showsPain = false
     @State private var showsSend = false
     @State private var showsClaudeRequest = false
@@ -20,9 +21,28 @@ struct TrainerStrengthView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrainerStrengthConstants.rowSpacing) {
-                section(TrainerStrengthText.daysTitle, first: true)
-                daysCard
-                if model.suggestedStrength() != sessions, sessions.contains(where: { $0.source == .trainer }) {
+                if model.showsStrengthMigrationNotice, let plan = model.strengthPlan {
+                    StrengthPlanMigrationNotice(
+                        text: StrengthPlanText.migration(end: plan.end),
+                        onAdjust: {
+                            model.dismissStrengthMigrationNotice()
+                            formRequest = .edit
+                        },
+                        onDismiss: { model.dismissStrengthMigrationNotice() }
+                    )
+                    .padding(.top, 4)
+                }
+                if offersClaude, model.strengthPlan?.builder == .claude {
+                    StrengthPlanClaudeOffer(
+                        onAsk: {
+                            offersClaude = false
+                            showsClaudeRequest = true
+                        },
+                        onDismiss: { offersClaude = false }
+                    )
+                }
+                planSection
+                if !model.isStrengthPlanEnded, model.suggestedStrength() != sessions, sessions.contains(where: { $0.source == .trainer }) {
                     suggestionCard
                 }
                 if let inbox, let preview = inboxPreview {
@@ -56,8 +76,15 @@ struct TrainerStrengthView: View {
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(TrainerText.strengthTitle)
-        .sheet(item: $editing) { draft in
-            TrainerStrengthEditView(draft: draft) { save($0) }
+        .sheet(item: $formRequest) { request in
+            StrengthPlanFormView(draft: draft(for: request), today: model.currentDay, onSave: { plan in
+                Task {
+                    await model.saveStrengthPlan(model.resolvedStrengthPlan(plan))
+                    offersClaude = plan.builder == .claude
+                }
+            }, onEnd: {
+                Task { await model.endStrengthPlan() }
+            })
         }
         .sheet(isPresented: $showsPain) { TrainerPainSheet() }
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }
@@ -182,72 +209,6 @@ struct TrainerStrengthView: View {
             .padding(.bottom, DSSpacing.sectionBottom - TrainerStrengthConstants.rowSpacing)
     }
 
-    private var daysCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                ForEach(1...TrainerConstants.weekdayCount, id: \.self) { weekday in
-                    dayChip(weekday)
-                }
-            }
-            .padding(.bottom, 4)
-            if sessions.isEmpty {
-                Text(TrainerText.strengthEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
-            }
-            ForEach(sessions) { session in
-                if session.source == .trainer {
-                    Button { editing = TrainerStrengthDraft(session: session, isNew: false) } label: { row(session) }
-                        .buttonStyle(.plain)
-                } else {
-                    row(session)
-                }
-            }
-        }
-        .brandCard()
-    }
-
-    private func dayChip(_ weekday: Int) -> some View {
-        let session = sessions.first { $0.weekday == weekday }
-        let fill = session == nil ? Color.clear : BrandColors.strength
-        return Button {
-            if let session {
-                if session.source == .trainer { save(.remove(session.id)) }
-            } else {
-                editing = TrainerStrengthDraft(session: newSession(weekday), isNew: true)
-            }
-        } label: {
-            Text(TrainerText.weekdayName(weekday - 1))
-                .font(.caption.weight(.bold))
-                .foregroundStyle(session == nil ? BrandColors.dim : BrandColors.onAccent)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(fill, in: RoundedRectangle(cornerRadius: TrainerStrengthConstants.dayChipCorner, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: TrainerStrengthConstants.dayChipCorner, style: .continuous).strokeBorder(BrandColors.line, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-        .disabled(session?.source == .mfit)
-    }
-
-    private func row(_ session: TrainerStrengthSession) -> some View {
-        HStack(spacing: 10) {
-            Text(TrainerText.weekdayName(session.weekday - 1))
-                .font(.caption.weight(.bold))
-                .foregroundStyle(BrandColors.text)
-                .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(session.source == .mfit ? session.name : TrainerStrengthText.focusName(session.group))
-                    .font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Text(TrainerStrengthText.caption(session)).font(.caption).foregroundStyle(BrandColors.dim)
-            }
-            Spacer(minLength: 6)
-            TrainerStrengthSourceChip(source: session.source)
-            if session.source == .trainer {
-                CardLinkChevron()
-            }
-        }
-        .padding(.vertical, 6)
-        .contentShape(Rectangle())
-    }
-
     private var suggestionCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(TrainerStrengthText.suggestionTitle, systemImage: TrainerStrengthConstants.suggestionSymbol)
@@ -267,26 +228,51 @@ struct TrainerStrengthView: View {
         .background(BrandColors.strengthGlow, in: RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous))
     }
 
-    private func newSession(_ weekday: Int) -> TrainerStrengthSession {
-        TrainerStrengthSession(
-            weekday: weekday, group: .core, legLoad: .light, name: TrainerStrengthText.focusName(.core),
-            source: .trainer, intensity: .light, minutes: 25, place: .home
-        )
+    @ViewBuilder
+    private var planSection: some View {
+        let today = model.currentDay
+        if let plan = model.strengthPlan, model.isStrengthPlanEnded {
+            StrengthPlanEndedNotice(summary: StrengthPlanDraftLogic.endedSummary(plan, done: model.strengthPlanDone(plan)))
+                .padding(.top, 4)
+            mfitCard(ended: true)
+            Button(StrengthPlanText.nextPlan) { formRequest = .new(plan.objective) }
+                .buttonStyle(.ds(.primary))
+            Button(StrengthPlanText.repeatPlan) { Task { await model.repeatStrengthPlan() } }
+                .buttonStyle(.ds(.secondary))
+        } else if let plan = model.strengthPlan {
+            StrengthPlanCard(summary: StrengthPlanDraftLogic.cardSummary(plan, done: model.strengthPlanDone(plan), today: today)) {
+                formRequest = .edit
+            }
+            .padding(.top, 4)
+            mfitCard(ended: false)
+        } else {
+            mfitCard(ended: false)
+            Button(StrengthPlanText.newPlan) { formRequest = .new(.mobility) }
+                .buttonStyle(.ds(.secondary))
+                .padding(.top, 4)
+        }
     }
 
-    private func save(_ result: TrainerStrengthResult) {
-        var all = model.strengthSessions
-        switch result {
-        case .save(let session):
-            if let index = all.firstIndex(where: { $0.id == session.id }) {
-                all[index] = session
-            } else {
-                all.append(session)
-            }
-        case .remove(let id):
-            all.removeAll { $0.id == id }
+    @ViewBuilder
+    private func mfitCard(ended: Bool) -> some View {
+        if let summary = StrengthPlanDraftLogic.mfitSummary(model.mfitStrengthSessions, ended: ended) {
+            StrengthMFITCard(summary: summary)
         }
-        Task { await model.saveStrength(all) }
+    }
+
+    private func draft(for request: StrengthPlanFormRequest) -> StrengthPlanDraft {
+        let today = model.currentDay
+        let target = model.strengthTargetRace()
+        switch request {
+        case .new(let objective):
+            return StrengthPlanDraftLogic.empty(objective: objective, today: today, race: target)
+        case .edit:
+            guard let plan = model.strengthPlan else { return StrengthPlanDraftLogic.empty(objective: .mobility, today: today, race: target) }
+            let resolved = model.resolvedStrengthPlan(plan)
+            var race: TrainerRaceOption?
+            if case .untilRace(let raceId, _) = resolved.validity { race = model.raceOption(id: raceId) }
+            return StrengthPlanDraftLogic.draft(from: resolved, race: race, targetRace: target)
+        }
     }
 }
 
@@ -294,7 +280,7 @@ struct TrainerStrengthSourceChip: View {
     let source: TrainerStrengthSource
 
     var body: some View {
-        DSChip(text: TrainerStrengthText.chipName(source), tone: source == .trainer ? .strength : .neutral)
+        DSChip(text: TrainerStrengthText.chipName(source), tone: source == .trainer ? .strength : .fitness)
     }
 }
 
