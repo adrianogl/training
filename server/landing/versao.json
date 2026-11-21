@@ -1,13 +1,21 @@
 {
-  "versao": "1.30.0",
-  "build": 42,
-  "versao_app": "1.30.0",
+  "versao": "1.31.0",
+  "build": 43,
+  "versao_app": "1.31.0",
   "notas": [
-    "Cards com cantos mais redondos e alinhados por dentro",
-    "O ajuste do treino de hoje agora fala de corrida contínua, intervalado ou longão",
-    "O treino do Claude fica no dia quando você muda só o foco, e o Salvar da observação não some ao girar o iPhone"
+    "Recorde pessoal em destaque: no aviso, na lista, no treino e no compartilhamento, com o formato \"Recorde\"",
+    "Meta cumprida aparece na lista e no aviso, mesmo com vários recordes na mesma corrida",
+    "Banners da Força e dias da semana do treinador com os mesmos cantos dos cards"
   ],
   "historico": [
+    {
+      "versao": "1.31.0",
+      "notas": [
+        "Recorde pessoal em destaque: no aviso, na lista, no treino e no compartilhamento, com o formato \"Recorde\"",
+        "Meta cumprida aparece na lista e no aviso, mesmo com vários recordes na mesma corrida",
+        "Banners da Força e dias da semana do treinador com os mesmos cantos dos cards"
+      ]
+    },
     {
       "versao": "1.30.0",
       "notas": [
