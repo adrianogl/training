@@ -34,6 +34,9 @@ enum TrainerConstants {
     static let stripSpacing: CGFloat = 4
     static let dayBarWidth: CGFloat = 6
     static let dayDateWidth: CGFloat = 40
+    static let dayRowCorner = DSRadius.card
+    static let weekGroupPadding: CGFloat = 6
+    static let weekGroupCorner = DSRadius.card + weekGroupPadding
     static let shapeHeight: CGFloat = 44
     static let shapeSpacing: CGFloat = 2
     static let shapeMinimumWidth: CGFloat = 3

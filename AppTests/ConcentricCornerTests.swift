@@ -24,4 +24,12 @@ import Testing
         let segment: CGFloat = StrengthPlanUIConstants.innerRadius - StrengthPlanUIConstants.segmentPadding
         #expect(segment == StrengthPlanUIConstants.segmentRadius)
     }
+
+    @Test func trainerBannersAndWeekRowsAreCards() {
+        #expect(TrainerStrengthConstants.bannerCorner == DSRadius.card)
+        #expect(TrainerStrengthConstants.bannerPadding == BrandConstants.cardPadding)
+        #expect(TrainerConstants.dayRowCorner == DSRadius.card)
+        let week: CGFloat = TrainerConstants.weekGroupCorner - TrainerConstants.weekGroupPadding
+        #expect(week == TrainerConstants.dayRowCorner)
+    }
 }

@@ -13,6 +13,9 @@ Elemento com fundo ou borda dentro de outro: `raio interno = raio externo − pa
 | `DSRadius.medium` | 12 | bloco dentro do card (26 − 14) |
 | `DSRadius.control` | 12 | botão, aviso e campo de formulário |
 | `DSRadius.small` | 8 | elemento pequeno dentro de bloco |
+| `TrainerStrengthConstants.bannerCorner` | 26 | banner solto na tela (Claude, sugestão do treinador), com padding 14 |
+| `TrainerConstants.dayRowCorner` | 26 | dia na lista de semanas do treinador |
+| `TrainerConstants.weekGroupCorner` | 32 | destaque da semana, 26 + padding 6 |
 
 `BrandConstants.cardCornerRadius` é o mesmo `DSRadius.card`. Um token de raio novo só entra se fechar a conta com o pai.
 

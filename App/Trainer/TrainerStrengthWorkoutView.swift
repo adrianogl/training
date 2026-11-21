@@ -65,7 +65,7 @@ struct TrainerStrengthWorkoutView: View {
                 Label(ClaudeText.whyTitle, systemImage: ClaudeConstants.symbol).font(.footnote.weight(.bold)).foregroundStyle(ClaudeConstants.color)
                 Text(why).font(.footnote).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
             }
-            .padding(12)
+            .padding(TrainerStrengthConstants.bannerPadding)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(ClaudeConstants.color.opacity(0.10), in: RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous))
         }

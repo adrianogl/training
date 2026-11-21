@@ -152,7 +152,7 @@ struct TrainerStrengthView: View {
             }
             .buttonStyle(.ds(.secondary))
         }
-        .padding(12)
+        .padding(TrainerStrengthConstants.bannerPadding)
         .background(ClaudeConstants.color.opacity(TrainerStrengthConstants.bannerTint), in: shape)
         .overlay(shape.strokeBorder(ClaudeConstants.color, lineWidth: TrainerStrengthConstants.bannerBorder))
     }
@@ -224,7 +224,7 @@ struct TrainerStrengthView: View {
             }
             .buttonStyle(.ds(.secondary))
         }
-        .padding(12)
+        .padding(TrainerStrengthConstants.bannerPadding)
         .background(BrandColors.strengthGlow, in: RoundedRectangle(cornerRadius: TrainerStrengthConstants.bannerCorner, style: .continuous))
     }
 
