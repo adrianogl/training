@@ -80,6 +80,30 @@ class ExerciseMediaTests(unittest.TestCase):
         catalog = [{"id": "SQUAT/GOBLET_SQUAT", "nome": "Agachamento  Goblet"}]
         self.assertEqual(media.mfit_map(catalog), {"agachamento goblet": "SQUAT/GOBLET_SQUAT"})
 
+    def test_mfit_map_adds_app_names_only_when_missing(self):
+        catalog = [{"id": "LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT", "nome": "Agachamento búlgaro com halteres"},
+                   {"id": "SQUAT/GOBLET_SQUAT", "nome": "Agachamento goblet"}]
+        aliases = {"LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT": "Agachamento búlgaro", "SQUAT/BARBELL_BACK_SQUAT": "Agachamento goblet"}
+        mapping = media.mfit_map(catalog, aliases)
+        self.assertEqual(mapping["agachamento bulgaro"], "LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT")
+        self.assertEqual(mapping["agachamento bulgaro com halteres"], "LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT")
+        self.assertEqual(mapping["agachamento goblet"], "SQUAT/GOBLET_SQUAT")
+
+    def test_legacy_names_read_only_the_id_to_name_map(self):
+        source = """
+    static let legacyIds: [String: String] = [
+        "bulgaro-halteres": "LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT",
+    ]
+    static let legacyNames: [String: String] = [
+        "LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT": "Agachamento búlgaro",
+        "LEG_CURL/LEG_CURL": "Mesa flexora",
+    ]
+    static let other: [String: String] = [
+        "SQUAT/SQUAT": "Fora",
+    ]
+"""
+        self.assertEqual(media.legacy_names(source), {"LUNGE/DUMBBELL_BULGARIAN_SPLIT_SQUAT": "Agachamento búlgaro", "LEG_CURL/LEG_CURL": "Mesa flexora"})
+
     def test_mfit_map_prefers_plainer_id_for_duplicated_name(self):
         catalog = [{"id": "LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT", "nome": "Agachamento Búlgaro"},
                    {"id": "SQUAT/BULGARIAN_SPLIT_SQUAT", "nome": "Agachamento Bulgaro"},

@@ -11,6 +11,9 @@
   "BENCH_PRESS/DECLINE_BARBELL_BENCH_PRESS": {
     "nome": "Supino declinado com barra"
   },
+  "BENCH_PRESS/DECLINE_DUMBBELL_BENCH_PRESS": {
+    "nome": "Supino declinado com halteres"
+  },
   "DEADLIFT/SINGLE_LEG_RDL_CIRCUIT": {
     "nome": "Terra romeno unilateral",
     "equipamento": "bodyweight",
@@ -23,6 +26,9 @@
   },
   "HIP_STABILITY/WEIGHTED_STANDING_REAR_LEG_RAISE": {
     "equipamento": "cable"
+  },
+  "LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT": {
+    "nome": "Agachamento búlgaro com halter acima da cabeça"
   },
   "PLANK/SIDE_PLANK_WITH_FEET_ON_BENCH": {
     "regioes": [
