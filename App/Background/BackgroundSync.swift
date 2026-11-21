@@ -46,6 +46,7 @@ enum BackgroundSync {
         schedule(readinessComplete: false)
         nonisolated(unsafe) let task = task
         let work = Task {
+            await model.quickMorningNotice()
             await WorkoutFinishNotifier.shared.refresh(model: model)
             await model.refreshInstallState()
             let succeeded = await model.syncNow(.background)

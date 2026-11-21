@@ -239,7 +239,7 @@ Toda notificação abre a tela da ação relacionada:
 | Treinos de força do Claude | Treinador › Força |
 | Plano de força terminou | Treinador › Força |
 
-A prontidão da manhã sai quando o app encontra HRV e sono da noite numa sincronização em segundo plano. Há dois gatilhos: o sono novo no Apple Health, que o Garmin Connect grava ao sincronizar o relógio e acorda o app na hora, e o refresh em background a partir das 4h, que tenta de hora em hora até as 11h e fica a critério do iOS. Com o app aberto na tela, o sono do Health não dispara sync.
+A prontidão da manhã sai quando o app encontra HRV e sono da noite numa sincronização em segundo plano. Há dois gatilhos: o sono novo no Apple Health, que o Garmin Connect grava ao sincronizar o relógio e acorda o app na hora, e o refresh em background a partir das 4h, que tenta a cada 15 minutos até as 11h e fica a critério do iOS. Nos dois casos, entre 4h e 11h, o app primeiro busca só os dados diários de ontem e de hoje (`SyncEngine.runMorning`) e manda o aviso, e só depois faz o sync completo, para caber no tempo que o iOS dá em segundo plano. Com o app aberto na tela, o sono do Health não dispara sync.
 
 O aviso de treino terminado sai quando o treino entra no Apple Health e a nota fica pronta. Se a nota ainda não saiu, o app sincroniza de novo a cada 15 s enquanto o iOS dá tempo em segundo plano, até 6 vezes. Enquanto houver treino pendente, cada FC, distância ou caloria nova que o Garmin Connect grava no Health acorda o app para mais uma tentativa. O refresh em background 5 min depois fica como reserva.
 

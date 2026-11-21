@@ -344,6 +344,21 @@ import WorkoutAnalysis
         }
     }
 
+    func quickMorningNotice() async {
+        guard MorningQuickCheck.shouldRun(now: .now, calendar: .current, readinessComplete: todayReadinessComplete),
+              watchKind != .appleWatch, syncTask == nil, let key = currentKey() else { return }
+        let configuration = SyncEngineConfiguration(trigger: .background)
+        let engine = configuration.makeEngine(source: client(for: key, configuration: configuration), container: container)
+        guard let report = try? await engine.runMorning(), report.dailyUpserted > 0, !Task.isCancelled else { return }
+        let container = container
+        let day = Day.today()
+        let summary = await Task.detached(priority: .userInitiated) {
+            try? todaySummary(context: ModelContext(container), today: day)
+        }.value
+        guard let summary, !Task.isCancelled else { return }
+        await handleMorningNotice(summary, trigger: .background)
+    }
+
     @discardableResult
     func syncNow(_ trigger: SyncTrigger) async -> Bool {
         if trigger == .background { readinessComplete = false }

@@ -63,7 +63,8 @@ Escopos de commit em uso: `treinador`, `treinos`, `forca`, `hoje`, `analise`, `s
 Instalação é só por cabo ou mesma rede (conta Apple gratuita, perfil vence 7 dias depois de criado).
 
 - Build para aparelho: `xcodebuild -project trAIning.xcodeproj -scheme trAIning -destination generic/platform=iOS -derivedDataPath DerivedData -allowProvisioningUpdates build`. Apague `DerivedData/Build/Products/Debug-iphoneos` antes e confira `BUILD SUCCEEDED`. Sem isso, o `devicectl` instala um build antigo sem avisar.
-- Depois de instalar: `xcrun devicectl device process launch --no-activate --device <UDID> dev.aglv.training`, para o app disparar o aviso de versão instalada.
+- Depois de instalar: `xcrun devicectl device process launch --no-activate --device <UDID> dev.aglv.training`, para o app disparar o aviso de versão instalada. Confira o resultado: essa abertura também agenda o sync em segundo plano, que o iOS descarta na atualização. Se falhar (aparelho bloqueado), avise que o aviso da manhã só volta quando o app for aberto.
+- Não instale nos aparelhos entre 22h e 7h. Uma instalação de madrugada que não consegue abrir o app deixa a manhã sem o aviso de prontidão; deixe para depois das 7h.
 - Erro 4016 no `devicectl` significa aparelho bloqueado ou fora da rede. Avise qual ficou de fora.
 - Antes de apagar perfis de provisionamento, confira se a Apple ID está no Xcode (`defaults read com.apple.dt.Xcode DVTDeveloperAccountManagerAppleIDLists`). Sem conta, o build para com "No Accounts".
 - Para ver a mensagem de um crash no aparelho, rode `devicectl device process launch --terminate-existing --console` em background e peça para reproduzir. O `.ips` não traz o texto do `fatalError`.

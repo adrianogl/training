@@ -3,4 +3,5 @@ enum SyncOperation {
     case reprocess
     case deferredFIT
     case light
+    case morning
 }
