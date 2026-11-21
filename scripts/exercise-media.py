@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG = ROOT / "Packages/TrainingKit/Sources/Insights/GarminStrengthCatalogData.swift"
+CONSTANTS = ROOT / "Packages/TrainingKit/Sources/Insights/StrengthCatalogConstants.swift"
 CANDIDATES = ROOT / "tasks/exercise-media-candidatos.json"
 REVIEW = ROOT / "scripts/exercise-media-revisao.json"
 STEPS_PT = ROOT / "scripts/exercise-media-passos-pt.json"
@@ -373,13 +374,20 @@ def modifier_rank(entry_id):
     return (sum(1 for part in parts if part in MODIFIER_TOKENS), len(exercise), entry_id)
 
 
-def mfit_map(catalog):
+def mfit_map(catalog, aliases=None):
     result = {}
     for entry in catalog:
         key = norm(entry["nome"])
         if key not in result or modifier_rank(entry["id"]) < modifier_rank(result[key]):
             result[key] = entry["id"]
+    for catalog_id, name in sorted((aliases or {}).items()):
+        result.setdefault(norm(name), catalog_id)
     return result
+
+
+def legacy_names(source):
+    block = source.split("static let legacyNames", 1)[1].split("]\n", 1)[0] if "static let legacyNames" in source else ""
+    return dict(re.findall(r'"([A-Z0-9_]+/[A-Z0-9_]+)": "([^"]+)"', block))
 
 
 def download(url, target):
@@ -497,7 +505,7 @@ def command_emitir():
     output = {
         "versao": 1,
         "midias": midias,
-        "mfit": mfit_map(load_catalog()),
+        "mfit": mfit_map(load_catalog(), legacy_names(CONSTANTS.read_text())),
         "padroes": {key: {"passos": value} for key, value in patterns.items()},
     }
     (MEDIA_DIR / "exercise-media.json").write_text(json.dumps(output, ensure_ascii=False, indent=1, sort_keys=True) + "\n")

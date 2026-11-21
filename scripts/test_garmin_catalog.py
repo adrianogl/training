@@ -34,6 +34,26 @@ exercise_type_SIDE_PLANK=Prancha lateral
 """)
 
 
+GENERATED = Path(__file__).resolve().parent.parent / "Packages/TrainingKit/Sources/Insights/GarminStrengthCatalogData.swift"
+
+
+class GeneratedCatalogNamesTests(unittest.TestCase):
+    def setUp(self):
+        self.names = {row["id"]: row["nome"] for row in catalog.read_rows(GENERATED)}
+
+    def test_bulgarian_variations_have_distinct_names(self):
+        bulgarians = {key: name for key, name in self.names.items() if "BULGARIAN" in key}
+        self.assertEqual(len(set(bulgarians.values())), len(bulgarians))
+        self.assertIn("acima da cabeça", self.names["LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT"])
+        self.assertIn("halter", self.names["LUNGE/DUMBBELL_OVERHEAD_BULGARIAN_SPLIT_SQUAT"])
+
+    def test_decline_dumbbell_bench_press_is_decline(self):
+        name = self.names["BENCH_PRESS/DECLINE_DUMBBELL_BENCH_PRESS"]
+        self.assertIn("declinado", name)
+        self.assertNotIn("inclinado", name.replace("declinado", ""))
+        self.assertNotEqual(name, self.names["BENCH_PRESS/INCLINE_DUMBBELL_BENCH_PRESS"])
+
+
 class GarminCatalogTests(unittest.TestCase):
     def setUp(self):
         rows, self.report = catalog.build(EXERCISES, NAMES, {"BANDED_EXERCISES/ROW": {"nome": "Remada com elástico"}})
