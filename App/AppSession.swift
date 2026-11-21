@@ -88,6 +88,7 @@ import UserNotifications
 
     static func startLiveBackgroundWork(_ model: AppModel) {
         WorkoutFinishNotifier.shared.start(model: model)
+        SleepArrivalNotifier.shared.start(model: model)
         BackgroundSync.schedule(readinessComplete: false)
         let task = UIApplication.shared.beginBackgroundTask()
         Task {
@@ -98,6 +99,7 @@ import UserNotifications
 
     static func stopLiveBackgroundWork() {
         WorkoutFinishNotifier.shared.detach()
+        SleepArrivalNotifier.shared.detach()
         BGTaskScheduler.shared.cancelAllTaskRequests()
         let center = UNUserNotificationCenter.current()
         center.removeAllPendingNotificationRequests()

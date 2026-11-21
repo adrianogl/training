@@ -239,6 +239,8 @@ Toda notificação abre a tela da ação relacionada:
 | Treinos de força do Claude | Treinador › Força |
 | Plano de força terminou | Treinador › Força |
 
+A prontidão da manhã sai quando o app encontra HRV e sono da noite numa sincronização em segundo plano. Há dois gatilhos: o sono novo no Apple Health, que o Garmin Connect grava ao sincronizar o relógio e acorda o app na hora, e o refresh em background a partir das 4h, que tenta de hora em hora até as 11h e fica a critério do iOS. Com o app aberto na tela, o sono do Health não dispara sync.
+
 Garmin desconectado sai só quando a sincronização em segundo plano recebe chave recusada, uma vez até a conexão voltar. Strava desconectado sai quando a sessão expira. Treinos do Claude saem uma vez por lote recebido. As três esperam até 7h quando chegam entre 22h e 7h.
 
 ## Privacidade
