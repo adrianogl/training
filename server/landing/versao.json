@@ -1,11 +1,17 @@
 {
-  "versao": "1.33.1",
-  "build": 47,
-  "versao_app": "1.33.1",
+  "versao": "1.33.2",
+  "build": 48,
+  "versao_app": "1.33.2",
   "notas": [
-    "Recordes pessoais com as colunas alinhadas"
+    "O aviso de prontidão da manhã chega mais cedo"
   ],
   "historico": [
+    {
+      "versao": "1.33.2",
+      "notas": [
+        "O aviso de prontidão da manhã chega mais cedo"
+      ]
+    },
     {
       "versao": "1.33.1",
       "notas": [
@@ -69,12 +75,6 @@
         "Mostra imagens e passo a passo de cada exercício de força",
         "Guarda observações por exercício e sugere a primeira carga",
         "Permite usar o iPhone na horizontal"
-      ]
-    },
-    {
-      "versao": "1.27.2",
-      "notas": [
-        "Mostra as notas da versão instalada no aviso"
       ]
     }
   ]
