@@ -1,6 +1,7 @@
 import Foundation
 import GarminAPI
 import Insights
+import MFIT
 import TrainingCore
 
 extension TrainerModel {
@@ -21,14 +22,27 @@ extension TrainerModel {
                 }
             }
         }
-        return items
+        if filter.kinds.contains(.strength), settings.sendsMFIT, let program = StrengthProgramStore().load().program {
+            let last = MFITSendBuilder.end(program, today: currentDay)
+            if last >= currentDay {
+                let workouts = StrengthSchedule().workouts(program, from: currentDay, through: last)
+                items += MFITSendBuilder.items(workouts: workouts, replaced: replacesMFIT, catalogId: MFITSendBuilder.catalogId)
+            }
+        }
+        return items.enumerated().sorted { ($0.element.day, $0.offset) < ($1.element.day, $1.offset) }.map(\.element)
+    }
+
+    private func staleLastDay(_ records: [String: TrainerSentRecord]) -> Day {
+        let window = currentDay.adding(days: TrainerSendConstants.windowDays - 1)
+        let mfitDays = records.filter { $0.key.hasPrefix(TrainerSendConstants.mfitKeyPrefix) }.compactMap { Day(iso: $0.value.day) }
+        return ([window] + mfitDays).max() ?? window
     }
 
     func staleSends(_ filter: TrainerSendFilter, items: [TrainerSendItem], store: TrainerSendStore) -> [(key: String, record: TrainerSentRecord)] {
         let records = store.records()
         let stale = TrainerSendBuilder.stale(
             records: records, current: Set(items.map(\.key)), kinds: filter.kinds,
-            from: currentDay, through: currentDay.adding(days: TrainerSendConstants.windowDays - 1)
+            from: currentDay, through: staleLastDay(records)
         )
         return records.filter { _, record in stale.contains(record) }.map { (key: $0.key, record: $0.value) }.sorted { $0.record.day < $1.record.day }
     }

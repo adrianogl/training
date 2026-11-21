@@ -229,13 +229,14 @@ Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog*.swift`,
 
 Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: `GarminAPITests/GarminPlannedUploadTests.swift`, `AppTests/TrainerSendTests.swift`.
 
-- **O que vai:** os próximos 7 dias, por tipo (corrida, força ou os dois), com dias desmarcáveis. Força só dos dias do treinador; os do MFIT seguem pelo fluxo do MFIT.
+- **O que vai:** os próximos 7 dias, por tipo (corrida, força ou os dois), com dias desmarcáveis. Força dos dias do treinador e, com "Enviar os treinos do MFIT" ligado, os do MFIT.
 - **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo.
 - **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
 - **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
 - **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.
 - **Falhas:** se apagar no Garmin falhar (exceto "não encontrado"), o registro fica e o treino novo daquele dia não é criado, para não sobrar treino duplicado. Se o agendamento falhar, o treino recém-criado é apagado. Só um envio roda por vez, e ele não é cancelado ao sair da tela.
 - **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.
+- **MFIT:** com "Enviar os treinos do MFIT" ligado (só no Garmin), entram os treinos do professor de hoje até o fim da prescrição do MFIT, ou 4 semanas à frente quando o programa não tem fim. O nome no Garmin é "trAIning · MFIT · <treino>". Cada exercício usa o exercício do catálogo da Garmin quando o nome do MFIT tem par no mapa `mfit` do `exercise-media.json`; sem par, vai com o nome do professor e a categoria que o parser do MFIT adivinha (`TOTAL_BODY` se nenhuma). Dia em que o Claude substituiu o MFIT fica de fora. Desligar a opção apaga do Garmin os treinos do MFIT que o app enviou. Testes: `AppTests/MFITSendTests.swift`.
 
 ## Envio ao Apple Watch
 

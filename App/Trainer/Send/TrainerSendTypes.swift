@@ -35,6 +35,9 @@ struct TrainerSentRecord: Codable, Equatable {
 struct TrainerSendSettings: Codable, Equatable {
     var runFromTrainer = false
     var auto: TrainerSendFilter?
+    var includesMFIT: Bool?
+
+    var sendsMFIT: Bool { includesMFIT ?? false }
 }
 
 struct TrainerSendItem: Identifiable, Equatable {
@@ -45,6 +48,7 @@ struct TrainerSendItem: Identifiable, Equatable {
     let payload: Data
     var runSteps: [PlannedRunStep] = []
     var strengthSeconds: Double?
+    var isMFIT = false
 
     var id: String { key }
 
