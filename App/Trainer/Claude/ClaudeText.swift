@@ -138,7 +138,7 @@ enum ClaudeText {
       "treinos": [
         {
           "dia": "AAAA-MM-DD",
-          "foco": "upper | lower | fullBody | core",
+          "foco": "upper | lower | fullBody | core | mobility",
           "minutos": 25,
           "local": "gym | home | bodyweight",
           "porque": "uma frase",

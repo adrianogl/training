@@ -23,6 +23,7 @@ enum StrengthGeneratorConstants {
         .lower: [.squat, .hinge, .singleLeg, .calf, .hipStability, .plyo, .lateralCore],
         .upper: [.horizontalPush, .horizontalPull, .verticalPush, .verticalPull, .hinge, .antiRotation, .lateralCore],
         .fullBody: [.squat, .horizontalPull, .hinge, .horizontalPush, .singleLeg, .antiExtension, .calf, .verticalPush, .lateralCore, .antiRotation],
+        .mobility: mobilityOrder,
         .core: [.mobilityHip, .antiRotation, .mobilityAnkle, .antiExtension, .hipStability, .mobilityThoracic, .lateralCore, .singleLeg, .hinge, .calf],
     ]
     static let equipmentPreference: [StrengthEquipment] = [.barbell, .machine, .cable, .dumbbell, .kettlebell, .band, .bodyweight, .medicineBall, .swissBall, .suspension]

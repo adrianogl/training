@@ -52,6 +52,12 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
     expect(report?.erros).toEqual([])
   })
 
+  it('dia de mobilidade com foco mobility passa', () => {
+    const ctx = context({ dias_do_treinador: [{ dia_da_semana: 'ter', foco: 'mobility', intensidade: 'light', minutos: 25, local: 'home' }] })
+    const [report] = validateResponse(response([day('2026-11-24', mobility, 'mobility')]), ctx)
+    expect(report?.erros).toEqual([])
+  })
+
   it('recusa dias que não são do treinador', () => {
     const reports = validateResponse(response([day('2026-11-22', mobility), day('2026-12-03', mobility), day('2026-11-25', mobility), day('2026-11-28', mobility)]), context())
     expect(reports.map((item) => item.erros[0])).toEqual(['dia que já passou', 'fora do período pedido', 'dia do MFIT, não será aplicado', 'não é um dia de força do treinador'])

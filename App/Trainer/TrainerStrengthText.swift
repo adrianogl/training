@@ -59,6 +59,7 @@ enum TrainerStrengthText {
         case .lower: "Pernas"
         case .fullBody: "Corpo inteiro"
         case .core: "Mobilidade e core"
+        case .mobility: "Mobilidade"
         }
     }
 

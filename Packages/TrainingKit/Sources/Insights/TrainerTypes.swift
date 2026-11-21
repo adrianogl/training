@@ -243,6 +243,7 @@ public enum TrainerStrengthGroup: String, Codable, Sendable, CaseIterable {
     case lower
     case fullBody
     case core
+    case mobility
 }
 
 public enum TrainerStrengthLoad: String, Codable, Sendable, CaseIterable {
