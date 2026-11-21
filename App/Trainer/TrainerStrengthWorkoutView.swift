@@ -53,7 +53,7 @@ struct TrainerStrengthWorkoutView: View {
             HStack(alignment: .firstTextBaseline) {
                 DSCardLabel(dayLabel)
                 Spacer()
-                if stored != nil { ClaudeSourceChip() } else { TrainerStrengthSourceChip(source: .trainer) }
+                if day.map(app.trainer.isFreeClaudeDay) == true { ClaudeSourceChip() } else { TrainerStrengthSourceChip(source: .trainer) }
             }
             Text(TrainerStrengthText.focusName(workout.group)).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
             Text(TrainerStrengthText.meta(workout)).font(.caption).foregroundStyle(BrandColors.dim)

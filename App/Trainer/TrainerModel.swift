@@ -302,11 +302,12 @@ import TrainingCore
         let now = currentDay
         let since = now.adding(days: -TrainerConstants.strengthWeeks * TrainerConstants.weekdayCount)
         return plan.strength.sorted { $0.weekday < $1.weekday }.map { session in
-            let seconds = history.strength
+            let scoped = Self.strengthHistory(history, for: session, plan: strengthPlan)
+            let seconds = scoped.strength
                 .filter { $0.day > since && $0.day <= now && $0.day.weekStart.days(until: $0.day) + 1 == session.weekday }
                 .map(\.seconds)
             let minutes = seconds.isEmpty ? nil : Int((seconds.reduce(0, +) / Double(seconds.count) / 60).rounded())
-            let done = TrainerEngine.strengthWeeksDone(session, history: history, today: now)
+            let done = TrainerEngine.strengthWeeksDone(session, history: scoped, today: now)
             return TrainerStrengthRow(session: session, caption: TrainerText.strengthCaption(done: done, minutes: minutes))
         }
     }
@@ -318,7 +319,6 @@ import TrainingCore
             current.sessions = trainer
             return await saveStrengthPlan(current, mfit: sessions.filter { $0.source == .mfit })
         }
-        claudeStore.removeWeekdays(Self.changedWeekdays(from: legacyStrengthSessions, to: sessions))
         if !trainer.isEmpty, var created = StrengthPlanMigration.migrate(sessions: trainer, runningPlanEnd: runningPlanEndForStrength, today: currentDay) {
             created.migrated = false
             try? strengthPlanStore.save(created)
@@ -372,7 +372,8 @@ import TrainingCore
     func syncStrength(_ sessions: [TrainerStrengthSession]) async {
         let current = strengthSessions
         guard !sessions.isEmpty, !StrengthSessions.sameMFIT(sessions, current) else { return }
-        await saveStrength(StrengthSessions.merge(mfit: sessions, into: current))
+        let trainer = strengthPlan?.sessions.filter { $0.source == .trainer } ?? legacyStrengthSessions.filter { $0.source == .trainer }
+        await applyStrength(StrengthSessions.merge(mfit: sessions, into: []) + trainer)
     }
 
     func legSwapSuggestion(kept: Set<String>) -> TrainerLegSwap? {
@@ -734,10 +735,15 @@ import TrainingCore
                 TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil, source: $0.session.source)
             }
         } ?? []
-        lines = lines.filter { $0.source == .mfit || isStrengthPlanActive(on: workout.day) }
+        let freeClaude = isFreeClaudeDay(workout.day)
+        lines = lines.filter { $0.source == .mfit || isStrengthPlanActive(on: workout.day) }.map { line in
+            var copy = line
+            copy.isClaude = freeClaude && line.source == .trainer
+            return copy
+        }
         if let override = claudeOverride(on: workout.day) {
             let done = history.strength.contains { $0.day == workout.day }
-            lines = [TrainerStrengthLine(id: override.id, name: override.name, isDone: done, source: .trainer)]
+            lines = [TrainerStrengthLine(id: override.id, name: override.name, isDone: done, source: .trainer, isClaude: true)]
         }
         return TrainerDayRow(
             workout: workout, status: result.status, run: result.run, isChanged: changedDays.contains(workout.day), strength: lines,

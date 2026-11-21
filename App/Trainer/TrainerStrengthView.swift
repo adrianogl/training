@@ -57,7 +57,7 @@ struct TrainerStrengthView: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(TrainerText.strengthTitle)
         .sheet(item: $editing) { draft in
-            TrainerStrengthEditView(draft: draft, blockedDays: Set(sessions.filter { $0.source == .mfit }.map(\.weekday))) { save($0) }
+            TrainerStrengthEditView(draft: draft) { save($0) }
         }
         .sheet(isPresented: $showsPain) { TrainerPainSheet() }
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }

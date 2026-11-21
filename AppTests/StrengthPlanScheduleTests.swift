@@ -168,6 +168,73 @@ import TrainingCore
         #expect(model.trainerSessions(on: nextMonday.adding(days: 4)).count == 1)
     }
 
+    @Test func mfit_sync_keeps_plan_sessions_on_mfit_day() async throws {
+        let (model, planStore, claude) = try makeModel()
+        await createRunningPlan(model, strength: [session(3, source: .mfit)])
+        let plan = StrengthPlan(objective: .strength, sessions: [session(2)], start: nextMonday, validity: .weeks(4), builder: .claude)
+        await model.saveStrengthPlan(plan)
+        store(claude, day: nextTuesday, planId: plan.id)
+        await model.syncStrength([session(2, source: .mfit)])
+        #expect(planStore.current()?.sessions == plan.sessions)
+        #expect(model.strengthPlan?.sessions == plan.sessions)
+        #expect(claude.workout(on: nextTuesday) != nil)
+        #expect(Set(model.strengthSessions.filter { $0.weekday == 2 }.map(\.source)) == [.mfit, .trainer])
+        #expect(!model.strengthSessions.contains { $0.source == .mfit && $0.weekday == 3 })
+        #expect(model.trainerSessions(on: nextTuesday).map(\.id) == plan.sessions.map(\.id))
+        #expect(!model.replacesMFIT(on: nextTuesday))
+        #expect(Set(model.plan?.strength.filter { $0.weekday == 2 }.map(\.source) ?? []) == [.mfit, .trainer])
+    }
+
+    @Test func day_row_labels_mfit_plan_and_free_claude() async throws {
+        let (model, _, claude) = try makeModel()
+        await createRunningPlan(model, strength: [session(2, source: .mfit)])
+        let plan = StrengthPlan(objective: .strength, sessions: [session(2)], start: nextMonday, validity: .weeks(4), builder: .claude)
+        await model.saveStrengthPlan(plan)
+        store(claude, day: nextTuesday, planId: plan.id)
+        store(claude, day: nextThursday, planId: nil, replacesMFIT: true)
+        let tuesday = try #require(model.row(for: nextTuesday.iso))
+        #expect(Set(tuesday.strength.map(\.source)) == [.mfit, .trainer])
+        #expect(tuesday.strength.allSatisfy { !$0.isClaude })
+        let thursday = try #require(model.row(for: nextThursday.iso))
+        #expect(thursday.strength.count == 1)
+        #expect(thursday.strength.first?.isClaude == true)
+        #expect(model.isFreeClaudeDay(nextThursday))
+        #expect(!model.isFreeClaudeDay(nextTuesday))
+    }
+
+    @Test func day_row_hides_plan_lines_outside_validity() async throws {
+        let (model, _, _) = try makeModel()
+        await createRunningPlan(model, strength: [session(3, source: .mfit)])
+        let plan = StrengthPlan(objective: .strength, sessions: [session(2)], start: nextMonday, validity: .weeks(1), builder: .trainer)
+        await model.saveStrengthPlan(plan)
+        let later = try #require(model.row(for: nextTuesday.adding(days: 14).iso))
+        #expect(later.strength.isEmpty)
+        let mfitDay = try #require(model.row(for: nextMonday.adding(days: 16).iso))
+        #expect(mfitDay.strength.map(\.source) == [.mfit])
+    }
+
+    @Test func save_without_plan_keeps_free_claude_days() async throws {
+        let (model, _, claude) = try makeModel()
+        await createRunningPlan(model, strength: [session(4)])
+        #expect(model.strengthPlan == nil)
+        store(claude, day: nextThursday, planId: nil)
+        await model.saveStrength([session(2)])
+        #expect(claude.workout(on: nextThursday) != nil)
+        #expect(model.strengthPlan?.sessions.map(\.weekday) == [2])
+    }
+
+    @Test func weeks_done_counts_only_within_validity() {
+        let plan = StrengthPlan(objective: .strength, sessions: [session(2)], start: nextMonday, validity: .weeks(2), builder: .trainer)
+        let done = [nextTuesday.adding(days: -7), nextTuesday, nextTuesday.adding(days: 7), nextTuesday.adding(days: 14)].enumerated().map {
+            TrainerStrengthDone(activityId: Int64($0.offset), day: $0.element, name: "F", seconds: 1_800)
+        }
+        let history = TrainerHistory(runs: [], strength: done)
+        let scoped = TrainerModel.strengthHistory(history, for: session(2), plan: plan)
+        #expect(scoped.strength.map(\.day) == [nextTuesday, nextTuesday.adding(days: 7)])
+        #expect(TrainerModel.strengthHistory(history, for: session(2, source: .mfit), plan: plan).strength.count == 4)
+        #expect(TrainerModel.strengthHistory(history, for: session(2), plan: nil).strength.isEmpty)
+    }
+
     @Test func old_stored_workout_decodes_without_plan_id() throws {
         let old = ClaudeStoredWorkout(workout: workout(2), why: nil, summary: nil)
         var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(old)) as? [String: Any] ?? [:]

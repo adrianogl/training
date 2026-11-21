@@ -27,6 +27,17 @@ extension TrainerModel {
         return stored
     }
 
+    func isFreeClaudeDay(_ day: Day) -> Bool {
+        claudeWorkout(on: day).map { $0.planId == nil } ?? false
+    }
+
+    static func strengthHistory(_ history: TrainerHistory, for session: TrainerStrengthSession, plan: StrengthPlan?) -> TrainerHistory {
+        guard session.source == .trainer else { return history }
+        var scoped = history
+        scoped.strength = history.strength.filter { plan?.isActive(on: $0.day) ?? false }
+        return scoped
+    }
+
     func claudeOverride(on day: Day) -> TrainerStrengthSession? {
         guard let stored = claudeWorkout(on: day), stored.overridesMFIT else { return nil }
         let workout = stored.workout

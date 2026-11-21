@@ -62,7 +62,7 @@ struct TodayStrengthCard<Label: View>: View {
             HStack(alignment: .firstTextBaseline) {
                 DSCardLabel(TodayConstants.strengthTodayTitle)
                 Spacer()
-                if app.trainer.claudeWorkout(on: day)?.planId == nil, app.trainer.isClaudeDay(day) {
+                if app.trainer.isFreeClaudeDay(day) {
                     ClaudeSourceChip()
                 } else {
                     TrainerStrengthSourceChip(source: .trainer)
