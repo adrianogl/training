@@ -1,11 +1,17 @@
 {
-  "versao": "1.35.2",
-  "build": 53,
-  "versao_app": "1.35.2",
+  "versao": "1.36.0",
+  "build": 54,
+  "versao_app": "1.36.0",
   "notas": [
-    "Como a nota de prontidão é calculada fica sempre à vista"
+    "Pace do treino do dia recalculado por prontidão, calor e perna pesada"
   ],
   "historico": [
+    {
+      "versao": "1.36.0",
+      "notas": [
+        "Pace do treino do dia recalculado por prontidão, calor e perna pesada"
+      ]
+    },
     {
       "versao": "1.35.2",
       "notas": [
@@ -59,14 +65,6 @@
       "versao": "1.32.1",
       "notas": [
         "Depois de atualizar, as telas abrem já com os dados da versão nova"
-      ]
-    },
-    {
-      "versao": "1.32.0",
-      "notas": [
-        "Plano de força com objetivos de performance na corrida, manutenção e mobilidade para corrida, e com o equipamento que você tem em casa",
-        "Evolução com previsões e recordes em 1 km, 3 km, 5 km, 10 km, meia maratona e maratona",
-        "Versão e novidades em Ajustes, escolha do dia e do foco mais clara, e o app abre direto se foi usado nas últimas 6 horas"
       ]
     }
   ]
