@@ -110,6 +110,36 @@ private func input(activePace: Double? = nil, route: [Coordinate]? = nil) -> Wor
         free.elevationGain = nil
         free.readingLine = nil
         #expect(availableShareFields(free) == [.title, .distance, .time, .avgPace, .avgHeartRate])
-        #expect(availableShareFields(input(activePace: 234)) == ShareField.allCases)
+        #expect(availableShareFields(input(activePace: 234)) == ShareField.allCases.filter { $0 != .record })
+    }
+}
+
+@Suite struct ShareRecordContentTests {
+    private func recordInput(_ records: [ShareRecord]) -> WorkoutShareInput {
+        var value = input()
+        value.records = records
+        return value
+    }
+
+    @Test func recordFieldOnlyAppearsWithARecord() {
+        #expect(!availableShareFields(input()).contains(.record))
+        #expect(availableShareFields(recordInput([ShareRecord(label: "5 km", seconds: 1_421, isWholeRun: true)])).contains(.record))
+    }
+
+    @Test func wholeRunRecordMarksTheTime() {
+        let content = shareContent(record: recordInput([ShareRecord(label: "10 km", seconds: 3_160, isWholeRun: true)]), enabled: [.time, .distance, .record], template: .storiesDark)
+        #expect(content.values.first { $0.field == .time }?.isRecord == true)
+        #expect(content.values.first { $0.field == .distance }?.isRecord == false)
+    }
+
+    @Test func segmentRecordsBecomeTheirOwnValues() {
+        let content = shareContent(record: recordInput([ShareRecord(label: "1 km", seconds: 252, isWholeRun: false)]), enabled: [.time, .record], template: .storiesDark)
+        #expect(content.values.first { $0.field == .time }?.isRecord == false)
+        #expect(content.values.last == ShareValue(field: .record, value: "4:12", label: "1 km", isRecord: true))
+    }
+
+    @Test func turningTheFieldOffHidesTheHighlight() {
+        let content = shareContent(record: recordInput([ShareRecord(label: "10 km", seconds: 3_160, isWholeRun: true)]), enabled: [.time], template: .storiesDark)
+        #expect(content.values.allSatisfy { !$0.isRecord })
     }
 }

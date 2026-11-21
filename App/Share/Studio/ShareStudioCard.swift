@@ -68,6 +68,7 @@ struct ShareStudioCard: View {
         case .photo: photoCard
         case .series: seriesCard
         case .evolution: evolutionCard
+        case .record: ShareRecordCard(source: source).background { backdrop { ShareBackground() } }
         default: story
         }
     }
@@ -195,7 +196,7 @@ struct ShareStudioCard: View {
         return HStack(alignment: .top, spacing: 18) {
             ForEach(Array(values.enumerated()), id: \.offset) { _, stat in
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(stat.value).font(BrandFonts.number(size)).foregroundStyle(stat.highlight ? BrandColors.accent : color)
+                    ShareRecordNumber(value: stat.value, size: size, color: stat.highlight ? BrandColors.accent : color, isRecord: stat.isRecord)
                     Text(stat.label.uppercased()).font(.system(size: 10, weight: .semibold)).tracking(1).foregroundStyle(color.opacity(0.7))
                 }
                 .lineLimit(1)
@@ -204,25 +205,30 @@ struct ShareStudioCard: View {
         }
     }
 
-    private func statValues() -> [(value: String, label: String, highlight: Bool)] {
+    private func statValues() -> [(value: String, label: String, highlight: Bool, isRecord: Bool)] {
         let input = source.input
         let eased = progress
-        var stats: [(String, String, Bool)] = []
+        let showsRecord = settings.fields.contains(.record)
+        let wholeRecord = showsRecord && input.records.contains(where: \.isWholeRun)
+        var stats: [(String, String, Bool, Bool)] = []
         if settings.fields.contains(.distance), let meters = input.distanceMeters, meters > 0 {
-            stats.append((WorkoutFormat.kilometers(meters * eased), C.distanceUnit, false))
+            stats.append((WorkoutFormat.kilometers(meters * eased), C.distanceUnit, false, false))
         }
         if settings.fields.contains(.time), let seconds = input.movingSeconds, seconds > 0 {
-            stats.append((WorkoutFormat.clock(seconds * eased), C.statLabels[.time] ?? "", false))
+            stats.append((WorkoutFormat.clock(seconds * eased), C.statLabels[.time] ?? "", false, wholeRecord && eased >= 1))
+        }
+        if showsRecord, !wholeRecord, let segment = input.records.first(where: { !$0.isWholeRun }) {
+            stats.append((WorkoutFormat.clock(segment.seconds), segment.label, false, eased >= 1))
         }
         if settings.fields.contains(.activePace), let pace = input.activePaceSecondsPerKm, pace > 0 {
-            stats.append((WorkoutFormat.clock(pace), C.statLabels[.activePace] ?? "", true))
+            stats.append((WorkoutFormat.clock(pace), C.statLabels[.activePace] ?? "", true, false))
         } else if settings.fields.contains(.avgPace), let pace = input.avgPaceSecondsPerKm, pace > 0 {
-            stats.append((WorkoutFormat.clock(pace), C.statLabels[.avgPace] ?? "", true))
+            stats.append((WorkoutFormat.clock(pace), C.statLabels[.avgPace] ?? "", true, false))
         }
         if stats.count < 3, settings.fields.contains(.avgHeartRate), let heartRate = input.avgHeartRate, heartRate > 0 {
-            stats.append(("\(Int(heartRate.rounded()))", C.statLabels[.avgHeartRate] ?? "", false))
+            stats.append(("\(Int(heartRate.rounded()))", C.statLabels[.avgHeartRate] ?? "", false, false))
         }
-        return stats.prefix(3).map { (value: $0.0, label: $0.1, highlight: $0.2) }
+        return stats.prefix(3).map { (value: $0.0, label: $0.1, highlight: $0.2, isRecord: $0.3) }
     }
 }
 

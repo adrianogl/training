@@ -5,7 +5,7 @@ import UIKit
 import WorkoutAnalysis
 
 enum ShareFormat: String, CaseIterable, Identifiable {
-    case animatedRoute, animatedSquare, photo, series, evolution, sticker, card, blocks, strip
+    case animatedRoute, animatedSquare, photo, series, evolution, record, sticker, card, blocks, strip
 
     var id: String { rawValue }
 }
@@ -55,6 +55,9 @@ struct ShareSource {
     let seriesSummary: String?
     let evolution: [EvolutionPoint]
     let feedbackLine: String?
+    var recordHits: [RecordHit] = []
+    var recordSteps: [RecordStep] = []
+    var recordActivityId: Int64?
 }
 
 struct ShareSettings: Equatable {

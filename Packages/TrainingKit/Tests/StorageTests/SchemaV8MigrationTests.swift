@@ -4,8 +4,8 @@ import Testing
 @testable import Storage
 
 @Suite struct SchemaV8MigrationTests {
-    @Test func currentSchemaIsV10() {
-        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV10.self))
+    @Test func currentSchemaIsV11() {
+        #expect(TrainingMigrationPlan.schemas.last.map(ObjectIdentifier.init) == ObjectIdentifier(SchemaV11.self))
         #expect(TrainingSchema.models.count == 8)
     }
 

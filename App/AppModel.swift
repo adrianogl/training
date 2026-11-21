@@ -11,6 +11,7 @@ import Storage
 import Sync
 import SwiftData
 import TrainingCore
+import WorkoutAnalysis
 
 @MainActor @Observable final class AppModel {
     let container: ModelContainer
@@ -330,6 +331,7 @@ import TrainingCore
         let context = ModelContext(container)
         try? autoLinkRaces(in: context, today: today)
         try? freezeEveTargets(in: context, today: today)
+        PersonalRecords.refreshEfforts(in: context)
         return try? todaySummary(context: context, today: today)
     }
 

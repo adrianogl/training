@@ -56,6 +56,8 @@ public final class ActivityRecord {
     public var weatherWindFrom: Double? = nil
     public var weatherRadiation: Double? = nil
     public var weatherVersion: Int = 0
+    public var bestEffortsData: Data? = nil
+    public var bestEffortsVersion: Int = 0
     public var updatedAt: Date = Date.now
 
     public init(

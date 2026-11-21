@@ -1,21 +1,29 @@
 import Foundation
 import GarminAPI
+import Insights
 import Storage
 import TrainingCore
 import WorkoutAnalysis
 
 enum WorkoutListModel {
-    static func rows(records: [ActivityRecord]) -> [WorkoutRowData] {
-        records
+    static func rows(records: [ActivityRecord], goals: [GoalSnapshot] = []) -> [WorkoutRowData] {
+        let timeline = PersonalRecords.timeline(PersonalRecords.runEfforts(records))
+        return records
             .filter { ActivityTypeKey.isRun($0.typeKey) || ActivityTypeKey.isStrength($0.typeKey) }
             .sorted { $0.start > $1.start }
-            .map(row)
+            .map { record in
+                var data = row(record)
+                guard !data.isStrength else { return data }
+                data.recordPill = RecordText.pill(timeline[record.activityId]?.records ?? [])
+                data.goalPill = RecordText.goalPill(WorkoutNoticeGoals.metGoals(record: record, goals: goals).count)
+                return data
+            }
     }
 
-    static func weeks(records: [ActivityRecord], plannedKilometers: [Day: Double] = [:]) -> [WorkoutWeek] {
+    static func weeks(records: [ActivityRecord], goals: [GoalSnapshot] = [], plannedKilometers: [Day: Double] = [:]) -> [WorkoutWeek] {
         var order: [Day] = []
         var grouped: [Day: [WorkoutRowData]] = [:]
-        for row in rows(records: records) {
+        for row in rows(records: records, goals: goals) {
             if grouped[row.weekStart] == nil { order.append(row.weekStart) }
             grouped[row.weekStart, default: []].append(row)
         }

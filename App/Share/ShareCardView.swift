@@ -83,11 +83,9 @@ struct ShareCardView: View {
                 ShareRouteView(route: route, color: .white, lineWidth: ShareConstants.stripRouteLineWidth, markerColor: nil)
                     .frame(width: ShareConstants.stripRouteSize, height: ShareConstants.stripRouteSize)
             }
-            ForEach(content.values, id: \.field) { value in
+            ForEach(Array(content.values.enumerated()), id: \.offset) { _, value in
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(value.value)
-                        .font(BrandFonts.number(ShareConstants.stripFontSize))
-                        .foregroundStyle(.white)
+                    ShareRecordNumber(value: value.value, size: ShareConstants.stripFontSize, color: .white, isRecord: value.isRecord)
                         .lineLimit(1)
                         .minimumScaleFactor(0.5)
                     Text(value.label)
@@ -145,9 +143,7 @@ struct ShareCardView: View {
 
     private func stat(_ value: ShareValue, fontSize: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value.value)
-                .font(BrandFonts.number(fontSize))
-                .foregroundStyle(.white)
+            ShareRecordNumber(value: value.value, size: fontSize, color: .white, isRecord: value.isRecord)
                 .lineLimit(1)
             Text(value.label)
                 .font(.system(size: ShareConstants.statLabelFontSize, weight: .medium))

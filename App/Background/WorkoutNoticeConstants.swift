@@ -26,6 +26,8 @@ enum WorkoutNoticeConstants {
     static let statsFormat = "%@ km · %@/km"
     static let heartRateFormat = " · FC média %d"
     static let metTitleFormat = "Meta cumprida · %@ · %@"
+    static let highlightSeparator = " · "
+    static let highlightBodySeparator = " "
     static let pauseOne = "Teve 1 pausa."
     static let pausesFormat = "Teve %d pausas."
     static let pauseNoteFormat = "%@ Maior trecho contínuo: %@ km. A meta é %@ km sem pausas."
