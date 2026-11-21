@@ -15,6 +15,15 @@ struct TrainerStrengthPrefsStore {
         defaults.set(data, forKey: TrainerStrengthConstants.prefsKey)
     }
 
+    func toggleHomeEquipment(_ equipment: StrengthEquipment) {
+        guard equipment != .bodyweight else { return }
+        var prefs = load()
+        var chosen = prefs.effectiveHomeEquipment
+        if chosen.contains(equipment) { chosen.remove(equipment) } else { chosen.insert(equipment) }
+        prefs.homeEquipment = chosen
+        save(prefs)
+    }
+
     func setPain(_ regions: Set<BodyRegion>, now: Date = .now) {
         var prefs = load()
         prefs.pain = regions

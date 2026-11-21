@@ -16,6 +16,7 @@ enum ClaudeContextBuilder {
             corrida: input.runs.keys.sorted().compactMap { day in input.runs[day].map { .init(dia: day.iso, tipo: $0.kind.rawValue, nome: $0.name) } },
             prontidao: input.readiness.keys.sorted().compactMap { day in input.readiness[day].map { .init(dia: day.iso, nota: $0) } },
             dor: input.pain.map(\.rawValue).sorted(),
+            equipamento_casa: input.homeEquipment.map(\.rawValue).sorted(),
             ultimas_cargas_kg: input.loads,
             observacoes: notesByExercise(input.notes),
             catalogo_formato: ClaudeText.catalogFormat,
@@ -44,7 +45,7 @@ enum ClaudeContextBuilder {
         let places = Set(input.trainerSessions.filter { $0.source == .trainer }.map(\.place))
         let wanted = places.isEmpty ? Set(StrengthPlace.allCases) : places
         return StrengthCatalog.all.filter { exercise in
-            wanted.contains(where: exercise.fits) && exercise.loads.isDisjoint(with: input.pain)
+            wanted.contains { exercise.fits($0, home: input.homeEquipment) } && exercise.loads.isDisjoint(with: input.pain)
         }
     }
 

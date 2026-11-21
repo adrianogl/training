@@ -46,8 +46,9 @@ public struct CatalogExercise: Codable, Sendable, Equatable, Identifiable {
         self.timed = timed
     }
 
-    public func fits(_ place: StrengthPlace) -> Bool {
-        StrengthCatalogConstants.equipmentByPlace[place]?.contains(equipment) ?? false
+    public func fits(_ place: StrengthPlace, home: Set<StrengthEquipment>? = nil) -> Bool {
+        if place == .home, let home { return equipment == .bodyweight || home.contains(equipment) }
+        return StrengthCatalogConstants.equipmentByPlace[place]?.contains(equipment) ?? false
     }
 
     public var isMobility: Bool {

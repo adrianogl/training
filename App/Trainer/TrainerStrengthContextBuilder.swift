@@ -21,7 +21,8 @@ enum TrainerStrengthContextBuilder {
             loads: loads(cache.loads),
             swaps: prefs.swaps[day.iso] ?? [:],
             keepOriginal: prefs.keptOriginal.contains(day.iso),
-            block: StrengthGenerator.block(for: day)
+            block: StrengthGenerator.block(for: day),
+            homeEquipment: prefs.effectiveHomeEquipment
         )
     }
 

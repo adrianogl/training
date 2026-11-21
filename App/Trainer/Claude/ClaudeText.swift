@@ -130,7 +130,7 @@ enum ClaudeText {
 
     static let instructions = """
     Você é o treinador de força de um corredor. Monte os treinos de força dos dias listados em "dias_do_treinador" dentro do período, usando o contexto abaixo.
-    - Use só exercícios do "catalogo", pelo "id" (categoria/exercício do catálogo oficial da Garmin). Cada linha segue "catalogo_formato". Respeite o "local" de cada dia (academia, casa ou só peso do corpo): equipamentos kettlebell, medicineBall, suspension e swissBall só na academia.
+    - Use só exercícios do "catalogo", pelo "id" (categoria/exercício do catálogo oficial da Garmin). Cada linha segue "catalogo_formato". Respeite o "local" de cada dia: na academia vale qualquer equipamento; em casa, só o que está em "equipamento_casa" e peso do corpo; em só peso do corpo, só bodyweight.
     - Os dias do MFIT são do professor: complemente o que ele já trabalha. Se precisar trocar o treino do professor num dia (por exemplo, perto da prova), monte o treino desse dia com \"substitui_mfit\": true; o app troca o treino do professor só naquela data e tira o dele do Garmin.
     - Siga as "regras". Periodize ao longo do período: progressão de carga e volume, semanas mais leves e redução perto da prova.
     - Respeite as "observacoes" do atleta sobre a execução de cada exercício (a chave é o "id" do catálogo ou o nome no MFIT).

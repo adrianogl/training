@@ -94,7 +94,7 @@ function validateDay(entry: ResponseDay, context: StrengthContext): DayReport {
   if (entry.foco != null && !(STRENGTH.groups as readonly string[]).includes(String(entry.foco))) report.erros.push(ISSUE.invalidFocus(String(entry.foco)))
 
   const place = entry.local ?? session?.local ?? 'gym'
-  const allowed = STRENGTH.equipmentByPlace[place] ?? []
+  const allowed = place === 'home' && context.equipamento_casa ? [...context.equipamento_casa, 'bodyweight'] : STRENGTH.equipmentByPlace[place] ?? []
   const exercises = Array.isArray(entry.exercicios) ? entry.exercicios.filter((item): item is ResponseExercise => isObject(item) && typeof item.id === 'string') : []
   if (exercises.length === 0) report.erros.push(ISSUE.noExercises)
   if (exercises.length > STRENGTH.maxExercises) report.erros.push(ISSUE.tooManyExercises)

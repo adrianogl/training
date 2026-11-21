@@ -60,11 +60,14 @@ public struct ClaudeValidationContext: Sendable {
     public var raceDay: Day?
     public var pain: Set<BodyRegion>
     public var lastLoads: [String: Double]
+    public var homeEquipment: Set<StrengthEquipment>?
 
     public init(
         today: Day, first: Day, last: Day, trainerSessions: [TrainerStrengthSession], mfitWeekdays: Set<Int>,
-        runKinds: [Day: TrainerDayKind], raceDay: Day?, pain: Set<BodyRegion>, lastLoads: [String: Double]
+        runKinds: [Day: TrainerDayKind], raceDay: Day?, pain: Set<BodyRegion>, lastLoads: [String: Double],
+        homeEquipment: Set<StrengthEquipment>? = nil
     ) {
+        self.homeEquipment = homeEquipment
         self.today = today
         self.first = first
         self.last = last

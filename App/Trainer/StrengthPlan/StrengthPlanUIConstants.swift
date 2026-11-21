@@ -9,6 +9,8 @@ enum StrengthPlanUIConstants {
     static let optionDotInset: CGFloat = 4
     static let optionBorder: CGFloat = 1.5
     static let optionSelectedOpacity = 0.14
+    static let checkedSymbol = "checkmark.square.fill"
+    static let uncheckedSymbol = "square"
     static let validityOrder: [StrengthPlanValidityMode] = [.untilRace, .weeks, .untilDate]
     static let builderOrder: [StrengthPlanBuilder] = [.trainer, .claude]
     static let weekdayPlural = ["segundas", "terças", "quartas", "quintas", "sextas", "sábados", "domingos"]

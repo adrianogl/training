@@ -32,7 +32,7 @@ public enum StrengthGenerator {
         let used = Set(workout.exercises.map { StrengthCatalog.canonicalId($0.exerciseId) })
         return ordered(
             StrengthCatalog.all.filter {
-                $0.pattern == current.pattern && $0.id != current.id && !used.contains($0.id) && $0.fits(workout.place) && $0.loads.isDisjoint(with: context.pain)
+                $0.pattern == current.pattern && $0.id != current.id && !used.contains($0.id) && $0.fits(workout.place, home: context.homeEquipment) && $0.loads.isDisjoint(with: context.pain)
             },
             block: context.block
         )
@@ -72,13 +72,13 @@ public enum StrengthGenerator {
 
     private static func select(plan: Plan, place: StrengthPlace, context: StrengthContext) -> [GeneratedExercise] {
         var pool = StrengthCatalog.all.filter { exercise in
-            (plan.group == .mobility || exercise.focus.contains(plan.group)) && exercise.fits(place) && exercise.loads.isDisjoint(with: context.pain)
+            (plan.group == .mobility || exercise.focus.contains(plan.group)) && exercise.fits(place, home: context.homeEquipment) && exercise.loads.isDisjoint(with: context.pain)
                 && (!plan.mobilityOnly || exercise.isMobility)
                 && !(plan.mobilityOnly && context.objective == .mobility && isStatic(exercise))
         }
         var order = plan.mobilityOnly ? C.mobilityOrder : objectiveOrder(plan.group, objective: context.objective)
         if pool.isEmpty {
-            pool = StrengthCatalog.all.filter { $0.isMobility && $0.fits(place) && $0.loads.isEmpty }
+            pool = StrengthCatalog.all.filter { $0.isMobility && $0.fits(place, home: context.homeEquipment) && $0.loads.isEmpty }
             order = C.mobilityOrder
         }
         order = order.filter { !context.coveredPatterns.contains($0) } + order.filter { context.coveredPatterns.contains($0) }

@@ -177,4 +177,22 @@ enum StrengthPlanText {
         guard items.count > 1, let last = items.last else { return items.first ?? "" }
         return items.dropLast().joined(separator: ", ") + " e " + last
     }
+
+    static let homeEquipmentTitle = "Em casa você tem"
+    static let homeEquipmentHint = "Peso do corpo vale sempre. Os treinos em casa usam só o que estiver marcado."
+
+    static func equipmentName(_ equipment: StrengthEquipment) -> String {
+        switch equipment {
+        case .dumbbell: "Halteres"
+        case .band: "Elástico"
+        case .kettlebell: "Kettlebell"
+        case .swissBall: "Bola de pilates"
+        case .medicineBall: "Medicine ball"
+        case .suspension: "Fita de suspensão"
+        case .barbell: "Barra e anilhas"
+        case .bodyweight: "Peso do corpo"
+        case .machine: "Máquina"
+        case .cable: "Polia"
+        }
+    }
 }

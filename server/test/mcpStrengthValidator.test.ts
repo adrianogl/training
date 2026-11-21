@@ -63,6 +63,14 @@ describe('validador de força (paridade com ClaudeStrengthTests.swift)', () => {
     expect(report?.erros).toEqual([])
   })
 
+  it('equipamento de casa decide o que o Claude pode usar em casa', () => {
+    const kettlebell = [{ id: 'CORE/KETTLEBELL_WINDMILL', series: 3, reps: 8, descanso: 45 }]
+    const [blocked] = validateResponse(response([day('2026-11-24', kettlebell)]), context())
+    expect(blocked?.erros.some((erro) => erro.includes('CORE/KETTLEBELL_WINDMILL'))).toBe(true)
+    const [allowed] = validateResponse(response([day('2026-11-24', kettlebell)]), context({ equipamento_casa: ['kettlebell'] }))
+    expect(allowed?.erros.some((erro) => erro.includes('CORE/KETTLEBELL_WINDMILL'))).toBe(false)
+  })
+
   it('recusa foco desconhecido', () => {
     const [report] = validateResponse(response([day('2026-11-24', mobility, 'yoga')]), context())
     expect(report?.erros).toContain('foco "yoga" inválido; use upper, lower, fullBody, core ou mobility')

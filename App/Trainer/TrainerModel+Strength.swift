@@ -74,7 +74,8 @@ extension TrainerModel {
     }
 
     func strengthAlternatives(exerciseId: String, in workout: GeneratedStrengthWorkout, day: Day) -> [CatalogExercise] {
-        let context = StrengthContext(pain: TrainerStrengthPrefsStore().load().pain, block: StrengthGenerator.block(for: day))
+        let prefs = TrainerStrengthPrefsStore().load()
+        let context = StrengthContext(pain: prefs.pain, block: StrengthGenerator.block(for: day), homeEquipment: prefs.effectiveHomeEquipment)
         return StrengthGenerator.alternatives(for: exerciseId, in: workout, context: context)
     }
 

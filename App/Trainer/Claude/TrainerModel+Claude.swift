@@ -45,11 +45,12 @@ extension TrainerModel {
             let day = currentDay.adding(days: -offset + 1)
             return history.readiness[day].map { (day, $0) }
         })
+        let prefs = TrainerStrengthPrefsStore().load()
         return ClaudeContextInput(
             today: currentDay, first: first, last: last, trainerSessions: strengthSessions, mfit: mfitWeek,
-            runs: claudeRuns(first: first, last: last), readiness: readiness, pain: TrainerStrengthPrefsStore().load().pain,
+            runs: claudeRuns(first: first, last: last), readiness: readiness, pain: prefs.pain,
             loads: TrainerStrengthContextBuilder.loads(cache.loads).mapValues(\.weight), race: race,
-            notes: ExerciseNotesStore().allActive(), planLocked: claudeBuildingPlan != nil
+            notes: ExerciseNotesStore().allActive(), planLocked: claudeBuildingPlan != nil, homeEquipment: prefs.effectiveHomeEquipment
         )
     }
 
@@ -57,7 +58,8 @@ extension TrainerModel {
         ClaudeValidationContext(
             today: input.today, first: input.first, last: input.last, trainerSessions: input.trainerSessions,
             mfitWeekdays: claudeBuildingPlan == nil ? Set(strengthSessions.filter { $0.source == .mfit }.map(\.weekday)) : [],
-            runKinds: input.runs.mapValues(\.kind), raceDay: input.race?.day, pain: input.pain, lastLoads: input.loads
+            runKinds: input.runs.mapValues(\.kind), raceDay: input.race?.day, pain: input.pain, lastLoads: input.loads,
+            homeEquipment: input.homeEquipment
         )
     }
 
