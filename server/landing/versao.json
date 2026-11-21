@@ -1,11 +1,17 @@
 {
-  "versao": "1.33.0",
-  "build": 46,
-  "versao_app": "1.33.0",
+  "versao": "1.33.1",
+  "build": 47,
+  "versao_app": "1.33.1",
   "notas": [
-    "Previsões da Evolução mostram quanto você está abaixo ou acima do seu recorde em cada distância"
+    "Recordes pessoais com as colunas alinhadas"
   ],
   "historico": [
+    {
+      "versao": "1.33.1",
+      "notas": [
+        "Recordes pessoais com as colunas alinhadas"
+      ]
+    },
     {
       "versao": "1.33.0",
       "notas": [
@@ -69,12 +75,6 @@
       "versao": "1.27.2",
       "notas": [
         "Mostra as notas da versão instalada no aviso"
-      ]
-    },
-    {
-      "versao": "1.27.1",
-      "notas": [
-        "Alinha o pedido ao Claude e o aviso do ciclo ao padrão"
       ]
     }
   ]
