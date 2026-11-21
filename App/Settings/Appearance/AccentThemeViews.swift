@@ -23,7 +23,7 @@ struct AccentThemeCard: View {
     private typealias C = AccentThemeConstants
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: DSRadius.card - 2, style: .continuous)
+        let shape = ConcentricRectangle.dsInner
         VStack(alignment: .leading, spacing: DSSpacing.s2) {
             (Text(BrandConstants.logoPrefix) + Text(BrandConstants.logoHighlight).foregroundStyle(BrandColors.accent) + Text(BrandConstants.logoSuffix))
                 .font(.system(size: 11, weight: .heavy).width(.expanded))
@@ -44,7 +44,7 @@ struct AccentThemeCard: View {
         .padding(DSSpacing.s3)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(BrandColors.card, in: shape)
-        .overlay(shape.strokeBorder(isSelected ? BrandColors.accentFill : BrandColors.cardBorder, lineWidth: isSelected ? 2 : 1))
+        .overlay(shape.stroke(isSelected ? BrandColors.accentFill : BrandColors.cardBorder, lineWidth: isSelected ? 2 : 1))
         .overlay(alignment: .topTrailing) {
             if isSelected {
                 Image(systemName: "checkmark")

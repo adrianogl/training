@@ -39,7 +39,7 @@ struct WatchKindPicker: View {
 
     private func option(_ kind: WatchKind) -> some View {
         let isSelected = selection == kind
-        let shape = RoundedRectangle(cornerRadius: DSRadius.card - 2, style: .continuous)
+        let shape = ConcentricRectangle.dsInner
         return HStack(spacing: DSSpacing.s3) {
             Image(systemName: kind.symbol)
                 .font(.title3)
@@ -57,7 +57,7 @@ struct WatchKindPicker: View {
         }
         .padding(DSSpacing.s3)
         .background(BrandColors.card, in: shape)
-        .overlay(shape.strokeBorder(isSelected ? BrandColors.accentFill : BrandColors.cardBorder, lineWidth: isSelected ? 2 : 1))
+        .overlay(shape.stroke(isSelected ? BrandColors.accentFill : BrandColors.cardBorder, lineWidth: isSelected ? 2 : 1))
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }

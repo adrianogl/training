@@ -23,7 +23,7 @@ private struct SkeletonCard: View {
             Capsule()
                 .fill(BrandColors.track)
                 .frame(width: SkeletonConstants.titleBarWidth, height: SkeletonConstants.titleBarHeight)
-            RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius / 2, style: .continuous)
+            ConcentricRectangle.dsInner
                 .fill(BrandColors.track)
                 .frame(maxHeight: .infinity)
         }
@@ -32,6 +32,7 @@ private struct SkeletonCard: View {
         .frame(height: height)
         .background(BrandColors.card, in: shape)
         .overlay(shape.strokeBorder(BrandColors.cardBorder, lineWidth: 1))
+        .containerShape(shape)
         .shimmer()
         .clipShape(shape)
     }

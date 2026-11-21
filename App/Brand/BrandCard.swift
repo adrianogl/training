@@ -10,6 +10,7 @@ struct BrandCard: ViewModifier {
             .frame(maxWidth: .infinity, maxHeight: fillsHeight ? .infinity : nil, alignment: .topLeading)
             .background(BrandColors.card, in: shape)
             .overlay(shape.strokeBorder(BrandColors.cardBorder, lineWidth: 1))
+            .containerShape(shape)
     }
 }
 

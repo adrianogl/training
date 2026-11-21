@@ -12,7 +12,7 @@ enum BrandConstants {
     static let iconCornerRatio: CGFloat = 0.26
     static let iconGlowOpacity = 0.35
     static let iconGlowRadius: CGFloat = 14
-    static let cardCornerRadius: CGFloat = 18
+    static let cardCornerRadius = DSRadius.card
     static let cardPadding: CGFloat = 14
     static let screenPadding: CGFloat = 16
     static let glowRadius: CGFloat = 380

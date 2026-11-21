@@ -87,8 +87,8 @@ struct WorkoutAnalysisCard: View {
                 .foregroundStyle(BrandColors.accent)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 11)
-                .background(BrandColors.accentFill.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(BrandColors.accentFill.opacity(0.35), lineWidth: 1))
+                .background(BrandColors.accentFill.opacity(0.12), in: .dsInner)
+                .overlay(ConcentricRectangle.dsInner.stroke(BrandColors.accentFill.opacity(0.35), lineWidth: 1))
         }
         .buttonStyle(.plain)
     }

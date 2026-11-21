@@ -30,6 +30,7 @@ Rode só a parte que a mudança tocou, filtrada. A suíte inteira do app leva mi
 ## Regras do projeto
 
 - **Regras de negócio em `docs/regras/`.** Análise (prontidão, nota do treino, texto gerado, força) fica em `analise.md`; prescrição do treinador em `prescricao.md`. Mudança de regra atualiza o arquivo no mesmo commit.
+- **Cantos concêntricos.** Raio interno = raio externo − padding. Tokens e regra em `docs/design/cantos.md`; leia antes de mexer em layout.
 - **Mock antes de código.** Funcionalidade nova e mudança de layout (app, landing, mostrador) passam por um mock aprovado antes da implementação. Mostre atual × proposta só no trecho que mudou e espere a aprovação do layout antes de propor commit.
 - **README e landing acompanham o código.** Mudança no que o `README.md` descreve (estrutura, integração, script, variável de ambiente, fluxo de dados) vai no mesmo commit. Mudança no que o app faz para quem usa ajusta `server/landing/index.html`.
 - **Sem versão web.** Só app e landing. Não implementar paridade de regra no servidor.

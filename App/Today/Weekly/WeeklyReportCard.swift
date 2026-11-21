@@ -209,6 +209,6 @@ private extension View {
         padding(.horizontal, 13)
             .padding(.vertical, 11)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(BrandColors.track, in: .dsInner)
     }
 }

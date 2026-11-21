@@ -55,7 +55,7 @@ enum ShareConstants {
     static let previewStripWidth: CGFloat = 300
     static let previewCornerRadius: CGFloat = 20
     static let checkerSquare: CGFloat = 8
-    static let buttonCornerRadius: CGFloat = 14
+    static let buttonCornerRadius = DSRadius.control
     static let buttonPadding: CGFloat = 13
     static let buttonFontSize: CGFloat = 15
 
