@@ -30,6 +30,7 @@ import TrainingCore
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
     @ObservationIgnored private let strengthPlanStore: StrengthPlanStore
+    @ObservationIgnored let claudeStore: ClaudeStrengthStore
     @ObservationIgnored private var autoTask: Task<Void, Never>?
     @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var loadedStamp: Date?
@@ -39,9 +40,10 @@ import TrainingCore
     init(
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
         defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil,
-        strengthPlanStore: StrengthPlanStore = StrengthPlanStore()
+        strengthPlanStore: StrengthPlanStore = StrengthPlanStore(), claudeStore: ClaudeStrengthStore = ClaudeStrengthStore()
     ) {
         self.strengthPlanStore = strengthPlanStore
+        self.claudeStore = claudeStore
         self.strengthPlan = strengthPlanStore.current()
         self.container = container
         self.store = store
@@ -310,9 +312,48 @@ import TrainingCore
     }
 
     func saveStrength(_ sessions: [TrainerStrengthSession]) async {
-        let before = Dictionary(strengthSessions.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
-        let after = Dictionary(sessions.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
-        ClaudeStrengthStore().removeWeekdays(Set(before.keys.filter { after[$0] != before[$0] }))
+        let trainer = sessions.filter { $0.source == .trainer }
+        if var current = strengthPlan {
+            guard current.sessions != trainer else { return await applyStrength(sessions) }
+            current.sessions = trainer
+            return await saveStrengthPlan(current, mfit: sessions.filter { $0.source == .mfit })
+        }
+        claudeStore.removeWeekdays(Self.changedWeekdays(from: legacyStrengthSessions, to: sessions))
+        if !trainer.isEmpty, var created = StrengthPlanMigration.migrate(sessions: trainer, runningPlanEnd: runningPlanEndForStrength, today: currentDay) {
+            created.migrated = false
+            try? strengthPlanStore.save(created)
+            strengthPlan = strengthPlanStore.current()
+        }
+        await applyStrength(sessions)
+    }
+
+    func saveStrengthPlan(_ updated: StrengthPlan) async {
+        await saveStrengthPlan(updated, mfit: legacyStrengthSessions.filter { $0.source == .mfit })
+    }
+
+    private func saveStrengthPlan(_ updated: StrengthPlan, mfit: [TrainerStrengthSession]) async {
+        if let previous = strengthPlan {
+            let left = previous.id == updated.id
+                ? Self.changedWeekdays(from: previous.sessions, to: updated.sessions)
+                : Set(previous.sessions.map(\.weekday))
+            claudeStore.removePlanWeekdays(left, planId: previous.id)
+        }
+        try? strengthPlanStore.save(updated)
+        strengthPlan = strengthPlanStore.current()
+        await applyStrength(mfit + updated.sessions.filter { $0.source == .trainer })
+    }
+
+    private static func changedWeekdays(from old: [TrainerStrengthSession], to new: [TrainerStrengthSession]) -> Set<Int> {
+        let before = Dictionary(old.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
+        let after = Dictionary(new.filter { $0.source == .trainer }.map { ($0.weekday, $0.group) }, uniquingKeysWith: { first, _ in first })
+        return Set(before.keys.filter { after[$0] != before[$0] })
+    }
+
+    private var runningPlanEndForStrength: Day? {
+        plan.flatMap { $0.endedOn == nil ? Self.runningPlanEnd($0) : nil }
+    }
+
+    private func applyStrength(_ sessions: [TrainerStrengthSession]) async {
         guard var current = plan else {
             standaloneStrength = sessions.sorted { $0.weekday < $1.weekday }
             TrainerStrengthStandaloneStore().save(standaloneStrength)
@@ -628,9 +669,7 @@ import TrainingCore
     }
 
     func migrateStrengthPlan() {
-        let sessions = strengthSessions
-        let runningEnd = plan.flatMap { $0.endedOn == nil ? Self.runningPlanEnd($0) : nil }
-        _ = try? strengthPlanStore.migrateIfNeeded(sessions: sessions, runningPlanEnd: runningEnd, today: currentDay)
+        _ = try? strengthPlanStore.migrateIfNeeded(sessions: legacyStrengthSessions, runningPlanEnd: runningPlanEndForStrength, today: currentDay)
         strengthPlan = strengthPlanStore.current()
     }
 
@@ -695,6 +734,7 @@ import TrainingCore
                 TrainerStrengthLine(id: $0.session.id, name: $0.session.name, isDone: $0.done != nil, source: $0.session.source)
             }
         } ?? []
+        lines = lines.filter { $0.source == .mfit || isStrengthPlanActive(on: workout.day) }
         if let override = claudeOverride(on: workout.day) {
             let done = history.strength.contains { $0.day == workout.day }
             lines = [TrainerStrengthLine(id: override.id, name: override.name, isDone: done, source: .trainer)]

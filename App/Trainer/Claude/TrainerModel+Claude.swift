@@ -54,7 +54,7 @@ extension TrainerModel {
     }
 
     func isClaudeDay(_ day: Day) -> Bool {
-        ClaudeStrengthStore().workout(on: day) != nil
+        claudeWorkout(on: day) != nil
     }
 }
 

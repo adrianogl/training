@@ -64,7 +64,7 @@ struct TrainerStrengthView: View {
         .sheet(isPresented: $showsClaudeRequest) { ClaudeRequestSheet(race: raceTarget) }
         .sheet(item: $claudeImport) { state in
             ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure) {
-                ClaudeStrengthStore().apply(state.results, summary: state.summary)
+                model.claudeStore.apply(state.results, summary: state.summary)
                 unscheduleReplacedMFIT(state.results)
                 if let inbox, state.id == inboxPreview?.id {
                     ClaudeMailbox().markSeen(inbox)
@@ -305,7 +305,7 @@ struct TrainerStrengthSourceChip: View {
     let source: TrainerStrengthSource
 
     var body: some View {
-        DSChip(text: TrainerStrengthText.sourceName(source), tone: source == .trainer ? .strength : .neutral)
+        DSChip(text: TrainerStrengthText.chipName(source), tone: source == .trainer ? .strength : .neutral)
     }
 }
 

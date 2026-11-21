@@ -6,8 +6,9 @@ struct ClaudeStoredWorkout: Codable, Equatable {
     let why: String?
     let summary: String?
     var replacesMFIT: Bool?
+    var planId: UUID?
 
-    var overridesMFIT: Bool { replacesMFIT == true }
+    var overridesMFIT: Bool { planId == nil && replacesMFIT == true }
 }
 
 enum ClaudeRequestPeriod: String, CaseIterable, Identifiable {

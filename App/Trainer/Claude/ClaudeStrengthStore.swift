@@ -15,11 +15,11 @@ struct ClaudeStrengthStore {
         load()[day.iso]
     }
 
-    func apply(_ results: [ClaudeDayResult], summary: String?) {
+    func apply(_ results: [ClaudeDayResult], summary: String?, planId: UUID? = nil) {
         var stored = load()
         for result in results where result.isValid {
             guard let day = result.day, let workout = result.workout else { continue }
-            stored[day.iso] = ClaudeStoredWorkout(workout: workout, why: result.why, summary: summary, replacesMFIT: result.replacesMFIT)
+            stored[day.iso] = ClaudeStoredWorkout(workout: workout, why: result.why, summary: summary, replacesMFIT: planId == nil ? result.replacesMFIT : nil, planId: planId)
         }
         write(stored)
     }
@@ -31,10 +31,18 @@ struct ClaudeStrengthStore {
     }
 
     func removeWeekdays(_ weekdays: Set<Int>, from today: Day = Day.today()) {
+        removeWeekdays(weekdays, from: today) { _ in true }
+    }
+
+    func removePlanWeekdays(_ weekdays: Set<Int>, planId: UUID, from today: Day = Day.today()) {
+        removeWeekdays(weekdays, from: today) { $0.planId == planId }
+    }
+
+    private func removeWeekdays(_ weekdays: Set<Int>, from today: Day, matching: (ClaudeStoredWorkout) -> Bool) {
         guard !weekdays.isEmpty else { return }
-        let stored = load(today: today).filter { key, _ in
+        let stored = load(today: today).filter { key, workout in
             guard let day = Day(iso: key) else { return false }
-            return !weekdays.contains(day.weekStart.days(until: day) + 1)
+            return !(weekdays.contains(day.weekStart.days(until: day) + 1) && matching(workout))
         }
         write(stored)
     }
