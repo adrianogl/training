@@ -54,7 +54,7 @@ struct RecordsCard: View {
             DSCardLabel(C.recordsTitle)
             ForEach(Array(C.records.enumerated()), id: \.offset) { index, target in
                 if index > 0 { Divider().overlay(BrandColors.line) }
-                let record = records.first { $0.label == target.label }
+                let record = EvolutionExtras.record(for: target.meters, in: records)
                 if let id = record?.activityId, let url = URL(string: DeepLink.workoutURL(id)) {
                     Button { openURL(url) } label: { row(target.label, record: record) }
                         .buttonStyle(.plain)

@@ -11,11 +11,13 @@ enum ScreenSnapshotKind: String, CaseIterable, Sendable {
 
 struct ScreenSnapshotEnvelope<Payload: Codable>: Codable {
     let version: Int
+    var build: String?
     let payload: Payload
 }
 
 struct ScreenSnapshotHeader: Decodable {
     let version: Int
+    let build: String?
 }
 
 struct TodaySnapshot: Codable, Sendable {
