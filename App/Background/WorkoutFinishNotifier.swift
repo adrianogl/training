@@ -12,6 +12,7 @@ import UIKit
     private let fixedDefaults: UserDefaults?
     private let scheduler = UserNotificationScheduler()
     private var observing = false
+    private var wakeDeliveryEnabled = false
     private var processing = false
     private var rerun = false
     private var backgroundTask = UIBackgroundTaskIdentifier.invalid
@@ -29,7 +30,8 @@ import UIKit
 
     func requestAccess() async {
         guard HKHealthStore.isHealthDataAvailable() else { return }
-        try? await store.requestAuthorization(toShare: [], read: [HKObjectType.workoutType()])
+        let wake = Set<HKObjectType>(C.wakeTypes.map { HKQuantityType($0) })
+        try? await store.requestAuthorization(toShare: [], read: wake.union([HKObjectType.workoutType()]))
     }
 
     func start(model: AppModel) {
@@ -56,20 +58,53 @@ import UIKit
                 }
             }
             store.execute(query)
+            C.wakeTypes.forEach(observeWake)
         }
         store.enableBackgroundDelivery(for: type, frequency: .immediate) { _, error in
             if let error { C.logger.error("background delivery falhou: \(error.localizedDescription, privacy: .public)") }
+        }
+        updateWakeDelivery(pending: !PendingWorkoutQueue.load(defaults: defaults).items.isEmpty)
+    }
+
+    private func observeWake(_ identifier: HKQuantityTypeIdentifier) {
+        let query = HKObserverQuery(sampleType: HKQuantityType(identifier), predicate: nil) { [weak self] _, completion, _ in
+            nonisolated(unsafe) let completion = completion
+            Task { @MainActor in
+                if let self, let model = self.model, !PendingWorkoutQueue.load(defaults: self.defaults).items.isEmpty {
+                    C.logger.info("dado novo no Health com treino pendente")
+                    await self.refresh(model: model)
+                }
+                completion()
+            }
+        }
+        store.execute(query)
+    }
+
+    private func updateWakeDelivery(pending: Bool) {
+        guard pending != wakeDeliveryEnabled else { return }
+        wakeDeliveryEnabled = pending
+        for identifier in C.wakeTypes {
+            let type = HKQuantityType(identifier)
+            if pending {
+                store.enableBackgroundDelivery(for: type, frequency: .immediate) { _, error in
+                    if let error { C.logger.error("background delivery de \(identifier.rawValue, privacy: .public) falhou: \(error.localizedDescription, privacy: .public)") }
+                }
+            } else {
+                store.disableBackgroundDelivery(for: type) { _, _ in }
+            }
         }
     }
 
     func detach() {
         model = nil
         store.disableBackgroundDelivery(for: HKObjectType.workoutType()) { _, _ in }
+        updateWakeDelivery(pending: false)
     }
 
     func stop() {
         defaults.removeObject(forKey: C.enabledAtKey)
         store.disableBackgroundDelivery(for: HKObjectType.workoutType()) { _, _ in }
+        updateWakeDelivery(pending: false)
     }
 
     func refresh(model: AppModel) async {
@@ -95,10 +130,27 @@ import UIKit
         queue.prune(now: now, lifetime: C.recentWindow)
         queue.save(defaults: defaults)
         C.logger.info("corridas recentes: \(workouts.count), novas: \(due.count), pendentes: \(queue.items.count)")
+        defer { updateWakeDelivery(pending: !queue.items.isEmpty) }
         guard !queue.items.isEmpty else { return }
 
         beginBackgroundTask(model: model)
         defer { endBackgroundTask() }
+        await syncAndDeliver(model: model, queue: &queue)
+        var attempt = 0
+        while !queue.items.isEmpty, WorkoutQuickRetry.shouldRetry(attempt: attempt, remaining: UIApplication.shared.backgroundTimeRemaining) {
+            attempt += 1
+            try? await Task.sleep(for: C.quickRetryDelay)
+            guard !Task.isCancelled else { break }
+            C.logger.info("nota ainda não saiu, tentativa rápida \(attempt)")
+            await syncAndDeliver(model: model, queue: &queue)
+        }
+        await model.strava.sendPending()
+        guard !queue.items.isEmpty else { return }
+        BackgroundSync.scheduleWorkoutRetry()
+        C.logger.info("aviso adiado, pendentes: \(queue.items.count)")
+    }
+
+    private func syncAndDeliver(model: AppModel, queue: inout PendingWorkoutQueue) async {
         C.logger.info("sync leve começou")
         let synced = await model.syncNow(.workoutFinished)
         C.logger.info("sync leve terminou, ok: \(synced)")
@@ -106,10 +158,6 @@ import UIKit
             await deliver(item, container: model.container, queue: &queue)
         }
         queue.save(defaults: defaults)
-        await model.strava.sendPending()
-        guard !queue.items.isEmpty else { return }
-        BackgroundSync.scheduleWorkoutRetry()
-        C.logger.info("aviso adiado, pendentes: \(queue.items.count)")
     }
 
     private func deliver(_ item: PendingWorkout, container: ModelContainer, queue: inout PendingWorkoutQueue) async {

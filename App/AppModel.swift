@@ -280,6 +280,13 @@ import TrainingCore
             defaults.set(true, forKey: BackgroundConstants.permissionRequestedDefaultsKey)
             Task { await UserNotificationScheduler.requestAuthorization() }
         }
+        if notifier.settings.enabled, !defaults.bool(forKey: SleepArrivalConstants.permissionRequestedKey) {
+            defaults.set(true, forKey: SleepArrivalConstants.permissionRequestedKey)
+            Task {
+                await SleepArrivalNotifier.shared.requestAccess()
+                SleepArrivalNotifier.shared.start(model: self)
+            }
+        }
         let workouts = WorkoutFinishNotifier.shared
         if workouts.enabled, !defaults.bool(forKey: WorkoutNoticeConstants.permissionRequestedKey) {
             defaults.set(true, forKey: WorkoutNoticeConstants.permissionRequestedKey)
