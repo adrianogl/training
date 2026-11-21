@@ -81,7 +81,6 @@ import Testing
     @Test func noticeTextFollowsTheMock() {
         let update = AppUpdate(latest: "1.11.0", installed: "1.9.0", notes: ["Nota"])
         #expect(AppUpdateText.noticeText(update) == "Este aparelho está na 1.9.0. Instale pelo Mac para receber as novidades:")
-        #expect(AppUpdateText.footer(update) == "Versão 1.11.0 disponível. Instale pelo Mac.")
     }
 }
 

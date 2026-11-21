@@ -34,6 +34,22 @@ enum AppVersion {
         }
     }
 
+    static func summary(release: AppRelease?, installed: String) -> AppVersionSummary {
+        guard let release else {
+            return AppVersionSummary(installed: installed, latest: nil, hasUpdate: false, notesVersion: nil, notes: [])
+        }
+        let hasUpdate = isNewer(release.versao_app, than: installed)
+        let ceiling = hasUpdate ? release.versao_app : installed
+        let entries = release.historico ?? [AppReleaseNotes(versao: release.versao_app, notas: release.notas)]
+        let entry = entries
+            .filter { !isNewer($0.versao, than: ceiling) && !$0.notas.isEmpty }
+            .max { isNewer($1.versao, than: $0.versao) }
+        return AppVersionSummary(
+            installed: installed, latest: release.versao_app, hasUpdate: hasUpdate,
+            notesVersion: entry?.versao, notes: entry?.notas ?? []
+        )
+    }
+
     static func bundledRelease(_ bundle: Bundle = .main) -> AppRelease? {
         bundle.url(forResource: AppUpdateConstants.bundledResource, withExtension: "json")
             .flatMap { try? Data(contentsOf: $0) }
