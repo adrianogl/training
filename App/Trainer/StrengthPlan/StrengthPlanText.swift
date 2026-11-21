@@ -118,6 +118,10 @@ enum StrengthPlanText {
         return parts.joined(separator: " · ")
     }
 
+    static func claudeFocusChanged(built: TrainerStrengthGroup, plan: TrainerStrengthGroup) -> String {
+        "Montado para \(TrainerStrengthText.focusName(built).lowercased()). O plano agora pede \(TrainerStrengthText.focusName(plan).lowercased())."
+    }
+
     static func startsOn(_ day: Day) -> String {
         "\(startLabel) \(weekdayDate(day))"
     }

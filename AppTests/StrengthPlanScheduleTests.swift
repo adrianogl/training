@@ -157,6 +157,31 @@ import TrainingCore
         #expect(model.plan?.strength.filter { $0.source == .trainer }.map(\.weekday) == [2])
     }
 
+    @Test func changing_focus_keeps_claude_workout_of_the_day() async throws {
+        let (model, planStore, claude) = try makeModel()
+        let plan = StrengthPlan(objective: .strength, sessions: [session(2), session(4)], start: nextMonday, validity: .weeks(4), builder: .claude)
+        try activate(plan, in: model, store: planStore)
+        store(claude, day: nextTuesday, planId: plan.id)
+        var edited = plan
+        edited.sessions[0].group = .lower
+        await model.saveStrengthPlan(edited)
+        #expect(claude.workout(on: nextTuesday) != nil)
+        #expect(planStore.current()?.sessions.first?.group == .lower)
+    }
+
+    @Test func claude_card_warns_when_plan_focus_differs() async throws {
+        let (model, planStore, _) = try makeModel()
+        var plan = StrengthPlan(objective: .strength, sessions: [session(2, group: .lower)], start: nextMonday, validity: .weeks(4), builder: .claude)
+        try activate(plan, in: model, store: planStore)
+        let card = model.planDayCard(workout(2), day: nextTuesday, isClaude: true, isDone: false)
+        #expect(card.title == "Mobilidade e core")
+        #expect(card.note == "Montado para mobilidade e core. O plano agora pede pernas.")
+        plan.sessions[0].group = .core
+        try activate(plan, in: model, store: planStore)
+        #expect(model.planDayCard(workout(2), day: nextTuesday, isClaude: true, isDone: false).note == nil)
+        #expect(model.planDayCard(workout(2), day: nextTuesday, isClaude: false, isDone: false).note == nil)
+    }
+
     @Test func editing_sessions_updates_active_plan_and_keeps_mfit() async throws {
         let (model, planStore, _) = try makeModel()
         await createRunningPlan(model, strength: [session(3, source: .mfit)])
