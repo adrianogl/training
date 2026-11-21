@@ -95,7 +95,7 @@ enum ClaudeText {
     }
 
     static func outsidePlanNotice(_ plan: StrengthPlan) -> String {
-        "Treinos fora do plano (\(TrainerText.dayMonth(plan.start)) a \(TrainerText.dayMonth(plan.end))) não serão aplicados."
+        "Dia fora do plano (\(TrainerText.dayMonth(plan.start)) a \(TrainerText.dayMonth(plan.end)), nos dias de força dele): esses treinos não serão aplicados."
     }
 
     static func periodName(_ period: ClaudeRequestPeriod, race: String?) -> String {

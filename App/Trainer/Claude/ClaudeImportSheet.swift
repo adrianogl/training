@@ -21,7 +21,7 @@ struct ClaudeImportSheet: View {
                     if let failure {
                         Text(failure).font(.footnote).foregroundStyle(BrandColors.danger)
                     }
-                    if let planNotice, results.contains(where: { $0.errors.contains(.outOfPeriod) }) {
+                    if let planNotice {
                         Text(planNotice).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.attention)
                     }
                     if let summary {

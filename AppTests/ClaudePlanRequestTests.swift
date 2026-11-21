@@ -113,4 +113,37 @@ import TrainingCore
         model.applyClaudeImport(state)
         #expect(claude.workout(on: tuesday)?.planId == nil)
     }
+
+    @Test func plan_ending_today_falls_back_to_free_request() throws {
+        let plan = claudePlan(start: today.adding(days: -27), weeks: 4)
+        #expect(plan.end == today)
+        let (model, _) = try makeModel(plan: plan)
+        #expect(model.claudeBuildingPlan == nil)
+        let period = model.claudePeriod(.nextWeek, race: nil)
+        #expect(period.first == today.weekStart.adding(days: 7))
+    }
+
+    @Test func import_rejects_day_not_on_plan_weekday() throws {
+        let plan = claudePlan()
+        let (model, claude) = try makeModel(plan: plan)
+        let wednesday = plan.start.adding(days: 2)
+        let state = model.claudeImportState(parsing: json([(wednesday.iso, false)]), race: nil)
+        #expect(!state.results[0].isValid)
+        #expect(model.planNotice(for: state) != nil)
+        model.applyClaudeImport(state)
+        #expect(claude.workout(on: wednesday) == nil)
+    }
+
+    @Test func request_period_starts_at_plan_start_when_in_future() throws {
+        let plan = claudePlan(start: today.adding(days: 20))
+        let (model, _) = try makeModel(plan: plan)
+        #expect(model.claudePeriod(.nextWeek, race: nil).first == plan.start)
+    }
+
+    @Test func request_days_ignore_mfit_sessions() throws {
+        let plan = claudePlan(sessions: [session(2), session(3, source: .mfit), session(5)])
+        let (model, _) = try makeModel(plan: plan)
+        let payload = ClaudeContextBuilder.payload(model.claudeContextInput(.nextWeek, race: nil))
+        #expect(payload.dias_do_treinador.map(\.dia_da_semana) == ["ter", "sex"])
+    }
 }

@@ -63,7 +63,7 @@ struct TrainerStrengthView: View {
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }
         .sheet(isPresented: $showsClaudeRequest) { ClaudeRequestSheet(race: raceTarget) }
         .sheet(item: $claudeImport) { state in
-            ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure, planNotice: model.claudeBuildingPlan.flatMap { $0.id == state.planId ? ClaudeText.outsidePlanNotice($0) : nil }) {
+            ClaudeImportSheet(summary: state.summary, results: state.results, failure: state.failure, planNotice: model.planNotice(for: state)) {
                 model.applyClaudeImport(state)
                 unscheduleReplacedMFIT(state.results)
                 if let inbox, state.id == inboxPreview?.id {

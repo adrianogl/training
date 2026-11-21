@@ -4,7 +4,7 @@ import TrainingCore
 
 extension TrainerModel {
     var claudeBuildingPlan: StrengthPlan? {
-        guard let strengthPlan, strengthPlan.builder == .claude, currentDay <= strengthPlan.end else { return nil }
+        guard let strengthPlan, strengthPlan.builder == .claude, currentDay.adding(days: 1) <= strengthPlan.end else { return nil }
         return strengthPlan
     }
 
@@ -103,6 +103,12 @@ extension TrainerModel {
         } catch {
             return ClaudeImportState(summary: nil, results: [], failure: ClaudeText.invalidJSON)
         }
+    }
+
+    func planNotice(for state: ClaudeImportState) -> String? {
+        guard let plan = claudeBuildingPlan, plan.id == state.planId,
+              state.results.contains(where: { $0.errors.contains(.outOfPeriod) || $0.errors.contains(.notTrainerDay) }) else { return nil }
+        return ClaudeText.outsidePlanNotice(plan)
     }
 
     func applyClaudeImport(_ state: ClaudeImportState) {
