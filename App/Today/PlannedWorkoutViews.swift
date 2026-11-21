@@ -103,6 +103,22 @@ enum PlanText {
         return (String(format: TodayConstants.planContinuousFormat, distance(meters)), target(step) ?? "")
     }
 
+    static func shape(_ plan: PlannedWorkout) -> PlannedWorkoutShape {
+        let hasRepeat = plan.steps.contains { $0.repeats > 1 || !$0.children.isEmpty }
+        let activeBlocks = plan.steps.flatMap(\.flattened).filter { $0.kind == .active }.count
+        if hasRepeat || activeBlocks > 1 { return .intervals }
+        let meters = plan.estimatedMeters ?? plan.steps.flatMap(\.flattened).compactMap(\.meters).reduce(0, +)
+        return isLongRun(name: plan.title, distanceMeters: meters, goalKm: nil) ? .long : .continuous
+    }
+
+    static func adjust(_ verdict: ReadinessVerdict, shape: PlannedWorkoutShape) -> String? {
+        switch verdict {
+        case .hard: TodayConstants.planAdjustHard
+        case .moderate: TodayConstants.planAdjustModerate[shape]
+        case .rest: TodayConstants.planAdjustRest[shape]
+        }
+    }
+
     static func level(_ step: PlannedStep) -> Int {
         if case .zone(let zone) = step.target { return min(max(zone, 1), 5) }
         return TodayConstants.planShapeLevels[step.kind] ?? 2

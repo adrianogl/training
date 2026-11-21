@@ -77,7 +77,7 @@ struct TodayWorkoutCard: View {
                 PlannedShape(steps: plan.steps).frame(height: C.planShapeHeight)
                 PlannedStepsList(steps: plan.steps)
             }
-            if showsAdvice, let verdict = model.summary.verdict, let advice = C.planAdjust[verdict] {
+            if showsAdvice, let verdict = model.summary.verdict, let advice = PlanText.adjust(verdict, shape: PlanText.shape(plan)) {
                 DSNotice(tone: .attention, title: C.planAdjustTitle, text: advice)
             }
             NavigationLink(value: TodayRoute.planned(plan.id)) { CardLinkFooter(title: CardLinkConstants.workout) }

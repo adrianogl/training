@@ -153,3 +153,9 @@ extension TodaySummary {
         )
     }
 }
+
+enum PlannedWorkoutShape: CaseIterable {
+    case continuous
+    case intervals
+    case long
+}
