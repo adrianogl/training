@@ -1,11 +1,17 @@
 {
-  "versao": "1.40.4",
-  "build": 69,
-  "versao_app": "1.40.4",
+  "versao": "1.40.5",
+  "build": 70,
+  "versao_app": "1.40.5",
   "notas": [
-    "Mostra as corridas planejadas até o fim do plano"
+    "Envia os treinos ao Garmin sem prefixo no nome"
   ],
   "historico": [
+    {
+      "versao": "1.40.5",
+      "notas": [
+        "Envia os treinos ao Garmin sem prefixo no nome"
+      ]
+    },
     {
       "versao": "1.40.4",
       "notas": [
@@ -56,12 +62,6 @@
       "versao": "1.39.1",
       "notas": [
         "Mostra o motivo quando o envio ao Garmin falha"
-      ]
-    },
-    {
-      "versao": "1.39.0",
-      "notas": [
-        "Calor na hora habitual e sugestão de volume"
       ]
     }
   ]
