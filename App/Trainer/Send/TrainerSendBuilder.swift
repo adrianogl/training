@@ -61,6 +61,15 @@ enum TrainerSendBuilder {
         return record.signature == item.signature ? .current : .changed
     }
 
+    static func planRecords(_ records: [String: TrainerSentRecord], from first: Day) -> [(key: String, record: TrainerSentRecord)] {
+        records
+            .filter { key, record in
+                (key.hasPrefix(C.runKeyPrefix) || key.hasPrefix(C.strengthKeyPrefix)) && (Day(iso: record.day).map { $0 >= first } ?? false)
+            }
+            .map { (key: $0.key, record: $0.value) }
+            .sorted { $0.record.day < $1.record.day }
+    }
+
     static func stale(records: [String: TrainerSentRecord], current: Set<String>, kinds: Set<TrainerSendKind>, from first: Day, through last: Day) -> [TrainerSentRecord] {
         records
             .filter { key, record in

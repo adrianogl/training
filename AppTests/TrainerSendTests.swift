@@ -34,6 +34,17 @@ import TrainingCore
         #expect(mapped == [PlannedStrengthExercise(description: "Agachamento búlgaro - cada lado", category: "LUNGE", exerciseName: "DUMBBELL_BULGARIAN_SPLIT_SQUAT", sets: 3, reps: 8, seconds: nil, restSeconds: 60, weight: 12)])
     }
 
+    @Test func deletingThePlanTakesFutureRunsAndTrainerStrengthOnly() {
+        let records = [
+            "run|2026-11-17": TrainerSentRecord(workoutId: 1, signature: "a", day: "2026-11-17", kind: .run),
+            "run|2026-11-19": TrainerSentRecord(workoutId: 2, signature: "a", day: "2026-11-19", kind: .run),
+            "strength|2026-11-20|x": TrainerSentRecord(workoutId: 3, signature: "a", day: "2026-11-20", kind: .strength),
+            "mfit|2026-11-21|9": TrainerSentRecord(workoutId: 4, signature: "a", day: "2026-11-21", kind: .strength),
+        ]
+        let taken = TrainerSendBuilder.planRecords(records, from: day)
+        #expect(taken.map(\.record.workoutId) == [2, 3])
+    }
+
     @Test func statusComparesSignatures() {
         let item = TrainerSendItem(key: "run|2026-11-18", day: day, kind: .run, title: "Limiar", payload: Data("a".utf8))
         #expect(TrainerSendBuilder.status(item, records: [:]) == .new)
