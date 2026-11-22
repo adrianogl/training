@@ -324,7 +324,7 @@ extension TrainerEngine {
         let steps = qualitySteps(session: session, paces: paces, lowered: lowered)
         let work = steps.filter { $0.kind == .work && $0.method != .repetition }
         return TrainerWorkout(
-            day: day, kind: session.kind, title: T.title(kind: session.kind, meters: 0, session: session),
+            day: day, kind: session.kind, title: T.title(kind: session.kind, meters: qualityMeters(session), session: session),
             totalMeters: qualityMeters(session), steps: steps,
             paceLow: work.compactMap(\.paceLow).min(), paceHigh: work.compactMap(\.paceHigh).max(), note: note, rationale: rationale,
             method: session.method, variant: session.variant
@@ -417,7 +417,7 @@ extension TrainerEngine {
                 let basis = kind == .threshold
                     ? T.thresholdBasis(paces, predicted: history.predictions[C.thresholdPredictionMeters])
                     : T.vo2Basis(paces, predicted: history.predictions[C.vo2PredictionMeters])
-                let title = T.title(kind: kind, meters: 0, session: session)
+                let title = T.structureTitle(kind: kind, session: session)
                 let goalNote = goalStep.map {
                     goalPaceNote(step: $0, day: day, week: week, weeks: weeks, target: target, paces: paces, past: past, history: history, today: today)
                 }

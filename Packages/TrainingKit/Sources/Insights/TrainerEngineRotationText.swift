@@ -1,22 +1,9 @@
 import Foundation
 
 extension TrainerEngineText {
-    static let stridesSuffix = "+ 6 × 100 m"
-    static let fartlekLabel = "6 × 500 m"
-
-    static func variantTitle(kind: TrainerDayKind, meters: Double, variant: TrainerVariant) -> String? {
-        switch (kind, variant) {
-        case (.easy, .strides): "Rodagem \(kilometers(meters)) \(stridesSuffix)"
-        case (.easy, .mediumLong): "Média-longa \(kilometers(meters))"
-        case (.optionalEasy, .fartlek): "Fartlek \(fartlekLabel)"
-        case (.long, .progressiveLong): "Longão \(kilometers(meters)) progressivo"
-        case (.long, .fastFinish): "Longão \(kilometers(meters)) final rápido"
-        default: nil
-        }
-    }
 
     static func racePaceLongTitle(meters: Double, block: TrainerQualityBlock, race: String) -> String {
-        "Longão \(kilometers(meters)) com \(block.repeats) × \(distance(block.meters)) no ritmo \(race)"
+        title(kind: .long, meters: meters)
     }
 
     static func raceLabel(_ meters: Double?) -> String {
