@@ -8,7 +8,11 @@ import {
   STRAVA_FORMAT,
   STRAVA_MATCH_WINDOW_MS,
   STRAVA_REDIRECT_URI,
+  STRAVA_GARMIN_MARK,
   STRAVA_REFRESH_MARGIN_MS,
+  STRAVA_RUN_SPORTS,
+  STRAVA_RUNS_MAX_PAGES,
+  STRAVA_RUNS_PAGE_SIZE,
   STRAVA_SCOPE,
   STRAVA_SIGNATURES,
   STRAVA_STATE_CONTEXT,
@@ -32,6 +36,37 @@ interface StravaSummary {
   start_date: string
   type?: string
   sport_type?: string
+}
+
+interface StravaRunRaw extends StravaSummary {
+  name?: string
+  start_date_local?: string
+  moving_time?: number
+  elapsed_time?: number
+  total_elevation_gain?: number
+  average_heartrate?: number
+  max_heartrate?: number
+  has_heartrate?: boolean
+  device_name?: string | null
+  external_id?: string | null
+  start_latlng?: number[] | null
+  trainer?: boolean
+}
+
+export interface StravaRun {
+  id: number
+  name: string
+  sportType: string
+  startDate: string
+  startDateLocal: string
+  distanceMeters: number
+  movingSeconds: number
+  elapsedSeconds: number
+  elevationGain: number | null
+  averageHeartRate: number | null
+  maxHeartRate: number | null
+  hasGps: boolean
+  deviceName: string | null
 }
 
 interface LinkRow {
@@ -278,4 +313,52 @@ export async function recordPost(sql: Sql, accountId: string, activityId: string
      on conflict (account_id, strava_activity_id) do update set activity_id = excluded.activity_id, posted_at = excluded.posted_at, text_hash = excluded.text_hash`,
     [accountId, activityId, stravaActivityId, now.toISOString(), hash],
   )
+}
+
+export function fromGarmin(run: { device_name?: string | null; external_id?: string | null }): boolean {
+  const device = (run.device_name ?? '').toLowerCase()
+  const external = (run.external_id ?? '').toLowerCase()
+  return device.includes(STRAVA_GARMIN_MARK) || external.startsWith(STRAVA_GARMIN_MARK)
+}
+
+function isRun(run: StravaSummary): boolean {
+  const sport = run.sport_type ?? run.type ?? ''
+  return (STRAVA_RUN_SPORTS as readonly string[]).includes(sport)
+}
+
+function toRun(raw: StravaRunRaw): StravaRun {
+  return {
+    id: raw.id,
+    name: raw.name ?? '',
+    sportType: raw.sport_type ?? raw.type ?? '',
+    startDate: raw.start_date,
+    startDateLocal: raw.start_date_local ?? raw.start_date,
+    distanceMeters: raw.distance,
+    movingSeconds: raw.moving_time ?? 0,
+    elapsedSeconds: raw.elapsed_time ?? raw.moving_time ?? 0,
+    elevationGain: raw.total_elevation_gain ?? null,
+    averageHeartRate: raw.has_heartrate === false ? null : (raw.average_heartrate ?? null),
+    maxHeartRate: raw.has_heartrate === false ? null : (raw.max_heartrate ?? null),
+    hasGps: Array.isArray(raw.start_latlng) && raw.start_latlng.length === 2 && raw.trainer !== true,
+    deviceName: raw.device_name ?? null,
+  }
+}
+
+export async function listRuns(fetcher: Fetcher, accessToken: string, after: Date, before: Date): Promise<StravaRun[]> {
+  const runs: StravaRun[] = []
+  const afterSeconds = Math.floor(after.getTime() / 1000)
+  const beforeSeconds = Math.floor(before.getTime() / 1000)
+  for (let page = 1; page <= STRAVA_RUNS_MAX_PAGES; page += 1) {
+    const list = await api(
+      fetcher,
+      accessToken,
+      `/athlete/activities?after=${afterSeconds}&before=${beforeSeconds}&per_page=${STRAVA_RUNS_PAGE_SIZE}&page=${page}`,
+    )
+    const items = (Array.isArray(list) ? list : []) as StravaRunRaw[]
+    runs.push(...items.filter((item) => isRun(item) && !fromGarmin(item)).map(toRun))
+    if (items.length < STRAVA_RUNS_PAGE_SIZE) {
+      break
+    }
+  }
+  return runs.sort((a, b) => a.startDate.localeCompare(b.startDate))
 }

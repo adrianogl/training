@@ -20,7 +20,7 @@ import {
   garminStatusRoute,
   garminVerifyRoute,
 } from './garminRoutes.js'
-import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaStatusRoute } from './stravaRoutes.js'
+import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaRunsRoute, stravaStatusRoute } from './stravaRoutes.js'
 import {
   createAccountRoute,
   deleteAccountRoute,
@@ -59,6 +59,7 @@ const ROUTES: Record<string, Partial<Record<string, Handler>>> = {
   'strava/connect': { GET: (request, sql) => stravaConnectRoute(request, sql) },
   'strava/callback': { GET: (request, sql) => stravaCallbackRoute(request, sql) },
   'strava/describe': { POST: (request, sql) => stravaDescribeRoute(request, sql) },
+  'strava/runs': { GET: (request, sql) => stravaRunsRoute(request, sql) },
   strava: {
     GET: (request, sql) => stravaStatusRoute(request, sql),
     PATCH: (request, sql) => stravaStatusRoute(request, sql),

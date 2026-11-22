@@ -22,6 +22,7 @@ struct StravaSection: View {
                     Text(C.exampleTitle).font(.caption).foregroundStyle(BrandColors.dim)
                     Text(C.example).font(.footnote).foregroundStyle(BrandColors.text)
                 }
+                NavigationLink(StravaImportText.title) { StravaImportView(model: model) }
                 Button(C.disconnect, role: .destructive) { Task { await model.disconnect() } }
                     .disabled(model.phase == .working)
             } else {

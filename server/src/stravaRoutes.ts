@@ -1,6 +1,15 @@
 import { accountExists, resolveAccountId } from './auth.js'
 import { dataKeyFromEnv } from './cipher.js'
-import { STRAVA_APP_REDIRECT, STRAVA_FORMAT, STRAVA_MAX_TEXT_LENGTH, STRAVA_REQUIRED_SCOPES, STRAVA_ROUTE, STRAVA_SIGNATURES } from './constants.js'
+import {
+  STRAVA_APP_REDIRECT,
+  STRAVA_FORMAT,
+  STRAVA_MAX_TEXT_LENGTH,
+  STRAVA_REQUIRED_SCOPES,
+  STRAVA_ROUTE,
+  STRAVA_RUNS_DEFAULT_DAYS,
+  STRAVA_RUNS_MAX_DAYS,
+  STRAVA_SIGNATURES,
+} from './constants.js'
 import type { Sql } from './db.js'
 import { body, failure, json } from './garminRoutes.js'
 import {
@@ -21,6 +30,7 @@ import {
   textHash,
   verifyState,
   writeDescription,
+  listRuns,
 } from './strava.js'
 import { StravaError } from './stravaError.js'
 import type { StravaDescribeStatus, StravaEnv } from './types.js'
@@ -213,5 +223,34 @@ export function stravaDescribeRoute(request: Request, sql: Sql, env: StravaEnv =
       await recordPost(sql, accountId, input.activityId, stravaActivityId, hash, ready.now())
     }
     return described('updated', stravaActivityId)
+  })
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+function runsRange(request: Request, now: Date): { after: Date; before: Date } | undefined {
+  const params = new URL(request.url).searchParams
+  const before = params.has('before') ? new Date(params.get('before') ?? '') : now
+  const after = params.has('after') ? new Date(params.get('after') ?? '') : new Date(before.getTime() - STRAVA_RUNS_DEFAULT_DAYS * DAY_MS)
+  if (Number.isNaN(after.getTime()) || Number.isNaN(before.getTime()) || after >= before) {
+    return undefined
+  }
+  if (before.getTime() - after.getTime() > STRAVA_RUNS_MAX_DAYS * DAY_MS) {
+    return undefined
+  }
+  return { after, before }
+}
+
+export function stravaRunsRoute(request: Request, sql: Sql, env: StravaEnv = stravaEnvFromProcess()): Promise<Response> {
+  return withStrava(request, sql, env, 'runs', async (accountId, ready) => {
+    const range = runsRange(request, ready.now())
+    if (range === undefined) {
+      return failure(400, 'invalid_range')
+    }
+    const link = await freshLink(sql, ready, accountId)
+    if (link === undefined) {
+      return failure(409, 'strava_not_connected')
+    }
+    return json(200, { runs: await listRuns(ready.fetcher, link.accessToken, range.after, range.before) })
   })
 }

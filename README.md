@@ -116,7 +116,7 @@ Conecte o iPhone ou o iPad por cabo, escolha o aparelho como destino e rode. Na 
 
 | Onde | O que faz |
 | --- | --- |
-| Ajustes › Strava | Escreve o resumo do treino na descrição da atividade |
+| Ajustes › Strava | Escreve o resumo do treino na descrição da atividade e lista as corridas do Strava sem par no Garmin dos últimos 12 meses (Corridas sem o relógio) |
 | Ajustes › MFIT | Lê o programa de força que o professor montou no MFIT Personal. Com "Enviar os treinos do MFIT" ligado, manda o programa ao Garmin até o fim da prescrição |
 | Ajustes › Claude | Gera um token para o Claude Desktop ou o Claude Code montarem treinos de força pelo MCP em `https://training.aglv.dev/mcp`. O app mostra o comando pronto; os treinos só entram depois que você revisa e aplica. Para administradores, o MCP também expõe `avaliacoes_imagens` e `resolver_avaliacao`, que listam e resolvem as avaliações de imagem dos exercícios |
 | Ajustes › Mostrador | Token do mostrador Garmin e a agenda no relógio |

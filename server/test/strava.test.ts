@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { open } from '../src/cipher.js'
 import type { Sql } from '../src/db.js'
 import { signState } from '../src/strava.js'
-import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaStatusRoute } from '../src/stravaRoutes.js'
+import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaRunsRoute, stravaStatusRoute } from '../src/stravaRoutes.js'
 import { createAccountRoute } from '../src/routes.js'
 import { accountIdFromAuthorization } from '../src/auth.js'
 import type { StravaEnv } from '../src/types.js'
@@ -20,7 +20,7 @@ const legacyBlock = 'VO2 máx | 5 × 1 km @ 3:48/km · nota 88\nvia training.agl
 interface Fake {
   calls: { url: string; method: string; body: string }[]
   description: string | null
-  runs: { id: number; distance: number; type: string; start_date: string }[]
+  runs: ({ id: number; distance: number; type: string; start_date: string } & Record<string, unknown>)[]
   tokenExpiresAt: number
   status: Record<string, number>
 }
@@ -313,5 +313,59 @@ describe('escrever o resumo', () => {
     expect(await limited.json()).toEqual({ status: 'retry_later' })
     expect(invalid.status).toBe(400)
     expect(await disabled.json()).toEqual({ status: 'disabled' })
+  })
+})
+
+describe('corridas sem o relógio', () => {
+  function runs(fetcher: typeof fetch, query = ''): Promise<Response> {
+    return stravaRunsRoute(makeRequest('GET', `/api/v1/strava/runs${query}`, { token }), sql, env(fetcher))
+  }
+
+  it('lista só corrida que não veio do Garmin, com os dados do Strava', async () => {
+    const { fake, fetcher } = stravaFake()
+    await connect(fetcher)
+    fake.runs = [
+      { id: 1, distance: 18200, type: 'Run', start_date: '2026-09-12T10:05:00Z', start_date_local: '2026-09-12T07:05:00Z', name: 'Longão', moving_time: 5700, elapsed_time: 5900, total_elevation_gain: 120, average_heartrate: 148, max_heartrate: 165, has_heartrate: true, device_name: 'Strava iPhone App', start_latlng: [-19.9, -43.9] },
+      { id: 2, distance: 10000, type: 'Run', start_date: '2026-09-14T23:53:00Z', device_name: 'Garmin Forerunner 965', external_id: 'garmin_ping_1' },
+      { id: 3, distance: 8000, type: 'Run', start_date: '2026-07-07T22:00:00Z', external_id: 'garmin_push_9' },
+      { id: 4, distance: 30000, type: 'Ride', start_date: '2026-08-01T10:00:00Z', device_name: 'Strava iPhone App' },
+      { id: 5, distance: 6000, type: 'Run', start_date: '2026-06-01T10:00:00Z', has_heartrate: false, average_heartrate: 0, trainer: true },
+    ]
+
+    const response = await runs(fetcher)
+    const listed = (await response.json()) as { runs: { id: number; hasGps: boolean; averageHeartRate: number | null; startDateLocal: string }[] }
+
+    expect(response.status).toBe(200)
+    expect(listed.runs.map((run) => run.id)).toEqual([5, 1])
+    expect(listed.runs[1]).toMatchObject({ id: 1, hasGps: true, averageHeartRate: 148, startDateLocal: '2026-09-12T07:05:00Z' })
+    expect(listed.runs[0]).toMatchObject({ id: 5, hasGps: false, averageHeartRate: null })
+  })
+
+  it('busca os últimos 12 meses por padrão e pagina até a página não vir cheia', async () => {
+    const { fake, fetcher } = stravaFake()
+    await connect(fetcher)
+    fake.runs = []
+
+    await runs(fetcher)
+    const list = new URL(fake.calls.filter((call) => call.url.includes('/athlete/activities')).at(-1)?.url ?? '')
+
+    expect(Number(list.searchParams.get('before'))).toBe(Math.floor(now.getTime() / 1000))
+    expect(Number(list.searchParams.get('after'))).toBe(Math.floor(now.getTime() / 1000) - 365 * 86_400)
+    expect(list.searchParams.get('page')).toBe('1')
+  })
+
+  it('recusa período inválido, sem conexão e limite do Strava', async () => {
+    const { fake, fetcher } = stravaFake()
+    const notConnected = await runs(fetcher)
+    await connect(fetcher)
+    const inverted = await runs(fetcher, '?after=2026-11-10T00:00:00Z&before=2026-11-01T00:00:00Z')
+    const tooLong = await runs(fetcher, '?after=2024-01-01T00:00:00Z&before=2026-11-01T00:00:00Z')
+    fake.status['GET /api/v3/athlete/activities'] = 429
+    const limited = await runs(fetcher)
+
+    expect(notConnected.status).toBe(409)
+    expect(inverted.status).toBe(400)
+    expect(tooLong.status).toBe(400)
+    expect(await limited.json()).toEqual({ status: 'retry_later' })
   })
 })
