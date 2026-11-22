@@ -79,8 +79,15 @@ import TrainingCore
         let record = TrainerSentRecord(workoutId: 10, signature: "x", day: "2026-11-19", kind: .strength)
         store.record(record, key: "old")
         let result = await TrainerSender.send([], stale: [(key: "old", record: record)], store: store, create: { _ in 1 }, remove: { _ in throw Failure() })
-        #expect(result == TrainerSendResult(sent: 0, removed: 0, failed: 1))
+        #expect(result.failed == 1 && result.sent == 0 && result.removed == 0)
+        #expect(result.firstError?.hasPrefix("erro no envio") == true)
         #expect(store.records()["old"] == record)
+    }
+
+    @Test func explainsGarminFailures() {
+        #expect(TrainerSendText.errorReason(GarminAccountError.sessionExpired) == "a sessão do Garmin venceu, conecte de novo em Ajustes")
+        #expect(TrainerSendText.errorReason(GarminAccountError.rateLimited) == "o Garmin limitou os envios, tente de novo em alguns minutos")
+        #expect(TrainerSendText.errorReason(GarminAccountError.unexpectedResponse(status: 400)) == "o Garmin recusou (código 400)")
     }
 
     @Test func doesNotCreateWhenTheOldVersionCouldNotBeRemoved() async {

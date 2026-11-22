@@ -192,7 +192,10 @@ struct TrainerSendSheet: View {
                 return
             }
             var text = String(format: TrainerSendText.resultFormat, result.sent, result.removed)
-            if result.failed > 0 { text += String(format: TrainerSendText.failedFormat, result.failed) }
+            if result.failed > 0 {
+                text += result.firstError.map { String(format: TrainerSendText.failedReasonFormat, result.failed, $0) }
+                    ?? String(format: TrainerSendText.failedFormat, result.failed)
+            }
             message = text
             sending = false
             revision += 1
