@@ -6,6 +6,7 @@ import WorkoutAnalysis
 
 struct PlannedShape: View {
     let steps: [PlannedStep]
+    @Environment(\.planZones) private var zones
 
     var body: some View {
         let flat = steps.flatMap(\.flattened)
@@ -14,7 +15,7 @@ struct PlannedShape: View {
         GeometryReader { proxy in
             HStack(alignment: .bottom, spacing: 1.5) {
                 ForEach(Array(flat.enumerated()), id: \.offset) { index, step in
-                    let level = PlanText.level(step)
+                    let level = PlanText.level(step, zones: zones)
                     RoundedRectangle(cornerRadius: 2)
                         .fill(BrandColors.zone(level))
                         .frame(width: max(1.5, proxy.size.width * weights[index] / total - 1.5), height: proxy.size.height * Double(level) / 5)
@@ -29,6 +30,7 @@ struct PlannedShape: View {
 struct PlannedStepsList: View {
     let steps: [PlannedStep]
     var original: [PlannedStep]?
+    @Environment(\.planZones) private var zones
 
     var body: some View {
         let aligned = original.map { PlanText.aligned(steps, original: $0) } ?? steps.map { _ in nil }
@@ -56,7 +58,7 @@ struct PlannedStepsList: View {
     private func row(_ step: PlannedStep, original: PlannedStep?, prefix: String?, wasPrefix: String?) -> some View {
         let was = original.flatMap { PlanText.was(step, original: $0) }
         return HStack(alignment: .firstTextBaseline, spacing: 8) {
-            RoundedRectangle(cornerRadius: 3).fill(BrandColors.zone(PlanText.level(step))).frame(width: 10, height: 10)
+            RoundedRectangle(cornerRadius: 3).fill(BrandColors.zone(PlanText.level(step, zones: zones))).frame(width: 10, height: 10)
             VStack(alignment: .leading, spacing: TodayConstants.dayAdjustWasSpacing) {
                 Text([prefix, TodayConstants.planStepNames[step.kind]].compactMap { $0 }.joined(separator: " "))
                     .font(.footnote)
@@ -71,6 +73,9 @@ struct PlannedStepsList: View {
                     emphasized(step)
                 }
                 if let was { wasText(was) }
+            }
+            if let zones, let zone = zones.zone(step) {
+                ZoneChip(zone: zone, band: zones.band(zone))
             }
         }
         .padding(.vertical, 6)
@@ -228,8 +233,11 @@ enum PlanText {
         return isLongRun(name: plan.title, distanceMeters: meters, goalKm: nil) ? .long : .continuous
     }
 
-    static func level(_ step: PlannedStep) -> Int {
+    static func level(_ step: PlannedStep, zones: PlanZones? = nil) -> Int {
         if case .zone(let zone) = step.target { return min(max(zone, 1), 5) }
+        if let zones {
+            return zones.zone(step) ?? TodayConstants.restLevel
+        }
         return TodayConstants.planShapeLevels[step.kind] ?? 2
     }
 

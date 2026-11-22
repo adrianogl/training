@@ -87,6 +87,7 @@ struct TrainerStepRow: Identifiable, Equatable {
     var isHeader = false
     var isNested = false
     var isTurn = false
+    var zone: Int?
 }
 
 struct TrainerShapeBar: Identifiable, Equatable {

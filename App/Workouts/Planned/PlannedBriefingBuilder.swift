@@ -20,7 +20,7 @@ enum PlannedBriefingBuilder {
             stats: stats(plan, target: target, kilometers: kilometers, similar: input.similar, goal: timeGoal(kind, goals: input.goals), estimate: input.completed == nil ? PlannedTimeEstimate.total(plan, fallback: input.easyBand) : nil),
             summary: summary(kind, plan: plan, target: target, kilometers: kilometers, input: input),
             tags: tags(input, kind: kind, target: target),
-            phases: phases(kind, plan: plan, target: target, kilometers: kilometers, heart: heart),
+            phases: phases(kind, plan: plan, target: target, kilometers: kilometers, heart: heart, zones: input.zones),
             reps: kind == .intervals ? reps(plan, target: target, maxHeart: maxHeart) : [],
             repsNote: kind == .intervals && target != nil ? C.repsNote : nil,
             expectations: expectations(input.similar, heart: heart),
@@ -158,7 +158,9 @@ enum PlannedBriefingBuilder {
         return BriefingItem(title: C.attentionGoalLongTitle, detail: detail, tone: .warn)
     }
 
-    private static func phases(_ kind: PlannedKind, plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, heart: (low: Double, high: Double)?) -> [BriefingPhase] {
+    private static func phases(
+        _ kind: PlannedKind, plan: PlannedWorkout, target: (fast: Double, slow: Double)?, kilometers: Double, heart: (low: Double, high: Double)?, zones: PlanZones?
+    ) -> [BriefingPhase] {
         let single = plan.steps.count == 1 && plan.steps[0].children.isEmpty
         guard kind != .intervals, single, let target, kilometers >= 5 else {
             return plan.steps.map { step in
@@ -168,7 +170,8 @@ enum PlannedBriefingBuilder {
                 let detail = step.children.isEmpty ? PlanText.detail(step) : step.children.map(PlanText.detail).joined(separator: " + ")
                 let single = (step.children.isEmpty ? [step] : step.children).lazy.compactMap(PlannedTimeEstimate.single).first
                 let length = single.map { RunTimeText.step($0, repeated: !step.children.isEmpty) }
-                return BriefingPhase(when: name, length: length, title: detail, detail: "")
+                let zone = (step.children.isEmpty ? [step] : step.children).compactMap { zones?.zone($0) }.max()
+                return BriefingPhase(when: name, length: length, title: detail, detail: "", zone: zone)
             }
         }
         let total = Int(kilometers.rounded())
@@ -186,7 +189,8 @@ enum PlannedBriefingBuilder {
                 when: String(format: C.phaseBlockWhenFormat, blockEnd),
                 length: minutes(Double(blockEnd - 2) * mid(target)),
                 title: String(format: C.phaseBlockTitleFormat, clock(target.fast), clock(target.slow)),
-                detail: block
+                detail: block,
+                zone: plan.steps.first.flatMap { zones?.zone($0) }
             ),
             BriefingPhase(when: String(format: C.phaseCloseWhenFormat, blockEnd, total), length: minutes(Double(total - blockEnd) * mid(target)), title: C.phaseCloseTitle, detail: close),
         ]

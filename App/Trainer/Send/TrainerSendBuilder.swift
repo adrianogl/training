@@ -6,7 +6,13 @@ import TrainingCore
 enum TrainerSendBuilder {
     private typealias C = TrainerSendConstants
 
-    static func runSteps(_ workout: TrainerWorkout) -> [PlannedRunStep] {
+    static func runSteps(_ workout: TrainerWorkout, thresholdHeartRate: Int? = nil) -> [PlannedRunStep] {
+        let bands = TrainerZones.bands(thresholdHeartRate: thresholdHeartRate, paces: nil)
+        func heartRate(_ step: TrainerStep) -> ClosedRange<Int>? {
+            guard TrainerZones.usesHeartRateTarget(step, in: workout), let zone = TrainerZones.zone(step, in: workout),
+                  let band = bands.first(where: { $0.zone == zone }), let low = band.heartRateLow, let high = band.heartRateHigh, low <= high else { return nil }
+            return low...high
+        }
         guard !workout.steps.isEmpty else {
             return [.interval(meters: workout.totalMeters, fastest: workout.paceLow, slowest: workout.paceHigh)]
         }
@@ -17,13 +23,15 @@ enum TrainerSendBuilder {
             let step = steps[index]
             switch step.kind {
             case .warmup:
-                result.append(.warmup(meters: step.meters))
+                result.append(.warmup(meters: step.meters, heartRate: heartRate(step)))
             case .cooldown:
                 result.append(.cooldown(meters: step.meters))
             case .recovery:
                 result.append(recovery(step))
             case .work, .steady:
-                let interval = PlannedRunStep.interval(meters: step.meters, fastest: step.paceLow ?? workout.paceLow, slowest: step.paceHigh ?? workout.paceHigh)
+                let interval = PlannedRunStep.interval(
+                    meters: step.meters, fastest: step.paceLow ?? workout.paceLow, slowest: step.paceHigh ?? workout.paceHigh, heartRate: heartRate(step)
+                )
                 let next = index + 1 < steps.count ? steps[index + 1] : nil
                 if step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
                     result += series(step.repeats, interval: interval, recovery: recovery(next))
@@ -64,10 +72,11 @@ enum TrainerSendBuilder {
         }
     }
 
-    static func runItem(_ workout: TrainerWorkout) -> TrainerSendItem? {
+    static func runItem(_ workout: TrainerWorkout, thresholdHeartRate: Int? = nil) -> TrainerSendItem? {
+        let steps = runSteps(workout, thresholdHeartRate: thresholdHeartRate)
         guard !C.skippedKinds.contains(workout.kind),
-              let payload = try? GarminPlannedPayload.running(name: workout.title, steps: runSteps(workout)) else { return nil }
-        return TrainerSendItem(key: C.runKeyPrefix + workout.day.iso, day: workout.day, kind: .run, title: workout.title, payload: payload, runSteps: runSteps(workout))
+              let payload = try? GarminPlannedPayload.running(name: workout.title, steps: steps) else { return nil }
+        return TrainerSendItem(key: C.runKeyPrefix + workout.day.iso, day: workout.day, kind: .run, title: workout.title, payload: payload, runSteps: steps)
     }
 
     static func strengthItem(_ workout: GeneratedStrengthWorkout, sessionId: UUID, day: Day) -> TrainerSendItem? {

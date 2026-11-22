@@ -206,6 +206,7 @@ enum TodayConstants {
     static let planTitleDatePattern = #"\s+(seg|ter|qua|qui|sex|s[aá]b|dom)\.?\s+\d{1,2}/\d{1,2}(/\d{2,4})?$"#
     static let planShapeHeight: Double = 40
     static let planShapeDefaultPace = 330.0
+    static let restLevel = 1
     static let planShapeLevels: [PlannedStepKind: Int] = [.warmup: 2, .active: 4, .recovery: 1, .cooldown: 1, .rest: 1, .other: 2]
     static let planAdjustTitle = "Ajuste para hoje"
     static let planAdjustRest: [PlannedWorkoutShape: String] = [

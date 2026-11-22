@@ -3,6 +3,8 @@ import Foundation
 import WorkoutAnalysis
 
 enum WorkoutDetailConstants {
+    static let missingValue = "—"
+    static let heartRateFormat = "%d bpm"
     static let similarDistanceTolerance = 0.2
     static let similarRunWindowDays = 90.0
     static let secondsPerDay = 86_400.0

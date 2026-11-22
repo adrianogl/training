@@ -24,6 +24,22 @@ import TrainingCore
         ])
     }
 
+    @Test func heartRateTargetGoesOnWarmupAndLongBlocksOnly() {
+        let workout = TrainerWorkout(day: day, kind: .threshold, title: "Limiar 12 km", totalMeters: 12_000, steps: [
+            TrainerStep(kind: .warmup, meters: 4_000),
+            TrainerStep(kind: .work, repeats: 4, meters: 2_000, restSeconds: 120, paceLow: 243, paceHigh: 249),
+        ], rationale: "")
+        let short = threshold()
+
+        let steps = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172)
+        let shortSteps = TrainerSendBuilder.runSteps(short, thresholdHeartRate: 172)
+
+        #expect(steps.first == .warmup(meters: 4_000, heartRate: 146...154))
+        #expect(steps.last == .interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...171))
+        #expect(shortSteps.last == .interval(meters: 1_000, fastest: 240, slowest: 248))
+        #expect(ZoneText.label(4, band: TrainerZones.bands(thresholdHeartRate: 172, paces: nil)[3]) == "Z4 · 163–171")
+    }
+
     @Test func standingRestGoesAsTimedRestInsideTheSeries() {
         let workout = TrainerWorkout(day: day, kind: .vo2max, title: "VO2", totalMeters: 10_000, steps: [
             TrainerStep(kind: .warmup, meters: 3_000),

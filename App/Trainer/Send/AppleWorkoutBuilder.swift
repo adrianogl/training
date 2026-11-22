@@ -17,7 +17,7 @@ enum AppleWorkoutBuilder {
         var steps = item.runSteps
         var warmup: WorkoutStep?
         var cooldown: WorkoutStep?
-        if case .warmup(let meters) = steps.first {
+        if case .warmup(let meters, _) = steps.first {
             warmup = WorkoutStep(goal: .distance(meters, .meters))
             steps.removeFirst()
         }
@@ -47,9 +47,9 @@ enum AppleWorkoutBuilder {
 
     static func interval(_ step: PlannedRunStep) -> IntervalStep? {
         switch step {
-        case .interval(let meters, let fastest, let slowest):
+        case .interval(let meters, let fastest, let slowest, _):
             return IntervalStep(.work, goal: .distance(meters, .meters), alert: paceAlert(fastest: fastest, slowest: slowest))
-        case .recovery(let meters), .warmup(let meters), .cooldown(let meters):
+        case .recovery(let meters), .warmup(let meters, _), .cooldown(let meters):
             return IntervalStep(.recovery, goal: .distance(meters, .meters))
         case .rest(let seconds):
             return IntervalStep(.recovery, goal: .time(seconds, .seconds))

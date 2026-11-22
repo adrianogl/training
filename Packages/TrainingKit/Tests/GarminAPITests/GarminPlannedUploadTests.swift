@@ -19,6 +19,19 @@ private final class PlannedStore: GarminSessionStore {
         try #require((body["workoutSegments"] as? [[String: Any]])?.first?["workoutSteps"] as? [[String: Any]])
     }
 
+    @Test func heartRateGoesAsPrimaryOnWarmupAndSecondaryWithPace() throws {
+        let data = try GarminPlannedPayload.running(name: "Limiar", steps: [
+            .warmup(meters: 4_000, heartRate: 146...154),
+            .interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...171),
+        ])
+        let list = try steps(try json(data))
+        #expect((list[0]["targetType"] as? [String: Any])?["workoutTargetTypeKey"] as? String == "heart.rate.zone")
+        #expect(list[0]["targetValueOne"] as? Double == 146)
+        #expect((list[1]["targetType"] as? [String: Any])?["workoutTargetTypeKey"] as? String == "pace.zone")
+        #expect((list[1]["secondaryTargetType"] as? [String: Any])?["workoutTargetTypeKey"] as? String == "heart.rate.zone")
+        #expect(list[1]["secondaryTargetValueTwo"] as? Double == 171)
+    }
+
     @Test func runningPayloadHasWarmupRepeatAndRest() throws {
         let data = try GarminPlannedPayload.running(name: "Limiar", steps: [
             .warmup(meters: 3_000),

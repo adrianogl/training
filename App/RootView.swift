@@ -27,6 +27,7 @@ struct RootView: View {
                 tabView
             }
         }
+        .environment(\.planZones, model.trainer.planZones)
         .onAppear {
             latestSizeClass = sizeClass
             layout = layout ?? targetLayout

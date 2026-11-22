@@ -68,7 +68,7 @@ struct TrainerDayView: View {
             section(TrainerText.structureTitle)
             VStack(alignment: .leading, spacing: 10) {
                 TrainerShapeChart(bars: TrainerText.shapeBars(workout.steps))
-                TrainerStepList(rows: TrainerText.stepRows(workout))
+                TrainerStepList(rows: TrainerText.stepRows(workout), bands: app.trainer.planZones.bands)
             }
             .brandCard()
         }

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PlannedPhaseRow: View {
     let phase: BriefingPhase
+    @Environment(\.planZones) private var zones
 
     private typealias C = PlannedViewConstants
 
@@ -15,7 +16,12 @@ struct PlannedPhaseRow: View {
             }
             .frame(width: C.phaseColumn, alignment: .leading)
             VStack(alignment: .leading, spacing: 3) {
-                Text(phase.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(phase.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
+                    if let zone = phase.zone {
+                        ZoneChip(zone: zone, band: zones?.band(zone))
+                    }
+                }
                 if !phase.detail.isEmpty {
                     Text(phase.detail).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
                 }
