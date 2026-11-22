@@ -30,7 +30,7 @@ import {
   textHash,
   verifyState,
   writeDescription,
-  listRuns,
+  listRuns, runStreams,
 } from './strava.js'
 import { StravaError } from './stravaError.js'
 import type { StravaDescribeStatus, StravaEnv } from './types.js'
@@ -252,5 +252,19 @@ export function stravaRunsRoute(request: Request, sql: Sql, env: StravaEnv = str
       return failure(409, 'strava_not_connected')
     }
     return json(200, { runs: await listRuns(ready.fetcher, link.accessToken, range.after, range.before) })
+  })
+}
+
+export function stravaRunStreamsRoute(request: Request, sql: Sql, env: StravaEnv = stravaEnvFromProcess()): Promise<Response> {
+  return withStrava(request, sql, env, 'streams', async (accountId, ready) => {
+    const id = Number(new URL(request.url).searchParams.get('id'))
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      return failure(400, 'invalid_id')
+    }
+    const link = await freshLink(sql, ready, accountId)
+    if (link === undefined) {
+      return failure(409, 'strava_not_connected')
+    }
+    return json(200, { streams: await runStreams(ready.fetcher, link.accessToken, id) })
   })
 }

@@ -2,6 +2,8 @@ import Foundation
 import os
 
 public enum SyncConstants {
+    static let externalMatchWindow: TimeInterval = 15 * 60
+    static let externalDistanceTolerance = 0.1
     static let fitLogger = Logger(subsystem: "trAIning", category: "FIT")
     static let timingLogger = Logger(subsystem: "trAIning", category: "SyncTiming")
     static let secondsPerDay: TimeInterval = 86_400

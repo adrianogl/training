@@ -1,6 +1,7 @@
 import Foundation
 
 enum WorkoutConstants {
+    static let stravaTag = "Strava"
     static let listWidth: Double = 360
     static let splitMinWidth: CGFloat = 1000
     static let weekRangeFormat = "%@–%@"

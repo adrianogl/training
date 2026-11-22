@@ -26,6 +26,7 @@ extension SyncEngine {
         let maxFailures = SyncConstants.maxFitTransientFailures
         var queue = try pendingRuns().filter { includesNewRuns == ($0.fitTransientFailures < maxFailures) }
         queue += try outdatedRuns(in: modelContext, includesExhausted: !includesNewRuns)
+        queue.removeAll { StravaActivityId.isStrava($0.activityId) }
         guard let limit else { return queue }
         return Array(queue.prefix(max(limit, 0)))
     }

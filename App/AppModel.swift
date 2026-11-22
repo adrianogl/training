@@ -181,6 +181,9 @@ import WorkoutAnalysis
             guard let self, let token = self.account.token else { return nil }
             return StravaClient(baseURL: remoteBaseURL, token: token, transport: transport)
         }
+        strava.imported = { [weak self] ids in await self?.didImportExternalRuns(ids) }
+        StravaNotificationHandler.shared.handle = { [weak self] action, runId in await self?.strava.handleNotification(action: action, runId: runId) }
+        strava.registerCategory()
         strava.connectionChanged = { [weak self] connected in
             guard let self else { return }
             if connected { await self.connections.restored(.strava) } else { await self.connections.lost(.strava) }
@@ -575,7 +578,20 @@ import WorkoutAnalysis
         Task { [weak self] in
             await task.value
             await self?.strava.sendPending()
+            await self?.strava.notifyNewRuns()
         }
+    }
+
+    func didImportExternalRuns(_ ids: Set<Int64>) async {
+        let container = container
+        let day = Day.today()
+        _ = await Task.detached(priority: .utility) { Self.runPostSyncWork(container: container, today: day) }.value
+        hasLocalData = Self.storeHasData(container: container)
+        deferredFITRevision += 1
+        markNew(ids)
+        await scoreRefresher.refresh().value
+        deferredFITRevision += 1
+        startNarratives(processed: ids)
     }
 
     private func markNew(_ ids: Set<Int64>) {

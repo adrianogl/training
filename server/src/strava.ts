@@ -9,6 +9,7 @@ import {
   STRAVA_MATCH_WINDOW_MS,
   STRAVA_REDIRECT_URI,
   STRAVA_GARMIN_MARK,
+  STRAVA_STREAM_KEYS,
   STRAVA_REFRESH_MARGIN_MS,
   STRAVA_RUN_SPORTS,
   STRAVA_RUNS_MAX_PAGES,
@@ -361,4 +362,32 @@ export async function listRuns(fetcher: Fetcher, accessToken: string, after: Dat
     }
   }
   return runs.sort((a, b) => a.startDate.localeCompare(b.startDate))
+}
+
+export interface StravaStreams {
+  time: number[]
+  distance: number[]
+  latlng: [number, number][]
+  altitude: number[]
+  heartrate: number[]
+  cadence: number[]
+  velocity: number[]
+}
+
+function streamData<T>(raw: Record<string, unknown>, key: string): T[] {
+  const entry = raw[key] as { data?: unknown } | undefined
+  return Array.isArray(entry?.data) ? (entry.data as T[]) : []
+}
+
+export async function runStreams(fetcher: Fetcher, accessToken: string, activityId: number): Promise<StravaStreams> {
+  const raw = (await api(fetcher, accessToken, `/activities/${activityId}/streams?keys=${STRAVA_STREAM_KEYS.join(',')}&key_by_type=true`)) as Record<string, unknown>
+  return {
+    time: streamData<number>(raw, 'time'),
+    distance: streamData<number>(raw, 'distance'),
+    latlng: streamData<[number, number]>(raw, 'latlng'),
+    altitude: streamData<number>(raw, 'altitude'),
+    heartrate: streamData<number>(raw, 'heartrate'),
+    cadence: streamData<number>(raw, 'cadence'),
+    velocity: streamData<number>(raw, 'velocity_smooth'),
+  }
 }

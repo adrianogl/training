@@ -86,6 +86,34 @@ public struct StravaRunCandidate: Equatable, Sendable, Identifiable, Codable {
     public var localDayISO: String { String(startLocal.prefix(10)) }
 }
 
+public struct StravaStreams: Decodable, Equatable, Sendable {
+    public let time: [Double]
+    public let distance: [Double]
+    public let latlng: [[Double]]
+    public let altitude: [Double]
+    public let heartrate: [Double]
+    public let cadence: [Double]
+    public let velocity: [Double]
+
+    public init(
+        time: [Double], distance: [Double] = [], latlng: [[Double]] = [], altitude: [Double] = [], heartrate: [Double] = [],
+        cadence: [Double] = [], velocity: [Double] = []
+    ) {
+        self.time = time
+        self.distance = distance
+        self.latlng = latlng
+        self.altitude = altitude
+        self.heartrate = heartrate
+        self.cadence = cadence
+        self.velocity = velocity
+    }
+}
+
+struct StravaStreamsBody: Decodable {
+    let streams: StravaStreams?
+    let status: String?
+}
+
 struct StravaRunsBody: Decodable {
     struct Run: Decodable {
         let id: Int64

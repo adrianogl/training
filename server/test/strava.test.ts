@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { open } from '../src/cipher.js'
 import type { Sql } from '../src/db.js'
 import { signState } from '../src/strava.js'
-import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaRunsRoute, stravaStatusRoute } from '../src/stravaRoutes.js'
+import { stravaCallbackRoute, stravaConnectRoute, stravaDescribeRoute, stravaRunsRoute, stravaRunStreamsRoute, stravaStatusRoute } from '../src/stravaRoutes.js'
 import { createAccountRoute } from '../src/routes.js'
 import { accountIdFromAuthorization } from '../src/auth.js'
 import type { StravaEnv } from '../src/types.js'
@@ -53,6 +53,9 @@ function stravaFake(): { fake: Fake; fetcher: typeof fetch } {
     }
     if (url.endsWith('/oauth/deauthorize')) {
       return Response.json({})
+    }
+    if (url.includes('/streams')) {
+      return Response.json({ time: { data: [0, 5] }, distance: { data: [0, 15] }, latlng: { data: [[-19.9, -43.9], [-19.9001, -43.9]] }, heartrate: { data: [120, 130] } })
     }
     if (url.includes('/athlete/activities')) {
       return Response.json(fake.runs.map((run) => ({ ...run, sport_type: run.type })))
@@ -367,5 +370,33 @@ describe('corridas sem o relógio', () => {
     expect(inverted.status).toBe(400)
     expect(tooLong.status).toBe(400)
     expect(await limited.json()).toEqual({ status: 'retry_later' })
+  })
+})
+
+describe('séries da corrida do Strava', () => {
+  function streams(fetcher: typeof fetch, query: string): Promise<Response> {
+    return stravaRunStreamsRoute(makeRequest('GET', `/api/v1/strava/run-streams${query}`, { token }), sql, env(fetcher))
+  }
+
+  it('devolve as séries por tipo, com vazio no que o Strava não tem', async () => {
+    const { fake, fetcher } = stravaFake()
+    await connect(fetcher)
+
+    const response = await streams(fetcher, '?id=11')
+    const body = (await response.json()) as { streams: Record<string, unknown[]> }
+    const call = fake.calls.find((item) => item.url.includes('/streams'))
+
+    expect(response.status).toBe(200)
+    expect(call?.url).toContain('/activities/11/streams?keys=time,distance,latlng,altitude,heartrate,cadence,velocity_smooth')
+    expect(body.streams.time).toEqual([0, 5])
+    expect(body.streams.heartrate).toEqual([120, 130])
+    expect(body.streams.cadence).toEqual([])
+  })
+
+  it('recusa id inválido', async () => {
+    const { fetcher } = stravaFake()
+    await connect(fetcher)
+
+    expect((await streams(fetcher, '?id=abc')).status).toBe(400)
   })
 })

@@ -170,6 +170,7 @@ public actor SyncEngine: ModelActor {
                 tracksResume: isFirstLoad
             )
             report.activitiesUpserted = upsertedActivities.count
+            report.duplicatesRemoved += try removeStravaTwins()
             timer.lap("atividades", items: upsertedActivities.count)
             progress(C.progressAfterActivities)
         } catch GarminAPIError.rateLimited(_) where mode == .background {

@@ -344,5 +344,25 @@ A conta escolhe o relógio (Garmin ou Apple Watch) no primeiro acesso ou em Ajus
 
 Nas primeiras 14 noites, a prontidão usa sono e carga, e Hoje avisa "Primeiras semanas".
 
+## Corridas do Strava sem o relógio
+
+Arquivos: `server/src/strava.ts`, `RemoteSync/StravaRunMatching*.swift`, `HealthImport/StravaRunMapping*.swift`, `Sync/ExternalRunImport.swift`, `App/Strava/StravaModel+Import.swift`. Testes: `server/test/strava.test.ts`, `RemoteSyncTests/StravaRunsTests.swift`, `HealthImportTests/StravaRunImportTests.swift`, `AppTests/StravaImportTests.swift`.
+
+Corrida gravada só no Strava entra no app depois de aprovada e vale como uma corrida do Garmin: volume, carga, treinador, análise e nota. Nada entra sozinho.
+
+| Regra | Valor | Constante |
+| --- | --- | --- |
+| Candidatas | Run, TrailRun e VirtualRun que não vieram de dispositivo Garmin (`device_name` ou `external_id` com "garmin") | `STRAVA_RUN_SPORTS`, `STRAVA_GARMIN_MARK` |
+| Sem par no app | nenhuma corrida a ±15 min do início com distância a ±10% | `window`, `distanceTolerance` |
+| Busca | Ajustes › Strava › Corridas sem o relógio olha 12 meses; o aviso olha 4 semanas, no máximo 3 por vez | `backfillDays`, `recentDays`, `recentNotifyLimit` |
+| Aprovação | Importar ou Ignorar, na lista ou na notificação; ignorada não volta. O registro é por aparelho | `StravaImportConstants` |
+| Id | id do Strava com o bit `0x2000_0000_0000_0000` | `StravaActivityIdConstants` |
+| Tipo | sem GPS ou VirtualRun vira esteira (sem clima); TrailRun vira trilha | `StravaRunMappingConstants` |
+| Amostras | a cada 5 s, pelo último ponto das séries do Strava; cadência × 2 (passos por minuto) | `sampleStep`, `stepsPerStride` |
+| Carga | TRIMP pela FC média e tempo em movimento, com FC máxima e de repouso das zonas do Garmin (190 e 60 sem zonas); sem FC, sem carga e sem nota | `fallbackMaxHeartRate`, `fallbackRestingHeartRate` |
+| Garmin prevalece | se a mesma corrida chegar pelo Garmin (±15 min, ±10%), a do Strava é apagada no sync | `externalMatchWindow`, `externalDistanceTolerance` |
+
+Depois do import, prontidão dos dias seguintes, nota, clima e texto são recalculados como depois de um sync. A lista de Treinos marca a corrida com o selo "Strava".
+
 **Métricas por relógio:** o app só mostra o que chegou. Tile ou grupo de Evolução sem valor no período some; número solto sem valor (`DSStat`) some em vez de mostrar "—"; Ajustes esconde Garmin e Mostrador para quem usa Apple Watch.
 

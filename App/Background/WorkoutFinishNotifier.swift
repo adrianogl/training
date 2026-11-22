@@ -167,6 +167,7 @@ import UIKit
             await syncAndDeliver(model: model, enabledAt: enabledAt, queue: &queue)
         }
         await model.strava.sendPending()
+        await model.strava.notifyNewRuns()
         guard hasWork(queue, now: .now) else { return }
         BackgroundSync.scheduleWorkoutRetry()
         let pending = queue.items.count

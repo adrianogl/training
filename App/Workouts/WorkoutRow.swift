@@ -1,4 +1,5 @@
 import SwiftUI
+import TrainingCore
 
 struct WorkoutRow: View {
     let row: WorkoutRowData
@@ -86,6 +87,9 @@ struct WorkoutRow: View {
                 DSChip(text: WorkoutConstants.fromPlan, tone: .accent).fixedSize()
             } else if showsKind, row.hasPrescription {
                 DSChip(text: WorkoutConstants.structured, tone: .neutral).fixedSize()
+            }
+            if StravaActivityId.isStrava(row.activityId) {
+                DSChip(text: WorkoutConstants.stravaTag, tone: .neutral).fixedSize()
             }
             if row.isStrength {
                 DSChip(text: WorkoutConstants.strengthTag, tone: .strength).fixedSize()
