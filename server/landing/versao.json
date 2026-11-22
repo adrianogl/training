@@ -1,11 +1,17 @@
 {
-  "versao": "1.42.0",
-  "build": 72,
-  "versao_app": "1.42.0",
+  "versao": "1.42.1",
+  "build": 73,
+  "versao_app": "1.42.1",
   "notas": [
-    "Lista as corridas do Strava sem par no Garmin"
+    "Atualiza o nome dos treinos do plano para o padrão novo"
   ],
   "historico": [
+    {
+      "versao": "1.42.1",
+      "notas": [
+        "Atualiza o nome dos treinos do plano para o padrão novo"
+      ]
+    },
     {
       "versao": "1.42.0",
       "notas": [
@@ -56,12 +62,6 @@
       "versao": "1.39.4",
       "notas": [
         "Apagar o plano tira do relógio a corrida e a força do treinador"
-      ]
-    },
-    {
-      "versao": "1.39.3",
-      "notas": [
-        "Reenvia treino que foi apagado no Garmin"
       ]
     }
   ]
