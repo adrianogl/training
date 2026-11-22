@@ -5,8 +5,28 @@ import WorkoutAnalysis
 
 enum StravaImportText {
     static let title = "Corridas sem o relógio"
-    static let intro = "Encontradas no Strava nos últimos 12 meses, sem par no Garmin."
-    static let pending = "A importação chega na próxima versão. Por enquanto, confira a lista."
+    static let intro = "Encontradas no Strava, sem par no Garmin. Só entram as que você importar."
+    static let footer = "A importada conta no volume, na carga, no treinador e na nota, como uma corrida do Garmin. Ignorada não volta para a lista."
+    static let importButton = "Importar"
+    static let ignoreButton = "Ignorar"
+    static let importing = "Importando…"
+    static let notificationTitle = "Corrida no Strava sem o relógio"
+
+    static func importAll(_ count: Int) -> String {
+        count == 2 ? "Importar as 2" : "Importar as \(count)"
+    }
+
+    static func imported(_ count: Int) -> String {
+        count == 1 ? "1 corrida importada." : "\(count) corridas importadas."
+    }
+
+    static func notificationBody(_ run: StravaRunCandidate) -> String {
+        "\(day(run)) · \(distance(run)) · \(WorkoutFormat.clock(run.movingSeconds)). Importar para o trAIning?"
+    }
+
+    static func day(_ run: StravaRunCandidate) -> String {
+        Day(iso: run.localDayISO).map { "\(TrainerText.weekdayShort($0)) \(TrainerText.dayMonth($0))" } ?? run.localDayISO
+    }
     static let empty = "Nenhuma corrida do Strava sem par no Garmin nos últimos 12 meses."
     static let loading = "Buscando no Strava…"
     static let retryLater = "O Strava limitou as consultas. Tente de novo em alguns minutos."
@@ -16,8 +36,7 @@ enum StravaImportText {
     static let noGps = "sem GPS"
 
     static func runTitle(_ run: StravaRunCandidate) -> String {
-        let day = Day(iso: run.localDayISO).map { "\(TrainerText.weekdayShort($0)) \(TrainerText.dayMonth($0))" } ?? run.localDayISO
-        return run.name.isEmpty ? day : "\(day) · \(run.name)"
+        run.name.isEmpty ? day(run) : "\(day(run)) · \(run.name)"
     }
 
     static func distance(_ run: StravaRunCandidate) -> String {

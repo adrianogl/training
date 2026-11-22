@@ -5,6 +5,8 @@ struct StravaImportView: View {
     let model: StravaModel
     @State private var runs: [StravaRunCandidate] = []
     @State private var state = StravaImportState.loading
+    @State private var working: Set<Int64> = []
+    @State private var feedback: String?
 
     private typealias T = StravaImportText
 
@@ -22,8 +24,17 @@ struct StravaImportView: View {
                 case .ready:
                     ForEach(runs) { run in row(run) }
                 }
+                if let feedback {
+                    Text(feedback).font(.footnote).foregroundStyle(BrandColors.dim)
+                }
             } footer: {
-                Text(T.pending)
+                Text(T.footer)
+            }
+            if state == .ready, runs.count > 1 {
+                Section {
+                    Button(T.importAll(runs.count)) { Task { await importRuns(runs) } }
+                        .disabled(!working.isEmpty)
+                }
             }
         }
         .navigationTitle(T.title)
@@ -32,20 +43,35 @@ struct StravaImportView: View {
     }
 
     private func row(_ run: StravaRunCandidate) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(T.runTitle(run)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                Spacer()
-                Text(T.distance(run)).font(.subheadline).foregroundStyle(BrandColors.text).monospacedDigit()
+        VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(T.runTitle(run)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                    Spacer()
+                    Text(T.distance(run)).font(.subheadline).foregroundStyle(BrandColors.text).monospacedDigit()
+                }
+                HStack(spacing: 4) {
+                    ForEach(Array(T.detail(run).enumerated()), id: \.offset) { index, part in
+                        if index > 0 { Text("·").foregroundStyle(BrandColors.dim) }
+                        Text(part).foregroundStyle(part == T.noHeartRate ? BrandColors.attention : BrandColors.dim)
+                    }
+                }
+                .font(.footnote)
+                .monospacedDigit()
             }
-            HStack(spacing: 4) {
-                ForEach(Array(T.detail(run).enumerated()), id: \.offset) { index, part in
-                    if index > 0 { Text("·").foregroundStyle(BrandColors.dim) }
-                    Text(part).foregroundStyle(part == T.noHeartRate ? BrandColors.attention : BrandColors.dim)
+            HStack(spacing: 8) {
+                if working.contains(run.id) {
+                    ProgressView()
+                    Text(T.importing).font(.footnote).foregroundStyle(BrandColors.dim)
+                } else {
+                    Button(T.importButton) { Task { await importRuns([run]) } }
+                        .buttonStyle(.borderedProminent)
+                    Button(T.ignoreButton) { Task { await ignore(run) } }
+                        .buttonStyle(.bordered)
                 }
             }
-            .font(.footnote)
-            .monospacedDigit()
+            .controlSize(.small)
+            .disabled(!working.isEmpty && !working.contains(run.id))
         }
         .padding(.vertical, 2)
     }
@@ -60,5 +86,24 @@ struct StravaImportView: View {
         } catch {
             state = .failed(T.failed)
         }
+    }
+
+    private func importRuns(_ selected: [StravaRunCandidate]) async {
+        working = Set(selected.map(\.id))
+        defer { working = [] }
+        do {
+            let count = try await model.importRuns(selected)
+            feedback = T.imported(count)
+        } catch StravaLinkError.retryLater {
+            feedback = T.retryLater
+        } catch {
+            feedback = T.failed
+        }
+        if let fresh = try? await model.runCandidates() { runs = fresh }
+    }
+
+    private func ignore(_ run: StravaRunCandidate) async {
+        await model.ignore([run.id])
+        runs.removeAll { $0.id == run.id }
     }
 }

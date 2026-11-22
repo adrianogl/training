@@ -57,6 +57,12 @@ public struct StravaClient: Sendable {
         }
     }
 
+    public func streams(stravaId: Int64) async throws -> StravaStreams {
+        let body = try JSONDecoder().decode(StravaStreamsBody.self, from: try await send("GET", "api/v1/strava/run-streams", query: "id=\(stravaId)"))
+        guard let streams = body.streams else { throw body.status == StravaRunMatchingConstants.retryLater ? StravaLinkError.retryLater : StravaLinkError.unavailable }
+        return streams
+    }
+
     private func status(from data: Data) throws -> StravaStatus {
         let body = try JSONDecoder().decode(StravaStatusBody.self, from: data)
         return StravaStatus(connected: body.connected, athleteName: body.athleteName ?? "", format: body.format ?? "B", enabled: body.enabled ?? false)

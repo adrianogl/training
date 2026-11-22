@@ -174,3 +174,4 @@ export const STRAVA_RUNS_MAX_PAGES = 10
 export const STRAVA_RUNS_DEFAULT_DAYS = 365
 export const STRAVA_RUNS_MAX_DAYS = 400
 export const STRAVA_GARMIN_MARK = 'garmin'
+export const STRAVA_STREAM_KEYS = ['time', 'distance', 'latlng', 'altitude', 'heartrate', 'cadence', 'velocity_smooth'] as const
