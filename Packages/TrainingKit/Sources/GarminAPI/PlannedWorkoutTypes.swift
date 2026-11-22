@@ -1,4 +1,5 @@
 import Foundation
+import TrainingCore
 
 public enum PlannedStepKind: String, Sendable, Equatable {
     case warmup, active, recovery, cooldown, rest, other
@@ -43,6 +44,12 @@ public struct PlannedStep: Sendable, Equatable {
         let actives = steps.flatMap(\.flattened).filter { $0.kind == .active }.count
         return actives > 1 && activeBlocks(steps) == 1
     }
+}
+
+public struct ScheduledWorkoutRef: Sendable, Equatable {
+    public let workoutId: Int64
+    public let title: String
+    public let day: Day
 }
 
 public struct PlannedWorkout: Sendable, Equatable, Identifiable {

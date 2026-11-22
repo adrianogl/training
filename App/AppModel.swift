@@ -134,6 +134,7 @@ import WorkoutAnalysis
                 ExerciseFeedbackSyncStore(store: exerciseFeedback, defaults: remoteDefaults),
                 ExerciseNotesSyncStore(store: exerciseNotes, defaults: remoteDefaults),
                 StrengthPlanSyncStore(store: strengthPlanStore, defaults: remoteDefaults),
+                TrainerSendSyncStore(defaults: remoteDefaults),
                 ClaudeContextSyncStore(defaults: remoteDefaults),
                 ClaudeInboxSyncStore(defaults: remoteDefaults),
                 CredentialSyncStore(id: DeviceSyncConstants.watchTokenId, tokenStore: watchTokenStore, defaults: remoteDefaults),
