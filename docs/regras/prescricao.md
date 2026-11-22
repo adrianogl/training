@@ -229,7 +229,7 @@ Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog*.swift`,
 Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: `GarminAPITests/GarminPlannedUploadTests.swift`, `AppTests/TrainerSendTests.swift`.
 
 - **O que vai:** os próximos 7 dias, por tipo (corrida, força ou os dois), com dias desmarcáveis. Força dos dias do treinador e, com "Enviar os treinos do MFIT" ligado, os do MFIT.
-- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo.
+- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo. Com "Corrida do treinador" ligado, o app ignora os treinos que o Garmin marca como vindos da Treinus (`workoutProvider`): eles saem do Hoje, de Treinos, da nota, do mostrador e dos dias de corrida forte da força. No calendário do Garmin eles continuam.
 - **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
 - **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
 - **Só o que o app criou:** o app guarda o id de cada treino que enviou e só substitui ou apaga esses. Treino que saiu do plano dentro dos 7 dias é apagado do Garmin.

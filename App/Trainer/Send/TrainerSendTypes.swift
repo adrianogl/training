@@ -38,6 +38,7 @@ struct TrainerSendSettings: Codable, Equatable {
     var includesMFIT: Bool?
 
     var sendsMFIT: Bool { includesMFIT ?? false }
+    var ignoredProviders: Set<String> { runFromTrainer ? [PlannedWorkouts.advisoryProvider] : [] }
 }
 
 struct TrainerSendItem: Identifiable, Equatable {

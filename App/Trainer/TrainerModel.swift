@@ -199,7 +199,7 @@ import TrainingCore
         }
         let first = currentDay.weekStart.adding(days: -TrainerConstants.weekdayCount)
         let last = first.adding(days: (TrainerConstants.externalWeeksAhead + 1) * TrainerConstants.weekdayCount - 1)
-        guard let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: last), !Task.isCancelled else { return }
+        guard let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: last, ignoring: TrainerSendStore().settings().ignoredProviders), !Task.isCancelled else { return }
         externalWorkouts = workouts.compactMap(TrainerExternalMapper.convert)
     }
 

@@ -40,14 +40,16 @@ public struct PlannedWorkout: Sendable, Equatable, Identifiable {
     public var estimatedSeconds: Double?
     public var estimatedMeters: Double?
     public var steps: [PlannedStep]
+    public var provider: String?
 
-    public init(id: Int64, day: String, title: String, estimatedSeconds: Double?, estimatedMeters: Double?, steps: [PlannedStep]) {
+    public init(id: Int64, day: String, title: String, estimatedSeconds: Double?, estimatedMeters: Double?, steps: [PlannedStep], provider: String? = nil) {
         self.id = id
         self.day = day
         self.title = title
         self.estimatedSeconds = estimatedSeconds
         self.estimatedMeters = estimatedMeters
         self.steps = steps
+        self.provider = provider
     }
 }
 
@@ -90,6 +92,7 @@ struct WorkoutDTO: Decodable {
     let estimatedDistanceInMeters: Double?
     let estimatedDurationInSecs: Double?
     let workoutSegments: [Segment]?
+    var workoutProvider: String? = nil
 }
 
 final class StepDTO: Decodable {

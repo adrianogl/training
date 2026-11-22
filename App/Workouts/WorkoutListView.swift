@@ -114,7 +114,7 @@ struct WorkoutListView: View {
             #endif
             guard let client = model.garminAccount.client else { planned = []; updatePlannedWeeks(); return }
             let today = Day.today()
-            planned = (try? await PlannedWorkouts.fetch(client: client, from: today.weekStart, through: today.adding(days: WorkoutConstants.plannedDays))) ?? []
+            planned = (try? await PlannedWorkouts.fetch(client: client, from: today.weekStart, through: today.adding(days: WorkoutConstants.plannedDays), ignoring: TrainerSendStore().settings().ignoredProviders)) ?? []
             updatePlannedWeeks()
             dropMissingPlanned()
         }
