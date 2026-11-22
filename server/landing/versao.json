@@ -1,11 +1,17 @@
 {
-  "versao": "1.38.1",
-  "build": 59,
-  "versao_app": "1.38.1",
+  "versao": "1.39.0",
+  "build": 60,
+  "versao_app": "1.39.0",
   "notas": [
-    "Sugestão da semana segue a regra de ida e volta"
+    "Calor na hora habitual e sugestão de volume"
   ],
   "historico": [
+    {
+      "versao": "1.39.0",
+      "notas": [
+        "Calor na hora habitual e sugestão de volume"
+      ]
+    },
     {
       "versao": "1.38.1",
       "notas": [
@@ -59,12 +65,6 @@
       "versao": "1.35.0",
       "notas": [
         "Próximos treinos vão até o fim do plano e da prescrição do MFIT"
-      ]
-    },
-    {
-      "versao": "1.34.1",
-      "notas": [
-        "Calendário mostra a força planejada dos meses seguintes"
       ]
     }
   ]
