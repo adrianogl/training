@@ -281,12 +281,14 @@ extension TrainerEngine {
         }
     }
 
-    private static func capacity(structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget) -> Double {
+    static func capacity(
+        structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget, easySeconds: Double = C.easyMaximumSeconds
+    ) -> Double {
         let week = previewWeek(meters: meters, paces: paces, target: target, structure: structure)
         return (1...C.daysPerWeek).reduce(0.0) { total, day in
             let kind = structure[day] ?? .off
             let meters: Double = switch kind {
-            case .easy: easyLimit(paces: paces)
+            case .easy: floorKilometers(easySeconds / paces.easy * C.metersPerKilometer)
             case .optionalEasy: optionalLimit(paces: paces)
             case .long: week.longMeters
             case .threshold, .vo2max: qualityMeters(qualitySession(kind, week: week, weeks: [week], target: target, lowered: false))

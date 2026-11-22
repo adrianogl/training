@@ -23,6 +23,7 @@ import TrainingCore
     private(set) var dismissedMigrationPlanId: String?
     private(set) var keptReadinessDay: String?
     private(set) var seenCycleEnd: Day?
+    private(set) var keptDaysCycleEnd: Day?
     private(set) var cycleSummaries: [TrainerCycleSummary]
 
     @ObservationIgnored private let container: ModelContainer
@@ -62,6 +63,7 @@ import TrainingCore
         self.dismissedMigrationPlanId = defaults.string(forKey: StrengthPlanUIConstants.migrationDismissedKey)
         self.seenVersion = store.seenVersion
         self.seenCycleEnd = store.seenCycleEnd
+        self.keptDaysCycleEnd = store.keptDaysCycleEnd
         self.cycleSummaries = store.cycleSummaries()
         self.plan = store.load()
         self.loadedStamp = store.updatedAt()
@@ -128,6 +130,19 @@ import TrainingCore
         guard let review = cycleReview else { return }
         seenCycleEnd = review.last
         store.markCycleSeen(review.last)
+    }
+
+    var extraDay: TrainerExtraDay? {
+        guard let plan, let review = cycleReview, keptDaysCycleEnd != review.last else { return nil }
+        return TrainerEngine.extraDay(
+            preference: plan.dayPreference, structure: plan.structure, weekMeters: review.suggestedPeakMeters, paces: plan.paces, target: plan.target
+        )
+    }
+
+    func keepDays() {
+        guard let review = cycleReview else { return }
+        keptDaysCycleEnd = review.last
+        store.markDaysKept(review.last)
     }
 
     func suggestedVolumes() -> (start: Int, peak: Int)? {
