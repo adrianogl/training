@@ -1,11 +1,17 @@
 {
-  "versao": "1.43.0",
-  "build": 75,
-  "versao_app": "1.43.0",
+  "versao": "1.44.0",
+  "build": 76,
+  "versao_app": "1.44.0",
   "notas": [
-    "Importa com aprovação as corridas do Strava sem o relógio"
+    "Mostra a zona de FC nos blocos e envia a faixa ao Garmin"
   ],
   "historico": [
+    {
+      "versao": "1.44.0",
+      "notas": [
+        "Mostra a zona de FC nos blocos e envia a faixa ao Garmin"
+      ]
+    },
     {
       "versao": "1.43.0",
       "notas": [
@@ -56,12 +62,6 @@
       "versao": "1.40.2",
       "notas": [
         "Tira o descanso depois do último tiro no Garmin"
-      ]
-    },
-    {
-      "versao": "1.40.1",
-      "notas": [
-        "Manda o descanso parado ao Garmin por tempo e corrige a coluna de Como fazer"
       ]
     }
   ]
