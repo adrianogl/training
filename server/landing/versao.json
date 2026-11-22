@@ -1,11 +1,17 @@
 {
-  "versao": "1.36.1",
-  "build": 55,
-  "versao_app": "1.36.1",
+  "versao": "1.36.2",
+  "build": 56,
+  "versao_app": "1.36.2",
   "notas": [
-    "Prova avaliada contra a meta; corrida livre comparada só com corrida livre"
+    "Aviso de treino terminado passa a vir do Garmin"
   ],
   "historico": [
+    {
+      "versao": "1.36.2",
+      "notas": [
+        "Aviso de treino terminado passa a vir do Garmin"
+      ]
+    },
     {
       "versao": "1.36.1",
       "notas": [
@@ -59,12 +65,6 @@
       "versao": "1.33.1",
       "notas": [
         "Recordes pessoais com as colunas alinhadas"
-      ]
-    },
-    {
-      "versao": "1.33.0",
-      "notas": [
-        "Previsões da Evolução mostram quanto você está abaixo ou acima do seu recorde em cada distância"
       ]
     }
   ]
