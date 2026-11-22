@@ -93,25 +93,29 @@ enum TrainerEngineText {
     }
 
     static func title(kind: TrainerDayKind, meters: Double, session: TrainerQualitySession? = nil, variant: TrainerVariant? = nil) -> String {
+        title(kind: kind, meters: meters, method: session?.method, variant: session?.variant ?? variant)
+    }
+
+    static func title(kind: TrainerDayKind, meters: Double, method: TrainerMethod?, variant: TrainerVariant?) -> String {
         if kind == .off { return offTitle }
-        return "\(titleName(kind: kind, session: session, variant: variant)) \(kilometers(meters))"
+        return "\(titleName(kind: kind, method: method, variant: variant)) \(kilometers(meters))"
     }
 
     static func structureTitle(kind: TrainerDayKind, session: TrainerQualitySession) -> String {
-        "\(titleName(kind: kind, session: session, variant: nil)) \(sessionLabel(session.blocks))"
+        "\(titleName(kind: kind, method: session.method, variant: session.variant)) \(sessionLabel(session.blocks))"
     }
 
-    static func titleName(kind: TrainerDayKind, session: TrainerQualitySession?, variant: TrainerVariant?) -> String {
+    static func titleName(kind: TrainerDayKind, method: TrainerMethod?, variant: TrainerVariant?) -> String {
         switch kind {
         case .threshold:
-            switch (session?.method, session?.variant ?? variant) {
+            switch (method, variant) {
             case (.racePace?, _): "Ritmo de prova"
             case (_, .continuousTempo?): "Tempo"
             case (_, .progressiveThreshold?): "Limiar progressivo"
             default: "Limiar"
             }
         case .vo2max:
-            switch (session?.method, session?.variant ?? variant) {
+            switch (method, variant) {
             case (.goalPace?, _): "Pace-alvo"
             case (_, .hills?): "Subidas"
             default: "VO2"
