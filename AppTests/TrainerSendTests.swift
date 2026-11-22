@@ -45,6 +45,13 @@ import TrainingCore
         #expect(taken.map(\.record.workoutId) == [2, 3])
     }
 
+    @Test func labelsTheWholePlanAndTheMFITEnd() {
+        let end = Day(iso: "2027-02-14")!
+        #expect(TrainerSendText.windowLabel(planEnd: end, mfitEnd: nil) == "Plano até 14 fev")
+        #expect(TrainerSendText.windowLabel(planEnd: end, mfitEnd: Day(iso: "2026-12-18")!) == "Plano até 14 fev e MFIT até 18 dez")
+        #expect(TrainerSendText.windowLabel(planEnd: nil, mfitEnd: nil) == "Próximos 7 dias")
+    }
+
     @Test func statusComparesSignatures() {
         let item = TrainerSendItem(key: "run|2026-11-18", day: day, kind: .run, title: "Limiar", payload: Data("a".utf8))
         #expect(TrainerSendBuilder.status(item, records: [:]) == .new)

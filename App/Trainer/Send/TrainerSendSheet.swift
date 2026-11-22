@@ -40,7 +40,7 @@ struct TrainerSendSheet: View {
                     if filter != .strength, !effective.runFromTrainer {
                         Text(TrainerSendText.runFromAdvisory).font(.footnote).foregroundStyle(BrandColors.dim)
                     }
-                    section(TrainerSendText.windowLabel(mfitEnd: mfitEnd))
+                    section(TrainerSendText.windowLabel(planEnd: app.trainer.plan == nil ? nil : app.trainer.sendLastDay, mfitEnd: mfitEnd))
                     VStack(alignment: .leading, spacing: 0) {
                         if items.isEmpty {
                             Text(TrainerSendText.empty).font(.footnote).foregroundStyle(BrandColors.dim).padding(.vertical, 8)
