@@ -1,5 +1,7 @@
 import FITReader
 import Foundation
+import GarminAPI
+import Insights
 import Metrics
 import Narrative
 import Storage
@@ -29,7 +31,7 @@ struct WorkoutAnalysisContext: Codable, Sendable {
         build(record: record, records: records, inputs: inputs(records: records, in: context))
     }
 
-    nonisolated static func inputs(records: [ActivityRecord], in context: ModelContext) -> WorkoutAnalysisInputs {
+    nonisolated static func inputs(records: [ActivityRecord], in context: ModelContext, races: RaceIndex? = nil) -> WorkoutAnalysisInputs {
         let runDays = records.filter { ActivityTypeKey.isRun($0.typeKey) }.map(day)
         return WorkoutAnalysisInputs(
             watchZones: (try? runningZonesRecord(in: context)).flatMap(zones(from:)),
@@ -38,8 +40,24 @@ struct WorkoutAnalysisContext: Codable, Sendable {
             readinessByDay: readinessByDay(context),
             dailyByDay: DayConditionBuilder.dailyByDay(context),
             legDays: DayConditionBuilder.legDays(),
-            hotSessions: ActivityRecord.hotSessionCounts(records)
+            hotSessions: ActivityRecord.hotSessionCounts(records),
+            races: races ?? Self.races(in: context)
         )
+    }
+
+    nonisolated static func races(in context: ModelContext, paceProStore: PaceProStore = PaceProStore()) -> RaceIndex {
+        var index = (try? raceIndex(in: context)) ?? RaceIndex()
+        let cache = paceProStore.load()
+        let withPacePro = { (target: RaceTarget) -> RaceTarget in
+            guard let id = paceProStore.selectedId(race: target.id, distance: target.distance, summaries: cache.summaries),
+                  let plan = cache.plans.first(where: { $0.id == id }) else { return target }
+            var updated = target
+            updated.strategyPaces = Dictionary(uniqueKeysWithValues: plan.kilometerSeconds.enumerated().map { ($0.offset, $0.element) })
+            return updated
+        }
+        index.results = index.results.mapValues(withPacePro)
+        index.pending = index.pending.mapValues { $0.map(withPacePro) }
+        return index
     }
 
     static func build(record: ActivityRecord, records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> WorkoutAnalysisContext {
@@ -62,7 +80,11 @@ struct WorkoutAnalysisContext: Codable, Sendable {
         }
 
         let previous = previousOccurrences(of: record, in: records, inputs: inputs)
-        analysis.score = scoreWorkout(blocks: blocks, zones: zones, previous: previous)
+        if let race = inputs.races.race(for: record) {
+            analysis.score = scoreRace(raceInput(record, race: race), blocks: blocks, splits: kilometerSplits(recordSamples, zones: nil), previous: previous)
+        } else {
+            analysis.score = scoreWorkout(blocks: blocks, zones: zones, previous: previous)
+        }
         analysis.assessment = assess(blocks, context: AssessmentContext(
             readinessScore: record.localDay.flatMap { inputs.readinessByDay[$0] },
             acuteChronic: record.localDay.flatMap(Day.init(iso:)).flatMap { acuteChronicRatio(dailyLoad: inputs.dailyLoad, on: $0) },
@@ -96,12 +118,22 @@ struct WorkoutAnalysisContext: Codable, Sendable {
         return analysis
     }
 
-    static func comparisonCandidates(of record: ActivityRecord, in records: [ActivityRecord]) -> [ActivityRecord] {
-        Array(previous(of: record, in: records).prefix(WorkoutDetailConstants.maxComparisons))
+    static func comparisonCandidates(of record: ActivityRecord, in records: [ActivityRecord], races: RaceIndex) -> [ActivityRecord] {
+        Array(previous(of: record, in: records, races: races).prefix(WorkoutDetailConstants.maxComparisons))
+    }
+
+    static func raceInput(_ record: ActivityRecord, race: RaceTarget) -> RaceScoreInput {
+        RaceScoreInput(
+            raceDistance: race.distance,
+            targetSeconds: race.targetSeconds,
+            distance: record.distance,
+            seconds: record.duration,
+            referencePaces: race.strategyPaces
+        )
     }
 
     private static func previousOccurrences(of record: ActivityRecord, in records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [WorkoutOccurrence] {
-        comparisonCandidates(of: record, in: records).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs), hotSessions: inputs.hotSessions) }
+        comparisonCandidates(of: record, in: records, races: inputs.races).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs), hotSessions: inputs.hotSessions) }
     }
 
     static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
@@ -126,17 +158,20 @@ struct WorkoutAnalysisContext: Codable, Sendable {
         return WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
     }
 
-    private static func previous(of record: ActivityRecord, in records: [ActivityRecord]) -> [ActivityRecord] {
+    private static func previous(of record: ActivityRecord, in records: [ActivityRecord], races: RaceIndex) -> [ActivityRecord] {
         let earlier = records.filter { $0.activityId != record.activityId && $0.hasStart && $0.start < record.start }
-        if let name = record.workoutName {
+        let isRace = races.isRace(record)
+        if !isRace, let name = record.workoutName {
             let key = WorkoutTitle.comparisonKey(name)
             return earlier.filter { $0.workoutName.map(WorkoutTitle.comparisonKey) == key }
         }
         guard let distance = record.distance, distance > 0 else { return [] }
         let windowStart = record.start.addingTimeInterval(-WorkoutDetailConstants.similarRunWindowDays * WorkoutDetailConstants.secondsPerDay)
         return earlier.filter { other in
-            guard ActivityTypeKey.isRun(other.typeKey), other.start >= windowStart, let otherDistance = other.distance else { return false }
-            return abs(otherDistance - distance) / distance <= WorkoutDetailConstants.similarDistanceTolerance
+            guard ActivityTypeKey.isRun(other.typeKey), let otherDistance = other.distance,
+                  abs(otherDistance - distance) / distance <= WorkoutDetailConstants.similarDistanceTolerance else { return false }
+            if isRace { return races.isRace(other) }
+            return other.start >= windowStart && other.workoutName == nil && !races.isRace(other)
         }
     }
 

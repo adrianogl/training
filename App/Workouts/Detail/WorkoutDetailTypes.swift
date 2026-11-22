@@ -1,5 +1,6 @@
 import Storage
 import Foundation
+import Insights
 import TrainingCore
 import WorkoutAnalysis
 
@@ -138,6 +139,7 @@ struct WorkoutAnalysisInputs {
     var dailyByDay: [String: DailyRecord] = [:]
     var legDays: Set<Day> = []
     var hotSessions: [Int64: Int] = [:]
+    var races = RaceIndex()
 }
 
 struct ZoneBar: Equatable, Sendable {

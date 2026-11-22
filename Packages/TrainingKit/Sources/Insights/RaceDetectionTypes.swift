@@ -1,3 +1,4 @@
+import Foundation
 import TrainingCore
 
 public struct RaceCandidate: Sendable, Identifiable, Equatable, Codable {
@@ -19,5 +20,29 @@ public struct RaceCandidate: Sendable, Identifiable, Equatable, Codable {
         self.seconds = seconds
         self.averageHeartRate = averageHeartRate
         self.isPR = isPR
+    }
+}
+
+public struct RaceTarget: Sendable, Equatable, Codable {
+    public var id: UUID
+    public var distance: Double
+    public var targetSeconds: Double?
+    public var strategyPaces: [Int: Double]
+
+    public init(id: UUID = UUID(), distance: Double, targetSeconds: Double? = nil, strategyPaces: [Int: Double] = [:]) {
+        self.id = id
+        self.distance = distance
+        self.targetSeconds = targetSeconds
+        self.strategyPaces = strategyPaces
+    }
+}
+
+public struct RaceIndex: Sendable, Equatable {
+    public var results: [Int64: RaceTarget]
+    public var pending: [Day: [RaceTarget]]
+
+    public init(results: [Int64: RaceTarget] = [:], pending: [Day: [RaceTarget]] = [:]) {
+        self.results = results
+        self.pending = pending
     }
 }

@@ -435,3 +435,51 @@ private func threshold(_ heartRate: Int) -> ThresholdHistoryRecord {
         #expect(deleted.frozenTargetSeconds == nil)
     }
 }
+
+@Suite struct RaceIndexTests {
+    @Test func recognizesRunOnRaceDayIncludingToday() throws {
+        let race = RaceRecord(name: "10 km", day: fixtureToday.iso, distance: 10_000, goalSeconds: 2_400)
+        let context = try makeContext([race, raceRun(id: 1, daysAgo: 0, distance: 9_830)])
+
+        let index = try raceIndex(in: context)
+        let run = try #require(try context.fetch(FetchDescriptor<ActivityRecord>()).first)
+
+        #expect(index.race(for: run)?.id == race.id)
+        #expect(index.race(for: run)?.targetSeconds == 2_400)
+        #expect(race.resultActivityId == nil)
+    }
+
+    @Test func raceDayNeedsDistanceWithinTenPercent() throws {
+        let context = try makeContext([
+            RaceRecord(name: "10 km", day: fixtureToday.iso, distance: 10_000),
+            raceRun(id: 1, daysAgo: 0, distance: 3_000),
+            raceRun(id: 2, daysAgo: 0, distance: 8_900),
+        ])
+
+        let index = try raceIndex(in: context)
+
+        #expect(try context.fetch(FetchDescriptor<ActivityRecord>()).allSatisfy { !index.isRace($0) })
+    }
+
+    @Test func manuallyUnlinkedRaceDoesNotRecognizeTheDay() throws {
+        let context = try makeContext([
+            RaceRecord(name: "10 km", day: fixtureToday.iso, distance: 10_000, manuallyUnlinked: true),
+            raceRun(id: 1, daysAgo: 0, distance: 10_000),
+        ])
+
+        let index = try raceIndex(in: context)
+
+        #expect(try !index.isRace(#require(try context.fetch(FetchDescriptor<ActivityRecord>()).first)))
+    }
+
+    @Test func linkedResultUsesFrozenTargetAndItsStrategy() throws {
+        let race = RaceRecord(name: "10 km", day: daysAgo(30).iso, distance: 10_000, goalSeconds: 2_500, resultActivityId: 7, frozenTargetSeconds: 2_400)
+        let context = try makeContext([race, raceRun(id: 7, daysAgo: 30, distance: 10_400)])
+
+        let target = try #require(try raceIndex(in: context).results[7])
+
+        #expect(target.targetSeconds == 2_400)
+        #expect(target.strategyPaces.count == 10)
+        #expect(abs(target.strategyPaces.values.reduce(0, +) - 2_400) < 1)
+    }
+}
