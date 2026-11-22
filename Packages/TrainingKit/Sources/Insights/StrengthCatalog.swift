@@ -5,6 +5,14 @@ public enum StrengthCatalog {
 
     private static let byId: [String: CatalogExercise] = Dictionary(all.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
 
+    public static let garminCategories: Set<String> = Set(all.map(\.category))
+
+    public static func garminCategory(_ category: String) -> String {
+        let key = category.uppercased()
+        let mapped = StrengthCatalogConstants.garminCategoryAliases[key] ?? key
+        return garminCategories.contains(mapped) ? mapped : StrengthCatalogConstants.fallbackGarminCategory
+    }
+
     public static func exercise(_ id: String) -> CatalogExercise? {
         byId[canonicalId(id)]
     }

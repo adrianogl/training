@@ -81,4 +81,16 @@ import Testing
         #expect(StrengthCatalog.pattern(garminCategory: "calf_raise") == .calf)
         #expect(StrengthCatalog.pattern(garminCategory: "UNKNOWN") == nil)
     }
+
+    @Test func mfitCategoriesBecomeCategoriesTheGarminAccepts() {
+        #expect(StrengthCatalog.garminCategory("HIP_ADDUCTION") == "HIP_STABILITY")
+        #expect(StrengthCatalog.garminCategory("LEG_EXTENSION") == "SQUAT")
+        #expect(StrengthCatalog.garminCategory("REVERSE_FLY") == "FLYE")
+        #expect(StrengthCatalog.garminCategory("SQUAT") == "SQUAT")
+        #expect(StrengthCatalog.garminCategory("nao_existe") == "TOTAL_BODY")
+        let mfit = ["REVERSE_FLY", "HIP_RAISE", "HIP_STABILITY", "HIP_ADDUCTION", "CALF_RAISE", "LEG_CURL", "LEG_EXTENSION", "DEADLIFT", "LUNGE",
+                    "SQUAT", "BENCH_PRESS", "PUSH_UP", "ROW", "PULL_UP", "SHOULDER_PRESS", "SHRUG", "TRICEPS_EXTENSION", "CURL", "PLANK", "CORE",
+                    "CRUNCH", "HYPEREXTENSION", "TOTAL_BODY"]
+        #expect(mfit.allSatisfy { StrengthCatalog.garminCategories.contains(StrengthCatalog.garminCategory($0)) })
+    }
 }

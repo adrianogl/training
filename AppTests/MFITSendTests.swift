@@ -50,4 +50,11 @@ import TrainingCore
         #expect(settings.runFromTrainer)
         #expect(settings.sendsMFIT == false)
     }
+
+    @Test func unknownExerciseGetsACategoryTheGarminAccepts() {
+        let adductor = StrengthExercise(name: "Cadeira adutora", detail: "3x12", category: "HIP_ADDUCTION", exerciseKey: nil, reps: 12, seconds: nil)
+        let extensor = StrengthExercise(name: "Cadeira extensora", detail: "3x12", category: "LEG_EXTENSION", exerciseKey: nil, reps: 12, seconds: nil)
+        let exercises = MFITSendBuilder.exercises([StrengthBlock(exercises: [adductor, extensor], sets: 3, restSeconds: 60)]) { _ in nil }
+        #expect(exercises.map(\.category) == ["HIP_STABILITY", "SQUAT"])
+    }
 }

@@ -16,7 +16,8 @@ enum MFITSendBuilder {
             block.exercises.map { exercise in
                 let catalog = catalogId(exercise.name).flatMap(StrengthCatalog.exercise)
                 return PlannedStrengthExercise(
-                    description: exercise.name, category: catalog?.category ?? exercise.category ?? C.mfitFallbackCategory,
+                    description: exercise.name,
+                    category: catalog?.category ?? StrengthCatalog.garminCategory(exercise.category ?? C.mfitFallbackCategory),
                     exerciseName: catalog?.exerciseName, sets: max(block.sets, 1), reps: exercise.reps,
                     seconds: exercise.seconds.map { Int($0.rounded()) }, restSeconds: Int((block.restSeconds ?? 0).rounded()), weight: exercise.weight
                 )
