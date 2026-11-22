@@ -61,10 +61,21 @@ extension TrainerModel {
         return await AppleWorkoutSender.send(items, stale: stale, store: TrainerSendStore())
     }
 
+    func forgetDeletedOnGarmin(client: GarminAccountClient, store: TrainerSendStore = TrainerSendStore()) async {
+        let upcoming = store.records().filter { Day(iso: $0.value.day).map { $0 >= currentDay } ?? false }
+        let days = upcoming.values.compactMap { Day(iso: $0.day) }
+        guard let first = days.min(), let last = days.max(),
+              let scheduled = try? await PlannedWorkouts.scheduledWorkoutIds(client: client, from: first, through: last) else { return }
+        for (key, record) in upcoming where !scheduled.contains(record.workoutId) {
+            store.remove(key: key)
+        }
+    }
+
     func autoSend(client: GarminAccountClient?) async {
         let store = TrainerSendStore()
         let settings = store.settings()
         guard let client, let filter = settings.auto, !isSendingToGarmin else { return }
+        await forgetDeletedOnGarmin(client: client, store: store)
         let items = sendItems(filter, settings: settings)
         let stale = staleSends(filter, items: items, store: store)
         let records = store.records()

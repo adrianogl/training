@@ -96,4 +96,12 @@ private let workoutJSON = """
         let dto = try JSONDecoder().decode(WorkoutDTO.self, from: Data(workoutJSON.utf8))
         #expect(PlannedWorkouts.workout(dto, day: "2026-11-13", fallbackTitle: nil).estimatedMeters == 9_800)
     }
+
+    @Test func scheduledIdsCoverEveryMonthOfTheRangeAndOnlyWorkouts() throws {
+        let items = try JSONDecoder().decode(CalendarDTO.self, from: Data(calendarJSON.utf8)).calendarItems
+        let ids = PlannedWorkouts.workoutIds(items, from: Day(iso: "2026-11-12")!, through: Day(iso: "2026-11-13")!)
+        #expect(ids == [10, 11])
+        #expect(PlannedWorkouts.months(from: Day(iso: "2026-11-22")!, through: Day(iso: "2027-02-01")!).map { "\($0.0)-\($0.1)" }
+            == ["2026-11", "2026-12", "2027-1", "2027-2"])
+    }
 }
