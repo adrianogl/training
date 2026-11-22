@@ -191,7 +191,7 @@ struct WorkoutDetailView: View {
     private func loadPlanCheck() async -> PlannedBriefing? {
         guard let model, model.hasPrescription, let iso = model.localDay, let day = Day(iso: iso),
               let done = model.completedCheck, let client = app.garminAccount.client,
-              let plan = (try? await PlannedWorkouts.fetch(client: client, from: day, through: day))?.first else { return nil }
+              let plan = (try? await PlannedWorkouts.fetch(client: client, from: day, through: day, ignoring: TrainerSendStore().settings().ignoredProviders))?.first else { return nil }
         let input = PlannedBriefingLoader.input(plan: plan, week: [plan], context: context, today: day, weeklyGoalKm: 0, weather: [], course: nil)
         return PlannedBriefingBuilder.briefing(BriefingInput(
             plan: input.plan, today: input.today, similar: input.similar, readiness: input.readiness,

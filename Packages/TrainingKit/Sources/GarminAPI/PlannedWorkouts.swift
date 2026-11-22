@@ -2,6 +2,7 @@ import Foundation
 import TrainingCore
 
 public enum PlannedWorkouts {
+    public static let advisoryProvider = "Treinus"
     static let runSport = "running"
     static let workoutItem = "workout"
     static let repeatType = "RepeatGroupDTO"
@@ -17,7 +18,11 @@ public enum PlannedWorkouts {
         "warmup": .warmup, "interval": .active, "recovery": .recovery, "cooldown": .cooldown, "rest": .rest,
     ]
 
-    public static func fetch(client: GarminAccountClient, from first: Day, through last: Day) async throws -> [PlannedWorkout] {
+    public static func visible(_ workouts: [PlannedWorkout], ignoring providers: Set<String>) -> [PlannedWorkout] {
+        workouts.filter { workout in workout.provider.map { !providers.contains($0) } ?? true }
+    }
+
+    public static func fetch(client: GarminAccountClient, from first: Day, through last: Day, ignoring providers: Set<String> = []) async throws -> [PlannedWorkout] {
         var months: [(Int, Int)] = []
         for day in [first, last] where !months.contains(where: { $0 == (day.year, day.month) }) {
             months.append((day.year, day.month))
@@ -35,7 +40,7 @@ public enum PlannedWorkouts {
             }
             var results: [(Int, PlannedWorkout)] = []
             for try await result in group { results.append(result) }
-            return results.sorted { $0.0 < $1.0 }.map(\.1)
+            return visible(results.sorted { $0.0 < $1.0 }.map(\.1), ignoring: providers)
         }
     }
 
@@ -73,7 +78,8 @@ public enum PlannedWorkouts {
             title: dto.workoutName.map(WorkoutTitle.clean) ?? fallbackTitle ?? "",
             estimatedSeconds: dto.estimatedDurationInSecs ?? estimate?.seconds,
             estimatedMeters: dto.estimatedDistanceInMeters ?? estimate?.meters,
-            steps: steps
+            steps: steps,
+            provider: dto.workoutProvider
         )
     }
 

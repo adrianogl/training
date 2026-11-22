@@ -106,7 +106,7 @@ import WorkoutAnalysis
         let tomorrow = today.adding(days: 1)
         let workouts: [PlannedWorkout]
         do {
-            workouts = try await PlannedWorkouts.fetch(client: client, from: first, through: max(last, tomorrow))
+            workouts = try await PlannedWorkouts.fetch(client: client, from: first, through: max(last, tomorrow), ignoring: TrainerSendStore().settings().ignoredProviders)
         } catch {
             TodayConstants.logger.error("Falha ao buscar treinos planejados: \(String(describing: error), privacy: .public)")
             return
@@ -116,7 +116,7 @@ import WorkoutAnalysis
         planned = grouped.filter { $0.key <= last }
         tomorrowPlan = grouped[tomorrow]?.first
         guard let report = WeeklyReportBuilder.reportWeek(today: today), !report.isCurrent else { return }
-        let previous = try? await PlannedWorkouts.fetch(client: client, from: report.start, through: report.start.adding(days: 6))
+        let previous = try? await PlannedWorkouts.fetch(client: client, from: report.start, through: report.start.adding(days: 6), ignoring: TrainerSendStore().settings().ignoredProviders)
         guard !Task.isCancelled, let previous else { return }
         reportPlanned = Dictionary(grouping: previous) { Day(iso: $0.day) ?? report.start }
     }
@@ -135,7 +135,7 @@ import WorkoutAnalysis
         var cache = (defaults.dictionary(forKey: AppConstants.plannedWeeksDefaultsKey) as? [String: Double]) ?? [:]
         let missing = starts.filter { $0 < current && cache[$0.iso] == nil }
         if let first = missing.min(), let last = missing.max(),
-           let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: last.adding(days: 6)) {
+           let workouts = try? await PlannedWorkouts.fetch(client: client, from: first, through: last.adding(days: 6), ignoring: TrainerSendStore().settings().ignoredProviders) {
             var totals = Dictionary(uniqueKeysWithValues: missing.map { ($0.iso, 0.0) })
             for workout in workouts {
                 guard let start = Day(iso: workout.day)?.weekStart, totals[start.iso] != nil else { continue }

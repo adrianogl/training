@@ -30,6 +30,21 @@ private let workoutJSON = """
 """
 
 @Suite struct PlannedWorkoutsTests {
+    @Test func readsTheProviderOfTheWorkout() throws {
+        let json = #"{"workoutId":40,"workoutName":"Corrida fácil","workoutProvider":"Treinus"}"#
+        let dto = try JSONDecoder().decode(WorkoutDTO.self, from: Data(json.utf8))
+
+        #expect(PlannedWorkouts.workout(dto, day: "2026-11-23", fallbackTitle: nil).provider == "Treinus")
+    }
+
+    @Test func dropsWorkoutsFromIgnoredProviders() {
+        let advisory = PlannedWorkout(id: 1, day: "2026-11-23", title: "Corrida fácil", estimatedSeconds: nil, estimatedMeters: nil, steps: [], provider: "Treinus")
+        let own = PlannedWorkout(id: 2, day: "2026-11-23", title: "trAIning · Rodagem", estimatedSeconds: nil, estimatedMeters: nil, steps: [])
+
+        #expect(PlannedWorkouts.visible([advisory, own], ignoring: [PlannedWorkouts.advisoryProvider]).map(\.id) == [2])
+        #expect(PlannedWorkouts.visible([advisory, own], ignoring: []).map(\.id) == [1, 2])
+    }
+
     @Test func keepsOnlyRunWorkoutsInsideTheWeekOnce() throws {
         let items = try JSONDecoder().decode(CalendarDTO.self, from: Data(calendarJSON.utf8)).calendarItems
         let runs = PlannedWorkouts.runItems(items, from: Day(year: 2026, month: 11, day: 9), through: Day(year: 2026, month: 11, day: 15))

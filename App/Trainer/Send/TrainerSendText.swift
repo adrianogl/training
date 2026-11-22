@@ -8,6 +8,7 @@ enum TrainerSendText {
     static let empty = "Nada para enviar nesses dias."
     static let runFromAdvisory = "A corrida vem da assessoria. Ligue \"Corrida do treinador\" quando passar a seguir o treinador."
     static let runToggle = "Enviar as corridas do plano"
+    static let runIgnoresAdvisory = "Ligado, as corridas da assessoria (Treinus) saem do Hoje, de Treinos e do mostrador. No Garmin elas continuam até você desconectar a Treinus."
     static let autoLabel = "Envio automático"
     static let autoHint = "Ligado, o app manda sozinho quando o plano mudar: os próximos 7 dias e, com o MFIT ligado, os treinos do professor até o fim da prescrição."
     static let onlyApp = "Só treinos criados pelo app são trocados ou apagados no Garmin."

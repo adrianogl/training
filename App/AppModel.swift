@@ -493,7 +493,7 @@ import WorkoutAnalysis
 
     private func plannedForWatch(week start: Day) async -> [PlannedWorkout] {
         guard let client = garminAccount.client else { return [] }
-        return (try? await PlannedWorkouts.fetch(client: client, from: start, through: start.adding(days: WatchFaceConstants.daysPerWeek - 1))) ?? []
+        return (try? await PlannedWorkouts.fetch(client: client, from: start, through: start.adding(days: WatchFaceConstants.daysPerWeek - 1), ignoring: TrainerSendStore().settings().ignoredProviders)) ?? []
     }
 
     private func todayWatchReadiness() -> WatchReadiness? {
@@ -605,7 +605,7 @@ import WorkoutAnalysis
     private func buildMorningRunLine(_ summary: TodaySummary) async -> String? {
         guard let client = garminAccount.client else { return nil }
         let day = Day.today()
-        guard let plans = try? await PlannedWorkouts.fetch(client: client, from: day, through: day),
+        guard let plans = try? await PlannedWorkouts.fetch(client: client, from: day, through: day, ignoring: TrainerSendStore().settings().ignoredProviders),
               !Task.isCancelled else { return nil }
         let recent = TodayModel.recentRuns(context: container.mainContext)
         guard let plan = DayAdjustText.pendingRun(plans, recent: recent, day: day) else { return nil }

@@ -124,11 +124,14 @@ struct TrainerSendSheet: View {
     }
 
     private var runCard: some View {
-        Toggle(TrainerSendText.runToggle, isOn: Binding(get: { settings.runFromTrainer }, set: { value in
-            settings.runFromTrainer = value
-            store.save(settings)
-        }))
-        .tint(BrandColors.accentFill)
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(TrainerSendText.runToggle, isOn: Binding(get: { settings.runFromTrainer }, set: { value in
+                settings.runFromTrainer = value
+                store.save(settings)
+            }))
+            .tint(BrandColors.accentFill)
+            Text(TrainerSendText.runIgnoresAdvisory).font(.caption).foregroundStyle(BrandColors.dim)
+        }
         .brandCard()
     }
 
