@@ -1,11 +1,17 @@
 {
-  "versao": "1.40.1",
-  "build": 66,
-  "versao_app": "1.40.1",
+  "versao": "1.40.2",
+  "build": 67,
+  "versao_app": "1.40.2",
   "notas": [
-    "Manda o descanso parado ao Garmin por tempo e corrige a coluna de Como fazer"
+    "Tira o descanso depois do último tiro no Garmin"
   ],
   "historico": [
+    {
+      "versao": "1.40.2",
+      "notas": [
+        "Tira o descanso depois do último tiro no Garmin"
+      ]
+    },
     {
       "versao": "1.40.1",
       "notas": [
@@ -58,13 +64,6 @@
       "versao": "1.38.0",
       "notas": [
         "Longão pelo volume da semana e opção ida e volta"
-      ]
-    },
-    {
-      "versao": "1.37.0",
-      "notas": [
-        "Mostra a faixa de volume por número de corridas e sugere um dia a mais no fim do ciclo",
-        "Ignora treinos da Treinus com a corrida do treinador ligada"
       ]
     }
   ]
