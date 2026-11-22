@@ -5,11 +5,14 @@ public func scoreWorkout(blocks: [WorkoutBlock], zones: HeartRateZones?, previou
     guard !blocks.isEmpty else { return nil }
     let prescribed = blocks.contains { $0.prescribed != nil }
     let hasHeartRate = blocks.contains { $0.avgHeartRate != nil }
-    let items = [
+    return combinedScore([
         executionItem(blocks, prescribed: prescribed),
         intentItem(blocks, zones: zones, prescribed: prescribed, hasHeartRate: hasHeartRate),
         costItem(blocks, previous: previous, hasHeartRate: hasHeartRate),
-    ]
+    ])
+}
+
+func combinedScore(_ items: [ScoreItem]) -> WorkoutScore? {
     let maximum = items.reduce(0) { $0 + $1.maximum }
     guard maximum > 0 else { return nil }
     let points = items.reduce(0) { $0 + $1.points }
@@ -18,7 +21,7 @@ public func scoreWorkout(blocks: [WorkoutBlock], zones: HeartRateZones?, previou
     return WorkoutScore(value: complete ? value : min(value, AnalysisConstants.incompleteScoreCap), items: items)
 }
 
-private func absent(_ part: ScorePart, _ reason: ScoreReason) -> ScoreItem {
+func absent(_ part: ScorePart, _ reason: ScoreReason) -> ScoreItem {
     ScoreItem(part: part, points: 0, maximum: 0, reason: reason)
 }
 
@@ -156,7 +159,7 @@ private func impliesAboveEasy(_ target: StepTarget, zones: HeartRateZones, ceili
     }
 }
 
-private func costItem(_ blocks: [WorkoutBlock], previous: [WorkoutOccurrence], hasHeartRate: Bool) -> ScoreItem {
+func costItem(_ blocks: [WorkoutBlock], previous: [WorkoutOccurrence], hasHeartRate: Bool) -> ScoreItem {
     guard hasHeartRate, let current = efficiency(blocks) else { return absent(.cost, .noHeartRate) }
     let references = previous.compactMap { efficiency($0.blocks) }.sorted()
     guard !references.isEmpty else { return absent(.cost, .noHistory) }

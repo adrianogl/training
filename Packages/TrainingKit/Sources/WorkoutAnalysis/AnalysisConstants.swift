@@ -58,6 +58,9 @@ extension AnalysisConstants {
     static let scoreScale = 100.0
     static let incompleteScoreCap = 95
     static let easyZoneNumber = 2
+    static let raceSlowMargin = 0.10
+    static let racePaceTolerance = 5.0
+    static let raceFullKilometer = 950.0
 }
 
 extension AnalysisConstants {

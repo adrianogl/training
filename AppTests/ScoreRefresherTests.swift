@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import Storage
 import SwiftData
 import Sync
@@ -62,7 +63,7 @@ private actor RefreshLog {
         let check = ModelContext(container)
         let records = try check.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))
         let record = try #require(records.first { $0.activityId == 1 })
-        let previous = WorkoutAnalysisContext.comparisonCandidates(of: record, in: records)
+        let previous = WorkoutAnalysisContext.comparisonCandidates(of: record, in: records, races: RaceIndex())
         let thresholds = try thresholdHeartRates(on: records.map(WorkoutAnalysisContext.day), in: check)
         #expect(record.scoreKey == ScoreStore.key(record: record, previous: previous, thresholdByDay: thresholds, watchZones: nil))
         #expect(record.scoreKey?.contains("175") == true)

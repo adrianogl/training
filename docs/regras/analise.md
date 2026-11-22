@@ -251,9 +251,23 @@ Arquivos: `WorkoutAnalysis/PersonalRecords*.swift`, `App/Workouts/Records/*`, `A
 
 Comparação com até 4 treinos iguais (`maxComparisons`). Treino planejado é igual a outro quando o nome bate sem o dia da semana e a data: "Corrida fácil seg 16/11" compara com "Corrida fácil qua 11/11". Um dia da semana cortado no fim do nome pelo limite do Garmin também sai (`WorkoutTitle.comparisonKey`).
 
+Corrida sem treino planejado compara só com corridas também sem treino planejado e que não são prova, com distância até 20% diferente, nos últimos 90 dias.
+
+### Nota de prova
+
+Uma corrida é prova quando é o resultado de uma prova cadastrada ou, se a prova ainda não tem resultado e não foi desvinculada à mão, quando cai no dia dela, inclusive hoje, com distância até 10% diferente da prova (`RaceIndex.race(for:)`). Essa margem vale só para a nota; o vínculo automático (`autoLinkRaces`) continua com 4% e só liga depois do dia. Prova tem regra própria (`scoreRace`, em `WorkoutScoreRace.swift`), mesmo quando tem nome de treino:
+
+| Parte | Peso | Regra |
+| --- | --- | --- |
+| Execução | 50 | Pace feito (duração ÷ distância medida) contra o pace do alvo (alvo ÷ distância da prova). Alvo é `frozenTargetSeconds` e, sem ele, `goalSeconds`. No alvo ou mais rápido vale 50; cai em linha reta até 0 com 10% mais lento (`raceSlowMargin`). Sem alvo, fica de fora. |
+| Intenção | 25 | Fração dos km completos (a partir de 950 m) com pace a até 5 s/km da referência (`racePaceTolerance`). Referência é a mesma estratégia da tela da prova: o Pace Pro escolhido e, sem ele, a estratégia do app pelo alvo congelado. Sem estratégia, vale o pace do alvo. Sem km completos, fica de fora. |
+| Custo | 25 | Eficiência contra até 4 provas anteriores de distância até 20% diferente, de qualquer data. Sem prova anterior, fica de fora. |
+
+A chave guardada de uma prova inclui distância, alvo e pace de referência por km, então a nota é refeita quando a meta ou a estratégia mudam.
+
 Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
 
-A versão da nota está em `AnalysisConstants.scoreVersion` (4, desde vento, sol e adaptação ao calor). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Testes: `WorkoutScoreTests.swift`, `ComparisonTests.swift`.
+A versão da nota está em `AnalysisConstants.scoreVersion` (4, desde vento, sol e adaptação ao calor). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Testes: `WorkoutScoreTests.swift`, `RaceScoreTests.swift`, `ComparisonTests.swift`, `RaceDetectionTests.swift` (`RaceIndexTests`) e, no app, `ComparisonSelectionTests.swift`.
 
 ## Análise detalhada
 

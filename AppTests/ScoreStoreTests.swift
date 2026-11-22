@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import Storage
 import SwiftData
 import Sync
@@ -76,7 +77,7 @@ import WorkoutAnalysis
 
         try Self.edit(container) { context, record in
             let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
-            let previous = WorkoutAnalysisContext.comparisonCandidates(of: record, in: records)
+            let previous = WorkoutAnalysisContext.comparisonCandidates(of: record, in: records, races: RaceIndex())
             let thresholds = (try? thresholdHeartRates(on: records.map(WorkoutAnalysisContext.day), in: context)) ?? [:]
             record.scoreKey = ScoreStore.key(record: record, previous: previous, thresholdByDay: thresholds, watchZones: nil, version: AnalysisConstants.scoreVersion + 1)
         }

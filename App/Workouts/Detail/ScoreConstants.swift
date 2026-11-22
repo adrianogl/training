@@ -56,5 +56,12 @@ enum ScoreConstants {
         .noZones: "sem zonas de FC",
         .noHistory: "sem treino anterior para comparar",
         .noPrescription: "sem prescrição",
+        .slowerThanTarget: "mais lenta que a meta",
+        .offStrategy: "km fora da estratégia",
+        .noRaceTarget: "sem meta da prova",
+        .noSplits: "sem tempo ou km completos",
+        .noPreviousRace: "sem prova anterior para comparar",
+        .lessEfficientThanRaces: "menos eficiente que nas provas anteriores",
+        .moreEfficientThanRaces: "mais eficiente que nas provas anteriores",
     ]
 }

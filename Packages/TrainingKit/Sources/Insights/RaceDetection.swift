@@ -69,6 +69,51 @@ public func autoLinkRaces(in context: ModelContext, today: Day) throws {
     if changed { try context.save() }
 }
 
+public func raceIndex(in context: ModelContext) throws -> RaceIndex {
+    let races = try context.fetch(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.deletedAt == nil }))
+    var index = RaceIndex()
+    for race in races {
+        if let id = race.resultActivityId {
+            index.results[id] = raceTarget(race)
+        } else if !race.manuallyUnlinked, race.distance > 0, let day = Day(iso: race.day) {
+            index.pending[day, default: []].append(raceTarget(race))
+        }
+    }
+    return index
+}
+
+extension RaceIndex {
+    public func race(for activity: ActivityRecord) -> RaceTarget? {
+        if let linked = results[activity.activityId] { return linked }
+        guard isRun(activity), let distance = activity.distance, let races = pending[runDay(activity)] else { return nil }
+        return races
+            .compactMap { race in scoreDistanceGap(distance, raceDistance: race.distance).map { (race, $0) } }
+            .min { $0.1 < $1.1 }?.0
+    }
+
+    public func isRace(_ activity: ActivityRecord) -> Bool {
+        race(for: activity) != nil
+    }
+}
+
+private func raceTarget(_ race: RaceRecord) -> RaceTarget {
+    let strategy = race.frozenTargetSeconds.map {
+        paceStrategy(goalSeconds: $0, distance: race.distance, profile: race.gpxData.flatMap { try? gpxProfile($0) }, manual: race.manualPaces)
+    } ?? []
+    return RaceTarget(
+        id: race.id,
+        distance: race.distance,
+        targetSeconds: race.frozenTargetSeconds ?? race.goalSeconds,
+        strategyPaces: Dictionary(strategy.map { ($0.index, $0.pace) }, uniquingKeysWith: { first, _ in first })
+    )
+}
+
+private func scoreDistanceGap(_ distance: Double, raceDistance: Double) -> Double? {
+    guard raceDistance > 0 else { return nil }
+    let gap = abs(distance - raceDistance) / raceDistance
+    return gap <= RaceDetectionConstants.scoreDistanceTolerance ? gap : nil
+}
+
 private func registeredRace(for activity: ActivityRecord, in context: ModelContext) throws -> RaceRecord? {
     guard let distance = activity.distance else { return nil }
     let day = runDay(activity).iso
