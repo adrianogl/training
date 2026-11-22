@@ -18,7 +18,7 @@ enum PlannedViewConstants {
     static let hoursPerRow = 6
     static let hoursPerRowLong = 5
     static let tomorrow = "amanhã"
-    static let phaseColumn: CGFloat = 76
+    static let phaseColumn: CGFloat = 108
     static let repLabelColumn: CGFloat = 70
     static let repValueColumn: CGFloat = 54
     static let previousDateColumn: CGFloat = 64

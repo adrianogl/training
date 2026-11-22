@@ -23,6 +23,28 @@ import TrainingCore
         ])
     }
 
+    @Test func standingRestGoesAsTimedRestInsideTheSeries() {
+        let workout = TrainerWorkout(day: day, kind: .vo2max, title: "VO2", totalMeters: 10_000, steps: [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 2, meters: 1_000, paceLow: 230, paceHigh: 236),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 150),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 150),
+            TrainerStep(kind: .work, repeats: 3, meters: 1_000, paceLow: 230, paceHigh: 236),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 150),
+            TrainerStep(kind: .work, repeats: 6, meters: 100, paceLow: 200, paceHigh: 206),
+            TrainerStep(kind: .recovery, repeats: 5, meters: 100),
+            TrainerStep(kind: .cooldown, meters: 1_000),
+        ], rationale: "")
+        #expect(TrainerSendBuilder.runSteps(workout) == [
+            .warmup(meters: 3_000),
+            .repeated(times: 2, steps: [.interval(meters: 1_000, fastest: 230, slowest: 236), .rest(seconds: 150)]),
+            .repeated(times: 3, steps: [.interval(meters: 1_000, fastest: 230, slowest: 236), .rest(seconds: 150)]),
+            .repeated(times: 6, steps: [.interval(meters: 100, fastest: 200, slowest: 206), .recovery(meters: 100)]),
+            .cooldown(meters: 1_000),
+        ])
+        #expect(!TrainerSendBuilder.runSteps(workout).description.contains("recovery(meters: 0.0)"))
+    }
+
     @Test func easyRunWithoutStepsIsOneInterval() {
         let easy = TrainerWorkout(day: day, kind: .easy, title: "Rodagem 10 km", totalMeters: 10_000, steps: [], paceLow: 295, paceHigh: 310, rationale: "")
         #expect(TrainerSendBuilder.runSteps(easy) == [.interval(meters: 10_000, fastest: 295, slowest: 310)])
