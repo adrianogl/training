@@ -13,7 +13,7 @@ extension TrainerModel {
                let item = TrainerSendBuilder.runItem(workout) {
                 items.append(item)
             }
-            if filter.kinds.contains(.strength) {
+            if filter.kinds.contains(.strength), plan != nil {
                 for session in trainerSessions(on: day) {
                     if let workout = strengthWorkout(sessionId: session.id, day: day),
                        let item = TrainerSendBuilder.strengthItem(workout, sessionId: session.id, day: day) {
@@ -68,6 +68,18 @@ extension TrainerModel {
               let scheduled = try? await PlannedWorkouts.scheduledWorkoutIds(client: client, from: first, through: last) else { return }
         for (key, record) in upcoming where !scheduled.contains(record.workoutId) {
             store.remove(key: key)
+        }
+    }
+
+    func deletePlanAndSentWorkouts(client: GarminAccountClient?, appleWatch: Bool) async {
+        let store = TrainerSendStore()
+        let sent = TrainerSendBuilder.planRecords(store.records(), from: currentDay)
+        deletePlan()
+        guard !sent.isEmpty else { return }
+        if appleWatch {
+            _ = await sendToAppleWatch([], stale: sent)
+        } else if let client {
+            _ = await sendToGarmin([], stale: sent, client: client)
         }
     }
 

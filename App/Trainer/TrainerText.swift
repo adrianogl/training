@@ -18,7 +18,7 @@ enum TrainerText {
     static let deleteMenu = "Apagar plano"
     static let deleteTitle = "Apagar o plano do treinador?"
     static let deleteConfirm = "Apagar plano"
-    static let deleteMessage = "O plano e as versões anteriores saem do aparelho. Os treinos feitos continuam no app."
+    static let deleteMessage = "O plano e as versões anteriores saem do aparelho, e as corridas e a força do treinador já enviadas ao relógio são apagadas dele. Os treinos feitos e os do MFIT continuam."
     static let cancel = "Cancelar"
     static let done = "Concluir"
     static let phases: [(TrainerPhase, String)] = [

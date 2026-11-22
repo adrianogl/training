@@ -53,7 +53,9 @@ struct TrainerView: View {
             }
         }
         .confirmationDialog(TrainerText.deleteTitle, isPresented: $confirmsDelete, titleVisibility: .visible) {
-            Button(TrainerText.deleteConfirm, role: .destructive) { model.deletePlan() }
+            Button(TrainerText.deleteConfirm, role: .destructive) {
+                Task { await model.deletePlanAndSentWorkouts(client: app.garminAccount.client, appleWatch: app.watchKind == .appleWatch) }
+            }
             Button(TrainerText.cancel, role: .cancel) {}
         } message: {
             Text(TrainerText.deleteMessage)
