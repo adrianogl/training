@@ -19,7 +19,8 @@ import TrainingCore
         let steps = TrainerSendBuilder.runSteps(threshold())
         #expect(steps == [
             .warmup(meters: 3_000),
-            .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]),
+            .repeated(times: 7, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]),
+            .interval(meters: 1_000, fastest: 240, slowest: 248),
         ])
     }
 
@@ -35,11 +36,14 @@ import TrainingCore
             TrainerStep(kind: .recovery, repeats: 5, meters: 100),
             TrainerStep(kind: .cooldown, meters: 1_000),
         ], rationale: "")
+        let rep = PlannedRunStep.interval(meters: 1_000, fastest: 230, slowest: 236)
+        let stride = PlannedRunStep.interval(meters: 100, fastest: 200, slowest: 206)
         #expect(TrainerSendBuilder.runSteps(workout) == [
             .warmup(meters: 3_000),
-            .repeated(times: 2, steps: [.interval(meters: 1_000, fastest: 230, slowest: 236), .rest(seconds: 150)]),
-            .repeated(times: 3, steps: [.interval(meters: 1_000, fastest: 230, slowest: 236), .rest(seconds: 150)]),
-            .repeated(times: 6, steps: [.interval(meters: 100, fastest: 200, slowest: 206), .recovery(meters: 100)]),
+            rep, .rest(seconds: 150), rep,
+            .rest(seconds: 150),
+            .repeated(times: 2, steps: [rep, .rest(seconds: 150)]), rep,
+            .repeated(times: 5, steps: [stride, .recovery(meters: 100)]), stride,
             .cooldown(meters: 1_000),
         ])
         #expect(!TrainerSendBuilder.runSteps(workout).description.contains("recovery(meters: 0.0)"))

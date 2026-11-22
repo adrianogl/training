@@ -26,20 +26,27 @@ enum TrainerSendBuilder {
                 let interval = PlannedRunStep.interval(meters: step.meters, fastest: step.paceLow ?? workout.paceLow, slowest: step.paceHigh ?? workout.paceHigh)
                 let next = index + 1 < steps.count ? steps[index + 1] : nil
                 if step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
-                    result.append(.repeated(times: step.repeats, steps: [interval, recovery(next)]))
+                    result += series(step.repeats, interval: interval, recovery: recovery(next))
                     index += 2
-                    if index < steps.count, steps[index].kind == .recovery, steps[index].repeats <= 1, let rest = steps[index].restSeconds,
-                       rest == next.restSeconds {
-                        index += 1
-                    }
                     continue
                 }
-                let rest = (step.restSeconds ?? 0) > 0 ? [PlannedRunStep.rest(seconds: step.restSeconds ?? 0)] : []
-                result += step.repeats > 1 ? [.repeated(times: step.repeats, steps: [interval] + rest)] : [interval] + rest
+                if step.repeats > 1, let seconds = step.restSeconds, seconds > 0 {
+                    result += series(step.repeats, interval: interval, recovery: .rest(seconds: seconds))
+                } else if step.repeats > 1 {
+                    result.append(.repeated(times: step.repeats, steps: [interval]))
+                } else {
+                    result += [interval] + ((step.restSeconds ?? 0) > 0 ? [.rest(seconds: step.restSeconds ?? 0)] : [])
+                }
             }
             index += 1
         }
         return result
+    }
+
+    private static func series(_ repeats: Int, interval: PlannedRunStep, recovery: PlannedRunStep) -> [PlannedRunStep] {
+        let paired = repeats - 1
+        let head: [PlannedRunStep] = paired > 1 ? [.repeated(times: paired, steps: [interval, recovery])] : [interval, recovery]
+        return head + [interval]
     }
 
     private static func recovery(_ step: TrainerStep) -> PlannedRunStep {
