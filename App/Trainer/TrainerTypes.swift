@@ -152,10 +152,26 @@ enum TrainerStrengthResult {
     case remove(UUID)
 }
 
-struct TrainerBestTime: Equatable {
+struct TrainerHeatHour: Equatable, Identifiable {
     let hour: Int
     let temperature: Double
+    let dewPoint: Double?
     let heat: TrainerHeat
-    let laterHotHour: Int?
-    let laterBlockReduction: Double
+
+    var id: Int { hour }
+}
+
+struct TrainerHeatDay: Equatable {
+    let hours: [TrainerHeatHour]
+    let usualHour: Int
+    let suggestedHour: Int?
+    let hotSessions: Int
+
+    func hour(_ value: Int) -> TrainerHeatHour? {
+        hours.first { $0.hour == value }
+    }
+
+    func laterHot(after value: Int) -> TrainerHeatHour? {
+        hours.first { $0.hour > value && $0.heat.isHot }
+    }
 }

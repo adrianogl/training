@@ -41,6 +41,10 @@ public enum WeatherAdjustment {
         windSpeed * C.windHeightFactor * cos((windFrom - heading) * .pi / 180)
     }
 
+    public static func heatShare(temperature: Double, dewPoint: Double, radiation: Double? = nil, hotSessions: Int = 0) -> Double {
+        heatFactor(temperature: temperature + sunBoost(radiation), dewPoint: dewPoint) * (1 - adaptation(hotSessions: hotSessions))
+    }
+
     public static func heatFactor(temperature: Double, dewPoint: Double) -> Double {
         interpolate(fahrenheit(temperature) + fahrenheit(dewPoint), bands: C.heatBands.map { ($0.sumFahrenheit, $0.factor) }, negated: false)
     }

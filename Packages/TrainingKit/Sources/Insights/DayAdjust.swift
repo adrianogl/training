@@ -20,11 +20,12 @@ public enum DayAdjust {
             shorten = readinessSeconds == C.readinessSteps.map(\.seconds).max()
         }
 
-        let adaptation = WeatherAdjustment.adaptation(hotSessions: input.hotSessions)
         var heatShare = 0.0
         var heatSeconds = 0
         if let temperature = input.temperature, let dewPoint = input.dewPoint {
-            heatShare = WeatherAdjustment.heatFactor(temperature: temperature, dewPoint: dewPoint) * (1 - adaptation)
+            heatShare = WeatherAdjustment.heatShare(
+                temperature: temperature, dewPoint: dewPoint, radiation: input.radiation, hotSessions: input.hotSessions
+            )
             heatSeconds = activePaces(in: input.plan.steps).map { heatOffset($0, share: heatShare) }.max() ?? 0
             if heatSeconds > 0 {
                 reasons.append(.heat(temperature: temperature, dewPoint: dewPoint, seconds: heatSeconds))
@@ -56,21 +57,18 @@ public enum DayAdjust {
         return .adjusted(steps: steps, original: input.plan.steps, seconds: total, reasons: reasons, shortened: didShorten)
     }
 
-    public static func usualHour(_ starts: [Date], calendar: Calendar) -> Int {
-        let hours = starts.map { calendar.component(.hour, from: $0) }.sorted()
-        guard !hours.isEmpty else { return C.defaultHour }
-        return hours[(hours.count - 1) / 2]
-    }
-
     public static func weather(
         at hour: Int, in hours: [(hour: Int, temperature: Double, dewPoint: Double?)]
     ) -> (temperature: Double, dewPoint: Double?)? {
-        let closest = hours.min { lhs, rhs in
-            let left = abs(lhs.hour - hour)
-            let right = abs(rhs.hour - hour)
-            return left != right ? left < right : lhs.hour < rhs.hour
+        closestIndex(to: hour, in: hours.map(\.hour)).map { (hours[$0].temperature, hours[$0].dewPoint) }
+    }
+
+    public static func closestIndex(to hour: Int, in hours: [Int]) -> Int? {
+        hours.indices.min { lhs, rhs in
+            let left = abs(hours[lhs] - hour)
+            let right = abs(hours[rhs] - hour)
+            return left != right ? left < right : hours[lhs] < hours[rhs]
         }
-        return closest.map { ($0.temperature, $0.dewPoint) }
     }
 
     private static func activePaces(in steps: [PlannedStep]) -> [Double] {

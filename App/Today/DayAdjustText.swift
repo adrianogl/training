@@ -19,11 +19,19 @@ enum DayAdjustText {
     static func input(
         plan: PlannedWorkout, score: Int?, forecast: [HourlyWeather], hour: Int, hotSessions: Int, heavyLegs: Bool
     ) -> DayAdjustInput {
-        let weather = DayAdjust.weather(at: hour, in: forecast.map { ($0.hour, $0.temperature, $0.dewPoint) })
+        let weather = DayAdjust.closestIndex(to: hour, in: forecast.map(\.hour)).map { forecast[$0] }
         return DayAdjustInput(
             plan: plan, shape: shape(PlanText.shape(plan)), score: score, temperature: weather?.temperature,
-            dewPoint: weather?.dewPoint, hotSessions: hotSessions, heavyLegs: heavyLegs
+            dewPoint: weather?.dewPoint, hotSessions: hotSessions, heavyLegs: heavyLegs, radiation: weather?.radiation
         )
+    }
+
+    static func usualHour(for plan: PlannedWorkout?, runs: [UsualHourRun], now: Date = .now) -> Int {
+        UsualHour.hour(for: now, long: plan.map { PlanText.shape($0) == .long } ?? false, runs: runs, now: now, calendar: .current)
+    }
+
+    static func usualRuns(_ records: [ActivityRecord]) -> [UsualHourRun] {
+        records.map { UsualHourRun(start: $0.start, meters: $0.distance ?? 0, seconds: $0.duration ?? 0) }
     }
 
     static func display(_ result: DayAdjustResult, plan: PlannedWorkout, hour: Int) -> DayAdjustDisplay {
@@ -86,7 +94,7 @@ enum DayAdjustText {
         plan: PlannedWorkout, score: Int?, forecast: [HourlyWeather], recent: [ActivityRecord], heavyLegs: Bool, showsAdvice: Bool = true
     ) -> String? {
         guard showsAdvice else { return nil }
-        let hour = DayAdjust.usualHour(recent.map(\.start), calendar: .current)
+        let hour = usualHour(for: plan, runs: usualRuns(recent))
         let input = input(
             plan: plan, score: score, forecast: forecast, hour: hour,
             hotSessions: ActivityRecord.hotSessions(before: .now, among: recent), heavyLegs: heavyLegs

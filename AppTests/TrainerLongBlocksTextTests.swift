@@ -41,31 +41,59 @@ import TrainingCore
         #expect(bars.filter { !$0.isRest }.count == 2)
     }
 
-    @Test func picksTheCoolestMorningHourAndWarnsAboutHeat() {
-        let cool = [(5, 19.0), (6, 17.0), (7, 20.0), (8, 23.0), (9, 27.0), (10, 29.0)].map { HourlyWeather(hour: $0.0, temperature: $0.1, dewPoint: $0.0 < 9 ? -5 : 21) }
-        let best = TrainerBestTimeBuilder.make(weather: cool)
-        #expect(best?.hour == 6)
-        #expect(best?.temperature == 17)
-        #expect(best?.heat.isHot == false)
-        #expect(best?.laterHotHour == 9)
-        #expect(best?.laterBlockReduction == 1_000)
-        #expect(TrainerText.heatLater(hour: 9, hasBlocks: false, blockReduction: 1_000) == "A partir das 9h o calor passa a pesar no pace.")
-        #expect(TrainerText.heatLater(hour: 9, hasBlocks: true, blockReduction: 1_000) == "A partir das 9h o calor passa a pesar no pace e os blocos ficam 1 km menores.")
-        let mild = [(6, 17.0), (9, 22.0)].map { HourlyWeather(hour: $0.0, temperature: $0.1, dewPoint: $0.0 < 9 ? -5 : 18) }
-        let mildBest = TrainerBestTimeBuilder.make(weather: mild)
-        #expect(mildBest?.laterHotHour == 9)
-        #expect(mildBest?.laterBlockReduction == 0)
-        #expect(TrainerText.heatLater(hour: 9, hasBlocks: true, blockReduction: 0) == "A partir das 9h o calor passa a pesar no pace.")
-        let hot = [(5, 27.0), (6, 27.0), (7, 29.0)].map { HourlyWeather(hour: $0.0, temperature: $0.1, dewPoint: 22) }
-        let warm = TrainerBestTimeBuilder.make(weather: hot, longPace: 300)
-        #expect(warm?.hour == 5)
-        let offset = warm?.heat.paceOffset ?? 0
-        #expect(offset > 0)
-        #expect(warm?.laterHotHour == nil)
-        #expect(TrainerText.heatWarning(warm!.heat, hasBlocks: false) == "Mesmo no horário mais fresco, calor de 27 °C com orvalho de 22 °C: o pace sobe \(offset) s/km.")
-        #expect(TrainerText.heatWarning(warm!.heat, hasBlocks: true) == "Mesmo no horário mais fresco, calor de 27 °C com orvalho de 22 °C: o pace sobe \(offset) s/km e os blocos ficam 1 km menores.")
-        #expect(TrainerBestTimeBuilder.make(weather: []) == nil)
-        #expect(TrainerBestTimeBuilder.make(weather: [HourlyWeather(hour: 15, temperature: 30, dewPoint: nil)]) == nil)
+    private var hotSaturday: [HourlyWeather] {
+        [(5, 21.0, 19.0), (6, 22, 19), (7, 24, 20), (8, 26, 20), (9, 28, 21), (10, 29, 21), (11, 30, 21), (15, 31, 21), (21, 24, 20), (23, 22, 19)]
+            .map { HourlyWeather(hour: $0.0, temperature: $0.1, dewPoint: $0.2) }
+    }
+
+    @Test func showsTheUsualHourWithAdaptationAndSuggestsACoolerOne() throws {
+        let day = try #require(TrainerHeatDayBuilder.make(weather: hotSaturday, longPace: 310, usualHour: 8, hotSessions: 6))
+        let usual = try #require(day.hour(8))
+
+        #expect(day.usualHour == 8)
+        #expect(day.hours.map(\.hour) == [5, 6, 7, 8, 9, 10, 11, 15, 21])
+        #expect(usual.heat.paceOffset == 9)
+        #expect(day.suggestedHour == 6)
+        #expect(day.hour(6)?.heat.paceOffset == 6)
+        #expect(TrainerText.heatEffect(usual, day: day, hasBlocks: false) == "O pace sobe 9 s/km. Já desconta as 6 corridas no calor das últimas duas semanas.")
+        #expect(TrainerText.heatHourLabel(8, usual: true) == "No seu horário, 8h")
+        #expect(TrainerText.heatConditions(usual) == "26 °C · orvalho 20 °C")
+        #expect(TrainerText.heatSwapConditions(try #require(day.hour(6))) == "22 °C · +6 s/km")
+        #expect(TrainerText.heatSwapGain(3) == "3 s/km a menos de ajuste. Toque para ver.")
+    }
+
+    @Test func withoutAdaptationTheHeatWeighsMore() throws {
+        let adapted = try #require(TrainerHeatDayBuilder.make(weather: hotSaturday, longPace: 310, usualHour: 8, hotSessions: 6))
+        let fresh = try #require(TrainerHeatDayBuilder.make(weather: hotSaturday, longPace: 310, usualHour: 8, hotSessions: 0))
+
+        #expect((fresh.hour(8)?.heat.paceOffset ?? 0) > (adapted.hour(8)?.heat.paceOffset ?? 0))
+        #expect(TrainerText.heatEffect(try #require(fresh.hour(8)), day: fresh, hasBlocks: false) == "O pace sobe \(fresh.hour(8)?.heat.paceOffset ?? 0) s/km.")
+    }
+
+    @Test func sunAddsHeatToTheHour() throws {
+        let shade = [HourlyWeather(hour: 9, temperature: 25, dewPoint: 18)]
+        let sun = [HourlyWeather(hour: 9, temperature: 25, dewPoint: 18, radiation: 800)]
+        let shaded = try #require(TrainerHeatDayBuilder.make(weather: shade, longPace: 310, usualHour: 9))
+        let sunny = try #require(TrainerHeatDayBuilder.make(weather: sun, longPace: 310, usualHour: 9))
+
+        #expect((sunny.hour(9)?.heat.paceOffset ?? 0) > (shaded.hour(9)?.heat.paceOffset ?? 0))
+    }
+
+    @Test func mildHourHasNoSuggestionAndWarnsLater() throws {
+        let mild = [(6, 15.0, 10.0), (8, 17, 10), (10, 26, 19)].map { HourlyWeather(hour: $0.0, temperature: $0.1, dewPoint: $0.2) }
+        let day = try #require(TrainerHeatDayBuilder.make(weather: mild, longPace: 310, usualHour: 8))
+        let usual = try #require(day.hour(8))
+
+        #expect(day.suggestedHour == nil)
+        #expect(!usual.heat.isHot)
+        #expect(TrainerText.heatEffect(usual, day: day, hasBlocks: false) == "Sem ajuste de pace nessa hora. A partir das 10h o calor passa a pesar.")
+        #expect(TrainerHeatDayBuilder.make(weather: []) == nil)
+        #expect(TrainerHeatDayBuilder.make(weather: [HourlyWeather(hour: 23, temperature: 30, dewPoint: 20)]) == nil)
+    }
+
+    @Test func usualHourSnapsToTheClosestForecastHour() throws {
+        let day = try #require(TrainerHeatDayBuilder.make(weather: hotSaturday, longPace: 310, usualHour: 13))
+        #expect(day.usualHour == 11)
     }
 
     @Test func writesTheStageCaptionAndTheSuggestion() {

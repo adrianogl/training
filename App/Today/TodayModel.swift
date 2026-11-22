@@ -31,7 +31,7 @@ import WorkoutAnalysis
     private(set) var plannedWeeks: [Day: Double] = [:]
     private(set) var garminReadiness: GarminReadinessScore?
     private(set) var goals: [GoalSnapshot] = []
-    private(set) var recentRunStarts: [Date] = []
+    private(set) var recentRuns: [UsualHourRun] = []
     private(set) var hotSessions = 0
     private(set) var isLoaded = false
     private(set) var plannedLoaded = false
@@ -74,7 +74,7 @@ import WorkoutAnalysis
         currentRuns = result.currentRuns
         signals = result.signals
         goals = result.goals
-        recentRunStarts = result.recentRunStarts
+        recentRuns = result.recentRuns
         hotSessions = result.hotSessions
         if let breakdown = result.summary.readiness, let verdict = result.summary.verdict {
             readinessSentence = TemplateInsightNarrator.readinessSentence(breakdown, verdict: verdict)
@@ -266,13 +266,13 @@ import WorkoutAnalysis
             currentRuns: reportRuns(context: context, start: today.weekStart),
             signals: signals(context: context, today: today),
             goals: (try? goalSnapshots(context: context, today: today)) ?? [],
-            recentRunStarts: recent.map(\.start),
+            recentRuns: DayAdjustText.usualRuns(recent),
             hotSessions: ActivityRecord.hotSessions(before: .now, among: recent)
         )
     }
 
     nonisolated static func recentRuns(context: ModelContext) -> [ActivityRecord] {
-        let days = max(DayAdjustConstants.usualWindowDays, RunWeatherConstants.adaptationWindowDays)
+        let days = max(UsualHourConstants.windowDays, RunWeatherConstants.adaptationWindowDays)
         let since = Date.now.addingTimeInterval(-Double(days) * RecoveryConstants.secondsPerDay)
         let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= since })
         return ((try? context.fetch(descriptor)) ?? []).filter { ActivityTypeKey.isRun($0.typeKey) && $0.hasStart }

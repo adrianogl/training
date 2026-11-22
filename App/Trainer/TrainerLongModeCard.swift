@@ -23,32 +23,3 @@ struct TrainerLongModeCard: View {
         .brandCard()
     }
 }
-
-struct TrainerBestTimeCard: View {
-    let bestTime: TrainerBestTime
-    let hasBlocks: Bool
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                DSCardLabel(TrainerText.bestTimeTitle)
-                Spacer()
-                Text(TrainerText.bestTimeCaption).font(.caption).foregroundStyle(BrandColors.dim)
-            }
-            HStack {
-                Text(TrainerText.bestTimeStart(bestTime.hour)).font(.subheadline).foregroundStyle(BrandColors.text)
-                Spacer()
-                Text(TrainerText.temperature(bestTime.temperature))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(bestTime.heat.isHot ? BrandColors.attention : BrandColors.accent)
-                    .monospacedDigit()
-            }
-            if bestTime.heat.isHot {
-                Text(TrainerText.heatWarning(bestTime.heat, hasBlocks: hasBlocks)).font(.footnote).foregroundStyle(BrandColors.dim)
-            } else if let later = bestTime.laterHotHour {
-                Text(TrainerText.heatLater(hour: later, hasBlocks: hasBlocks, blockReduction: bestTime.laterBlockReduction)).font(.footnote).foregroundStyle(BrandColors.dim)
-            }
-        }
-        .brandCard()
-    }
-}

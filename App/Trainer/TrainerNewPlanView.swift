@@ -97,7 +97,7 @@ struct TrainerNewPlanView: View {
             prefill()
             if !isEditing, startKilometers == nil { applySuggestion() }
             if raceId == nil { raceId = model.raceOptions().first?.id }
-            if startKilometers == nil { startKilometers = averageKilometers }
+            if startKilometers == nil { useSuggestion() }
             if !strengthLoaded {
                 strengthLoaded = true
                 strength = model.strengthPlan == nil ? model.previewStrength() : model.strengthSessions
@@ -219,6 +219,28 @@ struct TrainerNewPlanView: View {
         Int((model.previewWeeklyMeters() / TrainerConstants.metersPerKilometer).rounded())
     }
 
+    private var volumeSuggestion: TrainerVolumeSuggestion {
+        let paces = isEditing ? model.plan?.paces ?? model.previewPaces() : model.previewPaces()
+        return model.volumeSuggestion(structure: structure, paces: paces, target: target() ?? TrainerDaysConstants.fallbackTarget)
+    }
+
+    private func kilometers(_ meters: Double) -> Int {
+        Int((meters / TrainerConstants.metersPerKilometer).rounded())
+    }
+
+    private func useSuggestion() {
+        let suggestion = volumeSuggestion
+        startKilometers = kilometers(suggestion.startMeters)
+        peakKilometers = kilometers(suggestion.peakMeters)
+    }
+
+    private var suggestionBox: some View {
+        let suggestion = volumeSuggestion
+        let inUse = chosenStart == kilometers(suggestion.startMeters) && chosenPeak == kilometers(suggestion.peakMeters)
+        return TrainerVolumeSuggestionBox(suggestion: suggestion, inUse: inUse) { useSuggestion() }
+    }
+
+
     private var chosenStart: Int { startKilometers ?? averageKilometers }
 
     private var chosenPeak: Int {
@@ -241,13 +263,14 @@ struct TrainerNewPlanView: View {
             start: Double(start) * TrainerConstants.metersPerKilometer, peak: Double(peak) * TrainerConstants.metersPerKilometer
         )
         return VStack(alignment: .leading, spacing: 8) {
+            suggestionBox
             DSCardLabel(TrainerText.startTitle)
             Stepper(
                 TrainerText.weeklyValue(start),
                 value: Binding(get: { start }, set: { startKilometers = $0 }),
                 in: TrainerConstants.weeklyKilometersRange
             )
-            Text(TrainerText.weeklyAverage(averageKilometers)).font(.footnote).foregroundStyle(BrandColors.dim)
+            Text(TrainerText.normalAverage(model.normalVolume())).font(.footnote).foregroundStyle(BrandColors.dim)
             DSCardLabel(TrainerText.peakTitle)
             Stepper(
                 TrainerText.weeklyValue(peak),

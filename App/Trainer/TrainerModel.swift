@@ -429,7 +429,17 @@ import TrainingCore
     }
 
     func previewWeeklyMeters() -> Double {
-        TrainerEngine.averageWeeklyMeters(history: history, today: currentDay)
+        normalVolume().meters
+    }
+
+    func normalVolume() -> TrainerNormalVolume {
+        TrainerEngine.normalWeeklyMeters(history: history, today: currentDay, plan: plan)
+    }
+
+    func volumeSuggestion(structure: [Int: TrainerDayKind], paces: TrainerPaces, target: TrainerTarget) -> TrainerVolumeSuggestion {
+        TrainerEngine.volumeSuggestion(
+            history: history, today: currentDay, plan: plan, review: cycleReview, structure: structure, paces: paces, target: target
+        )
     }
 
     func previewPeakMeters(start: Double) -> Double {

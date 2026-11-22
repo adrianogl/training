@@ -47,7 +47,7 @@ struct TodayWorkoutCard: View {
     }
 
     private var usualHour: Int {
-        DayAdjust.usualHour(model.recentRunStarts, calendar: .current)
+        DayAdjustText.usualHour(for: todayPlan, runs: model.recentRuns)
     }
 
     private func adjustDisplay(_ plan: PlannedWorkout, score: Int?, showsAdvice: Bool) -> DayAdjustDisplay {
@@ -114,30 +114,46 @@ struct TodayWorkoutCard: View {
             case nil:
                 Text(C.workoutNothingTomorrow).font(.footnote).foregroundStyle(BrandColors.dim)
             }
-            if pick.tomorrow != nil, let best = TrainerBestTimeBuilder.make(weather: weather, longPace: trainer.plan?.paces.long) {
-                bestTime(best)
+            if pick.tomorrow != nil, let day = TrainerHeatDayBuilder.make(
+                weather: weather, longPace: trainer.plan?.paces.long, usualHour: tomorrowHour, hotSessions: model.hotSessions
+            ), let usual = day.hour(day.usualHour) {
+                tomorrowHeat(day, usual: usual)
             }
         }
     }
 
-    private func bestTime(_ best: TrainerBestTime) -> some View {
+    private func tomorrowHeat(_ day: TrainerHeatDay, usual: TrainerHeatHour) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(C.workoutBestTimeTitle).font(.caption).foregroundStyle(BrandColors.dim)
                 Spacer()
-                Text("\(TrainerText.bestTimeStart(best.hour)) · \(TrainerText.temperature(best.temperature))")
+                Text("\(TrainerText.heatHourLabel(usual.hour, usual: true)) · \(TrainerText.temperature(usual.temperature))")
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(best.heat.isHot ? BrandColors.attention : BrandColors.accent)
+                    .foregroundStyle(usual.heat.isHot ? BrandColors.attention : BrandColors.accent)
                     .monospacedDigit()
             }
-            if best.heat.isHot {
-                Text(TrainerText.heatWarning(best.heat, hasBlocks: hasBlocks)).font(.caption).foregroundStyle(BrandColors.dim)
-            } else if let later = best.laterHotHour {
-                Text(TrainerText.heatLater(hour: later, hasBlocks: hasBlocks, blockReduction: best.laterBlockReduction)).font(.caption).foregroundStyle(BrandColors.dim)
+            Text(TrainerText.heatEffect(usual, day: day, hasBlocks: hasBlocks)).font(.caption).foregroundStyle(BrandColors.dim)
+            if let better = day.suggestedHour.flatMap(day.hour) {
+                Text(TrainerText.heatSwapGainShort(better.hour, seconds: usual.heat.paceOffset - better.heat.paceOffset))
+                    .font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
             }
         }
         .padding(10)
         .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    private var tomorrowHour: Int {
+        let tomorrow = model.today.adding(days: 1)
+        let date = Calendar.current.date(from: DateComponents(year: tomorrow.year, month: tomorrow.month, day: tomorrow.day, hour: 12)) ?? .now
+        return UsualHour.hour(for: date, long: tomorrowIsLong, runs: model.recentRuns, now: .now, calendar: .current)
+    }
+
+    private var tomorrowIsLong: Bool {
+        switch pick.tomorrow {
+        case .trainer(let row): row.workout.kind == .long
+        case .garmin(let plan): PlanText.shape(plan) == .long
+        case nil: false
+        }
     }
 
     private var hasBlocks: Bool {
