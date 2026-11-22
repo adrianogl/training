@@ -1,11 +1,17 @@
 {
-  "versao": "1.39.2",
-  "build": 62,
-  "versao_app": "1.39.2",
+  "versao": "1.39.3",
+  "build": 63,
+  "versao_app": "1.39.3",
   "notas": [
-    "Envia treinos do MFIT com categoria que a Garmin aceita"
+    "Reenvia treino que foi apagado no Garmin"
   ],
   "historico": [
+    {
+      "versao": "1.39.3",
+      "notas": [
+        "Reenvia treino que foi apagado no Garmin"
+      ]
+    },
     {
       "versao": "1.39.2",
       "notas": [
@@ -59,12 +65,6 @@
       "versao": "1.36.0",
       "notas": [
         "Pace do treino do dia recalculado por prontidão, calor e perna pesada"
-      ]
-    },
-    {
-      "versao": "1.35.2",
-      "notas": [
-        "Como a nota de prontidão é calculada fica sempre à vista"
       ]
     }
   ]
