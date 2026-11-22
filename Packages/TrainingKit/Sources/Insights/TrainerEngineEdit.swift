@@ -215,7 +215,7 @@ extension TrainerEngine {
         var result = workout
         result.steps = steps
         result.totalMeters = stepsMeters(steps)
-        result.title = T.title(kind: workout.kind, meters: 0, session: session)
+        result.title = T.title(kind: workout.kind, meters: stepsMeters(steps), session: session)
         result.variant = nil
         result.paceLow = band.low
         result.paceHigh = band.high

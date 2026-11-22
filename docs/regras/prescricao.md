@@ -84,6 +84,10 @@ Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sáb
 | Média-longa | com 65 km ou mais na semana de progressão, a rodagem entre limiar e VO2 vira média-longa: 20% da semana, entre 14 e 16 km, no máximo 75% do longão | `mediumLongWeekMeters`, `mediumLongShare`, `mediumLongMinimumMeters`, `mediumLongMaximumMeters`, `mediumLongLongShare` |
 | Semana da prova | trotes de 5 km | `raceWeekEasyMeters` |
 
+## Nome do treino
+
+Todo treino de corrida tem o nome no formato "tipo + distância total", igual no app e no Garmin: Rodagem, Opcional, Fartlek, Média-longa, Longão, Limiar, Tempo, Limiar progressivo, Ritmo de prova, VO2, Pace-alvo, Subidas e Prova, seguidos dos km do treino inteiro (aquecimento e volta leve incluídos). Ex.: "Limiar 11 km", "Longão 18 km". A estrutura (4 × 2 km, blocos, progressivo, tiros curtos) fica nos passos e no detalhe do treino. A força usa o foco (Superiores, Pernas, Corpo inteiro, Mobilidade e core, Mobilidade); o MFIT usa o nome do professor. `TrainerEngineText.title`.
+
 ## Ida e volta
 
 Opção do plano ("Ida e volta" em Dias da semana), desligada por padrão. Serve para quem sai de casa e volta na metade, e também como marcador da metade do treino.

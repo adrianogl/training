@@ -107,7 +107,7 @@ import WorkoutAnalysis
         let workout = longWorkout(created)
         let stage = created.longStage
         #expect(created.longMode == .blocks)
-        #expect(workout.title.hasSuffix("em blocos"))
+        #expect(workout.title.hasPrefix("Longão ") && TrainerEngine.plannedPauses(of: workout) > 0)
         let blocks = TrainerEngine.longBlocks(stage: stage, meters: workout.totalMeters)
         #expect(TrainerEngine.plannedPauses(of: workout) == blocks.count - 1)
         #expect(TrainerEngine.blockSizes(of: workout) == blocks)

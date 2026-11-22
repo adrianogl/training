@@ -65,7 +65,7 @@ import WorkoutAnalysis
         #expect(thresholds.isSuperset(of: [.continuousTempo, .progressiveThreshold]))
         let vo2 = weeks.compactMap { workout(plan, $0, .vo2max) }
         #expect(vo2.contains { $0.variant == .hills })
-        #expect(vo2.contains { $0.title == "VO2 máx 6 × 800 m" })
+        #expect(vo2.contains { $0.title.hasPrefix("VO2 ") && TrainerEngine.describe($0).hasPrefix("6 × 800 m") })
         #expect(vo2.filter { $0.variant == .hills }.allSatisfy { workout in
             plan.weeks.first { $0.start == workout.day.weekStart }?.phase == .base
         })
@@ -97,7 +97,7 @@ import WorkoutAnalysis
             #expect(long.variant == nil && long.totalMeters <= 17_000)
         }
         let racePace = try #require(longs.first { $0.variant == .racePaceLong })
-        #expect(racePace.title == "Longão 19 km com 3 × 3 km no ritmo da meia")
+        #expect(racePace.title == "Longão 19 km" && racePace.variant == .racePaceLong)
         #expect(racePace.steps.contains { $0.kind == .work && $0.repeats == 3 && $0.meters == 3_000 && $0.method == .racePace })
     }
 
@@ -153,7 +153,7 @@ import WorkoutAnalysis
                 #expect(monday.variant == nil)
             } else {
                 #expect(monday.variant == .strides)
-                #expect(monday.title.hasSuffix("+ 6 × 100 m"))
+                #expect(monday.variant == .strides && monday.title.hasPrefix("Rodagem "))
                 #expect(monday.totalMeters.truncatingRemainder(dividingBy: 1_000) == 0)
                 let strides = try #require(monday.steps.first { $0.kind == .work })
                 #expect(strides.repeats == 6 && strides.meters == 100)
@@ -226,7 +226,7 @@ import WorkoutAnalysis
         let first = try #require(fartleks.first)
 
         #expect(fartleks.count >= 3)
-        #expect(first.kind == .optionalEasy && first.title == "Fartlek 6 × 500 m")
+        #expect(first.kind == .optionalEasy && first.variant == .fartlek && first.title.hasPrefix("Fartlek "))
         #expect(first.note == "só se a prontidão ≥ 60; senão rodagem leve de \(Int(first.totalMeters / 1_000)) km")
         for item in fartleks {
             let week = try #require(plain.weeks.first { $0.start == item.day.weekStart })
@@ -260,9 +260,9 @@ import WorkoutAnalysis
         let hills = try #require(plan.workouts.first { $0.variant == .hills })
         let medium = try #require(plan.workouts.first { $0.variant == .mediumLong })
 
-        #expect(tempo.title.hasPrefix("Tempo contínuo"))
+        #expect(tempo.title.hasPrefix("Tempo "))
         #expect(tempo.rationale.contains("segura o limiar sem pausa"))
-        #expect(progressive.title == "Limiar progressivo 3 × 2 km")
+        #expect(progressive.title.hasPrefix("Limiar progressivo ") && progressive.steps.filter { $0.kind == .work && $0.meters == 2_000 }.count == 3)
         #expect(progressive.rationale.contains("5 s/km mais rápido"))
         let paces = progressive.steps.filter { $0.kind == .work }.compactMap(\.paceLow)
         #expect(paces == paces.sorted(by: >) && Set(paces).count == 3)

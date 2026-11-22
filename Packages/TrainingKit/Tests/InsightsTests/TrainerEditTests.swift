@@ -226,7 +226,7 @@ import WorkoutAnalysis
         #expect(work.paceHigh == 245)
         #expect(edited.steps.first { $0.restSeconds != nil }?.restSeconds == 120)
         #expect(edited.totalMeters == 3_000 + 8_000)
-        #expect(edited.title.contains("4 × 2 km"))
+        #expect(TrainerEngine.describe(edited).hasPrefix("4 × 2 km"))
         #expect(edited.edited)
     }
 

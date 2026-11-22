@@ -150,7 +150,7 @@ import WorkoutAnalysis
         let session = TrainerEngine.vo2Session(week: base[0], weeks: base, lowered: false)
         let workout = TrainerEngine.qualityWorkout(day: monday, session: session, paces: paces, lowered: false, rationale: "x")
 
-        #expect(workout.title == "Subidas 8 × 200 m")
+        #expect(workout.title.hasPrefix("Subidas ") && TrainerEngine.describe(workout).hasPrefix("8 × 200 m"))
         #expect(workout.variant == .hills)
         #expect(!workout.steps.contains { $0.method == .repetition })
         #expect(workout.steps.last == TrainerStep(kind: .recovery, repeats: 7, meters: 200))
@@ -214,7 +214,7 @@ import WorkoutAnalysis
         let workout = TrainerEngine.qualityWorkout(
             day: monday, session: try #require(sessions[0]), paces: paces, lowered: false, rationale: "x"
         )
-        #expect(workout.title == "Ritmo de prova 2 × 4 km")
+        #expect(workout.title.hasPrefix("Ritmo de prova ") && TrainerEngine.describe(workout).hasPrefix("2 × 4 km"))
         #expect(workout.method == .racePace)
         #expect(workout.steps.first { $0.kind == .recovery }?.restSeconds == 90)
         #expect(workout.paceLow == 252 && workout.paceHigh == 258)
@@ -290,7 +290,7 @@ import WorkoutAnalysis
         let second = try thursday(plan, week: 2)
 
         #expect(first.kind == .vo2max && first.method == .goalPace)
-        #expect(first.title == "Pace-alvo 4 × 2 km")
+        #expect(first.title.hasPrefix("Pace-alvo ") && TrainerEngine.describe(first).hasPrefix("4 × 2 km"))
         #expect(first.paceLow == 237 && first.paceHigh == 243)
         #expect(first.steps.first { $0.kind == .recovery }?.restSeconds == 90)
         #expect(second.method == .intervals)
@@ -311,10 +311,10 @@ import WorkoutAnalysis
         }
 
         let grown = try adjusted(onTarget: 4)
-        #expect(grown.title == "Pace-alvo 3 × 3 km")
+        #expect(grown.title.hasPrefix("Pace-alvo ") && TrainerEngine.describe(grown).hasPrefix("3 × 3 km"))
         #expect(grown.rationale.contains("Pace-alvo 3 × 3 km a 4:00, 1:30 parado. O anterior fechou no alvo, então o bloco cresce."))
         let repeated = try adjusted(onTarget: 2)
-        #expect(repeated.title == "Pace-alvo 4 × 2 km")
+        #expect(repeated.title.hasPrefix("Pace-alvo ") && TrainerEngine.describe(repeated).hasPrefix("4 × 2 km"))
         #expect(repeated.rationale.contains("O anterior não fechou no alvo, então a sessão repete."))
     }
 

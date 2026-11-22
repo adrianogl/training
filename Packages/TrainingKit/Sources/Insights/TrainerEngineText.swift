@@ -93,27 +93,34 @@ enum TrainerEngineText {
     }
 
     static func title(kind: TrainerDayKind, meters: Double, session: TrainerQualitySession? = nil, variant: TrainerVariant? = nil) -> String {
-        if let variant, let title = variantTitle(kind: kind, meters: meters, variant: variant) { return title }
-        let label = session.map { sessionLabel($0.blocks) }
-        let thresholdName = switch (session?.method, session?.variant) {
-        case (.racePace?, _): "Ritmo de prova"
-        case (_, .continuousTempo?): "Tempo contínuo"
-        case (_, .progressiveThreshold?): "Limiar progressivo"
-        default: "Limiar"
-        }
-        let vo2Name = switch (session?.method, session?.variant) {
-        case (.goalPace?, _): "Pace-alvo"
-        case (_, .hills?): "Subidas"
-        default: (session?.blocks.count ?? 0) > 1 ? "VO2 máx pirâmide" : "VO2 máx"
-        }
-        return switch kind {
-        case .threshold: "\(thresholdName) \(label ?? kilometers(meters))"
-        case .vo2max: "\(vo2Name) \(label ?? kilometers(meters))"
-        case .long: "Longão \(kilometers(meters))"
-        case .optionalEasy: "Rodagem opcional \(kilometers(meters))"
-        case .race: "Prova \(kilometers(meters))"
+        if kind == .off { return offTitle }
+        return "\(titleName(kind: kind, session: session, variant: variant)) \(kilometers(meters))"
+    }
+
+    static func structureTitle(kind: TrainerDayKind, session: TrainerQualitySession) -> String {
+        "\(titleName(kind: kind, session: session, variant: nil)) \(sessionLabel(session.blocks))"
+    }
+
+    static func titleName(kind: TrainerDayKind, session: TrainerQualitySession?, variant: TrainerVariant?) -> String {
+        switch kind {
+        case .threshold:
+            switch (session?.method, session?.variant ?? variant) {
+            case (.racePace?, _): "Ritmo de prova"
+            case (_, .continuousTempo?): "Tempo"
+            case (_, .progressiveThreshold?): "Limiar progressivo"
+            default: "Limiar"
+            }
+        case .vo2max:
+            switch (session?.method, session?.variant ?? variant) {
+            case (.goalPace?, _): "Pace-alvo"
+            case (_, .hills?): "Subidas"
+            default: "VO2"
+            }
+        case .long: "Longão"
+        case .optionalEasy: variant == .fartlek ? "Fartlek" : "Opcional"
+        case .easy: variant == .mediumLong ? "Média-longa" : "Rodagem"
+        case .race: "Prova"
         case .off: offTitle
-        case .easy: "Rodagem \(kilometers(meters))"
         }
     }
 
@@ -473,7 +480,7 @@ extension TrainerEngineText {
     }
 
     static func longBlocksTitle(_ meters: Double) -> String {
-        "Longão \(kilometers(meters)) em blocos"
+        title(kind: .long, meters: meters)
     }
 
     static func longStageName(stage: Int, blocks: [Double], rest: Double?) -> String {
