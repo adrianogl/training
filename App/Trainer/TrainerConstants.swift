@@ -54,6 +54,14 @@ enum TrainerConstants {
     static let goalPaceRange = 150...480
     static let goalPaceStep = 5
     static let defaultLongPace = 360.0
+    static let heatHours = 5...21
+    static let heatSuggestionHours = 5...10
+    static let heatSuggestionSeconds = 3
+    static let heatDefaultHour = 7
+    static let heatChipWidth: CGFloat = 52
+    static let heatChipRadius: CGFloat = 12
+    static let heatSwapRadius: CGFloat = 12
+    static let suggestionRadius: CGFloat = 12
     static let goalPaceDefault = 240
     static let goalDistanceRange = 3...100
     static let goalDistanceDefault = 21

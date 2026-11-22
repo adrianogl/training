@@ -7,7 +7,7 @@ enum PlannedExtrasConstants {
     static let locationSearchLimit = 30
     static let forecastDaysAhead = 9
     static let forecastURL = "https://api.open-meteo.com/v1/forecast"
-    static let forecastFields = "temperature_2m,dew_point_2m"
+    static let forecastFields = "temperature_2m,dew_point_2m,shortwave_radiation"
     static let forecastTimezone = "auto"
     static let coordinateScale = 10.0
 }

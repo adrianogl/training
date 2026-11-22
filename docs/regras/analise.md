@@ -33,7 +33,7 @@ O card "Treino de hoje" recalcula o ritmo de cada passo ativo que tem pace-alvo.
 | Prontidão 60 a 69 | + 3 s/km | `readinessSteps` |
 | Prontidão 50 a 59 | + 6 s/km, e encurta o treino (tabela abaixo) | `readinessSteps`, `shortenShare` |
 | Prontidão abaixo de 50 | sem faixa: o card mostra a frase de descanso | `restBelow` |
-| Calor | `WeatherAdjustment.heatFactor(temperatura, ponto de orvalho)` × (1 − aclimatação) × pace médio do bloco, arredondado. A aclimatação conta as corridas quentes dos últimos 14 dias (`hotSessions`). Abaixo de 3 s/km no bloco, o calor é ignorado; se nenhum bloco chega a 3 s/km, o calor não entra como motivo | `WeatherAdjustment`, `RunWeatherConstants.minimumHeatSeconds` |
+| Calor | `WeatherAdjustment.heatShare(temperatura + sol, ponto de orvalho, aclimatação)` × pace médio do bloco, arredondado. O sol vem da radiação prevista para a hora. A aclimatação conta as corridas quentes dos últimos 14 dias (`hotSessions`). Abaixo de 3 s/km no bloco, o calor é ignorado; se nenhum bloco chega a 3 s/km, o calor não entra como motivo | `WeatherAdjustment`, `RunWeatherConstants.minimumHeatSeconds` |
 | Perna pesada no dia anterior | + 3 s/km em qualquer treino | `heavyLegsSeconds` |
 
 A perna pesada vem de `StrengthModel.legDay`, com uma sessão de força feita ontem. Conta quando a sessão casa com um treino conhecido do MFIT com pelo menos 50% das séries em perna, ou quando o treino de força planejado para ontem era de perna pesada: do treinador com foco pernas moderada ou pesada, ou corpo inteiro pesada (`TrainerModel.plannedLegs`), ou o treino do Claude aplicado para ontem com perna pesada (`ClaudeStrengthValidator.isHeavyLegs`).
@@ -47,7 +47,7 @@ A perna pesada vem de `StrengthModel.legDay`, com uma sessão de força feita on
 O tipo vem de `PlanText.shape`: intervalado tem repetição ou mais de um bloco ativo; longão não é intervalado e o nome fala em longão ou a distância chega a 14 km (`isLongRun`); contínuo é o resto.
 
 - O ajuste mostrado e o teto de 15 s/km (`maximumSeconds`) usam o bloco mais ajustado. Acima do teto, o card mostra a frase de troca.
-- O horário do clima é a mediana da hora de início das corridas dos últimos 30 dias (`usualWindowDays`), 7h sem corrida (`defaultHour`). Usa a hora mais próxima com previsão.
+- O horário do clima é a hora habitual daquele treino (`UsualHour`): no longão, a mediana da hora de saída dos longões (15 km ou 75 min) das últimas 8 semanas, se houver pelo menos 3; senão, a mediana das corridas do mesmo tipo de dia (dia útil nos últimos 30 dias, fim de semana nas últimas 8 semanas), com pelo menos 2; senão, a de todas as corridas dos últimos 30 dias; sem corrida, 7h. A mediana é a de baixo com número par. Usa a hora mais próxima com previsão. A notificação da manhã usa a mesma hora.
 - Sem previsão, ou sem ponto de orvalho na hora escolhida, o calor não entra e o motivo aparece como "sem previsão do tempo".
 - O card mostra a faixa nova com "era …", o aviso "Ajuste para hoje · +N s/km nos tiros/no ritmo/no longão" e um chip por motivo. Sem mudança, não há aviso. A sugestão própria do treinador por prontidão tem prioridade.
 - A notificação da manhã acrescenta, antes da linha de força, algo como "Tiros em 4:10–4:18 por calor e prontidão.". Usa o mesmo treino do card: o primeiro treino do dia que ainda não foi feito (`TodayWorkoutPicker.pending`). Só entra quando o aviso é enviado e espera no máximo 5 s pela previsão. Se o app for aberto durante a espera, o aviso não sai.
@@ -144,7 +144,7 @@ Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift
 | --- | --- | --- |
 | Fonte | Open-Meteo, na coordenada da largada arredondada a 0,1°, média das horas que o treino cobre. Até 85 dias, endpoint de previsão; antes disso, arquivo | `ActivityWeatherConstants`, `WEATHER` |
 | Treinos preenchidos | corridas ao ar livre dos últimos 120 dias, até 40 consultas por sincronização; falha tenta de novo depois de 6 h. Esteira e treino sem GPS ficam sem clima | `backfillDays`, `requestsPerRefresh`, `retryInterval` |
-| Calor | soma temperatura + ponto de orvalho em °F: até 100 nada; 110 0,5%; 120 1%; 130 2%; 140 3%; 150 4,5%; 160 6%; 170 8%; 180 ou mais 10%, interpolando | `RunWeatherConstants.heatBands`, `HEAT.bands` |
+| Calor | cresce com a temperatura e com o ponto de orvalho, sem ajuste até 20 °C somados e até 10% (veja a tabela abaixo). Internamente a régua é a soma em °F (`heatBands`), interpolada | `RunWeatherConstants.heatBands`, `HEAT.bands` |
 | Frio | só a temperatura, de 5 °C para baixo: 0 °C 0,5%; −5 °C 1%; −10 °C ou menos 2% | `coldBands` |
 | Equivalente em clima ameno | ritmo ÷ (1 + ajuste) | `WeatherAdjustment.mildPace` |
 | Bloco com alvo de ritmo | mais lento que o alvo, mas dentro dele no equivalente em clima ameno, conta como no alvo e gera "Ritmo mais lento pelo calor" (ou "pelo frio") no grupo esperado. Mais rápido continua fora do alvo | `adjustForWeather` |
@@ -156,6 +156,18 @@ Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift
 
 | Sol | radiação solar média das horas do treino, de 0 a 800 W/m², soma de 0 a 4 °C à temperatura do ajuste de calor; "sol forte" a partir de +2 °C | `fullSunRadiation`, `fullSunBoost`, `sunnyBoost` |
 | Adaptação ao calor | cada corrida com calor de pelo menos 2% nos 14 dias anteriores tira 5% do ajuste de calor, até 40% | `hotSessionFactor`, `adaptationPerSession`, `maxAdaptation` |
+
+Ajuste de pace pelo calor, antes da adaptação e sem sol:
+
+| Temperatura | Orvalho 10 °C | Orvalho 15 °C | Orvalho 20 °C | Orvalho 24 °C |
+| --- | --- | --- | --- | --- |
+| 16 °C | 0,5% | 1,0% | — | — |
+| 20 °C | 0,9% | 1,7% | 2,6% | — |
+| 24 °C | 1,5% | 2,4% | 3,5% | 4,6% |
+| 28 °C | 2,2% | 3,2% | 4,6% | 5,6% |
+| 32 °C | 3,0% | 4,3% | 5,6% | 7,0% |
+
+Num pace de 5:00/km, 1% são 3 s/km. A corrida conta como quente para a adaptação a partir de 2%.
 
 O detalhe da corrida mostra os graus, o ponto de orvalho, o sol, a adaptação e o ajuste. Sem clima, a análise fica como antes. O clima de cada treino tem versão (`weatherVersion`); a versão 2 trouxe vento e sol, e os treinos dos últimos 120 dias são consultados de novo.
 

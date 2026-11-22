@@ -57,7 +57,7 @@ enum TrainerText {
     static let longBlockPauseTitle = "Pausa parada · água e gel"
     static let longModeTitle = "Longão"
     static let longModeHint = "Em blocos, o longão tem pausas curtas para beber e tomar gel, e os blocos crescem até ele ficar contínuo."
-    static let bestTimeTitle = "Melhor horário"
+    static let heatTitle = "Calor no longão"
     static let bestTimeCaption = "previsão do dia"
     static let whyTitle = "Por que este treino"
     static let numbersTitle = "Números"
@@ -176,6 +176,52 @@ enum TrainerText {
     static let peakTitle = "Km no pico"
     static let weeklyHint = "A rodagem opcional conta no volume."
     static func weeklyAverage(_ kilometers: Int) -> String { "Sua média das últimas 4 semanas: \(kilometers) km" }
+
+    static func normalAverage(_ base: TrainerNormalVolume) -> String {
+        let kilometers = Int((base.meters / TrainerConstants.metersPerKilometer).rounded())
+        guard base.fromNormalWeeks else { return weeklyAverage(kilometers) }
+        let text = "Sua média das semanas normais: \(kilometers) km."
+        guard !base.excluded.isEmpty else { return text }
+        let weeks = base.excluded.map { "\(dayMonth($0.start)) (\(excludedReason($0.reason)))" }
+        let list = weeks.count == 1 ? weeks[0] : weeks.dropLast().joined(separator: ", ") + " e " + (weeks.last ?? "")
+        return text + (weeks.count == 1 ? " Ficou de fora a semana de \(list)." : " Ficaram de fora as semanas de \(list).")
+    }
+
+    static func excludedReason(_ reason: TrainerExcludedWeekReason) -> String {
+        switch reason {
+        case .light: "semana leve"
+        case .taper: "polimento"
+        case .race: "semana da prova"
+        case .low: "abaixo do normal"
+        }
+    }
+
+    static func volumeSuggestionTitle(start: Double, peak: Double) -> String {
+        "Sugerido: \(Int((start / TrainerConstants.metersPerKilometer).rounded())) → \(Int((peak / TrainerConstants.metersPerKilometer).rounded())) km"
+    }
+
+    static func volumeSuggestionReason(_ suggestion: TrainerVolumeSuggestion) -> String {
+        let base = suggestion.base.fromNormalWeeks ? "Começa na sua média das semanas normais" : "Começa na sua média das últimas 4 semanas"
+        let peak = Int((suggestion.peakMeters / TrainerConstants.metersPerKilometer).rounded())
+        switch suggestion.limit {
+        case .cycle(let verdict):
+            let action = switch verdict {
+            case .increase: "aumentar o volume do último plano"
+            case .keep: "manter o volume do último plano"
+            case .decrease: "reduzir o volume do último plano"
+            }
+            return "Da avaliação do ciclo que terminou: \(action)."
+        case .growth:
+            return "\(base) e sobe 25% no ciclo."
+        case .comfortable(let runs):
+            return "\(base). Com \(runs) corridas, o confortável vai até \(peak) km."
+        case .deadline(let weeks):
+            return "\(base). Até a prova dá para subir até \(peak) km em \(weeks) semanas."
+        }
+    }
+
+    static let volumeSuggestionUse = "Usar"
+    static let volumeSuggestionInUse = "✓ em uso"
     static func weeklyValue(_ kilometers: Int) -> String { "\(kilometers) km" }
     static func volumeSummary(start: Int, peak: Int, weeks: Int, dated: Bool) -> String {
         guard peak > start else {
@@ -479,24 +525,54 @@ enum TrainerText {
         return "etapa \(stage) de \(count) · \(streak + 1)º de \(TrainerEngine.longStageAdvanceStreak) para avançar"
     }
 
-    static func bestTimeStart(_ hour: Int) -> String {
-        "Sair às \(hour)h"
-    }
-
     static func temperature(_ value: Double) -> String {
         "\(Int(value.rounded())) °C"
     }
 
-    static func heatWarning(_ heat: TrainerHeat, hasBlocks: Bool) -> String {
-        let dew = heat.dewPoint.map { temperature($0) } ?? ""
-        let base = "Mesmo no horário mais fresco, calor de \(temperature(heat.temperature)) com orvalho de \(dew): o pace sobe \(heat.paceOffset) s/km"
-        return hasBlocks && heat.blockReduction > 0 ? "\(base) e os blocos ficam 1 km menores." : "\(base)."
+    static func heatHourLabel(_ hour: Int, usual: Bool) -> String {
+        usual ? "No seu horário, \(hour)h" : "Saindo às \(hour)h"
     }
 
-    static func heatLater(hour: Int, hasBlocks: Bool, blockReduction: Double) -> String {
-        hasBlocks && blockReduction > 0
-            ? "A partir das \(hour)h o calor passa a pesar no pace e os blocos ficam 1 km menores."
-            : "A partir das \(hour)h o calor passa a pesar no pace."
+    static func heatConditions(_ hour: TrainerHeatHour) -> String {
+        guard let dew = hour.dewPoint else { return temperature(hour.temperature) }
+        return "\(temperature(hour.temperature)) · orvalho \(temperature(dew))"
+    }
+
+    static func heatChipHour(_ hour: Int) -> String { "\(hour)h" }
+
+    static func heatChipTemperature(_ value: Double) -> String { "\(Int(value.rounded()))°" }
+
+    static func heatChipEffect(_ heat: TrainerHeat) -> String { heat.isHot ? "+\(heat.paceOffset) s" : "ok" }
+
+    static let heatUsualMark = "seu"
+    static let heatReset = "Voltar para o seu horário"
+
+    static func heatEffect(_ hour: TrainerHeatHour, day: TrainerHeatDay, hasBlocks: Bool) -> String {
+        guard hour.heat.isHot else {
+            let later = day.laterHot(after: hour.hour).map { " A partir das \($0.hour)h o calor passa a pesar." } ?? ""
+            return "Sem ajuste de pace nessa hora." + later
+        }
+        var text = "O pace sobe \(hour.heat.paceOffset) s/km"
+        if hasBlocks && hour.heat.blockReduction > 0 { text += " e os blocos ficam 1 km menores" }
+        text += "."
+        if day.hotSessions > 0 {
+            text += day.hotSessions == 1
+                ? " Já desconta a corrida no calor das últimas duas semanas."
+                : " Já desconta as \(day.hotSessions) corridas no calor das últimas duas semanas."
+        }
+        return text
+    }
+
+    static func heatSwapConditions(_ hour: TrainerHeatHour) -> String {
+        "\(temperature(hour.temperature)) · " + (hour.heat.isHot ? "+\(hour.heat.paceOffset) s/km" : "sem ajuste")
+    }
+
+    static func heatSwapGain(_ seconds: Int) -> String {
+        "\(seconds) s/km a menos de ajuste. Toque para ver."
+    }
+
+    static func heatSwapGainShort(_ hour: Int, seconds: Int) -> String {
+        "Às \(hour)h, \(seconds) s/km a menos de ajuste."
     }
 
     static func seriesTitle(_ repeats: Int) -> String {

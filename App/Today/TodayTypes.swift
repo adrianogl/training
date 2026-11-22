@@ -68,7 +68,7 @@ struct TodayLoad: Sendable, Codable {
     let currentRuns: [ReportRun]
     let signals: [DailySignal]
     let goals: [GoalSnapshot]
-    let recentRunStarts: [Date]
+    let recentRuns: [UsualHourRun]
     let hotSessions: Int
 }
 

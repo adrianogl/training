@@ -26,6 +26,7 @@ struct HourlyWeather: Equatable {
     let hour: Int
     let temperature: Double
     let dewPoint: Double?
+    var radiation: Double? = nil
 }
 
 struct CourseSuggestion: Equatable {

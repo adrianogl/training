@@ -9,6 +9,7 @@ struct OpenMeteoResponse: Decodable {
         let time: [String]
         let temperature_2m: [Double?]
         let dew_point_2m: [Double?]
+        let shortwave_radiation: [Double?]?
     }
 
     let hourly: Hourly
@@ -45,7 +46,8 @@ enum PlannedWeather {
                   let hour = Int(hourly.time[index].suffix(5).prefix(2)),
                   (C.forecastStartHour..<C.forecastEndHour).contains(hour) else { return nil }
             let dewPoint = index < hourly.dew_point_2m.count ? hourly.dew_point_2m[index] : nil
-            return HourlyWeather(hour: hour, temperature: temperature, dewPoint: dewPoint)
+            let radiation = hourly.shortwave_radiation.flatMap { index < $0.count ? $0[index] : nil }
+            return HourlyWeather(hour: hour, temperature: temperature, dewPoint: dewPoint, radiation: radiation)
         }
     }
 

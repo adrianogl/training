@@ -11,13 +11,15 @@ public struct DayAdjustInput: Sendable {
     public var score: Int?
     public var temperature: Double?
     public var dewPoint: Double?
+    public var radiation: Double?
     public var hotSessions: Int
     public var heavyLegs: Bool
 
     public init(
         plan: PlannedWorkout, shape: DayAdjustShape, score: Int?, temperature: Double?, dewPoint: Double?,
-        hotSessions: Int, heavyLegs: Bool
+        hotSessions: Int, heavyLegs: Bool, radiation: Double? = nil
     ) {
+        self.radiation = radiation
         self.plan = plan
         self.shape = shape
         self.score = score

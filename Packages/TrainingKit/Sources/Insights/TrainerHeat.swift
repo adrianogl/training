@@ -12,12 +12,13 @@ public struct TrainerHeat: Sendable, Equatable {
 
     public var isHot: Bool { paceOffset > 0 }
 
-    public static func assess(temperature: Double, dewPoint: Double?, pace: Double, hotSessions: Int = 0) -> TrainerHeat {
+    public static func assess(
+        temperature: Double, dewPoint: Double?, radiation: Double? = nil, pace: Double, hotSessions: Int = 0
+    ) -> TrainerHeat {
         guard let dewPoint else {
             return TrainerHeat(temperature: temperature, dewPoint: nil, factor: 0, paceOffset: 0, blockReduction: 0)
         }
-        let raw = WeatherAdjustment.heatFactor(temperature: temperature, dewPoint: dewPoint)
-        let factor = raw * (1 - WeatherAdjustment.adaptation(hotSessions: hotSessions))
+        let factor = WeatherAdjustment.heatShare(temperature: temperature, dewPoint: dewPoint, radiation: radiation, hotSessions: hotSessions)
         let rounded = Int((factor * pace).rounded())
         let offset = rounded < RunWeatherConstants.minimumHeatSeconds ? 0 : rounded
         return TrainerHeat(

@@ -1,4 +1,5 @@
 import Insights
+import Storage
 import SwiftUI
 import TrainingCore
 
@@ -6,6 +7,9 @@ struct TrainerDayView: View {
     @Environment(AppModel.self) private var app
     let iso: String
     @State private var weather: [HourlyWeather] = []
+    @State private var heatRuns: [UsualHourRun] = []
+    @State private var hotSessions = 0
+    @State private var selectedHour: Int?
     @State private var showsEdit = false
     @State private var showsChat = false
 
@@ -32,14 +36,19 @@ struct TrainerDayView: View {
         .sheet(isPresented: $showsChat) { TrainerChatSheet() }
         .task(id: iso) {
             guard let day = Day(iso: iso), app.trainer.row(for: iso)?.workout.kind == .long else { return }
+            let recent = TodayModel.recentRuns(context: app.container.mainContext)
+            heatRuns = DayAdjustText.usualRuns(recent)
+            hotSessions = ActivityRecord.hotSessions(before: .now, among: recent)
             weather = await app.trainer.forecast(for: day)
         }
     }
 
     @ViewBuilder
     private func content(_ row: TrainerDayRow) -> some View {
-        let bestTime = row.workout.kind == .long && row.run == nil ? TrainerBestTimeBuilder.make(weather: weather, longPace: app.trainer.plan?.paces.long) : nil
-        let workout = displayed(row.workout, heat: bestTime?.heat)
+        let heatDay = row.workout.kind == .long && row.run == nil ? TrainerHeatDayBuilder.make(
+            weather: weather, longPace: app.trainer.plan?.paces.long, usualHour: longHour, hotSessions: hotSessions
+        ) : nil
+        let workout = displayed(row.workout, heat: heatDay.flatMap { $0.hour(selectedHour ?? $0.usualHour) }?.heat)
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(workout.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
@@ -63,8 +72,8 @@ struct TrainerDayView: View {
             }
             .brandCard()
         }
-        if let bestTime {
-            TrainerBestTimeCard(bestTime: bestTime, hasBlocks: TrainerEngine.plannedPauses(of: workout) > 0)
+        if let heatDay {
+            TrainerHeatCard(day: heatDay, selected: $selectedHour, hasBlocks: TrainerEngine.plannedPauses(of: workout) > 0)
         }
         section(TrainerText.whyTitle)
         VStack(alignment: .leading, spacing: 8) {
@@ -103,6 +112,11 @@ struct TrainerDayView: View {
         } else {
             card
         }
+    }
+
+    private var longHour: Int {
+        let date = Day(iso: iso).flatMap { Calendar.current.date(from: DateComponents(year: $0.year, month: $0.month, day: $0.day, hour: 12)) } ?? .now
+        return UsualHour.hour(for: date, long: true, runs: heatRuns, now: .now, calendar: .current)
     }
 
     private func subtitle(_ workout: TrainerWorkout) -> String {

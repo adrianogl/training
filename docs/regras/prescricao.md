@@ -61,7 +61,8 @@ Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sáb
 
 | Regra | Valor | Constante |
 | --- | --- | --- |
-| Volume de partida | média das últimas 4 semanas | `volumeWindowDays` |
+| Volume de partida | média das semanas normais das últimas 6: ficam de fora as que o plano marcou como recuperação, semana leve (fixa ou por sinais), polimento ou semana da prova, e as abaixo de 75% da mediana das outras (ou sem corrida). Com menos de 2 semanas normais, média simples das últimas 4 | `normalWindowWeeks`, `normalLowShare`, `volumeWindowDays` |
+| Sugestão de volume | com avaliação do ciclo anterior, o volume dela. Sem avaliação: começa no volume de partida; o pico é o menor entre 1,25 × o começo, o fim da faixa confortável do número de corridas e o que dá para subir até a prova (5% por semana, recuperação a cada 4, sem contar a fase geral e o polimento). O card "Volume semanal" mostra a sugestão, o motivo e "Usar", e o formulário já abre com ela | `volumeSuggestion`, `defaultPeakShare` |
 | Sem histórico | 15 km por semana | `fallbackWeeklyMeters` |
 | Crescimento | 5% por semana | `weeklyGrowth` |
 | Pico | 125% do volume atual | `defaultPeakShare` |
@@ -145,7 +146,7 @@ O descanso é de 60 s, e de 30 s no último estágio. O longão avança de está
 | Média da semana abaixo de 55 | volume × 0,9 | `readinessWeek`, `readinessScale` |
 | Dor | volume × 0,7 por 7 dias, mínimo 3 km e qualidade de até 6 km | `painScale`, `painPeriodDays` |
 | Viagem | corrida de 6 km por 1 dia | `travelRunMeters` |
-| Calor no longão | ritmo + fator de calor (temperatura + ponto de orvalho, sem aclimatação) × pace do longão; com fator de 0,045 ou mais, 1 km a menos de bloco. Abaixo de 3 s/km, o calor é ignorado e o longão fica como está. Sem ponto de orvalho, sem ajuste | `TrainerHeat`, `heatBlockFactor`, `heatBlockReduction`, `RunWeatherConstants.minimumHeatSeconds` |
+| Calor no longão | na hora habitual do longão (mesma regra do card "Treino de hoje", ver `analise.md`): ritmo + fator de calor (temperatura + sol, ponto de orvalho e adaptação às corridas quentes) × pace do longão; com fator de 0,045 ou mais, já com a adaptação, 1 km a menos de bloco. O card "Calor no longão" mostra as horas das 5h às 21h e deixa escolher outra para ver a condição e o pace na tela; o plano e o envio ao Garmin não mudam. Sugere uma hora entre 5h e 10h quando o ajuste cai pelo menos 3 s/km. Abaixo de 3 s/km, o calor é ignorado. Sem ponto de orvalho, sem ajuste | `TrainerHeat`, `TrainerHeatDayBuilder`, `heatBlockFactor`, `heatBlockReduction`, `RunWeatherConstants.minimumHeatSeconds` |
 | Treino feito | pelo menos 90% do prescrito | `doneShare` |
 | Longão falho | abaixo de 85% do prescrito; abaixo de 70%, o próximo longão fica 2 km menor | `longFailShare`, `longReduceShare`, `longReduceMeters` |
 | Gel no longão | só em longão de pelo menos 15 km, 2 km antes do km em que o último longão quebrou | `gelMinimumMeters`, `gelBeforeFadeKm` |

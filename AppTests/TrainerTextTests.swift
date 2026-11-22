@@ -13,6 +13,26 @@ import TrainingCore
         #expect(TrainerText.paceRange(low: nil, high: nil) == nil)
     }
 
+    @Test func explainsTheVolumeSuggestionAndTheExcludedWeeks() {
+        let light = Day(year: 2026, month: 11, day: 16)
+        let low = Day(year: 2026, month: 10, day: 26)
+        let base = TrainerNormalVolume(meters: 55_000, excluded: [TrainerExcludedWeek(start: light, reason: .light)], fromNormalWeeks: true)
+        #expect(TrainerText.normalAverage(base) == "Sua média das semanas normais: 55 km. Ficou de fora a semana de 16 nov (semana leve).")
+        let two = TrainerNormalVolume(
+            meters: 55_000, excluded: [TrainerExcludedWeek(start: low, reason: .low), TrainerExcludedWeek(start: light, reason: .light)], fromNormalWeeks: true
+        )
+        #expect(TrainerText.normalAverage(two) == "Sua média das semanas normais: 55 km. Ficaram de fora as semanas de 26 out (abaixo do normal) e 16 nov (semana leve).")
+        #expect(TrainerText.normalAverage(TrainerNormalVolume(meters: 49_000, excluded: [], fromNormalWeeks: false)) == "Sua média das últimas 4 semanas: 49 km")
+
+        let growth = TrainerVolumeSuggestion(startMeters: 55_000, peakMeters: 68_000, limit: .growth, base: base)
+        #expect(TrainerText.volumeSuggestionTitle(start: 55_000, peak: 68_000) == "Sugerido: 55 → 68 km")
+        #expect(TrainerText.volumeSuggestionReason(growth) == "Começa na sua média das semanas normais e sobe 25% no ciclo.")
+        let comfortable = TrainerVolumeSuggestion(startMeters: 55_000, peakMeters: 62_000, limit: .comfortable(runs: 4), base: base)
+        #expect(TrainerText.volumeSuggestionReason(comfortable) == "Começa na sua média das semanas normais. Com 4 corridas, o confortável vai até 62 km.")
+        let cycle = TrainerVolumeSuggestion(startMeters: 64_000, peakMeters: 81_000, limit: .cycle(.increase), base: base)
+        #expect(TrainerText.volumeSuggestionReason(cycle) == "Da avaliação do ciclo que terminou: aumentar o volume do último plano.")
+    }
+
     @Test func formatsDistance() {
         #expect(TrainerText.distance(2_000) == "2 km")
         #expect(TrainerText.distance(400) == "400 m")

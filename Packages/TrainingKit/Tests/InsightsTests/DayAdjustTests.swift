@@ -226,15 +226,16 @@ import TrainingCore
         #expect(result.shortened)
     }
 
-    @Test func usualHourIsMedianOrSeven() {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC")!
-        func date(_ hour: Int) -> Date {
-            calendar.date(from: DateComponents(year: 2026, month: 11, day: 1, hour: hour))!
-        }
-        #expect(DayAdjust.usualHour([date(6), date(7), date(18)], calendar: calendar) == 7)
-        #expect(DayAdjust.usualHour([], calendar: calendar) == 7)
-        #expect(DayAdjust.usualHour([date(6), date(6), date(19)], calendar: calendar) == 6)
+    @Test func sunAddsToTheHeatOfTheForecast() throws {
+        var shaded = input(continuous(), score: 80, temperature: 26, dewPoint: 20)
+        var sunny = shaded
+        sunny.radiation = 800
+        let shade = try #require(adjusted(DayAdjust.adjust(shaded)))
+        let sun = try #require(adjusted(DayAdjust.adjust(sunny)))
+        #expect(sun.seconds > shade.seconds)
+        shaded.hotSessions = 8
+        let adapted = try #require(adjusted(DayAdjust.adjust(shaded)))
+        #expect(adapted.seconds < shade.seconds)
     }
 
     @Test func weatherPicksClosestHour() {
