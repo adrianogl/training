@@ -1,12 +1,17 @@
 {
-  "versao": "1.37.0",
-  "build": 57,
-  "versao_app": "1.37.0",
+  "versao": "1.38.0",
+  "build": 58,
+  "versao_app": "1.38.0",
   "notas": [
-    "Mostra a faixa de volume por número de corridas e sugere um dia a mais no fim do ciclo",
-    "Ignora treinos da Treinus com a corrida do treinador ligada"
+    "Longão pelo volume da semana e opção ida e volta"
   ],
   "historico": [
+    {
+      "versao": "1.38.0",
+      "notas": [
+        "Longão pelo volume da semana e opção ida e volta"
+      ]
+    },
     {
       "versao": "1.37.0",
       "notas": [
@@ -61,12 +66,6 @@
       "notas": [
         "Treinos do MFIT vão para o relógio sozinhos até o fim da prescrição",
         "Calendário do mês na aba Treinos"
-      ]
-    },
-    {
-      "versao": "1.33.2",
-      "notas": [
-        "O aviso de prontidão da manhã chega mais cedo"
       ]
     }
   ]
