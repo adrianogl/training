@@ -86,7 +86,7 @@ Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sáb
 
 ## Nome do treino
 
-Todo treino de corrida tem o nome no formato "tipo + distância total", igual no app e no Garmin: Rodagem, Opcional, Fartlek, Média-longa, Longão, Limiar, Tempo, Limiar progressivo, Ritmo de prova, VO2, Pace-alvo, Subidas e Prova, seguidos dos km do treino inteiro (aquecimento e volta leve incluídos). Ex.: "Limiar 11 km", "Longão 18 km". A estrutura (4 × 2 km, blocos, progressivo, tiros curtos) fica nos passos e no detalhe do treino. A força usa o foco (Superiores, Pernas, Corpo inteiro, Mobilidade e core, Mobilidade); o MFIT usa o nome do professor. `TrainerEngineText.title`.
+Todo treino de corrida tem o nome no formato "tipo + distância total", igual no app e no Garmin: Rodagem, Opcional, Fartlek, Média-longa, Longão, Limiar, Tempo, Limiar progressivo, Ritmo de prova, VO2, Pace-alvo, Subidas e Prova, seguidos dos km do treino inteiro (aquecimento e volta leve incluídos). Ex.: "Limiar 11 km", "Longão 18 km". A estrutura (4 × 2 km, blocos, progressivo, tiros curtos) fica nos passos e no detalhe do treino. Ao carregar o plano, os treinos de hoje em diante recebem o nome nesse formato (`TrainerEngine.retitled`), e o envio troca os que já estão no Garmin. A força usa o foco (Superiores, Pernas, Corpo inteiro, Mobilidade e core, Mobilidade); o MFIT usa o nome do professor. `TrainerEngineText.title`.
 
 ## Ida e volta
 

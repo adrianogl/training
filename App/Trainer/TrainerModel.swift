@@ -481,6 +481,7 @@ import TrainingCore
         strengthPlan = strengthPlanStore.current()
         seenVersion = store.seenVersion
         fillMissingWeeks()
+        retitleWorkouts()
     }
 
     func load() async {
@@ -491,6 +492,7 @@ import TrainingCore
         if plan != nil { cycleHistory = await loadCycleHistory() }
         isLoaded = true
         fillMissingWeeks()
+        retitleWorkouts()
         migrateStrength()
         migrateStrengthPlan()
         await notifySignals(applyPending())
@@ -773,6 +775,12 @@ import TrainingCore
     private func notifySignals(_ created: [TrainerVersion]) async {
         guard !created.isEmpty, let plan else { return }
         await signalNotifier.notify(created, plan: plan)
+    }
+
+    private func retitleWorkouts() {
+        guard let current = plan else { return }
+        let renamed = TrainerEngine.retitled(current, from: currentDay)
+        if renamed.workouts != current.workouts { persist(renamed) }
     }
 
     private func persist(_ next: TrainerPlan) {
