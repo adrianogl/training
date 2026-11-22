@@ -81,8 +81,9 @@ public struct TrainerStep: Codable, Sendable, Equatable {
     public var paceLow: Double?
     public var paceHigh: Double?
     public var method: TrainerMethod?
+    public var turnsAfter: Bool?
 
-    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil, method: TrainerMethod? = nil) {
+    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil, method: TrainerMethod? = nil, turnsAfter: Bool? = nil) {
         self.kind = kind
         self.repeats = repeats
         self.meters = meters
@@ -90,6 +91,7 @@ public struct TrainerStep: Codable, Sendable, Equatable {
         self.paceLow = paceLow
         self.paceHigh = paceHigh
         self.method = method
+        self.turnsAfter = turnsAfter
     }
 }
 
@@ -177,10 +179,11 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
     public var calm: Bool
     public var lightKind: TrainerLightKind?
     public var baseMeters: Double?
+    public var outAndBack: Bool
 
     public var id: Int { index }
 
-    public init(index: Int, start: Day, phase: TrainerPhase, isRecovery: Bool, plannedMeters: Double, targetMeters: Double? = nil, longMeters: Double, thresholdFocus: String, vo2Focus: String, baseLongMeters: Double? = nil, calm: Bool = false, lightKind: TrainerLightKind? = nil, baseMeters: Double? = nil) {
+    public init(index: Int, start: Day, phase: TrainerPhase, isRecovery: Bool, plannedMeters: Double, targetMeters: Double? = nil, longMeters: Double, thresholdFocus: String, vo2Focus: String, baseLongMeters: Double? = nil, calm: Bool = false, lightKind: TrainerLightKind? = nil, baseMeters: Double? = nil, outAndBack: Bool = false) {
         self.index = index
         self.start = start
         self.phase = phase
@@ -194,10 +197,12 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
         self.calm = calm
         self.lightKind = lightKind
         self.baseMeters = baseMeters
+        self.outAndBack = outAndBack
     }
 
     private enum CodingKeys: String, CodingKey {
         case index, start, phase, isRecovery, plannedMeters, targetMeters, longMeters, thresholdFocus, vo2Focus, baseLongMeters, calm, lightKind, baseMeters
+        case outAndBack
     }
 
     public init(from decoder: Decoder) throws {
@@ -216,7 +221,8 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
             baseLongMeters: try container.decodeIfPresent(Double.self, forKey: .baseLongMeters),
             calm: try container.decodeIfPresent(Bool.self, forKey: .calm) ?? false,
             lightKind: try container.decodeIfPresent(TrainerLightKind.self, forKey: .lightKind),
-            baseMeters: try container.decodeIfPresent(Double.self, forKey: .baseMeters)
+            baseMeters: try container.decodeIfPresent(Double.self, forKey: .baseMeters),
+            outAndBack: try container.decodeIfPresent(Bool.self, forKey: .outAndBack) ?? false
         )
     }
 
@@ -233,6 +239,7 @@ public struct TrainerWeek: Codable, Sendable, Equatable, Identifiable {
         try container.encode(vo2Focus, forKey: .vo2Focus)
         try container.encodeIfPresent(baseLongMeters, forKey: .baseLongMeters)
         if calm { try container.encode(calm, forKey: .calm) }
+        if outAndBack { try container.encode(outAndBack, forKey: .outAndBack) }
         try container.encodeIfPresent(lightKind, forKey: .lightKind)
         try container.encodeIfPresent(baseMeters, forKey: .baseMeters)
     }
@@ -492,11 +499,12 @@ public struct TrainerEdit: Codable, Sendable, Equatable {
     public var paceOverrides: [TrainerPaceKind: Double]?
     public var days: [Day]
     public var dayPreference: TrainerDayPreference?
+    public var outAndBack: Bool?
 
     public init(
         target: TrainerTarget? = nil, startMeters: Double? = nil, peakMeters: Double? = nil, structure: [Int: TrainerDayKind]? = nil,
         strength: [TrainerStrengthSession]? = nil, longMode: TrainerLongMode? = nil, paceOverrides: [TrainerPaceKind: Double]? = nil,
-        days: [Day] = [], dayPreference: TrainerDayPreference? = nil
+        days: [Day] = [], dayPreference: TrainerDayPreference? = nil, outAndBack: Bool? = nil
     ) {
         self.target = target
         self.startMeters = startMeters
@@ -507,6 +515,7 @@ public struct TrainerEdit: Codable, Sendable, Equatable {
         self.paceOverrides = paceOverrides
         self.days = days
         self.dayPreference = dayPreference
+        self.outAndBack = outAndBack
     }
 }
 
@@ -577,8 +586,9 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var paceOverrides: [TrainerPaceKind: Double]
     public var dayPreference: TrainerDayPreference
     public var endedOn: Day?
+    public var outAndBack: Bool
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil, endedOn: Day? = nil) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil, endedOn: Day? = nil, outAndBack: Bool = false) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -599,11 +609,12 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.paceOverrides = paceOverrides
         self.dayPreference = dayPreference ?? TrainerDayPreference(structure: structure)
         self.endedOn = endedOn
+        self.outAndBack = outAndBack
     }
 
     private enum CodingKeys: String, CodingKey {
         case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters, lightWeeks
-        case earlyLightWeeks, calmWeeks, longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference, endedOn
+        case earlyLightWeeks, calmWeeks, longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference, endedOn, outAndBack
     }
 
     public init(from decoder: Decoder) throws {
@@ -632,7 +643,8 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             longStageMisses: try container.decodeIfPresent(Int.self, forKey: .longStageMisses) ?? 0,
             paceOverrides: try container.decodeIfPresent([TrainerPaceKind: Double].self, forKey: .paceOverrides) ?? [:],
             dayPreference: try container.decodeIfPresent(TrainerDayPreference.self, forKey: .dayPreference),
-            endedOn: try container.decodeIfPresent(Day.self, forKey: .endedOn)
+            endedOn: try container.decodeIfPresent(Day.self, forKey: .endedOn),
+            outAndBack: try container.decodeIfPresent(Bool.self, forKey: .outAndBack) ?? false
         )
     }
 
@@ -660,6 +672,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         if !paceOverrides.isEmpty { try container.encode(paceOverrides, forKey: .paceOverrides) }
         try container.encode(dayPreference, forKey: .dayPreference)
         try container.encodeIfPresent(endedOn, forKey: .endedOn)
+        if outAndBack { try container.encode(outAndBack, forKey: .outAndBack) }
     }
 }
 

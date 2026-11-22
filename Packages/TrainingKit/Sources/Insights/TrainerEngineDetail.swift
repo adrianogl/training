@@ -133,6 +133,13 @@ extension TrainerEngine {
     static func qualitySession(
         _ kind: TrainerDayKind, week: TrainerWeek, weeks: [TrainerWeek], target: TrainerTarget, lowered: Bool, goalStep: Int? = nil
     ) -> TrainerQualitySession {
+        let session = plainQualitySession(kind, week: week, weeks: weeks, target: target, lowered: lowered, goalStep: goalStep)
+        return week.outAndBack ? turned(session) : session
+    }
+
+    private static func plainQualitySession(
+        _ kind: TrainerDayKind, week: TrainerWeek, weeks: [TrainerWeek], target: TrainerTarget, lowered: Bool, goalStep: Int?
+    ) -> TrainerQualitySession {
         if kind == .vo2max, let ordinal = goalPaceOrdinal(week: week, weeks: weeks, target: target) {
             return goalPaceSession(step: goalStep ?? ordinal / C.goalPaceEvery, week: week, distance: target.distanceMeters ?? 0)
         }
@@ -148,7 +155,7 @@ extension TrainerEngine {
         let work = session.blocks.reduce(0.0) { $0 + Double($1.repeats) * $1.meters }
         let closing = session.closing ? Double(C.closingRepeats) * C.closingMeters + Double(C.closingRepeats - 1) * C.closingJogMeters : 0
         let jog = session.variant == .hills ? session.blocks.reduce(0.0) { $0 + Double($1.repeats - 1) * $1.meters } : 0
-        return C.warmupMeters + work + closing + jog
+        return C.warmupMeters + work + closing + jog + session.tailMeters + session.warmupExtraMeters
     }
 
     static func restSeconds(session: TrainerQualitySession, block: TrainerQualityBlock, paces: TrainerPaces, lowered: Bool) -> Double {
@@ -193,8 +200,9 @@ extension TrainerEngine {
         let easyDays = (1...C.daysPerWeek).filter { kinds[$0 - 1] == .easy }
         let optionalCount = Double(kinds.filter { $0 == .optionalEasy }.count)
         let fartlekWeek = optionalCount > 0 && isFartlekWeek(week, weeks: weeks)
-        let minimum = easyMinimum(paces: paces)
-        let limit = easyLimit(paces: paces)
+        let unit = runUnit(week)
+        let minimum = ceilRun(easyMinimum(paces: paces), unit: unit)
+        let limit = floorRun(easyLimit(paces: paces), unit: unit)
         func allocate(mediumDay: Int?, mediumLong: Double) -> TrainerEasyShare {
             let regular = easyDays.filter { $0 != mediumDay }
             let count = Double(regular.count)
@@ -202,11 +210,11 @@ extension TrainerEngine {
             let fartlek = fartlekWeek && rest - count * minimum - optionalCount * fartlekMinimumMeters() >= 0
             let weight = count + optionalCount * C.optionalEasyShare
             let raw = weight > 0 ? rest / weight : 0
-            var optional = min(max(roundKilometers(raw * C.optionalEasyShare), minimum), optionalLimit(paces: paces))
-            if fartlek { optional = max(optional, fartlekMinimumMeters()) }
+            var optional = min(max(roundRun(raw * C.optionalEasyShare, unit: unit), minimum), floorRun(optionalLimit(paces: paces), unit: unit))
+            if fartlek { optional = max(optional, ceilRun(fartlekMinimumMeters(), unit: unit)) }
             let easyRaw = count > 0 ? (rest - optional * optionalCount) / count : 0
-            let easy = min(max(roundKilometers(easyRaw), minimum), limit)
-            let first = count > 0 ? min(max(roundKilometers(rest - optional * optionalCount - easy * (count - 1)), minimum), limit) : nil
+            let easy = min(max(roundRun(easyRaw, unit: unit), minimum), limit)
+            let first = count > 0 ? min(max(roundRun(rest - optional * optionalCount - easy * (count - 1), unit: unit), minimum), limit) : nil
             return TrainerEasyShare(
                 meters: easy, optional: optional, base: base.meters, fromHistory: base.fromHistory, first: first, firstDay: regular.first,
                 mediumLong: mediumDay == nil ? nil : mediumLong, mediumLongDay: mediumDay, fartlek: fartlek
@@ -214,12 +222,12 @@ extension TrainerEngine {
         }
         if let day = mediumLongDay(week: week, structure: structure) {
             let target = roundKilometers(week.targetMeters * C.mediumLongShare)
-            let optional = fartlekWeek ? max(fartlekMinimumMeters(), minimum) : minimum
+            let optional = fartlekWeek ? max(ceilRun(fartlekMinimumMeters(), unit: unit), minimum) : minimum
             let room = week.targetMeters - longMeters - quality - Double(easyDays.count - 1) * minimum - optionalCount * optional
-            let meters = min(
-                max(target, C.mediumLongMinimumMeters), C.mediumLongMaximumMeters, limit, week.longMeters - C.metersPerKilometer,
+            let meters = floorRun(min(
+                max(target, C.mediumLongMinimumMeters), C.mediumLongMaximumMeters, limit, floorKilometers(week.longMeters * C.mediumLongLongShare),
                 floorKilometers(room)
-            )
+            ), unit: unit)
             let share = allocate(mediumDay: day, mediumLong: meters)
             if meters >= min(C.mediumLongMinimumMeters, limit), meters > max(share.meters, share.first ?? 0) { return share }
         }
@@ -262,6 +270,10 @@ extension TrainerEngine {
     }
 
     static func qualitySteps(session: TrainerQualitySession, paces: TrainerPaces, lowered: Bool) -> [TrainerStep] {
+        turnedSteps(plainQualitySteps(session: session, paces: paces, lowered: lowered), session: session, paces: paces)
+    }
+
+    private static func plainQualitySteps(session: TrainerQualitySession, paces: TrainerPaces, lowered: Bool) -> [TrainerStep] {
         let pace: Double = switch session.method {
         case .racePace, .goalPace: paces.race ?? paces.threshold
         case .intervals: paces.vo2max
@@ -353,12 +365,12 @@ extension TrainerEngine {
             let isRaceWeek = target.date.map { $0.weekStart == week.start } ?? false
             if isRaceWeek, let raceDay = target.date {
                 if day == raceDay { kind = .race } else if day > raceDay { kind = .off } else if kind != .off {
-                    workouts.append(raceWeekWorkout(day: day, kind: kind, paces: paces))
+                    workouts.append(raceWeekWorkout(day: day, kind: kind, paces: paces, unit: runUnit(week)))
                     continue
                 }
             }
             if let raceDay = target.date, day < raceDay, day.days(until: raceDay) < C.raceQualityGapDays, C.qualityKinds.contains(kind) {
-                workouts.append(raceWeekWorkout(day: day, kind: kind, paces: paces))
+                workouts.append(raceWeekWorkout(day: day, kind: kind, paces: paces, unit: runUnit(week)))
                 continue
             }
             let workout: TrainerWorkout
@@ -382,7 +394,7 @@ extension TrainerEngine {
                 }
                 let head = role == .longest
                     ? T.longestReason(share: C.longestWeekShare, note: note)
-                    : T.longRationale(week: week, previousLong: previousLong, cap: longCap(for: target), note: note)
+                    : T.longRationale(week: week, previousLong: previousLong, cap: longCap(for: target, weekMeters: week.skeletonMeters, paces: paces), note: note)
                 let rationale = ([head] + extras).joined(separator: " ")
                 workout = (long.mode == .blocks ? longBlocksWorkout(day: day, week: week, paces: paces, long: long) : nil)
                     ?? progressiveLong(day: day, week: week, paces: paces, target: target, rationale: rationale, note: note)
@@ -452,7 +464,9 @@ extension TrainerEngine {
             }
             workouts.append(workout)
         }
-        return applying(requests, to: workouts, paces: paces, today: today)
+        let result = applying(requests, to: workouts, paces: paces, today: today)
+        let turning = Set(weeks.filter(\.outAndBack).map(\.start))
+        return turning.isEmpty ? result : result.map { turning.contains($0.day.weekStart) ? withTurn($0) : $0 }
     }
 
     static func formatReason(kind: TrainerDayKind, session: TrainerQualitySession, week: TrainerWeek, weeks: [TrainerWeek]) -> String? {
@@ -495,9 +509,9 @@ extension TrainerEngine {
         )
     }
 
-    static func raceWeekWorkout(day: Day, kind: TrainerDayKind, paces: TrainerPaces) -> TrainerWorkout {
+    static func raceWeekWorkout(day: Day, kind: TrainerDayKind, paces: TrainerPaces, unit: Double = C.metersPerKilometer) -> TrainerWorkout {
         if kind == .optionalEasy { return offWorkout(day: day, rationale: T.raceWeekEasy) }
-        return easyWorkout(day: day, meters: C.raceWeekEasyMeters, paces: paces, rationale: T.raceWeekEasy)
+        return easyWorkout(day: day, meters: floorRun(C.raceWeekEasyMeters, unit: unit), paces: paces, rationale: T.raceWeekEasy)
     }
 
     static func raceWorkout(day: Day, target: TrainerTarget, paces: TrainerPaces) -> TrainerWorkout {

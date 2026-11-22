@@ -12,6 +12,9 @@ struct TrainerQualitySession: Equatable {
     var blocks: [TrainerQualityBlock]
     var closing: Bool
     var variant: TrainerVariant? = nil
+    var turnAfterRep: Int? = nil
+    var tailMeters = 0.0
+    var warmupExtraMeters = 0.0
 }
 
 struct TrainerSkeletonContext {
@@ -19,11 +22,17 @@ struct TrainerSkeletonContext {
     var taperWeeks: Int
     var openEnded: Bool
     var longCap: Double
+    var longCapByVolume: ((Double) -> Double)? = nil
     var peakVolume: Double
     var lightWeeks: [Day] = []
     var earlyLightWeeks: [Day: TrainerLightKind] = [:]
     var calmWeeks: [Day] = []
     var generalWeeks = 0
+    var outAndBack = false
+
+    func longCap(at volume: Double) -> Double {
+        longCapByVolume.map { max(longCap, $0(volume)) } ?? longCap
+    }
 }
 
 struct TrainerSkeletonState {

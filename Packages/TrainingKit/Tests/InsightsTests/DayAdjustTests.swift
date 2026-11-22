@@ -97,6 +97,17 @@ import TrainingCore
         #expect(result.shortened == true)
     }
 
+    @Test func outAndBackLongRunShortensBothHalves() throws {
+        let half = PlannedStep(kind: .active, meters: 8_000, target: .pace(fastest: 300, slowest: 320))
+        let plan = PlannedWorkout(id: 3, day: "2026-11-21", title: "Longão 16 km", estimatedSeconds: nil, estimatedMeters: nil, steps: [half, half])
+
+        #expect(PlannedStep.activeBlocks(plan.steps) == 1)
+        #expect(PlannedStep.isSplitContinuous(plan.steps))
+        #expect(PlannedStep.activeBlocks(intervals().steps) == 5)
+        let result = try #require(adjusted(DayAdjust.adjust(input(plan, shape: .long, score: 55))))
+        #expect(result.steps.map(\.meters) == [6_400, 6_400])
+    }
+
     @Test func heavyLegsAddsThreeSecondsOnLongRun() throws {
         let result = try #require(adjusted(DayAdjust.adjust(input(continuous(), shape: .long, score: 80, heavyLegs: true))))
         #expect(result.seconds == 3)

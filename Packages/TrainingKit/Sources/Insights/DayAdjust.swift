@@ -103,7 +103,7 @@ public enum DayAdjust {
         switch shape {
         case .intervals: droppingRepeat(steps)
         case .continuous: scalingActive(steps, onlyLast: false)
-        case .long: scalingActive(steps, onlyLast: true)
+        case .long: scalingActive(steps, onlyLast: !PlannedStep.isSplitContinuous(steps))
         }
     }
 

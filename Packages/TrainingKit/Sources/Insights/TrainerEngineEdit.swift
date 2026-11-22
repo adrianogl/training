@@ -12,7 +12,7 @@ extension TrainerEngine {
     public static func makeEdit(
         for plan: TrainerPlan, target: TrainerTarget, startMeters: Double, peakMeters: Double, structure: [Int: TrainerDayKind],
         strength: [TrainerStrengthSession], longMode: TrainerLongMode, paceOverrides: [TrainerPaceKind: Double],
-        history: TrainerHistory, today: Day, dayPreference: TrainerDayPreference? = nil
+        history: TrainerHistory, today: Day, dayPreference: TrainerDayPreference? = nil, outAndBack: Bool? = nil
     ) -> TrainerEdit {
         let volumes = chosenVolumes(plan, history: history, today: today)
         let volumesChanged = startMeters != volumes.start || peakMeters != volumes.peak
@@ -24,7 +24,8 @@ extension TrainerEngine {
             strength: sortedStrength(strength) != sortedStrength(plan.strength) ? strength : nil,
             longMode: longMode != plan.longMode ? longMode : nil,
             paceOverrides: paceOverrides != plan.paceOverrides ? paceOverrides : nil,
-            dayPreference: dayPreference.flatMap { $0 != plan.dayPreference ? $0 : nil }
+            dayPreference: dayPreference.flatMap { $0 != plan.dayPreference ? $0 : nil },
+            outAndBack: outAndBack.flatMap { $0 != plan.outAndBack ? $0 : nil }
         )
     }
 
@@ -45,6 +46,7 @@ extension TrainerEngine {
         if let strength = edit.strength { source.strength = strength }
         if let overrides = edit.paceOverrides { source.paceOverrides = overrides }
         if let preference = edit.dayPreference { source.dayPreference = preference }
+        if let outAndBack = edit.outAndBack { source.outAndBack = outAndBack }
         if let mode = edit.longMode, mode != plan.longMode {
             source.longMode = mode
             source.longStageStreak = 0
@@ -84,6 +86,7 @@ extension TrainerEngine {
         if sortedStrength(old.strength) != sortedStrength(new.strength) { fields.append(T.editFieldStrength) }
         if old.longMode != new.longMode { fields.append(T.editFieldLong) }
         if old.paceOverrides != new.paceOverrides { fields.append(T.editFieldPaces) }
+        if old.outAndBack != new.outAndBack { fields.append(T.editFieldOutAndBack) }
         return fields
     }
 
@@ -149,7 +152,7 @@ extension TrainerEngine {
     public static let editPaceBand = C.qualityBand
 
     private static func mainStep(of workout: TrainerWorkout) -> TrainerStep? {
-        workout.steps.first { $0.kind == .work && $0.method != .repetition }
+        unturnedSteps(workout.steps).first { $0.kind == .work && $0.method != .repetition }
     }
 
     private static func center(low: Double?, high: Double?) -> Double? {
@@ -183,7 +186,10 @@ extension TrainerEngine {
     }
 
     public static func applying(_ draft: TrainerWorkoutDraft, to workout: TrainerWorkout) -> TrainerWorkout {
-        var result = draft.isQuality ? qualityEdit(draft, workout) : steadyEdit(draft, workout)
+        var base = workout
+        base.steps = unturnedSteps(workout.steps)
+        var result = draft.isQuality ? qualityEdit(draft, base) : steadyEdit(draft, base)
+        if hasTurn(workout) { result = returned(result) }
         result.edited = true
         return result
     }

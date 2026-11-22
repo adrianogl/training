@@ -5,6 +5,8 @@ enum TrainerDaysText {
     static let runsTitle = "Corridas por semana"
     static let optionalTitle = "Treino opcional"
     static let optionalHint = "Conta no volume da semana."
+    static let outAndBackTitle = "Ida e volta"
+    static let outAndBackHint = "Km par e um bloco termina na metade, para virar e voltar."
     static let offTitle = "Dia off"
     static let offHint = "Nunca entra corrida nesse dia. A força continua onde está."
     static let longTitle = "Dia do longão"

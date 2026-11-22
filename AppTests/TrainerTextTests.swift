@@ -42,6 +42,36 @@ import TrainingCore
         #expect(rows[2].detail == "200 m")
     }
 
+    @Test func marksTheTurnInRowsAndShape() {
+        var workout = TrainerStoreTests.plan().workouts[0]
+        workout.steps = [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 2, meters: 2_000, paceLow: 248, paceHigh: 254, turnsAfter: true),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 90),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 90),
+            TrainerStep(kind: .work, repeats: 3, meters: 2_000, paceLow: 248, paceHigh: 254),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 0, restSeconds: 90),
+            TrainerStep(kind: .cooldown, meters: 1_000),
+        ]
+        let rows = TrainerText.stepRows(workout)
+        let turn = rows.firstIndex(where: \.isTurn)
+        #expect(rows.filter(\.isTurn).count == 1)
+        #expect(turn.map { rows[$0].detail } == "7 km")
+        #expect(turn.map { rows[$0 + 1].title } == "3×")
+        #expect(rows.last?.title == "Volta leve")
+        let bars = TrainerText.shapeBars(workout.steps)
+        #expect(bars.filter(\.turnsAfter).count == 1)
+        #expect(bars.firstIndex(where: \.turnsAfter) == 3)
+
+        workout.steps = [
+            TrainerStep(kind: .steady, meters: 5_000, turnsAfter: true),
+            TrainerStep(kind: .steady, meters: 5_000),
+        ]
+        #expect(TrainerText.stepRows(workout).map(\.isTurn) == [false, true, false])
+        #expect(TrainerText.stepRows(workout).map(\.title) == ["Ida", TrainerText.turnTitle, "Volta"])
+        #expect(TrainerText.shapeBars(workout.steps).count == 2)
+    }
+
     @Test func interleavesRepeatsInShape() {
         let bars = TrainerText.shapeBars(TrainerStoreTests.plan().workouts[0].steps)
         #expect(bars.map(\.kind) == [.warmup, .work, .recovery, .work, .recovery, .work])

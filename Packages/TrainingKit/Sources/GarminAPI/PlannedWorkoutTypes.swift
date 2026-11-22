@@ -31,6 +31,18 @@ public struct PlannedStep: Sendable, Equatable {
         guard !children.isEmpty else { return [self] }
         return Array(repeating: children.flatMap(\.flattened), count: max(repeats, 1)).flatMap { $0 }
     }
+
+    public static func activeBlocks(_ steps: [PlannedStep]) -> Int {
+        let flat = steps.flatMap(\.flattened)
+        return flat.indices.filter { index in
+            flat[index].kind == .active && !(index > 0 && flat[index - 1].kind == .active && flat[index - 1].target == flat[index].target)
+        }.count
+    }
+
+    public static func isSplitContinuous(_ steps: [PlannedStep]) -> Bool {
+        let actives = steps.flatMap(\.flattened).filter { $0.kind == .active }.count
+        return actives > 1 && activeBlocks(steps) == 1
+    }
 }
 
 public struct PlannedWorkout: Sendable, Equatable, Identifiable {

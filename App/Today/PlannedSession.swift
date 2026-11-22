@@ -43,7 +43,7 @@ enum SessionKind: String, Equatable, Sendable, Codable {
             self = .intervals
         } else if mentions(C.thresholdWords) {
             self = .threshold
-        } else if steps.flatMap(\.flattened).filter({ $0.kind == .active }).count >= C.intervalActiveSteps {
+        } else if PlannedStep.activeBlocks(steps) >= C.intervalActiveSteps {
             self = .intervals
         } else {
             self = .easy

@@ -36,6 +36,9 @@ enum TrainerEngineConstants {
     static let longCaps: [(upTo: Double, cap: Double)] = [
         (7_500, 14_000), (15_000, 16_000), (30_000, 22_000), (.infinity, 32_000),
     ]
+    static let longVolumeShare = 0.25
+    static let longTimeCaps: [(upTo: Double, seconds: Double)] = [(15_000, 120 * 60), (30_000, 135 * 60)]
+    static let easyLongGapMeters = 2_000.0
     static let weeklyGrowth = 0.05
     static let legacyPeakShare = 1.10
     static let defaultPeakShare = 1.25

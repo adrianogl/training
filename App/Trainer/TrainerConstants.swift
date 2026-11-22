@@ -40,6 +40,9 @@ enum TrainerConstants {
     static let weekGroupCorner = DSRadius.card + weekGroupPadding
     static let shapeHeight: CGFloat = 44
     static let shapeSpacing: CGFloat = 2
+    static let turnMarkWidth: CGFloat = 2
+    static let turnRowPadding: CGFloat = 10
+    static let turnRowRadius: CGFloat = 12
     static let shapeMinimumWidth: CGFloat = 3
     static let shapeRestWidth: CGFloat = 6
     static let changeSymbolSize: CGFloat = 24

@@ -222,7 +222,7 @@ enum PlanText {
 
     static func shape(_ plan: PlannedWorkout) -> PlannedWorkoutShape {
         let hasRepeat = plan.steps.contains { $0.repeats > 1 || !$0.children.isEmpty }
-        let activeBlocks = plan.steps.flatMap(\.flattened).filter { $0.kind == .active }.count
+        let activeBlocks = PlannedStep.activeBlocks(plan.steps)
         if hasRepeat || activeBlocks > 1 { return .intervals }
         let meters = plan.estimatedMeters ?? plan.steps.flatMap(\.flattened).compactMap(\.meters).reduce(0, +)
         return isLongRun(name: plan.title, distanceMeters: meters, goalKm: nil) ? .long : .continuous

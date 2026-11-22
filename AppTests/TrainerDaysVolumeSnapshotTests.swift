@@ -12,7 +12,7 @@ import Testing
     private static let target = TrainerTarget(kind: .text, name: "Ficar mais forte", text: "ficar mais forte")
     private static let five = TrainerDayPreference(runs: 5, optional: false, offDays: [7], longDay: 6)
 
-    private static func save(_ view: some View, name: String) throws {
+    static func save(_ view: some View, name: String) throws {
         for (scheme, suffix) in [(ColorScheme.dark, ""), (.light, "-light")] {
             let content = view.padding(16).frame(width: 390).fixedSize(horizontal: false, vertical: true).background(BrandColors.background)
             let host = UIHostingController(rootView: content)
@@ -49,7 +49,8 @@ import Testing
         }
         let structure = TrainerEngine.suggestedStructure(Self.five)
         let cards = TrainerDaysCards(
-            preference: .constant(Self.five), structure: .constant(structure), strength: .constant([]), suggested: structure,
+            preference: .constant(Self.five), structure: .constant(structure), strength: .constant([]), outAndBack: .constant(false),
+            suggested: structure,
             meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: Self.paces, target: Self.target),
             peakMeters: peak,
             warnings: TrainerEngine.dayWarnings(structure: structure, strength: [], peakMeters: peak, paces: Self.paces, target: Self.target),
