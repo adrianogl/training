@@ -130,7 +130,7 @@ struct TrainerNewPlanView: View {
             }),
             structure: $structure, strength: $strength, outAndBack: $outAndBack,
             suggested: TrainerEngine.suggestedStructure(dayPreference),
-            meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal),
+            meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal, outAndBack: outAndBack),
             peakMeters: peak,
             warnings: TrainerEngine.dayWarnings(structure: structure, strength: followsStrengthPlan ? model.strengthSessions : strength, peakMeters: peak, paces: paces, target: goal),
             showsStrength: !followsStrengthPlan,

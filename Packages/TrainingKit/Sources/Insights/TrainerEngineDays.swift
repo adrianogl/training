@@ -83,9 +83,9 @@ extension TrainerEngine {
     }
 
     public static func peakWeekMeters(
-        structure: [Int: TrainerDayKind], peakMeters: Double, paces: TrainerPaces, target: TrainerTarget
+        structure: [Int: TrainerDayKind], peakMeters: Double, paces: TrainerPaces, target: TrainerTarget, outAndBack: Bool = false
     ) -> [Int: Double] {
-        let week = previewWeek(meters: roundKilometers(peakMeters), paces: paces, target: target, structure: structure)
+        let week = previewWeek(meters: roundKilometers(peakMeters), paces: paces, target: target, structure: structure, outAndBack: outAndBack)
         let share = easyShare(
             week: week, weeks: [week], target: target, structure: structure, history: TrainerHistory(runs: []),
             today: week.start, paces: paces
@@ -257,14 +257,15 @@ extension TrainerEngine {
     }
 
     private static func previewWeek(
-        meters: Double, paces: TrainerPaces, target: TrainerTarget, structure: [Int: TrainerDayKind] = [:]
+        meters: Double, paces: TrainerPaces, target: TrainerTarget, structure: [Int: TrainerDayKind] = [:], outAndBack: Bool = false
     ) -> TrainerWeek {
         let week = TrainerWeek(
             index: 1, start: C.previewWeekStart, phase: .specific, isRecovery: false, plannedMeters: meters,
             longMeters: sizedLong(longCap(for: target, weekMeters: meters, paces: paces), weekMeters: meters, paces: paces),
-            thresholdFocus: T.stageLabel(C.thresholdBlocks[C.thresholdBlocks.count - 1]), vo2Focus: ""
+            thresholdFocus: T.stageLabel(C.thresholdBlocks[C.thresholdBlocks.count - 1]), vo2Focus: "", outAndBack: outAndBack
         )
-        return longestLongs([week], structure: structure, target: target, history: TrainerHistory(runs: []), today: week.start, paces: paces)[0]
+        let longest = longestLongs([week], structure: structure, target: target, history: TrainerHistory(runs: []), today: week.start, paces: paces)
+        return evenLongs(longest, paces: paces)[0]
     }
 
     static func minimumWeek(structure: [Int: TrainerDayKind], meters: Double, paces: TrainerPaces, target: TrainerTarget) -> Double {
