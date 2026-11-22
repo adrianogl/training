@@ -66,14 +66,14 @@ enum TrainerSendBuilder {
 
     static func runItem(_ workout: TrainerWorkout) -> TrainerSendItem? {
         guard !C.skippedKinds.contains(workout.kind),
-              let payload = try? GarminPlannedPayload.running(name: C.namePrefix + workout.title, steps: runSteps(workout)) else { return nil }
+              let payload = try? GarminPlannedPayload.running(name: workout.title, steps: runSteps(workout)) else { return nil }
         return TrainerSendItem(key: C.runKeyPrefix + workout.day.iso, day: workout.day, kind: .run, title: workout.title, payload: payload, runSteps: runSteps(workout))
     }
 
     static func strengthItem(_ workout: GeneratedStrengthWorkout, sessionId: UUID, day: Day) -> TrainerSendItem? {
         let title = TrainerStrengthText.focusName(workout.group)
         guard !workout.exercises.isEmpty,
-              let payload = try? GarminPlannedPayload.strength(name: C.namePrefix + title, exercises: strengthExercises(workout.exercises)) else { return nil }
+              let payload = try? GarminPlannedPayload.strength(name: title, exercises: strengthExercises(workout.exercises)) else { return nil }
         return TrainerSendItem(
             key: C.strengthKeyPrefix + day.iso + "|" + sessionId.uuidString, day: day, kind: .strength, title: title, payload: payload,
             strengthSeconds: strengthSeconds(workout.exercises)

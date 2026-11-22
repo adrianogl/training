@@ -41,7 +41,7 @@ import TrainingCore
         ) { _ in nil }
         #expect(items.map(\.day.iso) == ["2026-11-23", "2026-12-07"])
         #expect(items.allSatisfy { $0.key.hasPrefix(TrainerSendConstants.mfitKeyPrefix) && $0.kind == .strength && $0.isMFIT })
-        #expect(items.first?.title == "MFIT · Treino A")
+        #expect(items.first?.title == "Treino A")
     }
 
     @Test func oldSettingsWithoutTheMFITFlagStillDecode() throws {

@@ -28,9 +28,9 @@ enum MFITSendBuilder {
     static func items(workouts: [StrengthWorkout], replaced: (Day) -> Bool, catalogId: (String) -> String?) -> [TrainerSendItem] {
         workouts.compactMap { workout in
             guard let day = Day(iso: workout.day), !replaced(day) else { return nil }
-            let title = C.mfitTitlePrefix + workout.title
+            let title = workout.title
             let exercises = exercises(workout.blocks, catalogId: catalogId)
-            guard !exercises.isEmpty, let payload = try? GarminPlannedPayload.strength(name: C.namePrefix + title, exercises: exercises) else { return nil }
+            guard !exercises.isEmpty, let payload = try? GarminPlannedPayload.strength(name: title, exercises: exercises) else { return nil }
             var item = TrainerSendItem(
                 key: C.mfitKeyPrefix + workout.day + "|" + String(workout.id), day: day, kind: .strength, title: title, payload: payload,
                 strengthSeconds: seconds(exercises)
