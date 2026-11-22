@@ -112,6 +112,17 @@ import WorkoutAnalysis
         #expect(TrainerEngine.evenLongs([week], paces: paces, firstCap: 15_000)[0].longMeters == 14_000)
     }
 
+    @Test func peakWeekSuggestionUsesEvenContinuousRuns() {
+        let paces = TrainerPaces(easy: 315, long: 310, threshold: 250, vo2max: 235)
+        let meters = TrainerEngine.peakWeekMeters(structure: structure, peakMeters: 81_000, paces: paces, target: tenK, outAndBack: true)
+        let plain = TrainerEngine.peakWeekMeters(structure: structure, peakMeters: 81_000, paces: paces, target: tenK)
+
+        for day in [1, 3, 5, 6] {
+            #expect((meters[day] ?? 1).truncatingRemainder(dividingBy: 2_000) == 0, "dia \(day): \(meters[day] ?? 0)")
+        }
+        #expect(plain.values.contains { $0.truncatingRemainder(dividingBy: 2_000) != 0 })
+    }
+
     @Test func offByDefault() {
         let plain = TrainerEngine.create(
             target: tenK, structure: structure, strength: [], history: history, today: monday, now: now, startMeters: 60_000, peakMeters: 80_000
