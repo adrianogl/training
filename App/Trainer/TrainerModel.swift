@@ -26,7 +26,8 @@ import TrainingCore
     private(set) var keptDaysCycleEnd: Day?
     private(set) var cycleSummaries: [TrainerCycleSummary]
 
-    @ObservationIgnored private let container: ModelContainer
+    @ObservationIgnored let container: ModelContainer
+    @ObservationIgnored var planZonesCache: (key: PlanZonesKey, value: PlanZones)?
     @ObservationIgnored private let store: TrainerStore
     @ObservationIgnored private let today: @Sendable () -> Day
     @ObservationIgnored private let defaults: UserDefaults

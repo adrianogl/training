@@ -42,6 +42,22 @@ Quando a pessoa não tem nenhuma rodagem nos 90 dias, o plano novo pede um tempo
 
 Arquivos: `Insights/TrainerEngineRecentRace.swift`, `App/Trainer/TrainerRecentRaceCard.swift`. Testes: `InsightsTests/TrainerRecentRaceTests.swift`.
 
+## Zonas dos blocos
+
+A zona de cada bloco é de FC, nas faixas do app (a partir do limiar do relógio: Z2 de 85%, Z3 de 90%, Z4 de 95% e Z5 no limiar). O pace continua o alvo principal do bloco; a zona mostra a FC esperada para ele. Arquivos: `Insights/TrainerZones*.swift`, `App/Workouts/ZoneChip.swift`, `App/Trainer/TrainerZoneGuideCard.swift`. Testes: `InsightsTests/TrainerZonesTests.swift`.
+
+| Bloco | Zona | Pace da zona |
+| --- | --- | --- |
+| Descanso e trote | sem zona | trote |
+| Aquecimento, rodagem, longão, volta leve | Z2 | rodagem ± 7 s/km |
+| Pace-alvo e ritmo de prova | Z3 | ritmo de prova ± 3 s/km |
+| Tempo e limiar | Z4 | limiar ± 3 s/km |
+| VO2 e tiros curtos | Z5 | VO2 ± 3 s/km |
+
+- **Treino planejado do Garmin:** a zona sai do alvo do passo: zona → ela mesma; FC → zona da média; pace → zona do ritmo do treinador mais próximo. Sem alvo, aquecimento e volta leve são Z2. A cor da barra e dos quadradinhos segue essa zona.
+- **Onde aparece:** Hoje (lista de passos), Treinador › dia, detalhe do planejado ("Como fazer") e detalhe do treino feito (zona dominante ao lado da FC média). A semana do treinador, as listas e o mostrador ficam só com a cor.
+- **Zonas e ritmos:** card na aba Treinador com FC, pace e uso de cada zona, e o pace real em cada zona de FC nas corridas dos últimos 42 dias (pelo menos 2 min na zona). Mostra um aviso quando o pace real fica mais de 8 s/km fora da faixa prescrita.
+
 ## Tempo estimado
 
 Treino de corrida prescrito e ainda não feito mostra o tempo mínimo e o máximo: na semana e no dia do treinador, no card do Hoje, na lista de Treinos e no detalhe do treino do Garmin. Treino feito mostra o tempo real.
@@ -260,7 +276,7 @@ Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog*.swift`,
 Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: `GarminAPITests/GarminPlannedUploadTests.swift`, `AppTests/TrainerSendTests.swift`.
 
 - **O que vai:** do dia de hoje até o fim do plano de corrida (no mínimo os próximos 7 dias), por tipo (corrida, força ou os dois), com dias desmarcáveis. Força dos dias do treinador e, com "Enviar os treinos do MFIT" ligado, os do MFIT.
-- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo. A série vai como "repetir N−1 vezes (tiro + descanso)" e o último tiro sozinho, sem descanso ou trote depois dele. Com "Corrida do treinador" ligado, o app ignora os treinos que o Garmin marca como vindos da Treinus (`workoutProvider`): eles saem do Hoje, de Treinos, da nota, do mostrador e dos dias de corrida forte da força. No calendário do Garmin eles continuam.
+- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo. Com limiar no relógio, o aquecimento vai com alvo de FC em Z2, e rodagem, longão e blocos de tempo ou limiar de 2 km ou mais levam a faixa de FC da zona como segundo alvo. VO2 e tiros curtos ficam só com pace, porque a FC não chega à zona antes de o tiro acabar. A série vai como "repetir N−1 vezes (tiro + descanso)" e o último tiro sozinho, sem descanso ou trote depois dele. Com "Corrida do treinador" ligado, o app ignora os treinos que o Garmin marca como vindos da Treinus (`workoutProvider`): eles saem do Hoje, de Treinos, da nota, do mostrador e dos dias de corrida forte da força. No calendário do Garmin eles continuam.
 - **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
 - **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
 - **Apagar o plano:** apaga do relógio as corridas e a força do treinador que o app enviou, de hoje em diante. Os treinos do MFIT ficam. Sem plano de corrida, a força do treinador não é enviada ao relógio.

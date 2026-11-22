@@ -15,10 +15,11 @@ extension TrainerModel {
         let days = (0...max(0, currentDay.days(until: sendLastDay))).map { currentDay.adding(days: $0) }
         var items: [TrainerSendItem] = []
         let prefs = TrainerStrengthPrefsStore().load()
+        let threshold = thresholdHeartRate
         let cache = StrengthProgramStore().load()
         for day in days {
             if filter.kinds.contains(.run), settings.runFromTrainer, let workout = plan?.workouts.first(where: { $0.day == day }),
-               let item = TrainerSendBuilder.runItem(workout) {
+               let item = TrainerSendBuilder.runItem(workout, thresholdHeartRate: threshold) {
                 items.append(item)
             }
             if filter.kinds.contains(.strength), plan != nil {

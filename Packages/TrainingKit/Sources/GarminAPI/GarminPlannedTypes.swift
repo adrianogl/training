@@ -1,6 +1,6 @@
 public indirect enum PlannedRunStep: Sendable, Equatable {
-    case warmup(meters: Double)
-    case interval(meters: Double, fastest: Double?, slowest: Double?)
+    case warmup(meters: Double, heartRate: ClosedRange<Int>? = nil)
+    case interval(meters: Double, fastest: Double?, slowest: Double?, heartRate: ClosedRange<Int>? = nil)
     case recovery(meters: Double)
     case rest(seconds: Double)
     case cooldown(meters: Double)

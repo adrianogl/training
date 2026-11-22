@@ -53,10 +53,11 @@ struct PlannedWorkoutDetailView: View {
     }
 
     private func rebuild() {
-        let input = PlannedBriefingLoader.input(
+        var input = PlannedBriefingLoader.input(
             plan: plan, week: week, context: context, today: Day.today(),
             weeklyGoalKm: weeklyGoal, weather: weather, course: course, easyBand: app.trainer.easyPaceBand
         )
+        input.zones = app.trainer.planZones
         let built = PlannedBriefingBuilder.briefing(input)
         briefing = built
         chatContext = PlannedChatContextBuilder.context(title: plan.title, dateText: dateText, input: input, briefing: built, goals: (try? goalSnapshots(context: context, today: Day.today())) ?? [])

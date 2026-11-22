@@ -190,6 +190,7 @@ struct TrainerShapeChart: View {
 
 struct TrainerStepList: View {
     let rows: [TrainerStepRow]
+    var bands: [TrainerZoneBand] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -225,12 +226,15 @@ struct TrainerStepList: View {
                 Text(row.title).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
             } else {
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(TrainerConstants.color(for: row.kind))
+                    .fill(row.zone.map { BrandColors.zone($0) } ?? TrainerConstants.color(for: row.kind))
                     .frame(width: 10, height: 10)
                 Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
             }
             Spacer(minLength: 6)
             Text(row.detail).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
+            if let zone = row.zone, !row.isHeader {
+                ZoneChip(zone: zone, band: bands.first { $0.zone == zone })
+            }
         }
         .padding(.leading, row.isNested ? TrainerConstants.nestedStepInset : 0)
         .padding(.vertical, 7)

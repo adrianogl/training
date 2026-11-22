@@ -138,7 +138,7 @@ struct BlocksSection: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .frame(width: WorkoutDetailConstants.valueColumnWidth, alignment: .trailing)
-            Text(block.avgHeartRate.map { "\($0) bpm" } ?? "—")
+            heartRateText(block)
                 .font(BrandFonts.number(indent > 0 ? 12 : 13))
                 .foregroundStyle(BrandColors.dim)
                 .lineLimit(1)
@@ -150,6 +150,12 @@ struct BlocksSection: View {
                     .frame(width: WorkoutDetailConstants.dotColumnWidth)
             }
         }
+    }
+
+    private func heartRateText(_ block: WorkoutBlock) -> Text {
+        guard let heartRate = block.avgHeartRate else { return Text(WorkoutDetailConstants.missingValue) }
+        guard let zone = block.dominantZone else { return Text(String(format: WorkoutDetailConstants.heartRateFormat, heartRate)) }
+        return Text("\(heartRate) ") + Text(ZoneText.short(zone)).fontWeight(.bold).foregroundStyle(BrandColors.zone(zone))
     }
 
     @ViewBuilder

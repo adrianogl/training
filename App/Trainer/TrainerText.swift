@@ -422,7 +422,7 @@ enum TrainerText {
             } else {
                 return row
             }
-            return TrainerStepRow(id: row.id, kind: row.kind, title: title, detail: row.detail, isHeader: row.isHeader, isNested: row.isNested)
+            return TrainerStepRow(id: row.id, kind: row.kind, title: title, detail: row.detail, isHeader: row.isHeader, isNested: row.isNested, zone: row.zone)
         }
     }
 
@@ -444,8 +444,8 @@ enum TrainerText {
         }
         blocks.append((current, nil))
         var rows: [TrainerStepRow] = []
-        func append(_ kind: TrainerStepKind, title: String, detail: String, isHeader: Bool = false, isNested: Bool = false) {
-            rows.append(TrainerStepRow(id: rows.count, kind: kind, title: title, detail: detail, isHeader: isHeader, isNested: isNested))
+        func append(_ kind: TrainerStepKind, title: String, detail: String, isHeader: Bool = false, isNested: Bool = false, zone: Int? = nil) {
+            rows.append(TrainerStepRow(id: rows.count, kind: kind, title: title, detail: detail, isHeader: isHeader, isNested: isNested, zone: zone))
         }
         func appendBlock(_ block: [TrainerStep], isNested: Bool) {
             let meters = block.reduce(0.0) { $0 + $1.meters * Double($1.repeats) }
@@ -453,7 +453,8 @@ enum TrainerText {
             let highs = block.compactMap(\.paceHigh)
             var detail = distance(meters)
             if let range = paceRange(low: lows.min(), high: highs.max()) { detail += " · \(range)" }
-            append(.steady, title: kindStepName(.long), detail: detail, isNested: isNested)
+            let zone = block.compactMap { TrainerZones.zone($0, in: workout) }.max()
+            append(.steady, title: kindStepName(.long), detail: detail, isNested: isNested, zone: zone)
         }
         func appendPause(_ rest: Double, isNested: Bool) {
             append(.recovery, title: longBlockPauseTitle, detail: restClock(rest), isNested: isNested)
@@ -497,6 +498,7 @@ enum TrainerText {
             let title = isTransition ? restBeforeNextTitle : repeated(repeats, restStepTitle)
             return TrainerStepRow(id: id, kind: step.kind, title: title, detail: restClock(rest), isNested: isNested)
         }
+        let zone = TrainerZones.zone(step, in: workout)
         if step.kind == .recovery && step.meters > 0 && step.paceLow == nil {
             return TrainerStepRow(id: id, kind: step.kind, title: repeated(repeats, trotTitle), detail: distance(step.meters), isNested: isNested)
         }
@@ -508,7 +510,7 @@ enum TrainerText {
         }
         var single = step
         single.repeats = repeats
-        return TrainerStepRow(id: id, kind: step.kind, title: stepTitle(single, in: workout), detail: detail, isNested: isNested)
+        return TrainerStepRow(id: id, kind: step.kind, title: stepTitle(single, in: workout), detail: detail, isNested: isNested, zone: zone)
     }
 
     static func longModeName(_ mode: TrainerLongMode) -> String {
