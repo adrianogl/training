@@ -5,8 +5,14 @@ import MFIT
 import TrainingCore
 
 extension TrainerModel {
+    var sendLastDay: Day {
+        let window = currentDay.adding(days: TrainerSendConstants.windowDays - 1)
+        guard let plan, plan.endedOn == nil, let last = plan.workouts.map(\.day).max() else { return window }
+        return max(window, last)
+    }
+
     func sendItems(_ filter: TrainerSendFilter, settings: TrainerSendSettings) -> [TrainerSendItem] {
-        let days = (0..<TrainerSendConstants.windowDays).map { currentDay.adding(days: $0) }
+        let days = (0...max(0, currentDay.days(until: sendLastDay))).map { currentDay.adding(days: $0) }
         var items: [TrainerSendItem] = []
         for day in days {
             if filter.kinds.contains(.run), settings.runFromTrainer, let workout = plan?.workouts.first(where: { $0.day == day }),
@@ -33,7 +39,7 @@ extension TrainerModel {
     }
 
     private func staleLastDay(_ records: [String: TrainerSentRecord]) -> Day {
-        let window = currentDay.adding(days: TrainerSendConstants.windowDays - 1)
+        let window = sendLastDay
         let mfitDays = records.filter { $0.key.hasPrefix(TrainerSendConstants.mfitKeyPrefix) }.compactMap { Day(iso: $0.value.day) }
         return ([window] + mfitDays).max() ?? window
     }

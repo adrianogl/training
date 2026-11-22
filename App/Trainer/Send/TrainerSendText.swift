@@ -6,12 +6,14 @@ enum TrainerSendText {
     static let openButton = "Enviar ao Garmin…"
     static let title = "Enviar ao Garmin"
     static let windowLabel = "Próximos 7 dias"
+
+    static func planLabel(_ last: Day) -> String { "Plano até \(TrainerText.dayMonth(last))" }
     static let empty = "Nada para enviar nesses dias."
     static let runFromAdvisory = "A corrida vem da assessoria. Ligue \"Corrida do treinador\" quando passar a seguir o treinador."
     static let runToggle = "Enviar as corridas do plano"
     static let runIgnoresAdvisory = "Ligado, as corridas da assessoria (Treinus) saem do Hoje, de Treinos e do mostrador. No Garmin elas continuam até você desconectar a Treinus."
     static let autoLabel = "Envio automático"
-    static let autoHint = "Ligado, o app manda sozinho quando o plano mudar: os próximos 7 dias e, com o MFIT ligado, os treinos do professor até o fim da prescrição."
+    static let autoHint = "Ligado, o app manda sozinho quando o plano mudar: o plano até o fim e, com o MFIT ligado, os treinos do professor até o fim da prescrição."
     static let onlyApp = "Só treinos criados pelo app são trocados ou apagados no Garmin."
     static let needsLogin = "Entre na conta Garmin em Ajustes para enviar."
     static let statusNew = "novo"
@@ -53,8 +55,9 @@ enum TrainerSendText {
         "Até o fim da prescrição: \(TrainerText.dayMonth(end)) · \(count == 1 ? "1 treino" : "\(count) treinos")"
     }
 
-    static func windowLabel(mfitEnd: Day?) -> String {
-        mfitEnd.map { "Próximos 7 dias e MFIT até \(TrainerText.dayMonth($0))" } ?? windowLabel
+    static func windowLabel(planEnd: Day?, mfitEnd: Day?) -> String {
+        let first = planEnd.map(planLabel) ?? windowLabel
+        return mfitEnd.map { "\(first) e MFIT até \(TrainerText.dayMonth($0))" } ?? first
     }
     static let appleTitle = "Enviar ao Apple Watch"
     static let appleOpenButton = "Enviar ao Apple Watch…"
