@@ -5,10 +5,13 @@ import TrainingCore
 
 extension TrainerModel {
     func plannedStrength(from first: Day, days: Int) -> [TrainerPlannedStrength] {
-        (0...days).flatMap { offset -> [TrainerPlannedStrength] in
+        let prefs = TrainerStrengthPrefsStore().load()
+        let cache = StrengthProgramStore().load()
+        return (0...days).flatMap { offset -> [TrainerPlannedStrength] in
             let day = first.adding(days: offset)
             return trainerSessions(on: day).compactMap { session in
-                guard let workout = strengthWorkout(sessionId: session.id, day: day), !workout.exercises.isEmpty else { return nil }
+                guard let workout = strengthWorkout(sessionId: session.id, day: day, prefs: prefs, cache: cache),
+                      !workout.exercises.isEmpty else { return nil }
                 return TrainerPlannedStrength(workout: Self.strengthWorkout(workout, sessionId: session.id, day: day), sessionId: session.id)
             }
         }
