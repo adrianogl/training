@@ -104,7 +104,7 @@ struct WorkoutListView: View {
                   let fetched = try? await client.currentProgram(today: today.iso) as MFITProgram?? else { return }
             applyStrength(fetched.map(store.update(with:)) ?? store.clearProgram(), today: today)
         }
-        .task(id: model.garminAccount.isSignedIn) {
+        .task(id: "\(model.garminAccount.isSignedIn)|\(model.trainer.sendLastDay.iso)") {
             #if DEBUG
             if UserDefaults.standard.bool(forKey: AppConstants.samplePlannedDefaultsKey) {
                 planned = PlannedSamples.week(from: Day.today())
@@ -114,7 +114,8 @@ struct WorkoutListView: View {
             #endif
             guard let client = model.garminAccount.client else { planned = []; updatePlannedWeeks(); return }
             let today = Day.today()
-            planned = (try? await PlannedWorkouts.fetch(client: client, from: today.weekStart, through: today.adding(days: WorkoutConstants.plannedDays), ignoring: TrainerSendStore().settings().ignoredProviders)) ?? []
+            let last = min(model.trainer.sendLastDay, today.adding(days: WorkoutConstants.plannedMaxDays))
+            planned = (try? await PlannedWorkouts.fetch(client: client, from: today.weekStart, through: last, ignoring: TrainerSendStore().settings().ignoredProviders)) ?? []
             updatePlannedWeeks()
             dropMissingPlanned()
         }
