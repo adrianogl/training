@@ -14,6 +14,8 @@ extension TrainerModel {
     func sendItems(_ filter: TrainerSendFilter, settings: TrainerSendSettings) -> [TrainerSendItem] {
         let days = (0...max(0, currentDay.days(until: sendLastDay))).map { currentDay.adding(days: $0) }
         var items: [TrainerSendItem] = []
+        let prefs = TrainerStrengthPrefsStore().load()
+        let cache = StrengthProgramStore().load()
         for day in days {
             if filter.kinds.contains(.run), settings.runFromTrainer, let workout = plan?.workouts.first(where: { $0.day == day }),
                let item = TrainerSendBuilder.runItem(workout) {
@@ -21,14 +23,14 @@ extension TrainerModel {
             }
             if filter.kinds.contains(.strength), plan != nil {
                 for session in trainerSessions(on: day) {
-                    if let workout = strengthWorkout(sessionId: session.id, day: day),
+                    if let workout = strengthWorkout(sessionId: session.id, day: day, prefs: prefs, cache: cache),
                        let item = TrainerSendBuilder.strengthItem(workout, sessionId: session.id, day: day) {
                         items.append(item)
                     }
                 }
             }
         }
-        if filter.kinds.contains(.strength), settings.sendsMFIT, let program = StrengthProgramStore().load().program {
+        if filter.kinds.contains(.strength), settings.sendsMFIT, let program = cache.program {
             let last = MFITSendBuilder.end(program, today: currentDay)
             if last >= currentDay {
                 let workouts = StrengthSchedule().workouts(program, from: currentDay, through: last)

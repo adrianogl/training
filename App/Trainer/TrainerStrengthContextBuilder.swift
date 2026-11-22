@@ -43,19 +43,22 @@ enum TrainerStrengthContextBuilder {
         return result.mapValues { Array(Set($0)).sorted { $0.rawValue < $1.rawValue } }
     }
 
+    private static let catalogKeys: [(id: String, keys: [String])] = StrengthCatalog.all.map { exercise in
+        (exercise.id, StrengthCatalog.names(of: exercise).map(MFITParser.exerciseKey))
+    }
+
     static func loads(_ records: [MFITLoadRecord]) -> [String: StrengthLoadRecord] {
         var latestByKey: [String: MFITLoadRecord] = [:]
         for record in records where !record.loads.isEmpty {
             if let current = latestByKey[record.key], current.day >= record.day { continue }
             latestByKey[record.key] = record
         }
+        guard !latestByKey.isEmpty else { return [:] }
         var result: [String: StrengthLoadRecord] = [:]
-        for exercise in StrengthCatalog.all {
-            let latest = StrengthCatalog.names(of: exercise)
-                .compactMap { latestByKey[MFITParser.exerciseKey($0)] }
-                .max { $0.day < $1.day }
+        for (id, keys) in catalogKeys {
+            let latest = keys.compactMap { latestByKey[$0] }.max { $0.day < $1.day }
             guard let latest, let top = latest.loads.max() else { continue }
-            result[exercise.id] = StrengthLoadRecord(weight: top, completedAllSets: latest.loads.count >= TrainerStrengthConstants.completedSets, day: latest.day)
+            result[id] = StrengthLoadRecord(weight: top, completedAllSets: latest.loads.count >= TrainerStrengthConstants.completedSets, day: latest.day)
         }
         return result
     }

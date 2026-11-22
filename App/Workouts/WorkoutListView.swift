@@ -324,7 +324,9 @@ struct WorkoutListView: View {
         let rows = weeks.flatMap(\.rows)
         let range = WorkoutCalendarModel.plannedRange(month: calendarMonth, today: Day.today())
         let mfitMonth = range.map { StrengthSchedule().workouts(strengthProgram, from: $0.lowerBound, through: $0.upperBound) } ?? []
-        let trainerMonth = range.map { model.trainer.plannedStrength(from: $0.lowerBound, days: $0.lowerBound.days(until: $0.upperBound)).map(\.workout) } ?? []
+        let trainerMonth = range.map { month in
+            trainerPlanned.map(\.workout).filter { Day(iso: $0.day).map(month.contains) ?? false }
+        } ?? []
         let runs = plannedItems.filter { if case .run = $0 { return true } else { return false } }
         let strengthItems = WorkoutListModel.plannedItems(runs: [], strength: mfitMonth + trainerMonth, doneStrengthDays: strengthDoneDays.union(rows.filter(\.isStrength).map(\.dayIso)), filter: kindFilter)
         let calendarPlanned = runs + strengthItems
