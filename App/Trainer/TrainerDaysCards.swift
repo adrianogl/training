@@ -10,6 +10,8 @@ struct TrainerDaysCards: View {
     let peakMeters: Double
     let warnings: [TrainerDayWarning]
     let showsStrength: Bool
+    var volumeRows: [TrainerVolumeRangeRow] = []
+    var suggestedRuns: Int?
 
     private var weekdays: ClosedRange<Int> { 1...TrainerConstants.weekdayCount }
 
@@ -42,6 +44,12 @@ struct TrainerDaysCards: View {
                     Text(TrainerDaysText.optionalTitle).font(.footnote)
                     Text(TrainerDaysText.optionalHint).font(.caption2).foregroundStyle(BrandColors.dim)
                 }
+            }
+            if !volumeRows.isEmpty {
+                Divider().overlay(BrandColors.line)
+                TrainerVolumeRangeView(
+                    rows: volumeRows, current: preference.runs, peakMeters: peakMeters, suggestedRuns: suggestedRuns
+                ) { runs in preference = TrainerDaysPlanner.settingRuns(preference, runs: runs) }
             }
         }
         .brandCard()

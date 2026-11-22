@@ -19,6 +19,7 @@ enum TrainerConstants {
     static let readinessKeptDefaultsKey = "trainerReadinessKeptDay"
     static let cycleSummariesDefaultsKey = "trainerCycleSummaries"
     static let seenCycleEndDefaultsKey = "trainerSeenCycleEnd"
+    static let keptDaysCycleEndDefaultsKey = "trainerKeptDaysCycleEnd"
     static let intervalPairCount = 2
     static let scoreboardWeeks = 12
     static let readinessEasyKilometers = 8

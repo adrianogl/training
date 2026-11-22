@@ -18,8 +18,9 @@ struct TrainerCycleEditor: Identifiable {
     let isEditing: Bool
     let start: Int?
     let peak: Int?
+    var days: TrainerDayPreference? = nil
 
-    var id: String { "\(isEditing)-\(start ?? 0)-\(peak ?? 0)" }
+    var id: String { "\(isEditing)-\(start ?? 0)-\(peak ?? 0)-\(days?.runs ?? 0)" }
 
     var volumes: (start: Int, peak: Int)? {
         guard let start, let peak else { return nil }

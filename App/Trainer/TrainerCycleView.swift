@@ -14,7 +14,10 @@ struct TrainerCycleView: View {
                 TrainerCycleContent(
                     plan: plan, review: review, ended: model.cycleEnded,
                     onSuggestion: { open(suggested: true) },
-                    onOther: { open(suggested: false) }
+                    onOther: { open(suggested: false) },
+                    extraDay: model.extraDay,
+                    onKeepDays: { model.keepDays() },
+                    onMoreDays: { open(suggested: true, days: model.extraDay?.preference) }
                 )
                 .padding(.horizontal, BrandConstants.screenPadding)
                 .padding(.top, 8)
@@ -32,7 +35,7 @@ struct TrainerCycleView: View {
         .navigationTitle(TrainerCycleText.analysisTitle)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(item: $editor, onDismiss: leaveWhenGone) { editor in
-            TrainerNewPlanView(isEditing: editor.isEditing, suggestedVolumes: editor.volumes)
+            TrainerNewPlanView(isEditing: editor.isEditing, suggestedVolumes: editor.volumes, suggestedDays: editor.days)
         }
         .onAppear { model.markCycleSeen() }
         .onChange(of: model.cycleReview == nil) { _, gone in
@@ -44,9 +47,9 @@ struct TrainerCycleView: View {
         if model.cycleReview == nil { dismiss() }
     }
 
-    private func open(suggested: Bool) {
+    private func open(suggested: Bool, days: TrainerDayPreference? = nil) {
         let volumes = suggested ? model.suggestedVolumes() : model.cycleEnded ? model.cycleVolumes() : nil
-        editor = TrainerCycleEditor(isEditing: !model.cycleEnded, start: volumes?.start, peak: volumes?.peak)
+        editor = TrainerCycleEditor(isEditing: !model.cycleEnded, start: volumes?.start, peak: volumes?.peak, days: days)
     }
 }
 
@@ -56,6 +59,9 @@ struct TrainerCycleContent: View {
     let ended: Bool
     let onSuggestion: () -> Void
     let onOther: () -> Void
+    var extraDay: TrainerExtraDay?
+    var onKeepDays: () -> Void = {}
+    var onMoreDays: () -> Void = {}
     @State private var showsRule = false
 
     private var dated: Bool { plan.target.date != nil }
@@ -65,6 +71,9 @@ struct TrainerCycleContent: View {
             TrainerPlanGoalRow(plan: plan).brandCard()
             DSSectionTitle(TrainerCycleText.nextTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
             TrainerCycleSuggestionCard(review: review, dated: dated, ended: ended, onSuggestion: onSuggestion, onOther: onOther)
+            if let extraDay {
+                TrainerExtraDayCard(suggestion: extraDay, currentRuns: plan.dayPreference.runs, keep: onKeepDays, review: onMoreDays)
+            }
             if let seconds = review.raceSeconds {
                 DSSectionTitle(TrainerCycleText.raceTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
                 TrainerCycleRaceCard(seconds: seconds, goal: review.goalSeconds)

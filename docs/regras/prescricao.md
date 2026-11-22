@@ -139,6 +139,14 @@ Depois de pelo menos 4 semanas (`TrainerEngineCycleConstants.swift`):
 - **Aumenta:** o volume sobe 8% se pelo menos 90% dos treinos foram feitos e a prontidão ficou estável, com tolerância de 3 pontos.
 - **Reduz:** o volume cai 10% se menos de 75% dos treinos foram feitos ou se a prontidão caiu 8 pontos.
 
+## Dias e volume
+
+Constantes: `TrainerEngineDaysConstants.swift`. Testes: `TrainerDaysTests.swift`.
+
+- **Faixa por número de corridas:** para cada número de corridas, a tela de dias mostra a faixa de volume semanal. O início é a semana com rodagens de 40 min (`easyMinimumSeconds`); o confortável vai até rodagens de 60 min (`easyComfortSeconds`); o limite usa rodagens de 75 min e longão de 150 min, o mesmo do pico possível.
+- **Sugestão na escolha:** se o pico ficar fora do confortável, o texto indica o número de corridas mais próximo em que ele fica no confortável.
+- **Um dia a mais:** na análise do ciclo, com o pico sugerido, se a rodagem média passar de 60 min, houver dia livre e a corrida a mais encurtar a rodagem ou fizer a semana caber mais do volume planejado, aparece "Um dia a mais de corrida?" com a semana atual e a semana com uma corrida a mais. "Ver com N" abre a edição dos dias já com a corrida a mais; nada muda sem salvar. "Manter" esconde a sugestão até o próximo ciclo.
+
 ## Semana leve por sinais
 
 Constantes: `TrainerEngineSignalsConstants.swift`. Testes: `TrainerSignalsTests.swift`, `TrainerSignalWeekTests.swift`.

@@ -49,6 +49,25 @@ private final class TrainerClock: @unchecked Sendable {
         )
     }
 
+    @Test func extraDayShowsUntilKeptAndStaysHiddenForThatCycle() async throws {
+        let store = Self.makeStore()
+        let clock = TrainerClock(Self.mondayPlusWeeks(6))
+        let model = try Self.makeModel(clock: clock, store: store)
+        let five = TrainerDayPreference(runs: 5, optional: false, offDays: [7], longDay: 6)
+        await model.createPlan(
+            target: Self.halfMarathon, structure: TrainerEngine.suggestedStructure(five), strength: [], startMeters: 60_000, peakMeters: 80_000,
+            dayPreference: five
+        )
+        await model.endCycle()
+
+        let suggestion = try #require(model.extraDay)
+        #expect(suggestion.preference.runs == 6)
+
+        model.keepDays()
+        #expect(model.extraDay == nil)
+        #expect(try Self.makeModel(clock: clock, store: store).keptDaysCycleEnd == model.cycleReview?.last)
+    }
+
     @Test func endCycleStoresTheDayAndExposesAReview() async throws {
         let model = try Self.makeModel(today: Self.mondayPlusWeeks(6))
         await Self.createHalf(model)

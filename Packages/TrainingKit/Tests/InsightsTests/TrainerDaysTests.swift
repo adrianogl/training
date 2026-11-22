@@ -175,6 +175,30 @@ import WorkoutAnalysis
         ).isEmpty)
     }
 
+    @Test func volumeRangeGrowsWithEachRunAndKeepsComfortBelowTheLimit() {
+        let ranges = (4...6).map { TrainerEngine.volumeRange(structure: TrainerEngine.suggestedStructure(preference($0)), paces: paces, target: openTarget) }
+
+        #expect(ranges[0].limit == 61_000)
+        for range in ranges {
+            #expect(range.minimum <= range.comfortable)
+            #expect(range.comfortable < range.limit)
+        }
+        #expect(ranges[0].comfortable < ranges[1].comfortable && ranges[1].comfortable < ranges[2].comfortable)
+        #expect(ranges[0].limit < ranges[1].limit && ranges[1].limit < ranges[2].limit)
+    }
+
+    @Test func extraDayShowsUpWhenTheAverageEasyRunPassesAnHour() {
+        let five = TrainerDayPreference(runs: 5, optional: false, offDays: [7], longDay: 6)
+        let structure = TrainerEngine.suggestedStructure(five)
+
+        let suggestion = TrainerEngine.extraDay(preference: five, structure: structure, weekMeters: 75_000, paces: paces, target: openTarget)
+
+        #expect(suggestion?.preference.runs == 6)
+        #expect((suggestion?.currentEasySeconds ?? 0) > 3_600)
+        #expect((suggestion?.nextEasyMeters ?? .infinity) < (suggestion?.currentEasyMeters ?? 0))
+        #expect(TrainerEngine.extraDay(preference: five, structure: structure, weekMeters: 50_000, paces: paces, target: openTarget) == nil)
+    }
+
     @Test func limitsComeFromTimeAndRoundDown() {
         #expect(TrainerEngine.easyLimit(paces: paces) == 15_000)
         #expect(TrainerEngine.longLimit(weekMeters: 70_000, paces: paces) == 21_000)

@@ -34,6 +34,14 @@ struct TrainerStore: Sendable {
         defaults.string(forKey: TrainerConstants.seenCycleEndDefaultsKey).flatMap(Day.init(iso:))
     }
 
+    var keptDaysCycleEnd: Day? {
+        defaults.string(forKey: TrainerConstants.keptDaysCycleEndDefaultsKey).flatMap(Day.init(iso:))
+    }
+
+    func markDaysKept(_ day: Day) {
+        defaults.set(day.iso, forKey: TrainerConstants.keptDaysCycleEndDefaultsKey)
+    }
+
     func markCycleSeen(_ day: Day) {
         defaults.set(day.iso, forKey: TrainerConstants.seenCycleEndDefaultsKey)
     }

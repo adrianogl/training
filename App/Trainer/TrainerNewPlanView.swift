@@ -6,6 +6,7 @@ import WorkoutAnalysis
 struct TrainerNewPlanView: View {
     var isEditing = false
     var suggestedVolumes: (start: Int, peak: Int)? = nil
+    var suggestedDays: TrainerDayPreference? = nil
     @Environment(AppModel.self) private var app
     @Environment(\.dismiss) private var dismiss
     @State private var mode = TrainerTargetMode.race
@@ -120,6 +121,7 @@ struct TrainerNewPlanView: View {
         let peak = Double(chosenPeak) * TrainerConstants.metersPerKilometer
         let paces = isEditing ? model.plan?.paces ?? model.previewPaces() : model.previewPaces()
         let goal = target() ?? TrainerDaysConstants.fallbackTarget
+        let ranges = volumeRanges(paces: paces, target: goal)
         return TrainerDaysCards(
             preference: Binding(get: { dayPreference }, set: { next in
                 dayPreference = next
@@ -130,9 +132,26 @@ struct TrainerNewPlanView: View {
             meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal),
             peakMeters: peak,
             warnings: TrainerEngine.dayWarnings(structure: structure, strength: followsStrengthPlan ? model.strengthSessions : strength, peakMeters: peak, paces: paces, target: goal),
-            showsStrength: !followsStrengthPlan
+            showsStrength: !followsStrengthPlan,
+            volumeRows: volumeRows(ranges),
+            suggestedRuns: TrainerEngine.suggestedRuns(ranges: ranges, current: dayPreference.runs, peakMeters: peak)
         )
     }
+
+    private func volumeRanges(paces: TrainerPaces, target: TrainerTarget) -> [Int: TrainerVolumeRange] {
+        var ranges: [Int: TrainerVolumeRange] = [:]
+        for runs in TrainerDaysPlanner.runsRange(dayPreference) {
+            let days = runs == dayPreference.runs ? structure : TrainerEngine.suggestedStructure(TrainerDaysPlanner.settingRuns(dayPreference, runs: runs))
+            ranges[runs] = TrainerEngine.volumeRange(structure: days, paces: paces, target: target)
+        }
+        return ranges
+    }
+
+    private func volumeRows(_ ranges: [Int: TrainerVolumeRange]) -> [TrainerVolumeRangeRow] {
+        let shown = (dayPreference.runs - 1)...(dayPreference.runs + 1)
+        return ranges.keys.sorted().filter(shown.contains).compactMap { runs in ranges[runs].map { TrainerVolumeRangeRow(runs: runs, range: $0) } }
+    }
+
 
     private var followsStrengthPlan: Bool {
         isEditing || model.strengthPlan != nil
@@ -185,6 +204,10 @@ struct TrainerNewPlanView: View {
     }
 
     private func applySuggestion() {
+        if let suggestedDays {
+            dayPreference = suggestedDays
+            structure = TrainerEngine.suggestedStructure(suggestedDays)
+        }
         guard let suggestedVolumes else { return }
         startKilometers = suggestedVolumes.start
         peakKilometers = suggestedVolumes.peak
