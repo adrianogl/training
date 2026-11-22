@@ -1,9 +1,17 @@
 {
-  "versao": "1.40.3",
-  "build": 68,
-  "versao_app": "1.40.3",
-  "notas": [],
+  "versao": "1.40.4",
+  "build": 69,
+  "versao_app": "1.40.4",
+  "notas": [
+    "Mostra as corridas planejadas até o fim do plano"
+  ],
   "historico": [
+    {
+      "versao": "1.40.4",
+      "notas": [
+        "Mostra as corridas planejadas até o fim do plano"
+      ]
+    },
     {
       "versao": "1.40.3",
       "notas": []
@@ -54,12 +62,6 @@
       "versao": "1.39.0",
       "notas": [
         "Calor na hora habitual e sugestão de volume"
-      ]
-    },
-    {
-      "versao": "1.38.1",
-      "notas": [
-        "Sugestão da semana segue a regra de ida e volta"
       ]
     }
   ]
