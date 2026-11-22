@@ -192,19 +192,7 @@ struct PlannedWorkoutDetailView: View {
             }
             ForEach(Array(briefing.phases.enumerated()), id: \.offset) { index, phase in
                 if index > 0 { Divider().overlay(BrandColors.line) }
-                HStack(alignment: .top, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(phase.when).font(BrandFonts.number(15)).foregroundStyle(BrandColors.text)
-                        if let length = phase.length { Text(length).font(.caption2).foregroundStyle(BrandColors.dim) }
-                    }
-                    .frame(width: C.phaseColumn, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(phase.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
-                        if !phase.detail.isEmpty {
-                            Text(phase.detail).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
-                        }
-                    }
-                }
+                PlannedPhaseRow(phase: phase)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

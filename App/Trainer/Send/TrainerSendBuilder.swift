@@ -10,17 +10,41 @@ enum TrainerSendBuilder {
         guard !workout.steps.isEmpty else {
             return [.interval(meters: workout.totalMeters, fastest: workout.paceLow, slowest: workout.paceHigh)]
         }
-        return workout.steps.flatMap { step -> [PlannedRunStep] in
+        let steps = workout.steps
+        var result: [PlannedRunStep] = []
+        var index = 0
+        while index < steps.count {
+            let step = steps[index]
             switch step.kind {
-            case .warmup: return [.warmup(meters: step.meters)]
-            case .cooldown: return [.cooldown(meters: step.meters)]
-            case .recovery: return [.recovery(meters: step.meters)]
+            case .warmup:
+                result.append(.warmup(meters: step.meters))
+            case .cooldown:
+                result.append(.cooldown(meters: step.meters))
+            case .recovery:
+                result.append(recovery(step))
             case .work, .steady:
                 let interval = PlannedRunStep.interval(meters: step.meters, fastest: step.paceLow ?? workout.paceLow, slowest: step.paceHigh ?? workout.paceHigh)
+                let next = index + 1 < steps.count ? steps[index + 1] : nil
+                if step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
+                    result.append(.repeated(times: step.repeats, steps: [interval, recovery(next)]))
+                    index += 2
+                    if index < steps.count, steps[index].kind == .recovery, steps[index].repeats <= 1, let rest = steps[index].restSeconds,
+                       rest == next.restSeconds {
+                        index += 1
+                    }
+                    continue
+                }
                 let rest = (step.restSeconds ?? 0) > 0 ? [PlannedRunStep.rest(seconds: step.restSeconds ?? 0)] : []
-                return step.repeats > 1 ? [.repeated(times: step.repeats, steps: [interval] + rest)] : [interval] + rest
+                result += step.repeats > 1 ? [.repeated(times: step.repeats, steps: [interval] + rest)] : [interval] + rest
             }
+            index += 1
         }
+        return result
+    }
+
+    private static func recovery(_ step: TrainerStep) -> PlannedRunStep {
+        if let seconds = step.restSeconds, seconds > 0 { return .rest(seconds: seconds) }
+        return .recovery(meters: step.meters)
     }
 
     static func strengthExercises(_ exercises: [GeneratedExercise]) -> [PlannedStrengthExercise] {
