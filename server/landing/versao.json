@@ -1,11 +1,17 @@
 {
-  "versao": "1.40.5",
-  "build": 70,
-  "versao_app": "1.40.5",
+  "versao": "1.41.0",
+  "build": 71,
+  "versao_app": "1.41.0",
   "notas": [
-    "Envia os treinos ao Garmin sem prefixo no nome"
+    "Nome do treino com tipo e distância total"
   ],
   "historico": [
+    {
+      "versao": "1.41.0",
+      "notas": [
+        "Nome do treino com tipo e distância total"
+      ]
+    },
     {
       "versao": "1.40.5",
       "notas": [
@@ -56,12 +62,6 @@
       "versao": "1.39.2",
       "notas": [
         "Envia treinos do MFIT com categoria que a Garmin aceita"
-      ]
-    },
-    {
-      "versao": "1.39.1",
-      "notas": [
-        "Mostra o motivo quando o envio ao Garmin falha"
       ]
     }
   ]
