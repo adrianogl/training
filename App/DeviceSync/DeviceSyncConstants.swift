@@ -24,7 +24,6 @@ enum DeviceSyncConstants {
         TrainerConstants.seenCycleEndDefaultsKey,
         BackgroundConstants.notifiedDayDefaultsKey,
         WorkoutNoticeConstants.notifiedKey,
-        WorkoutNoticeConstants.notifiedWorkoutsKey,
         StrengthConstants.recordNotifiedKey,
         TrainerSignalNotifierConstants.notifiedDefaultsKey,
         RacePlanConstants.choiceDefaultsKey,
@@ -41,7 +40,6 @@ enum DeviceSyncConstants {
     ]
     static let unionKeys: Set<String> = [
         WorkoutNoticeConstants.notifiedKey,
-        WorkoutNoticeConstants.notifiedWorkoutsKey,
         StrengthConstants.recordNotifiedKey,
         TrainerSignalNotifierConstants.notifiedDefaultsKey,
     ]

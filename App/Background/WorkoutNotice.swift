@@ -2,6 +2,7 @@ import Foundation
 import Insights
 import Storage
 import SwiftData
+import Sync
 import TrainingCore
 import WorkoutAnalysis
 
@@ -14,17 +15,19 @@ struct WorkoutNoticeContent: Equatable, Sendable {
 enum WorkoutNotice {
     private typealias C = WorkoutNoticeConstants
 
-    static func content(start: Date, in context: ModelContext) -> WorkoutNoticeContent? {
+    static func status(activityId: Int64, in context: ModelContext) -> WorkoutNoticeStatus {
         let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
-        guard let record = records.first(where: { ActivityTypeKey.isRun($0.typeKey) && abs($0.start.timeIntervalSince(start)) <= C.matchTolerance }),
-              record.fitProcessed else { return nil }
+        guard let record = records.first(where: { $0.activityId == activityId && ActivityTypeKey.isRun($0.typeKey) }) else { return .waiting }
+        guard record.fitProcessed else {
+            return record.fitTransientFailures >= SyncConstants.maxFitTransientFailures ? .unavailable : .waiting
+        }
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
-        guard let score = analysis.score?.value else { return nil }
+        guard let score = analysis.score?.value else { return .unavailable }
         let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks, workoutName: record.workoutName).feedback.first
         let goals = (try? goalSnapshots(context: context, today: Day.today())) ?? []
         PersonalRecords.refreshEfforts(in: context)
         let highlights = PersonalRecords.timeline(PersonalRecords.runEfforts(records))[record.activityId] ?? .empty
-        return content(record: record, score: score, opening: opening, goals: goals, records: highlights)
+        return .ready(content(record: record, score: score, opening: opening, goals: goals, records: highlights))
     }
 
     static func content(record: ActivityRecord, score: Int?, opening: String?, goals: [GoalSnapshot] = [], records: RunRecords = .empty) -> WorkoutNoticeContent {

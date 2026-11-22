@@ -298,7 +298,7 @@ import WorkoutAnalysis
             }
         }
         if syncs { await syncNow(.launch) }
-        await workouts.refresh(model: self)
+        await workouts.deliverReady(model: self)
     }
 
     func refreshInstallState() async {
@@ -365,7 +365,7 @@ import WorkoutAnalysis
         if let syncTask {
             let running = runningTrigger
             await syncTask.value
-            guard trigger == .settings, running != .settings, self.syncTask == nil else { return syncStatus.isFinished }
+            guard trigger.runsAfter(running), self.syncTask == nil else { return syncStatus.isFinished }
         }
         let usesHealth = watchKind == .appleWatch
         let key = currentKey()
