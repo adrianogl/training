@@ -91,6 +91,7 @@ private final class RouteTransport: HTTPTransport {
         let calendar = #"{"calendarItems":[{"itemType":"workout","date":"2026-10-01","title":"Longão","workoutId":21,"sportTypeKey":"running"}]}"#
         let transport = RouteTransport([
             "/calendar-service/year/2026/month/8": calendar,
+            "/calendar-service/year/2026/month/9": #"{"calendarItems":[]}"#,
             "/calendar-service/year/2026/month/10": #"{"calendarItems":[]}"#,
             "/workout-service/workout/21": #"{"workoutId":21,"workoutName":"Longão","estimatedDistanceInMeters":12000,"workoutSegments":[]}"#,
         ])

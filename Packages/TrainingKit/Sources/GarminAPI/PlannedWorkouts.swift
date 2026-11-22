@@ -23,11 +23,7 @@ public enum PlannedWorkouts {
     }
 
     public static func fetch(client: GarminAccountClient, from first: Day, through last: Day, ignoring providers: Set<String> = []) async throws -> [PlannedWorkout] {
-        var months: [(Int, Int)] = []
-        for day in [first, last] where !months.contains(where: { $0 == (day.year, day.month) }) {
-            months.append((day.year, day.month))
-        }
-        let items = try await calendarItems(client: client, months: months)
+        let items = try await calendarItems(client: client, months: months(from: first, through: last))
         let runs = runItems(items, from: first, through: last).compactMap { item in
             item.workoutId.flatMap { id in item.date.map { (id: id, day: $0, title: item.title) } }
         }
