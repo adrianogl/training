@@ -1,11 +1,17 @@
 {
-  "versao": "1.40.0",
-  "build": 65,
-  "versao_app": "1.40.0",
+  "versao": "1.40.1",
+  "build": 66,
+  "versao_app": "1.40.1",
   "notas": [
-    "Envia ao Garmin o plano até o fim"
+    "Manda o descanso parado ao Garmin por tempo e corrige a coluna de Como fazer"
   ],
   "historico": [
+    {
+      "versao": "1.40.1",
+      "notas": [
+        "Manda o descanso parado ao Garmin por tempo e corrige a coluna de Como fazer"
+      ]
+    },
     {
       "versao": "1.40.0",
       "notas": [
@@ -59,12 +65,6 @@
       "notas": [
         "Mostra a faixa de volume por número de corridas e sugere um dia a mais no fim do ciclo",
         "Ignora treinos da Treinus com a corrida do treinador ligada"
-      ]
-    },
-    {
-      "versao": "1.36.2",
-      "notas": [
-        "Aviso de treino terminado passa a vir do Garmin"
       ]
     }
   ]
