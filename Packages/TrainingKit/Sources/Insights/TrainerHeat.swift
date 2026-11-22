@@ -41,7 +41,7 @@ public struct TrainerHeat: Sendable, Equatable {
             let main = TrainerEngine.band(longPace + Double(paceOffset), C.easyBand)
             result.paceLow = main.low
             result.paceHigh = main.high
-            return result
+            return TrainerEngine.hasTurn(workout) ? TrainerEngine.withTurn(result) : result
         }
         result.steps = workout.steps.map { step in
             var shifted = step

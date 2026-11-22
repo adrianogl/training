@@ -63,6 +63,10 @@ enum TrainerText {
     static let numbersTitle = "Números"
     static let doneTitle = "O que você fez"
     static let structureTitle = "Estrutura"
+    static let turnTitle = "Meia-volta: vire aqui"
+    static let turnTailTitle = "Volta leve"
+    static let outTitle = "Ida"
+    static let backTitle = "Volta"
     static let editPlanMenu = "Editar plano"
     static let editPlanTitle = "Editar plano"
     static let save = "Salvar"
@@ -336,23 +340,48 @@ enum TrainerText {
         let steps = workout.steps
         var rows: [TrainerStepRow] = []
         var index = 0
+        var distance = 0.0
         while index < steps.count {
             let step = steps[index]
             let next = index + 1 < steps.count ? steps[index + 1] : nil
+            distance += step.meters * Double(step.repeats)
             if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
                 rows.append(TrainerStepRow(id: rows.count, kind: step.kind, title: seriesTitle(step.repeats), detail: "", isHeader: true))
                 rows.append(row(step, at: index, in: workout, single: true, id: rows.count, isNested: true))
                 rows.append(row(next, at: index + 1, in: workout, single: true, id: rows.count, isNested: true))
+                distance += next.meters * Double(next.repeats)
                 index += 2
+                if step.turnsAfter == true { rows.append(turnRow(id: rows.count, distance: distance)) }
                 if index < steps.count, steps[index].repeats <= 1, let rest = steps[index].restSeconds, rest == next.restSeconds {
                     index += 1
                 }
             } else {
                 rows.append(row(step, at: index, in: workout, single: false, id: rows.count))
+                if step.turnsAfter == true { rows.append(turnRow(id: rows.count, distance: distance)) }
                 index += 1
             }
         }
-        return rows
+        return rows.contains(where: \.isTurn) ? outAndBackTitles(rows) : rows
+    }
+
+    private static func outAndBackTitles(_ rows: [TrainerStepRow]) -> [TrainerStepRow] {
+        let steady = rows.filter { $0.kind == .steady && !$0.isTurn && !$0.isHeader }
+        let halves = steady.count == 2 && rows.count == 3
+        return rows.map { row in
+            let title: String
+            if row.kind == .cooldown {
+                title = turnTailTitle
+            } else if halves && !row.isTurn {
+                title = row.id == steady[0].id ? outTitle : backTitle
+            } else {
+                return row
+            }
+            return TrainerStepRow(id: row.id, kind: row.kind, title: title, detail: row.detail, isHeader: row.isHeader, isNested: row.isNested)
+        }
+    }
+
+    private static func turnRow(id: Int, distance: Double) -> TrainerStepRow {
+        TrainerStepRow(id: id, kind: .steady, title: turnTitle, detail: Self.distance(distance), isTurn: true)
     }
 
     private static func longBlockRows(_ workout: TrainerWorkout) -> [TrainerStepRow]? {
@@ -383,17 +412,30 @@ enum TrainerText {
         func appendPause(_ rest: Double, isNested: Bool) {
             append(.recovery, title: longBlockPauseTitle, detail: restClock(rest), isNested: isNested)
         }
+        var covered = 0.0
+        var turn: Double?
+        func advance(over block: [TrainerStep]) {
+            for step in block {
+                covered += step.meters * Double(step.repeats)
+                if step.turnsAfter == true { turn = covered }
+            }
+        }
         var index = 0
         while index < blocks.count {
             var end = index
             while end + 1 < blocks.count, blocks[end + 1].steps == blocks[index].steps { end += 1 }
             let count = end - index + 1
+            for block in blocks[index...end] { advance(over: block.steps) }
             if count > 1, let rest = blocks[index].rest {
                 append(.work, title: seriesTitle(count), detail: "", isHeader: true)
                 appendBlock(blocks[index].steps, isNested: true)
                 appendPause(rest, isNested: true)
             } else {
                 appendBlock(blocks[index].steps, isNested: false)
+                if let at = turn {
+                    rows.append(turnRow(id: rows.count, distance: at))
+                    turn = nil
+                }
                 if let rest = blocks[end].rest { appendPause(rest, isNested: false) }
             }
             index = end + 1
@@ -508,12 +550,12 @@ enum TrainerText {
 
     static func shapeBars(_ steps: [TrainerStep]) -> [TrainerShapeBar] {
         var bars: [TrainerShapeBar] = []
-        func append(_ kind: TrainerStepKind, _ meters: Double, isRest: Bool = false) {
-            if kind == .steady, !isRest, let last = bars.last, last.kind == .steady, !last.isRest {
-                bars[bars.count - 1] = TrainerShapeBar(id: last.id, kind: kind, meters: last.meters + meters, isRest: false)
+        func append(_ kind: TrainerStepKind, _ meters: Double, isRest: Bool = false, turnsAfter: Bool = false) {
+            if kind == .steady, !isRest, let last = bars.last, last.kind == .steady, !last.isRest, !last.turnsAfter {
+                bars[bars.count - 1] = TrainerShapeBar(id: last.id, kind: kind, meters: last.meters + meters, isRest: false, turnsAfter: turnsAfter)
                 return
             }
-            bars.append(TrainerShapeBar(id: bars.count, kind: kind, meters: meters, isRest: isRest))
+            bars.append(TrainerShapeBar(id: bars.count, kind: kind, meters: meters, isRest: isRest, turnsAfter: turnsAfter))
         }
         var index = 0
         while index < steps.count {
@@ -521,12 +563,15 @@ enum TrainerText {
             let next = index + 1 < steps.count ? steps[index + 1] : nil
             if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery {
                 for repeatIndex in 0..<step.repeats {
-                    append(.work, step.meters)
+                    append(.work, step.meters, turnsAfter: step.turnsAfter == true && repeatIndex == step.repeats - 1)
                     if repeatIndex < step.repeats - 1 { append(.recovery, next.meters, isRest: next.restSeconds != nil) }
                 }
                 index += 2
             } else {
-                for _ in 0..<max(step.repeats, 1) { append(step.kind, step.meters, isRest: step.restSeconds != nil) }
+                let count = max(step.repeats, 1)
+                for repeatIndex in 0..<count {
+                    append(step.kind, step.meters, isRest: step.restSeconds != nil, turnsAfter: step.turnsAfter == true && repeatIndex == count - 1)
+                }
                 index += 1
             }
         }

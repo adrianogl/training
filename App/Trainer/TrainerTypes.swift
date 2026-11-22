@@ -86,6 +86,7 @@ struct TrainerStepRow: Identifiable, Equatable {
     let detail: String
     var isHeader = false
     var isNested = false
+    var isTurn = false
 }
 
 struct TrainerShapeBar: Identifiable, Equatable {
@@ -93,6 +94,7 @@ struct TrainerShapeBar: Identifiable, Equatable {
     let kind: TrainerStepKind
     let meters: Double
     var isRest = false
+    var turnsAfter = false
 }
 
 struct TrainerWeekCell: Identifiable, Equatable {

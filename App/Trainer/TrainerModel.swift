@@ -582,7 +582,7 @@ import TrainingCore
     func createPlan(
         target: TrainerTarget, structure: [Int: TrainerDayKind], strength: [TrainerStrengthSession], startMeters: Double?,
         peakMeters: Double?, lightWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, dayPreference: TrainerDayPreference? = nil,
-        paceOverrides: [TrainerPaceKind: Double] = [:]
+        paceOverrides: [TrainerPaceKind: Double] = [:], outAndBack: Bool = false
     ) async {
         isWorking = true
         defer { isWorking = false }
@@ -595,7 +595,7 @@ import TrainingCore
         let created = TrainerEngine.create(
             target: target, structure: structure, strength: form.filter { $0.source == .mfit } + trainer, history: history, today: currentDay, now: .now,
             startMeters: startMeters, peakMeters: peakMeters, lightWeeks: lightWeeks, longMode: longMode, dayPreference: dayPreference,
-            paceOverrides: paceOverrides
+            paceOverrides: paceOverrides, outAndBack: outAndBack
         )
         archiveCycle(previous, review: review, afterPeakMeters: TrainerEngine.volumes(of: created, history: history, today: currentDay).peak)
         persist(created)
@@ -637,12 +637,13 @@ import TrainingCore
 
     func makeEdit(
         target: TrainerTarget, startMeters: Double, peakMeters: Double, structure: [Int: TrainerDayKind], longMode: TrainerLongMode,
-        paceOverrides: [TrainerPaceKind: Double], dayPreference: TrainerDayPreference? = nil
+        paceOverrides: [TrainerPaceKind: Double], dayPreference: TrainerDayPreference? = nil, outAndBack: Bool? = nil
     ) -> TrainerEdit? {
         guard let plan else { return nil }
         return TrainerEngine.makeEdit(
             for: plan, target: target, startMeters: startMeters, peakMeters: peakMeters, structure: structure, strength: plan.strength,
-            longMode: longMode, paceOverrides: paceOverrides, history: history, today: currentDay, dayPreference: dayPreference
+            longMode: longMode, paceOverrides: paceOverrides, history: history, today: currentDay, dayPreference: dayPreference,
+            outAndBack: outAndBack
         )
     }
 

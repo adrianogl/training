@@ -5,6 +5,7 @@ struct TrainerDaysCards: View {
     @Binding var preference: TrainerDayPreference
     @Binding var structure: [Int: TrainerDayKind]
     @Binding var strength: [TrainerStrengthSession]
+    @Binding var outAndBack: Bool
     let suggested: [Int: TrainerDayKind]
     let meters: [Int: Double]
     let peakMeters: Double
@@ -43,6 +44,12 @@ struct TrainerDaysCards: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(TrainerDaysText.optionalTitle).font(.footnote)
                     Text(TrainerDaysText.optionalHint).font(.caption2).foregroundStyle(BrandColors.dim)
+                }
+            }
+            Toggle(isOn: $outAndBack) {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(TrainerDaysText.outAndBackTitle).font(.footnote)
+                    Text(TrainerDaysText.outAndBackHint).font(.caption2).foregroundStyle(BrandColors.dim)
                 }
             }
             if !volumeRows.isEmpty {

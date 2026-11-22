@@ -41,6 +41,7 @@ extension TrainerEngineConstants {
     static let mediumLongShare = 0.2
     static let mediumLongMinimumMeters = 14_000.0
     static let mediumLongMaximumMeters = 16_000.0
+    static let mediumLongLongShare = 0.75
     static let fartlekRepeats = 6
     static let fartlekMeters = 500.0
     static let fartlekEvery = 2

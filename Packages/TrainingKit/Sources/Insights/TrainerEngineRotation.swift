@@ -177,7 +177,7 @@ extension TrainerEngine {
         func floored(_ week: TrainerWeek) -> Bool { week.skeletonMeters >= C.longFloorWeekMeters }
         func longest(_ week: TrainerWeek) -> (wave: Double, room: Double) {
             let wave = min(max(week.longMeters, min(
-                roundKilometers(week.longMeters * C.longestGrowth), roundKilometers(longCap(for: target) * C.longestOverRaceCap),
+                roundKilometers(week.longMeters * C.longestGrowth), roundKilometers(longCap(for: target, weekMeters: week.skeletonMeters, paces: paces) * C.longestOverRaceCap),
                 floorKilometers(week.skeletonMeters * C.longestWeekShare), timeCap
             )), C.longCeilingMeters)
             return (wave, min(max(week.longMeters, min(wave, room(week))), C.longCeilingMeters))

@@ -211,6 +211,7 @@ enum TrainerEngineText {
     static let editFieldStrength = "força"
     static let editFieldLong = "longão"
     static let editFieldPaces = "paces"
+    static let editFieldOutAndBack = "ida e volta"
 
     static func longFailure(_ findings: TrainerFindings, day: Day, next: Double?) -> String {
         var text: String
@@ -410,7 +411,7 @@ enum TrainerEngineText {
         } else if week.isRecovery {
             text = "Semana de recuperação: 75% do longão anterior."
         } else if let previousLong, week.longMeters > previousLong {
-            text = "Longão \(kilometers(week.longMeters - previousLong)) acima do anterior, dentro do teto de \(kilometers(cap)) para essa prova."
+            text = "Longão \(kilometers(week.longMeters - previousLong)) acima do anterior, dentro do teto de \(kilometers(cap)) para essa prova e esse volume."
         } else {
             text = "Longão de \(kilometers(week.longMeters)) repetido, até o histórico mostrar que fecha sem queda."
         }

@@ -199,8 +199,8 @@ extension TrainerEngine {
         let share = easyShare(week: week, weeks: weeks, target: target, structure: structure, history: history, today: today, paces: paces)
         return structure.values.reduce(0.0) { longest, kind in
             let meters: Double = switch kind {
-            case .easy: max(share.meters, share.first ?? 0, share.mediumLong ?? 0)
-            case .optionalEasy: share.optional
+            case .easy: max(share.meters, share.first ?? 0, share.mediumLong ?? 0) + C.easyLongGapMeters
+            case .optionalEasy: share.optional + C.easyLongGapMeters
             case .threshold, .vo2max: qualityMeters(qualitySession(kind, week: week, weeks: weeks, target: target, lowered: false))
             case .long, .off, .race: 0
             }
@@ -261,7 +261,7 @@ extension TrainerEngine {
     ) -> TrainerWeek {
         let week = TrainerWeek(
             index: 1, start: C.previewWeekStart, phase: .specific, isRecovery: false, plannedMeters: meters,
-            longMeters: sizedLong(longCap(for: target), weekMeters: meters, paces: paces),
+            longMeters: sizedLong(longCap(for: target, weekMeters: meters, paces: paces), weekMeters: meters, paces: paces),
             thresholdFocus: T.stageLabel(C.thresholdBlocks[C.thresholdBlocks.count - 1]), vo2Focus: ""
         )
         return longestLongs([week], structure: structure, target: target, history: TrainerHistory(runs: []), today: week.start, paces: paces)[0]

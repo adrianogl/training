@@ -30,21 +30,32 @@ extension TrainerEngine {
         return C.longCaps.first { meters <= $0.upTo }?.cap ?? C.fallbackLongCap
     }
 
+    static func longCap(for target: TrainerTarget, weekMeters: Double, paces: TrainerPaces) -> Double {
+        max(longCap(for: target), volumeLongCap(for: target, weekMeters: weekMeters, longPace: paces.long))
+    }
+
+    static func volumeLongCap(for target: TrainerTarget, weekMeters: Double, longPace: Double) -> Double {
+        let seconds = target.distanceMeters.flatMap { meters in C.longTimeCaps.first { meters <= $0.upTo }?.seconds } ?? C.longMaximumSeconds
+        return min(floorKilometers(weekMeters * C.longVolumeShare), floorKilometers(seconds / longPace * C.metersPerKilometer))
+    }
+
     static func skeletonContext(
-        target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double, lightWeeks: [Day] = [],
-        earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = []
+        target: TrainerTarget, datedWeeks: Int?, openTotal: Int, peakVolume: Double, paces: TrainerPaces, lightWeeks: [Day] = [],
+        earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = [], outAndBack: Bool = false
     ) -> TrainerSkeletonContext {
         let cap = longCap(for: target)
+        let byVolume: (Double) -> Double = { volumeLongCap(for: target, weekMeters: $0, longPace: paces.long) }
         guard let datedWeeks else {
             return TrainerSkeletonContext(
-                total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, peakVolume: peakVolume, lightWeeks: lightWeeks,
-                earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks
+                total: openTotal, taperWeeks: 0, openEnded: true, longCap: cap, longCapByVolume: byVolume, peakVolume: peakVolume,
+                lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks, outAndBack: outAndBack
             )
         }
         let taper = (target.distanceMeters ?? .infinity) <= C.shortRaceMeters ? C.shortRaceTaperWeeks : C.taperWeeks
         return TrainerSkeletonContext(
-            total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, peakVolume: peakVolume,
-            lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks, generalWeeks: max(0, datedWeeks - blockWeeks(for: target))
+            total: datedWeeks, taperWeeks: min(taper, datedWeeks), openEnded: false, longCap: cap, longCapByVolume: byVolume,
+            peakVolume: peakVolume, lightWeeks: lightWeeks, earlyLightWeeks: earlyLightWeeks, calmWeeks: calmWeeks,
+            generalWeeks: max(0, datedWeeks - blockWeeks(for: target)), outAndBack: outAndBack
         )
     }
 
@@ -162,7 +173,7 @@ extension TrainerEngine {
                 } else {
                     state.volume = nextVolume(state: state, phase: phase, context: context)
                     state.returning = false
-                    state.long = min(state.long + C.longStep, context.longCap)
+                    state.long = min(state.long + C.longStep, context.longCap(at: state.volume))
                     if context.openEnded && index % C.recoveryEvery == 1 && state.stage == C.thresholdBlocks.count - 1 {
                         state.stage = 0
                         state.weeksAtStage = 1
@@ -189,7 +200,7 @@ extension TrainerEngine {
                 index: index, start: start, phase: phase,
                 isRecovery: recovery, plannedMeters: volume, targetMeters: volume, longMeters: long,
                 thresholdFocus: TrainerEngineText.stageLabel(C.thresholdBlocks[stage]), vo2Focus: "", calm: calm, lightKind: early,
-                baseMeters: base
+                baseMeters: base, outAndBack: context.outAndBack
             ))
         }
         return weeks

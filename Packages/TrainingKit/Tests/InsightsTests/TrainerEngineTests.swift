@@ -587,7 +587,7 @@ import WorkoutAnalysis
 
         #expect(plan.weeks.count == 12)
         #expect(plan.weeks.allSatisfy { $0.phase != .taper })
-        #expect(plan.weeks.map { $0.baseLongMeters ?? $0.longMeters }.max() == 20_000)
-        #expect(plan.weeks.map(\.longMeters).max() ?? 0 <= 22_000)
+        #expect(plan.weeks.map { $0.baseLongMeters ?? $0.longMeters }.max() == 22_000)
+        #expect(plan.weeks.map(\.longMeters).max() ?? 0 <= 24_000)
     }
 }

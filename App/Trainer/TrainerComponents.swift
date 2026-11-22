@@ -162,9 +162,10 @@ struct TrainerShapeChart: View {
     var body: some View {
         let total = max(bars.filter { !$0.isRest }.map(\.meters).reduce(0, +), 1)
         let restBars = Double(bars.filter(\.isRest).count)
+        let turns = Double(bars.filter(\.turnsAfter).count)
         GeometryReader { proxy in
-            let spacing = TrainerConstants.shapeSpacing * Double(max(bars.count - 1, 0))
-            let width = max(proxy.size.width - spacing - restBars * TrainerConstants.shapeRestWidth, 1)
+            let spacing = TrainerConstants.shapeSpacing * Double(max(bars.count - 1, 0) + Int(turns) * 2)
+            let width = max(proxy.size.width - spacing - restBars * TrainerConstants.shapeRestWidth - turns * TrainerConstants.turnMarkWidth, 1)
             HStack(alignment: .bottom, spacing: TrainerConstants.shapeSpacing) {
                 ForEach(bars) { bar in
                     RoundedRectangle(cornerRadius: 2)
@@ -173,6 +174,12 @@ struct TrainerShapeChart: View {
                             width: bar.isRest ? TrainerConstants.shapeRestWidth : max(width * bar.meters / total, TrainerConstants.shapeMinimumWidth),
                             height: proxy.size.height * TrainerConstants.shapeHeight(for: bar.kind)
                         )
+                    if bar.turnsAfter {
+                        Capsule()
+                            .fill(BrandColors.text)
+                            .frame(width: TrainerConstants.turnMarkWidth, height: proxy.size.height)
+                            .accessibilityLabel(TrainerText.turnTitle)
+                    }
                 }
             }
             .frame(maxHeight: .infinity, alignment: .bottom)
@@ -187,25 +194,48 @@ struct TrainerStepList: View {
     var body: some View {
         VStack(spacing: 0) {
             ForEach(rows) { row in
-                HStack(spacing: 8) {
-                    if row.isHeader {
-                        Image(systemName: "repeat").font(.caption2.weight(.semibold)).foregroundStyle(BrandColors.dim)
-                        Text(row.title).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    } else {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(TrainerConstants.color(for: row.kind))
-                            .frame(width: 10, height: 10)
-                        Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
-                    }
-                    Spacer(minLength: 6)
-                    Text(row.detail).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
-                }
-                .padding(.leading, row.isNested ? TrainerConstants.nestedStepInset : 0)
-                .padding(.vertical, 7)
-                if row.id != rows.last?.id && !row.isHeader {
-                    Divider().overlay(BrandColors.line)
+                if row.isTurn {
+                    turnRow(row)
+                } else {
+                    stepRow(row)
                 }
             }
+        }
+    }
+
+    private func turnRow(_ row: TrainerStepRow) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "arrow.uturn.backward").font(.caption.weight(.bold))
+            Text(row.title).font(.footnote.weight(.semibold))
+            Spacer(minLength: 6)
+            Text(row.detail).font(.footnote.weight(.semibold)).monospacedDigit()
+        }
+        .foregroundStyle(BrandColors.accent)
+        .padding(.horizontal, TrainerConstants.turnRowPadding)
+        .padding(.vertical, 8)
+        .background(BrandColors.accentGlow, in: RoundedRectangle(cornerRadius: TrainerConstants.turnRowRadius, style: .continuous))
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private func stepRow(_ row: TrainerStepRow) -> some View {
+        HStack(spacing: 8) {
+            if row.isHeader {
+                Image(systemName: "repeat").font(.caption2.weight(.semibold)).foregroundStyle(BrandColors.dim)
+                Text(row.title).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
+            } else {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(TrainerConstants.color(for: row.kind))
+                    .frame(width: 10, height: 10)
+                Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
+            }
+            Spacer(minLength: 6)
+            Text(row.detail).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
+        }
+        .padding(.leading, row.isNested ? TrainerConstants.nestedStepInset : 0)
+        .padding(.vertical, 7)
+        if row.id != rows.last?.id && !row.isHeader && !(rows.first { $0.id == row.id + 1 }?.isTurn ?? false) {
+            Divider().overlay(BrandColors.line)
         }
     }
 }

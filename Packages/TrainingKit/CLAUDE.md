@@ -39,7 +39,7 @@ As regras do treinador e da análise estão escritas em `docs/regras/prescricao.
 
 O essencial da prescrição:
 
-- Tudo em distância: aquecimento sempre 3 km, blocos em km ou metros, sem desaquecimento. Limite de tamanho por tempo da literatura, convertido para km inteiro no pace atual.
+- Tudo em distância: aquecimento de 3 km, blocos em km ou metros, sem desaquecimento (exceto com "Ida e volta", ver `docs/regras/prescricao.md`). Limite de tamanho por tempo da literatura, convertido para km inteiro no pace atual.
 - Exceção: descanso parado entre blocos vai em tempo.
 - Meta de prova continua em tempo, porque é resultado.
 - Força não reduz o volume de corrida.

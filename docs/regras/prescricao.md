@@ -10,7 +10,7 @@ Constantes: `Packages/TrainingKit/Sources/Insights/TrainerEngine*Constants.swift
 
 - **Distância:** tudo é prescrito por distância. Aquecimento em km, blocos em km ou metros, recuperação em metros. Nunca "10 min".
 - **Descanso entre blocos:** é a única exceção, em tempo, porque é parado e sem trote.
-- **Aquecimento e desaquecimento:** aquecimento sempre de 3 km, também depois de força de pernas, e sem desaquecimento.
+- **Aquecimento e desaquecimento:** aquecimento de 3 km, também depois de força de pernas, e sem desaquecimento. A exceção é o plano com "Ida e volta": o aquecimento pode ir a 5 km e entra uma volta leve de até 2 km (ver [Ida e volta](#ida-e-volta)).
 - **Limites de tamanho:** são definidos por tempo, como na literatura (Daniels, método norueguês), e convertidos em km inteiro no ritmo atual, nunca fracionado.
 - **Metas de prova:** continuam em tempo, porque são resultado, não prescrição.
 - **Referências:** o padrão de qualidade segue o histórico real do atleta: 41 treinos de março a novembro de 2026 no Garmin.
@@ -76,9 +76,27 @@ Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sáb
 | --- | --- | --- |
 | Rodagem | 40 a 75 min, entre 6 e 14 km, pelo tamanho das rodagens das últimas 6 semanas | `easyMinimumSeconds`, `easyMaximumSeconds`, `minimumEasyMeters`, `maximumEasyMeters`, `easyWindowDays` |
 | Opcional | 70% da rodagem, só com prontidão de pelo menos 60 e até 50 min | `optionalEasyShare`, `optionalReadiness`, `optionalMaximumSeconds` |
-| Longão | até 150 min e até 30% da semana, mínimo de 10 km, sobe de 2 em 2 km | `longMaximumSeconds`, `longWeekShare`, `minimumLongMeters`, `longStep` |
-| Teto do longão pelo volume | até 7,5 km/sem: 14 km; até 15: 16 km; até 30: 22 km; acima: 32 km | `longCaps` |
+| Longão | até 150 min e até 30% da semana, mínimo de 10 km, sobe de 2 em 2 km; fica pelo menos 2 km acima de qualquer rodagem da semana | `longMaximumSeconds`, `longWeekShare`, `minimumLongMeters`, `longStep`, `easyLongGapMeters` |
+| Teto do longão | o maior entre o teto da prova e 25% da semana. O teto pela semana para em 120 min de longão para prova até 15 km, 135 min até 30 km e 150 min acima ou sem distância | `longCaps`, `longVolumeShare`, `longTimeCaps` |
+| Teto da prova | prova até 7,5 km: 14 km; até 15 km: 16 km; até 30 km: 22 km; acima: 32 km | `longCaps` |
+| Maior longão do bloco | a cada 3 semanas de progressão, a segunda tem o maior longão: até 1,2 × o longão, 1,1 × o teto, 35% da semana e 150 min. As outras ficam em 85% dele | `longestGrowth`, `longestOverRaceCap`, `longestWeekShare`, `stimulusShare` |
+| Média-longa | com 65 km ou mais na semana de progressão, a rodagem entre limiar e VO2 vira média-longa: 20% da semana, entre 14 e 16 km, no máximo 75% do longão | `mediumLongWeekMeters`, `mediumLongShare`, `mediumLongMinimumMeters`, `mediumLongMaximumMeters`, `mediumLongLongShare` |
 | Semana da prova | trotes de 5 km | `raceWeekEasyMeters` |
+
+## Ida e volta
+
+Opção do plano ("Ida e volta" em Dias da semana), desligada por padrão. Serve para quem sai de casa e volta na metade, e também como marcador da metade do treino.
+
+- **Corrida contínua:** rodagem, opcional, média-longa e longão em km par. O treino vai em duas metades iguais, e o relógio avisa na troca de passo. O longão arredonda para cima, ou para baixo se passar de 150 min ou de 35% da semana.
+- **Treino com blocos:** limiar, VO2 e ritmo de prova terminam um tiro exatamente na metade. Para isso, o aquecimento cresce até 2 km ou entra uma volta leve de até 2 km no fim; escolhe o que precisar de menos, e no empate, a volta leve. Os blocos não mudam. Se nenhum tiro fecha a conta (tempo contínuo, por exemplo), a meia-volta fica no meio do bloco.
+- **Exceções:** o trote da semana da prova fica em 4 km. A rodagem encurtada por pedido (dor, cansaço) pode ficar em km ímpar, mas a meia-volta continua na metade. Longão limitado depois de um longão falho arredonda para baixo.
+- **No relógio e na tela Hoje:** as duas metades seguidas, com o mesmo alvo, contam como um bloco só. O treino continua contínuo, e o ajuste do dia encurta as duas metades por igual.
+- **Volume:** o km a mais da qualidade sai das rodagens. Com as rodagens já no mínimo de 40 min, a semana pode passar até 2 km do planejado.
+- **Longão em estágios, progressivo e com final forte:** a meia-volta cai no km da metade, dentro do bloco se for preciso.
+- **Na tela:** a lista de passos mostra "Meia-volta: vire aqui" com o km, e o gráfico do treino tem um traço no ponto.
+- **Edição do treino:** ao mudar a distância ou os tiros, a meia-volta é recalculada.
+
+`TrainerEngineOutAndBack`, `outAndBackUnitMeters`, `outAndBackTailMaximumMeters`.
 
 ## Limiar
 
