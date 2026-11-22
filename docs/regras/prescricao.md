@@ -263,6 +263,8 @@ Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: 
 - **Falhas:** se apagar no Garmin falhar (exceto "não encontrado"), o registro fica e o treino novo daquele dia não é criado, para não sobrar treino duplicado. Se o agendamento falhar, o treino recém-criado é apagado. Só um envio roda por vez, e ele não é cancelado ao sair da tela.
 - **Envio automático:** desligado, só corrida, só força ou os dois. Quando ligado, roda ao abrir o treinador e quando o plano muda.
 - **MFIT:** com "Enviar os treinos do MFIT" ligado (só no Garmin), entram os treinos do professor de hoje até o fim da prescrição do MFIT, ou 4 semanas à frente quando o programa não tem fim. O nome no Garmin é "trAIning · MFIT · <treino>". Cada exercício usa o exercício do catálogo da Garmin quando o nome do MFIT tem par no mapa `mfit` do `exercise-media.json`; sem par, vai com o nome do professor e a categoria que o parser do MFIT adivinha (`TOTAL_BODY` se nenhuma). Dia em que o Claude substituiu o MFIT fica de fora. Desligar a opção apaga do Garmin os treinos do MFIT que o app enviou. Testes: `AppTests/MFITSendTests.swift`.
+- **Categoria da Garmin:** exercício sem par no catálogo vai com a categoria tirada do nome, traduzida para uma que a Garmin aceita (adução → `HIP_STABILITY`, cadeira extensora → `SQUAT`, crucifixo inverso → `FLYE`). Categoria fora do catálogo vira `TOTAL_BODY`; a Garmin recusa o treino inteiro (código 400) com uma categoria que não conhece. O mapa de músculos da força continua usando a categoria original.
+- **Erro no envio:** o resultado mostra o motivo do primeiro erro: sessão do Garmin vencida, limite de envios ou o código que a Garmin devolveu.
 
 ## Envio ao Apple Watch
 

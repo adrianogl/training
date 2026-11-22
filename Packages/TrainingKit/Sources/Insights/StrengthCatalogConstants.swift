@@ -1,4 +1,7 @@
 public enum StrengthCatalogConstants {
+    static let garminCategoryAliases: [String: String] = ["HIP_ADDUCTION": "HIP_STABILITY", "LEG_EXTENSION": "SQUAT", "REVERSE_FLY": "FLYE"]
+    static let fallbackGarminCategory = "TOTAL_BODY"
+
     static let equipmentByPlace: [StrengthPlace: Set<StrengthEquipment>] = [
         .gym: [.barbell, .machine, .cable, .dumbbell, .kettlebell, .medicineBall, .suspension, .swissBall, .band, .bodyweight],
         .home: defaultHomeEquipment.union([.bodyweight]),
