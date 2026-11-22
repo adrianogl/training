@@ -7,7 +7,9 @@ enum WorkoutNoticeConstants {
     static let permissionRequestedKey = "workoutNoticePermissionRequested.wake"
     static let enabledAtKey = "workoutNoticeEnabledAt"
     static let notifiedKey = "workoutNoticeNotifiedIds"
-    static let notifiedWorkoutsKey = "workoutNoticeNotifiedWorkouts"
+    static let lastCheckKey = "workoutNoticeLastGarminCheck"
+    static let expectedKey = "workoutNoticeExpectedRun"
+    static let matchedStartKey = "workoutNoticeMatchedRunStart"
     static let pendingKey = "workoutNoticePending"
     static let logger = Logger(subsystem: "trAIning", category: "WorkoutNotice")
     static let backgroundTaskName = "workout-notice"
@@ -18,6 +20,9 @@ enum WorkoutNoticeConstants {
     static let wakeTypes: [HKQuantityTypeIdentifier] = [.heartRate, .distanceWalkingRunning, .activeEnergyBurned]
     static let defaultEnabled = true
     static let recentWindow: TimeInterval = 6 * 60 * 60
+    static let fetchWindow: TimeInterval = 12 * 60 * 60
+    static let garminCheckInterval: TimeInterval = 10 * 60
+    static let expectedRunWindow: TimeInterval = 30 * 60
     static let matchTolerance: TimeInterval = 10 * 60
     static let notifiedLimit = 30
     static let idPrefix = "workout-finished-"

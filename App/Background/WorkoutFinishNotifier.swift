@@ -12,9 +12,9 @@ import UIKit
     private let fixedDefaults: UserDefaults?
     private let scheduler = UserNotificationScheduler()
     private var observing = false
-    private var wakeDeliveryEnabled = false
     private var processing = false
     private var rerun = false
+    private var rerunByWorkout = false
     private var backgroundTask = UIBackgroundTaskIdentifier.invalid
     private weak var model: AppModel?
 
@@ -28,51 +28,49 @@ import UIKit
 
     private var enabledAt: Date? { defaults.object(forKey: C.enabledAtKey) as? Date }
 
+    private var supported: Bool { UIDevice.current.userInterfaceIdiom == .phone }
+
     func requestAccess() async {
-        guard HKHealthStore.isHealthDataAvailable() else { return }
-        let wake = Set<HKObjectType>(C.wakeTypes.map { HKQuantityType($0) })
-        try? await store.requestAuthorization(toShare: [], read: wake.union([HKObjectType.workoutType()]))
+        guard supported, HKHealthStore.isHealthDataAvailable() else { return }
+        try? await store.requestAuthorization(toShare: [], read: Set(observedTypes))
     }
 
     func start(model: AppModel) {
-        guard enabled, HKHealthStore.isHealthDataAvailable() else { return }
+        guard enabled, supported, HKHealthStore.isHealthDataAvailable() else { return }
         self.model = model
         if enabledAt == nil {
             defaults.set(Date.now, forKey: C.enabledAtKey)
             C.logger.info("aviso ligado, enabledAt gravado")
         }
-        let type = HKObjectType.workoutType()
         if !observing {
             observing = true
-            let query = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completion, error in
-                nonisolated(unsafe) let completion = completion
-                if let error {
-                    C.logger.error("observer com erro: \(error.localizedDescription, privacy: .public)")
-                    completion()
-                    return
-                }
-                Task { @MainActor in
-                    C.logger.info("observer disparou")
-                    if let self, let model = self.model { await self.refresh(model: model) }
-                    completion()
-                }
+            observedTypes.forEach(observe)
+        }
+        for type in observedTypes {
+            store.enableBackgroundDelivery(for: type, frequency: .immediate) { _, error in
+                if let error { C.logger.error("background delivery de \(type.identifier, privacy: .public) falhou: \(error.localizedDescription, privacy: .public)") }
             }
-            store.execute(query)
-            C.wakeTypes.forEach(observeWake)
         }
-        store.enableBackgroundDelivery(for: type, frequency: .immediate) { _, error in
-            if let error { C.logger.error("background delivery falhou: \(error.localizedDescription, privacy: .public)") }
-        }
-        updateWakeDelivery(pending: !PendingWorkoutQueue.load(defaults: defaults).items.isEmpty)
     }
 
-    private func observeWake(_ identifier: HKQuantityTypeIdentifier) {
-        let query = HKObserverQuery(sampleType: HKQuantityType(identifier), predicate: nil) { [weak self] _, completion, _ in
+    private var observedTypes: [HKSampleType] {
+        [HKObjectType.workoutType()] + C.wakeTypes.map { HKQuantityType($0) }
+    }
+
+    private func observe(_ type: HKSampleType) {
+        let byWorkout = type == HKObjectType.workoutType()
+        let query = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completion, error in
             nonisolated(unsafe) let completion = completion
+            if let error {
+                C.logger.error("observer com erro: \(error.localizedDescription, privacy: .public)")
+                completion()
+                return
+            }
             Task { @MainActor in
-                if let self, let model = self.model, !PendingWorkoutQueue.load(defaults: self.defaults).items.isEmpty {
-                    C.logger.info("dado novo no Health com treino pendente")
-                    await self.refresh(model: model)
+                C.logger.info("dado novo no Health: \(type.identifier, privacy: .public)")
+                if let self, let model = self.model {
+                    let newRun = byWorkout ? await self.noteHealthRun() : false
+                    await self.refresh(model: model, byWorkout: newRun)
                 }
                 completion()
             }
@@ -80,101 +78,152 @@ import UIKit
         store.execute(query)
     }
 
-    private func updateWakeDelivery(pending: Bool) {
-        guard pending != wakeDeliveryEnabled else { return }
-        wakeDeliveryEnabled = pending
-        for identifier in C.wakeTypes {
-            let type = HKQuantityType(identifier)
-            if pending {
-                store.enableBackgroundDelivery(for: type, frequency: .immediate) { _, error in
-                    if let error { C.logger.error("background delivery de \(identifier.rawValue, privacy: .public) falhou: \(error.localizedDescription, privacy: .public)") }
-                }
-            } else {
-                store.disableBackgroundDelivery(for: type) { _, _ in }
+    private func noteHealthRun() async -> Bool {
+        guard let enabledAt else { return false }
+        let matched = defaults.object(forKey: C.matchedStartKey) as? Date
+        guard let expected = WorkoutNoticeSelection.newExpectation(healthRun: await latestHealthRun(), enabledAt: enabledAt, matchedStart: matched, current: expectedRun, now: .now, window: C.expectedRunWindow) else { return false }
+        saveExpectedRun(expected)
+        C.logger.info("corrida nova no Health, esperando o Garmin")
+        return true
+    }
+
+    private func latestHealthRun() async -> DateInterval? {
+        let window = HKQuery.predicateForSamples(withStart: Date.now.addingTimeInterval(-C.recentWindow), end: nil)
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [window, HKQuery.predicateForWorkouts(with: .running)])
+        let latest = [NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)]
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: 1, sortDescriptors: latest) { _, samples, _ in
+                continuation.resume(returning: samples?.first.map { DateInterval(start: $0.startDate, end: $0.endDate) })
             }
+            store.execute(query)
         }
+    }
+
+    private func disableDelivery() {
+        observedTypes.forEach { store.disableBackgroundDelivery(for: $0) { _, _ in } }
     }
 
     func detach() {
         model = nil
-        store.disableBackgroundDelivery(for: HKObjectType.workoutType()) { _, _ in }
-        updateWakeDelivery(pending: false)
+        disableDelivery()
     }
 
     func stop() {
         defaults.removeObject(forKey: C.enabledAtKey)
-        store.disableBackgroundDelivery(for: HKObjectType.workoutType()) { _, _ in }
-        updateWakeDelivery(pending: false)
+        disableDelivery()
     }
 
-    func refresh(model: AppModel) async {
-        guard enabled, let enabledAt else { return }
+    func refresh(model: AppModel, byWorkout: Bool = false) async {
+        guard enabled, supported, let enabledAt else { return }
+        guard UIApplication.shared.applicationState != .active else {
+            await deliverReady(model: model)
+            return
+        }
         guard !processing else {
             rerun = true
+            rerunByWorkout = rerunByWorkout || byWorkout
             return
         }
         processing = true
         defer { processing = false }
+        var forced = byWorkout
         repeat {
             rerun = false
-            await process(model: model, enabledAt: enabledAt)
+            await process(model: model, enabledAt: enabledAt, byWorkout: forced)
+            forced = rerunByWorkout
+            rerunByWorkout = false
         } while rerun
     }
 
-    private func process(model: AppModel, enabledAt: Date) async {
-        let now = Date.now
-        let workouts = await finishedRuns()
-        let due = WorkoutNoticeSelection.due(workouts: workouts, enabledAt: enabledAt, now: now, notified: notifiedWorkouts, window: C.recentWindow)
+    func deliverReady(model: AppModel) async {
+        guard enabled, supported, let enabledAt, !processing else { return }
         var queue = PendingWorkoutQueue.load(defaults: defaults)
-        due.forEach { queue.add(PendingWorkout(id: $0.id, start: $0.start, end: $0.end)) }
+        queue.prune(now: .now, lifetime: C.recentWindow)
+        await deliverFromStore(model: model, enabledAt: enabledAt, queue: &queue)
+    }
+
+    private func process(model: AppModel, enabledAt: Date, byWorkout: Bool) async {
+        let now = Date.now
+        var queue = PendingWorkoutQueue.load(defaults: defaults)
         queue.prune(now: now, lifetime: C.recentWindow)
         queue.save(defaults: defaults)
-        C.logger.info("corridas recentes: \(workouts.count), novas: \(due.count), pendentes: \(queue.items.count)")
-        defer { updateWakeDelivery(pending: !queue.items.isEmpty) }
-        guard !queue.items.isEmpty else { return }
+        let lastCheck = defaults.object(forKey: C.lastCheckKey) as? Date
+        let check = WorkoutNoticeSelection.nextCheck(forced: byWorkout, pending: hasWork(queue, now: now), lastCheck: lastCheck, now: now, interval: C.garminCheckInterval)
+        if case .after(let next) = check {
+            C.logger.info("checagem no Garmin feita há pouco, próxima agendada")
+            BackgroundSync.scheduleWorkoutRetry(at: next)
+            return
+        }
 
         beginBackgroundTask(model: model)
         defer { endBackgroundTask() }
-        await syncAndDeliver(model: model, queue: &queue)
+        await syncAndDeliver(model: model, enabledAt: enabledAt, queue: &queue)
         var attempt = 0
-        while !queue.items.isEmpty, WorkoutQuickRetry.shouldRetry(attempt: attempt, remaining: UIApplication.shared.backgroundTimeRemaining) {
+        while hasWork(queue, now: .now), WorkoutQuickRetry.shouldRetry(attempt: attempt, remaining: UIApplication.shared.backgroundTimeRemaining) {
             attempt += 1
             try? await Task.sleep(for: C.quickRetryDelay)
             guard !Task.isCancelled else { break }
             C.logger.info("nota ainda não saiu, tentativa rápida \(attempt)")
-            await syncAndDeliver(model: model, queue: &queue)
+            await syncAndDeliver(model: model, enabledAt: enabledAt, queue: &queue)
         }
         await model.strava.sendPending()
-        guard !queue.items.isEmpty else { return }
+        guard hasWork(queue, now: .now) else { return }
         BackgroundSync.scheduleWorkoutRetry()
-        C.logger.info("aviso adiado, pendentes: \(queue.items.count)")
+        let pending = queue.items.count
+        C.logger.info("aviso adiado, pendentes: \(pending)")
     }
 
-    private func syncAndDeliver(model: AppModel, queue: inout PendingWorkoutQueue) async {
+    private func hasWork(_ queue: PendingWorkoutQueue, now: Date) -> Bool {
+        !queue.items.isEmpty || WorkoutNoticeSelection.expecting(expectedRun, now: now)
+    }
+
+    private func syncAndDeliver(model: AppModel, enabledAt: Date, queue: inout PendingWorkoutQueue) async {
         C.logger.info("sync leve começou")
         let synced = await model.syncNow(.workoutFinished)
         C.logger.info("sync leve terminou, ok: \(synced)")
+        if synced { defaults.set(Date.now, forKey: C.lastCheckKey) }
+        await deliverFromStore(model: model, enabledAt: enabledAt, queue: &queue)
+    }
+
+    private func deliverFromStore(model: AppModel, enabledAt: Date, queue: inout PendingWorkoutQueue) async {
+        let now = Date.now
+        let container = model.container
+        let runs = await Task.detached(priority: .utility) {
+            WorkoutNoticeSelection.finishedRuns(since: now.addingTimeInterval(-C.fetchWindow), in: ModelContext(container))
+        }.value
+        if let expected = expectedRun, WorkoutNoticeSelection.matches(expected, runs: runs, tolerance: C.matchTolerance) {
+            defaults.set(expected.start, forKey: C.matchedStartKey)
+            saveExpectedRun(nil)
+        }
+        let due = WorkoutNoticeSelection.due(records: runs, enabledAt: enabledAt, now: now, notified: Set(notifiedIds), window: C.recentWindow)
+        due.forEach { queue.add(PendingWorkout(activityId: $0.activityId, end: $0.end)) }
+        let pending = queue.items.count
+        C.logger.info("corridas novas: \(due.count), pendentes: \(pending)")
         for item in queue.items {
-            await deliver(item, container: model.container, queue: &queue)
+            await deliver(item, container: container, queue: &queue)
         }
         queue.save(defaults: defaults)
     }
 
     private func deliver(_ item: PendingWorkout, container: ModelContainer, queue: inout PendingWorkoutQueue) async {
-        let content = await Task.detached(priority: .utility) {
-            WorkoutNotice.content(start: item.start, in: ModelContext(container))
+        let status = await Task.detached(priority: .utility) {
+            WorkoutNotice.status(activityId: item.activityId, in: ModelContext(container))
         }.value
-        guard let content else {
-            C.logger.info("treino \(item.id.uuidString, privacy: .public) ainda sem nota")
-            return
+        switch status {
+        case .ready(let content):
+            if !notifiedIds.contains(content.activityId) {
+                await scheduler.schedule(id: C.idPrefix + String(content.activityId), title: content.title, text: content.body, link: DeepLink.workoutURL(content.activityId), at: nil)
+                rememberActivity(content.activityId)
+                C.logger.info("aviso agendado, atividade \(content.activityId)")
+            }
+            queue.remove(activityId: item.activityId)
+        case .unavailable:
+            C.logger.info("atividade \(item.activityId) não vai ter nota, saiu da fila")
+            rememberActivity(item.activityId)
+            queue.remove(activityId: item.activityId)
+        case .waiting:
+            C.logger.info("atividade \(item.activityId) ainda sem nota")
         }
-        if !notifiedIds.contains(content.activityId) {
-            await scheduler.schedule(id: C.idPrefix + String(content.activityId), title: content.title, text: content.body, link: DeepLink.workoutURL(content.activityId), at: nil)
-            rememberActivity(content.activityId)
-            C.logger.info("aviso agendado, atividade \(content.activityId)")
-        }
-        rememberWorkout(item.id)
-        queue.remove(id: item.id)
     }
 
     private func beginBackgroundTask(model: AppModel) {
@@ -194,34 +243,20 @@ import UIKit
         backgroundTask = .invalid
     }
 
-    private func finishedRuns() async -> [FinishedWorkout] {
-        let window = HKQuery.predicateForSamples(withStart: Date.now.addingTimeInterval(-C.recentWindow), end: nil)
-        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [window, HKQuery.predicateForWorkouts(with: .running)])
-        return await withCheckedContinuation { continuation in
-            let query = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { _, samples, error in
-                if let error { C.logger.error("consulta de treinos falhou: \(error.localizedDescription, privacy: .public)") }
-                let workouts = (samples as? [HKWorkout] ?? []).map { FinishedWorkout(id: $0.uuid, start: $0.startDate, end: $0.endDate) }
-                continuation.resume(returning: workouts)
-            }
-            store.execute(query)
-        }
+    private var expectedRun: ExpectedRun? {
+        defaults.data(forKey: C.expectedKey).flatMap { try? JSONDecoder().decode(ExpectedRun.self, from: $0) }
+    }
+
+    private func saveExpectedRun(_ run: ExpectedRun?) {
+        defaults.set(run.flatMap { try? JSONEncoder().encode($0) }, forKey: C.expectedKey)
     }
 
     private var notifiedIds: [Int64] {
         (defaults.array(forKey: C.notifiedKey) as? [NSNumber])?.map(\.int64Value) ?? []
     }
 
-    private var notifiedWorkouts: Set<UUID> {
-        Set((defaults.stringArray(forKey: C.notifiedWorkoutsKey) ?? []).compactMap(UUID.init(uuidString:)))
-    }
-
     private func rememberActivity(_ id: Int64) {
         let ids = (notifiedIds + [id]).suffix(C.notifiedLimit)
         defaults.set(ids.map { NSNumber(value: $0) }, forKey: C.notifiedKey)
-    }
-
-    private func rememberWorkout(_ id: UUID) {
-        let ids = ((defaults.stringArray(forKey: C.notifiedWorkoutsKey) ?? []) + [id.uuidString]).suffix(C.notifiedLimit)
-        defaults.set(Array(ids), forKey: C.notifiedWorkoutsKey)
     }
 }

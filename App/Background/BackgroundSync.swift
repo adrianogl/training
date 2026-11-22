@@ -25,9 +25,9 @@ enum BackgroundSync {
         try? BGTaskScheduler.shared.submit(request)
     }
 
-    static func scheduleWorkoutRetry(now: Date = .now) {
+    static func scheduleWorkoutRetry(at date: Date = .now.addingTimeInterval(WorkoutNoticeConstants.retryDelay)) {
         let request = BGAppRefreshTaskRequest(identifier: C.refreshTaskId)
-        request.earliestBeginDate = now.addingTimeInterval(WorkoutNoticeConstants.retryDelay)
+        request.earliestBeginDate = date
         try? BGTaskScheduler.shared.submit(request)
     }
 

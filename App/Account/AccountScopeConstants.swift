@@ -47,7 +47,6 @@ enum AccountScopeConstants {
         WorkoutNoticeConstants.enabledKey,
         WorkoutNoticeConstants.enabledAtKey,
         WorkoutNoticeConstants.notifiedKey,
-        WorkoutNoticeConstants.notifiedWorkoutsKey,
         WorkoutNoticeConstants.pendingKey,
         StravaConstants.ledgerDefaultsKey,
         TrainerConstants.seenVersionDefaultsKey,
