@@ -1,4 +1,5 @@
 import Foundation
+import GarminAPI
 import TrainingCore
 
 enum TrainerSendText {
@@ -25,6 +26,22 @@ enum TrainerSendText {
     static let sending = "Enviando…"
     static let resultFormat = "%d enviado(s), %d apagado(s)"
     static let failedFormat = ", %d com erro"
+    static let failedReasonFormat = ", %d com erro: %@"
+
+    static func errorReason(_ error: Error) -> String {
+        switch error {
+        case GarminAccountError.sessionExpired, GarminAccountError.invalidCredentials, GarminAccountError.exchangeFailed:
+            "a sessão do Garmin venceu, conecte de novo em Ajustes"
+        case GarminAccountError.rateLimited:
+            "o Garmin limitou os envios, tente de novo em alguns minutos"
+        case GarminAccountError.unexpectedResponse(let status):
+            "o Garmin recusou (código \(status))"
+        case let error as URLError where error.code == .notConnectedToInternet:
+            "sem internet"
+        default:
+            "erro no envio (\(String(describing: error)))"
+        }
+    }
     static let close = "Fechar"
     static let mfitSection = "MFIT"
     static let mfitToggle = "Enviar os treinos do MFIT"

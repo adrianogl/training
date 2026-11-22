@@ -6,6 +6,7 @@ struct TrainerSendResult: Equatable {
     var sent = 0
     var removed = 0
     var failed = 0
+    var firstError: String?
 }
 
 @MainActor
@@ -30,6 +31,7 @@ enum TrainerSender {
                 result.removed += 1
             } catch {
                 result.failed += 1
+                if result.firstError == nil { result.firstError = TrainerSendText.errorReason(error) }
             }
         }
         let records = store.records()
@@ -44,6 +46,7 @@ enum TrainerSender {
                 result.sent += 1
             } catch {
                 result.failed += 1
+                if result.firstError == nil { result.firstError = TrainerSendText.errorReason(error) }
             }
         }
         return result
