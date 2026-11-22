@@ -82,6 +82,11 @@ struct TrainerSendSheet: View {
             }
             .background(BrandBackground())
             .navigationTitle(isApple ? TrainerSendText.appleTitle : TrainerSendText.title)
+            .task {
+                guard !isApple, let client = app.garminAccount.client else { return }
+                await app.trainer.forgetDeletedOnGarmin(client: client, store: store)
+                revision += 1
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button(TrainerSendText.close) { dismiss() } }
