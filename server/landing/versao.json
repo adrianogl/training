@@ -1,11 +1,13 @@
 {
-  "versao": "1.40.2",
-  "build": 67,
-  "versao_app": "1.40.2",
-  "notas": [
-    "Tira o descanso depois do último tiro no Garmin"
-  ],
+  "versao": "1.40.3",
+  "build": 68,
+  "versao_app": "1.40.3",
+  "notas": [],
   "historico": [
+    {
+      "versao": "1.40.3",
+      "notas": []
+    },
     {
       "versao": "1.40.2",
       "notas": [
@@ -58,12 +60,6 @@
       "versao": "1.38.1",
       "notas": [
         "Sugestão da semana segue a regra de ida e volta"
-      ]
-    },
-    {
-      "versao": "1.38.0",
-      "notas": [
-        "Longão pelo volume da semana e opção ida e volta"
       ]
     }
   ]
