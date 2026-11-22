@@ -62,8 +62,8 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
         TARGETED_DEVICE_FAMILY: "1,2"
-        MARKETING_VERSION: "1.36.0"
-        CURRENT_PROJECT_VERSION: "54"
+        MARKETING_VERSION: "1.36.1"
+        CURRENT_PROJECT_VERSION: "55"
         CODE_SIGN_STYLE: Automatic
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIconLilac AppIconPistaLight AppIconPistaDark AppIconLilacLight AppIconLilacDark"
@@ -109,8 +109,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: dev.aglv.training.widgets
         CODE_SIGN_ENTITLEMENTS: Widgets/TrainingWidgets.entitlements
         CODE_SIGN_STYLE: Automatic
-        MARKETING_VERSION: "1.36.0"
-        CURRENT_PROJECT_VERSION: "54"
+        MARKETING_VERSION: "1.36.1"
+        CURRENT_PROJECT_VERSION: "55"
         TARGETED_DEVICE_FAMILY: "1,2"
         SKIP_INSTALL: YES
   AppTests:

@@ -1,11 +1,17 @@
 {
-  "versao": "1.36.0",
-  "build": 54,
-  "versao_app": "1.36.0",
+  "versao": "1.36.1",
+  "build": 55,
+  "versao_app": "1.36.1",
   "notas": [
-    "Pace do treino do dia recalculado por prontidão, calor e perna pesada"
+    "Prova avaliada contra a meta; corrida livre comparada só com corrida livre"
   ],
   "historico": [
+    {
+      "versao": "1.36.1",
+      "notas": [
+        "Prova avaliada contra a meta; corrida livre comparada só com corrida livre"
+      ]
+    },
     {
       "versao": "1.36.0",
       "notas": [
@@ -59,12 +65,6 @@
       "versao": "1.33.0",
       "notas": [
         "Previsões da Evolução mostram quanto você está abaixo ou acima do seu recorde em cada distância"
-      ]
-    },
-    {
-      "versao": "1.32.1",
-      "notas": [
-        "Depois de atualizar, as telas abrem já com os dados da versão nova"
       ]
     }
   ]
