@@ -32,6 +32,18 @@ struct TrainerSentRecord: Codable, Equatable {
     let kind: TrainerSendKind
 }
 
+struct TrainerSendLedgerEntry: Codable, Equatable {
+    let record: TrainerSentRecord?
+    let updatedAt: Date
+}
+
+struct TrainerSendLedger: Codable, Equatable {
+    var entries: [String: TrainerSendLedgerEntry] = [:]
+    var orphans: [Int64] = []
+
+    var updatedAt: Date? { entries.values.map(\.updatedAt).max() }
+}
+
 struct TrainerSendSettings: Codable, Equatable {
     var runFromTrainer = false
     var auto: TrainerSendFilter?

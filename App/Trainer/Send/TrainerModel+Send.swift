@@ -59,7 +59,9 @@ extension TrainerModel {
         guard !isSendingToGarmin else { return nil }
         isSendingToGarmin = true
         defer { isSendingToGarmin = false }
-        return await TrainerSender.send(items, stale: stale, client: client, store: TrainerSendStore())
+        let store = TrainerSendStore()
+        await cleanGarmin(client: client, store: store)
+        return await TrainerSender.send(items, stale: stale, client: client, store: store)
     }
 
     func sendToAppleWatch(_ items: [TrainerSendItem], stale: [(key: String, record: TrainerSentRecord)]) async -> TrainerSendResult? {
@@ -67,6 +69,22 @@ extension TrainerModel {
         isSendingToGarmin = true
         defer { isSendingToGarmin = false }
         return await AppleWorkoutSender.send(items, stale: stale, store: TrainerSendStore())
+    }
+
+    func cleanGarmin(client: GarminAccountClient, store: TrainerSendStore) async {
+        for id in store.orphans() {
+            do {
+                try await GarminPlannedUpload.delete(client: client, workoutId: id)
+                store.clearOrphan(id)
+            } catch {}
+        }
+        let last = currentDay.adding(days: TrainerSendConstants.legacyCleanupDays)
+        guard let scheduled = try? await PlannedWorkouts.scheduledWorkouts(client: client, from: currentDay, through: last) else { return }
+        let keys = Dictionary(store.records().map { ($0.value.workoutId, $0.key) }, uniquingKeysWith: { first, _ in first })
+        for item in scheduled where item.title.hasPrefix(TrainerSendConstants.legacyNamePrefix) {
+            guard (try? await GarminPlannedUpload.delete(client: client, workoutId: item.workoutId)) != nil else { continue }
+            if let key = keys[item.workoutId] { store.remove(key: key) }
+        }
     }
 
     func forgetDeletedOnGarmin(client: GarminAccountClient, store: TrainerSendStore = TrainerSendStore()) async {

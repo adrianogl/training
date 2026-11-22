@@ -44,6 +44,18 @@ public enum PlannedWorkouts {
         workoutIds(try await calendarItems(client: client, months: months(from: first, through: last)), from: first, through: last)
     }
 
+    public static func scheduledWorkouts(client: GarminAccountClient, from first: Day, through last: Day) async throws -> [ScheduledWorkoutRef] {
+        scheduled(try await calendarItems(client: client, months: months(from: first, through: last)), from: first, through: last)
+    }
+
+    static func scheduled(_ items: [CalendarDTO.Item], from first: Day, through last: Day) -> [ScheduledWorkoutRef] {
+        items.compactMap { item in
+            guard item.itemType == workoutItem, let id = item.workoutId, let day = item.date.flatMap(Day.init(iso:)),
+                  day >= first, day <= last else { return nil }
+            return ScheduledWorkoutRef(workoutId: id, title: item.title ?? "", day: day)
+        }
+    }
+
     static func workoutIds(_ items: [CalendarDTO.Item], from first: Day, through last: Day) -> Set<Int64> {
         Set(items.compactMap { item in
             guard item.itemType == workoutItem, let id = item.workoutId, let day = item.date.flatMap(Day.init(iso:)),
