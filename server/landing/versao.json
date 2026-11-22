@@ -1,11 +1,17 @@
 {
-  "versao": "1.42.2",
-  "build": 74,
-  "versao_app": "1.42.2",
+  "versao": "1.43.0",
+  "build": 75,
+  "versao_app": "1.43.0",
   "notas": [
-    "Divide o registro de envios ao Garmin entre os aparelhos"
+    "Importa com aprovação as corridas do Strava sem o relógio"
   ],
   "historico": [
+    {
+      "versao": "1.43.0",
+      "notas": [
+        "Importa com aprovação as corridas do Strava sem o relógio"
+      ]
+    },
     {
       "versao": "1.42.2",
       "notas": [
@@ -56,12 +62,6 @@
       "versao": "1.40.1",
       "notas": [
         "Manda o descanso parado ao Garmin por tempo e corrige a coluna de Como fazer"
-      ]
-    },
-    {
-      "versao": "1.40.0",
-      "notas": [
-        "Envia ao Garmin o plano até o fim"
       ]
     }
   ]
