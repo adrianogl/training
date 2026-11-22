@@ -47,7 +47,63 @@ public enum StravaLinkError: Error, Equatable {
     case sessionExpired
     case unavailable
     case unauthorized
+    case retryLater
     case server(status: Int)
+}
+
+public struct StravaRunCandidate: Equatable, Sendable, Identifiable, Codable {
+    public let id: Int64
+    public let name: String
+    public let sportType: String
+    public let start: Date
+    public let startLocal: String
+    public let distanceMeters: Double
+    public let movingSeconds: Double
+    public let elapsedSeconds: Double
+    public let elevationGain: Double?
+    public let averageHeartRate: Double?
+    public let maxHeartRate: Double?
+    public let hasGps: Bool
+
+    public init(
+        id: Int64, name: String, sportType: String, start: Date, startLocal: String, distanceMeters: Double, movingSeconds: Double,
+        elapsedSeconds: Double, elevationGain: Double?, averageHeartRate: Double?, maxHeartRate: Double?, hasGps: Bool
+    ) {
+        self.id = id
+        self.name = name
+        self.sportType = sportType
+        self.start = start
+        self.startLocal = startLocal
+        self.distanceMeters = distanceMeters
+        self.movingSeconds = movingSeconds
+        self.elapsedSeconds = elapsedSeconds
+        self.elevationGain = elevationGain
+        self.averageHeartRate = averageHeartRate
+        self.maxHeartRate = maxHeartRate
+        self.hasGps = hasGps
+    }
+
+    public var localDayISO: String { String(startLocal.prefix(10)) }
+}
+
+struct StravaRunsBody: Decodable {
+    struct Run: Decodable {
+        let id: Int64
+        let name: String
+        let sportType: String
+        let startDate: String
+        let startDateLocal: String
+        let distanceMeters: Double
+        let movingSeconds: Double
+        let elapsedSeconds: Double
+        let elevationGain: Double?
+        let averageHeartRate: Double?
+        let maxHeartRate: Double?
+        let hasGps: Bool
+    }
+
+    let runs: [Run]?
+    let status: String?
 }
 
 struct StravaStatusBody: Decodable {

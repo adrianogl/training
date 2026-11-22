@@ -15,7 +15,7 @@ import TrainingCore
     private(set) var ledger: StravaSendLedger
     @ObservationIgnored var link: (@MainActor () -> StravaClient?)?
     @ObservationIgnored var connectionChanged: (@MainActor (Bool) async -> Void)?
-    @ObservationIgnored private let container: ModelContainer
+    @ObservationIgnored let container: ModelContainer
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let authenticator: any StravaWebAuthenticating
     @ObservationIgnored private let now: @Sendable () -> Date

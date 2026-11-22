@@ -43,13 +43,31 @@ public struct StravaClient: Sendable {
         return outcome
     }
 
+    public func runs(after: Date, before: Date) async throws -> [StravaRunCandidate] {
+        let query = "after=\(RemoteTimestamp.string(from: after))&before=\(RemoteTimestamp.string(from: before))"
+        let body = try JSONDecoder().decode(StravaRunsBody.self, from: try await send("GET", "api/v1/strava/runs", query: query))
+        guard let runs = body.runs else { throw body.status == StravaRunMatchingConstants.retryLater ? StravaLinkError.retryLater : StravaLinkError.unavailable }
+        return runs.compactMap { run in
+            guard let start = RemoteTimestamp.date(from: run.startDate) else { return nil }
+            return StravaRunCandidate(
+                id: run.id, name: run.name, sportType: run.sportType, start: start, startLocal: run.startDateLocal,
+                distanceMeters: run.distanceMeters, movingSeconds: run.movingSeconds, elapsedSeconds: run.elapsedSeconds,
+                elevationGain: run.elevationGain, averageHeartRate: run.averageHeartRate, maxHeartRate: run.maxHeartRate, hasGps: run.hasGps
+            )
+        }
+    }
+
     private func status(from data: Data) throws -> StravaStatus {
         let body = try JSONDecoder().decode(StravaStatusBody.self, from: data)
         return StravaStatus(connected: body.connected, athleteName: body.athleteName ?? "", format: body.format ?? "B", enabled: body.enabled ?? false)
     }
 
-    private func send(_ method: String, _ path: String, body: [String: any Sendable]? = nil, accepted: Set<Int> = [200]) async throws -> Data {
-        var request = URLRequest(url: baseURL.appending(path: path))
+    private func send(
+        _ method: String, _ path: String, query: String? = nil, body: [String: any Sendable]? = nil, accepted: Set<Int> = [200]
+    ) async throws -> Data {
+        var url = baseURL.appending(path: path)
+        if let query, let withQuery = URL(string: url.absoluteString + "?" + query) { url = withQuery }
+        var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
