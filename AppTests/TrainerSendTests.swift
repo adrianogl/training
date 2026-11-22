@@ -49,6 +49,12 @@ import TrainingCore
         #expect(!TrainerSendBuilder.runSteps(workout).description.contains("recovery(meters: 0.0)"))
     }
 
+    @Test func garminNameIsTheWorkoutTitleWithoutPrefix() throws {
+        let item = try #require(TrainerSendBuilder.runItem(threshold()))
+        let body = try #require(try JSONSerialization.jsonObject(with: item.payload) as? [String: Any])
+        #expect(body["workoutName"] as? String == "Limiar 8 × 1 km")
+    }
+
     @Test func easyRunWithoutStepsIsOneInterval() {
         let easy = TrainerWorkout(day: day, kind: .easy, title: "Rodagem 10 km", totalMeters: 10_000, steps: [], paceLow: 295, paceHigh: 310, rationale: "")
         #expect(TrainerSendBuilder.runSteps(easy) == [.interval(meters: 10_000, fastest: 295, slowest: 310)])
