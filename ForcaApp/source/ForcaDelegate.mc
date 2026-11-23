@@ -1,17 +1,14 @@
 import Toybox.WatchUi;
 
-class ForcaDelegate extends WatchUi.BehaviorDelegate {
+class ForcaDelegate extends WatchUi.InputDelegate {
     private var _recorder;
 
     function initialize(recorder) {
-        BehaviorDelegate.initialize();
+        InputDelegate.initialize();
         _recorder = recorder;
     }
 
     function onKey(keyEvent) {
-        if (keyEvent.getType() != WatchUi.PRESS_TYPE_ACTION) {
-            return false;
-        }
         var key = keyEvent.getKey();
         if (key == WatchUi.KEY_ENTER) {
             return onStartKey();
@@ -19,15 +16,7 @@ class ForcaDelegate extends WatchUi.BehaviorDelegate {
         if (key == WatchUi.KEY_ESC) {
             return onLapKey();
         }
-        return false;
-    }
-
-    function onSelect() {
-        return isActive();
-    }
-
-    function onBack() {
-        return isActive();
+        return _recorder.hasSession();
     }
 
     function onTap(clickEvent) {
@@ -35,7 +24,11 @@ class ForcaDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSwipe(swipeEvent) {
-        return isActive();
+        return _recorder.hasSession();
+    }
+
+    function onHold(clickEvent) {
+        return true;
     }
 
     private function onStartKey() {
@@ -64,9 +57,5 @@ class ForcaDelegate extends WatchUi.BehaviorDelegate {
             return true;
         }
         return false;
-    }
-
-    private function isActive() {
-        return _recorder.hasSession();
     }
 }
