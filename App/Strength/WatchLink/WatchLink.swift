@@ -70,7 +70,7 @@ final class WatchLink: NSObject {
     }
 
     private func refreshConnected() {
-        refreshConnected()
+        StrengthLiveModel.shared.watchConnected = devices.contains { ConnectIQ.sharedInstance().getDeviceStatus($0) == .connected }
     }
 
     var deviceName: String? {
@@ -113,7 +113,7 @@ final class WatchLink: NSObject {
             ConnectIQ.sharedInstance().register(forDeviceEvents: device, delegate: self)
             ConnectIQ.sharedInstance().register(forAppMessages: app(for: device), delegate: self)
         }
-        StrengthLiveModel.shared.watchConnected = devices.contains { ConnectIQ.sharedInstance().getDeviceStatus($0) == .connected }
+        refreshConnected()
     }
 
     private func app(for device: IQDevice) -> IQApp {
