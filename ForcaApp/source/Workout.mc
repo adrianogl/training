@@ -55,7 +55,7 @@ class Workout {
             return;
         }
         WorkoutStore.clearSession();
-        _svc.recorder.start();
+        _svc.recorder.start(plan[PlanKeys.TITLE]);
         _svc.vibrate(Vibe.GO);
         log.started(plan[PlanKeys.TITLE]);
         beginSet();
@@ -137,7 +137,7 @@ class Workout {
         _doneUntilMs += pausedFor;
         _setStartMs += pausedFor;
         paused = false;
-        _svc.recorder.start();
+        _svc.recorder.start(plan[PlanKeys.TITLE]);
     }
 
     function elapsedSeconds() {
@@ -152,6 +152,7 @@ class Workout {
         paused = false;
         phase = Phase.SAVED;
         _svc.vibrate(Vibe.DONE);
+        log.finished(true, savedSeconds, savedHeartRate);
     }
 
     function discard() {
@@ -159,6 +160,7 @@ class Workout {
         WorkoutStore.clearSession();
         paused = false;
         phase = Phase.DISCARDED;
+        log.finished(false, elapsedSeconds(), null);
     }
 
     function skip() {

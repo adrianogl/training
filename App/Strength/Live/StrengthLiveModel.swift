@@ -1,6 +1,8 @@
 import ActivityKit
 import Foundation
+import GarminAPI
 import Insights
+import MFIT
 import Observation
 import TrainingCore
 import UIKit
@@ -13,11 +15,25 @@ final class StrengthLiveModel {
     @ObservationIgnored private let store = StrengthLiveStore()
     private(set) var snapshot: StrengthLiveSnapshot?
     @ObservationIgnored private var activity: Activity<StrengthLiveAttributes>?
+    @ObservationIgnored var garminClient: (@MainActor () -> GarminAccountClient?)?
+    @ObservationIgnored private var uploading = false
 
     var live: StrengthLiveSnapshot? {
-        guard let snapshot, Date.now.timeIntervalSince(snapshot.startedAt) < StrengthLiveConstants.staleAfter,
+        guard let snapshot, snapshot.finish == nil, Date.now.timeIntervalSince(snapshot.startedAt) < StrengthLiveConstants.staleAfter,
               LiveStrengthQueue.next(snapshot.session) != nil else { return nil }
         return snapshot
+    }
+
+    var finished: StrengthLiveSnapshot? {
+        guard let snapshot, let finish = snapshot.finish, finish.saved,
+              Day.today(now: finish.at) == Day.today() else { return nil }
+        return snapshot
+    }
+
+    func summary(_ snapshot: StrengthLiveSnapshot) -> LiveStrengthSummary {
+        LiveStrengthReport.summarize(
+            snapshot.session, durationSeconds: snapshot.finish?.durationSeconds ?? 0, averageHeartRate: snapshot.finish?.averageHeartRate
+        )
     }
 
     private init() {
@@ -55,8 +71,80 @@ final class StrengthLiveModel {
         showActivity()
     }
 
+    func finished(at finishedAt: Date, saved: Bool, durationSeconds: Double, averageHeartRate: Int?) {
+        guard var current = snapshot, current.finish == nil else { return }
+        current.finish = StrengthLiveFinish(
+            at: finishedAt, saved: saved, durationSeconds: durationSeconds, averageHeartRate: averageHeartRate,
+            activityId: nil, upload: saved ? .pending : .notFound
+        )
+        snapshot = current
+        persist()
+        if let id = activity?.id {
+            Task { await Self.end(id, content: nil, dismissal: .immediate) }
+            activity = nil
+        }
+        uploadPending()
+        Task {
+            for delay in StrengthLiveConstants.uploadRetries {
+                try? await Task.sleep(for: delay)
+                uploadPending()
+            }
+        }
+    }
+
     func appBecameActive() {
         showActivity()
+        uploadPending()
+    }
+
+    func uploadPending() {
+        guard !uploading, let snapshot, let finish = snapshot.finish, finish.saved,
+              finish.upload == .pending || finish.upload == .notFound || finish.upload == .failed,
+              Date.now.timeIntervalSince(finish.at) < StrengthLiveConstants.uploadWindow,
+              let client = garminClient?() else { return }
+        uploading = true
+        Task {
+            let result = await Self.upload(snapshot, client: client)
+            uploading = false
+            guard var current = self.snapshot, current.startedAt == snapshot.startedAt else { return }
+            current.finish?.upload = result.state
+            current.finish?.activityId = result.activityId
+            self.snapshot = current
+            persist()
+            if result.state == .sent, let activityId = result.activityId {
+                _ = StrengthProgramStore().addWatchLoads(Self.loadRecords(current.session), activity: activityId)
+            }
+        }
+    }
+
+    static func loadRecords(_ session: LiveStrengthSession) -> [MFITLoadRecord] {
+        let plan = session.plan
+        return LiveStrengthReport.realLoads(session).map { load in
+            MFITLoadRecord(
+                exercise: load.name,
+                key: plan.source == .mfit ? load.loadKey : MFITParser.exerciseKey(load.name),
+                day: plan.day,
+                loads: load.loads,
+                workoutId: plan.sourceId ?? 0,
+                fromWatch: true
+            )
+        }
+    }
+
+    private static func upload(_ snapshot: StrengthLiveSnapshot, client: GarminAccountClient) async -> (state: StrengthLiveUploadState, activityId: Int64?) {
+        let sets = LiveStrengthUpload.sets(snapshot.session)
+        guard !sets.isEmpty else { return (.sent, nil) }
+        guard let data = try? await client.get(GarminEndpoints.activitiesPath + StrengthLiveConstants.activitiesQuery),
+              let activities = try? JSONDecoder().decode([ActivityDTO].self, from: data) else { return (.failed, nil) }
+        guard let activity = LiveStrengthUpload.match(activities, startedAt: snapshot.startedAt) else { return (.notFound, nil) }
+        guard let existing = try? await ExerciseSets.fetch(client: client, activityId: activity.activityId) else { return (.failed, activity.activityId) }
+        guard existing.isEmpty else { return (.alreadyHadSets, activity.activityId) }
+        do {
+            try await ExerciseSetsUpload.upload(client: client, activityId: activity.activityId, sets: sets)
+            return (.sent, activity.activityId)
+        } catch {
+            return (.failed, activity.activityId)
+        }
     }
 
     private func showActivity() {

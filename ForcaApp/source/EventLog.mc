@@ -18,6 +18,12 @@ class EventLog {
         }
     }
 
+    function finished(saved, seconds, heartRate) {
+        if (listener != null) {
+            listener.finished(saved, seconds, heartRate);
+        }
+    }
+
     function setDone(exerciseId, set) {
         append(EventKeys.SET_DONE, { EventKeys.EXERCISE_ID => exerciseId, EventKeys.RESULT => copy(set) });
     }

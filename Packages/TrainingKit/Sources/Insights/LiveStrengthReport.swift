@@ -30,6 +30,13 @@ public enum LiveStrengthReport {
         )
     }
 
+    public static func realLoads(_ session: LiveStrengthSession) -> [LiveStrengthRealLoad] {
+        session.plan.blocks.flatMap(\.exercises).compactMap { exercise in
+            let loads = (session.done[exercise.id] ?? []).compactMap(\.weight).filter { $0 > 0 }
+            return loads.isEmpty ? nil : LiveStrengthRealLoad(name: exercise.name, loadKey: exercise.loadKey, loads: loads)
+        }
+    }
+
     public static func loads(_ session: LiveStrengthSession) -> [String: StrengthLoadRecord] {
         var records: [String: StrengthLoadRecord] = [:]
         for block in session.plan.blocks {

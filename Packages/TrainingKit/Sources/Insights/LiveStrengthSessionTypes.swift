@@ -78,12 +78,14 @@ public struct LiveStrengthPlan: Codable, Sendable, Equatable {
     public var title: String
     public var source: LiveStrengthSource
     public var blocks: [LiveStrengthBlock]
+    public var sourceId: Int64?
 
-    public init(day: String, title: String, source: LiveStrengthSource, blocks: [LiveStrengthBlock]) {
+    public init(day: String, title: String, source: LiveStrengthSource, blocks: [LiveStrengthBlock], sourceId: Int64? = nil) {
         self.day = day
         self.title = title
         self.source = source
         self.blocks = blocks
+        self.sourceId = sourceId
     }
 
     public var totalSets: Int {

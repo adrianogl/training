@@ -18,6 +18,11 @@ enum WatchLinkConstants {
     static let statusKey = "status"
     static let ackKey = "ack"
     static let ackStartedKey = "ackStarted"
+    static let finishedKey = "finished"
+    static let savedKey = "saved"
+    static let durationKey = "durationSeconds"
+    static let averageHeartRateKey = "averageHeartRate"
+    static let ackFinishedKey = "ackFinished"
     static let sequenceKey = "sequence"
     static let restorationId = "dev.aglv.training.connectiq"
     static let startedMaxAge: TimeInterval = 30 * 60

@@ -4,6 +4,9 @@ enum StrengthLiveConstants {
     static let sessionFile = "strength-live-session.json"
     static let plansFile = "strength-live-plans.json"
     static let staleAfter: TimeInterval = 4 * 60 * 60
+    static let uploadWindow: TimeInterval = 24 * 60 * 60
+    static let activitiesQuery = "?start=0&limit=10"
+    static let uploadRetries: [Duration] = [.seconds(60), .seconds(120), .seconds(300)]
 }
 
 enum StrengthLiveViewConstants {

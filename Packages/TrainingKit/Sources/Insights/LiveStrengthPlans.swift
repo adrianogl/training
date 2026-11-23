@@ -16,7 +16,7 @@ public enum LiveStrengthPlans {
                 restSeconds: Int((block.restSeconds ?? 0).rounded())
             )
         }
-        return LiveStrengthPlan(day: workout.day, title: workout.title, source: .mfit, blocks: blocks)
+        return LiveStrengthPlan(day: workout.day, title: workout.title, source: .mfit, blocks: blocks, sourceId: workout.id)
     }
 
     public static func from(

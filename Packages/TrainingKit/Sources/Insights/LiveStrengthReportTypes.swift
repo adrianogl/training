@@ -28,3 +28,9 @@ public struct LiveStrengthSummary: Sendable, Equatable {
     public var skipped: [String]
     public var loads: [String: StrengthLoadRecord]
 }
+
+public struct LiveStrengthRealLoad: Sendable, Equatable {
+    public var name: String
+    public var loadKey: String
+    public var loads: [Double]
+}

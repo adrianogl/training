@@ -118,6 +118,11 @@ module LinkKeys {
     const TITLE = "title";
     const ACK = "ack";
     const ACK_STARTED = "ackStarted";
+    const FINISHED = "finished";
+    const SAVED = "saved";
+    const DURATION = "durationSeconds";
+    const AVERAGE_HEART_RATE = "averageHeartRate";
+    const ACK_FINISHED = "ackFinished";
     const PLANS = "plans";
     const STATUS = "status";
     const BATCH = 10;

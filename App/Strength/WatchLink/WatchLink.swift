@@ -100,6 +100,16 @@ final class WatchLink: NSObject {
             StrengthLiveModel.shared.receive(status)
             return
         }
+        if let finishedAt = object[WatchLinkConstants.finishedKey] as? Int {
+            let saved = object[WatchLinkConstants.savedKey] as? Bool ?? false
+            record(.finished, detail: saved ? WatchLinkConstants.savedKey : "")
+            StrengthLiveModel.shared.finished(
+                at: Date(timeIntervalSince1970: TimeInterval(finishedAt)), saved: saved,
+                durationSeconds: (object[WatchLinkConstants.durationKey] as? Double) ?? 0,
+                averageHeartRate: object[WatchLinkConstants.averageHeartRateKey] as? Int
+            )
+            return
+        }
         if let startedAt = object[WatchLinkConstants.startedKey] as? Int {
             started(at: Date(timeIntervalSince1970: TimeInterval(startedAt)), title: object[WatchLinkConstants.titleKey] as? String, receivedAt: receivedAt)
             return
@@ -203,6 +213,9 @@ extension WatchLink: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppMessageDe
         guard let object = message as? [String: Any] else { return nil }
         if object[WatchLinkConstants.startedKey] != nil {
             return [WatchLinkConstants.ackStartedKey: 1]
+        }
+        if object[WatchLinkConstants.finishedKey] != nil {
+            return [WatchLinkConstants.ackFinishedKey: 1]
         }
         guard let events = object[WatchLinkConstants.eventsKey] as? [[String: Any]] else { return nil }
         let last = events.compactMap { $0[WatchLinkConstants.sequenceKey] as? Int }.max()

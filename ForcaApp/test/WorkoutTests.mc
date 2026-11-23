@@ -6,7 +6,7 @@ class FakeRecorder {
     var running = false;
     var saved = false;
 
-    function start() { running = true; }
+    function start(title) { running = true; }
     function pause() { running = false; }
     function save() { saved = true; running = false; }
     function discard() { running = false; }

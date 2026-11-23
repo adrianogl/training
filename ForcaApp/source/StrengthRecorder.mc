@@ -10,10 +10,10 @@ class StrengthRecorder {
         Sensor.setEnabledSensors([Sensor.SENSOR_HEARTRATE]);
     }
 
-    function start() {
+    function start(title) {
         if (_session == null) {
             _session = ActivityRecording.createSession({
-                :name => WatchUi.loadResource(Rez.Strings.ActivityName),
+                :name => title != null ? title : WatchUi.loadResource(Rez.Strings.ActivityName),
                 :sport => Activity.SPORT_TRAINING,
                 :subSport => Activity.SUB_SPORT_STRENGTH_TRAINING
             });

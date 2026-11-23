@@ -4,6 +4,7 @@ enum WatchLinkRecordKind: String, Codable, Sendable {
     case devices
     case plans
     case started
+    case finished
     case status
     case events
     case pong

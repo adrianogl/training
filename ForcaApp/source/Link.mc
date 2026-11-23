@@ -11,6 +11,7 @@ class Link extends Communications.ConnectionListener {
     private var _acked = 0;
     private var _busy = false;
     private var _start = null;
+    private var _finish = null;
     private var _timer;
     private var _statusTimer;
     private var _statusBusy = false;
@@ -59,6 +60,16 @@ class Link extends Communications.ConnectionListener {
         flush();
     }
 
+    function finished(saved, seconds, heartRate) {
+        _finish = {
+            LinkKeys.FINISHED => Time.now().value(),
+            LinkKeys.SAVED => saved,
+            LinkKeys.DURATION => seconds,
+            LinkKeys.AVERAGE_HEART_RATE => heartRate
+        };
+        flush();
+    }
+
     function flush() {
         if (_busy) {
             return;
@@ -101,6 +112,9 @@ class Link extends Communications.ConnectionListener {
         if (data[LinkKeys.ACK_STARTED] != null) {
             _start = null;
         }
+        if (data[LinkKeys.ACK_FINISHED] != null) {
+            _finish = null;
+        }
         var ack = data[LinkKeys.ACK];
         if (ack != null && ack > _acked) {
             _acked = ack;
@@ -116,7 +130,7 @@ class Link extends Communications.ConnectionListener {
         }
         var size = _log.events.size();
         if (_acked >= size) {
-            return null;
+            return _finish;
         }
         var end = size;
         if (end - _acked > LinkKeys.BATCH) {
