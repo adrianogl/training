@@ -1,11 +1,21 @@
 {
-  "versao": "1.44.0",
-  "build": 76,
-  "versao_app": "1.44.0",
+  "versao": "1.45.0",
+  "build": 77,
+  "versao_app": "1.45.0",
   "notas": [
-    "Mostra a zona de FC nos blocos e envia a faixa ao Garmin"
+    "Amarra o treino ao vivo à versão do plano e corrige os itens do review",
+    "Pula e traz exercícios de volta pelo iphone e organiza a tela ao vivo",
+    "Envia as séries ao garmin connect e mostra o resumo no fim do treino"
   ],
   "historico": [
+    {
+      "versao": "1.45.0",
+      "notas": [
+        "Amarra o treino ao vivo à versão do plano e corrige os itens do review",
+        "Pula e traz exercícios de volta pelo iphone e organiza a tela ao vivo",
+        "Envia as séries ao garmin connect e mostra o resumo no fim do treino"
+      ]
+    },
     {
       "versao": "1.44.0",
       "notas": [
@@ -57,12 +67,6 @@
     {
       "versao": "1.40.3",
       "notas": []
-    },
-    {
-      "versao": "1.40.2",
-      "notas": [
-        "Tira o descanso depois do último tiro no Garmin"
-      ]
     }
   ]
 }
