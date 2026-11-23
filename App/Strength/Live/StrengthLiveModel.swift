@@ -20,6 +20,7 @@ final class StrengthLiveModel {
     @ObservationIgnored private var uploading = false
     private(set) var pendingCommand: StrengthLivePendingCommand?
     var watchConnected = false
+    private(set) var plansRevision = 0
     private(set) var notice: String?
     private(set) var highlighted: String?
 
@@ -128,6 +129,7 @@ final class StrengthLiveModel {
         )
         snapshot = current
         persist()
+        if saved { store.saveNextLoads(LiveStrengthReport.nextLoads(current.session)) }
         if let id = activity?.id {
             Task { await Self.end(id, content: nil, dismissal: .immediate) }
             activity = nil
@@ -139,6 +141,10 @@ final class StrengthLiveModel {
                 uploadPending()
             }
         }
+    }
+
+    func plansChanged() {
+        plansRevision += 1
     }
 
     func appBecameActive() {

@@ -1,5 +1,6 @@
 import Insights
 import SwiftUI
+import TrainingCore
 
 private typealias C = StrengthLiveViewConstants
 private typealias T = StrengthLiveText
@@ -7,6 +8,7 @@ private typealias T = StrengthLiveText
 struct StrengthLiveSummaryView: View {
     let snapshot: StrengthLiveSnapshot
     let summary: LiveStrengthSummary
+    let nextDay: Day?
 
     var body: some View {
         VStack(alignment: .leading, spacing: C.cardSpacing) {
@@ -33,6 +35,27 @@ struct StrengthLiveSummaryView: View {
             }
             DSSectionTitle(T.exercises).padding(.top, 4)
             exercises
+            nextCard
+        }
+    }
+
+    @ViewBuilder private var nextCard: some View {
+        let loads = LiveStrengthReport.nextLoads(snapshot.session)
+        if !loads.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(T.nextTitle(snapshot.session.plan.title, day: nextDay)).font(.footnote.weight(.bold)).foregroundStyle(BrandColors.accent)
+                ForEach(loads) { load in
+                    HStack {
+                        Text(load.name).font(.footnote).foregroundStyle(BrandColors.text).lineLimit(1)
+                        Spacer(minLength: 8)
+                        Text(T.nextLoad(load)).font(.footnote.monospacedDigit().bold())
+                            .foregroundStyle(load.rises ? BrandColors.strength : BrandColors.dim)
+                    }
+                }
+                Text(T.nextNote(rises: loads.contains(where: \.rises))).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .brandCard()
         }
     }
 

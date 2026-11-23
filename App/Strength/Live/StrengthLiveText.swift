@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import TrainingCore
 
 enum StrengthLiveText {
     static let onWatch = "● no relógio"
@@ -70,6 +71,38 @@ enum StrengthLiveText {
     static let exercises = "Exercícios"
     static let skipped = "pulado"
     static let same = "="
+    static let watchSection = "Relógio"
+    static let watchFallbackName = "Relógio"
+    static let watchHintPrefix = "No relógio: "
+    static let watchHintApp = "trAIning Força"
+    static let watchHintSuffix = " › START. Esta tela vira o acompanhamento ao vivo."
+    static let watchPendingHint = "Abra o trAIning Força no relógio com o iPhone por perto. O treino chega em alguns segundos."
+    static let watchResend = "Enviar de novo"
+    static let watchChoose = "Escolher relógio"
+    static let watchNone = "Escolha o relógio para receber o treino e acompanhar as séries aqui"
+
+    static func watchReady(_ title: String) -> String {
+        title + " de hoje salvo no relógio · funciona sem o iPhone"
+    }
+
+    static func watchPending(_ title: String) -> String {
+        title + " ainda não chegou ao relógio"
+    }
+
+    static func nextTitle(_ title: String, day: Day?) -> String {
+        guard let day else { return "Próximo " + title }
+        return "Próximo " + title + " · " + StrengthText.dayLabel(day)
+    }
+
+    static func nextLoad(_ load: LiveStrengthNextLoad) -> String {
+        (load.rises ? "sobe para " : "fica em ") + kilograms(load.next) + " kg"
+    }
+
+    static func nextNote(rises: Bool) -> String {
+        rises
+            ? "Fechou todas as séries: sobe 2,5%, no mínimo 1 kg. O relógio já começa com essas cargas."
+            : "Nenhum exercício com todas as séries fechadas: as cargas ficam iguais."
+    }
 
     static func uploadChip(_ state: StrengthLiveUploadState) -> String {
         switch state {

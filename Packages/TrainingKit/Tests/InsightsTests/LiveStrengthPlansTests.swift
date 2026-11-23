@@ -108,4 +108,12 @@ private let reader = LiveStrengthMFITReader(
         #expect(plan.blocks[3].exercises[0].weight == 14)
         #expect(!plan.blocks[3].exercises[0].bodyweight)
     }
+
+    @Test func suggestedLoadReplacesALowerTeacherLoadInMFIT() {
+        let plan = LiveStrengthPlans.from(mfit: superiores, reader: reader, suggested: ["remada curvada": 32.5, "supino reto com halteres": 20])
+        let byName = Dictionary(uniqueKeysWithValues: plan.blocks.flatMap(\.exercises).map { ($0.name, $0.weight) })
+        #expect(byName["Remada curvada"] == 32.5)
+        #expect(byName["Supino reto com halteres"] == 22.5)
+    }
 }
+

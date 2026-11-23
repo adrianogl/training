@@ -12,6 +12,16 @@ struct StrengthLiveStore {
         write(snapshot, file: StrengthLiveConstants.sessionFile)
     }
 
+    func nextLoads() -> [String: Double] {
+        read([String: Double].self, file: StrengthLiveConstants.nextLoadsFile) ?? [:]
+    }
+
+    func saveNextLoads(_ loads: [LiveStrengthNextLoad]) {
+        var known = nextLoads()
+        for load in loads { known[load.loadKey] = load.next }
+        write(known, file: StrengthLiveConstants.nextLoadsFile)
+    }
+
     func clear() {
         try? FileManager.default.removeItem(at: directory.appending(path: StrengthLiveConstants.sessionFile))
     }

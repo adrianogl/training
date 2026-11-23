@@ -37,6 +37,14 @@ public enum LiveStrengthReport {
         }
     }
 
+    public static func nextLoads(_ session: LiveStrengthSession) -> [LiveStrengthNextLoad] {
+        let records = loads(session)
+        return session.plan.blocks.flatMap(\.exercises).compactMap { exercise in
+            guard let record = records[exercise.loadKey], let next = StrengthProgression.next(record) else { return nil }
+            return LiveStrengthNextLoad(name: exercise.name, loadKey: exercise.loadKey, weight: record.weight, next: next)
+        }
+    }
+
     public static func loads(_ session: LiveStrengthSession) -> [String: StrengthLoadRecord] {
         var records: [String: StrengthLoadRecord] = [:]
         for block in session.plan.blocks {

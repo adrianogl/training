@@ -4,6 +4,8 @@ enum StrengthLiveConstants {
     static let sessionFile = "strength-live-session.json"
     static let plansFile = "strength-live-plans-v2.json"
     static let plansKeptDays = 3
+    static let nextLoadsFile = "strength-next-loads.json"
+    static let nextSearchDays = 14
     static let staleAfter: TimeInterval = 4 * 60 * 60
     static let uploadWindow: TimeInterval = 24 * 60 * 60
     static let activitiesQuery = "?start=0&limit=10"
@@ -32,4 +34,12 @@ enum StrengthLiveViewConstants {
     static let toastBottom: CGFloat = 96
     static let highlightOpacity: Double = 0.18
     static let later = "↻"
+}
+
+enum StrengthWatchCardConstants {
+    static let dialSize: CGFloat = 40
+    static let dotSize: CGFloat = 8
+    static let ringWidth: CGFloat = 2
+    static let hintOpacity: Double = 0.10
+    static let buttonHeight: CGFloat = 40
 }

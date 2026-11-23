@@ -66,6 +66,16 @@ private func mockSession(leaveOutTriceps: Bool = false) -> LiveStrengthSession {
         #expect(loads["mfit:rosca direta"] == StrengthLoadRecord(weight: 12, completedAllSets: false, day: "2026-11-23"))
     }
 
+    @Test func nextLoadRisesOnlyWhenEverySetClosed() {
+        let next = Dictionary(uniqueKeysWithValues: LiveStrengthReport.nextLoads(mockSession()).map { ($0.loadKey, $0) })
+
+        #expect(next["mfit:remada curvada"]?.next == 31)
+        #expect(next["mfit:desenvolvimento com halteres"]?.next == 17)
+        #expect(next["mfit:supino reto com halteres"]?.next == 25)
+        #expect(next["mfit:supino reto com halteres"]?.rises == false)
+        #expect(next["mfit:rosca direta"]?.next == 12)
+    }
+
     @Test func leftOutExerciseShowsAsSkipped() {
         let summary = LiveStrengthReport.summarize(mockSession(leaveOutTriceps: true), durationSeconds: 3_000, averageHeartRate: nil)
 
