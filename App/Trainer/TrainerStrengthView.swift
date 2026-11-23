@@ -21,6 +21,9 @@ struct TrainerStrengthView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrainerStrengthConstants.rowSpacing) {
+                if let live = StrengthLiveModel.shared.live {
+                    StrengthLiveView(snapshot: live).padding(.bottom, DSSpacing.sectionTop)
+                }
                 if model.showsStrengthMigrationNotice, let plan = model.strengthPlan {
                     StrengthPlanMigrationNotice(
                         text: StrengthPlanText.migration(end: plan.end),

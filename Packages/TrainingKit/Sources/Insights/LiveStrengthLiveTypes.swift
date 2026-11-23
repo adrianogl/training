@@ -37,3 +37,45 @@ public struct LiveStrengthCard: Codable, Sendable, Equatable {
     public var restEndsAt: Date?
     public var restSeconds: Int?
 }
+
+public enum LiveStrengthRowState: String, Sendable, Equatable {
+    case done, next, pending
+}
+
+public struct LiveStrengthSetRow: Sendable, Equatable, Identifiable {
+    public var id: Int { number }
+    public var number: Int
+    public var state: LiveStrengthRowState
+    public var done: LiveStrengthSetResult?
+    public var doneText: String?
+    public var repsBelow: Bool
+    public var weightChanged: Bool
+    public var plan: String
+    public var last: String?
+}
+
+public struct LiveStrengthNow: Sendable, Equatable {
+    public var number: Int
+    public var exercise: LiveStrengthExercise
+    public var rounds: Int
+    public var restSeconds: Int
+    public var rows: [LiveStrengthSetRow]
+}
+
+public enum LiveStrengthItemState: String, Sendable, Equatable {
+    case done, pending, skipped, leftOut
+}
+
+public struct LiveStrengthItem: Sendable, Equatable, Identifiable {
+    public var id: String { exercise.id }
+    public var number: Int
+    public var exercise: LiveStrengthExercise
+    public var rounds: Int
+    public var setsDone: Int
+    public var state: LiveStrengthItemState
+}
+
+public struct LiveStrengthScreen: Sendable, Equatable {
+    public var now: LiveStrengthNow?
+    public var items: [LiveStrengthItem]
+}

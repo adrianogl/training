@@ -81,3 +81,58 @@ import Testing
         #expect(LiveStrengthLive.shortName("Remada curvada") == "Remada curvada")
     }
 }
+
+@Suite struct LiveStrengthScreenTests {
+    private let plan = LiveStrengthPlan(day: "2026-11-23", title: "Superiores", source: .mfit, blocks: [
+        LiveStrengthBlock(id: "b1", exercises: [
+            LiveStrengthExercise(id: "b1e1", name: "Remada", category: nil, exerciseKey: nil, loadKey: "remada", kind: .reps, reps: 10, seconds: nil, weight: 30, bodyweight: false, perSide: false),
+        ], rounds: 2, restSeconds: 60),
+        LiveStrengthBlock(id: "b2", exercises: [
+            LiveStrengthExercise(
+                id: "b2e1", name: "Supino", category: nil, exerciseKey: nil, loadKey: "supino", kind: .reps, reps: 10, seconds: nil, weight: 22.5,
+                bodyweight: false, perSide: false, last: [LiveStrengthSetResult(reps: 10, weight: 20)]
+            ),
+        ], rounds: 4, restSeconds: 90),
+        LiveStrengthBlock(id: "b3", exercises: [
+            LiveStrengthExercise(id: "b3e1", name: "Puxada", category: nil, exerciseKey: nil, loadKey: "puxada", kind: .reps, reps: 12, seconds: nil, weight: 45, bodyweight: false, perSide: false),
+        ], rounds: 3, restSeconds: 60),
+    ])
+
+    private func event(_ sequence: Int, _ action: LiveStrengthAction) -> LiveStrengthEvent {
+        LiveStrengthEvent(id: "e-\(sequence)", sequence: sequence, action: action)
+    }
+
+    @Test func nowListsDoneNextAndPendingSets() throws {
+        let session = LiveStrengthQueue.replay(plan: plan, events: [
+            event(1, .setDone(exerciseId: "b1e1", result: LiveStrengthSetResult(reps: 10, weight: 30))),
+            event(2, .setDone(exerciseId: "b1e1", result: LiveStrengthSetResult(reps: 10, weight: 30))),
+            event(3, .setDone(exerciseId: "b2e1", result: LiveStrengthSetResult(reps: 10, weight: 22.5))),
+            event(4, .setDone(exerciseId: "b2e1", result: LiveStrengthSetResult(reps: 8, weight: 25))),
+        ])
+        let screen = LiveStrengthLive.screen(session: session)
+        let now = try #require(screen.now)
+        #expect(now.number == 2)
+        #expect(now.exercise.name == "Supino")
+        #expect(now.rows.map(\.state) == [.done, .done, .next, .pending])
+        #expect(now.rows[0].doneText == "10 × 22,5")
+        #expect(!now.rows[0].repsBelow && !now.rows[0].weightChanged)
+        #expect(now.rows[1].doneText == "8 × 25")
+        #expect(now.rows[1].repsBelow && now.rows[1].weightChanged)
+        #expect(now.rows[1].plan == "10 × 22,5")
+        #expect(now.rows[2].plan == "10 × 25")
+        #expect(now.rows[2].last == "10 × 20")
+        #expect(screen.items.map(\.exercise.name) == ["Remada", "Puxada"])
+        #expect(screen.items.map(\.state) == [.done, .pending])
+        #expect(screen.items[0].setsDone == 2)
+    }
+
+    @Test func skippedExerciseGoesToTheEndMarkedAsLater() {
+        let session = LiveStrengthQueue.replay(plan: plan, events: [
+            event(1, .skip(exerciseId: "b1e1")),
+        ])
+        let screen = LiveStrengthLive.screen(session: session)
+        #expect(screen.now?.exercise.name == "Supino")
+        #expect(screen.items.map(\.exercise.name) == ["Puxada", "Remada"])
+        #expect(screen.items.last?.state == .skipped)
+    }
+}

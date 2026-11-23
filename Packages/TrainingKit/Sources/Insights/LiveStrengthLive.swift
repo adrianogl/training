@@ -27,6 +27,53 @@ public enum LiveStrengthLive {
         )
     }
 
+    public static func screen(session: LiveStrengthSession) -> LiveStrengthScreen {
+        let next = LiveStrengthQueue.next(session)
+        let numbers = Dictionary(uniqueKeysWithValues: session.plan.blocks.enumerated().map { ($1.id, $0 + 1) })
+        let now = next.flatMap { next -> LiveStrengthNow? in
+            guard let exercise = session.plan.exercise(next.exerciseId), let block = session.plan.block(containing: next.exerciseId) else { return nil }
+            return LiveStrengthNow(
+                number: numbers[block.id] ?? 0, exercise: exercise, rounds: block.rounds, restSeconds: block.restSeconds,
+                rows: rows(exercise, rounds: block.rounds, next: next, session: session)
+            )
+        }
+        let items = session.order.compactMap { id in session.plan.blocks.first { $0.id == id } }.flatMap { block in
+            block.exercises.compactMap { exercise -> LiveStrengthItem? in
+                guard exercise.id != now?.exercise.id else { return nil }
+                let done = session.done[exercise.id]?.count ?? 0
+                let state: LiveStrengthItemState = done >= block.rounds ? .done
+                    : session.leftOut.contains(block.id) ? .leftOut
+                    : session.skipped.contains(block.id) ? .skipped : .pending
+                return LiveStrengthItem(number: numbers[block.id] ?? 0, exercise: exercise, rounds: block.rounds, setsDone: done, state: state)
+            }
+        }
+        return LiveStrengthScreen(now: now, items: items)
+    }
+
+    static func rows(_ exercise: LiveStrengthExercise, rounds: Int, next: LiveStrengthNextSet, session: LiveStrengthSession) -> [LiveStrengthSetRow] {
+        let done = session.done[exercise.id] ?? []
+        let original = LiveStrengthNextSet(
+            blockId: next.blockId, exerciseId: exercise.id, setIndex: 0, round: 1, reps: exercise.reps, seconds: exercise.seconds, weight: exercise.weight
+        )
+        return (0..<max(rounds, done.count)).map { index in
+            let last = exercise.last.indices.contains(index) ? exercise.last[index] : exercise.last.last
+            let lastText = last.map { setText($0, bodyweight: exercise.bodyweight) }
+            guard index < done.count else {
+                return LiveStrengthSetRow(
+                    number: index + 1, state: index == done.count ? .next : .pending, done: nil, doneText: nil,
+                    repsBelow: false, weightChanged: false, plan: target(next, exercise: exercise), last: lastText
+                )
+            }
+            let result = done[index]
+            return LiveStrengthSetRow(
+                number: index + 1, state: .done, done: result, doneText: setText(result, bodyweight: exercise.bodyweight),
+                repsBelow: (result.reps ?? 0) < (exercise.reps ?? 0) || (result.seconds ?? 0) < (exercise.kind == .timed ? exercise.seconds ?? 0 : 0),
+                weightChanged: (result.weight ?? 0) != (exercise.weight ?? 0),
+                plan: target(original, exercise: exercise), last: lastText
+            )
+        }
+    }
+
     static func moment(_ phase: LiveStrengthWatchPhase?) -> LiveStrengthMoment {
         switch phase {
         case .rest, .adjust, .exerciseDone: .resting

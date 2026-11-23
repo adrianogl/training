@@ -1,16 +1,24 @@
 import ActivityKit
 import Foundation
 import Insights
+import Observation
 import TrainingCore
 import UIKit
 
 @MainActor
+@Observable
 final class StrengthLiveModel {
     static let shared = StrengthLiveModel()
 
-    private let store = StrengthLiveStore()
-    private var snapshot: StrengthLiveSnapshot?
-    private var activity: Activity<StrengthLiveAttributes>?
+    @ObservationIgnored private let store = StrengthLiveStore()
+    private(set) var snapshot: StrengthLiveSnapshot?
+    @ObservationIgnored private var activity: Activity<StrengthLiveAttributes>?
+
+    var live: StrengthLiveSnapshot? {
+        guard let snapshot, Date.now.timeIntervalSince(snapshot.startedAt) < StrengthLiveConstants.staleAfter,
+              LiveStrengthQueue.next(snapshot.session) != nil else { return nil }
+        return snapshot
+    }
 
     private init() {
         snapshot = store.load()
