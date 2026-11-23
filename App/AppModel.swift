@@ -313,6 +313,7 @@ import WorkoutAnalysis
 
     func activate(force: Bool = false) {
         Task { await refreshInstallState() }
+        WorkoutSender.send(trainer: trainer, today: today())
         guard autoSyncEnabled, force || returnsFromBackground else { return }
         returnsFromBackground = false
         let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, readinessComplete: todayReadinessComplete, now: .now)
@@ -439,6 +440,7 @@ import WorkoutAnalysis
             finishedSummary = nil
             await publishWatchReadiness(summary: finished.summary, day: finished.day)
         }
+        WorkoutSender.send(trainer: trainer, today: today())
         if syncStatus.isFinished { await garminZones.sync(container: container, client: garminAccount.client) }
         return syncStatus.isFinished
     }

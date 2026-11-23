@@ -61,6 +61,7 @@ public enum LiveStrengthPlans {
         let seconds = exercise.seconds.map { Int($0.rounded()) } ?? fromNote?.seconds
         let timed = seconds != nil && reps == nil
         let last = history[loadKey] ?? []
+        let weight = exercise.weight ?? last.compactMap(\.weight).filter { $0 > 0 }.last
         return LiveStrengthExercise(
             id: id,
             name: exercise.name,
@@ -70,8 +71,8 @@ public enum LiveStrengthPlans {
             kind: timed ? .timed : .reps,
             reps: timed ? nil : reps,
             seconds: timed ? seconds : nil,
-            weight: exercise.weight,
-            bodyweight: exercise.weight == nil && !last.contains { ($0.weight ?? 0) > 0 },
+            weight: weight,
+            bodyweight: weight == nil,
             perSide: isPerSide(instruction),
             last: last
         )

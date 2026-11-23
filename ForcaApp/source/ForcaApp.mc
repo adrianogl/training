@@ -8,7 +8,7 @@ class ForcaApp extends Application.AppBase {
     function initialize() {
         AppBase.initialize();
         _workout = new Workout(WorkoutStore.load(), new Services(new StrengthRecorder()));
-        _link = new Link(_workout.log);
+        _link = new Link(_workout);
     }
 
     function onStart(state) {

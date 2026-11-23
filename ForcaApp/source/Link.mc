@@ -2,17 +2,20 @@ import Toybox.Communications;
 import Toybox.Lang;
 import Toybox.Time;
 import Toybox.Timer;
+import Toybox.WatchUi;
 
 class Link extends Communications.ConnectionListener {
+    private var _workout;
     private var _log;
     private var _acked = 0;
     private var _busy = false;
     private var _start = null;
     private var _timer;
 
-    function initialize(log) {
+    function initialize(workout) {
         ConnectionListener.initialize();
-        _log = log;
+        _workout = workout;
+        _log = workout.log;
         _timer = new Timer.Timer();
     }
 
@@ -60,6 +63,12 @@ class Link extends Communications.ConnectionListener {
         }
         if (data[LinkKeys.PING] != null) {
             Communications.transmit({ LinkKeys.PONG => data[LinkKeys.PING] }, null, new Communications.ConnectionListener());
+            return;
+        }
+        if (data[LinkKeys.PLANS] != null) {
+            if (WorkoutStore.savePlans(data[LinkKeys.PLANS]) && _workout.usePlan(WorkoutStore.planFor(WorkoutStore.today()))) {
+                WatchUi.requestUpdate();
+            }
             return;
         }
         if (data[LinkKeys.ACK_STARTED] != null) {

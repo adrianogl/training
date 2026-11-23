@@ -24,7 +24,9 @@ final class WatchLink: NSObject {
         guard url.host() == WatchLinkConstants.commandHost else { return false }
         switch url.pathComponents.last {
         case WatchLinkConstants.pingPath: ping()
-        case WatchLinkConstants.clearPath: try? log.mutate { $0.removeAll(); return true }
+        case WatchLinkConstants.clearPath:
+            try? log.mutate { $0.removeAll(); return true }
+            UserDefaults.standard.removeObject(forKey: WatchLinkConstants.sentPlansKey)
         default: ConnectIQ.sharedInstance().showDeviceSelection()
         }
         return true
@@ -34,10 +36,25 @@ final class WatchLink: NSObject {
         let sentAt = Int(Date().timeIntervalSince1970 * 1_000)
         for device in devices {
             let name = device.friendlyName ?? ""
-            ConnectIQ.sharedInstance().sendMessage([WatchLinkConstants.pingKey: sentAt], to: app(for: device), progress: nil) { result in
+            ConnectIQ.sharedInstance().sendMessage([WatchLinkConstants.pingKey: sentAt], to: app(for: device), progress: { _, _ in }) { result in
                 let value = result.rawValue
                 Task { @MainActor in
                     self.record(.sent, detail: "ping \(name) result=\(value)")
+                }
+            }
+        }
+    }
+
+    func sendPlans(_ data: Data) {
+        guard !devices.isEmpty, UserDefaults.standard.data(forKey: WatchLinkConstants.sentPlansKey) != data,
+              let message = try? JSONSerialization.jsonObject(with: data) else { return }
+        for device in devices {
+            let name = device.friendlyName ?? ""
+            ConnectIQ.sharedInstance().sendMessage(message, to: app(for: device), progress: { _, _ in }) { result in
+                let value = result.rawValue
+                Task { @MainActor in
+                    if result == .success { UserDefaults.standard.set(data, forKey: WatchLinkConstants.sentPlansKey) }
+                    self.record(.plans, detail: "\(name) result=\(value) \(String(decoding: data, as: UTF8.self))")
                 }
             }
         }
@@ -50,6 +67,7 @@ final class WatchLink: NSObject {
         ConnectIQ.sharedInstance().unregister(forAllAppMessages: self)
         devices = selected
         Self.store(selected)
+        UserDefaults.standard.removeObject(forKey: WatchLinkConstants.sentPlansKey)
         record(.devices, detail: selected.map { "\($0.friendlyName ?? "") \($0.modelName ?? "")" }.joined(separator: ", "))
         register()
     }
@@ -162,7 +180,7 @@ extension WatchLink: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppMessageDe
             return
         }
         if let reply = Self.acknowledgement(for: message), let app {
-            ConnectIQ.sharedInstance().sendMessage(reply, to: app, progress: nil, completion: nil)
+            ConnectIQ.sharedInstance().sendMessage(reply, to: app, progress: { _, _ in }, completion: { _ in })
         }
         Task { @MainActor in self.receive(data, at: receivedAt) }
     }

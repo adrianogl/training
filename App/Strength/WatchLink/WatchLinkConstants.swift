@@ -7,6 +7,8 @@ enum WatchLinkConstants {
     static let pingPath = "ping"
     static let clearPath = "limpar"
     static let devicesKey = "watchLink.devices"
+    static let sentPlansKey = "watchLink.sentPlans"
+    static let daysToSend = 2
     static let logFile = "watch-link-log.json"
     static let eventsKey = "events"
     static let pingKey = "ping"

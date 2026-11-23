@@ -40,6 +40,16 @@ class Workout {
         queue = new SessionQueue(plan[PlanKeys.BLOCKS]);
     }
 
+    function usePlan(aPlan) {
+        if (aPlan == null || (phase != Phase.START && phase != Phase.EMPTY)) {
+            return false;
+        }
+        plan = aPlan;
+        phase = Phase.START;
+        queue = new SessionQueue(plan[PlanKeys.BLOCKS]);
+        return true;
+    }
+
     function start() {
         if (phase != Phase.START) {
             return;

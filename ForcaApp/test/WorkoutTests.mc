@@ -265,4 +265,25 @@ module WorkoutTests {
         Test.assertEqual(events[3][EventKeys.ACTION][EventKeys.DO_NOW][EventKeys.EXERCISE_ID], "b1e1");
         return true;
     }
+
+    (:test)
+    function planFromThePhoneReplacesOnlyBeforeTheStart(logger as Logger) as Boolean {
+        var workout = new Workout(SamplePlan.superiores(), new FakeServices());
+        Test.assert(workout.usePlan(tiny()));
+        Test.assertEqual(workout.plan[PlanKeys.TITLE], "Teste");
+        Test.assertEqual(workout.setsPlanned(), 2);
+        workout.start();
+        Test.assert(!workout.usePlan(SamplePlan.superiores()));
+        Test.assertEqual(workout.plan[PlanKeys.TITLE], "Teste");
+        return true;
+    }
+
+    (:test)
+    function emptyWatchStartsWithThePlanFromThePhone(logger as Logger) as Boolean {
+        var workout = new Workout(null, new FakeServices());
+        Test.assertEqual(workout.phase, Phase.EMPTY);
+        Test.assert(workout.usePlan(tiny()));
+        Test.assertEqual(workout.phase, Phase.START);
+        return true;
+    }
 }

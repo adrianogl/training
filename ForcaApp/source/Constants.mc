@@ -89,7 +89,7 @@ module QueueAction {
 }
 
 module StorageKeys {
-    const PLAN = "plan";
+    const PLANS = "plans";
     const RESULTS = "results";
     const EVENTS = "events";
 }
@@ -116,6 +116,7 @@ module LinkKeys {
     const TITLE = "title";
     const ACK = "ack";
     const ACK_STARTED = "ackStarted";
+    const PLANS = "plans";
     const BATCH = 10;
 }
 

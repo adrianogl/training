@@ -79,7 +79,9 @@ private let reader = LiveStrengthMFITReader(
         #expect(exercises.allSatisfy { $0.perSide })
         #expect(exercises[0].loadKey == "afundo")
         #expect(!exercises[0].bodyweight)
+        #expect(exercises[0].weight == 10)
         #expect(exercises[1].bodyweight)
+        #expect(exercises[1].weight == nil)
     }
 
     @Test func trainerExercisesBecomeSingleBlocksKeyedByCatalogId() {
