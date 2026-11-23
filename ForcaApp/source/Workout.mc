@@ -57,7 +57,7 @@ class Workout {
         WorkoutStore.clearSession();
         _svc.recorder.start(plan[PlanKeys.TITLE]);
         _svc.vibrate(Vibe.GO);
-        log.started(plan[PlanKeys.TITLE]);
+        log.started(plan[PlanKeys.TITLE], plan[PlanKeys.VERSION]);
         beginSet();
     }
 

@@ -12,9 +12,9 @@ class EventLog {
         _persist = persist;
     }
 
-    function started(title) {
+    function started(title, version) {
         if (listener != null) {
-            listener.started(title);
+            listener.started(title, version);
         }
     }
 

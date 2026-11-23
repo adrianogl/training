@@ -46,22 +46,24 @@ final class StrengthLiveModel {
         activity = Activity<StrengthLiveAttributes>.activities.first
     }
 
-    func started(at startedAt: Date, title: String?) {
-        guard let plan = plan(for: startedAt, title: title) else { return }
-        snapshot = StrengthLiveSnapshot(startedAt: startedAt, session: LiveStrengthSession(plan: plan))
-        persist()
+    func started(at startedAt: Date, version: String?) {
         if let id = activity?.id {
             Task { await Self.end(id, content: nil, dismissal: .immediate) }
             activity = nil
         }
+        guard let version, let plan = store.sentPlan(version: version) else {
+            snapshot = nil
+            store.clear()
+            return
+        }
+        snapshot = StrengthLiveSnapshot(startedAt: startedAt, session: LiveStrengthSession(plan: plan))
+        persist()
         showActivity()
     }
 
     func receive(_ events: [LiveStrengthEvent]) {
-        if snapshot == nil, let plan = plan(for: .now, title: nil) {
-            snapshot = StrengthLiveSnapshot(startedAt: .now, session: LiveStrengthSession(plan: plan))
-        }
-        guard var current = snapshot else { return }
+        guard var current = snapshot, current.finish == nil,
+              Date.now.timeIntervalSince(current.startedAt) < StrengthLiveConstants.staleAfter else { return }
         current.session = LiveStrengthQueue.receive(events, into: current.session)
         withAnimation(.snappy) { snapshot = current }
         persist()
@@ -195,7 +197,7 @@ final class StrengthLiveModel {
     }
 
     private func showActivity() {
-        guard let snapshot, Date.now.timeIntervalSince(snapshot.startedAt) < StrengthLiveConstants.staleAfter else { return }
+        guard let snapshot, snapshot.finish == nil, Date.now.timeIntervalSince(snapshot.startedAt) < StrengthLiveConstants.staleAfter else { return }
         let card = LiveStrengthLive.card(session: snapshot.session, status: snapshot.status)
         let state = Self.state(card)
         let content = ActivityContent(state: state, staleDate: nil)
@@ -223,12 +225,6 @@ final class StrengthLiveModel {
         for activity in Activity<StrengthLiveAttributes>.activities where activity.id == id {
             await activity.end(content, dismissalPolicy: dismissal)
         }
-    }
-
-    private func plan(for startedAt: Date, title: String?) -> LiveStrengthPlan? {
-        let day = Day.today(now: startedAt).iso
-        let plans = store.sentPlans().filter { $0.day == day }
-        return plans.first { $0.title == title } ?? plans.first
     }
 
     private func persist() {

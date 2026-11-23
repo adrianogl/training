@@ -47,6 +47,20 @@ enum TrainerStrengthContextBuilder {
         (exercise.id, StrengthCatalog.names(of: exercise).map(MFITParser.exerciseKey))
     }
 
+    static func lastSets(_ records: [MFITLoadRecord], before day: String) -> [String: [LiveStrengthSetResult]] {
+        var latestByKey: [String: MFITLoadRecord] = [:]
+        for record in records where !record.loads.isEmpty && record.day < day {
+            if let current = latestByKey[record.key], current.day >= record.day { continue }
+            latestByKey[record.key] = record
+        }
+        var result: [String: [LiveStrengthSetResult]] = [:]
+        for (id, keys) in catalogKeys {
+            guard let latest = keys.compactMap({ latestByKey[$0] }).max(by: { $0.day < $1.day }) else { continue }
+            result[id] = latest.loads.map { LiveStrengthSetResult(weight: $0) }
+        }
+        return result
+    }
+
     static func loads(_ records: [MFITLoadRecord]) -> [String: StrengthLoadRecord] {
         var latestByKey: [String: MFITLoadRecord] = [:]
         for record in records where !record.loads.isEmpty {

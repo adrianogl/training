@@ -27,13 +27,14 @@ O `monkey.jungle` separa o código por anotação: `:buttons` só no 965 e `:tou
 Pré-requisitos: Java 17, Connect IQ SDK com `fr965`, `venu3` e `venu3s`, e a mesma chave de desenvolvedor do mostrador (`DEVELOPER_KEY`, padrão `../Watchface/developer_key.der`).
 
 ```bash
-./build-local.sh                 # gera bin/TrainingForca-<aparelho>.prg para os três aparelhos
+./build-local.sh                 # gera bin/TrainingForca-<aparelho>.prg (release) para os três aparelhos
+DEBUG=1 ./build-local.sh         # build de debug, que abre com um treino de exemplo sem plano do iPhone
 DEVICES=fr965 ./build-local.sh   # só um aparelho
 ./test-local.sh                  # testes (:test) no simulador, que precisa estar aberto
 DEVICE=venu3 ./test-local.sh
 ```
 
-Para instalar, copie o `.prg` do aparelho para `GARMIN/APPS` no relógio. O build de debug abre com um treino de exemplo quando o iPhone ainda não mandou o do dia; o de release mostra a tela vazia.
+Para instalar, copie o `.prg` do aparelho para `GARMIN/APPS` no relógio. O `.prg` de release mostra a tela vazia enquanto o iPhone não manda o treino do dia; o de debug (`DEBUG=1`) abre com um treino de exemplo, que o iPhone não associa a nenhum plano.
 
 ## iPhone
 

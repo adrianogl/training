@@ -7,9 +7,11 @@ import TrainingCore
 enum WorkoutSender {
     static func send(trainer: TrainerModel, today: Day) {
         let plans = plans(trainer: trainer, today: today)
-        StrengthLiveStore().saveSentPlans(plans)
         guard let data = try? LiveStrengthWatch.message(plans) else { return }
-        WatchLink.shared.sendPlans(data)
+        let keepFrom = today.adding(days: -StrengthLiveConstants.plansKeptDays).iso
+        WatchLink.shared.sendPlans(data) {
+            StrengthLiveStore().rememberSentPlans(plans, keepFrom: keepFrom)
+        }
     }
 
     static func plans(trainer: TrainerModel, today: Day) -> [LiveStrengthPlan] {
@@ -31,6 +33,9 @@ enum WorkoutSender {
         }
         guard let session = trainer.trainerSessions(on: day).first,
               let generated = trainer.strengthWorkout(sessionId: session.id, day: day, cache: cache) else { return nil }
-        return LiveStrengthPlans.from(trainer: generated, day: day.iso, title: TrainerStrengthText.focusName(generated.group))
+        return LiveStrengthPlans.from(
+            trainer: generated, day: day.iso, title: TrainerStrengthText.focusName(generated.group),
+            history: TrainerStrengthContextBuilder.lastSets(cache.loads, before: day.iso)
+        )
     }
 }

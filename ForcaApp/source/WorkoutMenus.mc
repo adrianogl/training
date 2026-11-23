@@ -2,10 +2,10 @@ import Toybox.WatchUi;
 
 module WorkoutMenus {
     function pushPause(workout) {
-        var menu = new WatchUi.Menu2({ :title => "Pausado · " + workout.setsDone() + "/" + workout.setsPlanned() });
-        menu.addItem(new WatchUi.MenuItem("Retomar", null, PauseAction.RESUME, null));
-        menu.addItem(new WatchUi.MenuItem("Salvar", null, PauseAction.SAVE, null));
-        menu.addItem(new WatchUi.MenuItem("Descartar", null, PauseAction.DISCARD, null));
+        var menu = new WatchUi.Menu2({ :title => MenuText.PAUSED + workout.setsDone() + "/" + workout.setsPlanned() });
+        menu.addItem(new WatchUi.MenuItem(MenuText.RESUME, null, PauseAction.RESUME, null));
+        menu.addItem(new WatchUi.MenuItem(MenuText.SAVE, null, PauseAction.SAVE, null));
+        menu.addItem(new WatchUi.MenuItem(MenuText.DISCARD, null, PauseAction.DISCARD, null));
         WatchUi.pushView(menu, new PauseMenuDelegate(workout), WatchUi.SLIDE_UP);
     }
 
@@ -14,19 +14,19 @@ module WorkoutMenus {
         var pending = workout.queue.pending();
         for (var i = 0; i < pending.size(); i++) {
             var exercise = pending[i][PlanKeys.EXERCISES][0];
-            menu.addItem(new WatchUi.MenuItem("Fazer agora", Format.shortName(exercise[PlanKeys.NAME]), exercise[PlanKeys.ID], null));
+            menu.addItem(new WatchUi.MenuItem(MenuText.DO_NOW, Format.shortName(exercise[PlanKeys.NAME]), exercise[PlanKeys.ID], null));
         }
-        menu.addItem(new WatchUi.MenuItem("Pular · fazer depois", null, QueueAction.SKIP, null));
-        menu.addItem(new WatchUi.MenuItem("Voltar", null, QueueAction.BACK, null));
-        WatchUi.pushView(menu, new ActionMenuDelegate(workout), WatchUi.SLIDE_UP);
+        menu.addItem(new WatchUi.MenuItem(MenuText.SKIP, null, QueueAction.SKIP, null));
+        menu.addItem(new WatchUi.MenuItem(MenuText.BACK, null, QueueAction.BACK, null));
+        WatchUi.pushView(menu, new ActionMenuDelegate(workout, workout.current[PlanKeys.ID]), WatchUi.SLIDE_UP);
     }
 
     function pushPending(workout) {
         var exercise = workout.current;
         var menu = new WatchUi.Menu2({ :title => Format.shortName(exercise[PlanKeys.NAME]) });
-        menu.addItem(new WatchUi.MenuItem("Fazer agora", null, QueueAction.DO_NOW, null));
-        menu.addItem(new WatchUi.MenuItem("Deixar de fora", null, QueueAction.LEAVE_OUT, null));
-        WatchUi.pushView(menu, new PendingMenuDelegate(workout), WatchUi.SLIDE_UP);
+        menu.addItem(new WatchUi.MenuItem(MenuText.DO_NOW, null, QueueAction.DO_NOW, null));
+        menu.addItem(new WatchUi.MenuItem(MenuText.LEAVE_OUT, null, QueueAction.LEAVE_OUT, null));
+        WatchUi.pushView(menu, new PendingMenuDelegate(workout, exercise[PlanKeys.ID]), WatchUi.SLIDE_UP);
     }
 }
 
@@ -60,17 +60,21 @@ class PauseMenuDelegate extends WatchUi.Menu2InputDelegate {
 
 class ActionMenuDelegate extends WatchUi.Menu2InputDelegate {
     private var _workout;
+    private var _exerciseId;
 
-    function initialize(workout) {
+    function initialize(workout, exerciseId) {
         Menu2InputDelegate.initialize();
         _workout = workout;
+        _exerciseId = exerciseId;
     }
 
     function onSelect(item) {
         var id = item.getId();
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         if (id == QueueAction.SKIP) {
-            _workout.skip();
+            if (_workout.current != null && _exerciseId.equals(_workout.current[PlanKeys.ID])) {
+                _workout.skip();
+            }
         } else if (id instanceof String) {
             _workout.doNow(id);
         }
@@ -80,14 +84,16 @@ class ActionMenuDelegate extends WatchUi.Menu2InputDelegate {
 
 class PendingMenuDelegate extends WatchUi.Menu2InputDelegate {
     private var _workout;
+    private var _exerciseId;
 
-    function initialize(workout) {
+    function initialize(workout, exerciseId) {
         Menu2InputDelegate.initialize();
         _workout = workout;
+        _exerciseId = exerciseId;
     }
 
     function onSelect(item) {
-        var exerciseId = _workout.current[PlanKeys.ID];
+        var exerciseId = _exerciseId;
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         if (item.getId() == QueueAction.DO_NOW) {
             _workout.doNow(exerciseId);

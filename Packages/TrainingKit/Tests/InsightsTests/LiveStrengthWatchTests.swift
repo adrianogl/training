@@ -24,7 +24,8 @@ import Testing
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         let plans = try #require(object["plans"] as? [[String: Any]])
         #expect(plans.count == 1)
-        #expect(Set(plans[0].keys) == ["day", "title", "blocks"])
+        #expect(Set(plans[0].keys) == ["day", "title", "blocks", "version"])
+        #expect(plans[0]["version"] as? String == LiveStrengthWatch.version(plan))
         let block = try #require((plans[0]["blocks"] as? [[String: Any]])?.first)
         #expect(Set(block.keys) == ["id", "rounds", "restSeconds", "exercises"])
         let exercise = try #require((block["exercises"] as? [[String: Any]])?.first)
@@ -54,5 +55,12 @@ import Testing
         let history = LiveStrengthWatch.history(records, before: "2026-11-24")
         #expect(history["remada"]?.map(\.weight) == [27.5, 27.5, 30])
         #expect(history["supino"] == nil)
+    }
+
+    @Test func versionChangesWhenThePlanChanges() {
+        var heavier = plan
+        heavier.blocks[0].exercises[0].weight = 32.5
+        #expect(LiveStrengthWatch.version(plan) == LiveStrengthWatch.version(plan))
+        #expect(LiveStrengthWatch.version(plan) != LiveStrengthWatch.version(heavier))
     }
 }

@@ -20,6 +20,7 @@ struct LiveStrengthWatchPlan: Codable, Equatable {
     var day: String
     var title: String
     var blocks: [LiveStrengthWatchBlock]
+    var version: String?
 }
 
 struct LiveStrengthWatchBlock: Codable, Equatable {

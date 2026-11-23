@@ -116,6 +116,7 @@ module LinkKeys {
     const PONG = "pong";
     const STARTED = "started";
     const TITLE = "title";
+    const VERSION = "version";
     const ACK = "ack";
     const ACK_STARTED = "ackStarted";
     const FINISHED = "finished";
@@ -144,6 +145,17 @@ module StatusKeys {
     const FINISHED = "finished";
 }
 
+module MenuText {
+    const PAUSED = "Pausado · ";
+    const RESUME = "Retomar";
+    const SAVE = "Salvar";
+    const DISCARD = "Descartar";
+    const DO_NOW = "Fazer agora";
+    const SKIP = "Pular · fazer depois";
+    const BACK = "Voltar";
+    const LEAVE_OUT = "Deixar de fora";
+}
+
 module PlanKeys {
     const ID = "id";
     const DAY = "day";
@@ -164,6 +176,7 @@ module PlanKeys {
     const START = "start";
     const DURATION = "durationSeconds";
     const EXERCISE_ID = "exerciseId";
+    const VERSION = "version";
 }
 
 module NameRules {

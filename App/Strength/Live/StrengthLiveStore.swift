@@ -12,12 +12,18 @@ struct StrengthLiveStore {
         write(snapshot, file: StrengthLiveConstants.sessionFile)
     }
 
-    func sentPlans() -> [LiveStrengthPlan] {
-        read([LiveStrengthPlan].self, file: StrengthLiveConstants.plansFile) ?? []
+    func clear() {
+        try? FileManager.default.removeItem(at: directory.appending(path: StrengthLiveConstants.sessionFile))
     }
 
-    func saveSentPlans(_ plans: [LiveStrengthPlan]) {
-        write(plans, file: StrengthLiveConstants.plansFile)
+    func sentPlan(version: String) -> LiveStrengthPlan? {
+        (read([String: LiveStrengthPlan].self, file: StrengthLiveConstants.plansFile) ?? [:])[version]
+    }
+
+    func rememberSentPlans(_ plans: [LiveStrengthPlan], keepFrom day: String) {
+        var known = (read([String: LiveStrengthPlan].self, file: StrengthLiveConstants.plansFile) ?? [:]).filter { $0.value.day >= day }
+        for plan in plans { known[LiveStrengthWatch.version(plan)] = plan }
+        write(known, file: StrengthLiveConstants.plansFile)
     }
 
     private func read<T: Decodable>(_ type: T.Type, file: String) -> T? {

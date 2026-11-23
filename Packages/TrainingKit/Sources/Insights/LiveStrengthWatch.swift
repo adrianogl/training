@@ -4,7 +4,23 @@ public enum LiveStrengthWatch {
     public static func message(_ plans: [LiveStrengthPlan]) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
-        return try encoder.encode(LiveStrengthWatchMessage(plans: plans.map(watchPlan)))
+        return try encoder.encode(LiveStrengthWatchMessage(plans: plans.map { plan in
+            var watch = watchPlan(plan)
+            watch.version = version(plan)
+            return watch
+        }))
+    }
+
+    public static func version(_ plan: LiveStrengthPlan) -> String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = (try? encoder.encode(watchPlan(plan))) ?? Data()
+        var hash: UInt64 = 0xcbf2_9ce4_8422_2325
+        for byte in data {
+            hash ^= UInt64(byte)
+            hash = hash &* 0x0000_0100_0000_01b3
+        }
+        return String(hash, radix: 16)
     }
 
     public static func history(_ records: [LiveStrengthLoadHistory], before day: String) -> [String: [LiveStrengthSetResult]] {

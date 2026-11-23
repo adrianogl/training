@@ -26,7 +26,7 @@ final class WatchLink: NSObject {
         case WatchLinkConstants.pingPath: ping()
         case WatchLinkConstants.clearPath:
             try? log.mutate { $0.removeAll(); return true }
-            UserDefaults.standard.removeObject(forKey: WatchLinkConstants.sentPlansKey)
+            devices.forEach { UserDefaults.standard.removeObject(forKey: Self.sentPlansKey($0)) }
         default: ConnectIQ.sharedInstance().showDeviceSelection()
         }
         return true
@@ -45,19 +45,32 @@ final class WatchLink: NSObject {
         }
     }
 
-    func sendPlans(_ data: Data) {
-        guard !devices.isEmpty, UserDefaults.standard.data(forKey: WatchLinkConstants.sentPlansKey) != data,
-              let message = try? JSONSerialization.jsonObject(with: data) else { return }
+    func sendPlans(_ data: Data, delivered: @escaping @MainActor () -> Void) {
+        guard let message = try? JSONSerialization.jsonObject(with: data) else { return }
         for device in devices {
+            let key = Self.sentPlansKey(device)
+            guard UserDefaults.standard.data(forKey: key) != data else { continue }
             let name = device.friendlyName ?? ""
             ConnectIQ.sharedInstance().sendMessage(message, to: app(for: device), progress: { _, _ in }) { result in
                 let value = result.rawValue
+                let success = result == .success
                 Task { @MainActor in
-                    if result == .success { UserDefaults.standard.set(data, forKey: WatchLinkConstants.sentPlansKey) }
-                    self.record(.plans, detail: "\(name) result=\(value) \(String(decoding: data, as: UTF8.self))")
+                    if success {
+                        UserDefaults.standard.set(data, forKey: key)
+                        delivered()
+                    }
+                    self.record(.plans, detail: "\(name) result=\(value) bytes=\(data.count)")
                 }
             }
         }
+    }
+
+    private static func sentPlansKey(_ device: IQDevice) -> String {
+        WatchLinkConstants.sentPlansKey + "." + (device.uuid?.uuidString ?? "")
+    }
+
+    private func refreshConnected() {
+        refreshConnected()
     }
 
     func sendCommand(_ kind: String, exerciseId: String) {
@@ -77,7 +90,7 @@ final class WatchLink: NSObject {
         ConnectIQ.sharedInstance().unregister(forAllAppMessages: self)
         devices = selected
         Self.store(selected)
-        UserDefaults.standard.removeObject(forKey: WatchLinkConstants.sentPlansKey)
+        selected.forEach { UserDefaults.standard.removeObject(forKey: Self.sentPlansKey($0)) }
         record(.devices, detail: selected.map { "\($0.friendlyName ?? "") \($0.modelName ?? "")" }.joined(separator: ", "))
         register()
     }
@@ -122,7 +135,10 @@ final class WatchLink: NSObject {
             return
         }
         if let startedAt = object[WatchLinkConstants.startedKey] as? Int {
-            started(at: Date(timeIntervalSince1970: TimeInterval(startedAt)), title: object[WatchLinkConstants.titleKey] as? String, receivedAt: receivedAt)
+            started(
+                at: Date(timeIntervalSince1970: TimeInterval(startedAt)), title: object[WatchLinkConstants.titleKey] as? String,
+                version: object[WatchLinkConstants.versionKey] as? String, receivedAt: receivedAt
+            )
             return
         }
         guard let raw = object[WatchLinkConstants.eventsKey],
@@ -148,11 +164,11 @@ final class WatchLink: NSObject {
         return decoder
     }
 
-    private func started(at startedAt: Date, title: String?, receivedAt: Date) {
+    private func started(at startedAt: Date, title: String?, version: String?, receivedAt: Date) {
         var entry = WatchLinkRecord(at: receivedAt, appState: Self.appState, kind: .started, detail: title ?? "")
         entry.delaySeconds = [receivedAt.timeIntervalSince(startedAt)]
         append(entry)
-        StrengthLiveModel.shared.started(at: startedAt, title: title)
+        StrengthLiveModel.shared.started(at: startedAt, version: version)
         guard UIApplication.shared.applicationState != .active,
               receivedAt.timeIntervalSince(startedAt) < WatchLinkConstants.startedMaxAge else { return }
         Task {
@@ -204,10 +220,9 @@ extension WatchLink: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppMessageDe
     nonisolated func deviceStatusChanged(_ device: IQDevice!, status: IQDeviceStatus) {
         let name = device?.friendlyName ?? ""
         let value = status.rawValue
-        let connected = status == .connected
         Task { @MainActor in
             self.record(.status, detail: "\(name) status=\(value)")
-            StrengthLiveModel.shared.watchConnected = connected
+            self.refreshConnected()
         }
     }
 
@@ -232,8 +247,9 @@ extension WatchLink: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppMessageDe
         if object[WatchLinkConstants.finishedKey] != nil {
             return [WatchLinkConstants.ackFinishedKey: 1]
         }
-        guard let events = object[WatchLinkConstants.eventsKey] as? [[String: Any]] else { return nil }
-        let last = events.compactMap { $0[WatchLinkConstants.sequenceKey] as? Int }.max()
-        return last.map { [WatchLinkConstants.ackKey: $0] }
+        guard let raw = object[WatchLinkConstants.eventsKey],
+              let data = try? JSONSerialization.data(withJSONObject: raw),
+              let events = try? LiveStrengthQueue.decodeWatchEvents(data) else { return nil }
+        return events.map(\.sequence).max().map { [WatchLinkConstants.ackKey: $0] }
     }
 }

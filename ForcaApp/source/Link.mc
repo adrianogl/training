@@ -55,8 +55,8 @@ class Link extends Communications.ConnectionListener {
         _statusBusy = false;
     }
 
-    function started(title) {
-        _start = { LinkKeys.STARTED => Time.now().value(), LinkKeys.TITLE => title };
+    function started(title, version) {
+        _start = { LinkKeys.STARTED => Time.now().value(), LinkKeys.TITLE => title, LinkKeys.VERSION => version };
         flush();
     }
 
