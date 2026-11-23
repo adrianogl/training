@@ -90,4 +90,16 @@ import TrainingCore
         #expect(context.daysToRace == nil)
         #expect(context.isRecoveryWeek == false)
     }
+
+    @Test func lastSetsComeFromTheLatestDayBeforeTheWorkout() {
+        let key = MFITParser.exerciseKey("Agachamento Goblet")
+        let records = [
+            MFITLoadRecord(exercise: "Agachamento Goblet", key: key, day: "2026-11-10", loads: [16, 16], workoutId: 1),
+            MFITLoadRecord(exercise: "Agachamento Goblet", key: key, day: "2026-11-17", loads: [20, 20, 22], workoutId: 2),
+            MFITLoadRecord(exercise: "Agachamento Goblet", key: key, day: "2026-11-24", loads: [24], workoutId: 3),
+        ]
+        let last = TrainerStrengthContextBuilder.lastSets(records, before: "2026-11-24")
+        #expect(last["SQUAT/GOBLET_SQUAT"]?.map(\.weight) == [20, 20, 22])
+    }
 }
+

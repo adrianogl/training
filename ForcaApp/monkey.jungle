@@ -1,0 +1,5 @@
+project.manifest = manifest.xml
+base.sourcePath = source;test
+fr965.excludeAnnotations = touch
+venu3.excludeAnnotations = buttons
+venu3s.excludeAnnotations = buttons

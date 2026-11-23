@@ -57,6 +57,7 @@ struct RootView: View {
             await model.strava.refreshStatus()
         }
         .onOpenURL { url in
+            if WatchLink.shared.handles(url) { return }
             if model.strava.handles(url) {
                 Task { await model.strava.refreshStatus() }
                 return

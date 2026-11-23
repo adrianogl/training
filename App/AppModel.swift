@@ -173,6 +173,7 @@ import WorkoutAnalysis
             }
         }
         trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
+        StrengthLiveModel.shared.garminClient = { [weak self] in self?.garminAccount.client }
         garminAccount.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }
             return GarminLinkClient(baseURL: remoteBaseURL, token: token, transport: transport)
@@ -313,6 +314,8 @@ import WorkoutAnalysis
 
     func activate(force: Bool = false) {
         Task { await refreshInstallState() }
+        WorkoutSender.send(trainer: trainer, today: today())
+        StrengthLiveModel.shared.uploadPending()
         guard autoSyncEnabled, force || returnsFromBackground else { return }
         returnsFromBackground = false
         let syncs = force || AutoSyncPolicy.shouldSync(status: syncStatus, readinessComplete: todayReadinessComplete, now: .now)
@@ -439,6 +442,8 @@ import WorkoutAnalysis
             finishedSummary = nil
             await publishWatchReadiness(summary: finished.summary, day: finished.day)
         }
+        WorkoutSender.send(trainer: trainer, today: today())
+        StrengthLiveModel.shared.uploadPending()
         if syncStatus.isFinished { await garminZones.sync(container: container, client: garminAccount.client) }
         return syncStatus.isFinished
     }

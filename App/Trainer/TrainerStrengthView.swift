@@ -21,6 +21,12 @@ struct TrainerStrengthView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TrainerStrengthConstants.rowSpacing) {
+                if let live = StrengthLiveModel.shared.live {
+                    StrengthLiveView(snapshot: live).padding(.bottom, DSSpacing.sectionTop)
+                } else if let finished = StrengthLiveModel.shared.finished {
+                    StrengthLiveSummaryView(snapshot: finished, summary: StrengthLiveModel.shared.summary(finished))
+                        .padding(.bottom, DSSpacing.sectionTop)
+                }
                 if model.showsStrengthMigrationNotice, let plan = model.strengthPlan {
                     StrengthPlanMigrationNotice(
                         text: StrengthPlanText.migration(end: plan.end),
@@ -73,6 +79,7 @@ struct TrainerStrengthView: View {
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
+        .overlay(alignment: .bottom) { StrengthLiveToast().animation(.snappy, value: StrengthLiveModel.shared.notice) }
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(TrainerText.strengthTitle)

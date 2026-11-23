@@ -37,5 +37,6 @@ struct TodayWidget: Widget {
 struct TrainingWidgets: WidgetBundle {
     var body: some Widget {
         TodayWidget()
+        StrengthLiveActivity()
     }
 }

@@ -1,0 +1,42 @@
+import Foundation
+import Insights
+
+struct StrengthLiveStore {
+    private let directory = URL.documentsDirectory
+
+    func load() -> StrengthLiveSnapshot? {
+        read(StrengthLiveSnapshot.self, file: StrengthLiveConstants.sessionFile)
+    }
+
+    func save(_ snapshot: StrengthLiveSnapshot) {
+        write(snapshot, file: StrengthLiveConstants.sessionFile)
+    }
+
+    func clear() {
+        try? FileManager.default.removeItem(at: directory.appending(path: StrengthLiveConstants.sessionFile))
+    }
+
+    func sentPlan(version: String) -> LiveStrengthPlan? {
+        (read([String: LiveStrengthPlan].self, file: StrengthLiveConstants.plansFile) ?? [:])[version]
+    }
+
+    func rememberSentPlans(_ plans: [LiveStrengthPlan], keepFrom day: String) {
+        var known = (read([String: LiveStrengthPlan].self, file: StrengthLiveConstants.plansFile) ?? [:]).filter { $0.value.day >= day }
+        for plan in plans { known[LiveStrengthWatch.version(plan)] = plan }
+        write(known, file: StrengthLiveConstants.plansFile)
+    }
+
+    private func read<T: Decodable>(_ type: T.Type, file: String) -> T? {
+        guard let data = try? Data(contentsOf: directory.appending(path: file)) else { return nil }
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        return try? decoder.decode(type, from: data)
+    }
+
+    private func write<T: Encodable>(_ value: T, file: String) {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .secondsSince1970
+        guard let data = try? encoder.encode(value) else { return }
+        try? data.write(to: directory.appending(path: file), options: .atomic)
+    }
+}

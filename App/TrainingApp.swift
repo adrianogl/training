@@ -16,6 +16,7 @@ struct TrainingApp: App {
         let session = AppSession.live()
         reference.session = session
         _session = State(initialValue: session)
+        WatchLink.shared.start()
     }
 
     var body: some Scene {
@@ -31,6 +32,7 @@ struct TrainingApp: App {
             case .active:
                 IntroPolicy.markActive()
                 session.model?.activate()
+                StrengthLiveModel.shared.appBecameActive()
             case .background:
                 IntroPolicy.markActive()
                 session.model?.enteredBackground()

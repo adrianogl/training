@@ -43,6 +43,10 @@ struct TodayView: View {
                         AppUpdateNotice(update: update, openSettings: openSettings, dismiss: app.appUpdate.dismiss)
                             .padding(.bottom, DSSpacing.s3)
                     }
+                    if let live = StrengthLiveModel.shared.live {
+                        StrengthLiveTodayCard(snapshot: live)
+                            .padding(.bottom, DSSpacing.s3)
+                    }
                     if let model, model.isLoaded, !app.showsSkeleton {
                         cards(model)
                             .onGeometryChange(for: Double.self) { $0.size.width } action: { contentWidth = $0 }
