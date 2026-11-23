@@ -20,6 +20,7 @@ final class StrengthLiveModel {
     @ObservationIgnored private var uploading = false
     private(set) var pendingCommand: StrengthLivePendingCommand?
     var watchConnected = false
+    private(set) var plansRevision = 0
     private(set) var notice: String?
     private(set) var highlighted: String?
 
@@ -140,6 +141,10 @@ final class StrengthLiveModel {
                 uploadPending()
             }
         }
+    }
+
+    func plansChanged() {
+        plansRevision += 1
     }
 
     func appBecameActive() {

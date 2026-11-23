@@ -11,6 +11,7 @@ enum WorkoutSender {
         let keepFrom = today.adding(days: -StrengthLiveConstants.plansKeptDays).iso
         WatchLink.shared.sendPlans(data) {
             StrengthLiveStore().rememberSentPlans(plans, keepFrom: keepFrom)
+            StrengthLiveModel.shared.plansChanged()
         }
     }
 
@@ -19,6 +20,19 @@ enum WorkoutSender {
         return (0..<WatchLinkConstants.daysToSend).compactMap { offset in
             plan(for: today.adding(days: offset), trainer: trainer, cache: cache)
         }
+    }
+
+    static func today(trainer: TrainerModel, day: Day) -> LiveStrengthPlan? {
+        plan(for: day, trainer: trainer, cache: StrengthProgramStore().load())
+    }
+
+    static func isOnWatch(_ plan: LiveStrengthPlan) -> Bool {
+        StrengthLiveStore().sentPlan(version: LiveStrengthWatch.version(plan)) != nil
+    }
+
+    static func resend(trainer: TrainerModel, today: Day) {
+        WatchLink.shared.forgetSentPlans()
+        send(trainer: trainer, today: today)
     }
 
     static func nextDay(of plan: LiveStrengthPlan, trainer: TrainerModel, after day: Day) -> Day? {

@@ -29,6 +29,10 @@ struct TrainerStrengthView: View {
                         nextDay: WorkoutSender.nextDay(of: finished.session.plan, trainer: model, after: model.currentDay)
                     )
                         .padding(.bottom, DSSpacing.sectionTop)
+                } else if let today = WorkoutSender.today(trainer: model, day: model.currentDay) {
+                    section(StrengthLiveText.watchSection, first: true)
+                    StrengthWatchCard(plan: today) { WorkoutSender.resend(trainer: model, today: model.currentDay) }
+                        .padding(.bottom, DSSpacing.sectionTop - TrainerStrengthConstants.rowSpacing)
                 }
                 if model.showsStrengthMigrationNotice, let plan = model.strengthPlan {
                     StrengthPlanMigrationNotice(

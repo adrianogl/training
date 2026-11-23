@@ -35,3 +35,11 @@ enum StrengthLiveViewConstants {
     static let highlightOpacity: Double = 0.18
     static let later = "↻"
 }
+
+enum StrengthWatchCardConstants {
+    static let dialSize: CGFloat = 40
+    static let dotSize: CGFloat = 8
+    static let ringWidth: CGFloat = 2
+    static let hintOpacity: Double = 0.10
+    static let buttonHeight: CGFloat = 40
+}

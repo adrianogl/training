@@ -27,7 +27,7 @@ final class WatchLink: NSObject {
         case WatchLinkConstants.clearPath:
             try? log.mutate { $0.removeAll(); return true }
             devices.forEach { UserDefaults.standard.removeObject(forKey: Self.sentPlansKey($0)) }
-        default: ConnectIQ.sharedInstance().showDeviceSelection()
+        default: selectDevice()
         }
         return true
     }
@@ -73,6 +73,18 @@ final class WatchLink: NSObject {
         refreshConnected()
     }
 
+    var deviceName: String? {
+        devices.first.map { $0.friendlyName ?? $0.modelName ?? "" }
+    }
+
+    func selectDevice() {
+        ConnectIQ.sharedInstance().showDeviceSelection()
+    }
+
+    func forgetSentPlans() {
+        devices.forEach { UserDefaults.standard.removeObject(forKey: Self.sentPlansKey($0)) }
+    }
+
     func sendCommand(_ kind: String, exerciseId: String) {
         for device in devices {
             let name = device.friendlyName ?? ""
@@ -93,6 +105,7 @@ final class WatchLink: NSObject {
         selected.forEach { UserDefaults.standard.removeObject(forKey: Self.sentPlansKey($0)) }
         record(.devices, detail: selected.map { "\($0.friendlyName ?? "") \($0.modelName ?? "")" }.joined(separator: ", "))
         register()
+        StrengthLiveModel.shared.plansChanged()
     }
 
     private func register() {
