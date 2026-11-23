@@ -28,13 +28,24 @@ class Services {
         }
         var profile;
         if (kind == Vibe.GO || kind == Vibe.DONE) {
-            profile = [new Attention.VibeProfile(100, 600)];
+            profile = pulses(Vibe.GO_PULSES, Vibe.GO_MS);
         } else if (kind == Vibe.WARN) {
-            profile = [new Attention.VibeProfile(70, 150)];
+            profile = pulses(Vibe.WARN_PULSES, Vibe.WARN_MS);
         } else {
-            profile = [new Attention.VibeProfile(80, 120)];
+            profile = pulses(1, Vibe.SET_MS);
         }
         Attention.vibrate(profile);
+    }
+
+    private function pulses(count, durationMs) {
+        var profile = [];
+        for (var i = 0; i < count; i++) {
+            if (i > 0) {
+                profile.add(new Attention.VibeProfile(0, Vibe.GAP_MS));
+            }
+            profile.add(new Attention.VibeProfile(Vibe.INTENSITY, durationMs));
+        }
+        return profile;
     }
 
     static function heartRate() {

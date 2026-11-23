@@ -27,12 +27,6 @@ class StrengthRecorder {
         }
     }
 
-    function lap() {
-        if (_session != null && _session.isRecording()) {
-            _session.addLap();
-        }
-    }
-
     function save() {
         if (_session != null) {
             _session.stop();

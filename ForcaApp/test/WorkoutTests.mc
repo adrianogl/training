@@ -3,13 +3,11 @@ import Toybox.Test;
 
 (:test)
 class FakeRecorder {
-    var laps = 0;
     var running = false;
     var saved = false;
 
     function start() { running = true; }
     function pause() { running = false; }
-    function lap() { laps += 1; }
     function save() { saved = true; running = false; }
     function discard() { running = false; }
     function elapsedMs() { return 0; }
@@ -54,7 +52,6 @@ module WorkoutTests {
         workout.onLap();
         Test.assertEqual(workout.phase, Phase.REST);
         Test.assertEqual(workout.setsDone(), 1);
-        Test.assertEqual(services.recorder.laps, 1);
         Test.assertEqual(workout.restRemainingMs(), 90000);
         workout.onLap();
         Test.assertEqual(workout.phase, Phase.SET);

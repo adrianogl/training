@@ -51,6 +51,13 @@ module Vibe {
     const WARN = 1;
     const GO = 2;
     const DONE = 3;
+    const INTENSITY = 100;
+    const SET_MS = 400;
+    const WARN_MS = 300;
+    const WARN_PULSES = 2;
+    const GO_MS = 500;
+    const GO_PULSES = 3;
+    const GAP_MS = 200;
 }
 
 module Timing {

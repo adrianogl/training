@@ -332,7 +332,6 @@ class Workout {
         lastDone = { :exercise => exerciseId, :index => results[exerciseId].size() - 1 };
         queue.setDone(exerciseId);
         log.setDone(exerciseId, set);
-        _svc.recorder.lap();
         _svc.vibrate(Vibe.SET);
         WorkoutStore.saveResults(results);
 
