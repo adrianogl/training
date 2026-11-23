@@ -12,6 +12,12 @@ class EventLog {
         _persist = persist;
     }
 
+    function started(title) {
+        if (listener != null) {
+            listener.started(title);
+        }
+    }
+
     function setDone(exerciseId, set) {
         append(EventKeys.SET_DONE, { EventKeys.EXERCISE_ID => exerciseId, EventKeys.RESULT => copy(set) });
     }

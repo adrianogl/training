@@ -112,6 +112,10 @@ module LinkKeys {
     const EVENTS = "events";
     const PING = "ping";
     const PONG = "pong";
+    const STARTED = "started";
+    const TITLE = "title";
+    const ACK = "ack";
+    const ACK_STARTED = "ackStarted";
     const BATCH = 10;
 }
 

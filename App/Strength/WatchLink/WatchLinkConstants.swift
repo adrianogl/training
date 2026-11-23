@@ -11,4 +11,14 @@ enum WatchLinkConstants {
     static let eventsKey = "events"
     static let pingKey = "ping"
     static let pongKey = "pong"
+    static let startedKey = "started"
+    static let titleKey = "title"
+    static let ackKey = "ack"
+    static let ackStartedKey = "ackStarted"
+    static let sequenceKey = "sequence"
+    static let restorationId = "dev.aglv.training.connectiq"
+    static let startedMaxAge: TimeInterval = 30 * 60
+    static let startedNotificationId = "forca-ao-vivo-inicio"
+    static let startedNotificationTitle = "Treino de força começou"
+    static let startedNotificationText = "Toque para acompanhar no iPhone."
 }

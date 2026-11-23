@@ -11,7 +11,7 @@ final class WatchLink: NSObject {
     private let log = JSONFileStore<WatchLinkRecord>(url: URL.documentsDirectory.appending(path: WatchLinkConstants.logFile))
 
     func start() {
-        ConnectIQ.sharedInstance().initialize(withUrlScheme: WatchLinkConstants.urlScheme, uiOverrideDelegate: self)
+        ConnectIQ.sharedInstance().initialize(withUrlScheme: WatchLinkConstants.urlScheme, uiOverrideDelegate: self, stateRestorationIdentifier: WatchLinkConstants.restorationId)
         devices = Self.storedDevices()
         register()
     }
@@ -76,6 +76,10 @@ final class WatchLink: NSObject {
             append(entry)
             return
         }
+        if let startedAt = object[WatchLinkConstants.startedKey] as? Int {
+            started(at: Date(timeIntervalSince1970: TimeInterval(startedAt)), title: object[WatchLinkConstants.titleKey] as? String, receivedAt: receivedAt)
+            return
+        }
         guard let raw = object[WatchLinkConstants.eventsKey],
               let eventsData = try? JSONSerialization.data(withJSONObject: raw),
               let events = try? LiveStrengthQueue.decodeWatchEvents(eventsData) else {
@@ -90,6 +94,23 @@ final class WatchLink: NSObject {
             return receivedAt.timeIntervalSince(concluded)
         }
         append(entry)
+    }
+
+    private func started(at startedAt: Date, title: String?, receivedAt: Date) {
+        var entry = WatchLinkRecord(at: receivedAt, appState: Self.appState, kind: .started, detail: title ?? "")
+        entry.delaySeconds = [receivedAt.timeIntervalSince(startedAt)]
+        append(entry)
+        guard UIApplication.shared.applicationState != .active,
+              receivedAt.timeIntervalSince(startedAt) < WatchLinkConstants.startedMaxAge else { return }
+        Task {
+            await UserNotificationScheduler().schedule(
+                id: WatchLinkConstants.startedNotificationId,
+                title: WatchLinkConstants.startedNotificationTitle,
+                text: [title, WatchLinkConstants.startedNotificationText].compactMap { $0 }.joined(separator: " · "),
+                link: DeepLinkConstants.trainerStrength,
+                at: nil
+            )
+        }
     }
 
     private func record(_ kind: WatchLinkRecordKind, detail: String) {
@@ -140,6 +161,19 @@ extension WatchLink: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppMessageDe
             Task { @MainActor in self.record(.failure, detail: "mensagem inválida") }
             return
         }
+        if let reply = Self.acknowledgement(for: message), let app {
+            ConnectIQ.sharedInstance().sendMessage(reply, to: app, progress: nil, completion: nil)
+        }
         Task { @MainActor in self.receive(data, at: receivedAt) }
+    }
+
+    nonisolated private static func acknowledgement(for message: Any) -> [String: Int]? {
+        guard let object = message as? [String: Any] else { return nil }
+        if object[WatchLinkConstants.startedKey] != nil {
+            return [WatchLinkConstants.ackStartedKey: 1]
+        }
+        guard let events = object[WatchLinkConstants.eventsKey] as? [[String: Any]] else { return nil }
+        let last = events.compactMap { $0[WatchLinkConstants.sequenceKey] as? Int }.max()
+        return last.map { [WatchLinkConstants.ackKey: $0] }
     }
 }

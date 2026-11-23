@@ -2,6 +2,7 @@ import Foundation
 
 enum WatchLinkRecordKind: String, Codable, Sendable {
     case devices
+    case started
     case status
     case events
     case pong
