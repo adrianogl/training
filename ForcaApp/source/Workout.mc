@@ -178,6 +178,24 @@ class Workout {
         beginSet();
     }
 
+    function command(kind, exerciseId) {
+        if (paused || exerciseId == null) {
+            return false;
+        }
+        if (EventKeys.SKIP.equals(kind)) {
+            if (current == null || !exerciseId.equals(current[PlanKeys.ID])) {
+                return false;
+            }
+            skip();
+            return true;
+        }
+        if (EventKeys.DO_NOW.equals(kind) && (phase == Phase.SET || phase == Phase.REST || phase == Phase.PENDING)) {
+            doNow(exerciseId);
+            return true;
+        }
+        return false;
+    }
+
     function leaveOut(exerciseId) {
         queue.leaveOut(exerciseId);
         log.leaveOut(exerciseId);

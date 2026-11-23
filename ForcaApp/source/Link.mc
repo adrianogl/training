@@ -103,6 +103,14 @@ class Link extends Communications.ConnectionListener {
             Communications.transmit({ LinkKeys.PONG => data[LinkKeys.PING] }, null, new Communications.ConnectionListener());
             return;
         }
+        var command = data[LinkKeys.COMMAND];
+        if (command instanceof Dictionary) {
+            var keys = command.keys();
+            if (keys.size() > 0 && _workout.command(keys[0], command[keys[0]])) {
+                WatchUi.requestUpdate();
+            }
+            return;
+        }
         if (data[LinkKeys.PLANS] != null) {
             if (WorkoutStore.savePlans(data[LinkKeys.PLANS]) && _workout.usePlan(WorkoutStore.planFor(WorkoutStore.today()))) {
                 WatchUi.requestUpdate();

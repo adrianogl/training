@@ -29,11 +29,12 @@ public enum LiveStrengthLive {
 
     public static func screen(session: LiveStrengthSession) -> LiveStrengthScreen {
         let next = LiveStrengthQueue.next(session)
-        let numbers = Dictionary(uniqueKeysWithValues: session.plan.blocks.enumerated().map { ($1.id, $0 + 1) })
+        let labels = markers(session.plan)
         let now = next.flatMap { next -> LiveStrengthNow? in
-            guard let exercise = session.plan.exercise(next.exerciseId), let block = session.plan.block(containing: next.exerciseId) else { return nil }
+            guard let exercise = session.plan.exercise(next.exerciseId), let block = session.plan.block(containing: next.exerciseId),
+                  let label = labels[exercise.id] else { return nil }
             return LiveStrengthNow(
-                number: numbers[block.id] ?? 0, exercise: exercise, rounds: block.rounds, restSeconds: block.restSeconds,
+                number: label.number, marker: label.marker, exercise: exercise, rounds: block.rounds, restSeconds: block.restSeconds,
                 rows: rows(exercise, rounds: block.rounds, next: next, session: session)
             )
         }
@@ -44,10 +45,29 @@ public enum LiveStrengthLive {
                 let state: LiveStrengthItemState = done >= block.rounds ? .done
                     : session.leftOut.contains(block.id) ? .leftOut
                     : session.skipped.contains(block.id) ? .skipped : .pending
-                return LiveStrengthItem(number: numbers[block.id] ?? 0, exercise: exercise, rounds: block.rounds, setsDone: done, state: state)
+                let label = labels[exercise.id]
+                return LiveStrengthItem(
+                    number: label?.number ?? 0, marker: label?.marker ?? "", blockId: block.id, superset: label?.superset,
+                    restSeconds: block.restSeconds, exercise: exercise, rounds: block.rounds, setsDone: done, state: state
+                )
             }
         }
         return LiveStrengthScreen(now: now, items: items)
+    }
+
+    static func markers(_ plan: LiveStrengthPlan) -> [String: (number: Int, marker: String, superset: String?)] {
+        var result: [String: (number: Int, marker: String, superset: String?)] = [:]
+        var number = 0
+        var supersets = 0
+        for block in plan.blocks {
+            let letter = block.isSuperset ? String(UnicodeScalar(UInt8(65 + supersets % 26))) : nil
+            if block.isSuperset { supersets += 1 }
+            for (position, exercise) in block.exercises.enumerated() {
+                number += 1
+                result[exercise.id] = (number, letter.map { $0 + String(position + 1) } ?? String(number), letter)
+            }
+        }
+        return result
     }
 
     static func rows(_ exercise: LiveStrengthExercise, rounds: Int, next: LiveStrengthNextSet, session: LiveStrengthSession) -> [LiveStrengthSetRow] {
@@ -102,7 +122,7 @@ public enum LiveStrengthLive {
         weight.formatted(.number.precision(.fractionLength(0...1)).locale(Locale(identifier: "pt_BR")))
     }
 
-    static func shortName(_ name: String) -> String {
+    public static func shortName(_ name: String) -> String {
         let words = name.split(separator: " ").prefix(C.shortNameWords).map(String.init)
         let trimmed = words.last.map { C.connectors.contains($0.lowercased()) } == true ? Array(words.dropLast()) : words
         return trimmed.joined(separator: " ")

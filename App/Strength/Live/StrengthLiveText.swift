@@ -7,7 +7,6 @@ enum StrengthLiveText {
     static let heartRate = "FC"
     static let sets = "Séries"
     static let now = "Agora"
-    static let workout = "Treino"
     static let rest = "Descanso"
     static let restOver = "Hora da série"
     static let paused = "Pausado no relógio"
@@ -17,9 +16,53 @@ enum StrengthLiveText {
     static let lastColumn = "Última"
     static let next = "próxima"
     static let none = "—"
-    static let later = "depois"
+    static let later = "Para depois"
     static let leftOut = "de fora"
     static let todayTitle = "Ao vivo · Força"
+    static let skipAction = "↻ Pular · fazer depois"
+    static let doNowAction = "Fazer agora"
+    static let cancel = "Cancelar"
+    static let sending = "Enviando ao relógio…"
+    static let commandTimeout = "O relógio não respondeu. Confira se ele está por perto."
+    static let upcoming = "A seguir"
+    static let setsSection = "Séries"
+
+    static func nowSetLine(card: LiveStrengthCard, now: LiveStrengthNow) -> String {
+        var parts = ["série \(max(card.setNumber, 1)) de \(now.rounds)", target(now.exercise)]
+        if now.restSeconds > 0 { parts.append("desc. " + clock(now.restSeconds)) }
+        return parts.joined(separator: " · ")
+    }
+
+    static func lastLine(_ last: String) -> String {
+        "última vez " + last
+    }
+
+    static func doneSection(_ done: Int, total: Int) -> String {
+        "Feitos · \(done) de \(total)"
+    }
+
+    static func remaining(_ item: LiveStrengthItem) -> String {
+        let left = max(item.rounds - item.setsDone, 0)
+        return left == 1 ? "falta 1 série" : "faltam \(left) séries"
+    }
+    static let disconnected = "Relógio desconectado: os botões voltam quando ele estiver por perto."
+
+    static func commandNotice(_ command: StrengthLiveCommand, name: String) -> String {
+        let short = LiveStrengthLive.shortName(name).lowercased()
+        switch command {
+        case .skip: return "✓ Relógio atualizado: \(short) ficou para depois"
+        case .doNow: return "✓ Relógio atualizado: \(short) é o próximo"
+        }
+    }
+
+    static func skipConfirmation(done: Int, rounds: Int) -> String {
+        "\(done) de \(rounds) séries feitas"
+    }
+
+    static func skipExplanation(remaining: Int) -> String {
+        (remaining == 1 ? "A que falta vai" : "As \(remaining) que faltam vão") + " para o fim da fila. No fim, dá para fazer ou deixar de fora."
+    }
+
     static let strength = "Força"
     static let volume = "Volume"
     static let duration = "Duração"
@@ -71,32 +114,9 @@ enum StrengthLiveText {
     }
 
     static let doing = "Fazendo"
-    static let finished = "Treino concluído"
-
-    static func momentLabel(_ card: LiveStrengthCard) -> String {
-        switch card.moment {
-        case .doing: doing + " · série \(card.setNumber) de \(card.setCount)"
-        case .resting: rest
-        case .restOver: restOver + " \(card.setNumber) de \(card.setCount)"
-        case .paused: paused
-        case .finished: finished
-        }
-    }
-
-    static func todayLine(_ card: LiveStrengthCard) -> String? {
-        guard let name = card.shortName ?? card.exerciseName else { return nil }
-        guard card.moment == .resting, let next = nextLine(card.target) else { return name + " · série \(card.setNumber) de \(card.setCount)" }
-        return name + " · " + next
-    }
 
     static func header(_ day: Date) -> String {
         "Força · " + day.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated).locale(Locale(identifier: "pt_BR")))
-    }
-
-    static func nowSubtitle(_ now: LiveStrengthNow) -> String {
-        var parts = ["\(now.rounds) séries", target(now.exercise)]
-        if now.restSeconds > 0 { parts.append("descanso " + clock(now.restSeconds)) }
-        return parts.joined(separator: " · ")
     }
 
     static func itemDetail(_ item: LiveStrengthItem) -> String {
@@ -114,6 +134,19 @@ enum StrengthLiveText {
     static func target(_ exercise: LiveStrengthExercise) -> String {
         let base = exercise.kind == .timed ? exercise.seconds.map { "\($0) s" } ?? none : exercise.reps.map { "\($0) reps" } ?? none
         return exercise.perSide ? base + " cada lado" : base
+    }
+
+    static func supersetHeader(_ letter: String, rounds: Int, rest: Int) -> String {
+        var parts = ["BI-SET \(letter)", "\(rounds) rodadas"]
+        if rest > 0 { parts.append("desc. " + clock(rest)) }
+        return parts.joined(separator: " · ")
+    }
+
+    static func supersetDetail(_ item: LiveStrengthItem) -> String {
+        var parts = [target(item.exercise)]
+        if let weight = item.exercise.weight, weight > 0 { parts.append(kilograms(weight) + " kg") }
+        else if item.exercise.bodyweight { parts.append("peso corporal") }
+        return parts.joined(separator: " · ")
     }
 
     static func progress(_ item: LiveStrengthItem) -> String {

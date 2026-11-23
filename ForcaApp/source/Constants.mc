@@ -125,6 +125,7 @@ module LinkKeys {
     const ACK_FINISHED = "ackFinished";
     const PLANS = "plans";
     const STATUS = "status";
+    const COMMAND = "command";
     const BATCH = 10;
 }
 

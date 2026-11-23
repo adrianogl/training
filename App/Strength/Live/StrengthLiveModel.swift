@@ -4,6 +4,7 @@ import GarminAPI
 import Insights
 import MFIT
 import Observation
+import SwiftUI
 import TrainingCore
 import UIKit
 
@@ -17,6 +18,10 @@ final class StrengthLiveModel {
     @ObservationIgnored private var activity: Activity<StrengthLiveAttributes>?
     @ObservationIgnored var garminClient: (@MainActor () -> GarminAccountClient?)?
     @ObservationIgnored private var uploading = false
+    private(set) var pendingCommand: StrengthLivePendingCommand?
+    var watchConnected = false
+    private(set) var notice: String?
+    private(set) var highlighted: String?
 
     var live: StrengthLiveSnapshot? {
         guard let snapshot, snapshot.finish == nil, Date.now.timeIntervalSince(snapshot.startedAt) < StrengthLiveConstants.staleAfter,
@@ -58,9 +63,51 @@ final class StrengthLiveModel {
         }
         guard var current = snapshot else { return }
         current.session = LiveStrengthQueue.receive(events, into: current.session)
-        snapshot = current
+        withAnimation(.snappy) { snapshot = current }
         persist()
         showActivity()
+        confirmCommand(events, plan: current.session.plan)
+    }
+
+    func request(_ command: StrengthLiveCommand, exerciseId: String) {
+        guard pendingCommand == nil else { return }
+        let pending = StrengthLivePendingCommand(kind: command, exerciseId: exerciseId, sentAt: .now)
+        pendingCommand = pending
+        WatchLink.shared.sendCommand(command.rawValue, exerciseId: exerciseId)
+        Task {
+            try? await Task.sleep(for: StrengthLiveConstants.commandTimeout)
+            guard self.pendingCommand == pending else { return }
+            self.pendingCommand = nil
+            self.show(StrengthLiveText.commandTimeout)
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        }
+    }
+
+    private func show(_ text: String) {
+        notice = text
+        Task {
+            try? await Task.sleep(for: StrengthLiveConstants.noticeSeconds)
+            if self.notice == text { self.notice = nil }
+        }
+    }
+
+    private func confirmCommand(_ events: [LiveStrengthEvent], plan: LiveStrengthPlan) {
+        guard let pending = pendingCommand else { return }
+        let matched = events.contains { event in
+            switch (event.action, pending.kind) {
+            case (.skip(let id), .skip), (.doNow(let id), .doNow): id == pending.exerciseId
+            default: false
+            }
+        }
+        guard matched, let exercise = plan.exercise(pending.exerciseId) else { return }
+        pendingCommand = nil
+        highlighted = exercise.id
+        show(StrengthLiveText.commandNotice(pending.kind, name: exercise.name))
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        Task {
+            try? await Task.sleep(for: StrengthLiveConstants.highlightSeconds)
+            if self.highlighted == exercise.id { self.highlighted = nil }
+        }
     }
 
     func receive(_ status: LiveStrengthWatchStatus) {

@@ -56,6 +56,7 @@ public struct LiveStrengthSetRow: Sendable, Equatable, Identifiable {
 
 public struct LiveStrengthNow: Sendable, Equatable {
     public var number: Int
+    public var marker: String
     public var exercise: LiveStrengthExercise
     public var rounds: Int
     public var restSeconds: Int
@@ -69,6 +70,10 @@ public enum LiveStrengthItemState: String, Sendable, Equatable {
 public struct LiveStrengthItem: Sendable, Equatable, Identifiable {
     public var id: String { exercise.id }
     public var number: Int
+    public var marker: String
+    public var blockId: String
+    public var superset: String?
+    public var restSeconds: Int
     public var exercise: LiveStrengthExercise
     public var rounds: Int
     public var setsDone: Int

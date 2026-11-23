@@ -305,4 +305,18 @@ module WorkoutTests {
         Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.PAUSED);
         return true;
     }
+
+    (:test)
+    function phoneCommandsSkipOnlyTheCurrentAndBringBackAPending(logger as Logger) as Boolean {
+        var workout = new Workout(tiny(), new FakeServices());
+        workout.start();
+        Test.assert(!workout.command(EventKeys.SKIP, "b2e1"));
+        Test.assert(workout.command(EventKeys.SKIP, "b1e1"));
+        Test.assertEqual(workout.current[PlanKeys.ID], "b2e1");
+        Test.assert(workout.command(EventKeys.DO_NOW, "b1e1"));
+        Test.assertEqual(workout.current[PlanKeys.ID], "b1e1");
+        workout.pause();
+        Test.assert(!workout.command(EventKeys.SKIP, "b1e1"));
+        return true;
+    }
 }

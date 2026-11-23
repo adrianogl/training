@@ -1,6 +1,16 @@
 import Foundation
 import Insights
 
+enum StrengthLiveCommand: String, Sendable {
+    case skip, doNow
+}
+
+struct StrengthLivePendingCommand: Equatable, Sendable {
+    var kind: StrengthLiveCommand
+    var exerciseId: String
+    var sentAt: Date
+}
+
 enum StrengthLiveUploadState: String, Codable, Sendable {
     case pending, sent, alreadyHadSets, notFound, failed
 }

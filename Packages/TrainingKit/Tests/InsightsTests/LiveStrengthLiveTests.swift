@@ -112,6 +112,7 @@ import Testing
         let screen = LiveStrengthLive.screen(session: session)
         let now = try #require(screen.now)
         #expect(now.number == 2)
+        #expect(now.marker == "2")
         #expect(now.exercise.name == "Supino")
         #expect(now.rows.map(\.state) == [.done, .done, .next, .pending])
         #expect(now.rows[0].doneText == "10 × 22,5")
@@ -135,4 +136,25 @@ import Testing
         #expect(screen.items.map(\.exercise.name) == ["Puxada", "Remada"])
         #expect(screen.items.last?.state == .skipped)
     }
+
+    @Test func supersetExercisesGetALetterAndKeepCounting() {
+        let biset = LiveStrengthPlan(day: "2026-11-23", title: "Superiores", source: .mfit, blocks: [
+            LiveStrengthBlock(id: "b1", exercises: [
+                LiveStrengthExercise(id: "b1e1", name: "Panturrilha", category: nil, exerciseKey: nil, loadKey: "p", kind: .reps, reps: 15, seconds: nil, weight: nil, bodyweight: true, perSide: false),
+            ], rounds: 3, restSeconds: 30),
+            LiveStrengthBlock(id: "b2", exercises: [
+                LiveStrengthExercise(id: "b2e1", name: "Prancha Copenhagen", category: nil, exerciseKey: nil, loadKey: "c", kind: .reps, reps: 20, seconds: nil, weight: nil, bodyweight: true, perSide: true),
+                LiveStrengthExercise(id: "b2e2", name: "Oblíquo", category: nil, exerciseKey: nil, loadKey: "o", kind: .reps, reps: 20, seconds: nil, weight: nil, bodyweight: true, perSide: true),
+            ], rounds: 3, restSeconds: 45),
+            LiveStrengthBlock(id: "b3", exercises: [
+                LiveStrengthExercise(id: "b3e1", name: "Supino", category: nil, exerciseKey: nil, loadKey: "s", kind: .reps, reps: 10, seconds: nil, weight: 14, bodyweight: false, perSide: false),
+            ], rounds: 3, restSeconds: 60),
+        ])
+        let screen = LiveStrengthLive.screen(session: LiveStrengthSession(plan: biset))
+        #expect(screen.now?.marker == "1")
+        #expect(screen.items.map(\.marker) == ["A1", "A2", "4"])
+        #expect(screen.items.map(\.superset) == ["A", "A", nil])
+        #expect(screen.items.map(\.number) == [2, 3, 4])
+    }
 }
+

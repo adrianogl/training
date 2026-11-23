@@ -6,20 +6,52 @@ private typealias T = StrengthLiveText
 
 struct StrengthLiveView: View {
     let snapshot: StrengthLiveSnapshot
+    @State private var showsDone = false
 
     var body: some View {
         let screen = LiveStrengthLive.screen(session: snapshot.session)
         let card = LiveStrengthLive.card(session: snapshot.session, status: snapshot.status)
+        let model = StrengthLiveModel.shared
         VStack(alignment: .leading, spacing: C.cardSpacing) {
             header
             StrengthLiveStats(startedAt: snapshot.startedAt, card: card)
             if let now = screen.now {
                 DSSectionTitle(T.now).padding(.top, 4)
-                StrengthLiveNowCard(now: now, card: card)
+                StrengthLiveNowCard(now: now, card: card, connected: model.watchConnected)
             }
-            if !screen.items.isEmpty {
-                DSSectionTitle(T.workout).padding(.top, 4)
-                StrengthLiveList(items: screen.items)
+            let upcoming = screen.items.filter { $0.state == .pending }
+            let later = screen.items.filter { $0.state == .skipped }
+            let finished = screen.items.filter { $0.state == .done || $0.state == .leftOut }
+            if !upcoming.isEmpty {
+                DSSectionTitle(T.upcoming).padding(.top, 4)
+                StrengthLiveList(items: upcoming, connected: model.watchConnected)
+            }
+            if !later.isEmpty {
+                Text(T.later.uppercased()).font(.caption.weight(.bold)).tracking(1.4).foregroundStyle(BrandColors.attention).padding(.top, 4)
+                StrengthLiveList(items: later, connected: model.watchConnected)
+            }
+            if !finished.isEmpty {
+                Button {
+                    withAnimation(.snappy) { showsDone.toggle() }
+                } label: {
+                    HStack {
+                        Text(T.doneSection(finished.count, total: screen.items.count + (screen.now == nil ? 0 : 1)))
+                            .font(.caption.weight(.bold)).tracking(1.4).textCase(.uppercase).foregroundStyle(BrandColors.strength)
+                        Spacer()
+                        Image(systemName: showsDone ? "chevron.up" : "chevron.down").font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim)
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
+                if showsDone {
+                    StrengthLiveList(items: finished, connected: model.watchConnected)
+                }
+            }
+            if !model.watchConnected {
+                Text(T.disconnected).font(.caption).foregroundStyle(BrandColors.dim)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 12).padding(.vertical, 9)
+                    .overlay(RoundedRectangle(cornerRadius: DSRadius.medium).strokeBorder(BrandColors.line, style: StrokeStyle(lineWidth: 1, dash: [4])))
             }
         }
     }
@@ -74,53 +106,60 @@ struct StrengthLiveStatsContent: View {
 struct StrengthLiveNowCard: View {
     let now: LiveStrengthNow
     let card: LiveStrengthCard
+    let connected: Bool
+    @State private var confirmsSkip = false
+
+    private var setsDone: Int { now.rows.filter { $0.state == .done }.count }
 
     var body: some View {
         VStack(alignment: .leading, spacing: C.cardSpacing) {
-            HStack(alignment: .top, spacing: 10) {
-                Text("\(now.number)").font(.footnote.bold()).foregroundStyle(BrandColors.accent).frame(width: 18, alignment: .leading)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(now.exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
-                    Text(T.nowSubtitle(now)).font(.caption).foregroundStyle(BrandColors.dim)
+            VStack(alignment: .leading, spacing: C.cardSpacing) {
+                HStack(alignment: .top, spacing: 10) {
+                    Text(now.marker).font(.footnote.bold()).foregroundStyle(BrandColors.accent).frame(width: C.markerWidth, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(now.exercise.name).font(.headline).foregroundStyle(BrandColors.text)
+                        Text(T.nowSetLine(card: card, now: now)).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
                 }
+                restBox
             }
-            restBox
-            table
+            .brandCard()
+            DSSectionTitle(T.setsSection).padding(.top, 4)
+            table.brandCard()
+            skipButton
         }
-        .brandCard()
+        .sheet(isPresented: $confirmsSkip) {
+            StrengthLiveSkipSheet(
+                name: now.exercise.name, done: setsDone, rounds: now.rounds,
+                onSkip: {
+                    confirmsSkip = false
+                    StrengthLiveModel.shared.request(.skip, exerciseId: now.exercise.id)
+                },
+                onCancel: { confirmsSkip = false }
+            )
+            .presentationDetents([.height(C.sheetHeight)])
+        }
     }
 
-    @ViewBuilder private var restBox: some View {
-        switch card.moment {
-        case .resting, .restOver, .paused:
-            let color = card.moment == .resting ? BrandColors.fitness : card.moment == .restOver ? BrandColors.accent : BrandColors.dim
-            HStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(card.moment == .resting ? T.rest : card.moment == .restOver ? T.restOver : T.paused)
-                        .font(.caption.weight(.semibold)).foregroundStyle(color)
-                    if let line = T.nextLine(card.target) { Text(line).font(.caption).foregroundStyle(BrandColors.dim) }
-                }
-                Spacer()
-                if let ends = card.restEndsAt, card.moment != .paused {
-                    Group {
-                        if card.moment == .resting {
-                            Text(timerInterval: Date.now...max(ends, .now), countsDown: true)
-                        } else {
-                            Text("+") + Text(timerInterval: ends...Date.distantFuture, countsDown: false)
-                        }
-                    }
-                    .font(.system(size: C.restSize, weight: .heavy, design: .rounded).monospacedDigit())
-                    .foregroundStyle(card.moment == .resting ? BrandColors.fitness : BrandColors.attention)
-                    .multilineTextAlignment(.trailing)
-                    .fixedSize()
-                }
+    private var skipButton: some View {
+        let sending = StrengthLiveModel.shared.pendingCommand?.exerciseId == now.exercise.id
+        return Button {
+            if setsDone > 0 { confirmsSkip = true } else { StrengthLiveModel.shared.request(.skip, exerciseId: now.exercise.id) }
+        } label: {
+            HStack(spacing: 8) {
+                if sending { ProgressView().tint(BrandColors.attention) }
+                Text(sending ? T.sending : T.skipAction).font(.subheadline.weight(.semibold))
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(color.opacity(C.restBoxOpacity), in: .dsInner)
-        default:
-            EmptyView()
+            .frame(maxWidth: .infinity, minHeight: 44)
         }
+        .buttonStyle(.plain)
+        .foregroundStyle(BrandColors.attention)
+        .disabled(!connected || StrengthLiveModel.shared.pendingCommand != nil)
+        .opacity(connected ? 1 : C.pendingOpacity)
+    }
+
+    private var restBox: some View {
+        StrengthLiveMomentBand(card: card)
     }
 
     private var table: some View {
@@ -185,43 +224,140 @@ struct StrengthLiveNowCard: View {
     }
 }
 
-struct StrengthLiveList: View {
-    let items: [LiveStrengthItem]
+struct StrengthLiveSkipSheet: View {
+    let name: String
+    let done: Int
+    let rounds: Int
+    let onSkip: () -> Void
+    let onCancel: () -> Void
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(name).font(.headline).foregroundStyle(BrandColors.text)
+            Text(T.skipConfirmation(done: done, rounds: rounds)).font(.footnote).foregroundStyle(BrandColors.dim).padding(.bottom, 8)
+            Button(action: onSkip) {
+                Text(T.skipAction).font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 48, alignment: .leading).padding(.horizontal, 14)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(BrandColors.attention)
+            .background(BrandColors.attention.opacity(C.restBoxOpacity), in: .rect(cornerRadius: DSRadius.control))
+            Text(T.skipExplanation(remaining: max(rounds - done, 0))).font(.caption).foregroundStyle(BrandColors.dim).padding(.horizontal, 4)
+            Button(T.cancel, action: onCancel)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .foregroundStyle(BrandColors.dim)
+        }
+        .padding(.horizontal, DSSpacing.s5)
+        .padding(.top, DSSpacing.s6)
+    }
+}
+
+struct StrengthLiveList: View {
+    let items: [LiveStrengthItem]
+    let connected: Bool
+
+    private var groups: [[LiveStrengthItem]] {
+        items.reduce(into: [[LiveStrengthItem]]()) { groups, item in
+            if item.superset != nil, let last = groups.last?.last, last.blockId == item.blockId {
+                groups[groups.count - 1].append(item)
+            } else {
+                groups.append([item])
+            }
+        }
+    }
+
+    var body: some View {
+        let groups = groups
         VStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                HStack(spacing: 10) {
-                    Text(marker(item)).font(.footnote.bold()).foregroundStyle(markerColor(item)).frame(width: 18, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(item.exercise.name).font(.subheadline.weight(.semibold))
-                            .foregroundStyle(item.state == .done ? BrandColors.dim : BrandColors.text)
-                        Text(T.itemDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
-                    }
-                    Spacer(minLength: 8)
-                    if item.state == .skipped {
-                        DSChip(text: T.later, tone: .attention)
-                    } else if item.state == .leftOut {
-                        DSChip(text: T.leftOut, tone: .neutral)
-                    } else {
-                        Text(T.progress(item)).font(.footnote.monospacedDigit().bold())
-                            .foregroundStyle(item.state == .done ? BrandColors.strength : BrandColors.dim)
+            ForEach(Array(groups.enumerated()), id: \.element.first?.id) { index, group in
+                Group {
+                    if let first = group.first, let letter = first.superset {
+                        superset(letter, items: group)
+                    } else if let item = group.first {
+                        row(item)
                     }
                 }
                 .padding(.vertical, 10)
+                .background {
+                    if group.contains(where: { StrengthLiveModel.shared.highlighted == $0.exercise.id }) {
+                        RoundedRectangle(cornerRadius: DSRadius.medium).fill(BrandColors.strength.opacity(C.highlightOpacity)).padding(.horizontal, -8)
+                    }
+                }
                 .overlay(alignment: .bottom) {
-                    if index < items.count - 1 { Rectangle().fill(BrandColors.line).frame(height: 1) }
+                    if index < groups.count - 1 { Rectangle().fill(BrandColors.line).frame(height: 1) }
                 }
             }
         }
         .brandCard()
     }
 
+    private func row(_ item: LiveStrengthItem) -> some View {
+        HStack(spacing: 10) {
+            Text(marker(item)).font(.footnote.bold()).foregroundStyle(markerColor(item)).frame(width: C.markerWidth, alignment: .leading)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(item.exercise.name).font(.subheadline.weight(.semibold))
+                    .foregroundStyle(item.state == .done ? BrandColors.dim : BrandColors.text)
+                Text(item.state == .skipped ? T.remaining(item) : T.itemDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            Spacer(minLength: 8)
+            trailing(item, progress: T.progress(item))
+        }
+    }
+
+    private func superset(_ letter: String, items: [LiveStrengthItem]) -> some View {
+        let first = items[0]
+        let done = items.map(\.setsDone).min() ?? 0
+        let state = first.state
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(T.supersetHeader(letter, rounds: first.rounds, rest: first.restSeconds))
+                    .font(.caption.weight(.bold)).foregroundStyle(state == .skipped ? BrandColors.attention : BrandColors.strength)
+                Spacer(minLength: 8)
+                trailing(first, progress: "\(done)/\(first.rounds)")
+            }
+            ForEach(items) { item in
+                HStack(spacing: 10) {
+                    Text(item.marker).font(.footnote.bold())
+                        .foregroundStyle(state == .done ? BrandColors.strength : state == .leftOut ? BrandColors.dim : BrandColors.accent)
+                        .frame(width: C.markerWidth, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(item.exercise.name).font(.subheadline.weight(.semibold))
+                            .foregroundStyle(state == .done ? BrandColors.dim : BrandColors.text)
+                        Text(T.supersetDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func trailing(_ item: LiveStrengthItem, progress: String) -> some View {
+        if item.state == .skipped, StrengthLiveModel.shared.pendingCommand?.exerciseId == item.exercise.id {
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.small)
+                Text(T.sending).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+        } else if item.state == .skipped {
+            Button(T.doNowAction) { StrengthLiveModel.shared.request(.doNow, exerciseId: item.exercise.id) }
+                .font(.footnote.weight(.semibold))
+                .padding(.horizontal, 12)
+                .frame(height: 32)
+                .foregroundStyle(BrandColors.onAccent)
+                .background(BrandColors.accentFill, in: Capsule())
+                .buttonStyle(.plain)
+                .disabled(!connected || StrengthLiveModel.shared.pendingCommand != nil)
+                .opacity(connected ? 1 : C.pendingOpacity)
+        } else if item.state == .leftOut {
+            DSChip(text: T.leftOut, tone: .neutral)
+        } else {
+            Text(progress).font(.footnote.monospacedDigit().bold())
+                .foregroundStyle(item.state == .done ? BrandColors.strength : BrandColors.dim)
+        }
+    }
+
     private func marker(_ item: LiveStrengthItem) -> String {
         switch item.state {
         case .done: C.check
         case .skipped: C.later
-        default: "\(item.number)"
+        default: item.marker
         }
     }
 
@@ -233,4 +369,73 @@ struct StrengthLiveList: View {
         case .pending: BrandColors.accent
         }
     }
+}
+
+struct StrengthLiveToast: View {
+    var body: some View {
+        if let notice = StrengthLiveModel.shared.notice {
+            Text(notice)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(BrandColors.text)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(BrandColors.card, in: Capsule())
+                .overlay(Capsule().stroke(BrandColors.strength, lineWidth: 1))
+                .padding(.horizontal, DSSpacing.s5)
+                .padding(.bottom, C.toastBottom)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+}
+
+struct StrengthLiveMomentBand: View {
+    let card: LiveStrengthCard
+
+    @ViewBuilder
+    var body: some View {
+        switch card.moment {
+        case .resting, .restOver, .paused:
+            let color = card.moment == .resting ? BrandColors.fitness : card.moment == .restOver ? BrandColors.accent : BrandColors.dim
+            HStack {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(card.moment == .resting ? T.rest : card.moment == .restOver ? T.restOver : T.paused)
+                        .font(.caption.weight(.semibold)).foregroundStyle(color)
+                    if let line = T.nextLine(card.target) { Text(line).font(.caption).foregroundStyle(BrandColors.dim) }
+                }
+                Spacer()
+                if let ends = card.restEndsAt, card.moment != .paused {
+                    Group {
+                        if card.moment == .resting {
+                            Text(timerInterval: Date.now...max(ends, .now), countsDown: true)
+                        } else {
+                            Text("+") + Text(timerInterval: ends...Date.distantFuture, countsDown: false)
+                        }
+                    }
+                    .font(.system(size: C.restSize, weight: .heavy, design: .rounded).monospacedDigit())
+                    .foregroundStyle(card.moment == .resting ? BrandColors.fitness : BrandColors.attention)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize()
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(color.opacity(C.restBoxOpacity), in: .dsInner)
+        default:
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(T.doing).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
+                    if let last = card.last { Text(T.lastLine(last)).font(.caption).foregroundStyle(BrandColors.dim) }
+                }
+                Spacer()
+                if let target = card.target {
+                    Text(target).font(.system(size: C.restSize, weight: .heavy, design: .rounded).monospacedDigit())
+                        .foregroundStyle(BrandColors.accent).lineLimit(1).minimumScaleFactor(0.7)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(BrandColors.accent.opacity(C.restBoxOpacity), in: .dsInner)
+        }
+    }
+
 }

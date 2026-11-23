@@ -60,6 +60,16 @@ final class WatchLink: NSObject {
         }
     }
 
+    func sendCommand(_ kind: String, exerciseId: String) {
+        for device in devices {
+            let name = device.friendlyName ?? ""
+            ConnectIQ.sharedInstance().sendMessage([WatchLinkConstants.commandKey: [kind: exerciseId]], to: app(for: device), progress: { _, _ in }) { result in
+                let value = result.rawValue
+                Task { @MainActor in self.record(.sent, detail: "\(kind) \(name) result=\(value)") }
+            }
+        }
+    }
+
     private func receiveSelection(_ url: URL) {
         let selected = (ConnectIQ.sharedInstance().parseDeviceSelectionResponse(from: url) as? [IQDevice]) ?? []
         guard !selected.isEmpty else { return }
@@ -77,6 +87,7 @@ final class WatchLink: NSObject {
             ConnectIQ.sharedInstance().register(forDeviceEvents: device, delegate: self)
             ConnectIQ.sharedInstance().register(forAppMessages: app(for: device), delegate: self)
         }
+        StrengthLiveModel.shared.watchConnected = devices.contains { ConnectIQ.sharedInstance().getDeviceStatus($0) == .connected }
     }
 
     private func app(for device: IQDevice) -> IQApp {
@@ -193,7 +204,11 @@ extension WatchLink: IQUIOverrideDelegate, IQDeviceEventDelegate, IQAppMessageDe
     nonisolated func deviceStatusChanged(_ device: IQDevice!, status: IQDeviceStatus) {
         let name = device?.friendlyName ?? ""
         let value = status.rawValue
-        Task { @MainActor in self.record(.status, detail: "\(name) status=\(value)") }
+        let connected = status == .connected
+        Task { @MainActor in
+            self.record(.status, detail: "\(name) status=\(value)")
+            StrengthLiveModel.shared.watchConnected = connected
+        }
     }
 
     nonisolated func receivedMessage(_ message: Any!, from app: IQApp!) {

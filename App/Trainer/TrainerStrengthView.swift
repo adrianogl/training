@@ -79,6 +79,7 @@ struct TrainerStrengthView: View {
             .padding(.top, 8)
             .padding(.bottom, 24)
         }
+        .overlay(alignment: .bottom) { StrengthLiveToast().animation(.snappy, value: StrengthLiveModel.shared.notice) }
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(TrainerText.strengthTitle)

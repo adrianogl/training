@@ -9,6 +9,7 @@ struct StrengthLiveTodayCard: View {
 
     var body: some View {
         let card = LiveStrengthLive.card(session: snapshot.session, status: snapshot.status)
+        let now = LiveStrengthLive.screen(session: snapshot.session).now
         Button {
             if let url = URL(string: DeepLinkConstants.trainerStrength) { _ = DeepLinkCenter.shared.open(url) }
         } label: {
@@ -24,37 +25,23 @@ struct StrengthLiveTodayCard: View {
                         DSChip(text: T.onWatch, tone: .strength)
                     }
                     StrengthLiveStatsContent(startedAt: snapshot.startedAt, card: card)
-                    Rectangle().fill(BrandColors.line).frame(height: 1)
-                    moment(card)
                 }
                 .brandCard()
+                if let now {
+                    VStack(alignment: .leading, spacing: C.cardSpacing) {
+                        HStack(alignment: .top, spacing: 10) {
+                            Text(now.marker).font(.footnote.bold()).foregroundStyle(BrandColors.accent).frame(width: C.markerWidth, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(now.exercise.name).font(.headline).foregroundStyle(BrandColors.text).lineLimit(1)
+                                Text(T.nowSetLine(card: card, now: now)).font(.caption).foregroundStyle(BrandColors.dim)
+                            }
+                        }
+                        StrengthLiveMomentBand(card: card)
+                    }
+                    .brandCard()
+                }
             }
         }
         .buttonStyle(.plain)
-    }
-
-    private func moment(_ card: LiveStrengthCard) -> some View {
-        let color = card.moment == .resting ? BrandColors.fitness : card.moment == .paused ? BrandColors.dim : BrandColors.accent
-        return HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(T.momentLabel(card)).font(.caption.weight(.bold)).textCase(.uppercase).foregroundStyle(color)
-                if let line = T.todayLine(card) {
-                    Text(line).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text).lineLimit(1)
-                }
-            }
-            Spacer(minLength: 8)
-            Group {
-                if card.moment == .resting, let ends = card.restEndsAt {
-                    Text(timerInterval: Date.now...max(ends, .now), countsDown: true).foregroundStyle(BrandColors.fitness)
-                } else if card.moment == .restOver, let ends = card.restEndsAt {
-                    (Text("+") + Text(timerInterval: ends...Date.distantFuture, countsDown: false)).foregroundStyle(BrandColors.attention)
-                } else if let target = card.target {
-                    Text(target).foregroundStyle(color)
-                }
-            }
-            .font(.system(size: C.restSize, weight: .heavy, design: .rounded).monospacedDigit())
-            .multilineTextAlignment(.trailing)
-            .fixedSize()
-        }
     }
 }
