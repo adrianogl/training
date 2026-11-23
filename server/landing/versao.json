@@ -1,12 +1,17 @@
 {
-  "versao": "1.46.0",
-  "build": 78,
-  "versao_app": "1.46.0",
+  "versao": "1.46.1",
+  "build": 79,
+  "versao_app": "1.46.1",
   "notas": [
-    "Mostra se o treino de hoje está no relógio na tela força",
-    "Mostra a carga do próximo treino no resumo e leva ela ao relógio"
+    "Corrige o app fechando quando o relógio conecta"
   ],
   "historico": [
+    {
+      "versao": "1.46.1",
+      "notas": [
+        "Corrige o app fechando quando o relógio conecta"
+      ]
+    },
     {
       "versao": "1.46.0",
       "notas": [
@@ -62,12 +67,6 @@
       "versao": "1.40.5",
       "notas": [
         "Envia os treinos ao Garmin sem prefixo no nome"
-      ]
-    },
-    {
-      "versao": "1.40.4",
-      "notas": [
-        "Mostra as corridas planejadas até o fim do plano"
       ]
     }
   ]
