@@ -2,7 +2,7 @@
 
 App de corrida para iPhone e iPad (SwiftUI + SwiftData), com a lógica no pacote `Packages/TrainingKit`, um servidor na Vercel (`server/`) e um mostrador Connect IQ (`Watchface/`). O `README.md` explica o produto, o fluxo de dados e como rodar cada parte. Este arquivo guarda só o que um agente precisa para trabalhar aqui sem redescobrir o projeto.
 
-Cada pasta tem o seu `CLAUDE.md` com as regras locais: `App/`, `Packages/TrainingKit/`, `server/` e `Watchface/`.
+Cada pasta tem o seu `CLAUDE.md` com as regras locais: `App/`, `Packages/TrainingKit/`, `server/`, `Watchface/` e `ForcaApp/`.
 
 ## Mapa
 
@@ -12,6 +12,7 @@ Cada pasta tem o seu `CLAUDE.md` com as regras locais: `App/`, `Packages/Trainin
 | `Packages/TrainingKit/` | Garmin, FIT, sync, SwiftData e todos os cálculos | `swift test --package-path Packages/TrainingKit --filter <Suite>` |
 | `server/` | API (Node 22, Neon), MCP e landing estática | `npm --prefix server test` |
 | `Watchface/` | Mostrador Monkey C do Forerunner 965 | `Watchface/build-local.sh` |
+| `ForcaApp/` | App Monkey C de força ao vivo (965 e Venu 3) | `ForcaApp/test-local.sh` |
 | `scripts/` | Simulador, release, reinstalação automática, catálogo de força | `python3 scripts/test_*.py` |
 | `docs/regras/` | Regras de análise e de prescrição, fonte da verdade | — |
 | `docs/superpowers/` | Specs e planos antigos, só referência | — |

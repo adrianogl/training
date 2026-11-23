@@ -48,12 +48,13 @@ Versão atual: `1.44.0` (ver [Versão](#versão)).
 | `Widgets/`, `Shared/` | Widgets da tela inicial e da tela bloqueada, e os tipos que eles dividem com o app |
 | `Packages/TrainingKit/` | Pacote Swift com a lógica, testável sem o app (módulos abaixo) |
 | `Watchface/` | Mostrador Connect IQ para o Forerunner 965 ([README](Watchface/README.md)) |
+| `ForcaApp/` | App Connect IQ de força ao vivo para o Forerunner 965 e o Venu 3 ([README](ForcaApp/README.md)) |
 | `server/` | API na Vercel (Node 22 + Neon Postgres) e a landing em `server/landing/` ([README](server/README.md)) |
 | `docs/regras/` | Regras de análise ([`analise.md`](docs/regras/analise.md)) e de prescrição ([`prescricao.md`](docs/regras/prescricao.md)) |
 | `docs/superpowers/` | Specs e planos de design das primeiras versões |
 | `scripts/` | `dev-run.sh` (simulador), `release.sh` (versão e `versao.json`), `auto_install.py` (reinstalação automática), `garmin-catalog.py` (catálogo de força a partir da lista da Garmin) e `exercise-media.py` (imagens e passos dos exercícios de força em `App/Strength/Media`) |
 | `project.yml` | Projeto do Xcode, gerado pelo XcodeGen. O `.xcodeproj` não fica no git |
-| `CLAUDE.md` | Comandos, convenções e cuidados para agentes, na raiz e em `App/`, `Packages/TrainingKit/`, `server/` e `Watchface/` |
+| `CLAUDE.md` | Comandos, convenções e cuidados para agentes, na raiz e em `App/`, `Packages/TrainingKit/`, `server/`, `Watchface/` e `ForcaApp/` |
 
 | Módulo do `TrainingKit` | Papel |
 | --- | --- |
@@ -78,6 +79,7 @@ Versão atual: `1.44.0` (ver [Versão](#versão)).
 - **MFIT no relógio:** com "Enviar os treinos do MFIT" ligado em Enviar ao Garmin, os treinos do professor vão para o calendário do Garmin até o fim da prescrição, com o exercício do catálogo da Garmin quando o nome casa e o nome do professor quando não casa. O envio automático leva junto.
 - **Calendário de treinos:** a aba Treinos alterna entre a lista por semana e o mês, com pontos por tipo (corrida feita, corrida planejada, força e MFIT) e os km de cada dia; tocar num dia mostra os treinos dele e o resumo do mês.
 - **Observações e carga sugerida:** cada exercício guarda observações permanentes, de qualquer origem (treinador, Claude ou MFIT), e elas entram no contexto de força do Claude. As observações das séries do MFIT aparecem só para leitura. Nos treinos do Treinador e do Claude, o exercício com carga que você nunca fez recebe uma carga sugerida pelo histórico do mesmo padrão de movimento ou da mesma categoria da Garmin, e o app mostra a conta. Treino do MFIT mantém a carga do professor. A regra está em [`docs/regras/prescricao.md`](docs/regras/prescricao.md).
+- **Força ao vivo:** o app `trAIning Força` no relógio roda o treino de força do dia, que o iPhone manda depois de cada sync (o de hoje e o de amanhã). Cada série vai ao iPhone pelo Bluetooth (Connect IQ Mobile SDK), em 1 a 3 s, e aparece na tela ao vivo (Treinador › Força e um card na aba Hoje) e num Live Activity com ilha dinâmica. Quando o treino começa e o app não está na tela, o iPhone mostra uma notificação; o Live Activity aparece quando o app abre, porque o iOS só deixa criar com o app na tela. Ao salvar, o iPhone envia as séries para a atividade no Garmin Connect, que só recebe o envio se ainda não tiver nenhuma série, e grava a carga real no histórico. Nada disso passa pelo servidor.
 - **Previsões e recordes:** distâncias fixas (1 km, 3 km, 5 km, 10 km, meia e maratona), recorde casado pela distância em metros e cada previsão comparada ao recorde da mesma distância.
 - **Texto e conversa:** Foundation Models da Apple, no aparelho, a partir de números já calculados. Sem o modelo, o app usa templates com os mesmos números.
 
@@ -89,7 +91,7 @@ As fórmulas e os limites estão em `docs/regras/`. Mudança de regra atualiza e
 - Mac com Xcode e SDK do iOS 26 ou mais novo, e [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`).
 - Uma conta Apple. A conta gratuita (Personal Team) basta.
 - Relógio Garmin com conta no Garmin Connect, ou Apple Watch.
-- Para o servidor, Node 22. Para o mostrador, Java 17 e o Connect IQ SDK.
+- Para o servidor, Node 22. Para o mostrador e o app de força, Java 17 e o Connect IQ SDK. O app de força no iPhone usa o Garmin Connect instalado para escolher o relógio.
 
 ## Rodar o app
 
@@ -175,6 +177,7 @@ python3 scripts/test_garmin_catalog.py           # script do catálogo de força
 python3 scripts/test_exercise_media.py           # script das imagens dos exercícios
 python3 scripts/test_release_version_file.py     # versao.json da release
 python3 scripts/test_auto_install.py             # datas da reinstalação automática
+ForcaApp/test-local.sh                          # app de força no relógio, com o simulador do Connect IQ aberto
 ```
 
 ## Servidor
@@ -206,6 +209,10 @@ O build da Vercel roda as migrations e copia `server/landing/` para `public/`. A
 ## Mostrador do relógio
 
 Connect IQ para o Forerunner 965: prontidão, VO2max, km da semana e o próximo compromisso da agenda. Compilar, instalar e trocar a foto de fundo: [`Watchface/README.md`](Watchface/README.md).
+
+## App de força no relógio
+
+Connect IQ para o Forerunner 965 e o Venu 3: o treino de força do dia série a série, com descanso, ajuste, fila e pausa, mandando cada série ao iPhone. Compilar, instalar e parear com o iPhone: [`ForcaApp/README.md`](ForcaApp/README.md).
 
 ## Versão
 
