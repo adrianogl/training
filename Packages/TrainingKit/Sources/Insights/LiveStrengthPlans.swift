@@ -4,13 +4,15 @@ import GarminAPI
 public enum LiveStrengthPlans {
     private typealias C = LiveStrengthPlansConstants
 
-    public static func from(mfit workout: StrengthWorkout, reader: LiveStrengthMFITReader, history: [String: [LiveStrengthSetResult]] = [:]) -> LiveStrengthPlan {
+    public static func from(
+        mfit workout: StrengthWorkout, reader: LiveStrengthMFITReader, history: [String: [LiveStrengthSetResult]] = [:], suggested: [String: Double] = [:]
+    ) -> LiveStrengthPlan {
         let blocks = workout.blocks.enumerated().map { index, block in
             let blockId = blockId(index)
             return LiveStrengthBlock(
                 id: blockId,
                 exercises: block.exercises.enumerated().map { position, exercise in
-                    mfitExercise(exercise, id: exerciseId(blockId, position), note: block.note, reader: reader, history: history)
+                    mfitExercise(exercise, id: exerciseId(blockId, position), note: block.note, reader: reader, history: history, suggested: suggested)
                 },
                 rounds: block.sets,
                 restSeconds: Int((block.restSeconds ?? 0).rounded())
@@ -20,13 +22,14 @@ public enum LiveStrengthPlans {
     }
 
     public static func from(
-        trainer workout: GeneratedStrengthWorkout, day: String, title: String, history: [String: [LiveStrengthSetResult]] = [:]
+        trainer workout: GeneratedStrengthWorkout, day: String, title: String, history: [String: [LiveStrengthSetResult]] = [:],
+        suggested: [String: Double] = [:]
     ) -> LiveStrengthPlan {
         let blocks = workout.exercises.enumerated().map { index, exercise in
             let blockId = blockId(index)
             let loadKey = StrengthCatalog.canonicalId(exercise.exerciseId)
             let timed = exercise.seconds != nil
-            let weight = exercise.weight ?? exercise.suggestedLoad?.weight
+            let weight = suggested[loadKey] ?? exercise.weight ?? exercise.suggestedLoad?.weight
             let bodyweight = StrengthCatalog.exercise(exercise.exerciseId).map { $0.equipment == .bodyweight } ?? (weight == nil)
             return LiveStrengthBlock(
                 id: blockId,
@@ -52,7 +55,8 @@ public enum LiveStrengthPlans {
     }
 
     static func mfitExercise(
-        _ exercise: StrengthExercise, id: String, note: String?, reader: LiveStrengthMFITReader, history: [String: [LiveStrengthSetResult]]
+        _ exercise: StrengthExercise, id: String, note: String?, reader: LiveStrengthMFITReader, history: [String: [LiveStrengthSetResult]],
+        suggested: [String: Double] = [:]
     ) -> LiveStrengthExercise {
         let loadKey = reader.loadKey(exercise.name)
         let instruction = exercise.detail ?? note
@@ -61,7 +65,8 @@ public enum LiveStrengthPlans {
         let seconds = exercise.seconds.map { Int($0.rounded()) } ?? fromNote?.seconds
         let timed = seconds != nil && reps == nil
         let last = history[loadKey] ?? []
-        let weight = exercise.weight ?? last.compactMap(\.weight).filter { $0 > 0 }.last
+        let planned = exercise.weight ?? last.compactMap(\.weight).filter { $0 > 0 }.last
+        let weight = [planned, suggested[loadKey]].compactMap { $0 }.max()
         return LiveStrengthExercise(
             id: id,
             name: exercise.name,

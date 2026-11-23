@@ -34,3 +34,13 @@ public struct LiveStrengthRealLoad: Sendable, Equatable {
     public var loadKey: String
     public var loads: [Double]
 }
+
+public struct LiveStrengthNextLoad: Sendable, Equatable, Identifiable {
+    public var id: String { loadKey }
+    public var name: String
+    public var loadKey: String
+    public var weight: Double
+    public var next: Double
+
+    public var rises: Bool { next > weight }
+}

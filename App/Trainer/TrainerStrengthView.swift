@@ -24,7 +24,10 @@ struct TrainerStrengthView: View {
                 if let live = StrengthLiveModel.shared.live {
                     StrengthLiveView(snapshot: live).padding(.bottom, DSSpacing.sectionTop)
                 } else if let finished = StrengthLiveModel.shared.finished {
-                    StrengthLiveSummaryView(snapshot: finished, summary: StrengthLiveModel.shared.summary(finished))
+                    StrengthLiveSummaryView(
+                        snapshot: finished, summary: StrengthLiveModel.shared.summary(finished),
+                        nextDay: WorkoutSender.nextDay(of: finished.session.plan, trainer: model, after: model.currentDay)
+                    )
                         .padding(.bottom, DSSpacing.sectionTop)
                 }
                 if model.showsStrengthMigrationNotice, let plan = model.strengthPlan {

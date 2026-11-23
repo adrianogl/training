@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import TrainingCore
 
 enum StrengthLiveText {
     static let onWatch = "● no relógio"
@@ -70,6 +71,21 @@ enum StrengthLiveText {
     static let exercises = "Exercícios"
     static let skipped = "pulado"
     static let same = "="
+
+    static func nextTitle(_ title: String, day: Day?) -> String {
+        guard let day else { return "Próximo " + title }
+        return "Próximo " + title + " · " + StrengthText.dayLabel(day)
+    }
+
+    static func nextLoad(_ load: LiveStrengthNextLoad) -> String {
+        (load.rises ? "sobe para " : "fica em ") + kilograms(load.next) + " kg"
+    }
+
+    static func nextNote(rises: Bool) -> String {
+        rises
+            ? "Fechou todas as séries: sobe 2,5%, no mínimo 1 kg. O relógio já começa com essas cargas."
+            : "Nenhum exercício com todas as séries fechadas: as cargas ficam iguais."
+    }
 
     static func uploadChip(_ state: StrengthLiveUploadState) -> String {
         switch state {

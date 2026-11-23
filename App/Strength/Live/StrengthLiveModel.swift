@@ -128,6 +128,7 @@ final class StrengthLiveModel {
         )
         snapshot = current
         persist()
+        if saved { store.saveNextLoads(LiveStrengthReport.nextLoads(current.session)) }
         if let id = activity?.id {
             Task { await Self.end(id, content: nil, dismissal: .immediate) }
             activity = nil
