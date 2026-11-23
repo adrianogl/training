@@ -1,13 +1,19 @@
 {
-  "versao": "1.45.0",
-  "build": 77,
-  "versao_app": "1.45.0",
+  "versao": "1.46.0",
+  "build": 78,
+  "versao_app": "1.46.0",
   "notas": [
-    "Amarra o treino ao vivo à versão do plano e corrige os itens do review",
-    "Pula e traz exercícios de volta pelo iphone e organiza a tela ao vivo",
-    "Envia as séries ao garmin connect e mostra o resumo no fim do treino"
+    "Mostra se o treino de hoje está no relógio na tela força",
+    "Mostra a carga do próximo treino no resumo e leva ela ao relógio"
   ],
   "historico": [
+    {
+      "versao": "1.46.0",
+      "notas": [
+        "Mostra se o treino de hoje está no relógio na tela força",
+        "Mostra a carga do próximo treino no resumo e leva ela ao relógio"
+      ]
+    },
     {
       "versao": "1.45.0",
       "notas": [
@@ -63,10 +69,6 @@
       "notas": [
         "Mostra as corridas planejadas até o fim do plano"
       ]
-    },
-    {
-      "versao": "1.40.3",
-      "notas": []
     }
   ]
 }
