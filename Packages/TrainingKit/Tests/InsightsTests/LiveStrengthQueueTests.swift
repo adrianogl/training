@@ -54,6 +54,19 @@ private func events(_ actions: [LiveStrengthAction]) -> [LiveStrengthEvent] {
         #expect(session.skipped.isEmpty)
     }
 
+    @Test func doNowOnThePendingExerciseAtTheEndTakesItOutOfThePendingQueue() {
+        var actions: [LiveStrengthAction] = [.skip(exerciseId: "b1e1")]
+        actions += Array(repeating: done("b2e1"), count: 4) + Array(repeating: done("b3e1"), count: 3)
+        actions += Array(repeating: done("b4e1"), count: 2) + Array(repeating: done("b4e2"), count: 2)
+        let atTheEnd = LiveStrengthQueue.replay(plan: plan, events: events(actions))
+        #expect(LiveStrengthQueue.current(atTheEnd)?.id == "b1")
+        #expect(LiveStrengthQueue.pending(atTheEnd).map(\.id) == ["b1"])
+
+        let resumed = LiveStrengthQueue.replay(plan: plan, events: events(actions + [.doNow(exerciseId: "b1e1")]))
+        #expect(LiveStrengthQueue.pending(resumed).isEmpty)
+        #expect(LiveStrengthQueue.current(resumed)?.id == "b1")
+    }
+
     @Test func leaveOutKeepsWhatWasDone() {
         let session = LiveStrengthQueue.replay(plan: plan, events: events([
             done("b1e1"), .skip(exerciseId: "b1e1"), .leaveOut(exerciseId: "b1e1"),

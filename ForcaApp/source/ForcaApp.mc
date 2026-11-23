@@ -2,14 +2,14 @@ import Toybox.Application;
 import Toybox.WatchUi;
 
 class ForcaApp extends Application.AppBase {
-    private var _recorder;
+    private var _workout;
 
     function initialize() {
         AppBase.initialize();
-        _recorder = new StrengthRecorder();
+        _workout = new Workout(WorkoutStore.load(), new Services(new StrengthRecorder()));
     }
 
     function getInitialView() {
-        return [new ForcaView(_recorder), new ForcaDelegate(_recorder)];
+        return [new WorkoutView(_workout), new WorkoutDelegate(_workout)];
     }
 }

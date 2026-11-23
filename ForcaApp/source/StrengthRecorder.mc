@@ -1,24 +1,13 @@
 import Toybox.Activity;
 import Toybox.ActivityRecording;
-import Toybox.Attention;
 import Toybox.Sensor;
 import Toybox.WatchUi;
 
 class StrengthRecorder {
     private var _session = null;
-    private var _state = RecorderState.IDLE;
-    private var _sets = 0;
 
     function initialize() {
         Sensor.setEnabledSensors([Sensor.SENSOR_HEARTRATE]);
-    }
-
-    function state() {
-        return _state;
-    }
-
-    function sets() {
-        return _sets;
     }
 
     function start() {
@@ -30,54 +19,43 @@ class StrengthRecorder {
             });
         }
         _session.start();
-        _state = RecorderState.RECORDING;
-        vibrate(200);
     }
 
     function pause() {
-        if (_state != RecorderState.RECORDING) {
-            return;
+        if (_session != null && _session.isRecording()) {
+            _session.stop();
         }
-        _session.stop();
-        _state = RecorderState.PAUSED;
-        vibrate(200);
     }
 
-    function markSet() {
-        if (_state != RecorderState.RECORDING) {
-            return;
+    function lap() {
+        if (_session != null && _session.isRecording()) {
+            _session.addLap();
         }
-        _session.addLap();
-        _sets += 1;
-        vibrate(100);
     }
 
     function save() {
-        if (_session == null) {
-            return;
+        if (_session != null) {
+            _session.stop();
+            _session.save();
+            _session = null;
         }
-        _session.save();
-        _session = null;
-        _state = RecorderState.SAVED;
-        vibrate(400);
     }
 
     function discard() {
-        if (_session == null) {
-            return;
+        if (_session != null) {
+            _session.stop();
+            _session.discard();
+            _session = null;
         }
-        _session.discard();
-        _session = null;
-        _state = RecorderState.DISCARDED;
     }
 
-    function hasSession() {
-        return _session != null;
+    function elapsedMs() {
+        var info = Activity.getActivityInfo();
+        return (info != null && info.timerTime != null) ? info.timerTime : 0;
     }
 
-    private function vibrate(durationMs) {
-        if (Attention has :vibrate) {
-            Attention.vibrate([new Attention.VibeProfile(100, durationMs)]);
-        }
+    function heartRate() {
+        var info = Activity.getActivityInfo();
+        return info == null ? null : info.currentHeartRate;
     }
 }

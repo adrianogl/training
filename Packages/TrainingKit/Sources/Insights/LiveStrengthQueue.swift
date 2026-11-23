@@ -74,7 +74,10 @@ public enum LiveStrengthQueue {
         case let .doNow(exerciseId):
             guard let target = session.plan.block(containing: exerciseId), !isComplete(target, in: session) else { return session }
             let running = current(session)
-            guard running?.id != target.id else { return session }
+            guard running?.id != target.id else {
+                copy.skipped.removeAll { $0 == target.id }
+                return copy
+            }
             copy.skipped.removeAll { $0 == target.id }
             copy.leftOut.removeAll { $0 == target.id }
             copy.order.removeAll { $0 == target.id }

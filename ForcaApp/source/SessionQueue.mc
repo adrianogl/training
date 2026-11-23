@@ -86,6 +86,7 @@ class SessionQueue {
         var targetId = target[PlanKeys.ID];
         var running = current();
         if (running != null && running[PlanKeys.ID].equals(targetId)) {
+            _skipped.remove(targetId);
             return;
         }
         _skipped.remove(targetId);

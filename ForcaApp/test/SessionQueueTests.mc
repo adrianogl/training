@@ -77,6 +77,20 @@ module SessionQueueTests {
     }
 
     (:test)
+    function doNowOnThePendingAtTheEndClearsIt(logger as Logger) as Boolean {
+        var queue = new SessionQueue(plan());
+        queue.skip("b1e1");
+        for (var i = 0; i < 4; i++) { queue.setDone("b2e1"); }
+        for (var i = 0; i < 3; i++) { queue.setDone("b3e1"); }
+        for (var i = 0; i < 2; i++) { queue.setDone("b4e1"); queue.setDone("b4e2"); }
+        Test.assertEqual(queue.current()[PlanKeys.ID], "b1");
+        Test.assertEqual(queue.pending().size(), 1);
+        queue.doNow("b1e1");
+        Test.assertEqual(queue.pending().size(), 0);
+        return true;
+    }
+
+    (:test)
     function leaveOutKeepsWhatWasDone(logger as Logger) as Boolean {
         var queue = new SessionQueue(plan());
         queue.setDone("b1e1");
