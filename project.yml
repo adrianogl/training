@@ -73,6 +73,7 @@ targets:
         ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIconLilac AppIconPistaLight AppIconPistaDark AppIconLilacLight AppIconLilacDark"
         ENABLE_USER_SCRIPT_SANDBOXING: NO
         OTHER_LDFLAGS: "$(inherited) -ObjC"
+        INFOPLIST_KEY_NSSupportsLiveActivities: YES
         INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "O app usa o Bluetooth para receber do relógio as séries do treino de força enquanto você treina."
     postBuildScripts:
       - name: Build info

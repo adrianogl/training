@@ -1,5 +1,6 @@
 import Toybox.Communications;
 import Toybox.Lang;
+import Toybox.System;
 import Toybox.Time;
 import Toybox.Timer;
 import Toybox.WatchUi;
@@ -11,12 +12,17 @@ class Link extends Communications.ConnectionListener {
     private var _busy = false;
     private var _start = null;
     private var _timer;
+    private var _statusTimer;
+    private var _statusBusy = false;
+    private var _statusPhase = null;
+    private var _statusAtMs = 0;
 
     function initialize(workout) {
         ConnectionListener.initialize();
         _workout = workout;
         _log = workout.log;
         _timer = new Timer.Timer();
+        _statusTimer = new Timer.Timer();
     }
 
     function start() {
@@ -24,7 +30,28 @@ class Link extends Communications.ConnectionListener {
         if (Communications has :registerForPhoneAppMessages) {
             Communications.registerForPhoneAppMessages(method(:onPhoneMessage));
         }
+        _statusTimer.start(method(:onStatusCheck), Timing.STATUS_CHECK_MS, true);
         flush();
+    }
+
+    function onStatusCheck() as Void {
+        if (_statusBusy || !_workout.hasStarted()) {
+            return;
+        }
+        var status = _workout.status();
+        var phase = status[StatusKeys.PHASE];
+        var now = System.getTimer();
+        if (phase.equals(_statusPhase) && now - _statusAtMs < Timing.STATUS_EVERY_MS) {
+            return;
+        }
+        _statusBusy = true;
+        _statusPhase = phase;
+        _statusAtMs = now;
+        Communications.transmit({ LinkKeys.STATUS => status }, null, new LinkStatusListener(self));
+    }
+
+    function statusSent() {
+        _statusBusy = false;
     }
 
     function started(title) {
@@ -96,5 +123,22 @@ class Link extends Communications.ConnectionListener {
             end = _acked + LinkKeys.BATCH;
         }
         return { LinkKeys.EVENTS => _log.events.slice(_acked, end) };
+    }
+}
+
+class LinkStatusListener extends Communications.ConnectionListener {
+    private var _link;
+
+    function initialize(link) {
+        ConnectionListener.initialize();
+        _link = link;
+    }
+
+    function onComplete() {
+        _link.statusSent();
+    }
+
+    function onError() {
+        _link.statusSent();
     }
 }

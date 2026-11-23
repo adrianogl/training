@@ -15,6 +15,7 @@ enum WatchLinkConstants {
     static let pongKey = "pong"
     static let startedKey = "started"
     static let titleKey = "title"
+    static let statusKey = "status"
     static let ackKey = "ack"
     static let ackStartedKey = "ackStarted"
     static let sequenceKey = "sequence"

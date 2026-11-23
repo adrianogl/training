@@ -48,6 +48,10 @@ class Services {
         return profile;
     }
 
+    function currentHeartRate() {
+        return heartRate();
+    }
+
     static function heartRate() {
         var info = Activity.getActivityInfo();
         return info == null ? null : info.currentHeartRate;

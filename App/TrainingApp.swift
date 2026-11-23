@@ -32,6 +32,7 @@ struct TrainingApp: App {
             case .active:
                 IntroPolicy.markActive()
                 session.model?.activate()
+                StrengthLiveModel.shared.appBecameActive()
             case .background:
                 IntroPolicy.markActive()
                 session.model?.enteredBackground()

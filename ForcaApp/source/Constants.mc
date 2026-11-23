@@ -67,6 +67,8 @@ module Timing {
     const EXERCISE_DONE_MS = 3000;
     const MENU_RELEASE_MS = 700;
     const LINK_RETRY_MS = 5000;
+    const STATUS_CHECK_MS = 1000;
+    const STATUS_EVERY_MS = 15000;
 }
 
 module Steps {
@@ -117,7 +119,23 @@ module LinkKeys {
     const ACK = "ack";
     const ACK_STARTED = "ackStarted";
     const PLANS = "plans";
+    const STATUS = "status";
     const BATCH = 10;
+}
+
+module StatusKeys {
+    const PHASE = "phase";
+    const HEART_RATE = "heartRate";
+    const REST_ENDS_AT = "restEndsAt";
+    const SET = "set";
+    const TIMED = "timed";
+    const REST = "rest";
+    const REST_OVER = "restOver";
+    const ADJUST = "adjust";
+    const EXERCISE_DONE = "exerciseDone";
+    const PENDING = "pending";
+    const PAUSED = "paused";
+    const FINISHED = "finished";
 }
 
 module PlanKeys {

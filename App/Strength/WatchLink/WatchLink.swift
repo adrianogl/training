@@ -94,6 +94,12 @@ final class WatchLink: NSObject {
             append(entry)
             return
         }
+        if let raw = object[WatchLinkConstants.statusKey],
+           let statusData = try? JSONSerialization.data(withJSONObject: raw),
+           let status = try? Self.decoder.decode(LiveStrengthWatchStatus.self, from: statusData) {
+            StrengthLiveModel.shared.receive(status)
+            return
+        }
         if let startedAt = object[WatchLinkConstants.startedKey] as? Int {
             started(at: Date(timeIntervalSince1970: TimeInterval(startedAt)), title: object[WatchLinkConstants.titleKey] as? String, receivedAt: receivedAt)
             return
@@ -112,12 +118,20 @@ final class WatchLink: NSObject {
             return receivedAt.timeIntervalSince(concluded)
         }
         append(entry)
+        StrengthLiveModel.shared.receive(events)
+    }
+
+    private static var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        return decoder
     }
 
     private func started(at startedAt: Date, title: String?, receivedAt: Date) {
         var entry = WatchLinkRecord(at: receivedAt, appState: Self.appState, kind: .started, detail: title ?? "")
         entry.delaySeconds = [receivedAt.timeIntervalSince(startedAt)]
         append(entry)
+        StrengthLiveModel.shared.started(at: startedAt, title: title)
         guard UIApplication.shared.applicationState != .active,
               receivedAt.timeIntervalSince(startedAt) < WatchLinkConstants.startedMaxAge else { return }
         Task {

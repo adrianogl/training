@@ -22,6 +22,7 @@ class FakeServices {
     function now() { return clock; }
     function epoch() { return 1700000000 + clock / 1000; }
     function vibrate(kind) { vibes.add(kind); }
+    function currentHeartRate() { return 120; }
     function persists() { return false; }
 }
 
@@ -284,6 +285,24 @@ module WorkoutTests {
         Test.assertEqual(workout.phase, Phase.EMPTY);
         Test.assert(workout.usePlan(tiny()));
         Test.assertEqual(workout.phase, Phase.START);
+        return true;
+    }
+
+    (:test)
+    function statusTellsThePhoneTheRestAndItsEnd(logger as Logger) as Boolean {
+        var services = new FakeServices();
+        var workout = started(services);
+        Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.SET);
+        workout.onLap();
+        var status = workout.status();
+        Test.assertEqual(status[StatusKeys.PHASE], StatusKeys.REST);
+        Test.assertEqual(status[StatusKeys.HEART_RATE], 120);
+        Test.assert(status[StatusKeys.REST_ENDS_AT] > services.epoch());
+        services.clock += 600000;
+        workout.tick();
+        Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.REST_OVER);
+        workout.pause();
+        Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.PAUSED);
         return true;
     }
 }

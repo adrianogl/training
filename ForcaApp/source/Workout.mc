@@ -206,6 +206,43 @@ class Workout {
         }
     }
 
+    function status() {
+        var result = { StatusKeys.PHASE => statusPhase(), StatusKeys.HEART_RATE => _svc.currentHeartRate() };
+        if (phase == Phase.REST || phase == Phase.ADJUST) {
+            result[StatusKeys.REST_ENDS_AT] = _svc.epoch() + restRemainingMs() / 1000;
+        }
+        return result;
+    }
+
+    private function statusPhase() {
+        if (paused) {
+            return StatusKeys.PAUSED;
+        }
+        if (phase == Phase.SET) {
+            return StatusKeys.SET;
+        }
+        if (phase == Phase.TIMED) {
+            return StatusKeys.TIMED;
+        }
+        if (phase == Phase.REST || phase == Phase.ADJUST) {
+            if (_restOver) {
+                return StatusKeys.REST_OVER;
+            }
+            return phase == Phase.ADJUST ? StatusKeys.ADJUST : StatusKeys.REST;
+        }
+        if (phase == Phase.EXERCISE_DONE) {
+            return StatusKeys.EXERCISE_DONE;
+        }
+        if (phase == Phase.PENDING) {
+            return StatusKeys.PENDING;
+        }
+        return StatusKeys.FINISHED;
+    }
+
+    function hasStarted() {
+        return phase != Phase.START && phase != Phase.EMPTY;
+    }
+
     function isRunning() {
         return phase == Phase.SET || phase == Phase.TIMED || phase == Phase.REST || phase == Phase.ADJUST
             || phase == Phase.EXERCISE_DONE || phase == Phase.PENDING || phase == Phase.FINISHED;
