@@ -26,3 +26,9 @@ module PauseAction {
 module ViewTiming {
     const REFRESH_MS = 1000;
 }
+
+module PlanKeys {
+    const ID = "id";
+    const ROUNDS = "rounds";
+    const EXERCISES = "exercises";
+}
