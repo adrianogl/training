@@ -121,6 +121,10 @@ public enum MFITParser {
         return Day(year: year, month: month, day: day).iso
     }
 
+    public static func target(in text: String) -> (reps: Int?, seconds: Int?) {
+        (number(in: text, pattern: C.repsPattern), number(in: text, pattern: C.secondsPattern))
+    }
+
     public static func exerciseKey(_ name: String) -> String {
         let stripped = name.replacingOccurrences(of: C.parenthesisPattern, with: " ", options: .regularExpression)
             .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: Locale(identifier: "pt_BR"))
