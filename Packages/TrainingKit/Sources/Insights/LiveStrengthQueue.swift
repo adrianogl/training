@@ -13,6 +13,12 @@ public enum LiveStrengthQueue {
         return session
     }
 
+    public static func decodeWatchEvents(_ data: Data) throws -> [LiveStrengthEvent] {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .secondsSince1970
+        return try decoder.decode([LiveStrengthEvent].self, from: data)
+    }
+
     public static func receive(_ events: [LiveStrengthEvent], into session: LiveStrengthSession) -> LiveStrengthSession {
         replay(plan: session.plan, events: session.events + events)
     }

@@ -114,6 +114,25 @@ private func events(_ actions: [LiveStrengthAction]) -> [LiveStrengthEvent] {
         #expect(LiveStrengthQueue.next(round)?.round == 2)
     }
 
+    @Test func decodesTheEventsTheWatchWrites() throws {
+        let json = """
+        [
+          {"id":"1700000000-1","sequence":1,"action":{"setDone":{"exerciseId":"b1e1","result":{"reps":10,"weight":30.0,"start":1700000100,"durationSeconds":42,"seconds":null}}}},
+          {"id":"1700000000-2","sequence":2,"action":{"adjust":{"exerciseId":"b1e1","setIndex":0,"result":{"reps":8,"weight":32.5,"start":1700000100,"durationSeconds":42}}}},
+          {"id":"1700000000-3","sequence":3,"action":{"skip":{"exerciseId":"b1e1"}}},
+          {"id":"1700000000-4","sequence":4,"action":{"doNow":{"exerciseId":"b1e1"}}},
+          {"id":"1700000000-5","sequence":5,"action":{"leaveOut":{"exerciseId":"b3e1"}}}
+        ]
+        """
+        let events = try LiveStrengthQueue.decodeWatchEvents(Data(json.utf8))
+        let session = LiveStrengthQueue.replay(plan: plan, events: events)
+
+        #expect(events.count == 5)
+        #expect(session.done["b1e1"] == [LiveStrengthSetResult(reps: 8, weight: 32.5, start: Date(timeIntervalSince1970: 1_700_000_100), durationSeconds: 42)])
+        #expect(LiveStrengthQueue.current(session)?.id == "b1")
+        #expect(session.leftOut == ["b3"])
+    }
+
     @Test func unknownExerciseIsIgnored() {
         let session = LiveStrengthQueue.replay(plan: plan, events: events([done("x"), .skip(exerciseId: "x")]))
 
