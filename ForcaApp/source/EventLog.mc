@@ -2,6 +2,7 @@ import Toybox.Lang;
 
 class EventLog {
     var events = [];
+    var listener = null;
     private var _prefix;
     private var _sequence = 0;
     private var _persist;
@@ -49,6 +50,9 @@ class EventLog {
         });
         if (_persist) {
             WorkoutStore.store(StorageKeys.EVENTS, events);
+        }
+        if (listener != null) {
+            listener.flush();
         }
     }
 }

@@ -8,6 +8,9 @@ options:
 packages:
   TrainingKit:
     path: Packages/TrainingKit
+  ConnectIQ:
+    url: https://github.com/garmin/connectiq-companion-app-sdk-ios
+    exactVersion: 1.8.0
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -49,6 +52,7 @@ targets:
           - RemoteSync
           - MFIT
           - HealthImport
+      - package: ConnectIQ
     settings:
       base:
         PRODUCT_NAME: trAIning
@@ -68,6 +72,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: "AppIconLilac AppIconPistaLight AppIconPistaDark AppIconLilacLight AppIconLilacDark"
         ENABLE_USER_SCRIPT_SANDBOXING: NO
+        OTHER_LDFLAGS: "$(inherited) -ObjC"
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "O app usa o Bluetooth para receber do relógio as séries do treino de força enquanto você treina."
     postBuildScripts:
       - name: Build info
         basedOnDependencyAnalysis: false

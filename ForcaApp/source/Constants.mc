@@ -66,6 +66,7 @@ module Timing {
     const VIEW_RETURN_MS = 8000;
     const EXERCISE_DONE_MS = 3000;
     const MENU_RELEASE_MS = 700;
+    const LINK_RETRY_MS = 5000;
 }
 
 module Steps {
@@ -105,6 +106,13 @@ module EventKeys {
     const EXERCISE_ID = "exerciseId";
     const SET_INDEX = "setIndex";
     const RESULT = "result";
+}
+
+module LinkKeys {
+    const EVENTS = "events";
+    const PING = "ping";
+    const PONG = "pong";
+    const BATCH = 10;
 }
 
 module PlanKeys {

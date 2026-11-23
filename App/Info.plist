@@ -24,6 +24,11 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
+		<string>bluetooth-central</string>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>gcm-ciq</string>
 	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -33,6 +38,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>training</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>dev.aglv.training.connectiq</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>training-ciq</string>
 			</array>
 		</dict>
 	</array>

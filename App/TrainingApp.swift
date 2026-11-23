@@ -16,6 +16,7 @@ struct TrainingApp: App {
         let session = AppSession.live()
         reference.session = session
         _session = State(initialValue: session)
+        WatchLink.shared.start()
     }
 
     var body: some Scene {
