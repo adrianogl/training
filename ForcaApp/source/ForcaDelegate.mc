@@ -8,7 +8,37 @@ class ForcaDelegate extends WatchUi.BehaviorDelegate {
         _recorder = recorder;
     }
 
+    function onKey(keyEvent) {
+        if (keyEvent.getType() != WatchUi.PRESS_TYPE_ACTION) {
+            return false;
+        }
+        var key = keyEvent.getKey();
+        if (key == WatchUi.KEY_ENTER) {
+            return onStartKey();
+        }
+        if (key == WatchUi.KEY_ESC) {
+            return onLapKey();
+        }
+        return false;
+    }
+
     function onSelect() {
+        return isActive();
+    }
+
+    function onBack() {
+        return isActive();
+    }
+
+    function onTap(clickEvent) {
+        return true;
+    }
+
+    function onSwipe(swipeEvent) {
+        return isActive();
+    }
+
+    private function onStartKey() {
         var state = _recorder.state();
         if (state == RecorderState.IDLE) {
             _recorder.start();
@@ -22,7 +52,7 @@ class ForcaDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    function onBack() {
+    private function onLapKey() {
         var state = _recorder.state();
         if (state == RecorderState.RECORDING) {
             _recorder.markSet();
@@ -34,5 +64,9 @@ class ForcaDelegate extends WatchUi.BehaviorDelegate {
             return true;
         }
         return false;
+    }
+
+    private function isActive() {
+        return _recorder.hasSession();
     }
 }

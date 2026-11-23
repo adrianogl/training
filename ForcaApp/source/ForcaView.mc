@@ -90,14 +90,14 @@ class ForcaView extends WatchUi.View {
 
     private function hint(state) {
         if (state == RecorderState.RECORDING) {
-            return "LAP série · START pausa";
+            return "baixo: série · cima: pausa";
         }
         if (state == RecorderState.IDLE) {
-            return "START começa";
+            return "cima: começa";
         }
         if (state == RecorderState.PAUSED) {
-            return "START menu";
+            return "cima: menu";
         }
-        return "BACK sai";
+        return "baixo: sai";
     }
 }

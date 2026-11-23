@@ -3,6 +3,8 @@
     <iq:application id="15ee2aedcd4c457ba6e0cb1bc629a995" type="watch-app" name="@Strings.AppName" entry="ForcaApp" launcherIcon="@Drawables.LauncherIcon" minApiLevel="4.2.0">
         <iq:products>
             <iq:product id="fr965"/>
+            <iq:product id="venu3"/>
+            <iq:product id="venu3s"/>
         </iq:products>
         <iq:permissions>
             <iq:uses-permission id="Fit"/>
