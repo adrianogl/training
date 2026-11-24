@@ -18,7 +18,6 @@ struct SettingsView: View {
     @AppStorage(AppIconConstants.defaultsKey, store: .standard) private var iconStyle = AppIconStyle.system.rawValue
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: SettingsGroup = SettingsView.initialGroup()
-    var embedded = false
 
     var body: some View {
         if sizeClass == .regular {
@@ -30,9 +29,6 @@ struct SettingsView: View {
                     form(for: selection)
                 }
             }
-        } else if embedded {
-            groupList
-                .navigationDestination(for: SettingsGroup.self) { group in form(for: group) }
         } else {
             NavigationStack {
                 groupList

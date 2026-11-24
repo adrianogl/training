@@ -7,12 +7,10 @@ struct RootView: View {
     @SceneStorage(NavigationRestorationConstants.sectionKey) private var sectionRaw = AppSection.today.rawValue
     @SceneStorage(NavigationRestorationConstants.sidebarKey) private var sidebarRaw = AppSection.today.rawValue
     @SceneStorage(NavigationRestorationConstants.todayPathKey) private var todayPathData = Data()
-    @SceneStorage(NavigationRestorationConstants.morePathKey) private var morePathData = Data()
     @State private var appliedRestoration = false
     @State private var section = AppSection.today
     @State private var sidebarSelection: AppSection? = .today
     @State private var todayPath: [TodayRoute] = []
-    @State private var morePath = NavigationPath()
     @State private var trainerPath: [TrainerRoute] = []
     @State private var columnVisibility = NavigationSplitViewVisibility.all
     @State private var layout: RootLayout?
@@ -43,13 +41,6 @@ struct RootView: View {
         .onChange(of: section) { _, value in sectionRaw = value.rawValue }
         .onChange(of: sidebarSelection) { _, value in sidebarRaw = (value ?? .today).rawValue }
         .onChange(of: todayPath) { _, value in todayPathData = NavigationRestoration.encode(value) }
-        .onChange(of: morePath) { _, value in morePathData = NavigationRestoration.encode(value) }
-        .task(id: model.trainer.isLoaded) {
-            guard model.trainer.isLoaded, model.trainer.plan == nil, morePath.count > 1 else { return }
-            var path = morePath
-            path.removeLast(path.count - 1)
-            morePath = path
-        }
         .task(id: model.account.token) {
             await model.garminAccount.adoptAccountSession()
         }
@@ -112,7 +103,6 @@ struct RootView: View {
         case .trainer: NavigationStack(path: $trainerPath) { TrainerView() }
         case .workouts: WorkoutsHubView(trainerPath: $trainerPath)
         case .settings: SettingsView()
-        case .more: MoreView(path: $morePath)
         }
     }
 
@@ -127,7 +117,6 @@ struct RootView: View {
             if case .planned = route { return false }
             return true
         }
-        morePath = NavigationRestoration.decodeNavigationPath(morePathData)
         if let override = AppSection.debugOverride() {
             section = override
             sidebarSelection = override
@@ -141,7 +130,6 @@ struct RootView: View {
         swappingLayout = true
         todayPath = []
         trainerPath = []
-        morePath = NavigationPath()
         Task { @MainActor in
             layout = targetLayout
             swappingLayout = false
@@ -171,15 +159,8 @@ struct RootView: View {
     }
 
     private func open(_ target: AppSection) {
-        sidebarSelection = target == .more ? .today : target
-        if !usesSidebar && target.isInMore {
-            section = .more
-            var path = NavigationPath()
-            path.append(target)
-            morePath = path
-        } else {
-            section = target
-        }
+        sidebarSelection = target
+        section = target
     }
 
     private static func initialTodayPath(defaults: UserDefaults = .standard) -> [TodayRoute] {

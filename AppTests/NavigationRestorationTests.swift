@@ -36,7 +36,7 @@ import Testing
         }
     }
 
-    @Test func morePathRoundTrip() {
+    @Test func navigationPathRoundTrip() {
         var path = NavigationPath()
         path.append(AppSection.trainer)
         path.append(TrainerRoute.day("2026-11-15"))
@@ -46,7 +46,7 @@ import Testing
         #expect(NavigationRestoration.encode(decoded) == NavigationRestoration.encode(path))
     }
 
-    @Test func morePathWithSettingsRoundTrip() {
+    @Test func navigationPathWithSettingsRoundTrip() {
         var path = NavigationPath()
         path.append(AppSection.settings)
         path.append(SettingsGroup.notice)
