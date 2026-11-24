@@ -265,7 +265,7 @@ Garmin desconectado sai só quando a sincronização em segundo plano recebe cha
 
 - Dados de saúde e treinos da Garmin vão do Garmin Connect direto para o aparelho. Dados do Apple Saúde não saem do aparelho.
 - O servidor guarda só o que sincroniza entre aparelhos e os tokens das integrações, cifrados com `DATA_KEY`. Quem administra o servidor tem essa chave.
-- A senha da Garmin não é guardada, só a sessão, cifrada. Em Ajustes dá para desconectar a Garmin e o Strava, revogar o token do Claude e apagar a conta com tudo o que ela tinha no servidor.
+- A senha da Garmin não é guardada, só a sessão, cifrada. Em Ajustes dá para desconectar o Garmin, o MFIT e o Strava (o app pede confirmação antes), revogar o token do Claude e apagar a conta com tudo o que ela tinha no servidor.
 - Sem telemetria e sem analytics. O log de requisições guarda método, rota, status e o começo do id da conta por 7 dias, sem payload nem IP.
 - Nenhum dado pessoal, chave, `.FIT`, foto ou resposta de API faz parte deste repositório. A foto do mostrador fica fora do git.
 
