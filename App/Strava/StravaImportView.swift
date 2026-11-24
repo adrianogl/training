@@ -16,11 +16,11 @@ struct StravaImportView: View {
                 Text(T.intro).font(.footnote).foregroundStyle(BrandColors.dim)
                 switch state {
                 case .loading:
-                    HStack(spacing: 8) { ProgressView(); Text(T.loading).foregroundStyle(BrandColors.dim) }
+                    DSLoadingState(title: T.loading)
                 case .failed(let message):
-                    Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
+                    DSErrorState(title: T.failedTitle, text: message) { Task { await load() } }
                 case .ready where runs.isEmpty:
-                    Text(T.empty).foregroundStyle(BrandColors.dim)
+                    DSEmptyState(symbol: T.emptySymbol, title: T.emptyTitle, text: T.empty)
                 case .ready:
                     ForEach(runs) { run in row(run) }
                 }
@@ -37,7 +37,10 @@ struct StravaImportView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(BrandBackground())
         .navigationTitle(T.title)
+        .toolbarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
     }
@@ -65,12 +68,11 @@ struct StravaImportView: View {
                     Text(T.importing).font(.footnote).foregroundStyle(BrandColors.dim)
                 } else {
                     Button(T.importButton) { Task { await importRuns([run]) } }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.ds(.primary))
                     Button(T.ignoreButton) { Task { await ignore(run) } }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.ds(.secondary))
                 }
             }
-            .controlSize(.small)
             .disabled(!working.isEmpty && !working.contains(run.id))
         }
         .padding(.vertical, 2)

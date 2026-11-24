@@ -3,11 +3,10 @@ import SwiftUI
 struct SyncStatusPill: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(BrandRefreshCoordinator.self) private var refresh: BrandRefreshCoordinator?
     @State private var showsFinished = false
 
     var body: some View {
-        let content = refresh?.state.isActive == true ? nil : SyncStatusPillText.content(for: model.syncStatus, showsFinished: showsFinished)
+        let content = SyncStatusPillText.content(for: model.syncStatus, showsFinished: showsFinished)
         Group {
             if let content {
                 pill(content)

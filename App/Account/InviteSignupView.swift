@@ -56,7 +56,7 @@ struct InviteSignupView: View {
                     .foregroundStyle(BrandColors.dim)
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity, minHeight: C.fieldHeight, alignment: .leading)
-                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: C.cornerRadius))
+                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous))
             }
         }
         DSTextField(label: C.passwordLabel, text: $password, secure: true, content: .newPassword)

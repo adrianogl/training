@@ -5,6 +5,7 @@ struct GarminAccountSection: View {
     @State private var email = ""
     @State private var password = ""
     @State private var code = ""
+    @State private var confirmsDisconnect = false
 
     private typealias C = GarminAccountConstants
 
@@ -14,7 +15,13 @@ struct GarminAccountSection: View {
                 LabeledContent(C.sectionTitle) {
                     Text(C.connected).foregroundStyle(BrandColors.accent)
                 }
-                Button(C.signOut, role: .destructive) { model.signOut() }
+                Button(C.disconnect, role: .destructive) { confirmsDisconnect = true }
+                    .confirmationDialog(C.disconnectTitle, isPresented: $confirmsDisconnect, titleVisibility: .visible) {
+                        Button(C.disconnect, role: .destructive) { model.signOut() }
+                        Button(C.cancel, role: .cancel) {}
+                    } message: {
+                        Text(C.disconnectMessage)
+                    }
             } else if case .needsCode = model.phase {
                 TextField(C.codePlaceholder, text: $code)
                     .keyboardType(.numberPad)
@@ -40,7 +47,7 @@ struct GarminAccountSection: View {
                 .disabled(model.phase == .working || email.isEmpty || password.isEmpty)
             }
             if let message = model.message {
-                Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
+                DSNotice(tone: model.messageIsInfo ? .info : .error, text: message)
             }
         } header: {
             DSSectionTitle(C.sectionTitle)

@@ -8,16 +8,12 @@ struct RaceCandidatesCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text(RacesConstants.candidatesTitle)
-                    .font(.caption.weight(.semibold))
-                    .tracking(1)
-                    .textCase(.uppercase)
-                    .foregroundStyle(BrandColors.attention)
+            HStack(alignment: .firstTextBaseline) {
+                DSCardLabel(RacesConstants.candidatesTitle)
                 Spacer()
                 Text("\(candidates.count)")
-                    .font(.caption.weight(.semibold).monospacedDigit())
-                    .foregroundStyle(BrandColors.dim)
+                    .font(.caption.weight(.bold).monospacedDigit())
+                    .foregroundStyle(BrandColors.attention)
             }
             ForEach(Array(candidates.enumerated()), id: \.element.id) { index, candidate in
                 if index > 0 { Divider().overlay(BrandColors.line) }
@@ -30,9 +26,5 @@ struct RaceCandidatesCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()
-        .overlay {
-            RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
-                .strokeBorder(BrandColors.attention.opacity(0.4), lineWidth: 1)
-        }
     }
 }

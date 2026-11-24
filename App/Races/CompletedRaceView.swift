@@ -99,11 +99,7 @@ struct CompletedRaceView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
-                Text("prova \(summary.info.priority.rawValue) · \(RacesText.dateText(summary.info.day))")
-                    .font(.caption.weight(.medium))
-                    .tracking(1)
-                    .textCase(.uppercase)
-                    .foregroundStyle(BrandColors.dim)
+                DSCardLabel("\(String(format: RacesConstants.priorityFormat, summary.info.priority.rawValue)) · \(RacesText.dateText(summary.info.day))")
                 if summary.isPR {
                     DSChip(text: RacesConstants.prBadge, tone: .accent, style: .solid)
                 }

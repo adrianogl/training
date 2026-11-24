@@ -100,7 +100,7 @@ struct RecoveryCard: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(BrandColors.track, in: .dsInner)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(RecoveryText.name(next)), \(RecoveryText.dayHour(next.start)), \(next.detail), \(C.statusLabels[next.status] ?? "")")
     }

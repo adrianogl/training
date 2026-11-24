@@ -18,7 +18,7 @@ struct HeatmapCard: View {
                     Color.clear.frame(height: 12)
                     ForEach(Array(C.heatmapWeekdayLabels.enumerated()), id: \.offset) { _, label in
                         Text(label)
-                            .font(.system(size: 9))
+                            .font(.system(size: C.heatmapWeekdayFontSize))
                             .foregroundStyle(BrandColors.dim)
                             .frame(maxHeight: .infinity)
                     }
@@ -28,7 +28,7 @@ struct HeatmapCard: View {
                     ForEach(Array(columns.enumerated()), id: \.offset) { index, week in
                         VStack(spacing: C.heatmapCellSpacing) {
                             Text(monthLabel(index))
-                                .font(.system(size: 9))
+                                .font(.caption2)
                                 .foregroundStyle(BrandColors.dim)
                                 .fixedSize()
                                 .frame(height: 12, alignment: .leading)

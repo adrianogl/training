@@ -27,6 +27,9 @@ enum StravaImportText {
     static func day(_ run: StravaRunCandidate) -> String {
         Day(iso: run.localDayISO).map { "\(TrainerText.weekdayShort($0)) \(TrainerText.dayMonth($0))" } ?? run.localDayISO
     }
+    static let emptyTitle = "Nenhuma corrida para importar"
+    static let emptySymbol = "figure.run"
+    static let failedTitle = "Não buscou no Strava"
     static let empty = "Nenhuma corrida do Strava sem par no Garmin nos últimos 12 meses."
     static let loading = "Buscando no Strava…"
     static let retryLater = "O Strava limitou as consultas. Tente de novo em alguns minutos."

@@ -47,8 +47,7 @@ struct TrainerDayRowView: View {
                 CardLinkFooter(title: CardLinkConstants.details)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(BrandConstants.cardPadding)
         .background(isToday ? BrandColors.accentGlow : BrandColors.card, in: shape)
         .overlay {
             if row.isChanged {
@@ -132,15 +131,15 @@ struct TrainerWeekCellView: View {
     let cell: TrainerWeekCell
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous)
         VStack(alignment: .leading, spacing: 2) {
             Capsule()
                 .fill(cell.phase.map(TrainerConstants.color(for:)) ?? BrandColors.accentFill)
                 .frame(height: 4)
                 .padding(.bottom, 3)
-            Text(cell.title).font(.system(size: 10.5)).foregroundStyle(cell.isRace ? BrandColors.accent : BrandColors.dim)
+            Text(cell.title).font(.caption2).foregroundStyle(cell.isRace ? BrandColors.accent : BrandColors.dim)
             Text(cell.kilometers).font(BrandFonts.number(13)).foregroundStyle(cell.isRace ? BrandColors.accent : BrandColors.text)
-            Text(cell.detail).font(.system(size: 10.5)).foregroundStyle(cell.isRace ? BrandColors.accent : BrandColors.dim)
+            Text(cell.detail).font(.caption2).foregroundStyle(cell.isRace ? BrandColors.accent : BrandColors.dim)
         }
         .padding(6)
         .frame(width: TrainerConstants.stripCellWidth, alignment: .leading)
@@ -255,7 +254,7 @@ struct TrainerChangeRow: View {
                 .font(.system(size: 12, weight: .heavy))
                 .foregroundStyle(color)
                 .frame(width: TrainerConstants.changeSymbolSize, height: TrainerConstants.changeSymbolSize)
-                .background(color.opacity(0.15), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .background(color.opacity(0.15), in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
                 Text(change.title).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
                 if let before = change.before, let after = change.after {

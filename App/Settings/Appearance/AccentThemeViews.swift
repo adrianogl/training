@@ -26,7 +26,7 @@ struct AccentThemeCard: View {
         let shape = ConcentricRectangle.dsInner
         VStack(alignment: .leading, spacing: DSSpacing.s2) {
             (Text(BrandConstants.logoPrefix) + Text(BrandConstants.logoHighlight).foregroundStyle(BrandColors.accent) + Text(BrandConstants.logoSuffix))
-                .font(.system(size: 11, weight: .heavy).width(.expanded))
+                .font(BrandFonts.display(C.previewLogoSize))
                 .tracking(1.5)
                 .foregroundStyle(BrandColors.text)
             DSProgressBar(value: C.previewShare)
@@ -35,7 +35,7 @@ struct AccentThemeCard: View {
                 .font(.caption.weight(.bold))
                 .foregroundStyle(BrandColors.onAccent)
                 .frame(maxWidth: .infinity, minHeight: 26)
-                .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             VStack(alignment: .leading, spacing: 1) {
                 Text(theme.title).font(.subheadline.weight(.bold)).foregroundStyle(BrandColors.text)
                 Text(theme.subtitle).font(.caption2).foregroundStyle(BrandColors.dim)
@@ -48,7 +48,7 @@ struct AccentThemeCard: View {
         .overlay(alignment: .topTrailing) {
             if isSelected {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .black))
+                    .font(BrandFonts.symbol(C.checkSymbolSize))
                     .foregroundStyle(BrandColors.onAccent)
                     .frame(width: 20, height: 20)
                     .background(BrandColors.accentFill, in: Circle())

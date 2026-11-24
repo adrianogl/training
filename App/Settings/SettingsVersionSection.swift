@@ -15,13 +15,7 @@ struct SettingsVersionSection: View {
             if let version = summary.notesVersion, !summary.notes.isEmpty {
                 VStack(alignment: .leading, spacing: DSSpacing.s2) {
                     Text(String(format: T.notesFormat, version)).font(.footnote).foregroundStyle(BrandColors.dim)
-                    ForEach(summary.notes, id: \.self) { note in
-                        HStack(alignment: .firstTextBaseline, spacing: DSSpacing.s2) {
-                            Text(T.bullet).foregroundStyle(BrandColors.dim)
-                            Text(note).foregroundStyle(BrandColors.text).fixedSize(horizontal: false, vertical: true)
-                        }
-                        .font(.subheadline)
-                    }
+                    DSBulletList(items: summary.notes)
                 }
                 .padding(.vertical, DSSpacing.s1)
                 .listRowBackground(BrandColors.card)

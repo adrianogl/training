@@ -11,16 +11,13 @@ struct RaceTargetCard<Footer: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
-                Text(C.targetTitle)
-                    .font(.caption.weight(.semibold))
-                    .tracking(1)
-                    .textCase(.uppercase)
-                    .foregroundStyle(BrandColors.race)
+                DSCardLabel(String(format: C.targetLabelFormat, target.dateText))
                 Spacer()
-                Text("\(target.days)").font(BrandFonts.number(C.targetDaysFontSize)).foregroundStyle(BrandColors.race)
-                Text(C.daysLabel).font(.caption).foregroundStyle(BrandColors.dim)
+                Text(RacesText.countdownText(days: target.days))
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(BrandColors.race)
             }
-            Text("\(target.name) · \(target.dateText)")
+            Text(target.name)
                 .font(.headline)
                 .foregroundStyle(BrandColors.text)
                 .lineLimit(2)
@@ -65,6 +62,6 @@ struct RaceTargetCard<Footer: View>: View {
         }
         .padding(RunWeatherBandConstants.padding)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(tint.opacity(RunWeatherBandConstants.backgroundOpacity), in: RoundedRectangle(cornerRadius: RunWeatherBandConstants.cornerRadius, style: .continuous))
+        .background(tint.opacity(RunWeatherBandConstants.backgroundOpacity), in: .dsInner)
     }
 }

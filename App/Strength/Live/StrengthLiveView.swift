@@ -28,7 +28,7 @@ struct StrengthLiveView: View {
                 StrengthLiveList(items: upcoming, connected: model.watchConnected, onEdit: { editing = $0 })
             }
             if !later.isEmpty {
-                Text(T.later.uppercased()).font(.caption.weight(.bold)).tracking(1.4).foregroundStyle(BrandColors.attention).padding(.top, 4)
+                DSCardLabel(T.later).padding(.top, 4)
                 StrengthLiveList(items: later, connected: model.watchConnected, onEdit: { editing = $0 })
             }
             if !finished.isEmpty {
@@ -36,8 +36,7 @@ struct StrengthLiveView: View {
                     withAnimation(.snappy) { showsDone.toggle() }
                 } label: {
                     HStack {
-                        Text(T.doneSection(finished.count, total: screen.items.count + (screen.now == nil ? 0 : 1)))
-                            .font(.caption.weight(.bold)).tracking(1.4).textCase(.uppercase).foregroundStyle(BrandColors.strength)
+                        DSCardLabel(T.doneSection(finished.count, total: screen.items.count + (screen.now == nil ? 0 : 1)))
                         Spacer()
                         Image(systemName: showsDone ? "chevron.up" : "chevron.down").font(.caption.weight(.semibold)).foregroundStyle(BrandColors.dim)
                     }
@@ -446,14 +445,9 @@ struct StrengthLiveList: View {
             }
         } else if item.state == .skipped {
             Button(T.doNowAction) { StrengthLiveModel.shared.request(.doNow, exerciseId: item.exercise.id) }
-                .font(.footnote.weight(.semibold))
-                .padding(.horizontal, 12)
-                .frame(height: 32)
-                .foregroundStyle(BrandColors.onAccent)
-                .background(BrandColors.accentFill, in: Capsule())
-                .buttonStyle(.plain)
+                .buttonStyle(.ds(.primary))
+                .fixedSize()
                 .disabled(!connected || StrengthLiveModel.shared.pendingCommand != nil)
-                .opacity(connected ? 1 : C.pendingOpacity)
         } else if item.state == .leftOut {
             DSChip(text: T.leftOut, tone: .neutral)
         } else {

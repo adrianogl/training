@@ -11,31 +11,24 @@ struct GoalsListCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             if snapshots.isEmpty && weeklyGoal == 0 {
-                Text(C.empty).font(.subheadline).foregroundStyle(BrandColors.dim)
+                DSEmptyState(symbol: C.emptySymbol, title: C.emptyTitle, text: C.emptyText)
             }
-            ForEach(snapshots, id: \.id) { snapshot in
+            ForEach(Array(snapshots.enumerated()), id: \.element.id) { index, snapshot in
+                if index > 0 { Divider().overlay(BrandColors.line) }
                 Button { onOpen(.edit(snapshot.id)) } label: { row(snapshot) }
                     .buttonStyle(.cardLink)
-                Divider().overlay(BrandColors.line)
             }
             if weeklyGoal > 0 {
+                if !snapshots.isEmpty { Divider().overlay(BrandColors.line) }
                 Button { onOpen(.all) } label: {
                     DSRow(title: C.weeklyTitle, accessory: .chevron) {
                         Text(String(format: C.weeklyPerWeekFormat, weeklyGoal)).font(.caption).foregroundStyle(BrandColors.dim)
                     }
                 }
                 .buttonStyle(.cardLink)
-                Divider().overlay(BrandColors.line)
             }
-            HStack {
-                Button(C.newGoalPlus) { onOpen(.new) }
-                    .foregroundStyle(BrandColors.accent)
-                Spacer()
-                Button(C.allGoals) { onOpen(.all) }
-                    .foregroundStyle(BrandColors.dim)
-            }
-            .font(.subheadline.weight(.semibold))
-            .buttonStyle(.plain)
+            Button { onOpen(.all) } label: { CardLinkFooter(title: CardLinkConstants.goals) }
+                .buttonStyle(.cardLink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()

@@ -25,7 +25,7 @@ struct WeeklyDaysRow: View {
                 .font(BrandFonts.number(12))
                 .foregroundStyle(BrandColors.text)
             if !compact {
-                Text(day.label ?? " ").font(.system(size: 10.5)).foregroundStyle(BrandColors.dim).lineLimit(1)
+                Text(day.label ?? " ").font(.caption2).foregroundStyle(BrandColors.dim).lineLimit(1)
             }
             if !strength.isEmpty {
                 strengthChip(strength[day.day])
@@ -35,7 +35,7 @@ struct WeeklyDaysRow: View {
         .padding(.horizontal, 4)
         .padding(.top, 7)
         .padding(.bottom, 8)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(BrandColors.track, in: .dsInner)
         .opacity(day.state == .off ? C.offOpacity : 1)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibility(day))
@@ -43,13 +43,13 @@ struct WeeklyDaysRow: View {
 
     private func strengthChip(_ title: String?) -> some View {
         Text(title.map { compact ? C.strengthShort : StrengthText.shortTitle($0) } ?? " ")
-            .font(.system(size: 10, weight: .semibold))
+            .font(.caption2.weight(.semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .foregroundStyle(BrandColors.strength)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 3)
-            .background(title == nil ? Color.clear : BrandColors.strength.opacity(0.14), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .background(title == nil ? Color.clear : BrandColors.strength.opacity(0.14), in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
     }
 
     private func bars(_ day: WeeklyDay, scale: Double) -> some View {

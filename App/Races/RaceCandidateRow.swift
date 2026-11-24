@@ -22,24 +22,9 @@ struct RaceCandidateRow: View {
                 Text(detailText).font(BrandFonts.number(15)).foregroundStyle(BrandColors.dim)
             }
             HStack(spacing: 10) {
-                Button(action: onConfirm) {
-                    Text(RacesConstants.confirmCandidate)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(BrandColors.onAccent)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(BrandColors.race, in: Capsule())
-                }
-                Button(action: onDecline) {
-                    Text(RacesConstants.declineCandidate)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(BrandColors.text)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 10)
-                        .background(BrandColors.track, in: Capsule())
-                }
+                Button(RacesConstants.confirmCandidate, action: onConfirm).buttonStyle(.ds(.primary))
+                Button(RacesConstants.declineCandidate, action: onDecline).buttonStyle(.ds(.secondary))
             }
-            .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

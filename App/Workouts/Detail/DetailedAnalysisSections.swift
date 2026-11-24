@@ -51,7 +51,7 @@ struct DetailedFindingsCard: View {
             .font(.caption.weight(.heavy))
             .foregroundStyle(style.color)
             .frame(width: C.glyphSize, height: C.glyphSize)
-            .background(style.color.opacity(0.15), in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .background(style.color.opacity(0.15), in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             .accessibilityHidden(true)
     }
 }

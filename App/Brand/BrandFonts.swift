@@ -7,6 +7,10 @@ enum BrandFonts {
         .system(size: size, weight: .heavy).width(.expanded)
     }
 
+    static func symbol(_ size: CGFloat) -> Font {
+        .system(size: size, weight: .black)
+    }
+
     static func number(_ size: CGFloat) -> Font {
         .system(size: size, weight: .bold).width(.condensed).monospacedDigit()
     }

@@ -82,15 +82,9 @@ struct WorkoutAnalysisCard: View {
         NavigationLink {
             DetailedAnalysisView(activityId: activityId, goalEntries: goalEntries, extraFacts: extraFacts)
         } label: {
-            Text(DetailedScreenConstants.buttonTitle + " ›")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(BrandColors.accent)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 11)
-                .background(BrandColors.accentFill.opacity(0.12), in: .dsInner)
-                .overlay(ConcentricRectangle.dsInner.stroke(BrandColors.accentFill.opacity(0.35), lineWidth: 1))
+            CardLinkFooter(title: DetailedScreenConstants.buttonTitle)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.cardLink)
     }
 
     private var visibleEntries: [AnalysisEntry] {
@@ -160,7 +154,7 @@ struct WorkoutAnalysisCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 3)
-                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             }
             Text(entry.why)
                 .font(.caption)

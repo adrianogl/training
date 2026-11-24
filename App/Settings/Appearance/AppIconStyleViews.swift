@@ -43,7 +43,7 @@ struct AppIconStyleCard: View {
         .overlay(alignment: .topTrailing) {
             if isSelected {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .black))
+                    .font(BrandFonts.symbol(C.checkSymbolSize))
                     .foregroundStyle(BrandColors.onAccent)
                     .frame(width: 20, height: 20)
                     .background(BrandColors.accentFill, in: Circle())

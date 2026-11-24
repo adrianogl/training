@@ -35,6 +35,7 @@ struct ChangePasswordView: View {
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
         .navigationTitle(C.changePasswordTitle)
+        .toolbarTitleDisplayMode(.inline)
     }
 
     private func submit() {

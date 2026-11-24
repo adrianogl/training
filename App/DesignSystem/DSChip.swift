@@ -2,6 +2,7 @@ import SwiftUI
 
 enum DSTone {
     case neutral, accent, attention, danger, strength, race, fitness, claude, record
+    case custom(Color)
 
     var color: Color {
         switch self {
@@ -14,6 +15,7 @@ enum DSTone {
         case .fitness: BrandColors.fitness
         case .claude: ClaudeConstants.color
         case .record: BrandColors.record
+        case .custom(let color): color
         }
     }
 

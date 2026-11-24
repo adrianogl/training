@@ -26,8 +26,9 @@ struct AppBuildInfo: Equatable {
         )
     }
 
-    var versionLine: String {
-        [String(format: AppBuildInfoConstants.versionFormat, version, build), commit].compactMap { $0 }.joined(separator: AppBuildInfoConstants.separator)
+    func footerLine(timeZone: TimeZone = .current) -> String? {
+        let parts = [commit.map { String(format: AppBuildInfoConstants.commitFormat, $0) }, builtLine(timeZone: timeZone)].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: AppBuildInfoConstants.separator)
     }
 
     func builtLine(timeZone: TimeZone = .current) -> String? {

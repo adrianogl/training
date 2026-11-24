@@ -28,7 +28,7 @@ struct RacePlanCard: View {
                 }
                 .font(.caption)
                 .padding(10)
-                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(BrandColors.track, in: .dsInner)
             }
             .buttonStyle(.plain)
         }
@@ -84,7 +84,7 @@ struct RacePlanCard: View {
                         Text("\(row.index + 1)").foregroundStyle(BrandColors.text)
                         if row.hasWater {
                             Text(C.waterTag)
-                                .font(.system(size: 9.5, weight: .bold))
+                                .font(.caption2.weight(.bold))
                                 .foregroundStyle(C.waterColor)
                                 .padding(.horizontal, 5)
                                 .background(C.waterColor.opacity(0.14), in: RoundedRectangle(cornerRadius: 5, style: .continuous))

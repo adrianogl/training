@@ -57,7 +57,7 @@ struct OverallStateCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(indicator.name).font(.footnote).foregroundStyle(BrandColors.text)
                 if indicator.windowed {
-                    Text(C.windowedToday).font(.system(size: 10)).foregroundStyle(BrandColors.dim)
+                    Text(C.windowedToday).font(.caption2).foregroundStyle(BrandColors.dim)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

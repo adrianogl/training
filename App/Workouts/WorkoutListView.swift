@@ -223,12 +223,7 @@ struct WorkoutListView: View {
                     calendarSection(weeks: weeks, plannedItems: plannedItems, visibility: visibility, selected: selected, today: today)
                 } else {
                     if kindFilter == .strength, let program = strengthProgram {
-                        Text(StrengthText.programLabel(program.title, start: program.start.flatMap(Day.init(iso:)), end: program.end.flatMap(Day.init(iso:))) + WorkoutConstants.programSource)
-                            .font(BrandFonts.number(12))
-                            .foregroundStyle(BrandColors.dim)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .overlay(Capsule().strokeBorder(BrandColors.line))
+                        DSChip(text: StrengthText.programLabel(program.title, start: program.start.flatMap(Day.init(iso:)), end: program.end.flatMap(Day.init(iso:))) + WorkoutConstants.programSource)
                     }
                     if !plannedItems.isEmpty {
                         Button {

@@ -24,9 +24,9 @@ struct AccountMessage: View {
 
     var body: some View {
         if let error {
-            Text(error).font(.footnote).foregroundStyle(BrandColors.danger)
+            DSNotice(tone: .error, text: error)
         } else if let notice {
-            Text(notice).font(.footnote).foregroundStyle(BrandColors.accent)
+            DSNotice(tone: .success, text: notice)
         }
     }
 }

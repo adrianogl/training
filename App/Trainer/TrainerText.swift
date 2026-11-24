@@ -241,6 +241,7 @@ enum TrainerText {
     static let saveError = "Não deu para salvar o plano neste aparelho."
     static let goalFormat = "meta %@"
     static let strengthTitle = "Treinos de força"
+    static let strengthCardEmptyTitle = "Sem força na semana"
     static let strengthCardEmpty = "Cadastre a musculação para ver os dias de força no plano."
     static let strengthWeekTitle = "Sua semana de força"
     static let strengthSource = "da Garmin · 4 semanas"

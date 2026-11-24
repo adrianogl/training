@@ -129,10 +129,10 @@ struct TrainerView: View {
                 Text(String(format: TrainerStrengthText.mfitDaysFormat, mfitDays.joined(separator: ", "))).font(.caption).foregroundStyle(BrandColors.dim)
             }
             if sessions.isEmpty {
-                Text(TrainerText.strengthCardEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
+                DSEmptyState(symbol: "dumbbell", title: TrainerText.strengthCardEmptyTitle, text: TrainerText.strengthCardEmpty)
             }
-            NavigationLink(value: TrainerRoute.strength) { Text(TrainerStrengthText.openStrength) }
-                .buttonStyle(.ds(.primary))
+            NavigationLink(value: TrainerRoute.strength) { CardLinkFooter(title: CardLinkConstants.strength) }
+                .buttonStyle(.cardLink)
         }
         .brandCard()
     }
@@ -236,13 +236,7 @@ struct TrainerView: View {
             .syncSkeleton(model.isAdjusting, height: SkeletonConstants.trainerWeekHeight)
     }
 
-    @ViewBuilder
     private var endedActions: some View {
-        if model.cycleReview != nil {
-            NavigationLink(value: TrainerRoute.cycle) { Text(TrainerCycleText.openAnalysis) }
-                .buttonStyle(.ds(.primary))
-                .padding(.top, 4)
-        }
         Button(TrainerText.newPlanTitle) { showsNewPlan = true }
             .buttonStyle(.ds(.secondary))
     }
@@ -278,7 +272,7 @@ struct TrainerView: View {
             AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
         }
         if model.saveFailed {
-            Text(TrainerText.saveError).font(.footnote).foregroundStyle(BrandColors.danger)
+            DSNotice(tone: .error, text: TrainerText.saveError)
         }
     }
 

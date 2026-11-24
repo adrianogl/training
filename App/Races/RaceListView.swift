@@ -220,7 +220,13 @@ struct RaceListView: View {
                 link(.next(row.id)) { RaceRow(row: row) }
             }
         }
-        DSSectionTitle(RacesConstants.goalsTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
+        HStack(alignment: .firstTextBaseline) {
+            DSSectionTitle(RacesConstants.goalsTitle)
+            Button(GoalsConstants.newGoalPlus) { goalSheet = .new }
+                .buttonStyle(.ds(.text))
+        }
+        .padding(.top, DSSpacing.sectionTop)
+        .padding(.bottom, DSSpacing.sectionBottom)
         GoalsListCard(snapshots: model.goals) { goalSheet = $0 }
         if !model.completed.isEmpty {
             DSSectionTitle(RacesConstants.completedTitle).padding(.top, DSSpacing.sectionTop).padding(.bottom, DSSpacing.sectionBottom)
@@ -266,7 +272,7 @@ private struct RaceRow: View {
                 .font(BrandFonts.number(20))
                 .foregroundStyle(row.isUpcoming ? BrandColors.race : BrandColors.dim)
                 .frame(width: 34, height: 34)
-                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
                 Text(row.dateText).font(.caption).foregroundStyle(BrandColors.dim)
                 HStack(spacing: 6) {

@@ -31,7 +31,7 @@ struct SignupView: View {
             }
             HStack(spacing: 4) {
                 Text(C.haveAccount).foregroundStyle(BrandColors.dim)
-                Button(C.enter) { screen = .login }.foregroundStyle(BrandColors.accent)
+                Button(C.enter) { screen = .login }.buttonStyle(.ds(.text))
             }
             .font(.subheadline)
             .frame(maxWidth: .infinity)

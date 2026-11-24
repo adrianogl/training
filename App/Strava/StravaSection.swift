@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StravaSection: View {
     let model: StravaModel
+    @State private var confirmsDisconnect = false
 
     private typealias C = StravaConstants
 
@@ -23,14 +24,20 @@ struct StravaSection: View {
                     Text(C.example).font(.footnote).foregroundStyle(BrandColors.text)
                 }
                 NavigationLink(StravaImportText.title) { StravaImportView(model: model) }
-                Button(C.disconnect, role: .destructive) { Task { await model.disconnect() } }
+                Button(C.disconnect, role: .destructive) { confirmsDisconnect = true }
                     .disabled(model.phase == .working)
+                    .confirmationDialog(C.disconnectTitle, isPresented: $confirmsDisconnect, titleVisibility: .visible) {
+                        Button(C.disconnect, role: .destructive) { Task { await model.disconnect() } }
+                        Button(C.cancel, role: .cancel) {}
+                    } message: {
+                        Text(C.disconnectMessage)
+                    }
             } else {
                 Button(model.phase == .working ? C.connecting : C.connect) { Task { await model.connect() } }
                     .disabled(model.phase == .working)
             }
             if let message = model.message {
-                Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
+                DSNotice(tone: .error, text: message)
             }
         } header: {
             DSSectionTitle(C.formTitle)

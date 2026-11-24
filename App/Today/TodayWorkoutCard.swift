@@ -139,7 +139,7 @@ struct TodayWorkoutCard: View {
             }
         }
         .padding(10)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(BrandColors.track, in: .dsInner)
     }
 
     private var tomorrowHour: Int {

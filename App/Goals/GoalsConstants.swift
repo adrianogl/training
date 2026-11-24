@@ -4,7 +4,10 @@ enum GoalsConstants {
     static let sectionTitle = "Metas"
     static let archivedTitle = "Arquivadas"
     static let newGoal = "Nova meta"
-    static let empty = "Nenhuma meta além do volume semanal."
+    static let empty = "Nenhuma meta além do volume semanal"
+    static let emptyTitle = "Nenhuma meta"
+    static let emptyText = "Cadastre um tempo numa distância ou um longão sem pausas para acompanhar nas análises."
+    static let emptySymbol = "target"
     static let footer = "As metas sincronizam entre os seus aparelhos e entram nas análises dos treinos."
     static let kindTitles: [GoalKind: String] = [.time: "Tempo numa distância", .continuousLong: "Longão sem pausas"]
     static let kindHints: [GoalKind: String] = [
@@ -56,7 +59,6 @@ enum GoalsConstants {
     static let weeklyKmFormat = "%d km"
     static let weeklyPerWeekFormat = "%d km por semana"
     static let weeklyFooter = "A meta semanal aparece no volume semanal e na semana de treino da Hoje."
-    static let allGoals = "Todas as metas"
     static let close = "Fechar"
     static let newGoalPlus = "+ Nova meta"
 

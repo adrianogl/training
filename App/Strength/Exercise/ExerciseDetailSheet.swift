@@ -144,14 +144,7 @@ struct ExerciseLoadBlock: View {
 
 struct SuggestedLoadPill: View {
     var body: some View {
-        Text(ExerciseDetailText.suggestedPill)
-            .font(.caption2.weight(.bold))
-            .lineLimit(1)
-            .fixedSize()
-            .foregroundStyle(BrandColors.attention)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 1)
-            .overlay(Capsule().strokeBorder(BrandColors.attention.opacity(ExerciseDetailConstants.pillBorderOpacity), lineWidth: 1))
+        DSChip(text: ExerciseDetailText.suggestedPill, tone: .attention)
     }
 }
 

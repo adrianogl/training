@@ -63,13 +63,13 @@ struct InvitesView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12))
+        .background(BrandColors.track, in: .dsInner)
     }
 
     private func requests(_ items: [AdminInviteRequest]) -> some View {
         Section {
             if items.isEmpty {
-                Text(C.noRequests).foregroundStyle(BrandColors.dim)
+                DSEmptyState(symbol: C.noRequestsSymbol, title: C.noRequests, text: C.noRequestsText)
             }
             ForEach(items) { request in
                 VStack(alignment: .leading, spacing: 8) {
@@ -97,7 +97,7 @@ struct InvitesView: View {
     private func invites(_ items: [AdminInvite]) -> some View {
         Section {
             if items.isEmpty {
-                Text(C.noInvites).foregroundStyle(BrandColors.dim)
+                DSEmptyState(symbol: C.noInvitesSymbol, title: C.noInvites, text: C.noInvitesText)
             }
             ForEach(items) { invite in
                 Menu {

@@ -6,7 +6,6 @@ enum SettingsVersionText {
     static let latest = "Última"
     static let notesFormat = "Novidades da %@"
     static let updateFormat = "%@ · instale pelo Mac"
-    static let bullet = "•"
 
     static func installedValue(version: String, build: String) -> String {
         build.isEmpty ? version : "\(version) (\(build))"

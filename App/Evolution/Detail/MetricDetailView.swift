@@ -15,9 +15,7 @@ struct MetricDetailView: View {
                 if model.series == nil {
                     BrandLoader(size: .regular).frame(maxWidth: .infinity).padding(.top, 40)
                 } else if !model.hasData {
-                    Text(EvolutionConstants.detailNoData)
-                        .font(.subheadline)
-                        .foregroundStyle(BrandColors.dim)
+                    DSEmptyState(symbol: EvolutionConstants.detailNoDataSymbol, title: EvolutionConstants.detailNoDataTitle, text: EvolutionConstants.detailNoData)
                         .brandCard()
                 } else {
                     content
@@ -119,14 +117,7 @@ struct MetricDetailView: View {
             if let markers = model.chart?.markers, !markers.isEmpty {
                 DSFlowLayout(spacing: 6) {
                     ForEach(markers) { marker in
-                        Text(String(format: EvolutionConstants.raceMarkerFormat, marker.name, marker.date.formatted(.dateTime.month(.abbreviated).year(.twoDigits).locale(WorkoutConstants.locale))))
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(BrandColors.race)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(BrandColors.race.opacity(0.12), in: Capsule())
+                        DSChip(text: String(format: EvolutionConstants.raceMarkerFormat, marker.name, marker.date.formatted(.dateTime.month(.abbreviated).year(.twoDigits).locale(WorkoutConstants.locale))), tone: .race)
                     }
                 }
             }
@@ -143,7 +134,7 @@ struct MetricDetailView: View {
                     .foregroundStyle(BrandColors.fitness.opacity(0.8))
                     .annotation(position: .top) {
                         Text(EvolutionText.value(month.value, EvolutionConstants.metricFormats[model.kind]))
-                            .font(.system(size: 8))
+                            .font(.caption2)
                             .foregroundStyle(BrandColors.dim)
                     }
             }

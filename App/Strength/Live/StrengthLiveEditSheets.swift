@@ -33,13 +33,10 @@ struct StrengthLiveWeightSheet: View {
             .pickerStyle(.segmented)
             if bodyweight { Text(T.bodyweightNote).font(.caption).foregroundStyle(BrandColors.dim) }
             Button { onSend(bodyweight ? nil : weight, bodyweight, nextOnly) } label: {
-                Text(T.sendToWatch).font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 46)
+                Text(T.sendToWatch)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(BrandColors.onAccent)
-            .background(BrandColors.accentFill, in: .rect(cornerRadius: DSRadius.control))
+            .buttonStyle(.ds(.primary))
             .disabled(!connected)
-            .opacity(connected ? 1 : C.pendingOpacity)
             if !connected { Text(T.disconnected).font(.caption).foregroundStyle(BrandColors.dim) }
         }
         .padding(.horizontal, DSSpacing.s5)
@@ -80,11 +77,9 @@ struct StrengthLiveCorrectSheet: View {
                 }
             }
             Button { onSave(index, reps, exercise.bodyweight ? nil : weight) } label: {
-                Text(T.saveCorrection).font(.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 46)
+                Text(T.saveCorrection)
             }
-            .buttonStyle(.plain)
-            .foregroundStyle(BrandColors.onAccent)
-            .background(BrandColors.accentFill, in: .rect(cornerRadius: DSRadius.control))
+            .buttonStyle(.ds(.primary))
             Text(T.correctionNote).font(.caption).foregroundStyle(BrandColors.dim)
         }
         .padding(.horizontal, DSSpacing.s5)

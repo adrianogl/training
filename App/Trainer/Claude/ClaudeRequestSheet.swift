@@ -45,7 +45,7 @@ struct ClaudeRequestSheet: View {
                     TextField(ClaudeText.extraPlaceholder, text: $extra, axis: .vertical)
                         .lineLimit(2...4)
                         .padding(10)
-                        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous))
                         .brandCard()
                     Button(ClaudeText.copy) {
                         UIPasteboard.general.string = ClaudeContextBuilder.text(app.trainer.claudeContextInput(period, race: race), extra: extra)

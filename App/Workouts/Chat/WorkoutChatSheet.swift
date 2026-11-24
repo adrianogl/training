@@ -78,7 +78,7 @@ struct WorkoutChatSheet: View {
                     .lineLimit(1...4)
                     .focused($focused)
                     .padding(.horizontal, 12).padding(.vertical, 9)
-                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous))
                     .onSubmit { send(question) }
                 Button { send(question) } label: {
                     Image(systemName: "arrow.up").font(.body.weight(.bold)).foregroundStyle(BrandColors.onAccent)

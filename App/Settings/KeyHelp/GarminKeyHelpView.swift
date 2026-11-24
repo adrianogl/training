@@ -29,7 +29,7 @@ struct GarminKeyHelpContent: View {
                     .font(.title3)
                     .foregroundStyle(BrandColors.onAccent)
                     .frame(width: 40, height: 40)
-                    .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
                 Text(C.intro).font(.subheadline).foregroundStyle(BrandColors.text)
             }
             VStack(alignment: .leading, spacing: 16) {
@@ -38,12 +38,8 @@ struct GarminKeyHelpContent: View {
             Text(C.caption).font(.caption2).foregroundStyle(BrandColors.dim)
             Link(destination: AppConstants.createKeyURL) {
                 Label(C.openButton, systemImage: "arrow.up.forward.app")
-                    .font(.headline)
-                    .foregroundStyle(BrandColors.onAccent)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(BrandColors.accent, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
+            .buttonStyle(.ds(.primary))
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(C.facts, id: \.self) { fact in
                     Label {

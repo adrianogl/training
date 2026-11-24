@@ -39,12 +39,7 @@ struct StrengthWorkoutTags: View {
         HStack(spacing: 4) {
             ForEach(Array(series.workouts.enumerated()), id: \.offset) { index, title in
                 let color = StrengthConstants.workoutColors[index % StrengthConstants.workoutColors.count]
-                Text(title)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(color)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 1)
-                    .background(color.opacity(0.14), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+                DSChip(text: title, tone: .custom(color))
             }
         }
     }
@@ -60,7 +55,7 @@ struct StrengthLoadsCard: View {
                 DSCardLabel(StrengthText.loadsTitle).padding(.bottom, 4)
             }
             if model.loadSeries.isEmpty {
-                Text(StrengthText.loadsEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
+                DSEmptyState(symbol: StrengthText.loadsEmptySymbol, title: StrengthText.loadsEmptyTitle, text: StrengthText.loadsEmpty)
             }
             ForEach(Array(model.loadSeries.prefix(StrengthConstants.loadsCardLimit).enumerated()), id: \.element.id) { index, series in
                 NavigationLink {
@@ -99,7 +94,7 @@ struct StrengthLoadsView: View {
                     }
                     .padding(.bottom, 4)
                     if model.loadSeries.isEmpty {
-                        Text(StrengthText.loadsEmpty).font(.footnote).foregroundStyle(BrandColors.dim)
+                        DSEmptyState(symbol: StrengthText.loadsEmptySymbol, title: StrengthText.loadsEmptyTitle, text: StrengthText.loadsEmpty)
                     }
                     ForEach(Array(model.loadSeries.enumerated()), id: \.element.id) { index, series in
                         NavigationLink {
