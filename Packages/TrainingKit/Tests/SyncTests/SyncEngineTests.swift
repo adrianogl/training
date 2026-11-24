@@ -71,6 +71,18 @@ private func spacedActivities(count: Int, perDay: Int, typeKey: String = "cyclin
         #expect(state.lastActivityStart != nil)
     }
 
+    @Test func excludedActivitiesAreNotImported() async throws {
+        let activities = spacedActivities(count: 3, perDay: 3)
+        let fake = FakeDataSource(dataDays: today.adding(days: -2)...today, activities: activities)
+        let container = try TrainingSchema.container(inMemory: true)
+        let engine = SyncEngine(source: fake, container: container, today: { today }, firstDay: today.adding(days: -2), excludedActivityIds: [1_001])
+
+        _ = try await engine.run()
+
+        let ids = Set(try fetch(ActivityRecord.self, in: container).map(\.activityId))
+        #expect(ids == [1_000, 1_002])
+    }
+
     @Test func runningTwiceCreatesNoDuplicates() async throws {
         let fake = FakeDataSource(dataDays: today.adding(days: -10)...today, activities: spacedActivities(count: 60, perDay: 6))
         let (engine, container) = try makeEngine(fake, firstDay: today.adding(days: -10))

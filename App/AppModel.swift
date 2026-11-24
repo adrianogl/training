@@ -133,6 +133,7 @@ import WorkoutAnalysis
                 StrengthSyncStore(store: StrengthProgramStore(url: scope.strengthProgramURL), defaults: remoteDefaults),
                 ExerciseFeedbackSyncStore(store: exerciseFeedback, defaults: remoteDefaults),
                 ExerciseNotesSyncStore(store: exerciseNotes, defaults: remoteDefaults),
+                ActivityExclusionSyncStore(store: ActivityExclusionStore(url: scope.activityExclusionsURL), defaults: remoteDefaults),
                 StrengthPlanSyncStore(store: strengthPlanStore, defaults: remoteDefaults),
                 TrainerSendSyncStore(defaults: remoteDefaults),
                 ClaudeContextSyncStore(defaults: remoteDefaults),

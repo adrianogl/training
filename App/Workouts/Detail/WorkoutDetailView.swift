@@ -13,6 +13,7 @@ struct WorkoutDetailView: View {
     @State private var showsChat = false
     @State private var stravaSending = false
     @State private var stravaFeedback: String?
+    @State private var confirmsDelete = false
     @Environment(AppModel.self) private var app
 
     var body: some View {
@@ -55,6 +56,7 @@ struct WorkoutDetailView: View {
         } message: {
             Text(stravaFeedback ?? "")
         }
+        .activityDeletion(activityId, isPresented: $confirmsDelete)
         .sheet(isPresented: $showsChat) {
             if let context = model?.chatContext {
                 WorkoutChatSheet(activityId: activityId, context: context, autoQuestion: Self.debugChatQuestion())
@@ -182,6 +184,8 @@ struct WorkoutDetailView: View {
                 }
                 .disabled(stravaSending)
             }
+            Divider()
+            ActivityDeleteButton(isPresented: $confirmsDelete)
         } label: {
             Image(systemName: WorkoutDetailConstants.actionsSymbol)
         }

@@ -13,6 +13,7 @@ public actor SyncEngine: ModelActor {
     let fitLimit: Int?
     let mode: SyncMode
     let deferredFITOlderThanDays: Int?
+    let excludedActivityIds: Set<Int64>
     private var deferredFITIds: Set<Int64> = []
     public private(set) var heartRateZones: HRZonesDTO?
     private var inFlight: InFlightOperation?
@@ -24,7 +25,8 @@ public actor SyncEngine: ModelActor {
         firstDay: Day = Day(iso: "2024-01-01")!,
         fitLimit: Int? = nil,
         mode: SyncMode = .foreground,
-        deferredFITOlderThanDays: Int? = nil
+        deferredFITOlderThanDays: Int? = nil,
+        excludedActivityIds: Set<Int64> = []
     ) {
         self.modelContainer = container
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: ModelContext(container))
@@ -34,6 +36,7 @@ public actor SyncEngine: ModelActor {
         self.fitLimit = mode == .background ? SyncConstants.backgroundFitLimit : fitLimit
         self.mode = mode
         self.deferredFITOlderThanDays = deferredFITOlderThanDays
+        self.excludedActivityIds = excludedActivityIds
     }
 
     public func run(progress: @escaping @Sendable (Double) -> Void = { _ in }) async throws -> SyncReport {
