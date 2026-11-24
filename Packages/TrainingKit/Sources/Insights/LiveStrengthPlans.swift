@@ -66,13 +66,14 @@ public enum LiveStrengthPlans {
         let seconds = exercise.seconds.map { Int($0.rounded()) } ?? fromNote?.seconds
         let timed = seconds != nil && reps == nil
         let last = history[loadKey] ?? []
+        let catalog = exercise.exerciseKey == nil ? StrengthCatalogMatch.exercise(named: exercise.name) : nil
         let planned = exercise.weight ?? last.compactMap(\.weight).filter { $0 > 0 }.last
         let weight = [planned, suggested[loadKey]].compactMap { $0 }.max()
         return LiveStrengthExercise(
             id: id,
             name: exercise.name,
-            category: exercise.category,
-            exerciseKey: exercise.exerciseKey,
+            category: catalog?.category ?? exercise.category,
+            exerciseKey: exercise.exerciseKey ?? catalog?.id,
             loadKey: loadKey,
             kind: timed ? .timed : .reps,
             reps: timed ? nil : reps,
