@@ -1,11 +1,19 @@
 {
-  "versao": "1.47.0",
-  "build": 80,
-  "versao_app": "1.47.0",
+  "versao": "1.48.0",
+  "build": 81,
+  "versao_app": "1.48.0",
   "notas": [
-    "Ajusta carga pelo iphone, mostra o bi-set em rodada e pula o descanso no zero"
+    "Tira a opção ida e volta e refaz o plano sem as duas metades",
+    "Envia cada bloco de tiros como uma série inteira ao garmin"
   ],
   "historico": [
+    {
+      "versao": "1.48.0",
+      "notas": [
+        "Tira a opção ida e volta e refaz o plano sem as duas metades",
+        "Envia cada bloco de tiros como uma série inteira ao garmin"
+      ]
+    },
     {
       "versao": "1.47.0",
       "notas": [
@@ -61,12 +69,6 @@
       "versao": "1.42.0",
       "notas": [
         "Lista as corridas do Strava sem par no Garmin"
-      ]
-    },
-    {
-      "versao": "1.41.0",
-      "notas": [
-        "Nome do treino com tipo e distância total"
       ]
     }
   ]
