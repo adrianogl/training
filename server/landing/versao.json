@@ -1,11 +1,19 @@
 {
-  "versao": "1.55.0",
-  "build": 89,
-  "versao_app": "1.55.0",
+  "versao": "1.55.1",
+  "build": 90,
+  "versao_app": "1.55.1",
   "notas": [
-    "Adiciona área de avisos e cinco notificações novas"
+    "Troca o contador do sino por um ponto verde",
+    "Tira o espaço vazio acima da logo"
   ],
   "historico": [
+    {
+      "versao": "1.55.1",
+      "notas": [
+        "Troca o contador do sino por um ponto verde",
+        "Tira o espaço vazio acima da logo"
+      ]
+    },
     {
       "versao": "1.55.0",
       "notas": [
@@ -59,12 +67,6 @@
       "notas": [
         "Tira a opção ida e volta e refaz o plano sem as duas metades",
         "Envia cada bloco de tiros como uma série inteira ao Garmin"
-      ]
-    },
-    {
-      "versao": "1.47.0",
-      "notas": [
-        "Ajusta carga pelo iPhone, mostra o bi-set em rodada e pula o descanso no zero"
       ]
     }
   ]
