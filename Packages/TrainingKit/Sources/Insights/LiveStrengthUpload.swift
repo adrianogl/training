@@ -5,11 +5,13 @@ public enum LiveStrengthUpload {
     private typealias C = LiveStrengthUploadConstants
 
     public static func sets(_ session: LiveStrengthSession) -> [ExerciseSetUpload] {
-        let done = session.plan.blocks.flatMap(\.exercises).flatMap { exercise in
-            (session.done[exercise.id] ?? []).compactMap { result -> (LiveStrengthExercise, LiveStrengthSetResult, Date)? in
+        let blockOf = Dictionary(session.plan.blocks.flatMap { block in block.exercises.map { ($0.id, block) } }, uniquingKeysWith: { first, _ in first })
+        let collected = session.plan.blocks.flatMap(\.exercises).flatMap { exercise in
+            withInheritedReps(session.done[exercise.id] ?? [], kind: exercise.kind).compactMap { result -> (LiveStrengthExercise, LiveStrengthSetResult, Date)? in
                 result.start.map { (exercise, result, $0) }
             }
         }.sorted { $0.2 < $1.2 }
+        let done = splitSupersetRounds(collected, blockOf: blockOf)
         var uploads: [ExerciseSetUpload] = []
         var previousEnd: Date?
         for (exercise, result, start) in done {
@@ -43,6 +45,39 @@ public enum LiveStrengthUpload {
                 return gap <= C.startTolerance ? (activity, gap) : nil
             }
             .min { $0.1 < $1.1 }?.0
+    }
+
+    static func withInheritedReps(_ results: [LiveStrengthSetResult], kind: LiveStrengthSetKind) -> [LiveStrengthSetResult] {
+        guard kind == .reps else { return results }
+        var last: Int?
+        return results.map { result in
+            var filled = result
+            if let reps = result.reps { last = reps } else { filled.reps = last }
+            return filled
+        }
+    }
+
+    static func splitSupersetRounds(
+        _ sets: [(LiveStrengthExercise, LiveStrengthSetResult, Date)], blockOf: [String: LiveStrengthBlock]
+    ) -> [(LiveStrengthExercise, LiveStrengthSetResult, Date)] {
+        var result = sets
+        for index in result.indices.dropFirst() {
+            let (exercise, set, _) = result[index]
+            let (previous, previousSet, previousStart) = result[index - 1]
+            guard let block = blockOf[exercise.id], block.isSuperset, blockOf[previous.id]?.id == block.id, previous.id != exercise.id,
+                  let duration = set.durationSeconds, duration < C.minimumSupersetSetSeconds,
+                  let previousDuration = previousSet.durationSeconds else { continue }
+            let half = (duration + previousDuration) / 2
+            var first = previousSet
+            first.durationSeconds = half
+            var second = set
+            second.durationSeconds = half
+            let secondStart = previousStart.addingTimeInterval(half)
+            second.start = secondStart
+            result[index - 1] = (previous, first, previousStart)
+            result[index] = (exercise, second, secondStart)
+        }
+        return result
     }
 
     static func exerciseName(_ key: String?) -> String? {
