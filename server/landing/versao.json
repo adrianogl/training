@@ -1,12 +1,17 @@
 {
-  "versao": "1.48.0",
-  "build": 81,
-  "versao_app": "1.48.0",
+  "versao": "1.49.0",
+  "build": 82,
+  "versao_app": "1.49.0",
   "notas": [
-    "Tira a opção ida e volta e refaz o plano sem as duas metades",
-    "Envia cada bloco de tiros como uma série inteira ao garmin"
+    "Permite excluir um treino feito do app e, se for do app de força, do garmin"
   ],
   "historico": [
+    {
+      "versao": "1.49.0",
+      "notas": [
+        "Permite excluir um treino feito do app e, se for do app de força, do garmin"
+      ]
+    },
     {
       "versao": "1.48.0",
       "notas": [
@@ -63,12 +68,6 @@
       "versao": "1.42.1",
       "notas": [
         "Atualiza o nome dos treinos do plano para o padrão novo"
-      ]
-    },
-    {
-      "versao": "1.42.0",
-      "notas": [
-        "Lista as corridas do Strava sem par no Garmin"
       ]
     }
   ]
