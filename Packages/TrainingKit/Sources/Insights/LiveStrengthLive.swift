@@ -5,7 +5,7 @@ public enum LiveStrengthLive {
 
     public static func card(session: LiveStrengthSession, status: LiveStrengthWatchStatus?) -> LiveStrengthCard {
         let next = LiveStrengthQueue.next(session)
-        let exercise = next.flatMap { session.plan.exercise($0.exerciseId) }
+        let exercise = next.flatMap { session.plan.exercise($0.exerciseId) }.map { LiveStrengthQueue.effective($0, in: session) }
         let block = next.flatMap { session.plan.block(containing: $0.exerciseId) }
         let lastDone = lastDoneSet(session)
         return LiveStrengthCard(
@@ -31,16 +31,20 @@ public enum LiveStrengthLive {
         let next = LiveStrengthQueue.next(session)
         let labels = markers(session.plan)
         let now = next.flatMap { next -> LiveStrengthNow? in
-            guard let exercise = session.plan.exercise(next.exerciseId), let block = session.plan.block(containing: next.exerciseId),
-                  let label = labels[exercise.id] else { return nil }
+            guard let planned = session.plan.exercise(next.exerciseId), let block = session.plan.block(containing: next.exerciseId),
+                  let label = labels[planned.id] else { return nil }
+            let exercise = LiveStrengthQueue.effective(planned, in: session)
             return LiveStrengthNow(
                 number: label.number, marker: label.marker, exercise: exercise, rounds: block.rounds, restSeconds: block.restSeconds,
-                rows: rows(exercise, rounds: block.rounds, next: next, session: session)
+                rows: rows(exercise, rounds: block.rounds, next: next, session: session),
+                round: block.isSuperset ? round(block, letter: label.superset ?? "", labels: labels, session: session) : nil
             )
         }
+        let nowBlock = next.flatMap { session.plan.block(containing: $0.exerciseId) }?.id
         let items = session.order.compactMap { id in session.plan.blocks.first { $0.id == id } }.flatMap { block in
-            block.exercises.compactMap { exercise -> LiveStrengthItem? in
-                guard exercise.id != now?.exercise.id else { return nil }
+            block.exercises.compactMap { planned -> LiveStrengthItem? in
+                guard block.id != nowBlock else { return nil }
+                let exercise = LiveStrengthQueue.effective(planned, in: session)
                 let done = session.done[exercise.id]?.count ?? 0
                 let state: LiveStrengthItemState = done >= block.rounds ? .done
                     : session.leftOut.contains(block.id) ? .leftOut
@@ -53,6 +57,35 @@ public enum LiveStrengthLive {
             }
         }
         return LiveStrengthScreen(now: now, items: items)
+    }
+
+    static func round(
+        _ block: LiveStrengthBlock, letter: String, labels: [String: (number: Int, marker: String, superset: String?)], session: LiveStrengthSession
+    ) -> LiveStrengthRound {
+        let exercises = block.exercises.map { LiveStrengthQueue.effective($0, in: session) }
+        let counts = exercises.map { session.done[$0.id]?.count ?? 0 }
+        let current = counts.min() ?? 0
+        let reference = exercises.first { !$0.last.isEmpty }
+        let rows = (0..<block.rounds).map { index -> LiveStrengthRoundRow in
+            let cells = exercises.map { exercise -> String in
+                let done = session.done[exercise.id] ?? []
+                if index < done.count { return setText(done[index], bodyweight: exercise.bodyweight) }
+                let planned = LiveStrengthNextSet(
+                    blockId: block.id, exerciseId: exercise.id, setIndex: index, round: index + 1,
+                    reps: exercise.reps, seconds: exercise.seconds, weight: LiveStrengthQueue.plannedWeight(exercise, in: session)
+                )
+                return target(planned, exercise: exercise)
+            }
+            let last = reference.flatMap { exercise in
+                (exercise.last.indices.contains(index) ? exercise.last[index] : exercise.last.last).map { setText($0, bodyweight: exercise.bodyweight) }
+            }
+            let state: LiveStrengthRowState = counts.allSatisfy { $0 > index } ? .done : index == current ? .next : .pending
+            return LiveStrengthRoundRow(number: index + 1, state: state, cells: cells, last: last)
+        }
+        return LiveStrengthRound(
+            letter: letter, number: min(current + 1, block.rounds), exercises: exercises,
+            markers: exercises.map { labels[$0.id]?.marker ?? "" }, rows: rows
+        )
     }
 
     static func markers(_ plan: LiveStrengthPlan) -> [String: (number: Int, marker: String, superset: String?)] {
@@ -111,8 +144,9 @@ public enum LiveStrengthLive {
         return reps + C.times + kilograms(weight)
     }
 
-    static func setText(_ result: LiveStrengthSetResult, bodyweight: Bool) -> String {
+    public static func setText(_ result: LiveStrengthSetResult, bodyweight: Bool) -> String {
         if let seconds = result.seconds, result.reps == nil { return String(seconds) + C.secondsSuffix }
+        if result.reps == nil, let weight = result.weight, weight > 0 { return kilograms(weight) + C.kilogramSuffix }
         let reps = result.reps.map(String.init) ?? C.missingReps
         guard let weight = result.weight, weight > 0 else { return bodyweight ? reps + C.bodyweightSeparator + C.bodyweight : reps }
         return reps + C.times + kilograms(weight)

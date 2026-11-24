@@ -74,11 +74,10 @@ module WorkoutTests {
         services.clock = 90000;
         workout.tick();
         Test.assertEqual(services.vibes[1], Vibe.GO);
+        Test.assertEqual(workout.phase, Phase.SET);
         services.clock = 112000;
         workout.tick();
         Test.assertEqual(services.vibes.size(), 2);
-        Test.assertEqual(workout.phase, Phase.REST);
-        Test.assertEqual(workout.restRemainingMs(), -22000);
         return true;
     }
 
@@ -300,7 +299,7 @@ module WorkoutTests {
         Test.assert(status[StatusKeys.REST_ENDS_AT] > services.epoch());
         services.clock += 600000;
         workout.tick();
-        Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.REST_OVER);
+        Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.SET);
         workout.pause();
         Test.assertEqual(workout.status()[StatusKeys.PHASE], StatusKeys.PAUSED);
         return true;
@@ -317,6 +316,38 @@ module WorkoutTests {
         Test.assertEqual(workout.current[PlanKeys.ID], "b1e1");
         workout.pause();
         Test.assert(!workout.command(EventKeys.SKIP, "b1e1"));
+        return true;
+    }
+
+    (:test)
+    function restEndsStraightIntoTheNextSet(logger as Logger) as Boolean {
+        var services = new FakeServices();
+        var workout = started(services);
+        workout.onLap();
+        Test.assertEqual(workout.phase, Phase.REST);
+        services.clock += 600000;
+        workout.tick();
+        Test.assertEqual(workout.phase, Phase.SET);
+        Test.assert(services.vibes.indexOf(Vibe.GO) >= 0);
+        return true;
+    }
+
+    (:test)
+    function phoneWeightAppliesToTheRemainingSetsOrJustTheNext(logger as Logger) as Boolean {
+        var workout = new Workout(tiny(), new FakeServices());
+        workout.start();
+        var exercise = workout.current;
+        Test.assert(workout.command(EventKeys.SET_WEIGHT, { EventKeys.EXERCISE_ID => "b1e1", EventKeys.WEIGHT => 32.5, EventKeys.BODYWEIGHT => false, EventKeys.NEXT_ONLY => true }));
+        Test.assertEqual(workout.plannedWeight(exercise), 32.5);
+        workout.onLap();
+        Test.assertEqual(workout.setsOf("b1e1")[0][PlanKeys.WEIGHT], 32.5);
+        Test.assertEqual(workout.plannedWeight(exercise), 32.5);
+        Test.assert(workout.command(EventKeys.SET_WEIGHT, { EventKeys.EXERCISE_ID => "b1e1", EventKeys.WEIGHT => 40, EventKeys.BODYWEIGHT => true, EventKeys.NEXT_ONLY => false }));
+        Test.assert(workout.plannedWeight(exercise) == null);
+        Test.assert(!workout.command(EventKeys.SET_WEIGHT, { EventKeys.EXERCISE_ID => "nada" }));
+        var last = workout.log.events[workout.log.events.size() - 1][EventKeys.ACTION][EventKeys.SET_WEIGHT];
+        Test.assertEqual(last[EventKeys.BODYWEIGHT], true);
+        Test.assert(last[EventKeys.WEIGHT] == null);
         return true;
     }
 }

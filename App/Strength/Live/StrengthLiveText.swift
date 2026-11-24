@@ -26,16 +26,64 @@ enum StrengthLiveText {
     static let sending = "Enviando ao relógio…"
     static let commandTimeout = "O relógio não respondeu. Confira se ele está por perto."
     static let upcoming = "A seguir"
+    static let roundsSection = "Rodadas"
+    static let bodyweightShort = "PC"
+    static let bodyweightSuffix = " · PC"
+
+    static func doingMain(_ target: String?) -> String {
+        guard let target else { return none }
+        if target.hasSuffix(bodyweightSuffix) { return String(target.dropLast(bodyweightSuffix.count)) + " reps" }
+        return target.contains("×") ? target + " kg" : target
+    }
+
+    static func doingDetail(_ target: String?, last: String?) -> String {
+        var parts: [String] = []
+        if target?.hasSuffix(bodyweightSuffix) == true { parts.append("peso corporal") }
+        if let last { parts.append("última " + last) }
+        return parts.isEmpty ? "" : " · " + parts.joined(separator: " · ")
+    }
+    static let roundColumn = "Rod."
+    static let lastShortColumn = "Últ."
+    static let bodyweightToggle = "Peso corporal"
+    static let remainingScope = "Séries que faltam"
+    static let nextScope = "Só a próxima"
+    static let sendToWatch = "Mandar ao relógio"
+    static let kilogramUnit = "kg"
+    static let noLoad = "sem carga"
+    static let repsUnit = "repetições"
+    static let saveCorrection = "Salvar correção"
+    static let correctionNote = "Atualiza o resumo, as séries no Garmin Connect e a carga do próximo treino."
+    static let bodyweightNote = "Vale também para os próximos treinos com este exercício."
+
+    static func roundTitle(_ letter: String, number: Int, rounds: Int) -> String {
+        "Bi-set \(letter) · rodada \(number) de \(rounds)"
+    }
+
+    static func roundSubtitle(_ markers: [String], rest: Int) -> String {
+        markers.joined(separator: " + ") + ", sem descanso entre eles" + (rest > 0 ? " · desc. " + clock(rest) + " no fim" : "")
+    }
+
+    static func roundExerciseLine(_ exercise: LiveStrengthExercise) -> String {
+        var parts = [target(exercise)]
+        if let weight = exercise.weight, weight > 0 { parts.append(kilograms(weight) + " kg") } else if exercise.bodyweight { parts.append("peso corporal") }
+        if let last = exercise.last.last?.weight, last > 0 { parts.append("última " + kilograms(last) + " kg") }
+        return parts.joined(separator: " · ")
+    }
+
+    static func setsLeft(_ count: Int, last: Double?) -> String {
+        let left = count == 1 ? "falta 1 série" : "faltam \(count) séries"
+        return last.map { left + " · última vez " + kilograms($0) + " kg" } ?? left
+    }
+
+    static func correctionTitle(_ name: String, set: Int) -> String {
+        name + " · série \(set)"
+    }
     static let setsSection = "Séries"
 
     static func nowSetLine(card: LiveStrengthCard, now: LiveStrengthNow) -> String {
         var parts = ["série \(max(card.setNumber, 1)) de \(now.rounds)", target(now.exercise)]
         if now.restSeconds > 0 { parts.append("desc. " + clock(now.restSeconds)) }
         return parts.joined(separator: " · ")
-    }
-
-    static func lastLine(_ last: String) -> String {
-        "última vez " + last
     }
 
     static func doneSection(_ done: Int, total: Int) -> String {
@@ -53,6 +101,7 @@ enum StrengthLiveText {
         switch command {
         case .skip: return "✓ Relógio atualizado: \(short) ficou para depois"
         case .doNow: return "✓ Relógio atualizado: \(short) é o próximo"
+        case .setWeight: return "✓ Relógio atualizado: carga de \(short)"
         }
     }
 
@@ -110,6 +159,7 @@ enum StrengthLiveText {
         case .alreadyHadSets: "atividade já tinha séries"
         case .pending, .notFound: "enviando séries ao Garmin…"
         case .failed: "séries não enviadas"
+        case .resend: "enviando a correção ao Garmin…"
         }
     }
 

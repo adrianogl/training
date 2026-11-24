@@ -12,9 +12,9 @@ class EventLog {
         _persist = persist;
     }
 
-    function started(title, version) {
+    function started(title, version, plan) {
         if (listener != null) {
-            listener.started(title, version);
+            listener.started(title, version, plan);
         }
     }
 
@@ -30,6 +30,15 @@ class EventLog {
 
     function adjust(exerciseId, setIndex, set) {
         append(EventKeys.ADJUST, { EventKeys.EXERCISE_ID => exerciseId, EventKeys.SET_INDEX => setIndex, EventKeys.RESULT => copy(set) });
+    }
+
+    function setWeight(exerciseId, weight, bodyweight, nextOnly) {
+        append(EventKeys.SET_WEIGHT, {
+            EventKeys.EXERCISE_ID => exerciseId,
+            EventKeys.WEIGHT => weight,
+            EventKeys.BODYWEIGHT => bodyweight,
+            EventKeys.NEXT_ONLY => nextOnly
+        });
     }
 
     function skip(exerciseId) {

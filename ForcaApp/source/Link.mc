@@ -11,6 +11,7 @@ class Link extends Communications.ConnectionListener {
     private var _acked = 0;
     private var _busy = false;
     private var _start = null;
+    private var _lastStart = null;
     private var _finish = null;
     private var _timer;
     private var _statusTimer;
@@ -32,6 +33,7 @@ class Link extends Communications.ConnectionListener {
             Communications.registerForPhoneAppMessages(method(:onPhoneMessage));
         }
         _statusTimer.start(method(:onStatusCheck), Timing.STATUS_CHECK_MS, true);
+        Communications.transmit({ LinkKeys.NEED_PLANS => WorkoutStore.today() }, null, new Communications.ConnectionListener());
         flush();
     }
 
@@ -55,8 +57,9 @@ class Link extends Communications.ConnectionListener {
         _statusBusy = false;
     }
 
-    function started(title, version) {
-        _start = { LinkKeys.STARTED => Time.now().value(), LinkKeys.TITLE => title, LinkKeys.VERSION => version };
+    function started(title, version, plan) {
+        _start = { LinkKeys.STARTED => Time.now().value(), LinkKeys.TITLE => title, LinkKeys.VERSION => version, LinkKeys.PLAN => plan };
+        _lastStart = _start;
         flush();
     }
 
@@ -101,6 +104,16 @@ class Link extends Communications.ConnectionListener {
         }
         if (data[LinkKeys.PING] != null) {
             Communications.transmit({ LinkKeys.PONG => data[LinkKeys.PING] }, null, new Communications.ConnectionListener());
+            return;
+        }
+        if (data[LinkKeys.RESYNC] != null) {
+            if (_lastStart != null) {
+                _start = _lastStart;
+                _acked = 0;
+            }
+            _timer.stop();
+            _busy = false;
+            flush();
             return;
         }
         var command = data[LinkKeys.COMMAND];

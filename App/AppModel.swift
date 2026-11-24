@@ -173,6 +173,12 @@ import WorkoutAnalysis
             }
         }
         trainer.onChange = { [weak self] in self?.remoteSync.scheduleSync() }
+        NotificationCenter.default.addObserver(forName: WatchLinkConstants.needPlansNotification, object: nil, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                WorkoutSender.send(trainer: self.trainer, today: self.today())
+            }
+        }
         StrengthLiveModel.shared.garminClient = { [weak self] in self?.garminAccount.client }
         garminAccount.link = { [weak self] in
             guard let self, let token = self.account.token else { return nil }

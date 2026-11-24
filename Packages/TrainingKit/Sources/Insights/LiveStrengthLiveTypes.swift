@@ -61,6 +61,23 @@ public struct LiveStrengthNow: Sendable, Equatable {
     public var rounds: Int
     public var restSeconds: Int
     public var rows: [LiveStrengthSetRow]
+    public var round: LiveStrengthRound?
+}
+
+public struct LiveStrengthRoundRow: Sendable, Equatable, Identifiable {
+    public var id: Int { number }
+    public var number: Int
+    public var state: LiveStrengthRowState
+    public var cells: [String]
+    public var last: String?
+}
+
+public struct LiveStrengthRound: Sendable, Equatable {
+    public var letter: String
+    public var number: Int
+    public var exercises: [LiveStrengthExercise]
+    public var markers: [String]
+    public var rows: [LiveStrengthRoundRow]
 }
 
 public enum LiveStrengthItemState: String, Sendable, Equatable {

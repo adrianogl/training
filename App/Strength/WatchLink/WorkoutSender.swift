@@ -47,17 +47,18 @@ enum WorkoutSender {
         let records = cache.loads.map { LiveStrengthLoadHistory(key: $0.key, day: $0.day, loads: $0.loads) }
         let history = LiveStrengthWatch.history(records, before: day.iso)
         let suggested = StrengthLiveStore().nextLoads()
+        let bodyweight = StrengthLiveStore().bodyweightKeys()
         let mfit = trainer.replacesMFIT(on: day) ? nil : StrengthSchedule().workouts(cache.program, from: day, through: day).first
         if let mfit {
             let reader = LiveStrengthMFITReader(loadKey: MFITParser.exerciseKey, target: MFITParser.target)
-            return LiveStrengthPlans.from(mfit: mfit, reader: reader, history: history, suggested: suggested)
+            return LiveStrengthPlans.from(mfit: mfit, reader: reader, history: history, suggested: suggested, bodyweight: bodyweight)
         }
         guard let session = trainer.trainerSessions(on: day).first,
               let generated = trainer.strengthWorkout(sessionId: session.id, day: day, cache: cache) else { return nil }
         return LiveStrengthPlans.from(
             trainer: generated, day: day.iso, title: TrainerStrengthText.focusName(generated.group),
             history: TrainerStrengthContextBuilder.lastSets(cache.loads, before: day.iso),
-            suggested: suggested
+            suggested: suggested, bodyweight: bodyweight
         )
     }
 }

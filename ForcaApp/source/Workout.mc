@@ -27,6 +27,7 @@ class Workout {
     private var _warned = false;
     private var _restOver = false;
     private var _finishedBlock = null;
+    private var _overrides = {};
 
     function initialize(aPlan, services) {
         plan = aPlan;
@@ -57,7 +58,7 @@ class Workout {
         WorkoutStore.clearSession();
         _svc.recorder.start(plan[PlanKeys.TITLE]);
         _svc.vibrate(Vibe.GO);
-        log.started(plan[PlanKeys.TITLE], plan[PlanKeys.VERSION]);
+        log.started(plan[PlanKeys.TITLE], plan[PlanKeys.VERSION], plan);
         beginSet();
     }
 
@@ -108,6 +109,9 @@ class Workout {
             return true;
         }
         var set = results[lastDone[:exercise]][lastDone[:index]];
+        if (set[PlanKeys.WEIGHT] != adjust[AdjustField.WEIGHT]) {
+            _overrides.remove(lastDone[:exercise]);
+        }
         set[PlanKeys.REPS] = adjust[AdjustField.REPS];
         set[PlanKeys.WEIGHT] = adjust[AdjustField.WEIGHT];
         set[PlanKeys.SECONDS] = adjust[AdjustField.SECONDS];
@@ -178,7 +182,26 @@ class Workout {
         beginSet();
     }
 
+    function setWeight(payload) {
+        if (!(payload instanceof Dictionary) || plan == null || phase == Phase.SAVED || phase == Phase.DISCARDED) {
+            return false;
+        }
+        var exerciseId = payload[EventKeys.EXERCISE_ID];
+        if (exerciseId == null || findExercise(exerciseId) == null) {
+            return false;
+        }
+        var bodyweight = payload[EventKeys.BODYWEIGHT] == true;
+        var weight = bodyweight ? null : payload[EventKeys.WEIGHT];
+        var nextOnly = payload[EventKeys.NEXT_ONLY] == true;
+        _overrides[exerciseId] = { EventKeys.WEIGHT => weight, EventKeys.BODYWEIGHT => bodyweight, EventKeys.NEXT_ONLY => nextOnly };
+        log.setWeight(exerciseId, weight, bodyweight, nextOnly);
+        return true;
+    }
+
     function command(kind, exerciseId) {
+        if (EventKeys.SET_WEIGHT.equals(kind)) {
+            return setWeight(exerciseId);
+        }
         if (paused || exerciseId == null) {
             return false;
         }
@@ -216,6 +239,9 @@ class Workout {
             if (!_restOver && remaining <= 0) {
                 _restOver = true;
                 _svc.vibrate(Vibe.GO);
+            }
+            if (_restOver && phase == Phase.REST) {
+                beginSet();
             }
         } else if (phase == Phase.TIMED && now >= _timedEndMs) {
             completeSet(timedSeconds);
@@ -294,6 +320,10 @@ class Workout {
     }
 
     function plannedWeight(exercise) {
+        var override = _overrides[exercise[PlanKeys.ID]];
+        if (override != null) {
+            return override[EventKeys.WEIGHT];
+        }
         var sets = setsOf(exercise[PlanKeys.ID]);
         for (var i = sets.size() - 1; i >= 0; i--) {
             if (sets[i][PlanKeys.WEIGHT] != null) {
@@ -397,6 +427,10 @@ class Workout {
             results[exerciseId] = [];
         }
         results[exerciseId].add(set);
+        var override = _overrides[exerciseId];
+        if (override != null && override[EventKeys.NEXT_ONLY]) {
+            _overrides.remove(exerciseId);
+        }
         lastDone = { :exercise => exerciseId, :index => results[exerciseId].size() - 1 };
         queue.setDone(exerciseId);
         log.setDone(exerciseId, set);
@@ -478,6 +512,9 @@ class Workout {
 
     function findExercise(exerciseId) {
         var block = blockOf(exerciseId);
+        if (block == null) {
+            return null;
+        }
         var exercises = block[PlanKeys.EXERCISES];
         for (var i = 0; i < exercises.size(); i++) {
             if (exercises[i][PlanKeys.ID].equals(exerciseId)) {

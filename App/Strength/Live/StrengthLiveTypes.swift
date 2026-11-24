@@ -2,7 +2,7 @@ import Foundation
 import Insights
 
 enum StrengthLiveCommand: String, Sendable {
-    case skip, doNow
+    case skip, doNow, setWeight
 }
 
 struct StrengthLivePendingCommand: Equatable, Sendable {
@@ -12,7 +12,7 @@ struct StrengthLivePendingCommand: Equatable, Sendable {
 }
 
 enum StrengthLiveUploadState: String, Codable, Sendable {
-    case pending, sent, alreadyHadSets, notFound, failed
+    case pending, sent, alreadyHadSets, notFound, failed, resend
 }
 
 struct StrengthLiveFinish: Codable, Sendable {

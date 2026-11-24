@@ -156,5 +156,30 @@ import Testing
         #expect(screen.items.map(\.superset) == ["A", "A", nil])
         #expect(screen.items.map(\.number) == [2, 3, 4])
     }
+
+    @Test func supersetShowsTheWholeRoundAndLeavesTheListWithoutIt() throws {
+        let biset = LiveStrengthPlan(day: "2026-11-23", title: "Superiores", source: .mfit, blocks: [
+            LiveStrengthBlock(id: "b1", exercises: [
+                LiveStrengthExercise(id: "b1e1", name: "Tríceps francês", category: nil, exerciseKey: nil, loadKey: "t", kind: .reps, reps: 10, seconds: nil, weight: 23, bodyweight: false, perSide: false, last: [LiveStrengthSetResult(weight: 23)]),
+                LiveStrengthExercise(id: "b1e2", name: "Flexão", category: nil, exerciseKey: nil, loadKey: "f", kind: .reps, reps: 10, seconds: nil, weight: nil, bodyweight: true, perSide: false),
+            ], rounds: 4, restSeconds: 60),
+            LiveStrengthBlock(id: "b2", exercises: [
+                LiveStrengthExercise(id: "b2e1", name: "Supino", category: nil, exerciseKey: nil, loadKey: "s", kind: .reps, reps: 10, seconds: nil, weight: 14, bodyweight: false, perSide: false),
+            ], rounds: 3, restSeconds: 60),
+        ])
+        let session = LiveStrengthQueue.replay(plan: biset, events: [
+            LiveStrengthEvent(id: "1", sequence: 1, action: .setDone(exerciseId: "b1e1", result: LiveStrengthSetResult(reps: 10, weight: 23))),
+            LiveStrengthEvent(id: "2", sequence: 2, action: .setDone(exerciseId: "b1e2", result: LiveStrengthSetResult(reps: 10))),
+        ])
+        let screen = LiveStrengthLive.screen(session: session)
+        let round = try #require(screen.now?.round)
+        #expect(round.letter == "A")
+        #expect(round.number == 2)
+        #expect(round.markers == ["A1", "A2"])
+        #expect(round.rows.map(\.state) == [.done, .next, .pending, .pending])
+        #expect(round.rows[0].cells == ["10 × 23", "10 · PC"])
+        #expect(round.rows[1].last == "23 kg")
+        #expect(screen.items.map(\.exercise.name) == ["Supino"])
+    }
 }
 

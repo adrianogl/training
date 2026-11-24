@@ -85,10 +85,31 @@ final class WatchLink: NSObject {
         devices.forEach { UserDefaults.standard.removeObject(forKey: Self.sentPlansKey($0)) }
     }
 
+    func requestResync() {
+        for device in devices {
+            ConnectIQ.sharedInstance().sendMessage([WatchLinkConstants.resyncKey: 1], to: app(for: device), progress: { _, _ in }, completion: { _ in })
+        }
+        record(.sent, detail: WatchLinkConstants.resyncKey)
+    }
+
     func sendCommand(_ kind: String, exerciseId: String) {
+        send(kind, payload: exerciseId)
+    }
+
+    func sendWeight(exerciseId: String, weight: Double?, bodyweight: Bool, nextOnly: Bool) {
+        let payload: [String: Any] = [
+            WatchLinkConstants.exerciseIdKey: exerciseId,
+            WatchLinkConstants.weightKey: weight.map { $0 as Any } ?? NSNull(),
+            WatchLinkConstants.bodyweightKey: bodyweight,
+            WatchLinkConstants.nextOnlyKey: nextOnly,
+        ]
+        send(WatchLinkConstants.setWeightKind, payload: payload)
+    }
+
+    private func send(_ kind: String, payload: Any) {
         for device in devices {
             let name = device.friendlyName ?? ""
-            ConnectIQ.sharedInstance().sendMessage([WatchLinkConstants.commandKey: [kind: exerciseId]], to: app(for: device), progress: { _, _ in }) { result in
+            ConnectIQ.sharedInstance().sendMessage([WatchLinkConstants.commandKey: [kind: payload]], to: app(for: device), progress: { _, _ in }) { result in
                 let value = result.rawValue
                 Task { @MainActor in self.record(.sent, detail: "\(kind) \(name) result=\(value)") }
             }
@@ -137,6 +158,12 @@ final class WatchLink: NSObject {
             StrengthLiveModel.shared.receive(status)
             return
         }
+        if object[WatchLinkConstants.needPlansKey] != nil {
+            record(.plans, detail: WatchLinkConstants.needPlansKey)
+            forgetSentPlans()
+            NotificationCenter.default.post(name: WatchLinkConstants.needPlansNotification, object: nil)
+            return
+        }
         if let finishedAt = object[WatchLinkConstants.finishedKey] as? Int {
             let saved = object[WatchLinkConstants.savedKey] as? Bool ?? false
             record(.finished, detail: saved ? WatchLinkConstants.savedKey : "")
@@ -150,7 +177,9 @@ final class WatchLink: NSObject {
         if let startedAt = object[WatchLinkConstants.startedKey] as? Int {
             started(
                 at: Date(timeIntervalSince1970: TimeInterval(startedAt)), title: object[WatchLinkConstants.titleKey] as? String,
-                version: object[WatchLinkConstants.versionKey] as? String, receivedAt: receivedAt
+                version: object[WatchLinkConstants.versionKey] as? String,
+                watchPlan: object[WatchLinkConstants.planKey].flatMap { try? JSONSerialization.data(withJSONObject: $0) },
+                receivedAt: receivedAt
             )
             return
         }
@@ -177,11 +206,11 @@ final class WatchLink: NSObject {
         return decoder
     }
 
-    private func started(at startedAt: Date, title: String?, version: String?, receivedAt: Date) {
-        var entry = WatchLinkRecord(at: receivedAt, appState: Self.appState, kind: .started, detail: title ?? "")
+    private func started(at startedAt: Date, title: String?, version: String?, watchPlan: Data?, receivedAt: Date) {
+        var entry = WatchLinkRecord(at: receivedAt, appState: Self.appState, kind: .started, detail: [title ?? "", version ?? "-", watchPlan == nil ? "sem plano" : "com plano"].joined(separator: " "))
         entry.delaySeconds = [receivedAt.timeIntervalSince(startedAt)]
         append(entry)
-        StrengthLiveModel.shared.started(at: startedAt, version: version)
+        StrengthLiveModel.shared.started(at: startedAt, version: version, watchPlan: watchPlan)
         guard UIApplication.shared.applicationState != .active,
               receivedAt.timeIntervalSince(startedAt) < WatchLinkConstants.startedMaxAge else { return }
         Task {

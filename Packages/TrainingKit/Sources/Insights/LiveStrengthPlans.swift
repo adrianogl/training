@@ -5,7 +5,8 @@ public enum LiveStrengthPlans {
     private typealias C = LiveStrengthPlansConstants
 
     public static func from(
-        mfit workout: StrengthWorkout, reader: LiveStrengthMFITReader, history: [String: [LiveStrengthSetResult]] = [:], suggested: [String: Double] = [:]
+        mfit workout: StrengthWorkout, reader: LiveStrengthMFITReader, history: [String: [LiveStrengthSetResult]] = [:], suggested: [String: Double] = [:],
+        bodyweight: Set<String> = []
     ) -> LiveStrengthPlan {
         let blocks = workout.blocks.enumerated().map { index, block in
             let blockId = blockId(index)
@@ -18,12 +19,12 @@ public enum LiveStrengthPlans {
                 restSeconds: Int((block.restSeconds ?? 0).rounded())
             )
         }
-        return LiveStrengthPlan(day: workout.day, title: workout.title, source: .mfit, blocks: blocks, sourceId: workout.id)
+        return LiveStrengthPlan(day: workout.day, title: workout.title, source: .mfit, blocks: blocks.map { markBodyweight($0, keys: bodyweight) }, sourceId: workout.id)
     }
 
     public static func from(
         trainer workout: GeneratedStrengthWorkout, day: String, title: String, history: [String: [LiveStrengthSetResult]] = [:],
-        suggested: [String: Double] = [:]
+        suggested: [String: Double] = [:], bodyweight: Set<String> = []
     ) -> LiveStrengthPlan {
         let blocks = workout.exercises.enumerated().map { index, exercise in
             let blockId = blockId(index)
@@ -51,7 +52,7 @@ public enum LiveStrengthPlans {
                 restSeconds: exercise.restSeconds
             )
         }
-        return LiveStrengthPlan(day: day, title: title, source: .trainer, blocks: blocks)
+        return LiveStrengthPlan(day: day, title: title, source: .trainer, blocks: blocks.map { markBodyweight($0, keys: bodyweight) })
     }
 
     static func mfitExercise(
@@ -81,6 +82,18 @@ public enum LiveStrengthPlans {
             perSide: isPerSide(instruction),
             last: last
         )
+    }
+
+    static func markBodyweight(_ block: LiveStrengthBlock, keys: Set<String>) -> LiveStrengthBlock {
+        var changed = block
+        changed.exercises = block.exercises.map { exercise in
+            guard keys.contains(exercise.loadKey) else { return exercise }
+            var marked = exercise
+            marked.bodyweight = true
+            marked.weight = nil
+            return marked
+        }
+        return changed
     }
 
     static func isPerSide(_ detail: String?) -> Bool {

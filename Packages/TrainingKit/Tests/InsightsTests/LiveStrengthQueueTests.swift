@@ -139,4 +139,33 @@ private func events(_ actions: [LiveStrengthAction]) -> [LiveStrengthEvent] {
         #expect(session.done.isEmpty)
         #expect(session.order == ["b1", "b2", "b3", "b4"])
     }
+
+    @Test func phoneWeightAppliesToTheRemainingSetsOrOnlyTheNext() throws {
+        let nextOnly = LiveStrengthQueue.replay(plan: plan, events: events([
+            done("b1e1"),
+            .setWeight(exerciseId: "b1e1", weight: 25, bodyweight: false, nextOnly: true),
+        ]))
+        #expect(LiveStrengthQueue.next(nextOnly)?.weight == 25)
+        let afterOne = LiveStrengthQueue.receive(events([done("b1e1", weight: 25)]).map { event in
+            var copy = event
+            copy.id = "x" + event.id
+            copy.sequence = 10
+            return copy
+        }, into: nextOnly)
+        #expect(LiveStrengthQueue.next(afterOne)?.weight == 25)
+        #expect(afterOne.overrides?["b1e1"] == nil)
+
+        let bodyweight = LiveStrengthQueue.replay(plan: plan, events: events([
+            .setWeight(exerciseId: "b1e1", weight: nil, bodyweight: true, nextOnly: false),
+        ]))
+        #expect(LiveStrengthQueue.next(bodyweight)?.weight == nil)
+        #expect(LiveStrengthQueue.effective(plan.blocks[0].exercises[0], in: bodyweight).bodyweight)
+    }
+
+    @Test func watchSendsTheWeightEventInTheSameFormat() throws {
+        let json = #"[{"id":"1-1","sequence":1,"action":{"setWeight":{"exerciseId":"b1e1","weight":null,"bodyweight":true,"nextOnly":false}}}]"#
+        let decoded = try LiveStrengthQueue.decodeWatchEvents(Data(json.utf8))
+        #expect(decoded.first?.action == .setWeight(exerciseId: "b1e1", weight: nil, bodyweight: true, nextOnly: false))
+    }
 }
+

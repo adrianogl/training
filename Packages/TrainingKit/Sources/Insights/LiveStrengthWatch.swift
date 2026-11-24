@@ -11,6 +11,24 @@ public enum LiveStrengthWatch {
         }))
     }
 
+    public static func plan(fromWatch data: Data, known: [LiveStrengthPlan], loadKey: (String) -> String) -> LiveStrengthPlan? {
+        guard let watch = try? JSONDecoder().decode(LiveStrengthWatchPlan.self, from: data) else { return nil }
+        let reference = known.first { $0.day == watch.day && $0.title == watch.title } ?? known.first { $0.day == watch.day }
+        let byName = Dictionary((reference?.blocks.flatMap(\.exercises) ?? []).map { ($0.name, $0) }) { first, _ in first }
+        let blocks = watch.blocks.map { block in
+            LiveStrengthBlock(id: block.id, exercises: block.exercises.map { exercise in
+                let match = byName[exercise.name]
+                return LiveStrengthExercise(
+                    id: exercise.id, name: exercise.name, category: match?.category, exerciseKey: match?.exerciseKey,
+                    loadKey: match?.loadKey ?? loadKey(exercise.name), kind: exercise.kind, reps: exercise.reps, seconds: exercise.seconds,
+                    weight: exercise.weight, bodyweight: exercise.bodyweight, perSide: exercise.perSide,
+                    last: exercise.last.map { LiveStrengthSetResult(reps: $0.reps, seconds: $0.seconds, weight: $0.weight) }
+                )
+            }, rounds: block.rounds, restSeconds: block.restSeconds)
+        }
+        return LiveStrengthPlan(day: watch.day, title: watch.title, source: reference?.source ?? .mfit, blocks: blocks, sourceId: reference?.sourceId)
+    }
+
     public static func version(_ plan: LiveStrengthPlan) -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
