@@ -41,7 +41,7 @@ enum AppSection: String, CaseIterable, Identifiable, Hashable, Codable {
 
     var isInMore: Bool { AppConstants.moreItems.contains(self) }
 
-    static var sidebarSections: [AppSection] { allCases.filter { $0 != .more } }
+    static var sidebarSections: [AppSection] { allCases.filter { $0 != .more && $0 != .trainer } }
 
     var title: String {
         switch self {

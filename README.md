@@ -78,9 +78,9 @@ Versão atual: `1.49.0` (ver [Versão](#versão)).
 - **Plano de força:** o plano de força tem objetivo (Performance na corrida, Força, Prevenção, Mobilidade para corrida ou Manutenção), equipamento disponível em casa, dias, validade (até a prova, de 1 a 24 semanas ou até uma data), início e quem monta (Treinador ou Claude). Os treinos aparecem só entre o início e o fim, e o MFIT segue em paralelo: no dia com os dois, a semana mostra os cards "MFIT" e "Plano". No fim, o iPhone avisa "Plano de <objetivo> terminou" e a tela Força oferece montar o próximo ou repetir o mesmo. Mobilidade é um foco próprio, sem carga. As regras estão em [`docs/regras/prescricao.md`](docs/regras/prescricao.md).
 - **MFIT no relógio:** com "Enviar os treinos do MFIT" ligado em Enviar ao Garmin, os treinos do professor vão para o calendário do Garmin até o fim da prescrição, com o exercício do catálogo da Garmin quando o nome casa e o nome do professor quando não casa. O envio automático leva junto.
 - **Excluir treino:** no detalhe do treino, o menu "…" tem "Excluir treino". O treino sai do app e das contas, e o id vai para uma lista de excluídos que sincroniza entre os aparelhos e que o sync do Garmin pula. Atividade gravada pelo app de força (`trAIning Força`) é apagada também no Garmin Connect; as outras continuam lá.
-- **Calendário de treinos:** a aba Treinos alterna entre a lista por semana e o mês, com pontos por tipo (corrida feita, corrida planejada, força e MFIT) e os km de cada dia; tocar num dia mostra os treinos dele e o resumo do mês.
+- **Aba Treinos:** abre nos treinos feitos e alterna entre Feitos, Semana e Mês. Semana é a semana do treinador, com o objetivo, o placar e os quadrados das semanas; o dia já treinado mostra o card do treino feito e os outros dias mostram o que o treinador prescreveu. O botão Plano abre o resto do treinador: Força, Enviar ao Garmin, mudanças do plano, longão, zonas, paces, ciclos anteriores e o menu do plano. O mês tem pontos por tipo (corrida feita, corrida planejada, força e MFIT) e os km de cada dia; tocar num dia mostra os treinos dele e o resumo do mês.
 - **Observações e carga sugerida:** cada exercício guarda observações permanentes, de qualquer origem (treinador, Claude ou MFIT), e elas entram no contexto de força do Claude. As observações das séries do MFIT aparecem só para leitura. Nos treinos do Treinador e do Claude, o exercício com carga que você nunca fez recebe uma carga sugerida pelo histórico do mesmo padrão de movimento ou da mesma categoria da Garmin, e o app mostra a conta. Treino do MFIT mantém a carga do professor, a não ser no app de força no relógio: depois de um treino com todas as séries fechadas, o próximo começa com a carga que subiu, se ela passar a do professor. A regra está em [`docs/regras/prescricao.md`](docs/regras/prescricao.md).
-- **Força ao vivo:** o app `trAIning Força` no relógio roda o treino de força do dia, que o iPhone manda depois de cada sync (o de hoje e o de amanhã). Cada série vai ao iPhone pelo Bluetooth (Connect IQ Mobile SDK), em 1 a 3 s, e aparece na tela ao vivo (Treinador › Força e um card na aba Hoje) e num Live Activity com ilha dinâmica. Quando o treino começa e o app não está na tela, o iPhone mostra uma notificação; o Live Activity aparece quando o app abre, porque o iOS só deixa criar com o app na tela. Ao salvar, o iPhone envia as séries para a atividade no Garmin Connect, que só recebe o envio se ainda não tiver nenhuma série, e grava a carga real no histórico. Nada disso passa pelo servidor.
+- **Força ao vivo:** o app `trAIning Força` no relógio roda o treino de força do dia, que o iPhone manda depois de cada sync (o de hoje e o de amanhã). Cada série vai ao iPhone pelo Bluetooth (Connect IQ Mobile SDK), em 1 a 3 s, e aparece na tela ao vivo (Treinos › Plano › Força e um card na aba Hoje) e num Live Activity com ilha dinâmica. Quando o treino começa e o app não está na tela, o iPhone mostra uma notificação; o Live Activity aparece quando o app abre, porque o iOS só deixa criar com o app na tela. Ao salvar, o iPhone envia as séries para a atividade no Garmin Connect, que só recebe o envio se ainda não tiver nenhuma série, e grava a carga real no histórico. Nada disso passa pelo servidor.
 - **Previsões e recordes:** distâncias fixas (1 km, 3 km, 5 km, 10 km, meia e maratona), recorde casado pela distância em metros e cada previsão comparada ao recorde da mesma distância.
 - **Texto e conversa:** Foundation Models da Apple, no aparelho, a partir de números já calculados. Sem o modelo, o app usa templates com os mesmos números.
 
@@ -123,7 +123,7 @@ Conecte o iPhone ou o iPad por cabo, escolha o aparelho como destino e rode. Na 
 | Ajustes › MFIT | Lê o programa de força que o professor montou no MFIT Personal. Com "Enviar os treinos do MFIT" ligado, manda o programa ao Garmin até o fim da prescrição |
 | Ajustes › Claude | Gera um token para o Claude Desktop ou o Claude Code montarem treinos de força pelo MCP em `https://training.aglv.dev/mcp`. O app mostra o comando pronto; os treinos só entram depois que você revisa e aplica. Para administradores, o MCP também expõe `avaliacoes_imagens` e `resolver_avaliacao`, que listam e resolvem as avaliações de imagem dos exercícios |
 | Ajustes › Mostrador | Token do mostrador Garmin e a agenda no relógio |
-| Treinador › Enviar ao Garmin | Manda os treinos do treinador e, se ligado, os do MFIT para o relógio: só força, só corrida ou os dois. O app só mexe nos treinos que ele mesmo criou |
+| Treinos › Plano › Enviar ao Garmin | Manda os treinos do treinador e, se ligado, os do MFIT para o relógio: só força, só corrida ou os dois. O app só mexe nos treinos que ele mesmo criou |
 
 ### Conta gratuita: reinstalar a cada 7 dias
 
@@ -244,13 +244,13 @@ Toda notificação abre a tela da ação relacionada:
 | --- | --- |
 | Prontidão da manhã | Hoje › Prontidão |
 | Treino terminado | o treino |
-| Ajuste do treinador por sinais | Treinador › Mudanças do plano |
+| Ajuste do treinador por sinais | Treinos › Plano › Mudanças do plano |
 | Véspera e manhã de prova | Provas |
 | Versão disponível, validade da instalação, instalação renovada | Hoje |
 | Versão instalada | Ajustes |
 | Garmin ou Strava desconectado | Ajustes |
-| Treinos de força do Claude | Treinador › Força |
-| Plano de força terminou | Treinador › Força |
+| Treinos de força do Claude | Treinos › Plano › Força |
+| Plano de força terminou | Treinos › Plano › Força |
 
 A prontidão da manhã sai quando o app encontra HRV e sono da noite numa sincronização em segundo plano. Há dois gatilhos: o sono novo no Apple Health, que o Garmin Connect grava ao sincronizar o relógio e acorda o app na hora, e o refresh em background a partir das 4h, que tenta a cada 15 minutos até as 11h e fica a critério do iOS. Nos dois casos, entre 4h e 11h, o app primeiro busca só os dados diários de ontem e de hoje (`SyncEngine.runMorning`) e manda o aviso, e só depois faz o sync completo, para caber no tempo que o iOS dá em segundo plano. Com o app aberto na tela, o sono do Health não dispara sync.
 

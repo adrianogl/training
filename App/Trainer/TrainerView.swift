@@ -4,6 +4,8 @@ import TrainingCore
 
 struct TrainerView: View {
     @Environment(AppModel.self) private var app
+    var part: TrainerViewPart = .all
+    var header: AnyView?
     @State private var showsNewPlan = false
     @State private var showsRequest = false
     @State private var showsEdit = false
@@ -22,9 +24,12 @@ struct TrainerView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 10) {
-                    DSScreenHeader(title: TrainerText.title)
+                    if let header { header } else { DSScreenHeader(title: part == .plan ? TrainerText.planTitle : TrainerText.title) }
                     if let plan = model.plan {
-                        shortcuts(proxy)
+                        if part != .week {
+                            shortcuts(proxy)
+                            planLinks
+                        }
                         planContent(plan, proxy: proxy)
                     } else if model.isLoaded {
                         noPlanStrength
@@ -39,7 +44,7 @@ struct TrainerView: View {
         .background(BrandBackground())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if model.plan != nil {
+            if model.plan != nil, part != .week {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(TrainerText.editPlanMenu) { showsEdit = true }
@@ -67,25 +72,18 @@ struct TrainerView: View {
         } message: {
             Text(TrainerCycleText.endMessage(weeks: model.finishedWeekCount))
         }
-        .navigationDestination(for: TrainerRoute.self) { route in
-            switch route {
-            case .day(let iso): TrainerDayView(iso: iso)
-            case .changes: TrainerChangesView()
-            case .strength: TrainerStrengthView()
-            case .cycle: TrainerCycleView()
-            case .strengthDay(let iso, let id): TrainerStrengthWorkoutView(iso: iso, sessionId: id)
-            }
-        }
+        .trainerDestinations(enabled: part != .plan)
         .sheet(isPresented: $showsNewPlan) { TrainerNewPlanView() }
         .sheet(isPresented: $showsRequest) { TrainerRequestView() }
         .sheet(isPresented: $showsChat) { TrainerChatSheet() }
         .sheet(isPresented: $showsEdit) { TrainerNewPlanView(isEditing: true) }
         .sheet(isPresented: $showsSend) { TrainerSendSheet() }
         .task(id: autoSendKey) {
+            guard part != .plan else { return }
             let client = app.garminAccount.client
             Task { await model.autoSend(client: client) }
         }
-        .task { await model.load() }
+        .task { if part != .plan { await model.load() } }
         .task(id: app.garminAccount.isSignedIn) {
             await model.loadExternal(client: app.garminAccount.client)
         }
@@ -146,13 +144,31 @@ struct TrainerView: View {
             Divider().overlay(BrandColors.line)
             Button { showsSend = true } label: { actionRow(TrainerStrengthText.shortcutSend, symbol: "applewatch") }
                 .buttonStyle(.plain)
-            Divider().overlay(BrandColors.line)
-            Button {
-                withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
-            } label: { actionRow(TrainerStrengthText.shortcutAdjustments, symbol: "slider.horizontal.3") }
-                .buttonStyle(.plain)
+            if part != .plan {
+                Divider().overlay(BrandColors.line)
+                Button {
+                    withAnimation { proxy.scrollTo(TrainerConstants.adjustmentsAnchor, anchor: .top) }
+                } label: { actionRow(TrainerStrengthText.shortcutAdjustments, symbol: "slider.horizontal.3") }
+                    .buttonStyle(.plain)
+            }
         }
         .brandCard()
+    }
+
+    @ViewBuilder
+    private var planLinks: some View {
+        if part == .plan {
+            VStack(alignment: .leading, spacing: 0) {
+                NavigationLink(value: TrainerRoute.changes) { actionRow(TrainerText.changesShortcut, symbol: "clock.arrow.circlepath") }
+                    .buttonStyle(.plain)
+                if model.cycleReview != nil {
+                    Divider().overlay(BrandColors.line)
+                    NavigationLink(value: TrainerRoute.cycle) { actionRow(TrainerCycleText.openAnalysis, symbol: "chart.bar.xaxis") }
+                        .buttonStyle(.plain)
+                }
+            }
+            .brandCard()
+        }
     }
 
     private func actionRow(_ title: String, symbol: String) -> some View {
@@ -172,6 +188,20 @@ struct TrainerView: View {
 
     @ViewBuilder
     private func planContent(_ plan: TrainerPlan, proxy: ScrollViewProxy) -> some View {
+        if part != .plan {
+            weekContent(plan, proxy: proxy)
+        }
+        if part == .plan {
+            adjustments(plan)
+            AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
+        }
+        if part != .week {
+            previousCycles
+        }
+    }
+
+    @ViewBuilder
+    private func weekContent(_ plan: TrainerPlan, proxy: ScrollViewProxy) -> some View {
         if let swap = model.legSwapSuggestion(kept: Set(keptSwaps.split(separator: ",").map(String.init))) {
             TrainerLegSwapCard(swap: swap) {
                 model.applyLegSwap(swap)
@@ -198,7 +228,6 @@ struct TrainerView: View {
         } else {
             activeContent(plan)
         }
-        previousCycles
     }
 
     @ViewBuilder
@@ -244,8 +273,10 @@ struct TrainerView: View {
         ForEach(model.weekGroups) { group in
             weekSection(group)
         }
-        adjustments(plan)
-        AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
+        if part == .all {
+            adjustments(plan)
+            AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
+        }
         if model.saveFailed {
             Text(TrainerText.saveError).font(.footnote).foregroundStyle(BrandColors.danger)
         }
@@ -319,11 +350,15 @@ struct TrainerView: View {
                 }
             }
             if open {
-                ForEach(group.rows) { row in
-                    NavigationLink(value: TrainerRoute.day(row.id)) {
-                        TrainerDayRowView(row: row, isToday: row.workout.day == model.currentDay)
+                if part == .week {
+                    TrainerWeekRows(group: group, currentDay: model.currentDay)
+                } else {
+                    ForEach(group.rows) { row in
+                        NavigationLink(value: TrainerRoute.day(row.id)) {
+                            TrainerDayRowView(row: row, isToday: row.workout.day == model.currentDay)
+                        }
+                        .buttonStyle(.cardLink)
                     }
-                    .buttonStyle(.cardLink)
                 }
             }
         }
@@ -334,3 +369,31 @@ struct TrainerView: View {
     }
 }
 
+
+struct TrainerDestinations: ViewModifier {
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content.navigationDestination(for: TrainerRoute.self) { route in
+                switch route {
+                case .plan: TrainerView(part: .plan)
+                case .workout(let id): WorkoutDetailView(activityId: id)
+                case .day(let iso): TrainerDayView(iso: iso)
+                case .changes: TrainerChangesView()
+                case .strength: TrainerStrengthView()
+                case .cycle: TrainerCycleView()
+                case .strengthDay(let iso, let id): TrainerStrengthWorkoutView(iso: iso, sessionId: id)
+                }
+            }
+        } else {
+            content
+        }
+    }
+}
+
+extension View {
+    func trainerDestinations(enabled: Bool) -> some View {
+        modifier(TrainerDestinations(enabled: enabled))
+    }
+}

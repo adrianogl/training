@@ -39,7 +39,7 @@ enum AppConstants {
     static let settingsStatusDotSize: Double = 8
     static let settingsIconSize: Double = 30
     static let compactTabs: [AppSection] = [.today, .evolution, .workouts, .races, .more]
-    static let moreItems: [AppSection] = [.trainer, .settings]
+    static let moreItems: [AppSection] = [.settings]
     static let introDuration = Duration.milliseconds(2000)
     static let introReducedMotionDuration = Duration.milliseconds(500)
     static let introFadeSeconds = 0.35

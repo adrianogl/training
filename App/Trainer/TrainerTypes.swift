@@ -2,7 +2,25 @@ import Foundation
 import Insights
 import TrainingCore
 
+enum TrainerViewPart: Hashable {
+    case all, week, plan
+}
+
+enum TrainerWeekItem: Identifiable {
+    case planned(TrainerDayRow)
+    case done(WorkoutRowData)
+
+    var id: String {
+        switch self {
+        case .planned(let row): "plano-\(row.id)"
+        case .done(let row): "feito-\(row.activityId)"
+        }
+    }
+}
+
 enum TrainerRoute: Hashable, Codable {
+    case plan
+    case workout(Int64)
     case day(String)
     case changes
     case strength
