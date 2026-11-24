@@ -6,8 +6,8 @@ import TrainingCore
 import WorkoutAnalysis
 
 enum WorkoutListModel {
-    static func rows(records: [ActivityRecord], goals: [GoalSnapshot] = []) -> [WorkoutRowData] {
-        let timeline = PersonalRecords.timeline(PersonalRecords.runEfforts(records))
+    static func rows(records: [ActivityRecord], goals: [GoalSnapshot] = [], timeline: [Int64: RunRecords]? = nil) -> [WorkoutRowData] {
+        let timeline = timeline ?? PersonalRecords.timeline(PersonalRecords.runEfforts(records))
         return records
             .filter { ActivityTypeKey.isRun($0.typeKey) || ActivityTypeKey.isStrength($0.typeKey) }
             .sorted { $0.start > $1.start }

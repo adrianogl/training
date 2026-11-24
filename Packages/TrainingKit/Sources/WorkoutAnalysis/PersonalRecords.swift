@@ -59,6 +59,7 @@ public enum PersonalRecords {
         for run in runs.sorted(by: { $0.start < $1.start }) {
             var hits: [RecordHit] = []
             var near: RecordNear?
+            let hasHistory = !bests.isEmpty
             for effort in run.efforts {
                 if let best = bests[effort.meters] {
                     if effort.seconds < best {
@@ -66,7 +67,7 @@ public enum PersonalRecords {
                     } else if effort.seconds <= best * C.nearShare, near == nil || effort.meters > near!.effort.meters {
                         near = RecordNear(effort: effort, bestSeconds: best)
                     }
-                } else if !bests.isEmpty {
+                } else if hasHistory {
                     hits.append(RecordHit(effort: effort, previousSeconds: nil))
                 }
                 if effort.seconds < bests[effort.meters] ?? .infinity {
