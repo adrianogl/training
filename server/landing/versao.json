@@ -1,11 +1,17 @@
 {
-  "versao": "1.51.0",
-  "build": 84,
-  "versao_app": "1.51.0",
+  "versao": "1.51.1",
+  "build": 85,
+  "versao_app": "1.51.1",
   "notas": [
-    "Troca a aba mais pela aba ajustes"
+    "Herda as repetições da última série e divide o tempo da rodada do bi-set"
   ],
   "historico": [
+    {
+      "versao": "1.51.1",
+      "notas": [
+        "Herda as repetições da última série e divide o tempo da rodada do bi-set"
+      ]
+    },
     {
       "versao": "1.51.0",
       "notas": [
@@ -62,12 +68,6 @@
       "versao": "1.44.0",
       "notas": [
         "Mostra a zona de FC nos blocos e envia a faixa ao Garmin"
-      ]
-    },
-    {
-      "versao": "1.43.0",
-      "notas": [
-        "Importa com aprovação as corridas do Strava sem o relógio"
       ]
     }
   ]
