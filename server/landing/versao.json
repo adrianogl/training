@@ -1,11 +1,19 @@
 {
-  "versao": "1.55.3",
-  "build": 92,
-  "versao_app": "1.55.3",
+  "versao": "1.55.4",
+  "build": 93,
+  "versao_app": "1.55.4",
   "notas": [
-    "Usa a margem lateral do app na lista"
+    "Compara recordes da semana do plano com o histórico inteiro",
+    "Não conta primeira vez nas distâncias da primeira corrida"
   ],
   "historico": [
+    {
+      "versao": "1.55.4",
+      "notas": [
+        "Compara recordes da semana do plano com o histórico inteiro",
+        "Não conta primeira vez nas distâncias da primeira corrida"
+      ]
+    },
     {
       "versao": "1.55.3",
       "notas": [
@@ -60,12 +68,6 @@
       "versao": "1.51.0",
       "notas": [
         "Troca a aba mais pela aba ajustes"
-      ]
-    },
-    {
-      "versao": "1.50.0",
-      "notas": [
-        "Junta treinos e treinador numa aba com feitos, semana, mês e plano"
       ]
     }
   ]
