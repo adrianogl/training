@@ -110,7 +110,7 @@ struct RootView: View {
         case .evolution: EvolutionView()
         case .races: RaceListView()
         case .trainer: NavigationStack(path: $trainerPath) { TrainerView() }
-        case .workouts: WorkoutListView()
+        case .workouts: WorkoutsHubView(trainerPath: $trainerPath)
         case .settings: SettingsView()
         case .more: MoreView(path: $morePath)
         }
@@ -161,11 +161,8 @@ struct RootView: View {
         case .section(.today):
             todayPath = []
         case .trainer(let route):
-            if usesSidebar {
-                trainerPath = [route]
-            } else {
-                morePath.append(route)
-            }
+            UserDefaults.standard.set(WorkoutListMode.week.rawValue, forKey: WorkoutCalendarConstants.modeKey)
+            trainerPath = [route]
         case .workout, .section:
             break
         }

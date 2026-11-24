@@ -1,7 +1,7 @@
 import Foundation
 
 enum WorkoutListMode: String, CaseIterable, Identifiable {
-    case list, calendar
+    case list, week, calendar
 
     var id: String { rawValue }
 }

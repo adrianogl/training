@@ -8,6 +8,7 @@ import WorkoutAnalysis
 import TrainingCore
 
 struct WorkoutListView: View {
+    var onPlan: () -> Void = {}
     @Environment(AppModel.self) private var model
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var availableWidth: CGFloat = 0
@@ -214,13 +215,7 @@ struct WorkoutListView: View {
         return ScrollViewReader { proxy in
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 10) {
-                DSScreenHeader(title: WorkoutConstants.listTitle) {
-                    SyncStatusPill()
-                }
-                Picker(WorkoutCalendarConstants.modeNames[.calendar] ?? "", selection: $modeRaw) {
-                    ForEach(WorkoutListMode.allCases) { Text(WorkoutCalendarConstants.modeNames[$0] ?? "").tag($0.rawValue) }
-                }
-                .pickerStyle(.segmented)
+                WorkoutsHeader(modeRaw: $modeRaw, onPlan: onPlan)
                 if hasRuns {
                     WorkoutKindFilterBar(selection: $kindFilter)
                 }

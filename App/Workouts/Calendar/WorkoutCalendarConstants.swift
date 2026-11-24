@@ -3,7 +3,8 @@ import Foundation
 
 enum WorkoutCalendarConstants {
     static let modeKey = "workouts.listMode"
-    static let modeNames: [WorkoutListMode: String] = [.list: "Lista", .calendar: "Calendário"]
+    static let modeNames: [WorkoutListMode: String] = [.week: "Semana", .calendar: "Mês", .list: "Feitos"]
+    static let planButton = "Plano"
     static let weekdayLetters = ["D", "S", "T", "Q", "Q", "S", "S"]
     static let monthFormat = "LLLL 'de' yyyy"
     static let dayTitleFormat = "EEEE, d 'de' MMMM"

@@ -4,6 +4,8 @@ import TrainingCore
 import WorkoutAnalysis
 
 enum TrainerText {
+    static let planTitle = "Plano"
+    static let changesShortcut = "Mudanças do plano"
     private typealias C = TrainerConstants
 
     static let title = "Treinador"

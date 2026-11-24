@@ -23,7 +23,7 @@ enum DeepLink: Equatable {
         case .section(let section): section
         case .readiness: .today
         case .workout: .workouts
-        case .trainer: .trainer
+        case .trainer: .workouts
         }
     }
 
