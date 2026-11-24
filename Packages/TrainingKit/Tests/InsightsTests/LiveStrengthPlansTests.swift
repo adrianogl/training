@@ -42,6 +42,15 @@ private let reader = LiveStrengthMFITReader(
         #expect(biSet.exercises.map(\.weight) == [22.5, 30])
     }
 
+    @Test func mfitExercisesGetTheGarminNameFromTheCatalog() {
+        let exercises = LiveStrengthPlans.from(mfit: superiores, reader: reader).blocks.flatMap(\.exercises)
+
+        #expect(exercises.map(\.exerciseKey) == [
+            "BENCH_PRESS/DUMBBELL_BENCH_PRESS", "ROW/BENT_OVER_ROW_WITH_BARBELL", "ROW/SINGLE_ARM_NEUTRAL_GRIP_DUMBBELL_ROW", "PUSH_UP/PUSH_UP", "PLANK/PLANK",
+        ])
+        #expect(exercises.map(\.category) == ["BENCH_PRESS", "ROW", "ROW", "PUSH_UP", "PLANK"])
+    }
+
     @Test func mfitSetKinds() {
         let plan = LiveStrengthPlans.from(mfit: superiores, reader: reader)
         let unilateral = plan.blocks[1].exercises[0]
