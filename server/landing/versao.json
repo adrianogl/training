@@ -1,11 +1,17 @@
 {
-  "versao": "1.54.0",
-  "build": 88,
-  "versao_app": "1.54.0",
+  "versao": "1.55.0",
+  "build": 89,
+  "versao_app": "1.55.0",
   "notas": [
-    "Padroniza o layout com os componentes do design system"
+    "Adiciona área de avisos e cinco notificações novas"
   ],
   "historico": [
+    {
+      "versao": "1.55.0",
+      "notas": [
+        "Adiciona área de avisos e cinco notificações novas"
+      ]
+    },
     {
       "versao": "1.54.0",
       "notas": [
@@ -59,12 +65,6 @@
       "versao": "1.47.0",
       "notas": [
         "Ajusta carga pelo iPhone, mostra o bi-set em rodada e pula o descanso no zero"
-      ]
-    },
-    {
-      "versao": "1.46.1",
-      "notas": [
-        "Corrige o app fechando quando o relógio conecta"
       ]
     }
   ]
