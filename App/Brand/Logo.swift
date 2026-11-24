@@ -12,7 +12,7 @@ struct Logo: View {
                 BrandIcon(size: BrandConstants.logoIconSize)
                     .frame(width: showsIconPlaceholder ? 0 : BrandConstants.logoIconSize, alignment: .leading)
                     .opacity(showsIconPlaceholder ? 0 : 1)
-                    .clipped()
+                    .clipShape(Rectangle().inset(by: showsIconPlaceholder ? 0 : -BrandConstants.iconGlowRadius * 2))
             }
             VStack(alignment: .leading, spacing: 2) {
                 wordmark
