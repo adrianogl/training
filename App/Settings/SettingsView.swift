@@ -70,6 +70,7 @@ struct SettingsView: View {
         }
         .scrollContentBackground(.hidden)
         .contentMargins(.top, sizeClass == .regular ? nil : DSSpacing.s2, for: .scrollContent)
+        .contentMargins(.horizontal, sizeClass == .regular ? nil : BrandConstants.screenPadding, for: .scrollContent)
         .background(BrandBackground())
         .task { await model.account.refresh() }
         .navigationTitle(AppSection.settings.title)
