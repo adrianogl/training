@@ -13,14 +13,13 @@ struct NoticeBellButton: View {
                 showsList = true
             } label: {
                 Image(systemName: C.bellSymbol)
-                    .font(.subheadline.weight(.semibold))
-                    .frame(width: C.bellIconSize, height: C.bellIconSize)
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(BrandColors.text)
+                    .frame(width: C.bellTapSize, height: C.bellTapSize)
+                    .overlay(alignment: .topTrailing) { unreadDot(inbox.unreadCount > 0) }
+                    .contentShape(Rectangle())
             }
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.circle)
-            .tint(BrandColors.accent)
-            .controlSize(.small)
-            .overlay(alignment: .topTrailing) { badge(inbox.unreadCount) }
+            .buttonStyle(.plain)
             .accessibilityLabel(NoticeInboxText.bellLabel(unread: inbox.unreadCount))
             .sheet(isPresented: $showsList) {
                 NoticeInboxView(inbox: inbox)
@@ -29,17 +28,13 @@ struct NoticeBellButton: View {
     }
 
     @ViewBuilder
-    private func badge(_ count: Int) -> some View {
-        if count > 0 {
-            Text(NoticeInboxText.badge(count))
-                .font(.caption2.weight(.bold))
-                .monospacedDigit()
-                .foregroundStyle(.white)
-                .padding(.horizontal, DSSpacing.s1)
-                .frame(minWidth: C.badgeMinSize, minHeight: C.badgeMinSize)
-                .background(BrandColors.danger, in: Capsule())
-                .overlay(Capsule().strokeBorder(BrandColors.background, lineWidth: C.badgeOutline))
-                .offset(x: C.badgeOffset, y: -C.badgeOffset)
+    private func unreadDot(_ visible: Bool) -> some View {
+        if visible {
+            Circle()
+                .fill(BrandColors.accentFill)
+                .frame(width: C.bellDotSize, height: C.bellDotSize)
+                .overlay(Circle().strokeBorder(BrandColors.background, lineWidth: C.bellDotOutline))
+                .offset(x: -C.bellDotInset, y: C.bellDotInset)
                 .accessibilityHidden(true)
         }
     }

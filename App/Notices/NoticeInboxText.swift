@@ -34,10 +34,6 @@ enum NoticeInboxText {
         count == 1 ? "1 treino esperando envio" : "\(count) treinos esperando envio"
     }
 
-    static func badge(_ count: Int) -> String {
-        count > C.badgeLimit ? "\(C.badgeLimit)+" : String(count)
-    }
-
     static func title(_ entry: NoticeEntry) -> String {
         if let title = entry.title, !title.isEmpty { return title }
         return titlesByIdPrefix.first { entry.id.hasPrefix($0.0) }?.1 ?? fallbackTitle

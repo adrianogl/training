@@ -3,11 +3,10 @@ import Foundation
 
 enum NoticeInboxViewConstants {
     static let bellSymbol = "bell"
-    static let bellIconSize: CGFloat = 20
-    static let badgeMinSize: CGFloat = 17
-    static let badgeOffset: CGFloat = 6
-    static let badgeOutline: CGFloat = 1.5
-    static let badgeLimit = 99
+    static let bellTapSize: CGFloat = 44
+    static let bellDotSize: CGFloat = 9
+    static let bellDotInset: CGFloat = 9
+    static let bellDotOutline: CGFloat = 1.5
     static let closeSymbol = "xmark"
     static let garminSymbol = "watch.analog"
     static let dotSize: CGFloat = 8
