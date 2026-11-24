@@ -36,10 +36,14 @@ enum TrainerSendBuilder {
                 if step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
                     result += series(step.repeats, interval: interval, recovery: recovery(next))
                     index += 2
+                    index += coveredRest(steps, at: index, by: next.restSeconds) ? 1 : 0
                     continue
                 }
                 if step.repeats > 1, let seconds = step.restSeconds, seconds > 0 {
                     result += series(step.repeats, interval: interval, recovery: .rest(seconds: seconds))
+                    index += 1
+                    index += coveredRest(steps, at: index, by: seconds) ? 1 : 0
+                    continue
                 } else if step.repeats > 1 {
                     result.append(.repeated(times: step.repeats, steps: [interval]))
                 } else {
@@ -51,10 +55,15 @@ enum TrainerSendBuilder {
         return result
     }
 
+    private static func coveredRest(_ steps: [TrainerStep], at index: Int, by seconds: Double?) -> Bool {
+        guard let seconds, index < steps.count else { return false }
+        let next = steps[index]
+        guard next.kind == .recovery, next.repeats <= 1, let rest = next.restSeconds, rest > 0 else { return false }
+        return rest <= seconds
+    }
+
     private static func series(_ repeats: Int, interval: PlannedRunStep, recovery: PlannedRunStep) -> [PlannedRunStep] {
-        let paired = repeats - 1
-        let head: [PlannedRunStep] = paired > 1 ? [.repeated(times: paired, steps: [interval, recovery])] : [interval, recovery]
-        return head + [interval]
+        [.repeated(times: repeats, steps: [interval, recovery])]
     }
 
     private static func recovery(_ step: TrainerStep) -> PlannedRunStep {
