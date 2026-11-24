@@ -1,11 +1,17 @@
 {
-  "versao": "1.46.1",
-  "build": 79,
-  "versao_app": "1.46.1",
+  "versao": "1.47.0",
+  "build": 80,
+  "versao_app": "1.47.0",
   "notas": [
-    "Corrige o app fechando quando o relógio conecta"
+    "Ajusta carga pelo iphone, mostra o bi-set em rodada e pula o descanso no zero"
   ],
   "historico": [
+    {
+      "versao": "1.47.0",
+      "notas": [
+        "Ajusta carga pelo iphone, mostra o bi-set em rodada e pula o descanso no zero"
+      ]
+    },
     {
       "versao": "1.46.1",
       "notas": [
@@ -61,12 +67,6 @@
       "versao": "1.41.0",
       "notas": [
         "Nome do treino com tipo e distância total"
-      ]
-    },
-    {
-      "versao": "1.40.5",
-      "notas": [
-        "Envia os treinos ao Garmin sem prefixo no nome"
       ]
     }
   ]
