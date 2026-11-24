@@ -496,8 +496,21 @@ import TrainingCore
         retitleWorkouts()
         migrateStrength()
         migrateStrengthPlan()
+        await dropOutAndBack()
         await notifySignals(applyPending())
         await checkStrengthPlanEnd()
+    }
+
+    private func dropOutAndBack() async {
+        guard let current = plan, current.outAndBack, let volumes = editVolumes(),
+              let edit = makeEdit(
+                  target: current.target,
+                  startMeters: Double(volumes.start) * TrainerConstants.metersPerKilometer,
+                  peakMeters: Double(volumes.peak) * TrainerConstants.metersPerKilometer,
+                  structure: current.structure, longMode: current.longMode, paceOverrides: current.paceOverrides,
+                  dayPreference: current.dayPreference, outAndBack: false
+              ) else { return }
+        await saveEdit(edit)
     }
 
     func scheduleAutoAdjust() {

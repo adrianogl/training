@@ -19,8 +19,7 @@ import TrainingCore
         let steps = TrainerSendBuilder.runSteps(threshold())
         #expect(steps == [
             .warmup(meters: 3_000),
-            .repeated(times: 7, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]),
-            .interval(meters: 1_000, fastest: 240, slowest: 248),
+            .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]),
         ])
     }
 
@@ -35,12 +34,12 @@ import TrainingCore
         let shortSteps = TrainerSendBuilder.runSteps(short, thresholdHeartRate: 172)
 
         #expect(steps.first == .warmup(meters: 4_000, heartRate: 146...154))
-        #expect(steps.last == .interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...171))
-        #expect(shortSteps.last == .interval(meters: 1_000, fastest: 240, slowest: 248))
+        #expect(steps.last == .repeated(times: 4, steps: [.interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...171), .rest(seconds: 120)]))
+        #expect(shortSteps.last == .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]))
         #expect(ZoneText.label(4, band: TrainerZones.bands(thresholdHeartRate: 172, paces: nil)[3]) == "Z4 · 163–171")
     }
 
-    @Test func standingRestGoesAsTimedRestInsideTheSeries() {
+    @Test func eachBlockGoesAsOneSeriesWithItsRest() {
         let workout = TrainerWorkout(day: day, kind: .vo2max, title: "VO2", totalMeters: 10_000, steps: [
             TrainerStep(kind: .warmup, meters: 3_000),
             TrainerStep(kind: .work, repeats: 2, meters: 1_000, paceLow: 230, paceHigh: 236),
@@ -56,10 +55,9 @@ import TrainingCore
         let stride = PlannedRunStep.interval(meters: 100, fastest: 200, slowest: 206)
         #expect(TrainerSendBuilder.runSteps(workout) == [
             .warmup(meters: 3_000),
-            rep, .rest(seconds: 150), rep,
-            .rest(seconds: 150),
-            .repeated(times: 2, steps: [rep, .rest(seconds: 150)]), rep,
-            .repeated(times: 5, steps: [stride, .recovery(meters: 100)]), stride,
+            .repeated(times: 2, steps: [rep, .rest(seconds: 150)]),
+            .repeated(times: 3, steps: [rep, .rest(seconds: 150)]),
+            .repeated(times: 6, steps: [stride, .recovery(meters: 100)]),
             .cooldown(meters: 1_000),
         ])
         #expect(!TrainerSendBuilder.runSteps(workout).description.contains("recovery(meters: 0.0)"))
