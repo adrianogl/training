@@ -1,11 +1,17 @@
 {
-  "versao": "1.52.0",
-  "build": 86,
-  "versao_app": "1.52.0",
+  "versao": "1.53.0",
+  "build": 87,
+  "versao_app": "1.53.0",
   "notas": [
-    "Envia o nome do exercício do mfit ao garmin connect"
+    "Renomeia o app de força para training e deixa a hora do mostrador sólida"
   ],
   "historico": [
+    {
+      "versao": "1.53.0",
+      "notas": [
+        "Renomeia o app de força para training e deixa a hora do mostrador sólida"
+      ]
+    },
     {
       "versao": "1.52.0",
       "notas": [
@@ -60,14 +66,6 @@
       "notas": [
         "Mostra se o treino de hoje está no relógio na tela força",
         "Mostra a carga do próximo treino no resumo e leva ela ao relógio"
-      ]
-    },
-    {
-      "versao": "1.45.0",
-      "notas": [
-        "Amarra o treino ao vivo à versão do plano e corrige os itens do review",
-        "Pula e traz exercícios de volta pelo iphone e organiza a tela ao vivo",
-        "Envia as séries ao garmin connect e mostra o resumo no fim do treino"
       ]
     }
   ]
