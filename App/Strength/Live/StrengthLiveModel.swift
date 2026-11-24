@@ -45,6 +45,7 @@ final class StrengthLiveModel {
 
     private init() {
         snapshot = store.load()
+        if let own = snapshot?.finish?.activityId, snapshot?.finish?.upload == .sent { ActivityExclusionStore().markOwn(own) }
         activity = Activity<StrengthLiveAttributes>.activities.first
     }
 
@@ -207,6 +208,7 @@ final class StrengthLiveModel {
             current.finish?.activityId = result.activityId
             self.snapshot = current
             persist()
+            if let activityId = result.activityId, result.state == .sent { ActivityExclusionStore().markOwn(activityId) }
             if result.state == .sent, let activityId = result.activityId {
                 _ = StrengthProgramStore().replaceLiveLoads(Self.loadRecords(current.session), day: current.session.plan.day, activity: activityId)
             }

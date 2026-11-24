@@ -22,6 +22,7 @@ extension SyncEngine {
 
     func upsertActivity(_ dto: ActivityDTO) throws {
         let id = dto.activityId
+        guard !excludedActivityIds.contains(id) else { return }
         var descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.activityId == id })
         descriptor.fetchLimit = 1
         let record: ActivityRecord

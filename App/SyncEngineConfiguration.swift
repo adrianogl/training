@@ -43,6 +43,9 @@ struct SyncEngineConfiguration: Equatable {
     }
 
     func makeEngine(source: any GarminDataSource, container: ModelContainer) -> SyncEngine {
-        SyncEngine(source: source, container: container, today: { Day.today() }, fitLimit: fitLimit, mode: mode, deferredFITOlderThanDays: deferredFITOlderThanDays)
+        SyncEngine(
+            source: source, container: container, today: { Day.today() }, fitLimit: fitLimit, mode: mode,
+            deferredFITOlderThanDays: deferredFITOlderThanDays, excludedActivityIds: ActivityExclusionStore().deletedIds
+        )
     }
 }
