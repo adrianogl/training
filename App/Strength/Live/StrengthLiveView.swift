@@ -7,6 +7,7 @@ private typealias T = StrengthLiveText
 struct StrengthLiveView: View {
     let snapshot: StrengthLiveSnapshot
     @State private var showsDone = false
+    @State private var editing: LiveStrengthExercise?
 
     var body: some View {
         let screen = LiveStrengthLive.screen(session: snapshot.session)
@@ -17,18 +18,18 @@ struct StrengthLiveView: View {
             StrengthLiveStats(startedAt: snapshot.startedAt, card: card)
             if let now = screen.now {
                 DSSectionTitle(T.now).padding(.top, 4)
-                StrengthLiveNowCard(now: now, card: card, connected: model.watchConnected)
+                StrengthLiveNowCard(now: now, card: card, connected: model.watchConnected, onEdit: { editing = $0 })
             }
             let upcoming = screen.items.filter { $0.state == .pending }
             let later = screen.items.filter { $0.state == .skipped }
             let finished = screen.items.filter { $0.state == .done || $0.state == .leftOut }
             if !upcoming.isEmpty {
                 DSSectionTitle(T.upcoming).padding(.top, 4)
-                StrengthLiveList(items: upcoming, connected: model.watchConnected)
+                StrengthLiveList(items: upcoming, connected: model.watchConnected, onEdit: { editing = $0 })
             }
             if !later.isEmpty {
                 Text(T.later.uppercased()).font(.caption.weight(.bold)).tracking(1.4).foregroundStyle(BrandColors.attention).padding(.top, 4)
-                StrengthLiveList(items: later, connected: model.watchConnected)
+                StrengthLiveList(items: later, connected: model.watchConnected, onEdit: { editing = $0 })
             }
             if !finished.isEmpty {
                 Button {
@@ -44,7 +45,7 @@ struct StrengthLiveView: View {
                 .buttonStyle(.plain)
                 .padding(.top, 4)
                 if showsDone {
-                    StrengthLiveList(items: finished, connected: model.watchConnected)
+                    StrengthLiveList(items: finished, connected: model.watchConnected, onEdit: nil)
                 }
             }
             if !model.watchConnected {
@@ -53,6 +54,19 @@ struct StrengthLiveView: View {
                     .padding(.horizontal, 12).padding(.vertical, 9)
                     .overlay(RoundedRectangle(cornerRadius: DSRadius.medium).strokeBorder(BrandColors.line, style: StrokeStyle(lineWidth: 1, dash: [4])))
             }
+        }
+        .sheet(item: $editing) { exercise in
+            let block = snapshot.session.plan.block(containing: exercise.id)
+            StrengthLiveWeightSheet(
+                exercise: exercise,
+                setsLeft: max((block?.rounds ?? 0) - (snapshot.session.done[exercise.id]?.count ?? 0), 0),
+                planned: LiveStrengthQueue.plannedWeight(exercise, in: snapshot.session),
+                connected: model.watchConnected
+            ) { weight, bodyweight, nextOnly in
+                editing = nil
+                model.requestWeight(exercise, weight: weight, bodyweight: bodyweight, nextOnly: nextOnly)
+            }
+            .presentationDetents([.height(C.weightSheetHeight)])
         }
     }
 
@@ -107,6 +121,7 @@ struct StrengthLiveNowCard: View {
     let now: LiveStrengthNow
     let card: LiveStrengthCard
     let connected: Bool
+    let onEdit: (LiveStrengthExercise) -> Void
     @State private var confirmsSkip = false
 
     private var setsDone: Int { now.rows.filter { $0.state == .done }.count }
@@ -114,18 +129,31 @@ struct StrengthLiveNowCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: C.cardSpacing) {
             VStack(alignment: .leading, spacing: C.cardSpacing) {
-                HStack(alignment: .top, spacing: 10) {
-                    Text(now.marker).font(.footnote.bold()).foregroundStyle(BrandColors.accent).frame(width: C.markerWidth, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(now.exercise.name).font(.headline).foregroundStyle(BrandColors.text)
-                        Text(T.nowSetLine(card: card, now: now)).font(.caption).foregroundStyle(BrandColors.dim)
+                if let round = now.round {
+                    roundHeader(round)
+                } else {
+                    Button { onEdit(now.exercise) } label: {
+                        HStack(alignment: .top, spacing: 10) {
+                            Text(now.marker).font(.footnote.bold()).foregroundStyle(BrandColors.accent).frame(width: C.markerWidth, alignment: .leading)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(now.exercise.name).font(.headline).foregroundStyle(BrandColors.text)
+                                Text(T.nowSetLine(card: card, now: now)).font(.caption).foregroundStyle(BrandColors.dim)
+                            }
+                            Spacer(minLength: 0)
+                            Image(systemName: C.editSymbol).font(.footnote).foregroundStyle(BrandColors.dim)
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 }
                 restBox
             }
             .brandCard()
-            DSSectionTitle(T.setsSection).padding(.top, 4)
-            table.brandCard()
+            DSSectionTitle(now.round == nil ? T.setsSection : T.roundsSection).padding(.top, 4)
+            Group {
+                if let round = now.round { roundTable(round) } else { table }
+            }
+            .brandCard()
             skipButton
         }
         .sheet(isPresented: $confirmsSkip) {
@@ -160,6 +188,72 @@ struct StrengthLiveNowCard: View {
 
     private var restBox: some View {
         StrengthLiveMomentBand(card: card)
+    }
+
+    private func roundHeader(_ round: LiveStrengthRound) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 10) {
+                Text(round.letter).font(.footnote.bold()).foregroundStyle(BrandColors.strength).frame(width: C.markerWidth, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(T.roundTitle(round.letter, number: round.number, rounds: now.rounds)).font(.headline).foregroundStyle(BrandColors.text)
+                    Text(T.roundSubtitle(round.markers, rest: now.restSeconds)).font(.caption).foregroundStyle(BrandColors.dim)
+                }
+            }
+            ForEach(Array(zip(round.markers, round.exercises)), id: \.1.id) { marker, exercise in
+                Button { onEdit(exercise) } label: {
+                    HStack(alignment: .top, spacing: 10) {
+                        Text(marker).font(.footnote.bold()).foregroundStyle(BrandColors.accent).frame(width: C.markerWidth, alignment: .leading)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(exercise.name).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
+                            Text(T.roundExerciseLine(exercise)).font(.caption).foregroundStyle(BrandColors.dim)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: C.editSymbol).font(.footnote).foregroundStyle(BrandColors.dim)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func roundTable(_ round: LiveStrengthRound) -> some View {
+        VStack(spacing: 0) {
+            roundRow(Text(T.roundColumn), cells: round.markers.map { Text($0) }, last: Text(T.lastShortColumn), header: true)
+                .foregroundStyle(BrandColors.dim).padding(.bottom, 6)
+            ForEach(round.rows) { row in
+                switch row.state {
+                case .done:
+                    roundRow(Text(C.check + " \(row.number)").foregroundStyle(BrandColors.strength), cells: row.cells.map { Text($0).foregroundStyle(BrandColors.text) }, last: Text(row.last ?? T.none).foregroundStyle(BrandColors.dim))
+                        .padding(.vertical, C.rowPadding)
+                        .overlay(alignment: .top) { Rectangle().fill(BrandColors.line).frame(height: 1) }
+                case .next:
+                    roundRow(Text("\(row.number)"), cells: row.cells.map { Text($0) }, last: Text(row.last ?? T.none).foregroundStyle(BrandColors.dim))
+                        .foregroundStyle(BrandColors.accent)
+                        .padding(.vertical, C.rowPadding - 1)
+                        .padding(.horizontal, 8)
+                        .overlay(RoundedRectangle(cornerRadius: DSRadius.medium).stroke(BrandColors.accent, lineWidth: 1))
+                        .padding(.horizontal, -8)
+                case .pending:
+                    roundRow(Text("\(row.number)"), cells: row.cells.map { Text($0) }, last: Text(row.last ?? T.none))
+                        .foregroundStyle(BrandColors.dim.opacity(C.pendingOpacity))
+                        .padding(.vertical, C.rowPadding)
+                }
+            }
+        }
+    }
+
+    private func roundRow(_ number: Text, cells: [Text], last: Text, header: Bool = false) -> some View {
+        let value: Font = header ? .caption2 : .system(size: C.planSize, weight: .bold, design: .rounded).monospacedDigit()
+        return HStack(spacing: 8) {
+            number.font(header ? .caption2 : .footnote.monospacedDigit().bold()).frame(width: C.numberWidth, alignment: .leading)
+            ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
+                cell.font(value).frame(maxWidth: .infinity, alignment: .leading)
+            }
+            last.font(value).frame(width: C.lastWidth, alignment: .trailing)
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
     }
 
     private var table: some View {
@@ -254,6 +348,7 @@ struct StrengthLiveSkipSheet: View {
 struct StrengthLiveList: View {
     let items: [LiveStrengthItem]
     let connected: Bool
+    let onEdit: ((LiveStrengthExercise) -> Void)?
 
     private var groups: [[LiveStrengthItem]] {
         items.reduce(into: [[LiveStrengthItem]]()) { groups, item in
@@ -293,12 +388,14 @@ struct StrengthLiveList: View {
     private func row(_ item: LiveStrengthItem) -> some View {
         HStack(spacing: 10) {
             Text(marker(item)).font(.footnote.bold()).foregroundStyle(markerColor(item)).frame(width: C.markerWidth, alignment: .leading)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(item.exercise.name).font(.subheadline.weight(.semibold))
-                    .foregroundStyle(item.state == .done ? BrandColors.dim : BrandColors.text)
-                Text(item.state == .skipped ? T.remaining(item) : T.itemDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
+            editable(item) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(item.exercise.name).font(.subheadline.weight(.semibold))
+                        .foregroundStyle(item.state == .done ? BrandColors.dim : BrandColors.text)
+                    Text(item.state == .skipped ? T.remaining(item) : T.itemDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            Spacer(minLength: 8)
             trailing(item, progress: T.progress(item))
         }
     }
@@ -319,13 +416,25 @@ struct StrengthLiveList: View {
                     Text(item.marker).font(.footnote.bold())
                         .foregroundStyle(state == .done ? BrandColors.strength : state == .leftOut ? BrandColors.dim : BrandColors.accent)
                         .frame(width: C.markerWidth, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(item.exercise.name).font(.subheadline.weight(.semibold))
-                            .foregroundStyle(state == .done ? BrandColors.dim : BrandColors.text)
-                        Text(T.supersetDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
+                    editable(item) {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(item.exercise.name).font(.subheadline.weight(.semibold))
+                                .foregroundStyle(state == .done ? BrandColors.dim : BrandColors.text)
+                            Text(T.supersetDetail(item)).font(.caption).foregroundStyle(BrandColors.dim)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder private func editable<Content: View>(_ item: LiveStrengthItem, @ViewBuilder content: () -> Content) -> some View {
+        if let onEdit, item.state != .done, item.state != .leftOut {
+            Button { onEdit(item.exercise) } label: { content().contentShape(Rectangle()) }
+                .buttonStyle(.plain)
+        } else {
+            content()
         }
     }
 
@@ -421,20 +530,15 @@ struct StrengthLiveMomentBand: View {
             .padding(.vertical, 8)
             .background(color.opacity(C.restBoxOpacity), in: .dsInner)
         default:
-            HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(T.doing).font(.caption.weight(.semibold)).foregroundStyle(BrandColors.accent)
-                    if let last = card.last { Text(T.lastLine(last)).font(.caption).foregroundStyle(BrandColors.dim) }
-                }
-                Spacer()
-                if let target = card.target {
-                    Text(target).font(.system(size: C.restSize, weight: .heavy, design: .rounded).monospacedDigit())
-                        .foregroundStyle(BrandColors.accent).lineLimit(1).minimumScaleFactor(0.7)
-                }
+            HStack(spacing: 6) {
+                Circle().fill(BrandColors.accent).frame(width: C.dotSize, height: C.dotSize)
+                (Text(T.doing).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.accent)
+                    + Text("  " + T.doingMain(card.target)).font(.system(size: C.doingSize, weight: .heavy, design: .rounded).monospacedDigit()).foregroundStyle(BrandColors.text)
+                    + Text(T.doingDetail(card.target, last: card.last)).font(.caption).foregroundStyle(BrandColors.dim))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(BrandColors.accent.opacity(C.restBoxOpacity), in: .dsInner)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

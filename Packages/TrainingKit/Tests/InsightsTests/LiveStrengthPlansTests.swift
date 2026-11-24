@@ -115,5 +115,12 @@ private let reader = LiveStrengthMFITReader(
         #expect(byName["Remada curvada"] == 32.5)
         #expect(byName["Supino reto com halteres"] == 22.5)
     }
+
+    @Test func bodyweightChosenOnThePhoneDropsTheLoad() {
+        let plan = LiveStrengthPlans.from(mfit: superiores, reader: reader, bodyweight: ["remada curvada"])
+        let remada = plan.blocks.flatMap(\.exercises).first { $0.name == "Remada curvada" }
+        #expect(remada?.bodyweight == true)
+        #expect(remada?.weight == nil)
+    }
 }
 

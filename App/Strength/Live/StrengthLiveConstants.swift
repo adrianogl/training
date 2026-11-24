@@ -5,6 +5,9 @@ enum StrengthLiveConstants {
     static let plansFile = "strength-live-plans-v2.json"
     static let plansKeptDays = 3
     static let nextLoadsFile = "strength-next-loads.json"
+    static let bodyweightFile = "strength-bodyweight.json"
+    static let phoneEventPrefix = "iphone-"
+    static let resyncInterval: TimeInterval = 30
     static let nextSearchDays = 14
     static let staleAfter: TimeInterval = 4 * 60 * 60
     static let uploadWindow: TimeInterval = 24 * 60 * 60
@@ -31,6 +34,13 @@ enum StrengthLiveViewConstants {
     static let cardSpacing: CGFloat = 12
     static let check = "✓"
     static let sheetHeight: CGFloat = 260
+    static let weightSheetHeight: CGFloat = 420
+    static let correctSheetHeight: CGFloat = 440
+    static let editSymbol = "slider.horizontal.3"
+    static let weightStep = 2.5
+    static let stepperSize: CGFloat = 44
+    static let dotSize: CGFloat = 8
+    static let doingSize: CGFloat = 18
     static let toastBottom: CGFloat = 96
     static let highlightOpacity: Double = 0.18
     static let later = "↻"

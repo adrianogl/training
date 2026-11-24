@@ -51,7 +51,16 @@ public enum LiveStrengthQueue {
     }
 
     public static func plannedWeight(_ exercise: LiveStrengthExercise, in session: LiveStrengthSession) -> Double? {
-        session.done[exercise.id]?.last?.weight ?? exercise.weight
+        if let override = session.overrides?[exercise.id] { return override.bodyweight ? nil : override.weight }
+        return session.done[exercise.id]?.last?.weight ?? exercise.weight
+    }
+
+    public static func effective(_ exercise: LiveStrengthExercise, in session: LiveStrengthSession) -> LiveStrengthExercise {
+        guard let override = session.overrides?[exercise.id] else { return exercise }
+        var changed = exercise
+        changed.bodyweight = override.bodyweight
+        changed.weight = override.bodyweight ? nil : override.weight
+        return changed
     }
 
     public static func isComplete(_ block: LiveStrengthBlock, in session: LiveStrengthSession) -> Bool {
@@ -68,6 +77,7 @@ public enum LiveStrengthQueue {
         case let .setDone(exerciseId, result):
             guard session.plan.exercise(exerciseId) != nil else { return session }
             copy.done[exerciseId, default: []].append(result)
+            if copy.overrides?[exerciseId]?.nextOnly == true { copy.overrides?[exerciseId] = nil }
         case let .adjust(exerciseId, setIndex, result):
             guard let sets = session.done[exerciseId], sets.indices.contains(setIndex) else { return session }
             var adjusted = result
@@ -93,6 +103,11 @@ public enum LiveStrengthQueue {
             } else {
                 copy.order.insert(target.id, at: 0)
             }
+        case let .setWeight(exerciseId, weight, bodyweight, nextOnly):
+            guard session.plan.exercise(exerciseId) != nil else { return session }
+            var overrides = copy.overrides ?? [:]
+            overrides[exerciseId] = LiveStrengthWeightOverride(weight: bodyweight ? nil : weight, bodyweight: bodyweight, nextOnly: nextOnly)
+            copy.overrides = overrides
         case let .leaveOut(exerciseId):
             guard let block = session.plan.block(containing: exerciseId) else { return session }
             copy.skipped.removeAll { $0 == block.id }

@@ -34,6 +34,16 @@ struct StrengthProgramStore: Sendable {
         return cache
     }
 
+    func replaceLiveLoads(_ records: [MFITLoadRecord], day: String, activity: Int64) -> StrengthProgramCache {
+        let current = load()
+        let keys = Set(records.map(\.key))
+        let kept = current.loads.filter { !($0.fromWatch == true && $0.day == day && keys.contains($0.key)) }
+        let processed = current.watchProcessed.contains(activity) ? current.watchProcessed : current.watchProcessed + [activity]
+        let cache = StrengthProgramCache(program: current.program, known: current.known, loads: kept + records, watchProcessed: processed)
+        save(cache)
+        return cache
+    }
+
     func addWatchLoads(_ records: [MFITLoadRecord], activity: Int64) -> StrengthProgramCache {
         let current = load()
         let cache = StrengthProgramCache(program: current.program, known: current.known, loads: current.loads + records, watchProcessed: current.watchProcessed + [activity])

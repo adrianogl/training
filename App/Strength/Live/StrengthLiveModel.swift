@@ -18,6 +18,7 @@ final class StrengthLiveModel {
     @ObservationIgnored private var activity: Activity<StrengthLiveAttributes>?
     @ObservationIgnored var garminClient: (@MainActor () -> GarminAccountClient?)?
     @ObservationIgnored private var uploading = false
+    @ObservationIgnored private var lastResync = Date.distantPast
     private(set) var pendingCommand: StrengthLivePendingCommand?
     var watchConnected = false
     private(set) var plansRevision = 0
@@ -47,12 +48,14 @@ final class StrengthLiveModel {
         activity = Activity<StrengthLiveAttributes>.activities.first
     }
 
-    func started(at startedAt: Date, version: String?) {
+    func started(at startedAt: Date, version: String?, watchPlan: Data?) {
         if let id = activity?.id {
             Task { await Self.end(id, content: nil, dismissal: .immediate) }
             activity = nil
         }
-        guard let version, let plan = store.sentPlan(version: version) else {
+        let known = version.flatMap { store.sentPlan(version: $0) }
+        let rebuilt = watchPlan.flatMap { LiveStrengthWatch.plan(fromWatch: $0, known: store.sentPlans(), loadKey: MFITParser.exerciseKey) }
+        guard let plan = known ?? rebuilt else {
             snapshot = nil
             store.clear()
             return
@@ -64,7 +67,10 @@ final class StrengthLiveModel {
 
     func receive(_ events: [LiveStrengthEvent]) {
         guard var current = snapshot, current.finish == nil,
-              Date.now.timeIntervalSince(current.startedAt) < StrengthLiveConstants.staleAfter else { return }
+              Date.now.timeIntervalSince(current.startedAt) < StrengthLiveConstants.staleAfter else {
+            requestResync()
+            return
+        }
         current.session = LiveStrengthQueue.receive(events, into: current.session)
         withAnimation(.snappy) { snapshot = current }
         persist()
@@ -74,9 +80,37 @@ final class StrengthLiveModel {
 
     func request(_ command: StrengthLiveCommand, exerciseId: String) {
         guard pendingCommand == nil else { return }
-        let pending = StrengthLivePendingCommand(kind: command, exerciseId: exerciseId, sentAt: .now)
-        pendingCommand = pending
         WatchLink.shared.sendCommand(command.rawValue, exerciseId: exerciseId)
+        waitForWatch(StrengthLivePendingCommand(kind: command, exerciseId: exerciseId, sentAt: .now))
+    }
+
+    func requestWeight(_ exercise: LiveStrengthExercise, weight: Double?, bodyweight: Bool, nextOnly: Bool) {
+        guard pendingCommand == nil else { return }
+        store.setBodyweight(exercise.loadKey, on: bodyweight)
+        WatchLink.shared.sendWeight(exerciseId: exercise.id, weight: weight, bodyweight: bodyweight, nextOnly: nextOnly)
+        waitForWatch(StrengthLivePendingCommand(kind: .setWeight, exerciseId: exercise.id, sentAt: .now))
+    }
+
+    func correct(exerciseId: String, setIndex: Int, reps: Int?, weight: Double?) {
+        guard var current = snapshot, let done = current.session.done[exerciseId], done.indices.contains(setIndex) else { return }
+        var result = done[setIndex]
+        result.reps = reps
+        result.weight = weight
+        let sequence = (current.session.events.map(\.sequence).max() ?? 0) + 1
+        let event = LiveStrengthEvent(
+            id: StrengthLiveConstants.phoneEventPrefix + UUID().uuidString, sequence: sequence,
+            action: .adjust(exerciseId: exerciseId, setIndex: setIndex, result: result)
+        )
+        current.session = LiveStrengthQueue.receive([event], into: current.session)
+        if current.finish?.upload == .sent { current.finish?.upload = .resend }
+        withAnimation(.snappy) { snapshot = current }
+        persist()
+        if current.finish?.saved == true { store.saveNextLoads(LiveStrengthReport.nextLoads(current.session)) }
+        uploadPending()
+    }
+
+    private func waitForWatch(_ pending: StrengthLivePendingCommand) {
+        pendingCommand = pending
         Task {
             try? await Task.sleep(for: StrengthLiveConstants.commandTimeout)
             guard self.pendingCommand == pending else { return }
@@ -99,6 +133,7 @@ final class StrengthLiveModel {
         let matched = events.contains { event in
             switch (event.action, pending.kind) {
             case (.skip(let id), .skip), (.doNow(let id), .doNow): id == pending.exerciseId
+            case (.setWeight(let id, _, _, _), .setWeight): id == pending.exerciseId
             default: false
             }
         }
@@ -143,6 +178,12 @@ final class StrengthLiveModel {
         }
     }
 
+    private func requestResync() {
+        guard Date.now.timeIntervalSince(lastResync) > StrengthLiveConstants.resyncInterval else { return }
+        lastResync = .now
+        WatchLink.shared.requestResync()
+    }
+
     func plansChanged() {
         plansRevision += 1
     }
@@ -154,7 +195,7 @@ final class StrengthLiveModel {
 
     func uploadPending() {
         guard !uploading, let snapshot, let finish = snapshot.finish, finish.saved,
-              finish.upload == .pending || finish.upload == .notFound || finish.upload == .failed,
+              [.pending, .notFound, .failed, .resend].contains(finish.upload),
               Date.now.timeIntervalSince(finish.at) < StrengthLiveConstants.uploadWindow,
               let client = garminClient?() else { return }
         uploading = true
@@ -167,7 +208,7 @@ final class StrengthLiveModel {
             self.snapshot = current
             persist()
             if result.state == .sent, let activityId = result.activityId {
-                _ = StrengthProgramStore().addWatchLoads(Self.loadRecords(current.session), activity: activityId)
+                _ = StrengthProgramStore().replaceLiveLoads(Self.loadRecords(current.session), day: current.session.plan.day, activity: activityId)
             }
         }
     }
@@ -189,6 +230,14 @@ final class StrengthLiveModel {
     private static func upload(_ snapshot: StrengthLiveSnapshot, client: GarminAccountClient) async -> (state: StrengthLiveUploadState, activityId: Int64?) {
         let sets = LiveStrengthUpload.sets(snapshot.session)
         guard !sets.isEmpty else { return (.sent, nil) }
+        if snapshot.finish?.upload == .resend, let own = snapshot.finish?.activityId {
+            do {
+                try await ExerciseSetsUpload.upload(client: client, activityId: own, sets: sets)
+                return (.sent, own)
+            } catch {
+                return (.resend, own)
+            }
+        }
         guard let data = try? await client.get(GarminEndpoints.activitiesPath + StrengthLiveConstants.activitiesQuery),
               let activities = try? JSONDecoder().decode([ActivityDTO].self, from: data) else { return (.failed, nil) }
         guard let activity = LiveStrengthUpload.match(activities, startedAt: snapshot.startedAt) else { return (.notFound, nil) }

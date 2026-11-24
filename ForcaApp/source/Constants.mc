@@ -105,6 +105,10 @@ module EventKeys {
     const SKIP = "skip";
     const DO_NOW = "doNow";
     const LEAVE_OUT = "leaveOut";
+    const SET_WEIGHT = "setWeight";
+    const WEIGHT = "weight";
+    const BODYWEIGHT = "bodyweight";
+    const NEXT_ONLY = "nextOnly";
     const EXERCISE_ID = "exerciseId";
     const SET_INDEX = "setIndex";
     const RESULT = "result";
@@ -124,6 +128,9 @@ module LinkKeys {
     const DURATION = "durationSeconds";
     const AVERAGE_HEART_RATE = "averageHeartRate";
     const ACK_FINISHED = "ackFinished";
+    const PLAN = "plan";
+    const RESYNC = "resync";
+    const NEED_PLANS = "needPlans";
     const PLANS = "plans";
     const STATUS = "status";
     const COMMAND = "command";

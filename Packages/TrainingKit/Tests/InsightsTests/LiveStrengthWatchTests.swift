@@ -63,4 +63,19 @@ import Testing
         #expect(LiveStrengthWatch.version(plan) == LiveStrengthWatch.version(plan))
         #expect(LiveStrengthWatch.version(plan) != LiveStrengthWatch.version(heavier))
     }
+
+    @Test func planFromTheWatchTakesCategoriesFromTheKnownPlan() throws {
+        var changed = plan
+        changed.blocks[0].exercises[0].weight = 35
+        let message = try LiveStrengthWatch.message([changed])
+        let object = try #require(try JSONSerialization.jsonObject(with: message) as? [String: Any])
+        let watchPlan = try JSONSerialization.data(withJSONObject: try #require((object["plans"] as? [Any])?.first))
+        let rebuilt = try #require(LiveStrengthWatch.plan(fromWatch: watchPlan, known: [plan], loadKey: { $0.lowercased() }))
+        #expect(rebuilt.blocks[0].exercises[0].weight == 35)
+        #expect(rebuilt.blocks[0].exercises[0].category == "ROW")
+        #expect(rebuilt.blocks[0].exercises[0].loadKey == "remada curvada")
+        #expect(rebuilt.source == .mfit)
+        #expect(LiveStrengthWatch.plan(fromWatch: watchPlan, known: [], loadKey: { "k:" + $0 })?.blocks[1].exercises[0].loadKey == "k:Prancha")
+    }
 }
+

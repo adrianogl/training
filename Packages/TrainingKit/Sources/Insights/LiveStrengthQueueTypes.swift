@@ -6,6 +6,19 @@ public enum LiveStrengthAction: Codable, Sendable, Equatable {
     case skip(exerciseId: String)
     case doNow(exerciseId: String)
     case leaveOut(exerciseId: String)
+    case setWeight(exerciseId: String, weight: Double?, bodyweight: Bool, nextOnly: Bool)
+}
+
+public struct LiveStrengthWeightOverride: Codable, Sendable, Equatable {
+    public var weight: Double?
+    public var bodyweight: Bool
+    public var nextOnly: Bool
+
+    public init(weight: Double?, bodyweight: Bool, nextOnly: Bool) {
+        self.weight = weight
+        self.bodyweight = bodyweight
+        self.nextOnly = nextOnly
+    }
 }
 
 public struct LiveStrengthEvent: Codable, Sendable, Equatable, Identifiable {
@@ -27,6 +40,7 @@ public struct LiveStrengthSession: Codable, Sendable, Equatable {
     public var skipped: [String]
     public var leftOut: [String]
     public var events: [LiveStrengthEvent]
+    public var overrides: [String: LiveStrengthWeightOverride]?
 
     public init(plan: LiveStrengthPlan) {
         self.plan = plan

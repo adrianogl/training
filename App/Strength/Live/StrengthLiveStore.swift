@@ -22,8 +22,22 @@ struct StrengthLiveStore {
         write(known, file: StrengthLiveConstants.nextLoadsFile)
     }
 
+    func bodyweightKeys() -> Set<String> {
+        Set(read([String].self, file: StrengthLiveConstants.bodyweightFile) ?? [])
+    }
+
+    func setBodyweight(_ key: String, on: Bool) {
+        var keys = bodyweightKeys()
+        if on { keys.insert(key) } else { keys.remove(key) }
+        write(keys.sorted(), file: StrengthLiveConstants.bodyweightFile)
+    }
+
     func clear() {
         try? FileManager.default.removeItem(at: directory.appending(path: StrengthLiveConstants.sessionFile))
+    }
+
+    func sentPlans() -> [LiveStrengthPlan] {
+        Array((read([String: LiveStrengthPlan].self, file: StrengthLiveConstants.plansFile) ?? [:]).values)
     }
 
     func sentPlan(version: String) -> LiveStrengthPlan? {

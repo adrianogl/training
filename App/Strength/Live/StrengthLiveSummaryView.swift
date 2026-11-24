@@ -9,6 +9,7 @@ struct StrengthLiveSummaryView: View {
     let snapshot: StrengthLiveSnapshot
     let summary: LiveStrengthSummary
     let nextDay: Day?
+    @State private var correcting: LiveStrengthExerciseSummary?
 
     var body: some View {
         VStack(alignment: .leading, spacing: C.cardSpacing) {
@@ -77,11 +78,16 @@ struct StrengthLiveSummaryView: View {
                 HStack(spacing: 10) {
                     Text(item.change == .skipped ? T.none : "\(index + 1)").font(.footnote.bold())
                         .foregroundStyle(item.change == .skipped ? BrandColors.dim : BrandColors.accent).frame(width: 18, alignment: .leading)
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(item.name).font(.subheadline.weight(.semibold))
-                            .foregroundStyle(item.change == .skipped ? BrandColors.dim : BrandColors.text)
-                        StrengthLiveSummaryLine(exercise: snapshot.session.plan.exercise(item.id), sets: item.sets).font(.caption)
+                    Button { if !item.sets.isEmpty { correcting = item } } label: {
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(item.name).font(.subheadline.weight(.semibold))
+                                .foregroundStyle(item.change == .skipped ? BrandColors.dim : BrandColors.text)
+                            StrengthLiveSummaryLine(exercise: snapshot.session.plan.exercise(item.id), sets: item.sets).font(.caption)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     Spacer(minLength: 8)
                     switch item.change {
                     case .asPlanned:
@@ -101,6 +107,15 @@ struct StrengthLiveSummaryView: View {
             }
         }
         .brandCard()
+        .sheet(item: $correcting) { item in
+            if let exercise = snapshot.session.plan.exercise(item.id) {
+                StrengthLiveCorrectSheet(exercise: exercise, sets: item.sets) { index, reps, weight in
+                    correcting = nil
+                    StrengthLiveModel.shared.correct(exerciseId: item.id, setIndex: index, reps: reps, weight: weight)
+                }
+                .presentationDetents([.height(C.correctSheetHeight)])
+            }
+        }
     }
 }
 
