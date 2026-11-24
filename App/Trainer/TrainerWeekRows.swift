@@ -9,6 +9,8 @@ struct TrainerWeekRows: View {
     let currentDay: Day
     @Environment(AppModel.self) private var app
     @Query private var records: [ActivityRecord]
+    @Query private var history: [ActivityRecord]
+    @State private var recordTimeline = RecordTimelineCache()
 
     init(group: TrainerWeekGroup, currentDay: Day) {
         self.group = group
@@ -19,7 +21,7 @@ struct TrainerWeekRows: View {
     }
 
     var body: some View {
-        ForEach(TrainerWeekItems.items(rows: group.rows, done: WorkoutListModel.rows(records: records))) { item in
+        ForEach(TrainerWeekItems.items(rows: group.rows, done: WorkoutListModel.rows(records: records, timeline: recordTimeline.timeline(records: history)))) { item in
             switch item {
             case .planned(let row):
                 NavigationLink(value: TrainerRoute.day(row.id)) {

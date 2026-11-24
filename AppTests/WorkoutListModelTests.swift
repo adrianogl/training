@@ -4,10 +4,31 @@ import Storage
 import TrainingCore
 import SwiftData
 import Testing
+import WorkoutAnalysis
 @testable import trAIning
 
 @MainActor
 @Suite struct WorkoutListModelTests {
+    private func run(_ id: Int64, day: Double, _ efforts: [(Double, Double)]) throws -> ActivityRecord {
+        let record = ActivityRecord(
+            activityId: id, typeKey: "running", name: "Rodagem",
+            start: Date(timeIntervalSince1970: 1_793_000_000 + day * 86_400), distance: 12_000, duration: 3_600
+        )
+        record.bestEffortsData = try JSONEncoder().encode(efforts.map { RunEffort(meters: $0.0, seconds: $0.1, source: .segment) })
+        return record
+    }
+
+    @Test func weekRowsCompareRecordsWithTheWholeHistory() throws {
+        let old = try run(1, day: 0, [(1_000, 217), (5_000, 1_178), (10_000, 2_437)])
+        let monday = try run(2, day: 30, [(1_000, 290), (5_000, 1_460), (10_000, 2_930)])
+        let wednesday = try run(3, day: 32, [(1_000, 287), (5_000, 1_451), (10_000, 2_917)])
+        let history = [old, monday, wednesday]
+
+        let rows = WorkoutListModel.rows(records: [monday, wednesday], timeline: RecordTimelineCache().timeline(records: history))
+
+        #expect(rows.compactMap(\.recordPill).isEmpty)
+    }
+
     @Test func filtersAndFormatsRows() throws {
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
