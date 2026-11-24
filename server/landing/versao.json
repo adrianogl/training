@@ -1,11 +1,17 @@
 {
-  "versao": "1.51.1",
-  "build": 85,
-  "versao_app": "1.51.1",
+  "versao": "1.52.0",
+  "build": 86,
+  "versao_app": "1.52.0",
   "notas": [
-    "Herda as repetições da última série e divide o tempo da rodada do bi-set"
+    "Envia o nome do exercício do mfit ao garmin connect"
   ],
   "historico": [
+    {
+      "versao": "1.52.0",
+      "notas": [
+        "Envia o nome do exercício do mfit ao garmin connect"
+      ]
+    },
     {
       "versao": "1.51.1",
       "notas": [
@@ -62,12 +68,6 @@
         "Amarra o treino ao vivo à versão do plano e corrige os itens do review",
         "Pula e traz exercícios de volta pelo iphone e organiza a tela ao vivo",
         "Envia as séries ao garmin connect e mostra o resumo no fim do treino"
-      ]
-    },
-    {
-      "versao": "1.44.0",
-      "notas": [
-        "Mostra a zona de FC nos blocos e envia a faixa ao Garmin"
       ]
     }
   ]
