@@ -104,6 +104,31 @@ module WorkoutTests {
     }
 
     (:test)
+    function setsWithoutPlannedRepsInheritTheAdjustedReps(logger as Logger) as Boolean {
+        var services = new FakeServices();
+        var plan = {
+            PlanKeys.TITLE => "Teste",
+            PlanKeys.BLOCKS => [SamplePlan.block("b1", 3, 60, [SamplePlan.exercise("b1e1", "Supino máquina", null, null, 39.0, null)])]
+        };
+        var workout = new Workout(plan, services);
+        workout.start();
+        workout.onLap();
+        Test.assert(workout.setsOf("b1e1")[0][PlanKeys.REPS] == null);
+        workout.onStep(1);
+        workout.confirmAdjust();
+        workout.onStep(-1);
+        workout.onStep(-1);
+        workout.confirmAdjust();
+        var adjusted = workout.setsOf("b1e1")[0][PlanKeys.REPS];
+        Test.assert(adjusted != null);
+        workout.onLap();
+        Test.assertEqual(workout.current[PlanKeys.REPS], adjusted);
+        workout.onLap();
+        Test.assertEqual(workout.setsOf("b1e1")[1][PlanKeys.REPS], adjusted);
+        return true;
+    }
+
+    (:test)
     function lapInTheAdjustCancels(logger as Logger) as Boolean {
         var services = new FakeServices();
         var workout = started(services);

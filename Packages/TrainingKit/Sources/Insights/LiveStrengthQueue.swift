@@ -56,11 +56,18 @@ public enum LiveStrengthQueue {
     }
 
     public static func effective(_ exercise: LiveStrengthExercise, in session: LiveStrengthSession) -> LiveStrengthExercise {
-        guard let override = session.overrides?[exercise.id] else { return exercise }
         var changed = exercise
+        if changed.kind == .reps, changed.reps == nil {
+            changed.reps = inheritedReps(exercise.id, in: session)
+        }
+        guard let override = session.overrides?[exercise.id] else { return changed }
         changed.bodyweight = override.bodyweight
         changed.weight = override.bodyweight ? nil : override.weight
         return changed
+    }
+
+    public static func inheritedReps(_ exerciseId: String, in session: LiveStrengthSession) -> Int? {
+        session.done[exerciseId]?.last { $0.reps != nil }?.reps
     }
 
     public static func isComplete(_ block: LiveStrengthBlock, in session: LiveStrengthSession) -> Bool {

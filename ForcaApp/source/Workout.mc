@@ -28,6 +28,7 @@ class Workout {
     private var _restOver = false;
     private var _finishedBlock = null;
     private var _overrides = {};
+    private var _inheritedReps = {};
 
     function initialize(aPlan, services) {
         plan = aPlan;
@@ -115,6 +116,7 @@ class Workout {
         set[PlanKeys.REPS] = adjust[AdjustField.REPS];
         set[PlanKeys.WEIGHT] = adjust[AdjustField.WEIGHT];
         set[PlanKeys.SECONDS] = adjust[AdjustField.SECONDS];
+        inheritReps(adjust[:exercise], set[PlanKeys.REPS]);
         WorkoutStore.saveResults(results);
         log.adjust(lastDone[:exercise], lastDone[:index], set);
         adjust = null;
@@ -469,6 +471,17 @@ class Workout {
         phase = Phase.REST;
         var block = queue.current();
         current = block == null ? null : queue.nextExercise();
+    }
+
+    private function inheritReps(exercise, reps) {
+        if (exercise == null || isTimed(exercise) || reps == null) {
+            return;
+        }
+        var id = exercise[PlanKeys.ID];
+        if (exercise[PlanKeys.REPS] == null || _inheritedReps[id] == true) {
+            exercise[PlanKeys.REPS] = reps;
+            _inheritedReps[id] = true;
+        }
     }
 
     private function openAdjust() {
