@@ -107,7 +107,7 @@ struct TrainerEditWorkoutView: View {
                                 .foregroundStyle(chosen ? BrandColors.accent : BrandColors.dim)
                                 .padding(.vertical, 6)
                                 .frame(maxWidth: .infinity)
-                                .background(chosen ? BrandColors.accentGlow : BrandColors.track, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                                .background(chosen ? BrandColors.accentGlow : BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
                         }
                         .buttonStyle(.plain)
                     }

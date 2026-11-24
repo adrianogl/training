@@ -29,6 +29,8 @@ enum TodayConstants {
     static let ratioFormat = "%.2f"
 
     static let todayTitle = "Hoje"
+    static let storeErrorTitle = "Não abriu o banco local"
+    static let storeErrorFormat = "O app está usando memória: %@"
     static let readinessTitle = "Prontidão"
     static let readinessEmpty = "Sem dados de recuperação de hoje."
     static let readinessFromYesterday = "De ontem · a de hoje sai quando você acordar"

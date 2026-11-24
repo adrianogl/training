@@ -102,11 +102,11 @@ struct StrengthVolumeView: View {
                         Color.clear.frame(width: 86, height: 1)
                         HStack(spacing: 3) {
                             ForEach(model.volumeWeekStarts, id: \.self) { start in
-                                Text("\(start.day)/\(start.month)").font(.system(size: 9)).foregroundStyle(BrandColors.dim)
+                                Text("\(start.day)/\(start.month)").font(.caption2).foregroundStyle(BrandColors.dim)
                                     .lineLimit(1).minimumScaleFactor(0.7).frame(maxWidth: .infinity)
                             }
                         }
-                        Text(StrengthText.volumeLastWeek).font(.system(size: 9)).foregroundStyle(BrandColors.dim)
+                        Text(StrengthText.volumeLastWeek).font(.caption2).foregroundStyle(BrandColors.dim)
                             .frame(width: 28, alignment: .trailing)
                     }
                     ForEach(model.volumeRows) { row in

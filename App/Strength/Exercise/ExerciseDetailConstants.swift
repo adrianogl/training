@@ -19,6 +19,5 @@ enum ExerciseDetailConstants {
     static let suggestionMinHeight: CGFloat = 60
     static let tintOpacity = 0.08
     static let borderOpacity = 0.3
-    static let pillBorderOpacity = 0.4
     static let editTouchSeconds = 0.001
 }

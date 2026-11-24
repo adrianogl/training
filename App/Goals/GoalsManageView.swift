@@ -25,5 +25,6 @@ struct GoalsManageView: View {
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
         .navigationTitle(C.sectionTitle)
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

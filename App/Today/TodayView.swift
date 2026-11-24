@@ -26,10 +26,8 @@ struct TodayView: View {
                     }
                     .padding(.bottom, DSSpacing.s2)
                     if let storeError = app.storeError {
-                        Text("Não abriu o banco local, o app está usando memória: \(storeError)")
-                            .font(.footnote)
-                            .foregroundStyle(BrandColors.danger)
-                            .padding(.bottom, 14)
+                        DSNotice(tone: .error, title: TodayConstants.storeErrorTitle, text: String(format: TodayConstants.storeErrorFormat, storeError))
+                            .padding(.bottom, DSSpacing.s3)
                     }
                     if app.installExpiry.showsNotice {
                         InstallExpiryNotice(title: app.installExpiry.title, text: app.installExpiry.text)

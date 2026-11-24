@@ -3,19 +3,19 @@
   "build": 87,
   "versao_app": "1.53.0",
   "notas": [
-    "Renomeia o app de força para training e deixa a hora do mostrador sólida"
+    "Renomeia o app de força para Training e deixa a hora do mostrador sólida"
   ],
   "historico": [
     {
       "versao": "1.53.0",
       "notas": [
-        "Renomeia o app de força para training e deixa a hora do mostrador sólida"
+        "Renomeia o app de força para Training e deixa a hora do mostrador sólida"
       ]
     },
     {
       "versao": "1.52.0",
       "notas": [
-        "Envia o nome do exercício do mfit ao garmin connect"
+        "Envia o nome do exercício do MFIT ao Garmin Connect"
       ]
     },
     {
@@ -39,20 +39,20 @@
     {
       "versao": "1.49.0",
       "notas": [
-        "Permite excluir um treino feito do app e, se for do app de força, do garmin"
+        "Permite excluir um treino feito do app e, se for do app de força, do Garmin"
       ]
     },
     {
       "versao": "1.48.0",
       "notas": [
         "Tira a opção ida e volta e refaz o plano sem as duas metades",
-        "Envia cada bloco de tiros como uma série inteira ao garmin"
+        "Envia cada bloco de tiros como uma série inteira ao Garmin"
       ]
     },
     {
       "versao": "1.47.0",
       "notas": [
-        "Ajusta carga pelo iphone, mostra o bi-set em rodada e pula o descanso no zero"
+        "Ajusta carga pelo iPhone, mostra o bi-set em rodada e pula o descanso no zero"
       ]
     },
     {

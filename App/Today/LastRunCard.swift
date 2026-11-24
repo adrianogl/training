@@ -32,9 +32,6 @@ struct LastRunCard: View {
                     .brandCard()
                 }
             }
-            NavigationLink(value: TodayRoute.workout(lastRun.activityId)) { Text(L.fullAnalysis) }
-                .buttonStyle(.ds(.secondary))
-                .padding(.top, DSSpacing.s2)
         }
     }
 
@@ -70,6 +67,8 @@ struct LastRunCard: View {
             if let notice = lastRun.notice, lastRun.similar?.isEmpty ?? true {
                 DSNotice(tone: .attention, text: notice)
             }
+            NavigationLink(value: TodayRoute.workout(lastRun.activityId)) { CardLinkFooter(title: CardLinkConstants.analysis) }
+                .buttonStyle(.cardLink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()

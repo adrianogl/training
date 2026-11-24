@@ -23,7 +23,7 @@ struct RaceStrategyUploadButton: View {
     let client: GarminAccountClient?
     @State private var confirming = false
     @State private var sending = false
-    @State private var message: String?
+    @State private var sent: Bool?
 
     private typealias C = RaceStrategyConstants
 
@@ -38,19 +38,19 @@ struct RaceStrategyUploadButton: View {
                     }
                     Text(C.send)
                 }
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(BrandColors.onAccent)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .background(BrandColors.accentFill, in: Capsule())
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.ds(.primary))
             .disabled(sending || client == nil || strategy.isEmpty)
-            .opacity(client == nil || strategy.isEmpty ? 0.4 : 1)
-            Text(message ?? (client == nil ? C.needsLogin : String(format: C.detailFormat, strategy.count, Int(C.bandSeconds))))
-                .font(.caption)
-                .foregroundStyle(BrandColors.dim)
-                .fixedSize(horizontal: false, vertical: true)
+            if let sent {
+                DSNotice(tone: sent ? .success : .error, text: sent ? C.sent : C.failed)
+            } else if client == nil {
+                DSNotice(tone: .attention, text: C.needsLogin)
+            } else {
+                Text(String(format: C.detailFormat, strategy.count, Int(C.bandSeconds)))
+                    .font(.caption)
+                    .foregroundStyle(BrandColors.dim)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .confirmationDialog(C.confirmTitle, isPresented: $confirming, titleVisibility: .visible) {
             Button(C.confirmAction) { send() }
@@ -71,9 +71,9 @@ struct RaceStrategyUploadButton: View {
                     steps: RaceStrategyUpload.steps(strategy, distance: info.distance),
                     day: info.day
                 )
-                message = C.sent
+                sent = true
             } catch {
-                message = C.failed
+                sent = false
             }
             sending = false
         }

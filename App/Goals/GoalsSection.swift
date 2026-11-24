@@ -12,7 +12,7 @@ struct GoalsSection: View {
         let archived = goals.filter { $0.archived && $0.goalKind != nil }
         Section {
             if active.isEmpty {
-                Text(C.empty).foregroundStyle(BrandColors.dim)
+                DSEmptyState(symbol: C.emptySymbol, title: C.empty, text: C.emptyText)
             }
             ForEach(active) { goal in row(goal) }
             NavigationLink {

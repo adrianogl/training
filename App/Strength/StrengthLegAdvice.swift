@@ -34,7 +34,7 @@ struct StrengthLegFactorRow: View {
                 .font(.footnote.weight(.heavy))
                 .foregroundStyle(BrandColors.strength)
                 .frame(width: 28, height: 28)
-                .background(BrandColors.strength.opacity(0.16), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(BrandColors.strength.opacity(0.16), in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             VStack(alignment: .leading, spacing: 1) {
                 Text(StrengthText.legFactorTitle).font(.footnote.weight(.semibold)).foregroundStyle(BrandColors.text)
                 Text(StrengthText.legFactorDetail(leg)).font(.caption).foregroundStyle(BrandColors.dim)
@@ -42,6 +42,6 @@ struct StrengthLegFactorRow: View {
             Spacer(minLength: 0)
         }
         .padding(9)
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(BrandColors.line))
+        .overlay(ConcentricRectangle.dsInner.stroke(BrandColors.line, lineWidth: 1))
     }
 }

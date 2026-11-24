@@ -4,6 +4,8 @@ import WorkoutAnalysis
 
 enum WorkoutDetailConstants {
     static let missingValue = "—"
+    static let notFoundTitle = "Treino não encontrado"
+    static let notFoundText = "Ele pode ter sido apagado ou ainda não chegou neste aparelho."
     static let heartRateFormat = "%d bpm"
     static let similarDistanceTolerance = 0.2
     static let similarRunWindowDays = 90.0

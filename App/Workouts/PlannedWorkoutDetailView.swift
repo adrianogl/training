@@ -232,7 +232,7 @@ struct PlannedWorkoutDetailView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(10)
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(BrandColors.line, lineWidth: 1))
+                    .overlay(ConcentricRectangle.dsInner.stroke(BrandColors.line, lineWidth: 1))
                 }
             }
             if let note = briefing.expectationNote {
@@ -327,8 +327,8 @@ struct PlannedWorkoutDetailView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(coolest.contains(hour.hour) ? BrandColors.accentFill.opacity(0.18) : BrandColors.track, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(coolest.contains(hour.hour) ? BrandColors.accentFill : .clear, lineWidth: 1.5))
+                    .background(coolest.contains(hour.hour) ? BrandColors.accentFill.opacity(0.18) : BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous).strokeBorder(coolest.contains(hour.hour) ? BrandColors.accentFill : .clear, lineWidth: 1.5))
                 }
             }
             .foregroundStyle(BrandColors.text)

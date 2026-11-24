@@ -28,8 +28,7 @@ struct ForgotPasswordView: View {
                 }
             }
             Button(C.backToLogin) { screen = .login }
-                .font(.subheadline)
-                .foregroundStyle(BrandColors.accent)
+                .buttonStyle(.ds(.text))
                 .frame(maxWidth: .infinity)
                 .padding(.top, 8)
         }

@@ -81,9 +81,8 @@ struct SettingsView: View {
 
     private var buildFooter: some View {
         let info = AppBuildInfo()
-        return VStack(spacing: 2) {
-            Text(info.versionLine)
-            if let built = info.builtLine() { Text(built) }
+        return Group {
+            if let line = info.footerLine() { Text(line) }
         }
         .font(.caption)
         .foregroundStyle(BrandColors.dim)
@@ -101,18 +100,11 @@ struct SettingsView: View {
                 Text(status(group)).font(.caption).foregroundStyle(BrandColors.dim).lineLimit(1)
             }
             Spacer(minLength: 0)
-            if let connection = connection(group) {
-                if connection.isConnected {
-                    Circle()
-                        .fill(BrandColors.accent)
-                        .frame(width: AppConstants.settingsStatusDotSize, height: AppConstants.settingsStatusDotSize)
-                        .accessibilityLabel(connection.text)
-                } else {
-                    Text(connection.text)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(BrandColors.dim)
-                        .lineLimit(1)
-                }
+            if isConnected(group) {
+                Circle()
+                    .fill(BrandColors.accent)
+                    .frame(width: AppConstants.settingsStatusDotSize, height: AppConstants.settingsStatusDotSize)
+                    .accessibilityHidden(true)
             }
         }
         .contentShape(Rectangle())
@@ -120,36 +112,35 @@ struct SettingsView: View {
 
     @ViewBuilder
     private func groupIcon(_ group: SettingsGroup) -> some View {
+        let shape = RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous)
         if let logo = BrandLogo.image(for: group) {
             Image(uiImage: logo)
                 .resizable()
                 .scaledToFill()
                 .frame(width: AppConstants.settingsIconSize, height: AppConstants.settingsIconSize)
-                .clipShape(RoundedRectangle(cornerRadius: BrandLogoConstants.cornerRadius, style: .continuous))
+                .clipShape(shape)
                 .accessibilityHidden(true)
         } else {
             Image(systemName: group.systemImage)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
+                .font(.system(size: SettingsConstants.iconSymbolSize, weight: .semibold))
+                .foregroundStyle(group.brandTint == nil ? BrandColors.text : .white)
                 .frame(width: AppConstants.settingsIconSize, height: AppConstants.settingsIconSize)
-                .background(group.tint, in: RoundedRectangle(cornerRadius: BrandLogoConstants.cornerRadius, style: .continuous))
+                .background(group.brandTint ?? BrandColors.iconTile, in: shape)
+                .accessibilityHidden(true)
         }
     }
 
-    private func connection(_ group: SettingsGroup) -> (text: String, isConnected: Bool)? {
+    private func isConnected(_ group: SettingsGroup) -> Bool {
         switch group {
-        case .garmin:
-            let signedIn = model.garminAccount.isSignedIn
-            return (signedIn ? GarminAccountConstants.statusSignedIn : GarminAccountConstants.statusSignedOut, signedIn)
-        case .mfit:
-            let signedIn = model.mfitAccount.isSignedIn
-            return (signedIn ? MFITAccountConstants.statusSignedIn : MFITAccountConstants.statusSignedOut, signedIn)
-        case .strava:
-            let connected = model.strava.status.connected
-            return (connected ? StravaConstants.statusConnected : StravaConstants.statusDisconnected, connected)
-        default:
-            return nil
+        case .garmin: garminConnected
+        case .mfit: model.mfitAccount.isSignedIn
+        case .strava: model.strava.status.connected
+        default: false
         }
+    }
+
+    private var garminConnected: Bool {
+        model.garminAccount.isSignedIn || model.hasKey
     }
 
     private func status(_ group: SettingsGroup) -> String {
@@ -157,16 +148,27 @@ struct SettingsView: View {
         case .account: model.account.user.map { "\($0.name) · \($0.email)" } ?? AccountConstants.accountTitle
         case .invites: InvitesConstants.summary
         case .device: model.watchKind?.title ?? ""
-        case .garmin: model.hasKey ? "sync \(lastSyncText)" : "sem chave da API"
-        case .mfit: MFITAccountConstants.summary
-        case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.settingsSummaryOn : StravaConstants.settingsSummaryPaused) : StravaConstants.settingsSummaryOff
-        case .watch: model.remoteSync.hasWatchToken ? "Token ativo" : "Sem token"
-        case .claude: model.remoteSync.mcpTokenCreatedAt == nil ? "Sem token" : "Token ativo"
-        case .notice: [noticeEnabled ? "Manhã a partir das \(noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened))" : "Manhã desligado", workoutNoticeEnabled ? "treino ligado" : "treino desligado"].joined(separator: " · ")
-        case .appearance: [AppearanceOption(rawValue: appearance)?.title ?? "", AccentTheme.stored(accentTheme).title].joined(separator: " · ")
-        case .data: model.storeError == nil ? "Guardados neste aparelho" : "Usando memória"
+        case .garmin: garminStatus
+        case .mfit: model.mfitAccount.isSignedIn ? MFITAccountConstants.statusConnected : MFITAccountConstants.statusDisconnected
+        case .strava: model.strava.status.connected ? (model.strava.status.enabled ? StravaConstants.statusConnectedWithSummary : StravaConstants.statusConnected) : StravaConstants.statusDisconnected
+        case .watch: model.remoteSync.hasWatchToken ? SettingsConstants.tokenActive : SettingsConstants.tokenMissing
+        case .claude: model.remoteSync.mcpTokenCreatedAt == nil ? SettingsConstants.tokenMissing : SettingsConstants.tokenActive
+        case .notice: [noticeEnabled ? String(format: SettingsConstants.morningNoticeFormat, noticeMinimumTime.wrappedValue.formatted(date: .omitted, time: .shortened)) : SettingsConstants.morningNoticeOff, workoutNoticeEnabled ? SettingsConstants.workoutNoticeOn : SettingsConstants.workoutNoticeOff].joined(separator: SettingsConstants.statusSeparator)
+        case .appearance: [AppearanceOption(rawValue: appearance)?.title ?? "", AccentTheme.stored(accentTheme).title].joined(separator: SettingsConstants.statusSeparator)
+        case .data: model.storeError == nil ? SettingsConstants.dataStored : SettingsConstants.dataInMemory
         case .licenses: LicensesConstants.summary
         }
+    }
+
+    private var garminStatus: String {
+        guard let date = syncStates.first?.lastSync else {
+            return garminConnected ? GarminAccountConstants.statusConnected : GarminAccountConstants.statusDisconnected
+        }
+        let locale = WorkoutConstants.locale
+        let time = date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).locale(locale))
+        guard !Calendar.current.isDateInToday(date) else { return String(format: GarminAccountConstants.syncedTodayFormat, time) }
+        let day = date.formatted(.dateTime.day(.twoDigits).month(.twoDigits).locale(locale))
+        return String(format: GarminAccountConstants.syncedFormat, "\(day), \(time)")
     }
 
     @ViewBuilder
@@ -208,10 +210,9 @@ struct SettingsView: View {
                 dataSection
                 if let storeError = model.storeError {
                     Section {
-                        Text("Não abriu o banco local, o app está usando memória: \(storeError)")
-                            .foregroundStyle(BrandColors.danger)
+                        DSNotice(tone: .error, title: SettingsConstants.storeErrorTitle, text: String(format: SettingsConstants.storeErrorFormat, storeError))
                     } header: {
-                        DSSectionTitle("Banco local")
+                        DSSectionTitle(SettingsConstants.storeSectionTitle)
                     }
                 }
             }
@@ -219,6 +220,7 @@ struct SettingsView: View {
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
         .navigationTitle(group.title)
+        .toolbarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsKeyHelp) { GarminKeyHelpView() }
     }
 

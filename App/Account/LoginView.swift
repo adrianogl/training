@@ -17,8 +17,7 @@ struct LoginView: View {
             DSTextField(label: C.emailLabel, text: $email, content: .username, keyboard: .emailAddress)
             DSTextField(label: C.passwordLabel, text: $password, secure: true, content: .password)
             Button(C.forgotLink) { screen = .forgot }
-                .font(.subheadline)
-                .foregroundStyle(BrandColors.accent)
+                .buttonStyle(.ds(.text))
                 .frame(maxWidth: .infinity, alignment: .trailing)
             AccountMessage(error: model.errorMessage, notice: model.notice)
             AccountPrimaryButton(title: C.enter, isWorking: model.isWorking, disabled: email.isEmpty || password.isEmpty) {
@@ -26,7 +25,7 @@ struct LoginView: View {
             }
             HStack(spacing: 4) {
                 Text(C.noAccount).foregroundStyle(BrandColors.dim)
-                Button(C.create) { screen = .signup }.foregroundStyle(BrandColors.accent)
+                Button(C.create) { screen = .signup }.buttonStyle(.ds(.text))
             }
             .font(.subheadline)
             .frame(maxWidth: .infinity)

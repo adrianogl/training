@@ -103,11 +103,7 @@ struct NextRaceView: View {
 
     private func header(_ model: NextRaceModel, info: RaceInfo) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(String(format: RacesConstants.priorityFormat, info.priority.rawValue))
-                .font(.caption.weight(.medium))
-                .tracking(1)
-                .textCase(.uppercase)
-                .foregroundStyle(BrandColors.race)
+            DSCardLabel(String(format: RacesConstants.priorityFormat, info.priority.rawValue))
             Text(info.name)
                 .font(.title2.weight(.bold))
                 .foregroundStyle(BrandColors.text)
@@ -122,16 +118,11 @@ struct NextRaceView: View {
         let target = RaceTargetBuilder.target(info, todayPrediction: model.outlook.today, raceDayPrediction: model.outlook.raceDay?.mid, today: model.today)
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("\(target.dateText) · \(target.distanceText)")
-                    .font(.caption.weight(.semibold))
-                    .tracking(1)
-                    .textCase(.uppercase)
-                    .foregroundStyle(BrandColors.dim)
+                DSCardLabel("\(target.dateText) · \(target.distanceText)")
                 Spacer()
-                Text("\(target.days)")
-                    .font(BrandFonts.number(RacesConstants.targetDaysFontSize))
+                Text(RacesText.countdownText(days: target.days))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(BrandColors.race)
-                Text(RacesConstants.daysLabel).font(.caption).foregroundStyle(BrandColors.dim)
             }
             HStack(alignment: .top, spacing: 16) {
                 heroValue(RacesConstants.predictionLabel, seconds: target.predictionSeconds, color: BrandColors.text)

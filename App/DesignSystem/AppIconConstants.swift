@@ -1,6 +1,7 @@
 import CoreGraphics
 
 enum AppIconConstants {
+    static let checkSymbolSize: CGFloat = 10
     static let defaultsKey = "appIconStyle"
     static let lilacName = "AppIconLilac"
     static let pistaLightName = "AppIconPistaLight"

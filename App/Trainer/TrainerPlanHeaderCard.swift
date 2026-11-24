@@ -26,6 +26,10 @@ struct TrainerPlanHeaderCard: View {
             }
             Divider()
             TrainerWeekStrip(cells: cells, onToggleLight: onToggleLight, onSelect: onSelect)
+            if cycle != nil {
+                NavigationLink(value: TrainerRoute.cycle) { CardLinkFooter(title: CardLinkConstants.cycle) }
+                    .buttonStyle(.cardLink)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .brandCard()

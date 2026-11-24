@@ -8,12 +8,43 @@ MAX_HISTORY = 10
 PREFIX = re.compile(r"^(feat|fix)(\([^)]*\))?!?:\s*")
 
 
+PROPER_NOUNS = [
+    ("garmin connect", "Garmin Connect"),
+    ("connect iq", "Connect IQ"),
+    ("apple watch", "Apple Watch"),
+    ("apple saúde", "Apple Saúde"),
+    ("mfit", "MFIT"),
+    ("garmin", "Garmin"),
+    ("strava", "Strava"),
+    ("training", "Training"),
+    ("claude", "Claude"),
+    ("iphone", "iPhone"),
+    ("ipad", "iPad"),
+    ("vo2", "VO2"),
+    ("fc", "FC"),
+    ("mcp", "MCP"),
+]
+PROPER_NOUN_PATTERN = re.compile(
+    r"(?<!\w)(" + "|".join(re.escape(raw) for raw, _ in PROPER_NOUNS) + r")(?!\w)", re.IGNORECASE)
+PROPER_NOUN_BY_KEY = {raw.lower(): fixed for raw, fixed in PROPER_NOUNS}
+
+
+BRAND = "trAIning"
+
+
+def format_note(text):
+    fixed = PROPER_NOUN_PATTERN.sub(lambda match: match.group(1) if match.group(1) == BRAND else PROPER_NOUN_BY_KEY[match.group(1).lower()], text)
+    if not fixed or fixed.startswith(BRAND):
+        return fixed
+    return fixed[0].upper() + fixed[1:]
+
+
 def notes_from(subjects):
     notes = []
     for subject in subjects.splitlines():
         text = PREFIX.sub("", subject.strip())
         if text and text not in notes:
-            notes.append(text[0].upper() + text[1:])
+            notes.append(format_note(text))
     return notes[:MAX_NOTES]
 
 

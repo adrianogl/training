@@ -1,4 +1,8 @@
+import CoreGraphics
+
 enum AccentThemeConstants {
+    static let previewLogoSize: CGFloat = 11
+    static let checkSymbolSize: CGFloat = 10
     static let defaultsKey = "accentTheme"
     static let pistaTitle = "Pista"
     static let pistaSubtitle = "Verde da marca"

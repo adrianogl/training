@@ -92,6 +92,7 @@ struct GoalEditorView: View {
         .scrollContentBackground(.hidden)
         .background(BrandBackground())
         .navigationTitle(goalId == nil ? C.editorTitleNew : C.editorTitleEdit)
+        .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog(C.deleteQuestion, isPresented: $confirmsDelete, titleVisibility: .visible) {
             Button(C.delete, role: .destructive) { delete() }
         }

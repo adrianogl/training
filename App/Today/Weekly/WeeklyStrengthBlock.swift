@@ -42,7 +42,7 @@ struct WeeklyStrengthBlock: View {
                 }
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
             }
             ForEach(summary.missed, id: \.self) { missed in
                 DSNotice(tone: .attention, text: missed)

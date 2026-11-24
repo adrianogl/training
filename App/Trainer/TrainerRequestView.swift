@@ -60,8 +60,8 @@ struct TrainerRequestView: View {
                 TextField(TrainerText.requestPlaceholder, text: $text, axis: .vertical)
                     .lineLimit(4...8)
                     .padding(10)
-                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.45), lineWidth: 1))
+                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous).strokeBorder(BrandColors.accent.opacity(0.45), lineWidth: 1))
             }
             .brandCard()
             section(TrainerText.requestPeriod)
@@ -94,23 +94,14 @@ struct TrainerRequestView: View {
 
     private func chip(_ item: TrainerRequestShortcut) -> some View {
         let selected = shortcut == item.category
-        return Button {
+        return DSFilterChip(title: item.title, isSelected: selected) {
             if selected {
                 shortcut = nil
             } else {
                 shortcut = item.category
                 if text.isEmpty { text = item.prefix }
             }
-        } label: {
-            Text(item.title)
-                .font(.footnote)
-                .foregroundStyle(selected ? BrandColors.accent : BrandColors.text.opacity(0.85))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(selected ? BrandColors.accentGlow : BrandColors.track, in: Capsule())
-                .overlay(Capsule().strokeBorder(selected ? BrandColors.accent.opacity(0.5) : BrandColors.cardBorder, lineWidth: 1))
         }
-        .buttonStyle(.plain)
     }
 
     private func resultContent(_ version: TrainerVersion) -> some View {

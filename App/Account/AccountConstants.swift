@@ -8,7 +8,6 @@ enum AccountConstants {
     static let passwordMinLength = 10
     static let fieldHeight: Double = 50
     static let buttonHeight: Double = 52
-    static let cornerRadius: Double = 14
     static let formMaxWidth: Double = 420
 
     static let loginTitle = "Entrar"

@@ -12,6 +12,7 @@ enum BrandColors {
     static let readyFill = Color(light: 0x9CC421, dark: 0xC8F05A)
     static let text = Color(light: 0x14181C, dark: 0xE8ECEF)
     static let dim = Color(light: 0x5C636C, dark: 0x8A949F)
+    static let iconTile = Color(light: 0xE8EAE4, dark: 0x262D36)
     static let line = Color(light: 0x14181C, dark: 0xFFFFFF, lightOpacity: 0.09, darkOpacity: 0.10)
     static let iconBase = Color(hex: 0x0B0E12)
     static let iconAccent = Color(pista: ThemedHex(light: 0xC8F05A, dark: 0xC8F05A), lilac: ThemedHex(light: 0xC9A8FF, dark: 0xC9A8FF))

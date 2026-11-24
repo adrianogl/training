@@ -81,8 +81,7 @@ struct WorkoutDetailView: View {
                 SimpleWorkoutDetail(summary: summary, zoneShares: model.zoneShares)
             }
         } else {
-            Text("Treino não encontrado.")
-                .foregroundStyle(BrandColors.dim)
+            DSEmptyState(symbol: "figure.run", title: WorkoutDetailConstants.notFoundTitle, text: WorkoutDetailConstants.notFoundText)
         }
     }
 

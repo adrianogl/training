@@ -139,7 +139,7 @@ struct ExerciseFeedbackSection: View {
                     .foregroundStyle(BrandColors.onAccent)
                     .padding(.horizontal, DSSpacing.s4)
                     .padding(.vertical, 9)
-                    .background(BrandColors.accentFill, in: RoundedRectangle(cornerRadius: DSRadius.medium - 2, style: .continuous))
+                    .background(BrandColors.accentFill, in: .dsInner)
                     .buttonStyle(.plain)
             }
         }

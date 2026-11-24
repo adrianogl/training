@@ -60,7 +60,7 @@ struct AnalysisCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
-                            .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
                     }
                     Text(item.why)
                         .font(.caption)

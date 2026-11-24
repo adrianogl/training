@@ -147,7 +147,7 @@ struct EvolutionView: View {
     @ViewBuilder
     private func groups(_ model: EvolutionModel) -> some View {
         if model.cardData.isEmpty && model.isLoadingCards {
-            ProgressView(EvolutionConstants.loadingCards).frame(maxWidth: .infinity).padding(.top, 12)
+            DSLoadingState(title: EvolutionConstants.loadingCards)
         } else {
             let available = MetricGroup.available(in: model.cardData, loading: model.isLoadingCards)
             if let group = MetricGroup.selected(selectedGroupTitle, in: available) {

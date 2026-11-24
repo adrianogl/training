@@ -57,6 +57,7 @@ enum EvolutionConstants {
     static let groupChipSpacing: Double = 6
     static let heatmapWeekdayLabels = ["S", "", "Q", "", "S", "", "D"]
     static let heatmapLabelWidth: Double = 14
+    static let heatmapWeekdayFontSize: Double = 10
     static let heatmapMonthFormat = "MMM"
     static let heatmapTotalFormat = "%@ km · 26 semanas"
     static let periodSuffix = " no período"
@@ -165,7 +166,9 @@ enum EvolutionConstants {
     static let detailMonthly = "Médias mensais"
     static let detailLastYear = "Mesmo período do ano anterior"
     static let detailLastYearFormat = "média de %@ há 12 meses (%@ de diferença)"
-    static let detailNoData = "Sem dados suficientes para esta métrica."
+    static let detailNoDataTitle = "Sem dados suficientes"
+    static let detailNoData = "Ainda não há dados desta métrica no período escolhido."
+    static let detailNoDataSymbol = "chart.xyaxis.line"
     static let dailyLabel = "Diário"
     static let averageLabel = "média de 7 dias"
     static let projectionLabel = "projeção"

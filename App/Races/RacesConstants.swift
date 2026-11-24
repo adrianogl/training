@@ -6,11 +6,9 @@ import os
 enum RacesConstants {
     static let logger = Logger(subsystem: "trAIning", category: "Races")
     static let title = "Provas e metas"
-    static let targetTitle = "Prova-alvo"
     static let predictionLabel = "previsão"
     static let goalsTitle = "Metas"
     static let priorityFormat = "prova %@"
-    static let targetDaysFontSize: Double = 26
     static let targetClockFontSize: Double = 15
     static let heroClockFontSize: Double = 28
     static let shortDateFormat = "%02d/%02d"
@@ -19,7 +17,10 @@ enum RacesConstants {
     static let taperSection = "Semana da prova"
     static let raceDaySection = "No dia"
     static let howItWentSection = "Como foi"
-    static let daysLabel = "dias"
+    static let targetLabelFormat = "Prova-alvo · %@"
+    static let inDaysFormat = "em %d dias"
+    static let inOneDay = "amanhã"
+    static let raceToday = "hoje"
     static let eveShort = "véspera"
     static let resultShort = "resultado"
     static let splitsDivergingTitle = "Parciais por km"

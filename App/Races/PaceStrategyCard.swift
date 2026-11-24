@@ -18,7 +18,7 @@ struct PaceStrategyCard: View {
                         .foregroundStyle(BrandColors.text)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
                 }
             }
             switch model.strategyState {

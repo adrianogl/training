@@ -7,6 +7,7 @@ struct MFITAccountSection: View {
     @State private var password = ""
     @State private var program: MFITProgram?
     @State private var days: [Int64: Int] = [:]
+    @State private var confirmsDisconnect = false
 
     private typealias C = MFITAccountConstants
     private let schedule = StrengthSchedule()
@@ -17,7 +18,13 @@ struct MFITAccountSection: View {
                 LabeledContent(C.sectionTitle) {
                     Text(C.connected).foregroundStyle(BrandColors.accent)
                 }
-                Button(C.signOut, role: .destructive) { model.signOut() }
+                Button(C.disconnect, role: .destructive) { confirmsDisconnect = true }
+                    .confirmationDialog(C.disconnectTitle, isPresented: $confirmsDisconnect, titleVisibility: .visible) {
+                        Button(C.disconnect, role: .destructive) { model.signOut() }
+                        Button(C.cancel, role: .cancel) {}
+                    } message: {
+                        Text(C.disconnectMessage)
+                    }
             } else {
                 TextField(C.emailPlaceholder, text: $email)
                     .textContentType(.username)
@@ -35,7 +42,7 @@ struct MFITAccountSection: View {
                 .disabled(model.isWorking || email.isEmpty || password.isEmpty)
             }
             if let message = model.message {
-                Text(message).font(.footnote).foregroundStyle(BrandColors.attention)
+                DSNotice(tone: .error, text: message)
             }
         } header: {
             DSSectionTitle(C.sectionTitle)

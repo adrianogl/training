@@ -321,7 +321,7 @@ struct TrainerNewPlanView: View {
                 TextField(TrainerText.textPlaceholder, text: $text, axis: .vertical)
                     .lineLimit(2...4)
                     .padding(10)
-                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.control, style: .continuous))
                 deadlineControls
             case .paceDistance:
                 DSCardLabel(TrainerText.goalPaceLabel)
@@ -361,7 +361,7 @@ struct TrainerNewPlanView: View {
                             .foregroundStyle(marked ? BrandColors.accent : BrandColors.dim)
                             .padding(.vertical, 6)
                             .frame(maxWidth: .infinity)
-                            .background(marked ? BrandColors.accentGlow : BrandColors.track, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                            .background(marked ? BrandColors.accentGlow : BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
                     }
                     .buttonStyle(.plain)
                 }
@@ -406,7 +406,7 @@ struct TrainerNewPlanView: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .background(BrandColors.track, in: .dsInner)
     }
 
     private func raceTitle(_ race: TrainerRaceOption) -> String {

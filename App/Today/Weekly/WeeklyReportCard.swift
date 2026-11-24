@@ -166,11 +166,11 @@ struct WeeklyReportCard: View {
         HStack(spacing: 12) {
             VStack(spacing: 0) {
                 Text("\(race.days)").font(BrandFonts.number(17))
-                Text(race.days == 1 ? C.raceDayUnit : C.raceDaysUnit).font(.system(size: 9, weight: .semibold))
+                Text(race.days == 1 ? C.raceDayUnit : C.raceDaysUnit).font(.caption2.weight(.semibold))
             }
             .foregroundStyle(BrandColors.race)
             .frame(width: 42, height: 42)
-            .background(BrandColors.race.opacity(0.15), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(BrandColors.race.opacity(0.15), in: .dsInner)
             VStack(alignment: .leading, spacing: 1) {
                 Text(C.raceTitle).font(.caption).foregroundStyle(BrandColors.dim)
                 Text(raceName(race)).font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)

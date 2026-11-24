@@ -20,6 +20,11 @@ import RemoteSync
         self.isSignedIn = ((try? store.load()) ?? nil) != nil
     }
 
+    var messageIsInfo: Bool {
+        guard case .needsCode(let challenge) = phase else { return false }
+        return message == String(format: C.codeSentFormat, C.methodNames[challenge.method] ?? challenge.method)
+    }
+
     var client: GarminAccountClient? {
         guard isSignedIn else { return nil }
         guard let link = link?() else { return GarminAccountClient(transport: makeTransport(), store: store) }

@@ -21,7 +21,7 @@ enum InstallNoticeText {
         "Atualizado para a \(card.version)"
     }
 
-    static let dismiss = "Ok"
+    static let dismiss = "Entendi"
 
     private static func sentence(_ note: String) -> String {
         note.hasSuffix(".") ? note : note + "."

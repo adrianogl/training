@@ -52,14 +52,18 @@ struct RecordsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             DSCardLabel(C.recordsTitle)
-            ForEach(Array(C.records.enumerated()), id: \.offset) { index, target in
-                if index > 0 { Divider().overlay(BrandColors.line) }
-                let record = EvolutionExtras.record(for: target.meters, in: records)
-                if let id = record?.activityId, let url = URL(string: DeepLink.workoutURL(id)) {
-                    Button { openURL(url) } label: { row(target.label, record: record) }
-                        .buttonStyle(.plain)
-                } else {
-                    row(target.label, record: record)
+            if records.isEmpty {
+                DSEmptyState(symbol: C.recordsEmptySymbol, title: C.recordsEmptyTitle, text: C.recordsEmpty)
+            } else {
+                ForEach(Array(C.records.enumerated()), id: \.offset) { index, target in
+                    if index > 0 { Divider().overlay(BrandColors.line) }
+                    let record = EvolutionExtras.record(for: target.meters, in: records)
+                    if let id = record?.activityId, let url = URL(string: DeepLink.workoutURL(id)) {
+                        Button { openURL(url) } label: { row(target.label, record: record) }
+                            .buttonStyle(.plain)
+                    } else {
+                        row(target.label, record: record)
+                    }
                 }
             }
         }

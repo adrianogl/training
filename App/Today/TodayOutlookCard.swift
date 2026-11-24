@@ -99,8 +99,8 @@ struct TodayOutlookCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 8)
         .padding(.vertical, 7)
-        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(isRace ? BrandColors.accent : .clear, lineWidth: 1.5))
+        .background(BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous).strokeBorder(isRace ? BrandColors.accent : .clear, lineWidth: 1.5))
         .accessibilityElement(children: .combine)
     }
 

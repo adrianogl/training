@@ -38,6 +38,14 @@ enum RacesText {
         String(format: C.shortDateFormat, day.day, day.month)
     }
 
+    static func countdownText(days: Int) -> String {
+        switch days {
+        case 0: C.raceToday
+        case 1: C.inOneDay
+        default: String(format: C.inDaysFormat, days)
+        }
+    }
+
     static func goalGapText(prediction: Double?, goal: Double?) -> String? {
         signedClock(prediction, minus: goal).map { String(format: C.goalGapFormat, $0) }
     }
