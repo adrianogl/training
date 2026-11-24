@@ -1,6 +1,7 @@
 import CoreGraphics
 
 enum SettingsConstants {
+    static let sectionHeaderInset: CGFloat = 20
     static let tokenActive = "Token ativo"
     static let tokenMissing = "Sem token"
     static let morningNoticeFormat = "Manhã a partir das %@"
