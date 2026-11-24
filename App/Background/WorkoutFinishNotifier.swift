@@ -10,7 +10,7 @@ import UIKit
 
     private let store = HKHealthStore()
     private let fixedDefaults: UserDefaults?
-    private let scheduler = UserNotificationScheduler()
+    private let scheduler = NoticeInboxScheduler.standard
     private var observing = false
     private var processing = false
     private var rerun = false

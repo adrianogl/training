@@ -25,6 +25,13 @@ actor FakeNotificationScheduler: NotificationScheduling {
         headers[id] = (title, link)
     }
 
+    private(set) var categories: [String: String] = [:]
+
+    func schedule(id: String, title: String?, text: String, link: String, at: Date?, category: String?) async {
+        await schedule(id: id, title: title, text: text, link: link, at: at)
+        categories[id] = category
+    }
+
     private(set) var daily: [String: (title: String, text: String, link: String, hour: Int)] = [:]
 
     func scheduleDaily(id: String, title: String, text: String, link: String, hour: Int) async {
@@ -98,6 +105,19 @@ actor FakeNotificationScheduler: NotificationScheduling {
 
         #expect(await scheduler.scheduled.isEmpty)
         #expect(await scheduler.delivered.isEmpty)
+    }
+
+    @Test func changedTrainerWorkoutLeadsTheRunLine() async {
+        let scheduler = FakeNotificationScheduler()
+        let defaults = UserDefaults(suiteName: "MorningNotifierTests.\(UUID().uuidString)")!
+        defaults.set("2026-11-10", forKey: TrainerChangeNotifierConstants.morningDayKey)
+        defaults.set("Limiar 9 km, 4 × 1 km.", forKey: TrainerChangeNotifierConstants.morningSummaryKey)
+        let notifier = MorningNotifier(scheduler: scheduler, defaults: defaults, calendar: calendar)
+        let base = morningNotificationText(summary().readiness!, verdict: .hard)
+
+        await notifier.evaluate(summary: summary(), now: date(hour: 7), lastAppOpen: nil, settings: settings, runLine: { "Tiros em 4:08–4:16 por calor." })
+
+        #expect(await scheduler.scheduled.values.first?.text == base + " Treino de hoje mudou: Tiros em 4:08–4:16 por calor.")
     }
 
     @Test func nilRunLineKeepsBody() async {

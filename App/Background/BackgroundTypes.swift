@@ -4,8 +4,15 @@ protocol NotificationScheduling: Sendable {
     func pending() async -> [String]
     func schedule(id: String, text: String, at: Date?) async
     func schedule(id: String, title: String?, text: String, link: String, at: Date?) async
+    func schedule(id: String, title: String?, text: String, link: String, at: Date?, category: String?) async
     func scheduleDaily(id: String, title: String, text: String, link: String, hour: Int) async
     func cancel(id: String) async
+}
+
+extension NotificationScheduling {
+    func schedule(id: String, title: String?, text: String, link: String, at date: Date?, category: String?) async {
+        await schedule(id: id, title: title, text: text, link: link, at: date)
+    }
 }
 
 struct MorningNoticeSettings: Equatable, Sendable {

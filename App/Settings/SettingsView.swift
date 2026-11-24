@@ -296,6 +296,7 @@ struct SettingsView: View {
         Section {
             Toggle("Aviso de prontidão", isOn: $noticeEnabled)
                 .onChange(of: noticeEnabled) { _, enabled in
+                    Task { await model.missingNight.update(hasNightData: model.todayReadinessComplete, now: .now) }
                     guard enabled else { return }
                     Task { await UserNotificationScheduler.requestAuthorization() }
                 }

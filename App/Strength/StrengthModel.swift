@@ -155,9 +155,9 @@ import TrainingCore
         var fetchedProgram = client == nil
         if let client {
             do {
-                let fetched = try await client.currentProgram(today: today().iso)
-                apply(fetched.map(store.update(with:)) ?? store.clearProgram())
-                if let ids = fetched?.workouts.map(\.id), let records = try? await client.loadRecords(workoutIds: ids) {
+                let update = try await StrengthProgramSync.refresh(client: client, today: today(), store: store)
+                apply(update.cache)
+                if let ids = update.cache.program?.workouts.map(\.id), let records = try? await client.loadRecords(workoutIds: ids) {
                     apply(store.updateLoads(records, fetched: Set(ids)))
                 }
                 fetchedProgram = true

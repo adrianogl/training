@@ -254,12 +254,31 @@ Toda notificação abre a tela da ação relacionada:
 | Treino de força começou no relógio | Treinos › Plano › Força |
 | Corrida no Strava sem o relógio | Treinos |
 | Plano de força terminou | Treinos › Plano › Força |
+| Treino de hoje ou amanhã mudou | Treinos › Plano › Mudanças do plano |
+| Relógio sem o treino de amanhã | Treinos › Plano › Enviar ao Garmin; a ação "Enviar ao Garmin" abre o app e envia |
+| Calor no longão | o dia do longão no Treinador |
+| A noite não chegou | Hoje › Prontidão |
+| Treino novo no MFIT | Treinos › Plano › Força |
+
+O sino na linha da logo, em todas as abas, abre a lista de avisos com o número de não lidos. A lista é por aparelho e guarda os últimos 30 dias: Novos em cima, Anteriores embaixo, e "Marcar como lidos". Tocar num item abre a mesma tela da notificação. Enquanto não lidos, os avisos que abrem Mudanças do plano (ajuste por sinais, treino que mudou e "Plano atualizado" para mudança depois de amanhã, que entra só na lista, sem push) aparecem como card, com o status do envio ao Garmin e o botão Enviar quando há treino esperando. Entram todas as notificações acima, menos versão instalada, instalação renovada e versão disponível, que já aparecem no Hoje e em Ajustes. Garmin ou Strava desconectado sai da lista quando a conta reconecta, os treinos do Claude saem quando o lote é aplicado ou descartado, e a corrida do Strava sai ao importar ou ignorar. Aviso agendado só aparece na lista depois da hora marcada.
 
 A prontidão da manhã sai quando o app encontra HRV e sono da noite numa sincronização em segundo plano. Há dois gatilhos: o sono novo no Apple Health, que o Garmin Connect grava ao sincronizar o relógio e acorda o app na hora, e o refresh em background a partir das 4h, que tenta a cada 15 minutos até as 11h e fica a critério do iOS. Nos dois casos, entre 4h e 11h, o app primeiro busca só os dados diários de ontem e de hoje (`SyncEngine.runMorning`) e manda o aviso, e só depois faz o sync completo, para caber no tempo que o iOS dá em segundo plano. Com o app aberto na tela, o sono do Health não dispara sync.
 
 O aviso de treino terminado sai no iPhone quando a corrida aparece no sync com o Garmin e a nota fica pronta. O Apple Health só acorda o app: treino, FC, distância ou caloria nova que o Garmin Connect grava no Health dispara um sync leve em segundo plano, e o refresh em background faz o mesmo como reserva. Com o app aberto, o aviso usa o sync normal da abertura e do pull, e um sync completo pedido durante o sync leve roda logo depois dele. Sem corrida pendente, o app consulta o Garmin no máximo uma vez a cada 10 min; dado que chega antes disso agenda a próxima consulta para o fim dos 10 min. Corrida nova no Health nunca espera, e uma corrida que entrou no Health e ainda não apareceu no Garmin conta como pendente por até 30 min. Entra no aviso a corrida que terminou nas últimas 6 horas, depois de o aviso ser ligado, e cada atividade avisa uma vez só. Se a nota ainda não saiu, a corrida fica pendente: o app sincroniza de novo a cada 15 s enquanto o iOS dá tempo em segundo plano, até 6 vezes, e o refresh em background 5 min depois fica como reserva. A corrida sai da fila sem aviso quando o FIT falhou demais ou foi processado sem nota, ou 6 horas depois do fim.
 
 Garmin desconectado sai só quando a sincronização em segundo plano recebe chave recusada, uma vez até a conexão voltar. Strava desconectado sai quando a sessão expira. Treinos do Claude saem uma vez por lote recebido. As três esperam até 7h quando chegam entre 22h e 7h.
+
+O refresh em background também roda o envio automático ao Garmin, depois do ajuste do plano, e busca o programa do MFIT. Com o envio automático ligado, o treino que o plano mudou chega ao relógio sem abrir o app.
+
+Treino de hoje ou amanhã mudou sai quando um ajuste do treinador muda o tipo, o nome, a distância, os blocos ou o pace de um desses dias, desde que o dia ainda não tenha corrida feita. O texto traz o treino novo (no limiar e no VO2, os blocos e o descanso) e, com relógio Garmin e corrida do treinador, diz se o relógio já tem a versão nova ou se falta enviar. Entre 22h e 7h não sai push: o aviso da manhã troca a linha da corrida por "Treino de hoje mudou: …". Com o aviso da manhã desligado, ou quando ele já saiu, o push espera até 7h. Mudança no treino de hoje depois das 22h não avisa.
+
+Relógio sem o treino de amanhã sai às 20h quando algum treino de amanhã (corrida do treinador, força do treinador ou MFIT com envio ligado) está "novo" ou "mudou" em Enviar ao Garmin. Só com relógio Garmin e conta Garmin conectada. O app agenda o aviso quando roda antes das 20h, aberto ou no refresh em background, e cancela quando o treino é enviado. O texto diz qual treino falta ou que o relógio ainda tem a versão anterior.
+
+Calor no longão sai às 20h da véspera quando, na hora habitual do longão, o calor sobe o pace em 3 s/km ou mais, com temperatura e orvalho, e cita a hora sugerida quando existe (a mesma do card "Calor no longão"). Sem previsão ou abaixo do limite, o aviso é cancelado.
+
+A noite não chegou sai às 10h quando a prontidão de hoje ainda não tem HRV nem sono, só com o aviso da manhã ligado. O app deixa o aviso das 10h do dia seguinte agendado e cancela quando os dados da noite chegam, então ele sai mesmo que o iOS não rode o app de manhã.
+
+Treino novo no MFIT sai quando o programa do professor muda: treino novo, removido ou com exercícios alterados. Sai uma vez por versão do programa, e a primeira leitura do MFIT não avisa. Com "Enviar os treinos do MFIT" ligado, diz se o treino já está no relógio ou se falta enviar. Entre 22h e 7h espera até 7h.
 
 ## Privacidade
 

@@ -51,6 +51,7 @@ enum BackgroundSync {
             await model.refreshInstallState()
             let succeeded = await model.syncNow(.background)
             await model.trainer.settleAutoAdjust()
+            await model.backgroundSend()
             schedule(readinessComplete: model.todayReadinessComplete)
             task.setTaskCompleted(success: succeeded && !Task.isCancelled)
         }

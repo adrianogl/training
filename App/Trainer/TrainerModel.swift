@@ -30,8 +30,12 @@ import TrainingCore
     @ObservationIgnored var planZonesCache: (key: PlanZonesKey, value: PlanZones)?
     @ObservationIgnored private let store: TrainerStore
     @ObservationIgnored private let today: @Sendable () -> Day
-    @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored let defaults: UserDefaults
     @ObservationIgnored private let signalNotifier: TrainerSignalNotifier
+    @ObservationIgnored private let changeNotifier: TrainerChangeNotifier
+    @ObservationIgnored private let heatNotifier: LongHeatNotifier
+    @ObservationIgnored let watchPendingNotifier: WatchPendingNotifier
+    @ObservationIgnored var hasGarminAccount: @MainActor () -> Bool = { false }
     @ObservationIgnored let strengthPlanStore: StrengthPlanStore
     @ObservationIgnored let planEndScheduler: any NotificationScheduling
     @ObservationIgnored let canNotifyPlanEnd: Bool
@@ -41,13 +45,17 @@ import TrainingCore
     @ObservationIgnored private var settleWaiters: [CheckedContinuation<Void, Never>] = []
     @ObservationIgnored private var loadedStamp: Date?
     @ObservationIgnored private var reviewCache: (day: Day, review: TrainerCycleReview?)?
+    @ObservationIgnored private var noticeTask: Task<Void, Never>?
+    @ObservationIgnored private var heatChecked: (day: Day, workout: TrainerWorkout?)?
     @ObservationIgnored var onChange: @MainActor () -> Void = {}
 
     init(
         container: ModelContainer, store: TrainerStore = TrainerStore(), today: @escaping @Sendable () -> Day = { Day.today() },
         defaults: UserDefaults = AccountScope.current.defaults, signalNotifier: TrainerSignalNotifier? = nil,
+        changeNotifier: TrainerChangeNotifier? = nil, heatNotifier: LongHeatNotifier = LongHeatNotifier(),
+        watchPendingNotifier: WatchPendingNotifier = WatchPendingNotifier(),
         strengthPlanStore: StrengthPlanStore = StrengthPlanStore(), claudeStore: ClaudeStrengthStore = ClaudeStrengthStore(),
-        planEndScheduler: any NotificationScheduling = UserNotificationScheduler(),
+        planEndScheduler: any NotificationScheduling = NoticeInboxScheduler.standard,
         canNotifyPlanEnd: Bool = StrengthPlanEndNotifier.runsOnPhone
     ) {
         self.canNotifyPlanEnd = canNotifyPlanEnd
@@ -60,6 +68,9 @@ import TrainingCore
         self.today = today
         self.defaults = defaults
         self.signalNotifier = signalNotifier ?? TrainerSignalNotifier(defaults: defaults)
+        self.changeNotifier = changeNotifier ?? TrainerChangeNotifier(defaults: defaults)
+        self.heatNotifier = heatNotifier
+        self.watchPendingNotifier = watchPendingNotifier
         self.keptReadinessDay = defaults.string(forKey: TrainerConstants.readinessKeptDefaultsKey)
         self.dismissedMigrationPlanId = defaults.string(forKey: StrengthPlanUIConstants.migrationDismissedKey)
         self.seenVersion = store.seenVersion
@@ -497,8 +508,12 @@ import TrainingCore
         migrateStrength()
         migrateStrengthPlan()
         await dropOutAndBack()
-        await notifySignals(applyPending())
+        let before = plan
+        let created = applyPending()
+        await notifySignals(created)
+        if !created.isEmpty { await notifyChanges(from: before, versions: created) }
         await checkStrengthPlanEnd()
+        await refreshNotices(force: true)
     }
 
     private func dropOutAndBack() async {
@@ -551,7 +566,10 @@ import TrainingCore
     @discardableResult
     func autoAdjust() async -> [TrainerVersion] {
         reloadFromStore()
-        guard plan != nil else { return [] }
+        guard plan != nil else {
+            await refreshNotices(force: true)
+            return []
+        }
         let loaded = await loadHistory()
         guard !Task.isCancelled else { return [] }
         history = loaded
@@ -560,9 +578,12 @@ import TrainingCore
         cycleHistory = cycle
         reloadFromStore()
         guard !Task.isCancelled else { return [] }
+        let before = plan
         let created = applyPending()
         await notifySignals(created)
+        if !created.isEmpty { await notifyChanges(from: before, versions: created) }
         await checkStrengthPlanEnd()
+        await refreshNotices(force: true)
         return created
     }
 
@@ -649,6 +670,8 @@ import TrainingCore
         let adjusted = TrainerEngine.adjust(plan, history: history, today: currentDay, now: .now, trigger: .request(request))
         persist(adjusted)
         markSeen()
+        let created = adjusted.versions.filter { $0.number > plan.versions.last?.number ?? 0 }
+        await notifyChanges(from: plan, versions: created)
         return adjusted.versions.last
     }
 
@@ -726,6 +749,7 @@ import TrainingCore
             seenVersion = 0
             loadedStamp = store.updatedAt()
             onChange()
+            scheduleNoticeRefresh()
         } catch {
             saveFailed = true
         }
@@ -791,6 +815,68 @@ import TrainingCore
         await signalNotifier.notify(created, plan: plan)
     }
 
+    func checkLongHeat() async {
+        let tomorrow = currentDay.adding(days: 1)
+        guard isActive, let workout = plan?.workouts.first(where: { $0.day == tomorrow }), workout.kind == .long else {
+            await heatNotifier.update(longDay: tomorrow, heat: nil)
+            return
+        }
+        guard heatNotifier.deliveryDate != nil else { return }
+        let weather = await forecast(for: tomorrow)
+        guard !Task.isCancelled else { return }
+        let recent = TodayModel.recentRuns(context: container.mainContext)
+        let noon = Calendar.current.date(from: DateComponents(year: tomorrow.year, month: tomorrow.month, day: tomorrow.day, hour: 12)) ?? .now
+        let usual = UsualHour.hour(for: noon, long: true, runs: DayAdjustText.usualRuns(recent), now: .now, calendar: .current)
+        let heat = TrainerHeatDayBuilder.make(
+            weather: weather, longPace: plan?.paces.long, usualHour: usual, hotSessions: ActivityRecord.hotSessions(before: .now, among: recent)
+        )
+        await heatNotifier.update(longDay: tomorrow, heat: heat)
+    }
+
+    func scheduleNoticeRefresh() {
+        noticeTask?.cancel()
+        noticeTask = Task { [weak self] in
+            guard !Task.isCancelled else { return }
+            await self?.refreshNotices()
+        }
+    }
+
+    func settleNotices() async {
+        await noticeTask?.value
+    }
+
+    func refreshNotices(force: Bool = false) async {
+        let tomorrow = currentDay.adding(days: 1)
+        let workouts = isActive ? plan?.workouts ?? [] : []
+        let tomorrowWorkout = workouts.first { $0.day == tomorrow }
+        if force || heatChecked?.day != tomorrow || heatChecked?.workout != tomorrowWorkout {
+            await checkLongHeat()
+            if !Task.isCancelled { heatChecked = (tomorrow, tomorrowWorkout) }
+        }
+        await checkWatchPending()
+        await refreshChangeWatch()
+    }
+
+    private func notifyChanges(from before: TrainerPlan?, versions: [TrainerVersion]) async {
+        guard let before, let after = plan, after.endedOn == nil else { return }
+        let done = Set(history.runs.map(\.day))
+        await changeNotifier.notify(before: before.workouts, after: after.workouts, today: currentDay, done: done, watch: watchState)
+        changeNotifier.recordLaterChanges(versions, plan: after, today: currentDay)
+    }
+
+    func refreshChangeWatch() async {
+        await changeNotifier.refresh(isActive ? plan?.workouts ?? [] : [], today: currentDay, watch: watchState)
+    }
+
+    private func watchState(_ workout: TrainerWorkout) -> TrainerChangeWatch {
+        guard sendsToGarmin else { return .none }
+        let store = TrainerSendStore(defaults: defaults)
+        let settings = store.settings()
+        guard settings.runFromTrainer, let item = TrainerSendBuilder.runItem(workout, thresholdHeartRate: thresholdHeartRate) else { return .none }
+        if TrainerSendBuilder.status(item, records: store.records()) == .current { return .current }
+        return settings.auto?.kinds.contains(.run) == true ? .none : .pending
+    }
+
     private func retitleWorkouts() {
         guard let current = plan else { return }
         let renamed = TrainerEngine.retitled(current, from: currentDay)
@@ -804,6 +890,7 @@ import TrainingCore
             loadedStamp = store.updatedAt()
             saveFailed = false
             onChange()
+            scheduleNoticeRefresh()
         } catch {
             saveFailed = true
         }

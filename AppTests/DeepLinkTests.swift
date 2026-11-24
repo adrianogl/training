@@ -16,6 +16,8 @@ import Testing
         #expect(link("training://treinos") == .section(.workouts))
         #expect(link(DeepLinkConstants.trainerStrength) == .trainer(.strength))
         #expect(link(DeepLinkConstants.trainerChanges) == .trainer(.changes))
+        #expect(link(DeepLinkConstants.trainerSend) == .trainerSend)
+        #expect(link(DeepLink.trainerDayURL("2026-11-25")) == .trainer(.day("2026-11-25")))
         #expect(link("https://training.aglv.dev") == nil)
     }
 

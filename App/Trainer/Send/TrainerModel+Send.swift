@@ -62,7 +62,10 @@ extension TrainerModel {
         defer { isSendingToGarmin = false }
         let store = TrainerSendStore()
         await cleanGarmin(client: client, store: store)
-        return await TrainerSender.send(items, stale: stale, client: client, store: store)
+        let result = await TrainerSender.send(items, stale: stale, client: client, store: store)
+        await refreshChangeWatch()
+        await checkWatchPending()
+        return result
     }
 
     func sendToAppleWatch(_ items: [TrainerSendItem], stale: [(key: String, record: TrainerSentRecord)]) async -> TrainerSendResult? {
@@ -108,6 +111,38 @@ extension TrainerModel {
         } else if let client {
             _ = await sendToGarmin([], stale: sent, client: client)
         }
+    }
+
+    var sendsToGarmin: Bool {
+        WatchKind.stored(in: defaults) == .garmin && hasGarminAccount()
+    }
+
+    private var pendingFilter: (filter: TrainerSendFilter, settings: TrainerSendSettings) {
+        let settings = TrainerSendStore(defaults: defaults).settings()
+        return (settings.runFromTrainer ? .both : .strength, settings)
+    }
+
+    func pendingGarminSends() -> Int {
+        let (filter, settings) = pendingFilter
+        let records = TrainerSendStore(defaults: defaults).records()
+        return sendItems(filter, settings: settings).filter { TrainerSendBuilder.status($0, records: records) != .current }.count
+    }
+
+    @discardableResult
+    func sendPendingToGarmin(client: GarminAccountClient) async -> TrainerSendResult? {
+        let (filter, settings) = pendingFilter
+        let store = TrainerSendStore(defaults: defaults)
+        await forgetDeletedOnGarmin(client: client, store: store)
+        let items = sendItems(filter, settings: settings)
+        return await sendToGarmin(items, stale: staleSends(filter, items: items, store: store), client: client)
+    }
+
+    func checkWatchPending() async {
+        let tomorrow = currentDay.adding(days: 1)
+        let store = TrainerSendStore(defaults: defaults)
+        let enabled = sendsToGarmin
+        let items = enabled ? sendItems(pendingFilter.filter, settings: store.settings()).filter { $0.day == tomorrow } : []
+        await watchPendingNotifier.update(tomorrow: tomorrow, items: items, records: store.records(), enabled: enabled)
     }
 
     func autoSend(client: GarminAccountClient?) async {

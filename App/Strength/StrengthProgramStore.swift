@@ -51,6 +51,33 @@ struct StrengthProgramStore: Sendable {
         return cache
     }
 
+    @discardableResult
+    func refresh(with program: MFITProgram) -> MFITProgramUpdate {
+        let current = load()
+        let isFirstLoad = current.program == nil && current.known.isEmpty
+        let changes = isFirstLoad ? [] : Self.changes(from: current.program, to: program)
+        return MFITProgramUpdate(cache: update(with: program), changes: changes)
+    }
+
+    static func changes(from old: MFITProgram?, to new: MFITProgram) -> [MFITProgramChange] {
+        let previous = Dictionary((old?.workouts ?? []).map { ($0.id, $0) }) { first, _ in first }
+        let currentIds = Set(new.workouts.map(\.id))
+        var result: [MFITProgramChange] = []
+        for workout in new.workouts.sorted(by: { $0.order < $1.order }) {
+            guard let before = previous[workout.id] else {
+                result.append(MFITProgramChange(kind: .added, workout: workout))
+                continue
+            }
+            if before.title != workout.title || before.blocks != workout.blocks {
+                result.append(MFITProgramChange(kind: .changed, workout: workout))
+            }
+        }
+        for workout in (old?.workouts ?? []).sorted(by: { $0.order < $1.order }) where !currentIds.contains(workout.id) {
+            result.append(MFITProgramChange(kind: .removed, workout: workout))
+        }
+        return result
+    }
+
     func update(with program: MFITProgram) -> StrengthProgramCache {
         let current = load()
         var known = Dictionary(current.known.map { ($0.id, $0) }) { first, _ in first }

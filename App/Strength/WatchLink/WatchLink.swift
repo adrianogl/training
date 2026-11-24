@@ -214,7 +214,7 @@ final class WatchLink: NSObject {
         guard UIApplication.shared.applicationState != .active,
               receivedAt.timeIntervalSince(startedAt) < WatchLinkConstants.startedMaxAge else { return }
         Task {
-            await UserNotificationScheduler().schedule(
+            await NoticeInboxScheduler.standard.schedule(
                 id: WatchLinkConstants.startedNotificationId,
                 title: WatchLinkConstants.startedNotificationTitle,
                 text: [title, WatchLinkConstants.startedNotificationText].compactMap { $0 }.joined(separator: " · "),

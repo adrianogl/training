@@ -11,6 +11,7 @@ struct SessionRootView: View {
             if let model = session.model {
                 RootView()
                     .environment(model)
+                    .environment(model.notices)
                     .environment(\.exerciseFeedbackStore, model.exerciseFeedback)
                     .environment(\.exerciseNotesStore, model.exerciseNotes)
                     .modelContainer(model.container)

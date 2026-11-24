@@ -7,7 +7,7 @@ import TrainingCore
 @MainActor enum RaceNotices {
     private typealias C = RaceNoticeConstants
 
-    static func refresh(container: ModelContainer, client: GarminAccountClient?, scheduler: any NotificationScheduling = UserNotificationScheduler(), now: Date = .now) async {
+    static func refresh(container: ModelContainer, client: GarminAccountClient?, scheduler: any NotificationScheduling = NoticeInboxScheduler.standard, now: Date = .now) async {
         let today = Day.today(now: now)
         let last = today.adding(days: C.lookAheadDays).iso
         let first = today.iso

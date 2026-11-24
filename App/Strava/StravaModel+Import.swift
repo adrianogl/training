@@ -80,7 +80,9 @@ extension StravaModel {
             content.sound = .default
             content.categoryIdentifier = I.category
             content.userInfo = [I.runIdKey: run.id, BackgroundConstants.deepLinkUserInfoKey: I.workoutsLink]
-            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: I.notificationPrefix + String(run.id), content: content, trigger: nil))
+            let id = I.notificationPrefix + String(run.id)
+            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: id, content: content, trigger: nil))
+            inbox.record(id: id, title: content.title, text: content.body, link: I.workoutsLink, at: nil)
         }
         remember(fresh.map(\.id), key: I.notifiedKey)
     }
@@ -94,15 +96,17 @@ extension StravaModel {
             ],
             intentIdentifiers: []
         )
-        let center = UNUserNotificationCenter.current()
-        center.getNotificationCategories { existing in
-            center.setNotificationCategories(existing.filter { $0.identifier != I.category }.union([category]))
-        }
+        NotificationCategories.register(category)
     }
 
     private func clearNotifications(_ runIds: [Int64]) async {
         let ids = runIds.map { I.notificationPrefix + String($0) }
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: ids)
+        ids.forEach(inbox.remove)
+    }
+
+    private var inbox: NoticeInboxStore {
+        NoticeInboxStore(defaults: defaults, now: now)
     }
 
     private func ids(_ key: String) -> [Int64] {
