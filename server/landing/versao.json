@@ -1,12 +1,19 @@
 {
-  "versao": "1.55.1",
-  "build": 90,
-  "versao_app": "1.55.1",
+  "versao": "1.55.2",
+  "build": 91,
+  "versao_app": "1.55.2",
   "notas": [
-    "Troca o contador do sino por um ponto verde",
-    "Tira o espaço vazio acima da logo"
+    "Mostra a logo inteira no topo da lista",
+    "Tira o corte quadrado do brilho da logo"
   ],
   "historico": [
+    {
+      "versao": "1.55.2",
+      "notas": [
+        "Mostra a logo inteira no topo da lista",
+        "Tira o corte quadrado do brilho da logo"
+      ]
+    },
     {
       "versao": "1.55.1",
       "notas": [
@@ -60,13 +67,6 @@
       "versao": "1.49.0",
       "notas": [
         "Permite excluir um treino feito do app e, se for do app de força, do Garmin"
-      ]
-    },
-    {
-      "versao": "1.48.0",
-      "notas": [
-        "Tira a opção ida e volta e refaz o plano sem as duas metades",
-        "Envia cada bloco de tiros como uma série inteira ao Garmin"
       ]
     }
   ]
