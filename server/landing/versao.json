@@ -1,11 +1,17 @@
 {
-  "versao": "1.53.0",
-  "build": 87,
-  "versao_app": "1.53.0",
+  "versao": "1.54.0",
+  "build": 88,
+  "versao_app": "1.54.0",
   "notas": [
-    "Renomeia o app de força para Training e deixa a hora do mostrador sólida"
+    "Padroniza o layout com os componentes do design system"
   ],
   "historico": [
+    {
+      "versao": "1.54.0",
+      "notas": [
+        "Padroniza o layout com os componentes do design system"
+      ]
+    },
     {
       "versao": "1.53.0",
       "notas": [
@@ -59,13 +65,6 @@
       "versao": "1.46.1",
       "notas": [
         "Corrige o app fechando quando o relógio conecta"
-      ]
-    },
-    {
-      "versao": "1.46.0",
-      "notas": [
-        "Mostra se o treino de hoje está no relógio na tela força",
-        "Mostra a carga do próximo treino no resumo e leva ela ao relógio"
       ]
     }
   ]
