@@ -1,11 +1,17 @@
 {
-  "versao": "1.49.0",
-  "build": 82,
-  "versao_app": "1.49.0",
+  "versao": "1.50.0",
+  "build": 83,
+  "versao_app": "1.50.0",
   "notas": [
-    "Permite excluir um treino feito do app e, se for do app de força, do garmin"
+    "Junta treinos e treinador numa aba com feitos, semana, mês e plano"
   ],
   "historico": [
+    {
+      "versao": "1.50.0",
+      "notas": [
+        "Junta treinos e treinador numa aba com feitos, semana, mês e plano"
+      ]
+    },
     {
       "versao": "1.49.0",
       "notas": [
@@ -62,12 +68,6 @@
       "versao": "1.42.2",
       "notas": [
         "Divide o registro de envios ao Garmin entre os aparelhos"
-      ]
-    },
-    {
-      "versao": "1.42.1",
-      "notas": [
-        "Atualiza o nome dos treinos do plano para o padrão novo"
       ]
     }
   ]
