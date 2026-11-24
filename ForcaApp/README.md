@@ -1,4 +1,4 @@
-# trAIning Força (Connect IQ)
+# Training (Connect IQ)
 
 App de relógio que substitui a atividade de força nativa do Garmin. Roda o treino de força do dia, do MFIT ou do treinador, série a série, e manda cada série ao iPhone na hora. Funciona no Forerunner 965 e no Venu 3/3S.
 

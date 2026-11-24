@@ -26,5 +26,5 @@ Se a nota sumir do relógio depois de trocar o token no app, salve o token novo 
 
 - No git, `BuildToken.WATCH_TOKEN` fica sempre vazio e `resources/drawables/background.png` fica preto. A foto real tem pessoas da família e o repositório é público.
 - Modo sempre ligado: até 10% de pixels acesos no AMOLED. Por isso a hora usa fonte bitmap de peso 700 nesse modo e não mostra a foto.
-- Hora na tela ativa: PNG com alpha por caractere em `resources/drawables/clock`. Fonte bitmap customizada sai sem antialias e o contorno fica serrilhado.
+- Hora na tela ativa: PNG com alpha por caractere em `resources/drawables/clock`. Fonte bitmap customizada sai sem antialias e a borda fica serrilhada.
 - Mudança visual começa num mock aprovado.

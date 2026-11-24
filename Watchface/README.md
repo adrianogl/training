@@ -1,6 +1,6 @@
 # Mostrador trAIning (Forerunner 965)
 
-Mostrador Connect IQ com a identidade do app: foto de fundo em escala de cinza bem escura, logo e data, temperatura e umidade, bateria, hora em Archivo vazada, só com o contorno, e os segundos ao lado, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta e o próximo compromisso da agenda. No modo sempre ligado ficam só a data, a hora e o próximo compromisso, sem a foto.
+Mostrador Connect IQ com a identidade do app: foto de fundo em escala de cinza bem escura, logo e data, temperatura e umidade, bateria, hora em Archivo sólida e os segundos ao lado, prontidão com régua (descanso, moderado, forte), VO2max com a variação de 3 meses, km da semana com barra feito/planejado/meta e o próximo compromisso da agenda. No modo sempre ligado ficam só a data, a hora e o próximo compromisso, sem a foto.
 
 ## De onde vem cada dado
 
@@ -16,7 +16,7 @@ A prontidão ocupa o primeiro número, com o selo AI, e a cor segue a faixa: aba
 
 O app lê o Calendário do iPhone (Ajustes › Mostrador › Mostrar a agenda no relógio) e manda até 3 eventos dos próximos 7 dias, sem os de dia inteiro e os cancelados. O mostrador mostra o primeiro que ainda não começou: HOJE com quanto falta, AMANHÃ ou o dia da semana. O título desce de fonte e, se ainda não couber, é cortado na última palavra com reticências.
 
-A hora usa a Archivo (OFL), só com os dígitos e os dois pontos. Na tela ativa, peso 900 vazado, cada caractere é um PNG com alpha em `resources/drawables/clock` (`packingFormat="png"`): fonte bitmap customizada sai sem antialias e o contorno fica serrilhado. No sempre ligado, peso 700 em fonte bitmap (`resources/fonts`), para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
+A hora usa a Archivo (OFL), só com os dígitos e os dois pontos. Na tela ativa, peso 900 sólido, cada caractere é um PNG com alpha em `resources/drawables/clock` (`packingFormat="png"`): fonte bitmap customizada sai sem antialias e o contorno fica serrilhado. No sempre ligado, peso 700 em fonte bitmap (`resources/fonts`), para ficar abaixo do limite de 10% de pixels acesos no AMOLED.
 
 ## Prontidão do app
 
