@@ -49,7 +49,7 @@ import Testing
         }
         let structure = TrainerEngine.suggestedStructure(Self.five)
         let cards = TrainerDaysCards(
-            preference: .constant(Self.five), structure: .constant(structure), strength: .constant([]), outAndBack: .constant(false),
+            preference: .constant(Self.five), structure: .constant(structure), strength: .constant([]),
             suggested: structure,
             meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: Self.paces, target: Self.target),
             peakMeters: peak,

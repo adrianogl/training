@@ -24,7 +24,6 @@ struct TrainerNewPlanView: View {
     @State private var goalKilometers = TrainerConstants.goalDistanceDefault
     @State private var lightWeeks: Set<Day> = []
     @State private var longMode = TrainerLongMode.continuous
-    @State private var outAndBack = false
     @State private var paceOverrides: [TrainerPaceKind: Double] = [:]
     @State private var preview: [TrainerChange] = []
     @State private var prefilled = false
@@ -114,7 +113,7 @@ struct TrainerNewPlanView: View {
         return model.makeEdit(
             target: target, startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
             peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer, structure: structure, longMode: longMode,
-            paceOverrides: paceOverrides, dayPreference: dayPreference, outAndBack: outAndBack
+            paceOverrides: paceOverrides, dayPreference: dayPreference, outAndBack: false
         )
     }
 
@@ -128,9 +127,9 @@ struct TrainerNewPlanView: View {
                 dayPreference = next
                 structure = TrainerEngine.suggestedStructure(next)
             }),
-            structure: $structure, strength: $strength, outAndBack: $outAndBack,
+            structure: $structure, strength: $strength,
             suggested: TrainerEngine.suggestedStructure(dayPreference),
-            meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal, outAndBack: outAndBack),
+            meters: TrainerEngine.peakWeekMeters(structure: structure, peakMeters: peak, paces: paces, target: goal),
             peakMeters: peak,
             warnings: TrainerEngine.dayWarnings(structure: structure, strength: followsStrengthPlan ? model.strengthSessions : strength, peakMeters: peak, paces: paces, target: goal),
             showsStrength: !followsStrengthPlan,
@@ -199,7 +198,6 @@ struct TrainerNewPlanView: View {
         structure = current.structure
         strength = current.strength
         longMode = current.longMode
-        outAndBack = current.outAndBack
         paceOverrides = current.paceOverrides
         strengthLoaded = true
         applySuggestion()
@@ -430,7 +428,7 @@ struct TrainerNewPlanView: View {
                 startMeters: Double(chosenStart) * TrainerConstants.metersPerKilometer,
                 peakMeters: Double(chosenPeak) * TrainerConstants.metersPerKilometer,
                 lightWeeks: lightWeeks.sorted(), longMode: longMode, dayPreference: dayPreference,
-                paceOverrides: paceOverrides, outAndBack: outAndBack
+                paceOverrides: paceOverrides
             )
             dismiss()
         }

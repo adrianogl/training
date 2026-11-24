@@ -106,7 +106,7 @@ Todo treino de corrida tem o nome no formato "tipo + distância total", igual no
 
 ## Ida e volta
 
-Opção do plano ("Ida e volta" em Dias da semana), desligada por padrão. Serve para quem sai de casa e volta na metade, e também como marcador da metade do treino.
+Saiu do app: a opção não aparece mais em Dias da semana, e um plano que estava com ela é refeito sem as duas metades na primeira abertura do app depois da atualização (`TrainerModel.dropOutAndBack`), com os treinos reenviados ao Garmin como alterados. O motor ainda lê planos antigos com a opção; as regras abaixo descrevem esse comportamento antigo.
 
 - **Corrida contínua:** rodagem, opcional, média-longa e longão em km par. O treino vai em duas metades iguais, e o relógio avisa na troca de passo. O longão arredonda para cima, ou para baixo se passar de 150 min ou de 35% da semana.
 - **Treino com blocos:** limiar, VO2 e ritmo de prova terminam um tiro exatamente na metade. Para isso, o aquecimento cresce até 2 km ou entra uma volta leve de até 2 km no fim; escolhe o que precisar de menos, e no empate, a volta leve. Os blocos não mudam. Se nenhum tiro fecha a conta (tempo contínuo, por exemplo), a meia-volta fica no meio do bloco.

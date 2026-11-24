@@ -29,15 +29,6 @@ import TrainingCore
         }
     }
 
-    @Test func daysCardWithOutAndBack() throws {
-        let structure = TrainerEngine.suggestedStructure(Self.preference)
-        let cards = TrainerDaysCards(
-            preference: .constant(Self.preference), structure: .constant(structure), strength: .constant([]), outAndBack: .constant(true),
-            suggested: structure, meters: [:], peakMeters: 80_000, warnings: [], showsStrength: false
-        )
-        try TrainerDaysVolumeSnapshotTests.save(cards, name: "trainer-out-and-back-days")
-    }
-
     @Test func thresholdAndEasyWithTurn() throws {
         let workouts = Self.plan.workouts
         let threshold = try #require(workouts.first { $0.kind == .threshold && $0.steps.contains { $0.kind == .cooldown } })
