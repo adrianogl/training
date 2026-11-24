@@ -39,11 +39,6 @@ struct SettingsView: View {
 
     private var groupList: some View {
         List {
-            if sizeClass != .regular {
-                DSScreenHeader(title: AppSection.settings.title)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
             ForEach(SettingsSection.allCases) { section in
                 Section {
                     ForEach(section.groups.filter(isVisible)) { group in
@@ -57,7 +52,17 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    DSSectionTitle(section.title)
+                    if sizeClass != .regular, section == SettingsSection.allCases.first {
+                        VStack(alignment: .leading, spacing: DSSpacing.sectionTop) {
+                            DSScreenHeader(title: AppSection.settings.title)
+                                .textCase(nil)
+                            DSSectionTitle(section.title)
+                                .padding(.leading, SettingsConstants.sectionHeaderInset)
+                        }
+                        .listRowInsets(EdgeInsets())
+                    } else {
+                        DSSectionTitle(section.title)
+                    }
                 }
             }
             SettingsVersionSection(summary: model.appUpdate.summary, build: AppBuildInfo().build)
