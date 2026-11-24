@@ -1,12 +1,17 @@
 {
-  "versao": "1.55.2",
-  "build": 91,
-  "versao_app": "1.55.2",
+  "versao": "1.55.3",
+  "build": 92,
+  "versao_app": "1.55.3",
   "notas": [
-    "Mostra a logo inteira no topo da lista",
-    "Tira o corte quadrado do brilho da logo"
+    "Usa a margem lateral do app na lista"
   ],
   "historico": [
+    {
+      "versao": "1.55.3",
+      "notas": [
+        "Usa a margem lateral do app na lista"
+      ]
+    },
     {
       "versao": "1.55.2",
       "notas": [
@@ -61,12 +66,6 @@
       "versao": "1.50.0",
       "notas": [
         "Junta treinos e treinador numa aba com feitos, semana, mês e plano"
-      ]
-    },
-    {
-      "versao": "1.49.0",
-      "notas": [
-        "Permite excluir um treino feito do app e, se for do app de força, do Garmin"
       ]
     }
   ]
