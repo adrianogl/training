@@ -83,6 +83,13 @@ import Testing
         #expect(result[2]?.records.first?.isFirst == true)
     }
 
+    @Test func firstRunWithSeveralDistancesHasNoRecords() {
+        let result = PersonalRecords.timeline([
+            run(1, day: 1, [effort(1_000, 287, .segment), effort(3_000, 868, .segment), effort(5_000, 1_451, .segment), effort(10_000, 2_917, .segment)]),
+        ])
+        #expect(result[1] == nil)
+    }
+
     @Test func nearRecordWithinTwoPercentOnlyWithoutARecord() {
         let result = PersonalRecords.timeline([
             run(1, day: 1, [effort(5_000, 1_421)]),
