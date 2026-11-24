@@ -1,11 +1,17 @@
 {
-  "versao": "1.50.0",
-  "build": 83,
-  "versao_app": "1.50.0",
+  "versao": "1.51.0",
+  "build": 84,
+  "versao_app": "1.51.0",
   "notas": [
-    "Junta treinos e treinador numa aba com feitos, semana, mês e plano"
+    "Troca a aba mais pela aba ajustes"
   ],
   "historico": [
+    {
+      "versao": "1.51.0",
+      "notas": [
+        "Troca a aba mais pela aba ajustes"
+      ]
+    },
     {
       "versao": "1.50.0",
       "notas": [
@@ -62,12 +68,6 @@
       "versao": "1.43.0",
       "notas": [
         "Importa com aprovação as corridas do Strava sem o relógio"
-      ]
-    },
-    {
-      "versao": "1.42.2",
-      "notas": [
-        "Divide o registro de envios ao Garmin entre os aparelhos"
       ]
     }
   ]
