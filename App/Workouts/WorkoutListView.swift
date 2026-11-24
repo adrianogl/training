@@ -102,8 +102,8 @@ struct WorkoutListView: View {
             let store = StrengthProgramStore()
             applyStrength(store.load(), today: today)
             guard let client = model.mfitAccount.client,
-                  let fetched = try? await client.currentProgram(today: today.iso) as MFITProgram?? else { return }
-            applyStrength(fetched.map(store.update(with:)) ?? store.clearProgram(), today: today)
+                  let update = try? await StrengthProgramSync.refresh(client: client, today: today, store: store) else { return }
+            applyStrength(update.cache, today: today)
         }
         .task(id: "\(model.garminAccount.isSignedIn)|\(model.trainer.sendLastDay.iso)") {
             #if DEBUG

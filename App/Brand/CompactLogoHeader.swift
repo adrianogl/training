@@ -6,12 +6,15 @@ struct CompactLogoHeader: View {
 
     var body: some View {
         if sizeClass != .regular {
-            Logo(showsTagline: true, showsIconPlaceholder: refresh?.hidesLogo ?? false)
-                .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(BrandRefreshConstants.space)) } action: { frame in
-                    refresh?.recordHeader(frame)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 8)
+            HStack(alignment: .center, spacing: DSSpacing.s2) {
+                Logo(showsTagline: true, showsIconPlaceholder: refresh?.hidesLogo ?? false)
+                    .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(BrandRefreshConstants.space)) } action: { frame in
+                        refresh?.recordHeader(frame)
+                    }
+                Spacer(minLength: 0)
+                NoticeBellButton()
+            }
+            .padding(.vertical, 8)
         }
     }
 }

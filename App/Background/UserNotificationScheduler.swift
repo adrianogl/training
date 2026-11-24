@@ -17,8 +17,13 @@ struct UserNotificationScheduler: NotificationScheduling {
     }
 
     func schedule(id: String, title: String?, text: String, link: String, at date: Date?) async {
+        await schedule(id: id, title: title, text: text, link: link, at: date, category: nil)
+    }
+
+    func schedule(id: String, title: String?, text: String, link: String, at date: Date?, category: String?) async {
         let content = UNMutableNotificationContent()
         if let title { content.title = title }
+        if let category { content.categoryIdentifier = category }
         content.body = text
         content.sound = .default
         content.userInfo = [C.deepLinkUserInfoKey: link]

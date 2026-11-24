@@ -5,6 +5,7 @@ enum DeepLink: Equatable {
     case readiness
     case workout(Int64)
     case trainer(TrainerRoute)
+    case trainerSend
 
     init?(url: URL) {
         guard let section = AppSection(url: url) else { return nil }
@@ -14,6 +15,8 @@ enum DeepLink: Equatable {
         case (.workouts, let id?): self = Int64(id).map { .workout($0) } ?? .section(section)
         case (.trainer, DeepLinkConstants.strengthPath): self = .trainer(.strength)
         case (.trainer, DeepLinkConstants.changesPath): self = .trainer(.changes)
+        case (.trainer, DeepLinkConstants.sendPath): self = .trainerSend
+        case (.trainer, DeepLinkConstants.dayPath) where parts.count > 1: self = .trainer(.day(parts[1]))
         default: self = .section(section)
         }
     }
@@ -23,11 +26,15 @@ enum DeepLink: Equatable {
         case .section(let section): section
         case .readiness: .today
         case .workout: .workouts
-        case .trainer: .workouts
+        case .trainer, .trainerSend: .workouts
         }
     }
 
     static func workoutURL(_ activityId: Int64) -> String {
         DeepLinkConstants.workoutsPrefix + String(activityId)
+    }
+
+    static func trainerDayURL(_ iso: String) -> String {
+        DeepLinkConstants.trainerDayPrefix + iso
     }
 }

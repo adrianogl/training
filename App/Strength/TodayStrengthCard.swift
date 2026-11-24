@@ -30,8 +30,7 @@ struct TodayStrengthCard<Label: View>: View {
             let store = StrengthProgramStore()
             let schedule = StrengthSchedule()
             workout = schedule.workouts(store.load().program, from: today, through: today).first
-            guard let fetched = try? await client.currentProgram(today: today.iso) as MFITProgram?? else { return }
-            let cache = fetched.map(store.update(with:)) ?? store.clearProgram()
+            guard let cache = try? await StrengthProgramSync.refresh(client: client, today: today, store: store).cache else { return }
             workout = schedule.workouts(cache.program, from: today, through: today).first
         }
     }

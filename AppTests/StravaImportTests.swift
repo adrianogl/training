@@ -30,10 +30,15 @@ private struct NoAuth: StravaWebAuthenticating {
     private let runs = #"{"runs":[{"id":11,"name":"Longão","sportType":"Run","startDate":"2026-10-31T10:00:00Z","startDateLocal":"2026-10-31T07:00:00Z","distanceMeters":6000,"movingSeconds":1800,"elapsedSeconds":1800,"elevationGain":null,"averageHeartRate":150,"maxHeartRate":165,"hasGps":true}]}"#
     private let streams = #"{"streams":{"time":[0,600,1200,1800],"distance":[0,2000,4000,6000],"latlng":[[-19.9,-43.9],[-19.91,-43.9],[-19.92,-43.9],[-19.93,-43.9]],"altitude":[],"heartrate":[140,150,155,160],"cadence":[85,86,87,88],"velocity":[3.3,3.3,3.3,3.3]}}"#
 
+    private let status = #"{"connected":true,"athleteName":"A","format":"B","enabled":true}"#
+    private let noticeId = StravaImportConstants.notificationPrefix + "11"
+
     private func model(_ replies: [(Int, String)]) throws -> (StravaModel, ModelContainer) {
+        try model(replies, defaults: UserDefaults(suiteName: "strava-import-\(UUID().uuidString)")!)
+    }
+
+    private func model(_ replies: [(Int, String)], defaults: UserDefaults) throws -> (StravaModel, ModelContainer) {
         let container = try TrainingSchema.container(inMemory: true)
-        let name = "strava-import-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: name)!
         let model = StravaModel(container: container, defaults: defaults, authenticator: NoAuth(), now: { self.now })
         let transport = ImportTransport(replies)
         model.link = { StravaClient(baseURL: URL(string: "https://sync.example.test")!, token: "sessao", transport: transport) }
@@ -64,5 +69,31 @@ private struct NoAuth: StravaWebAuthenticating {
 
         #expect(candidates.count == 1)
         #expect(try await model.runCandidates().isEmpty)
+    }
+
+    @Test func notifiedRunEntersTheNoticesAndLeavesWhenIgnored() async throws {
+        let defaults = UserDefaults(suiteName: "strava-import-\(UUID().uuidString)")!
+        let (model, _) = try model([(200, status), (200, runs), (200, runs)], defaults: defaults)
+        let inbox = NoticeInboxStore(defaults: defaults, now: { self.now })
+
+        await model.refreshStatus()
+        await model.notifyNewRuns()
+
+        let entry = try #require(inbox.entries().first)
+        #expect(entry.id == noticeId)
+        #expect(entry.title == StravaImportText.notificationTitle)
+        #expect(entry.link == StravaImportConstants.workoutsLink)
+        await model.ignore([11])
+        #expect(inbox.entries().isEmpty)
+    }
+
+    @Test func importedRunLeavesTheNotices() async throws {
+        let defaults = UserDefaults(suiteName: "strava-import-\(UUID().uuidString)")!
+        let (model, _) = try model([(200, runs), (200, streams)], defaults: defaults)
+        let inbox = NoticeInboxStore(defaults: defaults, now: { self.now })
+        inbox.record(id: noticeId, title: StravaImportText.notificationTitle, text: "Longão", link: StravaImportConstants.workoutsLink, at: nil)
+
+        #expect(try await model.importRuns(try await model.runCandidates()) == 1)
+        #expect(inbox.entries().isEmpty)
     }
 }

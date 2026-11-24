@@ -20,6 +20,7 @@ A análise roda só no app, no pacote `Packages/TrainingKit` (módulos `WorkoutA
 
 | Sem dados de hoje | usa a nota de ontem, avisando "de ontem", e não manda essa nota ao relógio nem ao treinador | `todaySummary` |
 | Noite sem dados | já tem dado do dia (Body Battery ou estresse), passou das 10h e não veio HRV nem sono: o Hoje mostra "Sem dados desta noite", o relógio mostra "SEM DADOS", e o treinador e o aviso da manhã não usam a prontidão. A nota do Garmin, que conta o sono como zero, também não entra | `InsightsConstants.missingNightHour` |
+| A noite não chegou | com o aviso da manhã ligado, notificação "A noite não chegou" às 10h quando a prontidão de hoje ainda não tem HRV nem sono, pedindo para abrir o app ou o Garmin Connect. Fica agendada desde o dia anterior e é cancelada quando os dados da noite chegam num sync; desligar o aviso da manhã cancela. Abre Hoje › Prontidão | `MissingNightNotifier` |
 
 Testes: `MetricsTests/ReadinessTests.swift`, `ReadinessBreakdownTests.swift`, `InsightsTests/MissingNightTests.swift`.
 
@@ -51,6 +52,7 @@ O tipo vem de `PlanText.shape`: intervalado tem repetição ou mais de um bloco 
 - Sem previsão, ou sem ponto de orvalho na hora escolhida, o calor não entra e o motivo aparece como "sem previsão do tempo".
 - O card mostra a faixa nova com "era …", o aviso "Ajuste para hoje · +N s/km nos tiros/no ritmo/no longão" e um chip por motivo. Sem mudança, não há aviso. A sugestão própria do treinador por prontidão tem prioridade.
 - A notificação da manhã acrescenta, antes da linha de força, algo como "Tiros em 4:10–4:18 por calor e prontidão.". Usa o mesmo treino do card: o primeiro treino do dia que ainda não foi feito (`TodayWorkoutPicker.pending`). Só entra quando o aviso é enviado e espera no máximo 5 s pela previsão. Se o app for aberto durante a espera, o aviso não sai.
+- Quando o treinador mudou o treino de hoje entre 22h e 7h, a linha da corrida começa com "Treino de hoje mudou:" e segue com a linha do ajuste ou, sem ela, o treino novo. Nesse caso não sai push separado (`TrainerChangeNotifier.morningLine`, regra em `prescricao.md`).
 
 Frases de troca e de descanso:
 

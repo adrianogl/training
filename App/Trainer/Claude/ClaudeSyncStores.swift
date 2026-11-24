@@ -85,5 +85,6 @@ struct ClaudeMailbox {
 
     func markSeen(_ inbox: ClaudeInbox) {
         defaults.set(inbox.savedAt, forKey: ClaudeConstants.inboxSeenKey)
+        NoticeInboxStore(defaults: defaults).remove(id: ClaudeConstants.inboxNotificationId)
     }
 }

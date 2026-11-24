@@ -11,7 +11,7 @@ import Observation
     @ObservationIgnored private let calendar: Calendar
 
     init(
-        expiry: Date? = ProvisioningProfile.expiration(), scheduler: any NotificationScheduling = UserNotificationScheduler(),
+        expiry: Date? = ProvisioningProfile.expiration(), scheduler: any NotificationScheduling = NoticeInboxScheduler.standard,
         now: @escaping () -> Date = { .now }, calendar: Calendar = .current
     ) {
         self.expiry = expiry

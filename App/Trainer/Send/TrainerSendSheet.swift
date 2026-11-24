@@ -133,6 +133,7 @@ struct TrainerSendSheet: View {
             Toggle(TrainerSendText.runToggle, isOn: Binding(get: { settings.runFromTrainer }, set: { value in
                 settings.runFromTrainer = value
                 store.save(settings)
+                Task { await app.trainer.checkWatchPending() }
             }))
             .tint(BrandColors.accentFill)
             Text(TrainerSendText.runIgnoresAdvisory).font(.caption).foregroundStyle(BrandColors.dim)
@@ -145,6 +146,7 @@ struct TrainerSendSheet: View {
             Toggle(isOn: Binding(get: { settings.sendsMFIT }, set: { value in
                 settings.includesMFIT = value
                 store.save(settings)
+                Task { await app.trainer.checkWatchPending() }
             })) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(TrainerSendText.mfitToggle)

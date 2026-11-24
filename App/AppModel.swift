@@ -27,7 +27,10 @@ import WorkoutAnalysis
     @ObservationIgnored let healthReader = HealthKitReader()
     @ObservationIgnored lazy var healthDataSource = HealthDataSource(reader: healthReader)
     var watchKind: WatchKind? {
-        didSet { watchKind?.store(in: scope.defaults) }
+        didSet {
+            watchKind?.store(in: scope.defaults)
+            trainer.scheduleNoticeRefresh()
+        }
     }
     let autoSyncEnabled: Bool
     let remoteSync: RemoteSyncModel
@@ -41,12 +44,15 @@ import WorkoutAnalysis
     let exerciseNotes: ExerciseNotesStore
     let strengthPlanStore: StrengthPlanStore
     let snapshots: ScreenSnapshotStore
-    let appUpdate = AppUpdateModel()
+    let appUpdate = AppUpdateModel(scheduler: UserNotificationScheduler())
     let installExpiry = InstallExpiryModel()
-    let installNotice = InstallNoticeModel()
+    let installNotice = InstallNoticeModel(scheduler: UserNotificationScheduler())
+    let notices: NoticeInboxModel
     @ObservationIgnored let notifier: MorningNotifier
+    @ObservationIgnored let missingNight: MissingNightNotifier
     @ObservationIgnored let connections = ConnectionNotifier()
     @ObservationIgnored let claudeInbox = ClaudeInboxNotifier()
+    @ObservationIgnored var mfitChanges = MFITChangeNotifier()
     @ObservationIgnored private var readinessComplete: Bool
     @ObservationIgnored private var readinessDay: Day?
     @ObservationIgnored private let today: @Sendable () -> Day
@@ -94,6 +100,8 @@ import WorkoutAnalysis
         self.notifier = notifier
         self.container = container
         self.scope = scope
+        self.notices = NoticeInboxModel(store: NoticeInboxStore(defaults: scope.defaults))
+        self.missingNight = MissingNightNotifier(defaults: scope.defaults)
         self.hasLocalData = Self.storeHasData(container: container)
         self.scoreRefresher = ScoreRefresher {
             await PerformanceTrace.measure("notas") { await ScoreStore.refresh(container: container, ids: nil) }
@@ -192,6 +200,7 @@ import WorkoutAnalysis
         strava.imported = { [weak self] ids in await self?.didImportExternalRuns(ids) }
         StravaNotificationHandler.shared.handle = { [weak self] action, runId in await self?.strava.handleNotification(action: action, runId: runId) }
         strava.registerCategory()
+        installWatchNoticeHandlers()
         strava.connectionChanged = { [weak self] connected in
             guard let self else { return }
             if connected { await self.connections.restored(.strava) } else { await self.connections.lost(.strava) }
@@ -287,6 +296,7 @@ import WorkoutAnalysis
 
     func appBecameActive(syncs: Bool = true) async {
         await notifier.appOpened(now: .now)
+        await missingNight.update(hasNightData: todayReadinessComplete, now: .now)
         if syncs { await RaceNotices.refresh(container: container, client: garminAccount.client) }
         let defaults = UserDefaults.standard
         if notifier.settings.enabled, !defaults.bool(forKey: BackgroundConstants.permissionRequestedDefaultsKey) {
@@ -320,6 +330,7 @@ import WorkoutAnalysis
     }
 
     func activate(force: Bool = false) {
+        notices.reload()
         Task { await refreshInstallState() }
         WorkoutSender.send(trainer: trainer, today: today())
         StrengthLiveModel.shared.uploadPending()
@@ -652,6 +663,7 @@ import WorkoutAnalysis
     private func handleMorningNotice(_ summary: TodaySummary, trigger: SyncTrigger) async {
         readinessComplete = MorningNotifier.hasNightData(summary)
         readinessDay = today()
+        await missingNight.update(hasNightData: readinessComplete, now: .now)
         guard trigger != .workoutFinished else { return }
         guard trigger == .background else {
             await notifier.foregroundSyncFinished(summary: summary, now: .now)

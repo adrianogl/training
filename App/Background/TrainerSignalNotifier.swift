@@ -10,7 +10,7 @@ import Insights
     private let now: () -> Date
 
     init(
-        scheduler: any NotificationScheduling = UserNotificationScheduler(), defaults: UserDefaults = AccountScope.current.defaults,
+        scheduler: any NotificationScheduling = NoticeInboxScheduler.standard, defaults: UserDefaults = AccountScope.current.defaults,
         calendar: Calendar = .current, now: @escaping () -> Date = { .now }
     ) {
         self.scheduler = scheduler

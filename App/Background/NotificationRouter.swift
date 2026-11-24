@@ -9,11 +9,19 @@ final class NotificationRouter: NSObject, UNUserNotificationCenterDelegate, Send
         let info = response.notification.request.content.userInfo
         let link = info[BackgroundConstants.deepLinkUserInfoKey] as? String
         nonisolated(unsafe) let completion = completionHandler
+        NoticeInboxStore().markRead(id: response.notification.request.identifier)
         if let runId = (info[StravaImportConstants.runIdKey] as? NSNumber)?.int64Value,
            [StravaImportConstants.importAction, StravaImportConstants.ignoreAction].contains(response.actionIdentifier) {
             let action = response.actionIdentifier
             Task { @MainActor in
                 await StravaNotificationHandler.shared.handle?(action, runId)
+                completion()
+            }
+            return
+        }
+        if response.actionIdentifier == WatchPendingNotifierConstants.sendAction {
+            Task { @MainActor in
+                await WatchPendingActionHandler.shared.send?()
                 completion()
             }
             return

@@ -158,7 +158,7 @@ struct TodayView: View {
         guard let model, model.isLoaded, let sunday = WeeklyReportBuilder.nextSunday(after: .now) else { return }
         let report = model.currentWeekReport(trainer: app.trainer.activeWorkouts)
         let text = WeeklyReportBuilder.notification(report, strength: strength.weekSummary(start: report.start).map(StrengthText.reportNotification))
-        await UserNotificationScheduler().schedule(id: WeeklyReportConstants.notificationId, text: text, at: sunday)
+        await NoticeInboxScheduler.standard.schedule(id: WeeklyReportConstants.notificationId, text: text, at: sunday)
     }
 
     private var twoColumns: Bool {

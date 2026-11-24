@@ -16,6 +16,7 @@ struct RootView: View {
     @State private var layout: RootLayout?
     @State private var swappingLayout = false
     @State private var latestSizeClass: UserInterfaceSizeClass?
+    @State private var showsTrainerSend = false
 
     var body: some View {
         Group {
@@ -56,6 +57,7 @@ struct RootView: View {
             DeepLinkCenter.shared.open(url)
         }
         .onChange(of: DeepLinkCenter.shared.pending, initial: true) { _, _ in follow() }
+        .sheet(isPresented: $showsTrainerSend) { TrainerSendSheet() }
     }
 
     private var targetLayout: RootLayout {
@@ -83,10 +85,13 @@ struct RootView: View {
             }
             .navigationTitle("")
             .safeAreaInset(edge: .top) {
-                Logo(showsTagline: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, BrandConstants.sidebarLogoPadding)
-                    .padding(.vertical, 8)
+                HStack(alignment: .center, spacing: DSSpacing.s2) {
+                    Logo(showsTagline: true)
+                    Spacer(minLength: 0)
+                    NoticeBellButton()
+                }
+                .padding(.horizontal, BrandConstants.sidebarLogoPadding)
+                .padding(.vertical, 8)
             }
             .safeAreaInset(edge: .bottom) { SidebarRaceCard() }
         } detail: {
@@ -142,6 +147,11 @@ struct RootView: View {
         guard !swappingLayout else { return }
         applyRestoration()
         guard let link = DeepLinkCenter.shared.pending else { return }
+        if link == .trainerSend {
+            showsTrainerSend = true
+            _ = DeepLinkCenter.shared.take()
+            return
+        }
         open(link.section)
         switch link {
         case .readiness:
@@ -151,7 +161,7 @@ struct RootView: View {
         case .trainer(let route):
             UserDefaults.standard.set(WorkoutListMode.week.rawValue, forKey: WorkoutCalendarConstants.modeKey)
             trainerPath = [route]
-        case .workout, .section:
+        case .workout, .section, .trainerSend:
             break
         }
         if case .workout = link { return }

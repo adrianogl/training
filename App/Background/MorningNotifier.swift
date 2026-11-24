@@ -11,7 +11,7 @@ import TrainingCore
     private let defaults: UserDefaults
     private let calendar: Calendar
 
-    init(scheduler: any NotificationScheduling = UserNotificationScheduler(), defaults: UserDefaults = AccountScope.current.defaults, calendar: Calendar = .current) {
+    init(scheduler: any NotificationScheduling = NoticeInboxScheduler.standard, defaults: UserDefaults = AccountScope.current.defaults, calendar: Calendar = .current) {
         self.scheduler = scheduler
         self.defaults = defaults
         self.calendar = calendar
@@ -46,7 +46,7 @@ import TrainingCore
         let id = notificationId(day: day)
         if defaults.string(forKey: C.notifiedDayDefaultsKey) == day, await scheduler.pending().contains(id) == false { return }
         let minimum = calendar.date(byAdding: .minute, value: settings.minimumMinutes, to: calendar.startOfDay(for: now)) ?? now
-        let run = await runLine()
+        let run = TrainerChangeNotifier.morningLine(defaults: defaults, day: day, run: await runLine())
         if opened(self.lastAppOpen, day: day, readyAt: readyAt) { return }
         let text = [morningNotificationText(breakdown, verdict: verdict), run, strengthLine].compactMap { $0 }.joined(separator: " ")
         await scheduler.schedule(id: id, text: text, at: now < minimum ? minimum : nil)

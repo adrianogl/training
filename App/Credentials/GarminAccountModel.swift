@@ -6,13 +6,16 @@ import RemoteSync
 @MainActor @Observable final class GarminAccountModel {
     private typealias C = GarminAccountConstants
 
-    private(set) var isSignedIn: Bool
+    private(set) var isSignedIn: Bool {
+        didSet { if oldValue != isSignedIn { signedInChanged?() } }
+    }
     private(set) var phase = GarminAccountPhase.idle
     private(set) var message: String?
     @ObservationIgnored private let store: KeychainGarminSessionStore
     @ObservationIgnored private let makeTransport: @Sendable () -> any HTTPTransport
     @ObservationIgnored private var pending: GarminAccountAuth?
     @ObservationIgnored var link: (@MainActor () -> GarminLinkClient?)?
+    @ObservationIgnored var signedInChanged: (@MainActor () -> Void)?
 
     init(store: KeychainGarminSessionStore, makeTransport: @escaping @Sendable () -> any HTTPTransport) {
         self.store = store

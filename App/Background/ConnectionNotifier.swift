@@ -4,15 +4,17 @@ import Foundation
     private typealias C = ConnectionNotifierConstants
 
     private let scheduler: any NotificationScheduling
+    private let inbox: NoticeInboxStore
     private let defaults: UserDefaults
     private let calendar: Calendar
     private let now: () -> Date
 
     init(
-        scheduler: any NotificationScheduling = UserNotificationScheduler(), defaults: UserDefaults = AccountScope.current.defaults,
-        calendar: Calendar = .current, now: @escaping () -> Date = { .now }
+        scheduler: any NotificationScheduling = NoticeInboxScheduler.standard, inbox: NoticeInboxStore = NoticeInboxStore(),
+        defaults: UserDefaults = AccountScope.current.defaults, calendar: Calendar = .current, now: @escaping () -> Date = { .now }
     ) {
         self.scheduler = scheduler
+        self.inbox = inbox
         self.defaults = defaults
         self.calendar = calendar
         self.now = now
@@ -33,5 +35,6 @@ import Foundation
         guard defaults.bool(forKey: key) else { return }
         defaults.set(false, forKey: key)
         await scheduler.cancel(id: C.idPrefix + source.rawValue)
+        inbox.remove(id: C.idPrefix + source.rawValue)
     }
 }
