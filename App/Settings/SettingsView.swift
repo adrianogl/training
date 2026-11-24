@@ -64,11 +64,13 @@ struct SettingsView: View {
             buildFooter
         }
         .scrollContentBackground(.hidden)
+        .contentMargins(.top, sizeClass == .regular ? nil : DSSpacing.s2, for: .scrollContent)
         .background(BrandBackground())
         .task { await model.account.refresh() }
         .navigationTitle(AppSection.settings.title)
         .toolbarTitleDisplayMode(.inline)
         .toolbar(removing: .title)
+        .toolbarVisibility(sizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
     }
 
     private func isVisible(_ group: SettingsGroup) -> Bool {
