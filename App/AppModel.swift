@@ -104,9 +104,11 @@ import WorkoutAnalysis
         self.missingNight = MissingNightNotifier(defaults: scope.defaults)
         self.hasLocalData = Self.storeHasData(container: container)
         self.scoreRefresher = ScoreRefresher {
-            await PerformanceTrace.measure("notas") { await ScoreStore.refresh(container: container, ids: nil) }
+            let scored = await PerformanceTrace.measure("notas") { await ScoreStore.refresh(container: container, ids: nil) }
             let updated = await PerformanceTrace.measure("clima dos treinos") { await ActivityWeatherStore.refresh(container: container) }
-            if !updated.isEmpty { await PerformanceTrace.measure("notas com clima") { await ScoreStore.refresh(container: container, ids: nil) } }
+            guard !updated.isEmpty else { return scored }
+            let weathered = await PerformanceTrace.measure("notas com clima") { await ScoreStore.refresh(container: container, ids: nil) }
+            return scored || weathered
         }
         self.storeError = storeError
         self.keyStore = keyStore
@@ -213,7 +215,7 @@ import WorkoutAnalysis
     var dataToken: SyncDataToken {
         var finished: Date?
         if case .finished(let date) = syncStatus { finished = date }
-        return SyncDataToken(finished: finished, deferredFITRevision: deferredFITRevision)
+        return SyncDataToken(finished: finished, deferredFITRevision: deferredFITRevision, scoreRevision: scoreRefresher.revision)
     }
 
     nonisolated static func storeHasData(container: ModelContainer) -> Bool {

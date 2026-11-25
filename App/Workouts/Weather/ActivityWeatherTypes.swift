@@ -23,6 +23,11 @@ struct ActivityWeatherResponse: Decodable {
     let hourly: Hourly
 }
 
+enum WeatherFetch: Sendable {
+    case answered([WeatherHour]?)
+    case unreachable
+}
+
 struct WeatherRequest: Hashable, Sendable {
     let latitude: String
     let longitude: String

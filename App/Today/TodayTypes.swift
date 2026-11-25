@@ -45,6 +45,7 @@ struct LastRunSummary: Equatable, Sendable, Codable {
     var heartRateHigh: Bool? = nil
     var similar: [LastRunSimilar]? = nil
     var reading: String? = nil
+    var scorePending = false
 }
 
 struct TodayGoalStatus: Equatable {

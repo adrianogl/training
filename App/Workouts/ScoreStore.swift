@@ -52,13 +52,15 @@ enum ScoreStore {
             .joined(separator: WorkoutConstants.scoreKeyFloorSeparator) ?? WorkoutConstants.scoreKeyMissing
     }
 
-    static func refresh(container: ModelContainer, ids: [Int64]?, paceProStore: PaceProStore = PaceProStore()) async {
+    @discardableResult
+    static func refresh(container: ModelContainer, ids: [Int64]?, paceProStore: PaceProStore = PaceProStore()) async -> Bool {
         await Task.detached(priority: .utility) {
             update(in: ModelContext(container), ids: ids, paceProStore: paceProStore)
         }.value
     }
 
-    static func update(in context: ModelContext, ids: [Int64]?, paceProStore: PaceProStore = PaceProStore()) {
+    @discardableResult
+    static func update(in context: ModelContext, ids: [Int64]?, paceProStore: PaceProStore = PaceProStore()) -> Bool {
         let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
         let wanted = ids.map(Set.init)
         let runs = records.filter { ActivityTypeKey.isRun($0.typeKey) }
@@ -70,7 +72,17 @@ enum ScoreStore {
         let races = WorkoutAnalysisContext.races(in: context, paceProStore: paceProStore)
         var inputs: WorkoutAnalysisInputs?
         var changed = false
+        let now = Date.now
         for record in runs where wanted?.contains(record.activityId) != false {
+            if ScoreReadiness.pending(record, now: now) != nil {
+                if record.scoreKey != nil || record.scoreValue != nil {
+                    record.scoreValue = nil
+                    record.scoreData = nil
+                    record.scoreKey = nil
+                    changed = true
+                }
+                continue
+            }
             let race = races.race(for: record)
             let pool = race != nil ? runs
                 : record.workoutName.flatMap { named[WorkoutTitle.comparisonKey($0)] } ?? window(before: record, runs: runs, starts: runStarts)
@@ -94,6 +106,7 @@ enum ScoreStore {
             changed = true
         }
         if changed { try? context.save() }
+        return changed
     }
 
     private static func window(before record: ActivityRecord, runs: [ActivityRecord], starts: [Date]) -> [ActivityRecord] {

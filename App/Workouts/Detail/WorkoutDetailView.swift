@@ -45,11 +45,11 @@ struct WorkoutDetailView: View {
             }
         }
         .task(id: activityId) {
-            let analysis = await WorkoutAnalysisStore.load(activityId: activityId, container: context.container)
-            let loaded = WorkoutDetailModel(activityId: activityId, context: context, analysis: analysis)
-            model = loaded
-            goalEntries = WorkoutGoalCheck.entries(activityId: activityId, blocks: loaded.blocks, context: context)
-            planCheck = await loadPlanCheck()
+            await load()
+        }
+        .onChange(of: app.dataToken) {
+            guard model?.scorePending != nil else { return }
+            Task { await load() }
         }
         .alert(StravaConstants.sectionTitle, isPresented: Binding(get: { stravaFeedback != nil }, set: { if !$0 { stravaFeedback = nil } })) {
             Button("OK", role: .cancel) {}
@@ -144,7 +144,10 @@ struct WorkoutDetailView: View {
     @ViewBuilder
     private func howItWent(_ model: WorkoutDetailModel) -> some View {
         let C = WorkoutDetailConstants.self
-        if let score = model.score, !model.scoreRows.isEmpty {
+        if let pending = model.scorePending {
+            section(C.sectionScore)
+            ScoreLoadingCard(pending: pending, showsLabel: false)
+        } else if let score = model.score, !model.scoreRows.isEmpty {
             section(C.sectionScore)
             ScoreSummaryCard(value: score.value, rows: model.scoreRows, activityId: activityId, perfectLine: model.perfectLine, showsLabel: false)
         }
@@ -158,6 +161,14 @@ struct WorkoutDetailView: View {
         }
         section(C.analysisTitle)
         WorkoutAnalysisCard(summary: model.analysisSummary, activityId: activityId, goalEntries: goalEntries, aboveExpected: model.aboveExpected, extraFacts: WorkoutCoachFacts.facts(model, goals: goalEntries, plan: planCheck), showsLabel: false)
+    }
+
+    private func load() async {
+        let analysis = await WorkoutAnalysisStore.load(activityId: activityId, container: context.container)
+        let loaded = WorkoutDetailModel(activityId: activityId, context: context, analysis: analysis)
+        model = loaded
+        goalEntries = WorkoutGoalCheck.entries(activityId: activityId, blocks: loaded.blocks, context: context)
+        planCheck = await loadPlanCheck()
     }
 
     private func section(_ title: String) -> some View {

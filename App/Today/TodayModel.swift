@@ -416,7 +416,8 @@ import WorkoutAnalysis
         let kind = LastRunBuilder.kind(of: record)
         let paceSeconds = LastRunBuilder.paceSeconds(record)
         let zoneTotal = record.zoneSeconds.reduce(0, +)
-        return LastRunSummary(
+        let scorePending = ScoreReadiness.pending(record) != nil
+        var summary = LastRunSummary(
             activityId: id,
             title: record.displayTitle,
             dateText: WorkoutListModel.dateText(record.start),
@@ -426,7 +427,7 @@ import WorkoutAnalysis
             evolution: reading?.evolution,
             evolutionOnDevice: reading?.evolutionOnDevice ?? false,
             notice: hasComparison ? analysis.comparisonNotice : nil,
-            score: record.scoreValue ?? analysis.score?.value,
+            score: scorePending ? nil : record.scoreValue ?? analysis.score?.value,
             day: Day(iso: dayIso),
             kind: kind,
             place: record.locationName,
@@ -448,6 +449,8 @@ import WorkoutAnalysis
                 }
             )
         )
+        summary.scorePending = scorePending
+        return summary
     }
 
     nonisolated private static func similarRun(_ record: ActivityRecord) -> LastRunSimilar {

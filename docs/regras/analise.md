@@ -145,7 +145,7 @@ Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift
 | Regra | Valor | Constante |
 | --- | --- | --- |
 | Fonte | Open-Meteo, na coordenada da largada arredondada a 0,1°, média das horas que o treino cobre. Até 85 dias, endpoint de previsão; antes disso, arquivo | `ActivityWeatherConstants`, `WEATHER` |
-| Treinos preenchidos | corridas ao ar livre dos últimos 120 dias, até 40 consultas por sincronização; falha tenta de novo depois de 6 h. Esteira e treino sem GPS ficam sem clima | `backfillDays`, `requestsPerRefresh`, `retryInterval` |
+| Treinos preenchidos | corridas ao ar livre dos últimos 120 dias, até 40 consultas por sincronização. Resposta sem dados tenta de novo depois de 6 h; sem rede ou com erro 5xx, tenta de novo na próxima atualização. Esteira e treino sem GPS ficam sem clima | `backfillDays`, `requestsPerRefresh`, `retryInterval` |
 | Calor | cresce com a temperatura e com o ponto de orvalho, sem ajuste até 20 °C somados e até 10% (veja a tabela abaixo). Internamente a régua é a soma em °F (`heatBands`), interpolada | `RunWeatherConstants.heatBands`, `HEAT.bands` |
 | Frio | só a temperatura, de 5 °C para baixo: 0 °C 0,5%; −5 °C 1%; −10 °C ou menos 2% | `coldBands` |
 | Equivalente em clima ameno | ritmo ÷ (1 + ajuste) | `WeatherAdjustment.mildPace` |
@@ -278,6 +278,8 @@ Uma corrida é prova quando é o resultado de uma prova cadastrada ou, se a prov
 | Custo | 25 | Eficiência contra até 4 provas anteriores de distância até 20% diferente, de qualquer data. Sem prova anterior, fica de fora. |
 
 A chave guardada de uma prova inclui distância, alvo e pace de referência por km, então a nota é refeita quando a meta ou a estratégia mudam.
+
+A nota só aparece quando o treino tem tudo o que pode ter (`ScoreReadiness`): o FIT processado, ou desistido depois de 5 falhas, e o clima do horário quando é corrida ao ar livre com GPS dos últimos 120 dias. Enquanto falta, a lista, o Hoje e o detalhe mostram "Calculando a nota" com o motivo, e o aviso de corrida nova e o resumo no Strava esperam. A comparação com treinos iguais não entra na espera: quando não existe treino igual, ela não chega nunca.
 
 Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
 

@@ -17,4 +17,6 @@ enum ActivityWeatherConstants {
     static let hourFormat = "yyyy-MM-dd'T'HH:mm"
     static let dayFormat = "yyyy-MM-dd"
     static let keySeparator = "|"
+    static let okStatus = 200
+    static let serverErrorStatus = 500
 }

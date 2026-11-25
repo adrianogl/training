@@ -16,7 +16,9 @@ struct LastRunCompactCard: View {
                 Text(lastRun.dateText).font(.caption).foregroundStyle(BrandColors.dim)
             }
             HStack(alignment: .center, spacing: 12) {
-                if let score = lastRun.score {
+                if lastRun.scorePending {
+                    ScoreLoadingBadge()
+                } else if let score = lastRun.score {
                     ScoreBadge(value: score, size: ScoreConstants.cardBadgeSize)
                 }
                 VStack(alignment: .leading, spacing: 2) {

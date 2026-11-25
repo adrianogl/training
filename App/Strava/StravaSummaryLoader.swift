@@ -54,7 +54,7 @@ enum StravaSummaryLoader {
             kilometers: (record.distance ?? 0) / WorkoutConstants.metersPerKilometer,
             paceSeconds: LastRunBuilder.paceSeconds(record),
             heartRate: record.averageHR,
-            score: record.scoreValue ?? analysis.score?.value,
+            score: ScoreReadiness.pending(record) != nil ? nil : record.scoreValue ?? analysis.score?.value,
             fadeKm: detailedAnalysis(record: record, history: records, daily: [])?.fadeKm,
             similar: similar
         )

@@ -20,8 +20,7 @@ enum ActivityWeatherStore {
         let cache = await fetchAll(requests, session: session)
         var updated: Set<Int64> = []
         for item in pending {
-            guard let fetched = cache[item.request] else { continue }
-            let hours = fetched
+            guard case .answered(let hours) = cache[item.request] else { continue }
             item.record.weatherCheckedAt = now
             guard let hours, let weather = ActivityWeather.average(hours, start: item.start, end: item.end) else { continue }
             item.record.weatherTemperature = weather.temperature
@@ -36,16 +35,16 @@ enum ActivityWeatherStore {
         return updated
     }
 
-    private static func fetchAll(_ requests: [WeatherRequest], session: URLSession) async -> [WeatherRequest: [WeatherHour]?] {
-        await withTaskGroup(of: (WeatherRequest, [WeatherHour]?).self) { group in
-            var results: [WeatherRequest: [WeatherHour]?] = [:]
+    private static func fetchAll(_ requests: [WeatherRequest], session: URLSession) async -> [WeatherRequest: WeatherFetch] {
+        await withTaskGroup(of: (WeatherRequest, WeatherFetch).self) { group in
+            var results: [WeatherRequest: WeatherFetch] = [:]
             var next = requests.makeIterator()
             for _ in 0..<C.parallelRequests {
                 guard let request = next.next() else { break }
                 group.addTask { (request, await ActivityWeather.fetch(request, session: session)) }
             }
-            while let (request, hours) = await group.next() {
-                results[request] = .some(hours)
+            while let (request, fetched) = await group.next() {
+                results[request] = fetched
                 if let request = next.next() {
                     group.addTask { (request, await ActivityWeather.fetch(request, session: session)) }
                 }
@@ -70,6 +69,12 @@ enum ActivityWeatherStore {
             guard end <= now else { return nil }
             return (record, ActivityWeather.request(coordinate: coordinate, start: record.start, end: end, now: now), record.start, end)
         }
+    }
+
+    static func awaitsWeather(_ record: ActivityRecord, now: Date = .now) -> Bool {
+        guard record.weatherTemperature == nil, record.weatherCheckedAt == nil,
+              record.start >= now.addingTimeInterval(-C.backfillDays * C.secondsPerDay) else { return false }
+        return startCoordinate(record) != nil
     }
 
     private static func startCoordinate(_ record: ActivityRecord) -> Coordinate? {

@@ -156,7 +156,8 @@ enum WorkoutListModel {
             kilometers: distance.map { $0 / WorkoutConstants.metersPerKilometer },
             zoneShares: zoneShares(record.zoneSeconds),
             weekStart: Day.today(now: record.start).weekStart,
-            isStrength: ActivityTypeKey.isStrength(record.typeKey)
+            isStrength: ActivityTypeKey.isStrength(record.typeKey),
+            scorePending: isRun && ScoreReadiness.pending(record) != nil
         )
     }
 
