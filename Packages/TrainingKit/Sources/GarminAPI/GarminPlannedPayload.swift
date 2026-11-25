@@ -57,11 +57,10 @@ public enum GarminPlannedPayload {
     private static func runStep(_ step: PlannedRunStep, order: inout Int) -> [String: Any] {
         order += 1
         switch step {
-        case .warmup(let meters, let heartRate):
-            var warmup = distanceStep("warmup", meters: meters, order: order)
-            if let heartRate { setHeartRate(heartRate, on: &warmup, secondary: false) }
-            return warmup
-        case .cooldown(let meters): return distanceStep("cooldown", meters: meters, order: order)
+        case .warmup(let meters, let fastest, let slowest, let heartRate):
+            return targeted("warmup", meters: meters, fastest: fastest, slowest: slowest, heartRate: heartRate, order: order)
+        case .cooldown(let meters, let fastest, let slowest, let heartRate):
+            return targeted("cooldown", meters: meters, fastest: fastest, slowest: slowest, heartRate: heartRate, order: order)
         case .recovery(let meters): return distanceStep("recovery", meters: meters, order: order)
         case .rest(let seconds):
             var rest = executable("rest", order: order)
@@ -69,21 +68,27 @@ public enum GarminPlannedPayload {
             rest["endConditionValue"] = seconds
             return rest
         case .interval(let meters, let fastest, let slowest, let heartRate):
-            var interval = distanceStep("interval", meters: meters, order: order)
-            var hasPace = false
-            if let fastest, let slowest, fastest > 0, slowest > 0 {
-                interval["targetType"] = paceTarget
-                interval["targetValueOne"] = metersPerKilometer / max(fastest, slowest)
-                interval["targetValueTwo"] = metersPerKilometer / min(fastest, slowest)
-                hasPace = true
-            }
-            if let heartRate { setHeartRate(heartRate, on: &interval, secondary: hasPace) }
-            return interval
+            return targeted("interval", meters: meters, fastest: fastest, slowest: slowest, heartRate: heartRate, order: order)
         case .repeated(let times, let inner):
             let groupOrder = order
             let children = inner.map { runStep($0, order: &order) }
             return repeatGroup(times: times, order: groupOrder, steps: children)
         }
+    }
+
+    private static func targeted(_ kind: String, meters: Double, fastest: Double?, slowest: Double?, heartRate: ClosedRange<Int>?, order: Int) -> [String: Any] {
+        var step = distanceStep(kind, meters: meters, order: order)
+        let hasPace = setPace(fastest: fastest, slowest: slowest, on: &step)
+        if let heartRate { setHeartRate(heartRate, on: &step, secondary: hasPace) }
+        return step
+    }
+
+    private static func setPace(fastest: Double?, slowest: Double?, on step: inout [String: Any]) -> Bool {
+        guard let fastest, let slowest, fastest > 0, slowest > 0 else { return false }
+        step["targetType"] = paceTarget
+        step["targetValueOne"] = metersPerKilometer / max(fastest, slowest)
+        step["targetValueTwo"] = metersPerKilometer / min(fastest, slowest)
+        return true
     }
 
     private static func setHeartRate(_ range: ClosedRange<Int>, on step: inout [String: Any], secondary: Bool) {

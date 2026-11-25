@@ -36,17 +36,12 @@ public enum TrainerZones {
         return centers.min { abs($0.1 - pace) < abs($1.1 - pace) }?.0 ?? C.easy
     }
 
-    public static func usesHeartRateTarget(_ step: TrainerStep, in workout: TrainerWorkout) -> Bool {
-        guard let zone = zone(step, in: workout), zone != C.fast else { return false }
-        return step.kind != .work || step.meters >= C.heartRateTargetMinMeters
-    }
-
-    public static func bands(thresholdHeartRate: Int?, paces: TrainerPaces?) -> [TrainerZoneBand] {
+    public static func bands(thresholdHeartRate: Int?, paces: TrainerPaces?, maxHeartRate: Int? = nil) -> [TrainerZoneBand] {
         let floors = thresholdHeartRate.map { thresholdZones(thresholdHeartRate: $0).floors } ?? []
         return (1...C.zoneCount).map { zone in
             let pace = paces.flatMap { paceBand(zone: zone, paces: $0) }
             let low = floors.indices.contains(zone - 1) && zone > 1 ? floors[zone - 1] : nil
-            let high = floors.indices.contains(zone) ? floors[zone] - 1 : nil
+            let high = floors.indices.contains(zone) ? floors[zone] - 1 : zone == C.zoneCount ? maxHeartRate : nil
             return TrainerZoneBand(zone: zone, heartRateLow: low, heartRateHigh: high, paceLow: pace?.low, paceHigh: pace?.high)
         }
     }

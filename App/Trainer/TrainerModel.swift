@@ -872,7 +872,7 @@ import TrainingCore
         guard sendsToGarmin else { return .none }
         let store = TrainerSendStore(defaults: defaults)
         let settings = store.settings()
-        guard settings.runFromTrainer, let item = TrainerSendBuilder.runItem(workout, thresholdHeartRate: thresholdHeartRate) else { return .none }
+        guard settings.runFromTrainer, let item = TrainerSendBuilder.runItem(workout, thresholdHeartRate: thresholdHeartRate, maxHeartRate: maxHeartRate) else { return .none }
         if TrainerSendBuilder.status(item, records: store.records()) == .current { return .current }
         return settings.auto?.kinds.contains(.run) == true ? .none : .pending
     }

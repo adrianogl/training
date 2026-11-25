@@ -12,6 +12,10 @@ extension TrainerModel {
         return (try? thresholdHeartRates(on: [day], in: container.mainContext))?[day]
     }
 
+    var maxHeartRate: Int? {
+        (try? runningZonesRecord(in: container.mainContext))?.maxHeartRate
+    }
+
     var zoneBands: [TrainerZoneBand] {
         TrainerZones.bands(thresholdHeartRate: thresholdHeartRate, paces: plan?.paces)
     }

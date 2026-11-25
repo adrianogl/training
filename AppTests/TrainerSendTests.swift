@@ -23,9 +23,9 @@ import TrainingCore
         ])
     }
 
-    @Test func heartRateTargetGoesOnWarmupAndLongBlocksOnly() {
+    @Test func everyStepGoesByPaceWithHeartRateAsSecondTarget() {
         let workout = TrainerWorkout(day: day, kind: .threshold, title: "Limiar 12 km", totalMeters: 12_000, steps: [
-            TrainerStep(kind: .warmup, meters: 4_000),
+            TrainerStep(kind: .warmup, meters: 4_000, paceLow: 318, paceHigh: 332),
             TrainerStep(kind: .work, repeats: 4, meters: 2_000, restSeconds: 120, paceLow: 243, paceHigh: 249),
         ], rationale: "")
         let short = threshold()
@@ -33,10 +33,24 @@ import TrainingCore
         let steps = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172)
         let shortSteps = TrainerSendBuilder.runSteps(short, thresholdHeartRate: 172)
 
-        #expect(steps.first == .warmup(meters: 4_000, heartRate: 146...154))
+        #expect(steps.first == .warmup(meters: 4_000, fastest: 318, slowest: 332, heartRate: 146...154))
         #expect(steps.last == .repeated(times: 4, steps: [.interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...171), .rest(seconds: 120)]))
-        #expect(shortSteps.last == .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248), .rest(seconds: 120)]))
+        #expect(shortSteps.last == .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248, heartRate: 163...171), .rest(seconds: 120)]))
         #expect(ZoneText.label(4, band: TrainerZones.bands(thresholdHeartRate: 172, paces: nil)[3]) == "Z4 · 163–171")
+    }
+
+    @Test func vo2UsesMaxHeartRateAsCeilingAndCooldownGoesEasy() {
+        let workout = TrainerWorkout(day: day, kind: .vo2max, title: "VO2 10 km", totalMeters: 10_000, steps: [
+            TrainerStep(kind: .work, repeats: 5, meters: 1_000, restSeconds: 150, paceLow: 224, paceHigh: 228),
+            TrainerStep(kind: .cooldown, meters: 1_000, paceLow: 318, paceHigh: 332),
+        ], rationale: "")
+
+        let withMax = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172, maxHeartRate: 190)
+        let withoutMax = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172)
+
+        #expect(withMax.first == .repeated(times: 5, steps: [.interval(meters: 1_000, fastest: 224, slowest: 228, heartRate: 172...190), .rest(seconds: 150)]))
+        #expect(withoutMax.first == .repeated(times: 5, steps: [.interval(meters: 1_000, fastest: 224, slowest: 228), .rest(seconds: 150)]))
+        #expect(withMax.last == .cooldown(meters: 1_000, fastest: 318, slowest: 332, heartRate: 146...154))
     }
 
     @Test func eachBlockGoesAsOneSeriesWithItsRest() {
