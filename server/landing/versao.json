@@ -1,11 +1,17 @@
 {
-  "versao": "1.58.0",
-  "build": 97,
-  "versao_app": "1.58.0",
+  "versao": "1.58.1",
+  "build": 98,
+  "versao_app": "1.58.1",
   "notas": [
-    "Mostra quanto o calor de cada hora tira do ritmo no melhor horário"
+    "Mostra o efeito do calor em s/km no aviso e conta tudo que falta sincronizar"
   ],
   "historico": [
+    {
+      "versao": "1.58.1",
+      "notas": [
+        "Mostra o efeito do calor em s/km no aviso e conta tudo que falta sincronizar"
+      ]
+    },
     {
       "versao": "1.58.0",
       "notas": [
@@ -61,12 +67,6 @@
       "versao": "1.55.0",
       "notas": [
         "Adiciona área de avisos e cinco notificações novas"
-      ]
-    },
-    {
-      "versao": "1.54.0",
-      "notas": [
-        "Padroniza o layout com os componentes do design system"
       ]
     }
   ]
