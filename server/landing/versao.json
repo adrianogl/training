@@ -1,11 +1,17 @@
 {
-  "versao": "1.57.0",
-  "build": 96,
-  "versao_app": "1.57.0",
+  "versao": "1.58.0",
+  "build": 97,
+  "versao_app": "1.58.0",
   "notas": [
-    "Manda ao relógio o pace do dia e usa o mesmo na análise"
+    "Mostra quanto o calor de cada hora tira do ritmo no melhor horário"
   ],
   "historico": [
+    {
+      "versao": "1.58.0",
+      "notas": [
+        "Mostra quanto o calor de cada hora tira do ritmo no melhor horário"
+      ]
+    },
     {
       "versao": "1.57.0",
       "notas": [
@@ -61,12 +67,6 @@
       "versao": "1.54.0",
       "notas": [
         "Padroniza o layout com os componentes do design system"
-      ]
-    },
-    {
-      "versao": "1.53.0",
-      "notas": [
-        "Renomeia o app de força para Training e deixa a hora do mostrador sólida"
       ]
     }
   ]
