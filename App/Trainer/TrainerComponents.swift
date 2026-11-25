@@ -33,6 +33,7 @@ struct TrainerDayLineView: View {
 struct TrainerDayRowView: View {
     let row: TrainerDayRow
     let isToday: Bool
+    var adjusted: TrainerWorkout?
 
     var body: some View {
         let workout = row.workout
@@ -74,7 +75,7 @@ struct TrainerDayRowView: View {
             .frame(width: TrainerConstants.dayDateWidth, alignment: .leading)
             kindBar(workout.kind)
             VStack(alignment: .leading, spacing: 2) {
-                TrainerDayLineView(line: TrainerText.dayLine(workout, longStage: row.longStage, estimate: row.estimate), titleFont: .subheadline)
+                TrainerDayLineView(line: TrainerText.dayLine(adjusted ?? workout, longStage: row.longStage, estimate: row.estimate), titleFont: .subheadline)
             }
             Spacer(minLength: 6)
             if let status = TrainerText.status(for: row) {

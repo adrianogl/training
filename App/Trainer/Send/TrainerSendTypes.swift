@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import GarminAPI
+import Insights
 import TrainingCore
 
 enum TrainerSendKind: String, Codable, CaseIterable {
@@ -30,6 +31,9 @@ struct TrainerSentRecord: Codable, Equatable {
     let signature: String
     let day: String
     let kind: TrainerSendKind
+    var dayAdjust: DayAdjustEntries?
+    var heatShare: Double?
+    var title: String?
 }
 
 struct TrainerSendLedgerEntry: Codable, Equatable {
@@ -62,6 +66,10 @@ struct TrainerSendItem: Identifiable, Equatable {
     var runSteps: [PlannedRunStep] = []
     var strengthSeconds: Double?
     var isMFIT = false
+    var dayAdjust: DayAdjustEntries?
+    var dayAdjustSeconds: Int?
+    var heatShare: Double?
+    var planSignature: String?
 
     var id: String { key }
 

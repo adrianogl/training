@@ -84,6 +84,49 @@ enum DayAdjustText {
         guard case .adjusted(let steps, _, _, let reasons, _) = result,
               let lead = C.dayAdjustMorningLead[PlanText.shape(plan)],
               let range = firstActiveRange(steps) else { return nil }
+        return morning(lead: lead, range: range, reasons: reasons)
+    }
+
+    static func trainerMorning(_ result: TrainerDayAdjustResult, plan: PlannedWorkout) -> String? {
+        guard case .adjusted(let change) = result,
+              let lead = C.dayAdjustMorningLead[PlanText.shape(plan)],
+              let first = TrainerDayAdjust.activeRanges(change.workout).first else { return nil }
+        return morning(lead: lead, range: range(fastest: first.low, slowest: first.high), reasons: change.reasons)
+    }
+
+    static func watchDisplay(_ watch: DayAdjustWatch, plan: PlannedWorkout) -> DayAdjustDisplay {
+        let hour = watch.entries.hour
+        switch watch.result {
+        case .none: return display(.none, plan: plan, hour: hour)
+        case .rest: return display(.rest, plan: plan, hour: hour)
+        case .swap(let reasons): return display(.swap(reasons: reasons), plan: plan, hour: hour)
+        case .adjusted(let change):
+            let original = replacingPaces(plan.steps, with: change.original)
+            let result = DayAdjustResult.adjusted(
+                steps: plan.steps, original: original, seconds: change.seconds, reasons: change.reasons, shortened: change.shortened
+            )
+            return DayAdjustDisplay(
+                steps: plan.steps, original: original, notice: notice(result, shape: PlanText.shape(plan), hour: hour), fallback: nil
+            )
+        }
+    }
+
+    static func replacingPaces(_ steps: [PlannedStep], with ranges: [TrainerPaceRange]) -> [PlannedStep] {
+        var remaining = ranges[...]
+        func replaced(_ step: PlannedStep) -> PlannedStep {
+            var result = step
+            if !step.children.isEmpty {
+                result.children = step.children.map(replaced)
+                return result
+            }
+            guard step.kind == .active, case .pace? = step.target, let range = remaining.popFirst() else { return step }
+            result.target = .pace(fastest: range.low, slowest: range.high)
+            return result
+        }
+        return steps.map(replaced)
+    }
+
+    private static func morning(lead: String, range: String, reasons: [DayAdjustReason]) -> String {
         let words = ordered(reasons).compactMap { words(for: $0)?.morning }
         return words.isEmpty
             ? String(format: C.dayAdjustMorningPlainFormat, lead, range)

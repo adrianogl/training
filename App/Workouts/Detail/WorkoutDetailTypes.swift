@@ -140,6 +140,7 @@ struct WorkoutAnalysisInputs {
     var legDays: Set<Day> = []
     var hotSessions: [Int64: Int] = [:]
     var races = RaceIndex()
+    var includedHeatByActivity: [Int64: Double] = [:]
 }
 
 struct ZoneBar: Equatable, Sendable {

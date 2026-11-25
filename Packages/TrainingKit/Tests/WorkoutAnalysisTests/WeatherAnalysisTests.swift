@@ -106,3 +106,37 @@ private func run(
     #expect(hotCost?.reason == nil)
     #expect(plainCost?.reason == .lessEfficient)
 }
+
+@Test func heatAlreadyInTargetIsNotDiscountedAgain() {
+    let factor = humid?.paceFactor ?? 0
+    let blocks = adjustForWeather([run(speed: 3.75, status: .slower)], effect: humid, includedHeat: factor)
+
+    #expect(blocks[0].status == .slower)
+    #expect(blocks[0].weatherRescued == nil)
+    #expect(blocks[0].weatherFactor == factor)
+}
+
+@Test func onlyTheHeatAboveWhatWasIncludedRescues() {
+    let factor = humid?.paceFactor ?? 0
+    let speed = 3.9 / (1 + factor * 0.6)
+    let partly = adjustForWeather([run(speed: speed, status: .slower)], effect: humid, includedHeat: factor * 0.2)
+    let mostly = adjustForWeather([run(speed: speed, status: .slower)], effect: humid, includedHeat: factor * 0.8)
+
+    #expect(partly[0].status == .inTarget)
+    #expect(partly[0].weatherRescued == true)
+    #expect(mostly[0].status == .slower)
+}
+
+@Test func includedHeatAboveMeasuredCountsAsZero() {
+    let blocks = adjustForWeather([run(speed: 3.85, status: .slower)], effect: humid, includedHeat: 1)
+
+    #expect(blocks[0].status == .slower)
+    #expect(blocks[0].weatherFactor == humid?.paceFactor)
+}
+
+@Test func includedHeatOnlyTouchesActiveBlocks() {
+    let factor = humid?.paceFactor ?? 0
+    let warmup = adjustForWeather([run(.warmup, speed: 3.75, status: .slower)], effect: humid, includedHeat: factor)
+
+    #expect(warmup[0].status == .inTarget)
+}

@@ -651,6 +651,11 @@ import WorkoutAnalysis
               !Task.isCancelled else { return nil }
         let recent = TodayModel.recentRuns(context: container.mainContext)
         guard let plan = DayAdjustText.pendingRun(plans, recent: recent, day: day) else { return nil }
+        if let workout = trainer.sentRun(planId: plan.id) {
+            await trainer.refreshDayAdjust(summary: summary)
+            guard !Task.isCancelled, let entries = trainer.todayEntries(for: workout) else { return nil }
+            return DayAdjustText.trainerMorning(TrainerDayAdjust.adjust(workout, entries: entries), plan: plan)
+        }
         let forecast = await trainer.forecast(for: day)
         guard !Task.isCancelled else { return nil }
         let planned = trainer.plannedLegs(on: day.adding(days: -1))
@@ -669,9 +674,13 @@ import WorkoutAnalysis
         guard trigger != .workoutFinished else { return }
         guard trigger == .background else {
             await notifier.foregroundSyncFinished(summary: summary, now: .now)
+            if await trainer.refreshDayAdjust(summary: summary), watchKind == .garmin {
+                await trainer.autoSend(client: garminAccount.client)
+            }
             return
         }
         await notifier.evaluate(summary: summary, now: .now, lastAppOpen: notifier.lastAppOpen, settings: notifier.settings, strengthLine: morningStrengthLine(), runLine: { await self.morningRunLine(summary) })
+        await trainer.refreshDayAdjust(summary: summary)
     }
 
     private func updateProgress(_ fraction: Double) {

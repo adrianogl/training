@@ -17,10 +17,13 @@ extension TrainerModel {
         let prefs = TrainerStrengthPrefsStore().load()
         let threshold = thresholdHeartRate
         let maxHeartRate = maxHeartRate
+        let today = currentDay
         let cache = StrengthProgramStore().load()
         for day in days {
             if filter.kinds.contains(.run), settings.runFromTrainer, let workout = plan?.workouts.first(where: { $0.day == day }),
-               let item = TrainerSendBuilder.runItem(workout, thresholdHeartRate: threshold, maxHeartRate: maxHeartRate) {
+               let item = TrainerSendBuilder.runItem(
+                   workout, entries: day == today ? todayEntries(for: workout) : nil, thresholdHeartRate: threshold, maxHeartRate: maxHeartRate
+               ) {
                 items.append(item)
             }
             if filter.kinds.contains(.strength), plan != nil {

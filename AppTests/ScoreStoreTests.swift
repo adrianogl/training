@@ -53,6 +53,18 @@ import WorkoutAnalysis
         return container
     }
 
+    @Test func keyChangesWhenTheWatchTargetAlreadyHadHeat() throws {
+        let container = try Self.store()
+        let record = try Self.record(1, in: container)
+        let previous = [try Self.record(2, in: container)]
+        let plain = ScoreStore.key(record: record, previous: previous, thresholdByDay: [:], watchZones: nil)
+        #expect(ScoreStore.key(record: record, previous: previous, thresholdByDay: [:], watchZones: nil, includedHeatByActivity: [:]) == plain)
+        let heated = ScoreStore.key(record: record, previous: previous, thresholdByDay: [:], watchZones: nil, includedHeatByActivity: [record.activityId: 0.03])
+        #expect(heated != plain)
+        #expect(heated.hasPrefix(plain))
+        #expect(ScoreStore.key(record: record, previous: previous, thresholdByDay: [:], watchZones: nil, includedHeatByActivity: [record.activityId: 0.04]) != heated)
+    }
+
     @Test func storedScoreReadWithoutRecompute() async throws {
         let container = try await Self.refreshed()
         let first = try Self.record(1, in: container)

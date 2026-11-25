@@ -42,13 +42,20 @@ enum TrainerSender {
                     store.remove(key: item.key)
                 }
                 let id = try await create(item)
-                store.record(TrainerSentRecord(workoutId: id, signature: item.signature, day: item.day.iso, kind: item.kind), key: item.key)
+                store.record(
+                    TrainerSentRecord(
+                        workoutId: id, signature: item.signature, day: item.day.iso, kind: item.kind,
+                        dayAdjust: item.dayAdjust, heatShare: item.heatShare, title: item.kind == .run ? item.title : nil
+                    ),
+                    key: item.key
+                )
                 result.sent += 1
             } catch {
                 result.failed += 1
                 if result.firstError == nil { result.firstError = TrainerSendText.errorReason(error) }
             }
         }
+        IncludedHeatStore(defaults: store.defaults).absorb(store.records())
         return result
     }
 }

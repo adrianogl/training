@@ -299,6 +299,14 @@ enum TrainerText {
         "\(WorkoutFormat.clock(secondsPerKm))/km"
     }
 
+    static func dayAdjustLine(_ change: TrainerDayAdjustment) -> String? {
+        guard let original = change.originalPace ?? change.original.first,
+              let was = paceRange(low: original.low, high: original.high) else { return nil }
+        return change.seconds > 0
+            ? String(format: DayAdjustWatchConstants.dayViewFormat, change.seconds, was)
+            : String(format: DayAdjustWatchConstants.dayViewPlainFormat, was)
+    }
+
     static func paceRange(low: Double?, high: Double?) -> String? {
         switch (low, high) {
         case (nil, nil):
