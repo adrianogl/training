@@ -41,7 +41,8 @@ enum PlannedBriefingLoader {
             completed: completed(runs.first { $0.localDay == plan.day }),
             startHour: startHour(planDay: planDay, today: today, now: now, calendar: calendar),
             easyBand: easyBand,
-            goals: (try? goalSnapshots(context: context, today: today)) ?? []
+            goals: (try? goalSnapshots(context: context, today: today)) ?? [],
+            hotSessions: ActivityRecord.hotSessions(before: now, among: runs)
         )
     }
 

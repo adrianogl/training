@@ -122,6 +122,8 @@ enum PlannedBriefingConstants {
     static let raceLongProgressFormat = "Este longão aproxima o item Longão mais longo de %@: alvo de %@ km."
 
     static let bestHoursFormat = "Saindo às %dh você pega %d °C. Às %dh, conte com %@ a mais na mesma FC."
+    static let bestHoursBaseFormat = "Saindo às %dh você pega %d °C."
+    static let bestHoursSavedFormat = " Sair às %dh em vez das %dh poupa %d s/km na mesma FC."
     static let bestHoursCool = "Manhã fresca: qualquer horário até as 10h funciona."
     static let bestHoursAheadFormat = "Daqui pra frente, o mais fresco é sair às %dh, com %d °C."
     static let bestHoursAheadHeatFormat = " Às %dh, conte com %@ a mais na mesma FC."

@@ -15,6 +15,11 @@ enum PlannedBriefingBuilder {
         let kilometers = (plan.estimatedMeters ?? 0) / WorkoutConstants.metersPerKilometer
         let heart = heartRange(input.similar)
         let maxHeart = average(input.similar.compactMap(\.maxHeartRate))
+        let shown = bestHours(input.weather, startHour: input.startHour)
+        let heat = PlannedHourHeat.seconds(shown, pace: PlannedHourHeat.referencePace(input), hotSessions: input.hotSessions)
+        let heatComparison = coolest(shown).first.flatMap {
+            PlannedHourHeat.comparison(best: $0.hour, hours: shown, heat: heat, startHour: input.startHour)
+        }
         return PlannedBriefing(
             kind: kind,
             stats: stats(plan, target: target, kilometers: kilometers, similar: input.similar, goal: timeGoal(kind, goals: input.goals), estimate: input.completed == nil ? PlannedTimeEstimate.total(plan, fallback: input.easyBand) : nil),
@@ -31,12 +36,14 @@ enum PlannedBriefingBuilder {
             previousNote: previousNote(input.similar),
             carry: carry(kind, plan: plan),
             raceNote: raceNote(kind, kilometers: kilometers, race: input.race),
-            bestHours: bestHours(input.weather, startHour: input.startHour),
-            bestHoursNote: bestHoursNote(input.weather, startHour: input.startHour),
+            bestHours: shown,
+            bestHoursNote: bestHoursNote(input.weather, startHour: input.startHour, heat: heat, comparison: heatComparison),
             course: input.course,
             comparison: comparison(input.completed, plan: plan, target: target, heart: heart),
             comparisonNote: comparisonNote(input.completed, plan: plan, target: target, heart: heart),
-            watchTip: watchTip(kind, plan: plan, target: target, heart: heart, weather: input.weather, startHour: input.startHour)
+            watchTip: watchTip(kind, plan: plan, target: target, heart: heart, weather: input.weather, startHour: input.startHour),
+            hourHeat: heat,
+            hourPaces: PlannedHourHeat.paces(heatComparison, plan: plan, heat: heat)
         )
     }
 
@@ -325,8 +332,19 @@ enum PlannedBriefingBuilder {
         return windows.min { $0.map(\.temperature).reduce(0, +) < $1.map(\.temperature).reduce(0, +) } ?? []
     }
 
-    private static func bestHoursNote(_ weather: [HourlyWeather], startHour: Int?) -> String? {
+    private static func bestHoursNote(
+        _ weather: [HourlyWeather], startHour: Int?, heat: [Int: Int], comparison: HourHeatComparison?
+    ) -> String? {
         guard let first = coolest(bestHours(weather, startHour: startHour)).first else { return nil }
+        if !heat.isEmpty {
+            let degrees = Int(first.temperature.rounded())
+            let base = String(format: startHour == nil ? C.bestHoursBaseFormat : C.bestHoursAheadFormat, first.hour, degrees)
+            if let comparison {
+                return base + String(format: C.bestHoursSavedFormat, comparison.best, comparison.reference, comparison.saved)
+            }
+            guard heat.values.contains(where: { $0 > 0 }) else { return startHour == nil ? C.bestHoursCool : C.bestHoursAheadCool }
+            return base
+        }
         let hot = hotHour(weather, startHour: startHour)
         guard startHour != nil else {
             guard let hot else { return C.bestHoursCool }

@@ -102,7 +102,7 @@ struct PlannedWorkoutDetailView: View {
                 if index + 1 < cards.count { card(cards[index + 1], briefing) }
             }
         }
-        if !briefing.bestHours.isEmpty { titled(C.hours) { hoursCard(briefing) } }
+        if !briefing.bestHours.isEmpty { titled(C.hours) { PlannedHoursCard(briefing: briefing) } }
     }
 
     private func titled<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -313,31 +313,6 @@ struct PlannedWorkoutDetailView: View {
 
     private func comparisonCard(_ briefing: PlannedBriefing) -> some View {
         PlanComparisonCard(rows: briefing.comparison, note: briefing.comparisonNote)
-    }
-
-    private func hoursCard(_ briefing: PlannedBriefing) -> some View {
-        let coolest = Set(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour))
-        let perRow = briefing.bestHours.count > C.hoursPerRow ? C.hoursPerRowLong : max(briefing.bestHours.count, 1)
-        return VStack(alignment: .leading, spacing: 8) {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: perRow), spacing: 6) {
-                ForEach(briefing.bestHours, id: \.hour) { hour in
-                    VStack(spacing: 2) {
-                        Text("\(Int(hour.temperature.rounded()))°").font(BrandFonts.number(16))
-                        Text("\(hour.hour)h").font(.caption2).foregroundStyle(BrandColors.dim)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(coolest.contains(hour.hour) ? BrandColors.accentFill.opacity(0.18) : BrandColors.track, in: RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: DSRadius.small, style: .continuous).strokeBorder(coolest.contains(hour.hour) ? BrandColors.accentFill : .clear, lineWidth: 1.5))
-                }
-            }
-            .foregroundStyle(BrandColors.text)
-            if let note = briefing.bestHoursNote {
-                Text(note).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .brandCard()
     }
 
     @ViewBuilder

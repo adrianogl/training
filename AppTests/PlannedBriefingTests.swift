@@ -212,8 +212,57 @@ import WorkoutAnalysis
 
         #expect(briefing.bestHours.map(\.hour) == Array(12...21))
         #expect(PlannedBriefingBuilder.coolest(briefing.bestHours).map(\.hour) == [20, 21])
-        #expect(briefing.bestHoursNote == "Daqui pra frente, o mais fresco é sair às 20h, com 20 °C. Às 12h, conte com 5 a 10 s/km a mais na mesma FC.")
+        #expect(briefing.bestHoursNote == "Daqui pra frente, o mais fresco é sair às 20h, com 20 °C. Sair às 20h em vez das 12h poupa 3 s/km na mesma FC.")
         #expect(briefing.tags.contains { $0.text == "26 °C às 12h" })
+        #expect(briefing.hourHeat[12] == 8)
+        #expect(briefing.hourHeat[20] == 5)
+        #expect(briefing.hourPaces == [BestHourPace(hour: 20, seconds: 277, extra: 5), BestHourPace(hour: 12, seconds: 280, extra: 8)])
+    }
+
+    @Test func hourHeatUsesSameOffsetAsDayAdjust() {
+        let hour = HourlyWeather(hour: 18, temperature: 27, dewPoint: 20)
+        let share = WeatherAdjustment.heatShare(temperature: 27, dewPoint: 20, hotSessions: 2)
+
+        let heat = PlannedHourHeat.seconds([hour], pace: 285, hotSessions: 2)
+
+        #expect(heat[18] == DayAdjust.heatOffset(285, share: share))
+    }
+
+    @Test func hourHeatWithoutDewPointKeepsGenericNote() {
+        let weather = [12: 26.0, 13: 27, 20: 20, 21: 19].map { HourlyWeather(hour: $0.key, temperature: $0.value, dewPoint: nil) }
+        var input = Self.input(Self.long, weather: weather)
+        input.startHour = 12
+
+        let briefing = PlannedBriefingBuilder.briefing(input)
+
+        #expect(briefing.hourHeat.isEmpty)
+        #expect(briefing.hourPaces.isEmpty)
+        #expect(briefing.bestHoursNote?.hasSuffix("conte com 5 a 10 s/km a mais na mesma FC.") == true)
+    }
+
+    @Test func coolDayShowsZeroAndNoPaceRows() {
+        let weather = (12...21).map { HourlyWeather(hour: $0, temperature: 15, dewPoint: 8) }
+        var input = Self.input(Self.long, weather: weather)
+        input.startHour = 12
+
+        let briefing = PlannedBriefingBuilder.briefing(input)
+
+        #expect(briefing.hourHeat.values.allSatisfy { $0 == 0 })
+        #expect(briefing.hourPaces.isEmpty)
+        #expect(briefing.bestHoursNote == "Sem calor no resto do dia: qualquer horário até as 21h funciona.")
+    }
+
+    @Test func freeRunShowsSecondsWithoutPaceRows() {
+        let free = PlannedWorkout(id: 3, day: "2026-11-14", title: "Rodagem livre", estimatedSeconds: 3_000, estimatedMeters: 10_000, steps: [PlannedStep(kind: .other, meters: 10_000)])
+        let temperatures: [Int: Double] = [12: 29, 13: 28, 20: 20, 21: 19]
+        var input = Self.input(free, weather: temperatures.map { HourlyWeather(hour: $0.key, temperature: $0.value, dewPoint: 18) })
+        input.startHour = 12
+
+        let briefing = PlannedBriefingBuilder.briefing(input)
+
+        #expect((briefing.hourHeat[12] ?? 0) > (briefing.hourHeat[20] ?? 0))
+        #expect(briefing.hourPaces.isEmpty)
+        #expect(briefing.bestHoursNote?.contains("em vez das 12h") == true)
     }
 
     @Test func todayAfterLastHourHasNoSuggestion() {

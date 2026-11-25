@@ -68,6 +68,7 @@ struct BriefingInput {
     var easyBand: PaceBand? = nil
     var goals: [GoalSnapshot] = []
     var zones: PlanZones?
+    var hotSessions = 0
 }
 
 struct BriefingStat: Equatable {
@@ -130,4 +131,6 @@ struct PlannedBriefing: Equatable {
     let comparison: [BriefingComparison]
     let comparisonNote: String?
     let watchTip: String?
+    var hourHeat: [Int: Int] = [:]
+    var hourPaces: [BestHourPace] = []
 }

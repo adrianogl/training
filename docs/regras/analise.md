@@ -76,7 +76,13 @@ Com "Corrida do treinador" ligado e relógio Garmin conectado, o relógio recebe
 - A notificação da manhã usa as mesmas entradas gravadas, então a linha bate com o relógio.
 - Em Treinos, a linha de hoje e o dia de hoje mostram o pace ajustado; o dia mostra "Ajuste do dia · +N s/km · era …". Os outros dias seguem com o pace do plano. Em "Enviar ao Garmin", o treino de hoje que mudou só pelo ajuste mostra "Ajuste do dia: +N s/km".
 
-Arquivos: `Insights/DayAdjust.swift`, `Insights/TrainerDayAdjust.swift`, `App/Today/DayAdjustText.swift`, `App/Today/TodayConstants.swift`, `App/Trainer/DayAdjust/`. Testes: `InsightsTests/DayAdjustTests.swift`, `InsightsTests/TrainerDayAdjustTests.swift`, `AppTests/DayAdjustTextTests.swift`, `AppTests/DayAdjustWatchTests.swift`, `AppTests/PlanAdjustTests.swift`.
+### Melhor horário no detalhe do treino planejado
+
+- Cada hora do card mostra quanto o calor tira do ritmo, pela mesma conta do ajuste do dia: fração de calor da hora (temperatura, orvalho, sol e corridas quentes) × pace de referência, zerada abaixo de 3 s/km (`PlannedHourHeat`, `DayAdjust.heatOffset`). Cor: até 4 s no acento, 5 a 11 s em laranja, 12 s ou mais em vermelho.
+- Pace de referência: o meio do primeiro alvo de pace ativo; sem alvo, a média dos treinos parecidos; sem eles, a faixa leve do treinador. Hora sem ponto de orvalho fica sem número.
+- A comparação é entre o mais fresco e a hora de saída de agora (hoje) ou a hora mais quente da lista (outro dia). Com diferença de 3 s/km ou mais, a nota diz "Sair às 20h em vez das 12h poupa N s/km na mesma FC." e, se o treino tem alvo de pace, aparecem as linhas "Principal às <h>h" com o pace somado. Sem número em nenhuma hora, a nota volta ao "5 a 10 s/km" genérico.
+
+Arquivos: `Insights/DayAdjust.swift`, `Insights/TrainerDayAdjust.swift`, `App/Today/DayAdjustText.swift`, `App/Today/TodayConstants.swift`, `App/Trainer/DayAdjust/`, `App/Workouts/Planned/PlannedHourHeat.swift`, `App/Workouts/Planned/PlannedHoursCard.swift`. Testes: `InsightsTests/DayAdjustTests.swift`, `InsightsTests/TrainerDayAdjustTests.swift`, `AppTests/DayAdjustTextTests.swift`, `AppTests/DayAdjustWatchTests.swift`, `AppTests/PlanAdjustTests.swift`.
 
 ## Zonas de FC no Garmin
 
