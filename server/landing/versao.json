@@ -1,12 +1,17 @@
 {
-  "versao": "1.55.4",
-  "build": 93,
-  "versao_app": "1.55.4",
+  "versao": "1.55.5",
+  "build": 94,
+  "versao_app": "1.55.5",
   "notas": [
-    "Compara recordes da semana do plano com o histórico inteiro",
-    "Não conta primeira vez nas distâncias da primeira corrida"
+    "Envia todo passo ao Garmin por pace com a FC como segundo alvo"
   ],
   "historico": [
+    {
+      "versao": "1.55.5",
+      "notas": [
+        "Envia todo passo ao Garmin por pace com a FC como segundo alvo"
+      ]
+    },
     {
       "versao": "1.55.4",
       "notas": [
@@ -62,12 +67,6 @@
       "versao": "1.51.1",
       "notas": [
         "Herda as repetições da última série e divide o tempo da rodada do bi-set"
-      ]
-    },
-    {
-      "versao": "1.51.0",
-      "notas": [
-        "Troca a aba mais pela aba ajustes"
       ]
     }
   ]
