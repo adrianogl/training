@@ -154,6 +154,7 @@ import WorkoutAnalysis
         let briefing = PlannedBriefingBuilder.briefing(Self.input(Self.long, weather: weather))
 
         #expect(briefing.attention.first?.title == "Calor e umidade")
+        #expect(briefing.attention.first?.detail == "26 °C às 8h. Saia mais cedo ou aceite 8 s/km mais lento com a mesma FC.")
         #expect(briefing.tags.contains { $0.text == "26 °C às 8h" })
         #expect(PlannedBriefingBuilder.coolest(weather).map(\.hour) == [5, 6])
         #expect(briefing.bestHoursNote?.hasPrefix("Saindo às 5h") == true)

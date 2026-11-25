@@ -50,6 +50,18 @@ private func run(_ stores: [FakeBlobStore], _ responses: [ScriptedTransport.Resp
         #expect(transport.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer sessao")
     }
 
+    @Test func pendingCountIncludesBlobsFromEveryStore() async throws {
+        let preference = FakeBlobStore(kind: .preference, pending: [RemoteBlob(id: "weeklyGoalKm", data: Data("50".utf8), updatedAt: base)])
+        let other = FakeBlobStore(kind: .chat, pending: [
+            RemoteBlob(id: "a", data: Data("1".utf8), updatedAt: base), RemoteBlob(id: "b", data: Data("2".utf8), updatedAt: base),
+        ])
+        let container = try TrainingSchema.container(inMemory: true)
+        let client = RemoteClient(baseURL: URL(string: "https://sync.example.test")!, keys: keys, transport: ScriptedTransport([]))
+        let engine = RemoteSyncEngine(container: container, client: client, keys: keys, defaultsSuite: migratedSuite(), blobStores: [preference, other], now: { base })
+
+        #expect(await engine.pendingCount() == 3)
+    }
+
     @Test func pushesPendingBlobsSealedWithTheirKind() async throws {
         let blob = RemoteBlob(id: "weeklyGoalKm", data: Data("50".utf8), updatedAt: base)
         let store = FakeBlobStore(kind: .preference, pending: [blob])

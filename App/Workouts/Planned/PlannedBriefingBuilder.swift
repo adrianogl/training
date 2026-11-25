@@ -248,7 +248,7 @@ enum PlannedBriefingBuilder {
     private static func attention(_ kind: PlannedKind, input: BriefingInput, kilometers: Double) -> [BriefingItem] {
         var items: [BriefingItem] = []
         if let hot = hotHour(input.weather, startHour: input.startHour) {
-            items.append(BriefingItem(title: C.attentionHeatTitle, detail: String(format: C.attentionHeatFormat, Int(hot.temperature.rounded()), hot.hour, C.heatSlowdown), tone: .warn))
+            items.append(BriefingItem(title: C.attentionHeatTitle, detail: String(format: C.attentionHeatFormat, Int(hot.temperature.rounded()), hot.hour, heatSlowdown(hot, input: input)), tone: .warn))
         }
         if let fade = input.similar.first?.fadeSecondsPerKm, fade >= C.fadeSignificant {
             items.append(BriefingItem(title: C.attentionFadeTitle, detail: String(format: C.attentionFadeFormat, Int(fade.rounded())), tone: .warn))
@@ -353,6 +353,12 @@ enum PlannedBriefingBuilder {
         guard let hot else { return C.bestHoursAheadCool }
         let best = String(format: C.bestHoursAheadFormat, first.hour, Int(first.temperature.rounded()))
         return hot.hour == first.hour ? best : best + String(format: C.bestHoursAheadHeatFormat, hot.hour, C.heatSlowdown)
+    }
+
+    private static func heatSlowdown(_ hour: HourlyWeather, input: BriefingInput) -> String {
+        let pace = PlannedHourHeat.referencePace(input)
+        guard let seconds = PlannedHourHeat.seconds([hour], pace: pace, hotSessions: input.hotSessions)[hour.hour] else { return C.heatSlowdown }
+        return seconds > 0 ? String(format: C.heatSecondsFormat, seconds) : C.heatBelowMinimum
     }
 
     private static func hotHour(_ weather: [HourlyWeather], startHour: Int?) -> HourlyWeather? {

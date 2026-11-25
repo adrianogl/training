@@ -26,6 +26,8 @@ enum PlannedBriefingConstants {
     static let lastStartHour = 21
     static let bestHoursCount = 2
     static let heatSlowdown = "5 a 10 s/km"
+    static let heatSecondsFormat = "%d s/km"
+    static let heatBelowMinimum = "menos de 3 s/km"
     static let hardAerobicEffect = 3.5
     static let hardAnaerobicEffect = 2.0
     static let recoveryHours: [(effect: Double, hours: String)] = [(2, "12–24 h"), (3, "24 h"), (3.5, "24–36 h"), (4, "36–48 h"), (4.5, "48–60 h"), (5, "60–72 h")]

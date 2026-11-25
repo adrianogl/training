@@ -290,13 +290,14 @@ import SwiftData
             return
         }
         status = .syncing
+        let engine = RemoteSyncEngine(container: container, client: access.client, keys: access.keys, defaultsSuite: defaultsSuite, trainerStore: trainerStore, narrativeStore: narrativeStore, blobStores: blobStores)
         do {
-            let report = try await RemoteSyncEngine(container: container, client: access.client, keys: access.keys, defaultsSuite: defaultsSuite, trainerStore: trainerStore, narrativeStore: narrativeStore, blobStores: blobStores).sync()
+            let report = try await engine.sync()
             guard self.access()?.identity == access.identity else { return }
             finished(report)
         } catch let error as URLError where Self.isNetwork(error) {
             guard self.access()?.identity == access.identity else { return }
-            status = .waitingForNetwork(pending: pendingCount())
+            status = .waitingForNetwork(pending: await engine.pendingCount())
         } catch {
             C.logger.error("Falha no sync remoto: \(String(describing: error), privacy: .public)")
             guard self.access()?.identity == access.identity else { return }
@@ -311,14 +312,6 @@ import SwiftData
         if report.trainerChanged { trainerChanged?() }
         if !report.changedKinds.isEmpty { devicesChanged?(report.changedKinds) }
         if report.changedKinds.contains(.preference) { hasWatchToken = currentWatchToken() != nil }
-    }
-
-    private func pendingCount() -> Int {
-        let context = container.mainContext
-        let after = currentState()?.remoteLastPush ?? .distantPast
-        let races = (try? context.fetchCount(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.updatedAt > after }))) ?? 0
-        let decisions = (try? context.fetchCount(FetchDescriptor<RaceDecisionRecord>(predicate: #Predicate { $0.updatedAt > after }))) ?? 0
-        return races + decisions
     }
 
     private func currentState() -> SyncState? {

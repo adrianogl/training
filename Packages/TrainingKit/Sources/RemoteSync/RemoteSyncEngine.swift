@@ -38,6 +38,20 @@ public actor RemoteSyncEngine {
         return try await task.value
     }
 
+    public func pendingCount() -> Int {
+        let context = ModelContext(container)
+        let defaults = defaultsSuite.flatMap(UserDefaults.init(suiteName:)) ?? .standard
+        let lastPush = defaults.bool(forKey: C.plainMigrationKey) ? Self.syncState(in: context)?.remoteLastPush : nil
+        let after = lastPush ?? .distantPast
+        let races = (try? context.fetchCount(FetchDescriptor<RaceRecord>(predicate: #Predicate { $0.updatedAt > after }))) ?? 0
+        let decisions = (try? context.fetchCount(FetchDescriptor<RaceDecisionRecord>(predicate: #Predicate { $0.updatedAt > after }))) ?? 0
+        let goals = (try? context.fetchCount(FetchDescriptor<GoalRecord>(predicate: #Predicate { $0.updatedAt > after }))) ?? 0
+        let trainer = trainerStore?.pending() == nil ? 0 : 1
+        let narratives = narrativeStore?.pendingNarratives().count ?? 0
+        let blobs = blobStores.reduce(0) { $0 + $1.pendingBlobs().count }
+        return races + decisions + goals + trainer + narratives + blobs
+    }
+
     private func run() async throws -> RemoteSyncReport {
         let startedAt = now()
         let snapshot = ModelContext(container)
