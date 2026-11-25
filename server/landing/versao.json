@@ -1,11 +1,17 @@
 {
-  "versao": "1.56.0",
-  "build": 95,
-  "versao_app": "1.56.0",
+  "versao": "1.57.0",
+  "build": 96,
+  "versao_app": "1.57.0",
   "notas": [
-    "Mostra a nota só com o treino e o clima completos"
+    "Manda ao relógio o pace do dia e usa o mesmo na análise"
   ],
   "historico": [
+    {
+      "versao": "1.57.0",
+      "notas": [
+        "Manda ao relógio o pace do dia e usa o mesmo na análise"
+      ]
+    },
     {
       "versao": "1.56.0",
       "notas": [
@@ -61,12 +67,6 @@
       "versao": "1.53.0",
       "notas": [
         "Renomeia o app de força para Training e deixa a hora do mostrador sólida"
-      ]
-    },
-    {
-      "versao": "1.52.0",
-      "notas": [
-        "Envia o nome do exercício do MFIT ao Garmin Connect"
       ]
     }
   ]
