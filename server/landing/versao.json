@@ -1,11 +1,17 @@
 {
-  "versao": "1.58.1",
-  "build": 98,
-  "versao_app": "1.58.1",
+  "versao": "1.59.0",
+  "build": 99,
+  "versao_app": "1.59.0",
   "notas": [
-    "Mostra o efeito do calor em s/km no aviso e conta tudo que falta sincronizar"
+    "Envia o treino do dia com o clima da hora escolhida"
   ],
   "historico": [
+    {
+      "versao": "1.59.0",
+      "notas": [
+        "Envia o treino do dia com o clima da hora escolhida"
+      ]
+    },
     {
       "versao": "1.58.1",
       "notas": [
@@ -61,12 +67,6 @@
       "notas": [
         "Troca o contador do sino por um ponto verde",
         "Tira o espaço vazio acima da logo"
-      ]
-    },
-    {
-      "versao": "1.55.0",
-      "notas": [
-        "Adiciona área de avisos e cinco notificações novas"
       ]
     }
   ]
