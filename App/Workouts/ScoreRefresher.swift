@@ -1,10 +1,12 @@
 import Foundation
+import Observation
 
-@MainActor final class ScoreRefresher {
-    private let work: @Sendable () async -> Void
-    private var current: Task<Void, Never>?
+@MainActor @Observable final class ScoreRefresher {
+    @ObservationIgnored private let work: @Sendable () async -> Bool
+    @ObservationIgnored private var current: Task<Void, Never>?
+    private(set) var revision = 0
 
-    init(work: @escaping @Sendable () async -> Void) {
+    init(work: @escaping @Sendable () async -> Bool) {
         self.work = work
     }
 
@@ -14,7 +16,7 @@ import Foundation
         let work = work
         let task = Task {
             await previous?.value
-            await work()
+            if await work() { revision += 1 }
         }
         current = task
         return task

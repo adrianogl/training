@@ -30,15 +30,22 @@ enum ActivityWeather {
         return components?.url
     }
 
-    static func fetch(_ request: WeatherRequest, session: URLSession) async -> [WeatherHour]? {
-        guard let url = url(request) else { return nil }
-        return await fetch(url: url, session: session)
+    static func fetch(_ request: WeatherRequest, session: URLSession) async -> WeatherFetch {
+        guard let url = url(request) else { return .answered(nil) }
+        return await answer(url: url, session: session)
     }
 
     static func fetch(url: URL, session: URLSession) async -> [WeatherHour]? {
-        guard let (data, response) = try? await session.data(from: url),
-              (response as? HTTPURLResponse)?.statusCode == 200 else { return nil }
-        return parse(data)
+        guard case .answered(let hours) = await answer(url: url, session: session) else { return nil }
+        return hours
+    }
+
+    static func answer(url: URL, session: URLSession) async -> WeatherFetch {
+        guard let (data, response) = try? await session.data(from: url) else { return .unreachable }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if status >= ActivityWeatherConstants.serverErrorStatus { return .unreachable }
+        guard status == ActivityWeatherConstants.okStatus else { return .answered(nil) }
+        return .answered(parse(data))
     }
 
     static func parse(_ data: Data) -> [WeatherHour]? {

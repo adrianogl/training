@@ -183,6 +183,7 @@ import UIKit
         let synced = await model.syncNow(.workoutFinished)
         C.logger.info("sync leve terminou, ok: \(synced)")
         if synced { defaults.set(Date.now, forKey: C.lastCheckKey) }
+        await ActivityWeatherStore.refresh(container: model.container)
         await deliverFromStore(model: model, enabledAt: enabledAt, queue: &queue)
     }
 

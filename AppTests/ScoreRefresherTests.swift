@@ -35,6 +35,7 @@ private actor RefreshLog {
             await log.start(index)
             try? await Task.sleep(for: .milliseconds(50))
             await log.end(index)
+            return true
         }
 
         refresher.refresh()

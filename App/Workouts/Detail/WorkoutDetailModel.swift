@@ -46,6 +46,7 @@ import WorkoutAnalysis
     private(set) var completedCheck: CompletedCheck?
     private(set) var chatContext: WorkoutChatContext?
     private(set) var score: WorkoutScore?
+    private(set) var scorePending: ScorePending?
     private(set) var scoreRows: [ScoreRowData] = []
     private(set) var perfectLine: String?
     private(set) var aboveExpected: [AboveExpectedSignal] = []
@@ -96,9 +97,10 @@ import WorkoutAnalysis
         zoneBands = ChartData.zoneBands(analysis.zones, ceiling: Double(fullHeartRate.map { $0.bpm }.max() ?? 0))
         activeSpans = hasPrescription ? ChartData.activeSpans(blocks) : []
 
-        score = analysis.score
-        scoreRows = analysis.score.map(ScoreRows.rows) ?? []
-        perfectLine = analysis.score.flatMap { ScoreRows.perfectLine($0, blocks: analysis.blocks) }
+        scorePending = ScoreReadiness.pending(record)
+        score = scorePending == nil ? analysis.score : nil
+        scoreRows = score.map(ScoreRows.rows) ?? []
+        perfectLine = score.flatMap { ScoreRows.perfectLine($0, blocks: analysis.blocks) }
         aboveExpected = analysis.aboveExpected
         assessment = analysis.assessment
         comparison = analysis.comparison
@@ -132,7 +134,7 @@ import WorkoutAnalysis
             var dailyDescriptor = FetchDescriptor<DailyRecord>(predicate: #Predicate { $0.day == iso })
             dailyDescriptor.fetchLimit = 1
             chatContext = WorkoutChatContextBuilder.context(
-                summary: summary, score: analysis.score?.value, analysis: analysisSummary, blocks: blocks,
+                summary: summary, score: score?.value, analysis: analysisSummary, blocks: blocks,
                 comparison: comparisonRows, daily: (try? context.fetch(dailyDescriptor))?.first, hasPrescription: hasPrescription,
                 goals: (try? goalSnapshots(context: context, today: Day.today())) ?? []
             )

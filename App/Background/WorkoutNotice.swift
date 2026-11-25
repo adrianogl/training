@@ -18,9 +18,8 @@ enum WorkoutNotice {
     static func status(activityId: Int64, in context: ModelContext) -> WorkoutNoticeStatus {
         let records = (try? context.fetch(FetchDescriptor<ActivityRecord>(sortBy: [SortDescriptor(\.start, order: .reverse)]))) ?? []
         guard let record = records.first(where: { $0.activityId == activityId && ActivityTypeKey.isRun($0.typeKey) }) else { return .waiting }
-        guard record.fitProcessed else {
-            return record.fitTransientFailures >= SyncConstants.maxFitTransientFailures ? .unavailable : .waiting
-        }
+        guard ScoreReadiness.pending(record) == nil else { return .waiting }
+        guard record.fitProcessed else { return .unavailable }
         let analysis = WorkoutAnalysisContext.build(record: record, records: records, in: context)
         guard let score = analysis.score?.value else { return .unavailable }
         let opening = WorkoutFeedback.summary(assessment: analysis.assessment, blocks: analysis.blocks, workoutName: record.workoutName).feedback.first

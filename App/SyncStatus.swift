@@ -3,6 +3,7 @@ import Foundation
 struct SyncDataToken: Equatable {
     let finished: Date?
     let deferredFITRevision: Int
+    var scoreRevision = 0
 }
 
 enum SyncStatus: Equatable {

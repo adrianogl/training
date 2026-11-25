@@ -19,6 +19,8 @@ struct WorkoutRow: View {
                 Spacer(minLength: 8)
                 if let score = row.score {
                     ScoreInline(value: score)
+                } else if row.scorePending {
+                    ScoreLoadingInline()
                 }
             }
             HStack(alignment: .firstTextBaseline, spacing: 12) {

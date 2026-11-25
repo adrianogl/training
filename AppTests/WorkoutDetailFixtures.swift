@@ -121,7 +121,7 @@ enum WorkoutDetailFixtures {
             activityId: id, typeKey: "running", name: "Corrida", start: start,
             distance: meters, duration: meters * 0.33, movingDuration: meters * 0.33,
             averageHR: 150, maxHR: 172, activityTrainingLoad: 80,
-            samplesData: samples.map(encoded), localDay: day(start), processingVersion: processingVersion,
+            samplesData: samples.map(encoded), fitProcessed: true, localDay: day(start), processingVersion: processingVersion,
             workoutName: workoutName, structureData: structure.map(encoded)
         )
     }
