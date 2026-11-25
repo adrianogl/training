@@ -349,7 +349,10 @@ struct TrainerView: View {
                 } else {
                     ForEach(group.rows) { row in
                         NavigationLink(value: TrainerRoute.day(row.id)) {
-                            TrainerDayRowView(row: row, isToday: row.workout.day == model.currentDay)
+                            TrainerDayRowView(
+                        row: row, isToday: row.workout.day == model.currentDay,
+                        adjusted: row.run == nil ? app.trainer.dayAdjusted(row.workout)?.workout : nil
+                    )
                         }
                         .buttonStyle(.cardLink)
                     }

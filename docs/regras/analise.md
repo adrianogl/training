@@ -63,7 +63,20 @@ Frases de troca e de descanso:
 | --- | --- | --- | --- |
 | Frase | encurtar e ficar em Z1–Z2, ou descansar | trocar por rodagem leve em Z1–Z2, ou descansar | trocar o longão por rodagem leve em Z1–Z2, ou descansar |
 
-Arquivos: `Insights/DayAdjust.swift`, `App/Today/DayAdjustText.swift`, `App/Today/TodayConstants.swift`. Testes: `InsightsTests/DayAdjustTests.swift`, `AppTests/DayAdjustTextTests.swift`, `AppTests/PlanAdjustTests.swift`.
+#### Pace do dia no relógio
+
+Com "Corrida do treinador" ligado e relógio Garmin conectado, o relógio recebe o mesmo ajuste do card. Treino da assessoria e Apple Watch continuam como acima.
+
+- De manhã, no sync em segundo plano, e no fim de cada sync com o app aberto, o app grava as entradas do ajuste de hoje: prontidão, temperatura, orvalho e sol da previsão na hora habitual, corridas quentes, perna pesada, hora e origem (`DayAdjustEntries`, `TrainerDayAdjustStore`). Isso roda antes do envio automático, que troca o treino de hoje no relógio pelo treino ajustado (`TrainerDayAdjust`). Os fatores, o teto de 15 s/km, o descanso abaixo de 50 e o encurtamento com 50 a 59 são os mesmos do card (`DayAdjust.factors`, `DayAdjust.decide`). Passos ativos são blocos e ritmo (`work`, `steady`); aquecimento, trote, desaquecimento e descanso não mudam. No longão o pace muda do mesmo jeito; o "1 km a menos" do card "Calor no longão" fica só na tela.
+- Troca, descanso ou nenhum ajuste: o relógio recebe o plano como está.
+- Regra dos 3 s/km: uma entrada nova da hora habitual só substitui a de hoje quando o total muda 3 s/km ou mais, ou quando muda o encurtamento, a troca ou o descanso. Sem previsão, fica a entrada que já existe. Entrada com origem "agora" não é trocada pelo sync. A sugestão própria do treinador por prontidão apaga a entrada e o plano vai como está.
+- O registro do envio (`TrainerSentRecord`) guarda as entradas usadas, a fração de calor incluída no alvo e o título enviado. Ele sincroniza entre iPhone e iPad pelo ledger do envio e é a fonte das entradas de hoje: uma entrada local só vale no lugar da do registro quando é mais nova e muda o relógio pela regra dos 3 s/km, ou quando veio do "Vou correr agora". Ledger remoto com entradas mais novas substitui as locais. Com os dois aparelhos na mesma versão, os dois montam o mesmo treino e nenhum reenvia.
+- Quando o treino de hoje no Garmin é o que o app enviou com essas entradas, o card mostra o que está no relógio sem ajustar de novo, com "era …" do plano, o aviso e os chips das entradas guardadas e a linha "No relógio desde 6h05 · clima das 7h".
+- Se o ajuste com a previsão da hora atual mudar 3 s/km ou mais (ou mudar encurtamento ou troca) em relação ao do relógio, o card mostra o botão "Vou correr agora · clima das <HH>h". O toque grava as entradas com origem "agora" e envia só o treino de hoje.
+- A notificação da manhã usa as mesmas entradas gravadas, então a linha bate com o relógio.
+- Em Treinos, a linha de hoje e o dia de hoje mostram o pace ajustado; o dia mostra "Ajuste do dia · +N s/km · era …". Os outros dias seguem com o pace do plano. Em "Enviar ao Garmin", o treino de hoje que mudou só pelo ajuste mostra "Ajuste do dia: +N s/km".
+
+Arquivos: `Insights/DayAdjust.swift`, `Insights/TrainerDayAdjust.swift`, `App/Today/DayAdjustText.swift`, `App/Today/TodayConstants.swift`, `App/Trainer/DayAdjust/`. Testes: `InsightsTests/DayAdjustTests.swift`, `InsightsTests/TrainerDayAdjustTests.swift`, `AppTests/DayAdjustTextTests.swift`, `AppTests/DayAdjustWatchTests.swift`, `AppTests/PlanAdjustTests.swift`.
 
 ## Zonas de FC no Garmin
 
@@ -149,7 +162,7 @@ Arquivos: `TrainingCore/RunWeather*.swift`, `WorkoutAnalysis/WeatherBlocks.swift
 | Calor | cresce com a temperatura e com o ponto de orvalho, sem ajuste até 20 °C somados e até 10% (veja a tabela abaixo). Internamente a régua é a soma em °F (`heatBands`), interpolada | `RunWeatherConstants.heatBands`, `HEAT.bands` |
 | Frio | só a temperatura, de 5 °C para baixo: 0 °C 0,5%; −5 °C 1%; −10 °C ou menos 2% | `coldBands` |
 | Equivalente em clima ameno | ritmo ÷ (1 + ajuste) | `WeatherAdjustment.mildPace` |
-| Bloco com alvo de ritmo | mais lento que o alvo, mas dentro dele no equivalente em clima ameno, conta como no alvo e gera "Ritmo mais lento pelo calor" (ou "pelo frio") no grupo esperado. Mais rápido continua fora do alvo | `adjustForWeather` |
+| Bloco com alvo de ritmo | mais lento que o alvo, mas dentro dele no equivalente em clima ameno, conta como no alvo e gera "Ritmo mais lento pelo calor" (ou "pelo frio") no grupo esperado. Mais rápido continua fora do alvo. Quando o alvo do relógio já tinha o calor do pace do dia, o resgate usa só a diferença: fator medido menos fator incluído, no mínimo zero, e só nos blocos ativos. O fator do bloco para custo e comparação continua o medido inteiro. O calor incluído vale só para a primeira corrida do dia cujo nome de treino bate com o título enviado (`WorkoutTitle.comparisonKey`); outra corrida do dia fica com 0. O valor fica guardado por conta (`IncludedHeatStore`), então a nota não muda quando o ledger apaga o registro | `adjustForWeather(includedHeat:)`, `IncludedHeatStore` |
 | Deriva cardíaca | com calor de pelo menos 2%, sai de atenção e vai para esperado, citando os graus | `driftHeatFactor` |
 | Zona acima | com calor de pelo menos 3%, o limite do aquecimento e do desaquecimento sobe de Z3 para Z4 | `zoneHeatFactor` |
 | Perda de ritmo | com calor de pelo menos 3%, o texto cita o calor | `fadeHeatFactor` |
@@ -283,7 +296,7 @@ A nota só aparece quando o treino tem tudo o que pode ter (`ScoreReadiness`): o
 
 Quando falta alguma parte (sem prescrição, sem FC, sem zonas ou sem treino igual para comparar), a nota é calculada com as partes que existem e vai no máximo a 95 (`incompleteScoreCap`). Só treino com as três partes chega a 100.
 
-A versão da nota está em `AnalysisConstants.scoreVersion` (4, desde vento, sol e adaptação ao calor). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Testes: `WorkoutScoreTests.swift`, `RaceScoreTests.swift`, `ComparisonTests.swift`, `RaceDetectionTests.swift` (`RaceIndexTests`) e, no app, `ComparisonSelectionTests.swift`.
+A versão da nota está em `AnalysisConstants.scoreVersion` (4, desde vento, sol e adaptação ao calor). A chave guardada inclui o ajuste do clima de cada treino, então a nota é refeita quando o clima chega. Também inclui o calor que já estava no alvo do relógio, então a nota é refeita quando o registro do envio chega por sync. Testes: `WorkoutScoreTests.swift`, `RaceScoreTests.swift`, `ComparisonTests.swift`, `RaceDetectionTests.swift` (`RaceIndexTests`) e, no app, `ComparisonSelectionTests.swift`.
 
 ## Análise detalhada
 

@@ -41,8 +41,16 @@ struct WorkoutAnalysisContext: Codable, Sendable {
             dailyByDay: DayConditionBuilder.dailyByDay(context),
             legDays: DayConditionBuilder.legDays(),
             hotSessions: ActivityRecord.hotSessionCounts(records),
-            races: races ?? Self.races(in: context)
+            races: races ?? Self.races(in: context),
+            includedHeatByActivity: includedHeat(records)
         )
+    }
+
+    nonisolated static func includedHeat(
+        _ records: [ActivityRecord], send: TrainerSendStore = TrainerSendStore(), store: IncludedHeatStore = IncludedHeatStore()
+    ) -> [Int64: Double] {
+        store.absorb(send.records())
+        return DayAdjustWatchRules.includedHeatByActivity(records, heat: store.all())
     }
 
     nonisolated static func races(in context: ModelContext, paceProStore: PaceProStore = PaceProStore()) -> RaceIndex {
@@ -73,7 +81,10 @@ struct WorkoutAnalysisContext: Codable, Sendable {
         analysis.thresholdHeartRate = inputs.thresholdByDay[day(record)]
         let recordSamples = samples(record)
         let weather = record.weatherEffect(hotSessions: inputs.hotSessions)
-        let blocks = blocks(record, structure: structure, zones: zones, samples: recordSamples, weather: weather)
+        let blocks = blocks(
+            record, structure: structure, zones: zones, samples: recordSamples, weather: weather,
+            includedHeat: inputs.includedHeatByActivity[record.activityId] ?? 0
+        )
         analysis.blocks = blocks
         if analysis.hasPrescription {
             analysis.kilometers = applyWind(kilometerSplits(of: blocks, samples: recordSamples, zones: zones), samples: recordSamples, weather: record.runWeather)
@@ -133,7 +144,9 @@ struct WorkoutAnalysisContext: Codable, Sendable {
     }
 
     private static func previousOccurrences(of record: ActivityRecord, in records: [ActivityRecord], inputs: WorkoutAnalysisInputs) -> [WorkoutOccurrence] {
-        comparisonCandidates(of: record, in: records, races: inputs.races).compactMap { occurrence($0, zones: zones(for: $0, inputs: inputs), hotSessions: inputs.hotSessions) }
+        comparisonCandidates(of: record, in: records, races: inputs.races).compactMap {
+            occurrence($0, zones: zones(for: $0, inputs: inputs), hotSessions: inputs.hotSessions, includedHeat: inputs.includedHeatByActivity[$0.activityId] ?? 0)
+        }
     }
 
     static func structure(_ record: ActivityRecord) -> WorkoutStructure? {
@@ -146,14 +159,18 @@ struct WorkoutAnalysisContext: Codable, Sendable {
     }
 
     private static func blocks(
-        _ record: ActivityRecord, structure: WorkoutStructure?, zones: HeartRateZones?, samples: [FITSample], weather: WeatherEffect?
+        _ record: ActivityRecord, structure: WorkoutStructure?, zones: HeartRateZones?, samples: [FITSample], weather: WeatherEffect?,
+        includedHeat: Double
     ) -> [WorkoutBlock] {
         let built = structure.map { buildBlocks($0, zones: zones) } ?? kilometerSplits(samples, zones: zones)
-        return adjustForWeather(applyWind(built, samples: samples, weather: record.runWeather), effect: weather)
+        return adjustForWeather(applyWind(built, samples: samples, weather: record.runWeather), effect: weather, includedHeat: includedHeat)
     }
 
-    private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?, hotSessions: [Int64: Int]) -> WorkoutOccurrence? {
-        let blocks = blocks(record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(hotSessions: hotSessions))
+    private static func occurrence(_ record: ActivityRecord, zones: HeartRateZones?, hotSessions: [Int64: Int], includedHeat: Double) -> WorkoutOccurrence? {
+        let blocks = blocks(
+            record, structure: structure(record), zones: zones, samples: samples(record), weather: record.weatherEffect(hotSessions: hotSessions),
+            includedHeat: includedHeat
+        )
         guard !blocks.isEmpty else { return nil }
         return WorkoutOccurrence(activityId: record.activityId, day: day(record), blocks: blocks)
     }

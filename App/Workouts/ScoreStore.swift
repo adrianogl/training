@@ -14,7 +14,8 @@ enum ScoreStore {
         watchZones: HeartRateZones?,
         version: Int = AnalysisConstants.scoreVersion,
         hotSessions: [Int64: Int] = [:],
-        race: RaceTarget? = nil
+        race: RaceTarget? = nil,
+        includedHeatByActivity: [Int64: Double] = [:]
     ) -> String {
         let zones = { (run: ActivityRecord) in zoneSource(run, thresholdByDay: thresholdByDay, watchZones: watchZones) }
         return [
@@ -25,6 +26,18 @@ enum ScoreStore {
             previous.map { [String($0.activityId), zones($0), String($0.processingVersion), weatherToken($0, hotSessions: hotSessions)].joined(separator: WorkoutConstants.scoreKeyFieldSeparator) }
                 .joined(separator: WorkoutConstants.scoreKeyIdSeparator),
         ].joined(separator: WorkoutConstants.scoreKeySeparator) + (race.map { WorkoutConstants.scoreKeySeparator + raceToken($0) } ?? "")
+            + includedHeatToken([record] + previous, byActivity: includedHeatByActivity)
+    }
+
+    static func includedHeatToken(_ records: [ActivityRecord], byActivity: [Int64: Double]) -> String {
+        let parts = records.compactMap { record -> String? in
+            guard let share = byActivity[record.activityId], share > 0 else { return nil }
+            return String(record.activityId) + WorkoutConstants.scoreKeyFieldSeparator
+                + String(Int((share * WorkoutConstants.scoreKeyWeatherScale).rounded()))
+        }
+        guard !parts.isEmpty else { return "" }
+        return WorkoutConstants.scoreKeySeparator + WorkoutConstants.scoreKeyIncludedHeatPrefix
+            + parts.joined(separator: WorkoutConstants.scoreKeyIdSeparator)
     }
 
     static func raceToken(_ race: RaceTarget) -> String {
@@ -70,6 +83,7 @@ enum ScoreStore {
         let thresholdByDay = (try? thresholdHeartRates(on: runs.map(WorkoutAnalysisContext.day), in: context)) ?? [:]
         let hotSessions = ActivityRecord.hotSessionCounts(runs)
         let races = WorkoutAnalysisContext.races(in: context, paceProStore: paceProStore)
+        let includedHeat = WorkoutAnalysisContext.includedHeat(runs)
         var inputs: WorkoutAnalysisInputs?
         var changed = false
         let now = Date.now
@@ -92,7 +106,8 @@ enum ScoreStore {
                 thresholdByDay: thresholdByDay,
                 watchZones: watchZones,
                 hotSessions: hotSessions,
-                race: race
+                race: race,
+                includedHeatByActivity: includedHeat
             )
             guard record.scoreKey != key else { continue }
             let resolved = inputs ?? WorkoutAnalysisContext.inputs(records: records, in: context, races: races)

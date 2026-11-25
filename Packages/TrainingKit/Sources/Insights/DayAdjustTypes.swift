@@ -43,3 +43,20 @@ public enum DayAdjustResult: Sendable, Equatable {
     case swap(reasons: [DayAdjustReason])
     case rest
 }
+
+public struct DayAdjustFactors: Sendable, Equatable {
+    public var score: Int?
+    public var readinessSeconds: Int
+    public var shorten: Bool
+    public var temperature: Double?
+    public var dewPoint: Double?
+    public var heatShare: Double?
+    public var legsSeconds: Int
+
+    public var fixedSeconds: Int { readinessSeconds + legsSeconds }
+}
+
+public enum DayAdjustDecision: Sendable, Equatable {
+    case apply(seconds: Int, reasons: [DayAdjustReason])
+    case swap(reasons: [DayAdjustReason])
+}

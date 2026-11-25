@@ -88,6 +88,24 @@ enum TrainerSendBuilder {
         return TrainerSendItem(key: C.runKeyPrefix + workout.day.iso, day: workout.day, kind: .run, title: workout.title, payload: payload, runSteps: steps)
     }
 
+    static func runItem(
+        _ workout: TrainerWorkout, entries: DayAdjustEntries?, thresholdHeartRate: Int? = nil, maxHeartRate: Int? = nil
+    ) -> TrainerSendItem? {
+        guard let plain = runItem(workout, thresholdHeartRate: thresholdHeartRate, maxHeartRate: maxHeartRate) else { return nil }
+        guard let entries, entries.day == workout.day else { return plain }
+        let result = TrainerDayAdjust.adjust(workout, entries: entries)
+        var item = plain
+        if case let .adjusted(change) = result,
+           let adjusted = runItem(change.workout, thresholdHeartRate: thresholdHeartRate, maxHeartRate: maxHeartRate) {
+            item = adjusted
+            item.dayAdjustSeconds = change.seconds
+        }
+        item.dayAdjust = entries
+        item.heatShare = TrainerDayAdjust.includedHeatShare(result, entries: entries)
+        item.planSignature = plain.signature
+        return item
+    }
+
     static func strengthItem(_ workout: GeneratedStrengthWorkout, sessionId: UUID, day: Day) -> TrainerSendItem? {
         let title = TrainerStrengthText.focusName(workout.group)
         guard !workout.exercises.isEmpty,

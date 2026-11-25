@@ -48,7 +48,8 @@ struct TrainerDayView: View {
         let heatDay = row.workout.kind == .long && row.run == nil ? TrainerHeatDayBuilder.make(
             weather: weather, longPace: app.trainer.plan?.paces.long, usualHour: longHour, hotSessions: hotSessions
         ) : nil
-        let workout = displayed(row.workout, heat: heatDay.flatMap { $0.hour(selectedHour ?? $0.usualHour) }?.heat)
+        let dayAdjust = row.run == nil ? app.trainer.dayAdjusted(row.workout) : nil
+        let workout = dayAdjust?.workout ?? displayed(row.workout, heat: heatDay.flatMap { $0.hour(selectedHour ?? $0.usualHour) }?.heat)
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(workout.title).font(.title3.weight(.bold)).foregroundStyle(BrandColors.text)
@@ -60,6 +61,9 @@ struct TrainerDayView: View {
             if workout.kind != .off {
                 numbers(workout, estimate: app.trainer.timeEstimate(workout, run: row.run))
                     .padding(.top, 8)
+                if let dayAdjust, let line = TrainerText.dayAdjustLine(dayAdjust) {
+                    Text(line).font(.caption).foregroundStyle(BrandColors.attention).monospacedDigit()
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -6,55 +6,77 @@ private typealias C = DayAdjustConstants
 
 public enum DayAdjust {
     public static func adjust(_ input: DayAdjustInput) -> DayAdjustResult {
-        if let score = input.score, score < C.restBelow { return .rest }
-
-        var reasons: [DayAdjustReason] = []
-        var readinessSeconds = 0
-        var shorten = false
-
-        if let score = input.score {
-            readinessSeconds = C.readinessSteps.first { score >= $0.minimum }?.seconds ?? 0
-            if readinessSeconds > 0 {
-                reasons.append(.readiness(score: score, seconds: readinessSeconds))
-            }
-            shorten = readinessSeconds == C.readinessSteps.map(\.seconds).max()
+        guard let factors = factors(
+            score: input.score, temperature: input.temperature, dewPoint: input.dewPoint, radiation: input.radiation,
+            hotSessions: input.hotSessions, heavyLegs: input.heavyLegs
+        ) else { return .rest }
+        let total: Int
+        let reasons: [DayAdjustReason]
+        switch decide(factors, meanPaces: activePaces(in: input.plan.steps)) {
+        case let .swap(list): return .swap(reasons: list)
+        case let .apply(seconds, list):
+            total = seconds
+            reasons = list
         }
 
-        var heatShare = 0.0
+        var steps = input.plan.steps
+        var didShorten = false
+        if factors.shorten {
+            steps = shortened(steps, shape: input.shape)
+            didShorten = steps != input.plan.steps
+        }
+        if total == 0, !didShorten { return .none }
+
+        steps = steps.map { shifted($0, fixed: factors.fixedSeconds, heatShare: factors.heatShare) }
+
+        return .adjusted(steps: steps, original: input.plan.steps, seconds: total, reasons: reasons, shortened: didShorten)
+    }
+
+    public static func factors(
+        score: Int?, temperature: Double?, dewPoint: Double?, radiation: Double?, hotSessions: Int, heavyLegs: Bool
+    ) -> DayAdjustFactors? {
+        if let score, score < C.restBelow { return nil }
+        var readinessSeconds = 0
+        var shorten = false
+        if let score {
+            readinessSeconds = C.readinessSteps.first { score >= $0.minimum }?.seconds ?? 0
+            shorten = readinessSeconds == C.readinessSteps.map(\.seconds).max()
+        }
+        var heatShare: Double?
+        if let temperature, let dewPoint {
+            heatShare = WeatherAdjustment.heatShare(temperature: temperature, dewPoint: dewPoint, radiation: radiation, hotSessions: hotSessions)
+        }
+        return DayAdjustFactors(
+            score: score, readinessSeconds: readinessSeconds, shorten: shorten, temperature: temperature, dewPoint: dewPoint,
+            heatShare: heatShare, legsSeconds: heavyLegs ? C.heavyLegsSeconds : 0
+        )
+    }
+
+    public static func decide(_ factors: DayAdjustFactors, meanPaces: [Double]) -> DayAdjustDecision {
+        var reasons: [DayAdjustReason] = []
+        if let score = factors.score, factors.readinessSeconds > 0 {
+            reasons.append(.readiness(score: score, seconds: factors.readinessSeconds))
+        }
         var heatSeconds = 0
-        if let temperature = input.temperature, let dewPoint = input.dewPoint {
-            heatShare = WeatherAdjustment.heatShare(
-                temperature: temperature, dewPoint: dewPoint, radiation: input.radiation, hotSessions: input.hotSessions
-            )
-            heatSeconds = activePaces(in: input.plan.steps).map { heatOffset($0, share: heatShare) }.max() ?? 0
+        if let share = factors.heatShare, let temperature = factors.temperature, let dewPoint = factors.dewPoint {
+            heatSeconds = meanPaces.map { heatOffset($0, share: share) }.max() ?? 0
             if heatSeconds > 0 {
                 reasons.append(.heat(temperature: temperature, dewPoint: dewPoint, seconds: heatSeconds))
             }
         } else {
             reasons.append(.noForecast)
         }
-
-        var legsSeconds = 0
-        if input.heavyLegs {
-            legsSeconds = C.heavyLegsSeconds
-            reasons.append(.heavyLegs(seconds: legsSeconds))
+        if factors.legsSeconds > 0 {
+            reasons.append(.heavyLegs(seconds: factors.legsSeconds))
         }
-
-        let total = readinessSeconds + heatSeconds + legsSeconds
+        let total = factors.fixedSeconds + heatSeconds
         if total > C.maximumSeconds { return .swap(reasons: reasons) }
+        return .apply(seconds: total, reasons: reasons)
+    }
 
-        var steps = input.plan.steps
-        var didShorten = false
-        if shorten {
-            steps = shortened(steps, shape: input.shape)
-            didShorten = steps != input.plan.steps
-        }
-        if total == 0, !didShorten { return .none }
-
-        let fixed = readinessSeconds + legsSeconds
-        steps = steps.map { shifted($0, fixed: fixed, heatShare: heatShare) }
-
-        return .adjusted(steps: steps, original: input.plan.steps, seconds: total, reasons: reasons, shortened: didShorten)
+    public static func heatOffset(_ meanPace: Double, share: Double) -> Int {
+        let seconds = Int((share * meanPace).rounded())
+        return seconds < RunWeatherConstants.minimumHeatSeconds ? 0 : seconds
     }
 
     public static func weather(
@@ -79,19 +101,14 @@ public enum DayAdjust {
         }
     }
 
-    private static func heatOffset(_ meanPace: Double, share: Double) -> Int {
-        let seconds = Int((share * meanPace).rounded())
-        return seconds < RunWeatherConstants.minimumHeatSeconds ? 0 : seconds
-    }
-
-    private static func shifted(_ step: PlannedStep, fixed: Int, heatShare: Double) -> PlannedStep {
+    private static func shifted(_ step: PlannedStep, fixed: Int, heatShare: Double?) -> PlannedStep {
         var result = step
         if !step.children.isEmpty {
             result.children = step.children.map { shifted($0, fixed: fixed, heatShare: heatShare) }
             return result
         }
         guard step.kind == .active, case let .pace(fastest, slowest)? = step.target else { return step }
-        let heat = Double(heatOffset((fastest + slowest) / 2, share: heatShare))
+        let heat = Double(heatOffset((fastest + slowest) / 2, share: heatShare ?? 0))
         let offset = Double(fixed) + heat
         result.target = .pace(fastest: fastest + offset, slowest: slowest + offset)
         return result

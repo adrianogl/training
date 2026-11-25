@@ -47,7 +47,7 @@ struct TrainerSendSheet: View {
                         }
                         ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                             if index > 0 { Divider().overlay(BrandColors.line) }
-                            row(item, status: TrainerSendBuilder.status(item, records: records))
+                            row(item, status: TrainerSendBuilder.status(item, records: records), caption: DayAdjustWatchRules.sendCaption(item, record: records[item.key]))
                         }
                     }
                     .brandCard()
@@ -94,7 +94,7 @@ struct TrainerSendSheet: View {
         }
     }
 
-    private func row(_ item: TrainerSendItem, status: TrainerSendStatus) -> some View {
+    private func row(_ item: TrainerSendItem, status: TrainerSendStatus, caption: String?) -> some View {
         let included = !excluded.contains(item.key)
         let color = item.isMFIT ? BrandColors.fitness : item.kind == .strength ? BrandColors.strength : BrandColors.accentFill
         return Button {
@@ -108,6 +108,9 @@ struct TrainerSendSheet: View {
                         Text("\(TrainerText.weekdayName(item.day.weekStart.days(until: item.day))) · \(item.title)")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(BrandColors.text)
                         if item.isMFIT { DSChip(text: TrainerSendText.mfitChip, tone: .fitness) }
+                    }
+                    if let caption {
+                        Text(caption).font(.caption).foregroundStyle(BrandColors.dim).monospacedDigit()
                     }
                 }
                 Spacer(minLength: 6)

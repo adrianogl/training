@@ -1,4 +1,5 @@
 import Foundation
+import Insights
 import TrainingCore
 
 struct TrainerSendStore {
@@ -41,6 +42,8 @@ struct TrainerSendStore {
         var merged = Self.merged(local: ledger(), remote: remote)
         merged = pruned(merged)
         write(merged)
+        adoptDayAdjust(merged)
+        IncludedHeatStore(defaults: defaults).absorb(merged.entries.compactMapValues(\.record))
         return merged
     }
 
@@ -64,6 +67,14 @@ struct TrainerSendStore {
         let active = Set(result.entries.values.compactMap { $0.record?.workoutId })
         result.orphans = Array(Set(result.orphans + lost).subtracting(active)).sorted()
         return result
+    }
+
+    private func adoptDayAdjust(_ ledger: TrainerSendLedger) {
+        let today = Day.today(now: now())
+        guard let remote = ledger.entries[C.runKeyPrefix + today.iso]?.record?.dayAdjust, remote.day == today else { return }
+        let local = TrainerDayAdjustStore(defaults: defaults)
+        if let current = local.load(day: today), current.computedAt >= remote.computedAt { return }
+        local.save(remote)
     }
 
     func settings() -> TrainerSendSettings {

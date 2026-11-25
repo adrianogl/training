@@ -25,7 +25,10 @@ struct TrainerWeekRows: View {
             switch item {
             case .planned(let row):
                 NavigationLink(value: TrainerRoute.day(row.id)) {
-                    TrainerDayRowView(row: row, isToday: row.workout.day == currentDay)
+                    TrainerDayRowView(
+                        row: row, isToday: row.workout.day == currentDay,
+                        adjusted: row.run == nil ? app.trainer.dayAdjusted(row.workout)?.workout : nil
+                    )
                 }
                 .buttonStyle(.cardLink)
             case .done(let row):
