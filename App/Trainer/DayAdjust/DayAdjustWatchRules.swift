@@ -50,6 +50,35 @@ enum DayAdjustWatchRules {
         return item.dayAdjust
     }
 
+    static func retimed(_ entries: DayAdjustEntries, forecast: [HourlyWeather], hour: Int, now: Date) -> DayAdjustEntries {
+        candidate(
+            day: entries.day, score: entries.score, forecast: forecast, hour: hour, origin: .now,
+            hotSessions: entries.hotSessions, heavyLegs: entries.heavyLegs, now: now
+        )
+    }
+
+    static func seconds(_ result: TrainerDayAdjustResult) -> Int {
+        guard case let .adjusted(change) = result else { return 0 }
+        return change.seconds
+    }
+
+    static func laterOptions(_ watch: DayAdjustWatch, forecast: [HourlyWeather], currentHour: Int, now: Date) -> [DayAdjustHourOption] {
+        let C = DayAdjustWatchConstants.self
+        let options = forecast.map(\.hour).filter { $0 > currentHour && $0 <= C.lastStartHour }.map { hour in
+            let entries = retimed(watch.entries, forecast: forecast, hour: hour, now: now)
+            let result = TrainerDayAdjust.adjust(watch.workout, entries: entries)
+            let workout = if case let .adjusted(change) = result { change.workout } else { watch.workout }
+            return DayAdjustHourOption(hour: hour, entries: entries, result: result, seconds: seconds(result), paceLow: workout.paceLow)
+        }
+        let pinned = options.filter { $0.hour == watch.entries.hour }
+        let rest = options.filter { $0.hour != watch.entries.hour }.sorted { ($0.seconds, $0.hour) < ($1.seconds, $1.hour) }
+        return Array((pinned + rest).prefix(C.laterOptionsCount)).sorted { $0.hour < $1.hour }
+    }
+
+    static func matchesWatch(_ option: DayAdjustHourOption, watch: DayAdjustWatch) -> Bool {
+        option.hour == watch.entries.hour && !TrainerDayAdjust.differs(watch.result, option.result)
+    }
+
     static func showsNow(_ watch: DayAdjustWatch, now: DayAdjustEntries) -> Bool {
         guard now.hour != watch.entries.hour else { return false }
         return TrainerDayAdjust.differs(watch.result, TrainerDayAdjust.adjust(watch.workout, entries: now))

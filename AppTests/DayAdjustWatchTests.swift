@@ -171,6 +171,46 @@ import TrainingCore
         #expect(!DayAdjustWatchRules.showsNow(watch, now: entries(score: 64, temperature: 29, dewPoint: 23, hour: 7, origin: .now)))
     }
 
+    @Test func retimedKeepsScoreLegsAndAdaptationAndMarksAsChosen() {
+        var stored = entries(score: 64, temperature: 20, dewPoint: 10, hour: 7, heavyLegs: true)
+        stored.hotSessions = 4
+        let forecast = [HourlyWeather(hour: 18, temperature: 27, dewPoint: 20), HourlyWeather(hour: 20, temperature: 23, dewPoint: 18)]
+
+        let moved = DayAdjustWatchRules.retimed(stored, forecast: forecast, hour: 20, now: Date(timeIntervalSince1970: 10))
+
+        #expect(moved.hour == 20)
+        #expect(moved.origin == .now)
+        #expect(moved.temperature == 23)
+        #expect(moved.score == 64)
+        #expect(moved.heavyLegs)
+        #expect(moved.hotSessions == 4)
+    }
+
+    @Test func laterOptionsPinTheWatchHourAndPickTheCoolest() {
+        let stored = entries(score: 80, temperature: 24, dewPoint: 19, hour: 19)
+        let watch = DayAdjustWatch(entries: stored, workout: workout(), result: TrainerDayAdjust.adjust(workout(), entries: stored), sentAt: nil)
+        let temperatures: [Int: Double] = [11: 30, 13: 31, 14: 31, 15: 30, 16: 28, 17: 26, 18: 25, 19: 24, 20: 22, 21: 21, 22: 20]
+        let forecast = temperatures.keys.sorted().map { HourlyWeather(hour: $0, temperature: temperatures[$0]!, dewPoint: 19) }
+
+        let options = DayAdjustWatchRules.laterOptions(watch, forecast: forecast, currentHour: 12, now: .now)
+
+        #expect(options.map(\.hour) == [19, 20, 21])
+        #expect(options.allSatisfy { $0.entries.origin == .now })
+        #expect(DayAdjustWatchRules.matchesWatch(options[0], watch: watch))
+        #expect(!DayAdjustWatchRules.matchesWatch(options[2], watch: watch) || options[2].seconds == DayAdjustWatchRules.seconds(watch.result))
+        #expect(options[0].seconds >= options[2].seconds)
+    }
+
+    @Test func laterOptionsSkipPastHoursAndLateNight() {
+        let stored = entries(hour: 7)
+        let watch = DayAdjustWatch(entries: stored, workout: workout(), result: .none, sentAt: nil)
+        let forecast = (5...23).map { HourlyWeather(hour: $0, temperature: 26, dewPoint: 20) }
+
+        let options = DayAdjustWatchRules.laterOptions(watch, forecast: forecast, currentHour: 20, now: .now)
+
+        #expect(options.map(\.hour) == [21])
+    }
+
     @Test func morningLineUsesTheStoredEntries() {
         let result = TrainerDayAdjust.adjust(workout(), entries: entries(score: 64))
         let line = DayAdjustText.trainerMorning(result, plan: plan())

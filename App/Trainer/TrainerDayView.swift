@@ -7,6 +7,7 @@ struct TrainerDayView: View {
     @Environment(AppModel.self) private var app
     let iso: String
     @State private var weather: [HourlyWeather] = []
+    @State private var todayForecast: [HourlyWeather] = []
     @State private var heatRuns: [UsualHourRun] = []
     @State private var hotSessions = 0
     @State private var selectedHour: Int?
@@ -34,6 +35,10 @@ struct TrainerDayView: View {
         }
         .sheet(isPresented: $showsEdit) { TrainerEditWorkoutView(iso: iso) }
         .sheet(isPresented: $showsChat) { TrainerChatSheet() }
+        .task(id: iso) {
+            guard let day = Day(iso: iso), day == app.trainer.currentDay, app.trainer.row(for: iso)?.run == nil else { return }
+            todayForecast = await app.trainer.forecast(for: day)
+        }
         .task(id: iso) {
             guard let day = Day(iso: iso), app.trainer.row(for: iso)?.workout.kind == .long else { return }
             let recent = TodayModel.recentRuns(context: app.container.mainContext)
@@ -63,6 +68,9 @@ struct TrainerDayView: View {
                     .padding(.top, 8)
                 if let dayAdjust, let line = TrainerText.dayAdjustLine(dayAdjust) {
                     Text(line).font(.caption).foregroundStyle(BrandColors.attention).monospacedDigit()
+                }
+                if row.run == nil, row.workout.day == app.trainer.currentDay, let watch = app.trainer.todayWatch {
+                    watchPanel(watch)
                 }
             }
         }
@@ -99,6 +107,23 @@ struct TrainerDayView: View {
             runCard(run)
         }
         AskIntelligenceButton(title: TrainerChatConstants.ask) { showsChat = true }
+    }
+
+    private func watchPanel(_ watch: DayAdjustWatch) -> some View {
+        let now = Date.now
+        let hour = Calendar.current.component(.hour, from: now)
+        let nowEntries = todayForecast.isEmpty ? nil : DayAdjustWatchRules.retimed(watch.entries, forecast: todayForecast, hour: hour, now: now)
+        return VStack(alignment: .leading, spacing: DSSpacing.s3) {
+            Divider().overlay(BrandColors.line)
+            DayAdjustWatchPanel(
+                watch: watch, nowEntries: nowEntries,
+                later: DayAdjustWatchRules.laterOptions(watch, forecast: todayForecast, currentHour: hour, now: now),
+                isBusy: app.trainer.isSendingToGarmin
+            ) { entries in
+                await app.trainer.sendNowDayAdjust(entries, client: app.garminAccount.client)?.firstError
+            }
+        }
+        .padding(.top, DSSpacing.s2)
     }
 
     private func section(_ title: String) -> some View {

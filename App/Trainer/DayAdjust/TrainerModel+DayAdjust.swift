@@ -55,6 +55,12 @@ extension TrainerModel {
         )
     }
 
+    var todayWatch: DayAdjustWatch? {
+        guard let record = TrainerSendStore(defaults: defaults).records()[TrainerSendConstants.runKeyPrefix + currentDay.iso],
+              record.kind == .run else { return nil }
+        return watchDayAdjust(planId: record.workoutId)
+    }
+
     static func dayScore(_ summary: TodaySummary, day: Day, defaults: UserDefaults) -> Int? {
         guard !summary.readinessFromYesterday else { return nil }
         return summary.readiness?.score ?? GarminReadinessCache.cached(day: day, defaults: defaults)?.score

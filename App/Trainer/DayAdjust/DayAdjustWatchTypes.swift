@@ -12,3 +12,11 @@ struct DayAdjustWatch: Equatable {
     let result: TrainerDayAdjustResult
     let sentAt: Date?
 }
+
+struct DayAdjustHourOption: Equatable {
+    let hour: Int
+    let entries: DayAdjustEntries
+    let result: TrainerDayAdjustResult
+    let seconds: Int
+    let paceLow: Double?
+}

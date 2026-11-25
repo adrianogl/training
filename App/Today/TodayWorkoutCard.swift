@@ -12,8 +12,6 @@ struct TodayWorkoutCard: View {
     @Environment(AppModel.self) private var app
     @State private var weather: [HourlyWeather] = []
     @State private var todayWeather: [HourlyWeather]?
-    @State private var isSendingNow = false
-    @State private var sendNowError: String?
     private typealias C = TodayConstants
 
     var body: some View {
@@ -98,33 +96,12 @@ struct TodayWorkoutCard: View {
         VStack(alignment: .leading, spacing: 10) {
             TodayGarminPlanContent(plan: plan, display: display)
             if let watch {
-                watchStatus(watch, score: score)
+                DayAdjustWatchPanel(watch: watch, nowEntries: nowEntries(watch, score: score), isBusy: trainer.isSendingToGarmin) { entries in
+                    await trainer.sendNowDayAdjust(entries, client: app.garminAccount.client)?.firstError
+                }
             }
             NavigationLink(value: TodayRoute.planned(plan.id)) { CardLinkFooter(title: CardLinkConstants.workout) }
                 .buttonStyle(.cardLink)
-        }
-    }
-
-    @ViewBuilder
-    private func watchStatus(_ watch: DayAdjustWatch, score: Int?) -> some View {
-        if let status = DayAdjustWatchRules.status(watch) {
-            Text(status).font(.caption).foregroundStyle(BrandColors.dim).monospacedDigit()
-        }
-        if let now = nowEntries(watch, score: score), DayAdjustWatchRules.showsNow(watch, now: now) {
-            Button {
-                sendNow(now)
-            } label: {
-                HStack(spacing: 8) {
-                    if isSendingNow { ProgressView().controlSize(.small) }
-                    Text(isSendingNow ? DayAdjustWatchConstants.sendingNow : String(format: DayAdjustWatchConstants.nowButtonFormat, now.hour))
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.ds(.secondary))
-            .disabled(isSendingNow || trainer.isSendingToGarmin)
-        }
-        if let sendNowError {
-            DSNotice(tone: .attention, text: sendNowError)
         }
     }
 
@@ -135,16 +112,6 @@ struct TodayWorkoutCard: View {
             day: watch.entries.day, score: score, forecast: forecast, hour: Calendar.current.component(.hour, from: now),
             origin: .now, hotSessions: model.hotSessions, heavyLegs: legDay != nil, now: now
         )
-    }
-
-    private func sendNow(_ entries: DayAdjustEntries) {
-        isSendingNow = true
-        sendNowError = nil
-        Task {
-            let result = await trainer.sendNowDayAdjust(entries, client: app.garminAccount.client)
-            isSendingNow = false
-            sendNowError = result?.firstError
-        }
     }
 
     private var rest: some View {
