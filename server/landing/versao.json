@@ -1,11 +1,17 @@
 {
-  "versao": "1.55.5",
-  "build": 94,
-  "versao_app": "1.55.5",
+  "versao": "1.56.0",
+  "build": 95,
+  "versao_app": "1.56.0",
   "notas": [
-    "Envia todo passo ao Garmin por pace com a FC como segundo alvo"
+    "Mostra a nota só com o treino e o clima completos"
   ],
   "historico": [
+    {
+      "versao": "1.56.0",
+      "notas": [
+        "Mostra a nota só com o treino e o clima completos"
+      ]
+    },
     {
       "versao": "1.55.5",
       "notas": [
@@ -61,12 +67,6 @@
       "versao": "1.52.0",
       "notas": [
         "Envia o nome do exercício do MFIT ao Garmin Connect"
-      ]
-    },
-    {
-      "versao": "1.51.1",
-      "notas": [
-        "Herda as repetições da última série e divide o tempo da rodada do bi-set"
       ]
     }
   ]
