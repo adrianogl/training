@@ -6,7 +6,6 @@ enum TrainerZonesConstants {
     static let threshold = 4
     static let fast = 5
     static let zoneCount = 5
-    static let heartRateTargetMinMeters = 2_000.0
     static let realMinSeconds = 120.0
     static let maxSampleGap = 10.0
 }

@@ -28,17 +28,6 @@ import TrainingCore
         #expect(TrainerZones.zone(TrainerStep(kind: .steady, repeats: 1, meters: 18_000), in: workout(.long, steps: [])) == 2)
     }
 
-    @Test func heartRateTargetSkipsShortAndFastBlocks() {
-        let limiar = TrainerStep(kind: .work, repeats: 4, meters: 2_000, paceLow: 243, paceHigh: 249)
-        let short = TrainerStep(kind: .work, repeats: 6, meters: 1_000, paceLow: 243, paceHigh: 249)
-        let vo2 = TrainerStep(kind: .work, repeats: 5, meters: 1_000)
-
-        #expect(TrainerZones.usesHeartRateTarget(limiar, in: workout(.threshold, steps: [])))
-        #expect(!TrainerZones.usesHeartRateTarget(short, in: workout(.threshold, steps: [])))
-        #expect(!TrainerZones.usesHeartRateTarget(vo2, in: workout(.vo2max, steps: [])))
-        #expect(TrainerZones.usesHeartRateTarget(TrainerStep(kind: .warmup, repeats: 1, meters: 3_000), in: workout(.vo2max, steps: [])))
-    }
-
     @Test func bandsJoinHeartRateAndPace() {
         let bands = TrainerZones.bands(thresholdHeartRate: 172, paces: paces)
 
@@ -46,6 +35,7 @@ import TrainingCore
         #expect(bands[0].heartRateLow == nil && bands[0].heartRateHigh == 145)
         #expect(bands[1].heartRateLow == 146 && bands[1].heartRateHigh == 154)
         #expect(bands[4].heartRateLow == 172 && bands[4].heartRateHigh == nil)
+        #expect(TrainerZones.bands(thresholdHeartRate: 172, paces: paces, maxHeartRate: 190)[4].heartRateHigh == 190)
         #expect(bands[0].paceLow == nil)
         #expect(bands[1].paceLow == 298 && bands[1].paceHigh == 312)
         #expect(bands[3].paceLow == 243 && bands[3].paceHigh == 249)

@@ -17,11 +17,11 @@ enum AppleWorkoutBuilder {
         var steps = item.runSteps
         var warmup: WorkoutStep?
         var cooldown: WorkoutStep?
-        if case .warmup(let meters, _) = steps.first {
+        if case .warmup(let meters, _, _, _) = steps.first {
             warmup = WorkoutStep(goal: .distance(meters, .meters))
             steps.removeFirst()
         }
-        if case .cooldown(let meters) = steps.last {
+        if case .cooldown(let meters, _, _, _) = steps.last {
             cooldown = WorkoutStep(goal: .distance(meters, .meters))
             steps.removeLast()
         }
@@ -49,7 +49,7 @@ enum AppleWorkoutBuilder {
         switch step {
         case .interval(let meters, let fastest, let slowest, _):
             return IntervalStep(.work, goal: .distance(meters, .meters), alert: paceAlert(fastest: fastest, slowest: slowest))
-        case .recovery(let meters), .warmup(let meters, _), .cooldown(let meters):
+        case .recovery(let meters), .warmup(let meters, _, _, _), .cooldown(let meters, _, _, _):
             return IntervalStep(.recovery, goal: .distance(meters, .meters))
         case .rest(let seconds):
             return IntervalStep(.recovery, goal: .time(seconds, .seconds))
