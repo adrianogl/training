@@ -42,6 +42,7 @@ public enum TrainerEngine {
         )
         var result = plan
         result.versions = [version]
+        result.rulesVersion = C.prescriptionRulesVersion
         return result
     }
 

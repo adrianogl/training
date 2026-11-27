@@ -711,12 +711,14 @@ enum TrainerText {
         return pace(run.seconds / (run.meters / 1_000))
     }
 
+    static let rulesRefreshTrigger = "regras de prescrição atualizadas"
+
     static func triggerText(_ trigger: TrainerTrigger) -> String {
         switch trigger {
         case .created: "plano criado"
         case .weekEnded(let index): "fim da semana \(index)"
         case .workout(_, let day): "depois do treino de \(C.weekdayFull[weekday(day)])"
-        case .request: "pedido por você"
+        case .request: TrainerEngine.isRulesRefresh(trigger) ? rulesRefreshTrigger : "pedido por você"
         case .strengthChanged: "treinos de força atualizados"
         case .lightWeek(let day): "semana de \(dayMonth(day)) alterada"
         case .longModeChanged: "modo do longão alterado"

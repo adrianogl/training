@@ -601,8 +601,9 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
     public var dayPreference: TrainerDayPreference
     public var endedOn: Day?
     public var outAndBack: Bool
+    public var rulesVersion: Int?
 
-    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil, endedOn: Day? = nil, outAndBack: Bool = false) {
+    public init(target: TrainerTarget, structure: [Int: TrainerDayKind], paces: TrainerPaces, weeks: [TrainerWeek], workouts: [TrainerWorkout], versions: [TrainerVersion], processedActivityIds: [Int64] = [], strength: [TrainerStrengthSession] = [], startMeters: Double? = nil, peakMeters: Double? = nil, lightWeeks: [Day] = [], earlyLightWeeks: [Day: TrainerLightKind] = [:], calmWeeks: [Day] = [], longMode: TrainerLongMode = .continuous, longStage: Int = 1, longStageStreak: Int = 0, longStageMisses: Int = 0, paceOverrides: [TrainerPaceKind: Double] = [:], dayPreference: TrainerDayPreference? = nil, endedOn: Day? = nil, outAndBack: Bool = false, rulesVersion: Int? = nil) {
         self.target = target
         self.structure = structure
         self.paces = paces
@@ -624,11 +625,12 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         self.dayPreference = dayPreference ?? TrainerDayPreference(structure: structure)
         self.endedOn = endedOn
         self.outAndBack = outAndBack
+        self.rulesVersion = rulesVersion
     }
 
     private enum CodingKeys: String, CodingKey {
         case target, structure, paces, weeks, workouts, versions, processedActivityIds, strength, startMeters, peakMeters, weeklyMeters, lightWeeks
-        case earlyLightWeeks, calmWeeks, longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference, endedOn, outAndBack
+        case earlyLightWeeks, calmWeeks, longMode, longStage, longStageStreak, longStageMisses, paceOverrides, dayPreference, endedOn, outAndBack, rulesVersion
     }
 
     public init(from decoder: Decoder) throws {
@@ -658,7 +660,8 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
             paceOverrides: try container.decodeIfPresent([TrainerPaceKind: Double].self, forKey: .paceOverrides) ?? [:],
             dayPreference: try container.decodeIfPresent(TrainerDayPreference.self, forKey: .dayPreference),
             endedOn: try container.decodeIfPresent(Day.self, forKey: .endedOn),
-            outAndBack: try container.decodeIfPresent(Bool.self, forKey: .outAndBack) ?? false
+            outAndBack: try container.decodeIfPresent(Bool.self, forKey: .outAndBack) ?? false,
+            rulesVersion: try container.decodeIfPresent(Int.self, forKey: .rulesVersion)
         )
     }
 
@@ -687,6 +690,7 @@ public struct TrainerPlan: Codable, Sendable, Equatable {
         try container.encode(dayPreference, forKey: .dayPreference)
         try container.encodeIfPresent(endedOn, forKey: .endedOn)
         if outAndBack { try container.encode(outAndBack, forKey: .outAndBack) }
+        try container.encodeIfPresent(rulesVersion, forKey: .rulesVersion)
     }
 }
 

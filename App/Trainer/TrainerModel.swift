@@ -801,9 +801,11 @@ import TrainingCore
 
     private func applyPending() -> [TrainerVersion] {
         guard var current = plan, current.endedOn == nil else { return [] }
-        let triggers = TrainerEngine.pendingTriggers(current, history: history, today: currentDay)
-        guard !triggers.isEmpty else { return [] }
+        let refreshed = TrainerEngine.refreshingRules(current, history: history, today: currentDay, now: .now)
+        let triggers = TrainerEngine.pendingTriggers(refreshed ?? current, history: history, today: currentDay)
+        guard refreshed != nil || !triggers.isEmpty else { return [] }
         let previous = current.versions.last?.number ?? 0
+        if let refreshed { current = refreshed }
         for trigger in triggers {
             current = TrainerEngine.adjust(current, history: history, today: currentDay, now: .now, trigger: trigger)
         }

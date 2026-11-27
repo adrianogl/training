@@ -43,6 +43,7 @@ O essencial da prescrição:
 - Exceção: descanso parado entre blocos vai em tempo.
 - Meta de prova continua em tempo, porque é resultado.
 - Força não reduz o volume de corrida.
+- Quem muda regra de prescrição (zonas, ritmos, formato dos treinos) sobe `TrainerEngineConstants.prescriptionRulesVersion`. Sem isso, o plano salvo segue com os treinos antigos até o fim da semana.
 
 ## SwiftData
 

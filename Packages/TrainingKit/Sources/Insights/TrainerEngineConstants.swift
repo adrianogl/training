@@ -9,6 +9,7 @@ enum TrainerEngineConstants {
         1: .easy, 2: .threshold, 3: .easy, 4: .vo2max, 5: .optionalEasy, 6: .long, 7: .off,
     ]
     static let metersPerKilometer = 1_000.0
+    static let prescriptionRulesVersion = 1
     static let daysPerWeek = 7
     static let paceWindowDays = 90
     static let workPaceRuns = 4

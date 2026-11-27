@@ -217,6 +217,7 @@ enum TrainerEngineText {
     }
 
     static let editedByYouReason = "Plano editado por você."
+    static let rulesRefreshed = "Treinos refeitos com as regras novas de zonas e ritmos."
     static let editFieldTarget = "meta"
     static let editFieldVolumes = "volumes"
     static let editFieldStructure = "estrutura"

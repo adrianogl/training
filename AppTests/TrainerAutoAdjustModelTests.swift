@@ -1,5 +1,6 @@
 import Foundation
 import Insights
+import RemoteSync
 import Storage
 import SwiftData
 import Testing
@@ -106,5 +107,47 @@ private final class AutoAdjustClock: @unchecked Sendable {
         #expect(model.plan?.lightWeeks.isEmpty == true)
         #expect(model.weekCells.first { $0.start == start }?.isLight == false)
         #expect(!model.isLightWeek(start))
+    }
+
+    private static func stalePlanStore() throws -> TrainerStore {
+        var plan = TrainerEngine.create(
+            target: halfMarathon, structure: TrainerEngine.defaultStructure, strength: [], history: TrainerHistory(runs: []),
+            today: monday, now: .now, startMeters: 60_000, peakMeters: 80_000
+        )
+        plan.rulesVersion = nil
+        let store = makeStore()
+        try store.save(plan)
+        return store
+    }
+
+    @Test func stalePlanIsRefreshedOnceOnLoad() async throws {
+        let store = try Self.stalePlanStore()
+        let before = try #require(store.load()?.versions.count)
+        let model = try Self.makeModel(clock: AutoAdjustClock(Self.monday), store: store)
+        await model.load()
+
+        let refreshed = try #require(store.load())
+        #expect(refreshed.versions.count == before + 1)
+        #expect(TrainerEngine.isRulesRefresh(try #require(refreshed.versions.last).trigger))
+        #expect(TrainerEngine.refreshingRules(refreshed, history: TrainerHistory(runs: []), today: Self.monday, now: .now) == nil)
+
+        let reopened = try Self.makeModel(clock: AutoAdjustClock(Self.monday), store: store)
+        await reopened.load()
+        #expect(store.load()?.versions.count == before + 1)
+    }
+
+    @Test func secondDeviceKeepsTheRefreshedPlan() async throws {
+        let store = try Self.stalePlanStore()
+        let first = try Self.makeModel(clock: AutoAdjustClock(Self.monday), store: store)
+        await first.load()
+        let synced = try #require(store.load())
+
+        let other = Self.makeStore()
+        #expect(other.apply(RemoteTrainerState(data: try Data(contentsOf: store.url), updatedAt: .now)))
+        let second = try Self.makeModel(clock: AutoAdjustClock(Self.monday), store: other)
+        await second.load()
+
+        #expect(other.load() == synced)
+        #expect(other.pending() == nil)
     }
 }
