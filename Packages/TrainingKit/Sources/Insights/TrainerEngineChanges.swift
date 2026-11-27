@@ -9,9 +9,9 @@ extension TrainerEngine {
         guard workout.kind != .off else { return T.offTitle }
         let pace = workout.paceLow.flatMap { low in workout.paceHigh.map { T.paceRange(low, $0) } }
         let suffix = pace.map { " a \($0)" } ?? ""
-        let main = unturnedSteps(workout.steps).filter { $0.kind == .work && $0.method != .repetition }
+        let main = unturnedSteps(workout.steps).filter(\.isMainWork)
         if workout.kind == .threshold || workout.kind == .vo2max, !main.isEmpty {
-            let recovery = workout.steps.first(where: { $0.kind == .recovery }).map { step in
+            let recovery = workout.steps.first(where: { $0.kind == .recovery && !$0.isStrides }).map { step in
                 step.restSeconds.map { ", \(T.restSummary($0))" } ?? ", rec. \(Int(step.meters)) m"
             } ?? ""
             let blocks = main.map { TrainerQualityBlock(repeats: $0.repeats, meters: $0.meters) }

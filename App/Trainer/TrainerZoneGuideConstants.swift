@@ -1,23 +1,66 @@
-import Foundation
+import SwiftUI
 
 enum TrainerZoneGuideConstants {
-    static let realPaceDays = 42
     static let title = "Zonas e ritmos"
+    static let paceMode = "Ritmo"
+    static let heartRateMode = "FC"
+    static let modeGroup = "O que o gráfico mostra"
+    static let chartLabel = "MOSTRAR NO GRÁFICO"
+    static let thresholdLabel = "Limiar "
+    static let separator = " · "
+    static let changeStart = "início"
+    static let changeEqual = "igual em 6 sem."
+    static let changeFormat = "%@%d s em 6 sem."
+    static let gapFormat = "faltam %d s para a meta"
+    static let onGoal = "na meta"
+    static let goalLine = "limiar da meta · %@"
+    static let paceBandLegend = "pace prescrito"
+    static let heartRateBandLegend = "faixa de FC da zona"
+    static let paceLineLegend = "seu ritmo médio"
+    static let heartRateLineLegend = "sua FC média"
+    static let goalLegend = "limiar da meta"
+    static let paceGroup = "PACE"
+    static let heartRateGroup = "FC"
     static let zoneHeader = "Zona"
-    static let heartRateHeader = "FC"
-    static let paceHeader = "Pace"
-    static let usesHeader = "Usado em"
-    static let realTitle = "Seu pace real na zona · 42 dias"
-    static let trot = "trote"
+    static let targetHeader = "Alvo"
+    static let yourPaceHeader = "Seu"
+    static let yourHeartRateHeader = "Sua"
+    static let averageNote = "Seu pace e sua FC: média dos treinos de cada zona nas últimas 12 semanas. "
+    static let greenWord = "Verde"
+    static let insideNote = " está dentro do alvo; "
+    static let yellowWord = "amarelo"
+    static let outsideNote = " diz quanto ficou fora."
+    static let tapNote = "Toque numa semana no gráfico para ver o alvo dela."
     static let noThreshold = "Sem limiar do relógio ainda: as faixas de FC aparecem depois do primeiro treino com FC."
-    static let slowerThanPlan = "Seu pace real em Z%d está mais lento que o prescrito: a FC sobe antes do pace."
-    static let fasterThanPlan = "Seu pace real em Z%d está mais rápido que o prescrito: dá para correr na faixa com folga."
-    static let realTolerance = 8.0
-    static let uses: [Int: String] = [
-        1: "descanso, trote",
-        2: "rodagem, longão, aquecimento",
-        3: "ritmo de maratona, final forte do longão",
-        4: "limiar, tempo, pace-alvo da meia",
-        5: "VO2, tiros de 100 m",
-    ]
+    static let slower = "%d s lento"
+    static let faster = "%d s rápido"
+    static let above = "%d acima"
+    static let below = "%d abaixo"
+    static let empty = "—"
+    static let shownZone = "%@, aparece no gráfico"
+    static let hiddenZone = "%@, escondida no gráfico"
+    static let weekLabel = "Semana de %d/%d"
+    static let weekAxis = "Semana"
+    static let valueAxis = "Valor"
+    static let names: [Int: String] = [1: "trote", 2: "rodagem", 3: "maratona", 4: "limiar", 5: "VO2"]
+    static let defaultZones: Set<Int> = [4]
+    static let zones = Array(1...5)
+    static let openPaceSeconds = 30.0
+    static let openHeartRate = 12
+    static let chartHeight: CGFloat = 200
+    static let chipHeight: CGFloat = 44
+    static let chipBorder: CGFloat = 1.5
+    static let bandOpacity = 0.22
+    static let lineWidth: CGFloat = 2.5
+    static let pointSize: CGFloat = 70
+    static let goalDash: [CGFloat] = [5, 4]
+    static let modeHeight: CGFloat = 32
+    static let modePadding: CGFloat = 3
+    static let modeHorizontalPadding: CGFloat = 14
+    static let selectionOpacity = 0.25
+    static let paceAxisPadding = 3.0
+    static let heartRateAxisPadding = 2.0
+    static let axisStep = 5.0
+    static let compactScale = 0.9
+    static let tableFonts: [Font] = [.footnote, .caption, .caption2]
 }

@@ -1,4 +1,5 @@
 import Foundation
+import TrainingCore
 
 extension TrainerEngineText {
     static func dayKindName(_ kind: TrainerDayKind) -> String {
@@ -40,5 +41,31 @@ extension TrainerEngineText {
         guard let nextPossible else { return base }
         if nextPossible >= peak { return "\(base) Com \(runs + 1) corridas, os \(kilometers(peak)) cabem." }
         return "\(base) Com \(runs + 1) corridas, o pico possível sobe para \(kilometers(nextPossible))."
+    }
+}
+
+extension TrainerEngineText {
+    static func swapEveOfLong(_ conflict: TrainerSwapConflict, alternative: Day?, longMove: Day?) -> TrainerSwapWarning {
+        let name = titleName(kind: conflict.quality.kind, method: conflict.quality.method, variant: conflict.quality.variant)
+        let lowered = name == dayKindName(.vo2max) ? name : name.lowercased()
+        let article = conflict.quality.variant == .hills ? "as" : "o"
+        let longDay = weekdayName(conflict.long.day)
+        var text = "\(longDay.prefix(1).uppercased() + longDay.dropFirst()) tem longão de \(kilometers(conflict.long.totalMeters)). "
+            + "Com \(article) \(lowered) \(weekdayPreposition(conflict.quality.day)) \(weekdayName(conflict.quality.day)), você chega ao longão sem recuperar."
+        switch (alternative, longMove) {
+        case let (alternative?, longMove?):
+            text += " Prefira \(weekdayName(alternative)), ou passe o longão para \(weekdayName(longMove)) depois de trocar."
+        case let (alternative?, nil):
+            text += " Prefira \(weekdayName(alternative))."
+        case let (nil, longMove?):
+            text += " Passe o longão para \(weekdayName(longMove)) depois de trocar."
+        case (nil, nil):
+            break
+        }
+        return TrainerSwapWarning(title: "\(name) na véspera do longão", text: text)
+    }
+
+    static func weekdayPreposition(_ day: Day) -> String {
+        day.weekStart.days(until: day) >= TrainerEngineConstants.weekendStartIndex ? "no" : "na"
     }
 }

@@ -15,7 +15,7 @@ struct TrainerView: View {
     @State private var toggledWeeks: Set<String> = []
     @State private var highlightedWeek: String?
     @State private var showsSend = false
-    @State private var realZonePaces: [Int: Double] = [:]
+    @State private var zoneTrend: TrainerZoneTrend?
     @AppStorage(TrainerMFITConstants.keptDefaultsKey, store: AccountScope.current.defaults) private var keptSwaps = ""
 
     private var model: TrainerModel { app.trainer }
@@ -285,8 +285,10 @@ struct TrainerView: View {
         TrainerLongModeCard(mode: plan.longMode, suggestion: model.longSuggestion) { mode in
             Task { await model.setLongMode(mode) }
         }
-        TrainerZoneGuideCard(bands: model.planZones.bands, real: realZonePaces)
-            .task(id: model.currentDay) { realZonePaces = await model.realZonePaces() }
+        TrainerZoneGuideCard(
+            trend: zoneTrend, hasHeartRate: model.planZones.bands.contains { $0.heartRateLow != nil || $0.heartRateHigh != nil }
+        )
+        .task(id: model.zoneTrendKey) { zoneTrend = await model.zoneTrend() }
         VStack(alignment: .leading, spacing: 0) {
             Button { showsEdit = true } label: { actionRow(TrainerText.editPacesButton, symbol: "pencil") }
                 .buttonStyle(.plain)

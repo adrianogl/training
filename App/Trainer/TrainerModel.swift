@@ -28,6 +28,7 @@ import TrainingCore
 
     @ObservationIgnored let container: ModelContainer
     @ObservationIgnored var planZonesCache: (key: PlanZonesKey, value: PlanZones)?
+    @ObservationIgnored var zoneTrendCache: (key: TrainerZoneTrendKey, value: TrainerZoneTrend)?
     @ObservationIgnored private let store: TrainerStore
     @ObservationIgnored private let today: @Sendable () -> Day
     @ObservationIgnored let defaults: UserDefaults

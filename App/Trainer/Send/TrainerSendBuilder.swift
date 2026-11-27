@@ -9,7 +9,7 @@ enum TrainerSendBuilder {
     static func runSteps(_ workout: TrainerWorkout, thresholdHeartRate: Int? = nil, maxHeartRate: Int? = nil) -> [PlannedRunStep] {
         let bands = TrainerZones.bands(thresholdHeartRate: thresholdHeartRate, paces: nil, maxHeartRate: maxHeartRate)
         func heartRate(_ step: TrainerStep) -> ClosedRange<Int>? {
-            guard let zone = TrainerZones.zone(step, in: workout),
+            guard !step.isStrides, let zone = TrainerZones.zone(step, in: workout),
                   let band = bands.first(where: { $0.zone == zone }), let low = band.heartRateLow, let high = band.heartRateHigh, low <= high else { return nil }
             return low...high
         }
@@ -33,7 +33,8 @@ enum TrainerSendBuilder {
                     meters: step.meters, fastest: step.paceLow ?? workout.paceLow, slowest: step.paceHigh ?? workout.paceHigh, heartRate: heartRate(step)
                 )
                 let next = index + 1 < steps.count ? steps[index + 1] : nil
-                if step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
+                if step.repeats > 1, let next, next.kind == .recovery,
+                   next.repeats == step.repeats - 1 || next.isStrides && next.repeats == step.repeats {
                     result += series(step.repeats, interval: interval, recovery: recovery(next))
                     index += 2
                     index += coveredRest(steps, at: index, by: next.restSeconds) ? 1 : 0

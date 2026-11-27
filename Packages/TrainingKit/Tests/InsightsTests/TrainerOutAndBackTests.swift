@@ -83,6 +83,15 @@ import WorkoutAnalysis
         }
     }
 
+    @Test func vo2KeepsTheStridesAsOneSeriesWithTheWalkBack() throws {
+        let plan = plan(target: tenK)
+        let vo2 = try #require(plan.workouts.first { $0.kind == .vo2max && $0.steps.contains(where: \.isStrides) })
+        let strides = vo2.steps.filter(\.isStrides)
+
+        #expect(strides.map(\.kind) == [.work, .recovery])
+        #expect(strides.map(\.repeats) == [4, 4])
+    }
+
     @Test func thresholdSplitsTheSeriesAtTheTurn() throws {
         let plan = plan(target: tenK)
         let threshold = try #require(plan.workouts.first { $0.kind == .threshold })

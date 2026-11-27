@@ -228,7 +228,12 @@ struct TrainerStepList: View {
                 RoundedRectangle(cornerRadius: 3)
                     .fill(row.zone.map { BrandColors.zone($0) } ?? TrainerConstants.color(for: row.kind))
                     .frame(width: 10, height: 10)
-                Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(row.title).font(.footnote).foregroundStyle(BrandColors.text)
+                    if let subtitle = row.subtitle {
+                        Text(subtitle).font(.caption).foregroundStyle(BrandColors.dim)
+                    }
+                }
             }
             Spacer(minLength: 6)
             Text(row.detail).font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()

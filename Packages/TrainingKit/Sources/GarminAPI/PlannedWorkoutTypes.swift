@@ -35,6 +35,12 @@ public struct PlannedStep: Sendable, Equatable {
         return Array(repeating: children.flatMap(\.flattened), count: max(repeats, 1)).flatMap { $0 }
     }
 
+    public var isStrides: Bool {
+        guard repeats > 1, children.count == 2, let work = children.first, let back = children.last, work.children.isEmpty,
+              let meters = work.meters, meters <= PlannedStepConstants.stridesMaxMeters else { return false }
+        return work.kind == .active && back.kind == .recovery && back.target == nil && back.meters == meters
+    }
+
     public static func activeBlocks(_ steps: [PlannedStep]) -> Int {
         let flat = steps.flatMap(\.flattened)
         return flat.indices.filter { index in

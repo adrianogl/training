@@ -1,4 +1,3 @@
-import FITReader
 import Foundation
 import GarminAPI
 import Testing
@@ -88,17 +87,6 @@ import TrainingCore
 
         #expect(TrainerZones.zone(planned: goal, paces: paces, bands: bands) == 4)
         #expect(TrainerZones.zone(planned: goal, paces: paces, bands: noBands) == 5)
-    }
-
-    @Test func realPaceAveragesTimeInEachZone() {
-        let easy = (0..<60).map { FITSample(t: Double($0) * 5, heartRate: 150, speed: 1_000.0 / 300) }
-        let hard = (0..<60).map { FITSample(t: 300 + Double($0) * 5, heartRate: 165, speed: 1_000.0 / 245) }
-
-        let real = TrainerZones.realPaces([easy, hard], thresholdHeartRate: 172)
-
-        #expect(real[2].map { abs($0 - 300) < 1 } == true)
-        #expect(real[4].map { abs($0 - 245) < 1 } == true)
-        #expect(real[5] == nil)
     }
 
     private func week(_ index: Int, _ phase: TrainerPhase) -> TrainerWeek {

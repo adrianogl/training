@@ -90,7 +90,7 @@ enum DayAdjustText {
     static func trainerMorning(_ result: TrainerDayAdjustResult, plan: PlannedWorkout) -> String? {
         guard case .adjusted(let change) = result,
               let lead = C.dayAdjustMorningLead[PlanText.shape(plan)],
-              let first = TrainerDayAdjust.activeRanges(change.workout).first else { return nil }
+              let first = TrainerDayAdjust.mainRanges(change.workout).first else { return nil }
         return morning(lead: lead, range: range(fastest: first.low, slowest: first.high), reasons: change.reasons)
     }
 
@@ -155,7 +155,7 @@ enum DayAdjustText {
     }
 
     private static func firstActiveRange(_ steps: [PlannedStep]) -> String? {
-        for step in steps.flatMap(\.flattened) where step.kind == .active {
+        for step in steps.filter({ !$0.isStrides }).flatMap(\.flattened) where step.kind == .active {
             if case .pace(let fastest, let slowest)? = step.target { return range(fastest: fastest, slowest: slowest) }
         }
         return nil

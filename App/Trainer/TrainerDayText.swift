@@ -34,7 +34,7 @@ extension TrainerText {
     }
 
     private static func dayDetail(_ workout: TrainerWorkout, pauses: Bool) -> String {
-        let main = workout.steps.filter { $0.kind == .work && $0.method != .repetition }
+        let main = workout.steps.filter(\.isMainWork)
         if pauses {
             let blocks = pauseBlocks(workout).map { $0.count > 1 ? "\(blockCount($0.count)) \(distance($0.meters))" : distance($0.meters) }.joined(separator: blockSeparator)
             let steady = workout.steps.filter { $0.kind == .steady }

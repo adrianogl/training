@@ -38,7 +38,9 @@ struct PlannedStepsList: View {
             ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                 if index > 0 { Divider().overlay(BrandColors.line) }
                 let before = aligned[index]
-                if step.children.isEmpty {
+                if step.isStrides {
+                    stridesRow(step)
+                } else if step.children.isEmpty {
                     row(step, original: before, prefix: nil, wasPrefix: nil)
                 } else {
                     ForEach(Array(step.children.enumerated()), id: \.offset) { childIndex, child in
@@ -81,6 +83,23 @@ struct PlannedStepsList: View {
         .padding(.vertical, 6)
     }
 
+    private func stridesRow(_ step: PlannedStep) -> some View {
+        let work = step.children.first ?? step
+        return HStack(alignment: .firstTextBaseline, spacing: 8) {
+            RoundedRectangle(cornerRadius: 3).fill(BrandColors.zone(PlanText.level(work, zones: zones))).frame(width: 10, height: 10)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(PlanText.stridesTitle(step)).font(.footnote).foregroundStyle(BrandColors.text)
+                Text(TodayConstants.stridesWalkBack).font(.caption).foregroundStyle(BrandColors.dim)
+            }
+            Spacer()
+            Text(PlanText.target(work) ?? "").font(.footnote).foregroundStyle(BrandColors.dim).monospacedDigit()
+            if let zones, let zone = zones.zone(work) {
+                ZoneChip(zone: zone, band: zones.band(zone))
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
     private func emphasized(_ step: PlannedStep) -> some View {
         let parts = PlanText.detailParts(step)
         let lead = Text(parts.lead.map { $0 + TodayConstants.dayAdjustDetailSeparator } ?? "").foregroundStyle(BrandColors.dim)
@@ -114,6 +133,9 @@ struct TodayGarminPlanContent: View {
             } else {
                 PlannedShape(steps: display.steps).frame(height: TodayConstants.planShapeHeight)
                 PlannedStepsList(steps: display.steps, original: display.original)
+                if display.steps.contains(where: \.isStrides) {
+                    Text(TodayConstants.stridesNote).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
+                }
             }
             if let notice = display.notice {
                 DSNotice(tone: .attention, title: notice.title, text: notice.text) {
@@ -144,6 +166,15 @@ enum PlanText {
         }
         guard let meters = plan.estimatedMeters, let seconds = plan.estimatedSeconds else { return nil }
         return String(format: TodayConstants.planEstimateFormat, TodayText.decimal(meters / WorkoutConstants.metersPerKilometer, fractionDigits: 1), WorkoutFormat.clock(seconds))
+    }
+
+    static func stridesTitle(_ step: PlannedStep) -> String {
+        String(format: TodayConstants.stridesTitleFormat, step.repeats, distance(step.children.first?.meters ?? 0))
+    }
+
+    static func stridesDetail(_ step: PlannedStep) -> String {
+        ([TodayConstants.stridesWalkBack] + [step.children.first.flatMap(target)].compactMap { $0 })
+            .joined(separator: TodayConstants.dayAdjustDetailSeparator)
     }
 
     static func detail(_ step: PlannedStep) -> String {

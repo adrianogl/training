@@ -402,7 +402,14 @@ enum TrainerText {
             let step = steps[index]
             let next = index + 1 < steps.count ? steps[index + 1] : nil
             distance += step.meters * Double(step.repeats)
-            if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
+            if step.isStrides, step.kind == .work {
+                rows.append(stridesRow(step, in: workout, id: rows.count))
+                if let next, next.isStrides, next.kind == .recovery {
+                    distance += next.meters * Double(next.repeats)
+                    index += 1
+                }
+                index += 1
+            } else if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery, next.repeats == step.repeats - 1 {
                 rows.append(TrainerStepRow(id: rows.count, kind: step.kind, title: seriesTitle(step.repeats), detail: "", isHeader: true))
                 rows.append(row(step, at: index, in: workout, single: true, id: rows.count, isNested: true))
                 rows.append(row(next, at: index + 1, in: workout, single: true, id: rows.count, isNested: true))
@@ -435,6 +442,14 @@ enum TrainerText {
             }
             return TrainerStepRow(id: row.id, kind: row.kind, title: title, detail: row.detail, isHeader: row.isHeader, isNested: row.isNested, zone: row.zone)
         }
+    }
+
+    private static func stridesRow(_ step: TrainerStep, in workout: TrainerWorkout, id: Int) -> TrainerStepRow {
+        TrainerStepRow(
+            id: id, kind: step.kind, title: String(format: TodayConstants.stridesTitleFormat, step.repeats, Self.distance(step.meters)),
+            detail: paceRange(low: step.paceLow, high: step.paceHigh) ?? "", zone: TrainerZones.zone(step, in: workout),
+            subtitle: TodayConstants.stridesWalkBack
+        )
     }
 
     private static func turnRow(id: Int, distance: Double) -> TrainerStepRow {
@@ -653,7 +668,7 @@ enum TrainerText {
             if step.kind == .work, step.repeats > 1, let next, next.kind == .recovery {
                 for repeatIndex in 0..<step.repeats {
                     append(.work, step.meters, turnsAfter: step.turnsAfter == true && repeatIndex == step.repeats - 1)
-                    if repeatIndex < step.repeats - 1 { append(.recovery, next.meters, isRest: next.restSeconds != nil) }
+                    if repeatIndex < step.repeats - 1 || next.isStrides { append(.recovery, next.meters, isRest: next.restSeconds != nil) }
                 }
                 index += 2
             } else {

@@ -292,7 +292,8 @@ import WorkoutAnalysis
         #expect(meters[6] == 20_000)
         #expect(meters[7] == 0)
         #expect((9_000...10_000).contains(meters[5] ?? 0))
-        #expect(meters.values.allSatisfy { $0.truncatingRemainder(dividingBy: 1_000) == 0 })
+        #expect(meters.filter { $0.key != 4 }.values.allSatisfy { $0.truncatingRemainder(dividingBy: 1_000) == 0 })
+        #expect((meters[4] ?? 0).truncatingRemainder(dividingBy: 1_000) == 800)
         #expect(abs(meters.values.reduce(0, +) - 70_000) <= 2_000)
     }
 

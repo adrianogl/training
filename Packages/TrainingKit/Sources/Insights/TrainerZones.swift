@@ -1,4 +1,3 @@
-import FITReader
 import GarminAPI
 import Foundation
 import Metrics
@@ -27,7 +26,7 @@ public enum TrainerZones {
     public static func zone(for method: TrainerMethod, raceMeters: Double? = nil) -> Int {
         switch method {
         case .cruiseIntervals, .tempo: C.threshold
-        case .intervals, .repetition: C.fast
+        case .intervals, .repetition, .strides: C.fast
         case .racePace, .goalPace: raceMeters.map { TrainerEngine.racePaceZone(meters: $0) } ?? C.marathon
         }
     }
@@ -57,27 +56,6 @@ public enum TrainerZones {
         case C.fast: TrainerEngine.band(paces.vo2max, TrainerEngineConstants.qualityBand)
         default: nil
         }
-    }
-
-    public static func realPaces(_ runs: [[FITSample]], thresholdHeartRate: Int) -> [Int: Double] {
-        let floors = thresholdZones(thresholdHeartRate: thresholdHeartRate).floors
-        var seconds = [Double](repeating: 0, count: floors.count)
-        var meters = [Double](repeating: 0, count: floors.count)
-        for samples in runs {
-            for index in samples.indices.dropLast() {
-                let sample = samples[index]
-                guard let heartRate = sample.heartRate, heartRate > 0, let speed = sample.speed, speed > 0 else { continue }
-                let gap = min(max(samples[index + 1].t - sample.t, 0), C.maxSampleGap)
-                let zone = floors.lastIndex { heartRate >= $0 } ?? 0
-                seconds[zone] += gap
-                meters[zone] += speed * gap
-            }
-        }
-        var result: [Int: Double] = [:]
-        for index in floors.indices where seconds[index] >= C.realMinSeconds && meters[index] > 0 {
-            result[index + 1] = seconds[index] / meters[index] * 1_000
-        }
-        return result
     }
 }
 

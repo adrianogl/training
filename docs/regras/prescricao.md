@@ -64,7 +64,11 @@ O card "Zonas e ritmos" mostra a Z4 com as duas faixas juntas (do menor pace do 
 
 - **Treino planejado do Garmin:** a zona sai do alvo do passo: zona → ela mesma; FC → zona da média; pace com FC como segundo alvo (os treinos que o treinador envia) → zona da média da FC, que é a zona do bloco; pace sem segundo alvo → zona do ritmo mais próximo entre rodagem (Z2), maratona (Z3), limiar contínuo (Z4) e VO2 (Z5). Sem alvo, aquecimento e volta leve são Z2. A cor da barra e dos quadradinhos segue essa zona.
 - **Onde aparece:** Hoje (lista de passos), Treinador › dia, detalhe do planejado ("Como fazer") e detalhe do treino feito (zona dominante ao lado da FC média). A semana do treinador, as listas e o mostrador ficam só com a cor.
-- **Zonas e ritmos:** card na aba Treinador com FC, pace e uso de cada zona, e o pace real em cada zona de FC nas corridas dos últimos 42 dias (pelo menos 2 min na zona). Mostra um aviso quando o pace real fica mais de 8 s/km fora da faixa da zona.
+- **Zonas e ritmos:** card na aba Treinador com a evolução das últimas 12 semanas (`Insights/TrainerZoneTrend*.swift`, `App/Trainer/TrainerZoneGuide*.swift`, testes em `InsightsTests/TrainerZoneTrendTests.swift`).
+  - **Resumo:** limiar contínuo da semana escolhida, a variação contra 6 semanas antes e quanto falta para o limiar da meta. O limiar da meta é o ritmo de 15 km equivalente à meta pela fórmula de Riegel (expoente 1,06); sem meta de prova, a parte da meta some.
+  - **Gráfico:** Ritmo ou FC, com botões Z1 a Z5 (Z4 ligada de início, pelo menos uma sempre ligada). A área é o alvo de cada semana: os ritmos recalculados com `TrainerEngine.paces` na data da semana (com os ajustes manuais do plano) e as faixas de FC pelo limiar do relógio vigente na semana. A linha é a média semanal dos blocos daquela zona; semana sem treino na zona fica sem ponto. No modo Ritmo com a Z4 ligada, uma linha tracejada marca o limiar da meta.
+  - **Blocos por zona:** Z1 = trote e volta leve contínuos de 2 min ou mais (trote mais lento que 9:00/km entra só na FC); Z2 = rodagens e longões; Z3, Z4 e Z5 = blocos com alvo de pace na faixa da zona, ou blocos com alvo em treinos de limiar (Z4) e de VO2 (Z5). Tiros de até 200 m (fechamento e strides) e o aquecimento ficam fora. A FC ignora o primeiro minuto de cada bloco.
+  - **Tabela:** alvo de pace e de FC da semana escolhida e a média das 12 semanas. Verde dentro do alvo; amarelo fora, com quantos segundos ou batimentos.
 
 ## Tempo estimado
 
@@ -79,7 +83,7 @@ Treino de corrida prescrito e ainda não feito mostra o tempo mínimo e o máxim
 
 ## Semana padrão
 
-Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sábado longão, domingo folga (`defaultStructure`). As trocas de dia evitam dois treinos fortes seguidos e qualidade a menos de 4 dias da prova (`raceQualityGapDays`).
+Segunda rodagem, terça limiar, quarta rodagem, quinta VO2, sexta opcional, sábado longão, domingo folga (`defaultStructure`). As trocas de dia evitam dois treinos fortes seguidos e qualidade a menos de 4 dias da prova (`raceQualityGapDays`). Na troca manual de dia (editar treino › Trocar de dia), quando a troca deixa limiar, VO2 ou ritmo de prova na véspera do longão, aparece o aviso "<Tipo> na véspera do longão", com o dia livre mais próximo que não cria o conflito e, quando o dia seguinte ao longão está na mesma semana, a sugestão de passar o longão para ele. O aviso não bloqueia a troca (`TrainerEngine.swapWarning`, testes em `InsightsTests/TrainerSwapWarningTests.swift`).
 
 ## Volume e fases
 
@@ -145,6 +149,7 @@ Saiu do app: a opção não aparece mais em Dias da semana, e um plano que estav
 - **Volume:** até 10 km de trabalho e 8% da semana.
 - **Descanso parado:** 0,7 do tempo do tiro, com no mínimo 150 s. Em tiros de até 600 m, o mínimo é 60 s.
 - **Fechamento:** 3 × 200 m forte com 200 m de trote.
+- **Strides:** entre o aquecimento e o primeiro tiro, 4 × 100 m no pace dos 200 m de fechamento (pace R), sem alvo de FC, com volta andando de 100 m. Entram nos km do treino (800 m) e no nome ("VO2 X km"); no tempo estimado a volta andando conta a 10:00–12:00/km. Subidas e pace-alvo não têm strides. No relógio vão como uma série "repetir 4 × (100 m + recuperação de 100 m por distância, sem alvo)": o envio não tem passo "até apertar volta", e a recuperação por distância fecha sozinha no ponto de partida. Constantes `vo2StridesRepeats`, `vo2StridesMeters`, `stridesWalkPaceLow`, `stridesWalkPaceHigh`.
 
 ## Ritmo de prova
 

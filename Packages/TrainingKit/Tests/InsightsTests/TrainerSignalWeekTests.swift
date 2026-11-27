@@ -121,7 +121,8 @@ import TrainingCore
         )
         #expect(later.weeks[1].calm)
         #expect(later.weeks[1].targetMeters == adjusted.weeks[1].targetMeters)
-        #expect(Array(later.weeks.dropFirst(2)) == Array(reference.weeks.dropFirst(2)))
+        #expect(Array(later.weeks.dropFirst(3)) == Array(reference.weeks.dropFirst(3)))
+        #expect(later.weeks[2].targetMeters == reference.weeks[2].targetMeters)
         #expect(later.weeks[2].targetMeters == plan.weeks[2].targetMeters)
     }
 

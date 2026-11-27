@@ -33,6 +33,22 @@ import TrainingCore
         #expect(TrainerText.volumeSuggestionReason(cycle) == "Da avaliação do ciclo que terminou: aumentar o volume do último plano.")
     }
 
+    @Test func stridesShowAsOneRowWithTheWalkBack() {
+        let workout = TrainerWorkout(day: Day(iso: "2026-11-19")!, kind: .vo2max, title: "VO2 9,8 km", totalMeters: 9_800, steps: [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 4, meters: 100, paceLow: 219, paceHigh: 225, method: .strides),
+            TrainerStep(kind: .recovery, repeats: 4, meters: 100, method: .strides),
+            TrainerStep(kind: .work, repeats: 5, meters: 1_000, restSeconds: 150, paceLow: 228, paceHigh: 234, method: .intervals),
+        ], rationale: "")
+        let rows = TrainerText.stepRows(workout)
+
+        #expect(rows[1].title == "Strides 4 × 100 m")
+        #expect(rows[1].detail == "3:39–3:45/km")
+        #expect(rows[1].subtitle == "volta andando até o início")
+        #expect(rows[1].zone == 5)
+        #expect(rows.count == 3)
+    }
+
     @Test func formatsDistance() {
         #expect(TrainerText.distance(2_000) == "2 km")
         #expect(TrainerText.distance(400) == "400 m")

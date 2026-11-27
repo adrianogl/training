@@ -20,7 +20,7 @@ extension TrainerEngine {
             let count = Double(max(step.repeats, 0))
             if let rest = step.restSeconds { parts.append(.fixed(seconds: rest * count)) }
             guard step.meters > 0 else { continue }
-            let pace = paceBand(step) ?? (step.kind == .recovery ? easy : nil)
+            let pace = paceBand(step) ?? (step.kind == .recovery ? (step.isStrides ? stridesWalkBand : easy) : nil)
             parts.append(.distance(meters: step.meters * count, pace: pace))
             covered += step.meters * count
         }
@@ -31,6 +31,8 @@ extension TrainerEngine {
         }
         return RunTimeEstimate.total(parts, fallback: fallback)
     }
+
+    static let stridesWalkBand = PaceBand(fastest: C.stridesWalkPaceLow, slowest: C.stridesWalkPaceHigh)
 
     static func easyPaceBand(_ paces: TrainerPaces) -> PaceBand {
         let range = band(paces.easy, C.easyBand)

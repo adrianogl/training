@@ -187,7 +187,7 @@ import WorkoutAnalysis
         let easyLimit = TrainerEngine.easyLimit(paces: plan.paces)
         for week in plan.weeks {
             for item in days(plan, week) {
-                let work = item.steps.filter { $0.kind == .work && $0.method != .repetition }
+                let work = item.steps.filter(\.isMainWork)
                 let meters = work.reduce(0) { $0 + Double($1.repeats) * $1.meters }
                 #expect(!item.steps.contains { $0.kind == .cooldown })
                 #expect(abs(item.totalMeters - item.steps.reduce(0) { $0 + Double($1.repeats) * $1.meters }) < 1)

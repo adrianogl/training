@@ -89,7 +89,7 @@ extension TrainerEngine {
         var ends: [Double] = []
         for step in flat {
             distance += step.meters
-            if step.kind == .work && step.method != .repetition { ends.append(distance) }
+            if step.isMainWork { ends.append(distance) }
         }
         guard let best = turnGap(ends: ends, total: distance) else {
             result.steps = groupedSteps(flat)
@@ -98,7 +98,7 @@ extension TrainerEngine {
         }
         var seen = 0
         if let index = flat.firstIndex(where: { step in
-            guard step.kind == .work else { return false }
+            guard step.isMainWork else { return false }
             seen += 1
             return seen == best.rep
         }) { flat[index].turnsAfter = true }
@@ -112,7 +112,7 @@ extension TrainerEngine {
     }
 
     static func repEnds(_ session: TrainerQualitySession) -> [Double] {
-        var distance = C.warmupMeters
+        var distance = C.warmupMeters + (session.closing ? stridesMeters : 0)
         var ends: [Double] = []
         let blocks = session.variant == .hills ? Array(session.blocks.prefix(1)) : session.blocks
         for block in blocks {
@@ -130,7 +130,7 @@ extension TrainerEngine {
         var flat = expandedSteps(steps)
         var seen = 0
         guard let index = flat.firstIndex(where: { step in
-            guard step.kind == .work else { return false }
+            guard step.isMainWork else { return false }
             seen += 1
             return seen == rep
         }) else { return steps }
@@ -184,10 +184,11 @@ extension TrainerEngine {
             }
             let step = single(steps[index])
             let next = index + 1 < steps.count ? steps[index + 1] : nil
-            if steps[index].repeats > 1, let next, next.kind == .recovery, next.repeats == steps[index].repeats - 1 {
+            if steps[index].repeats > 1, let next, next.kind == .recovery,
+               next.repeats == steps[index].repeats - 1 || next.isStrides && next.repeats == steps[index].repeats {
                 for repeatIndex in 0..<steps[index].repeats {
                     flat.append(step)
-                    if repeatIndex < steps[index].repeats - 1 { flat.append(single(next)) }
+                    if repeatIndex < next.repeats { flat.append(single(next)) }
                 }
                 index += 2
             } else {
@@ -227,6 +228,10 @@ extension TrainerEngine {
             work.repeats = count
             work.turnsAfter = flat[cursor - 1].turnsAfter
             rest.repeats = count - 1
+            if work.isStrides, cursor < flat.count, flat[cursor] == recovery {
+                rest.repeats = count
+                cursor += 1
+            }
             result += [work, rest]
             index = cursor
         }

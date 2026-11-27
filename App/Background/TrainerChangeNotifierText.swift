@@ -35,7 +35,7 @@ enum TrainerChangeNotifierText {
 
     private static func detail(_ workout: TrainerWorkout) -> String? {
         guard workout.kind != .off else { return nil }
-        let main = workout.steps.filter { $0.kind == .work && $0.method != .repetition }
+        let main = workout.steps.filter(\.isMainWork)
         guard workout.kind == .threshold || workout.kind == .vo2max, !main.isEmpty else {
             let line = TrainerText.dayLine(workout).detail
             return line.isEmpty ? nil : line
@@ -59,7 +59,7 @@ enum TrainerChangeNotifierText {
         if let rest = steps.compactMap(\.restSeconds).first(where: { $0 > 0 }) {
             return " com descanso parado de \(TrainerText.restClock(rest))"
         }
-        guard let step = steps.first(where: { $0.kind == .recovery && $0.meters > 0 }) else { return "" }
+        guard let step = steps.first(where: { $0.kind == .recovery && $0.meters > 0 && !$0.isStrides }) else { return "" }
         return " com recuperação de \(TrainerText.distance(step.meters))"
     }
 }
