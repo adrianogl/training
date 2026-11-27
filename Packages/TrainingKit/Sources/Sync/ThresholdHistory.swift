@@ -59,8 +59,9 @@ func assignThresholdZones(to record: ActivityRecord, samples: [FITSample], thres
 }
 
 @discardableResult
-func refreshThresholdZoneSeconds(in context: ModelContext, limit: Int? = nil) throws -> Int {
+public func refreshThresholdZoneSeconds(in context: ModelContext, limit: Int? = nil, changed activityIds: Set<Int64> = []) throws -> Int {
     try invalidateOutdatedThresholdZones(in: context)
+    try refreshThresholdEstimates(in: context, changed: activityIds, limit: limit)
     let timeline = try ThresholdTimeline(in: context)
     let descriptor = FetchDescriptor<ActivityRecord>(
         predicate: #Predicate { $0.fitProcessed },
@@ -87,6 +88,7 @@ func invalidateOutdatedThresholdZones(in context: ModelContext) throws {
     guard (stored?.heartRate ?? 0) < SyncConstants.thresholdZonesVersion else { return }
     let runs = try context.fetch(FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.fitProcessed && $0.thresholdUsed != nil }))
     for record in runs { record.thresholdUsed = nil }
+    try deleteThresholdEstimates(in: context)
     if let stored {
         stored.heartRate = SyncConstants.thresholdZonesVersion
     } else {

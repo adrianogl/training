@@ -14,9 +14,9 @@ private func zonesDTO(threshold: Int?) -> HRZonesDTO {
 }
 
 private func history(in container: ModelContainer) throws -> [ThresholdHistoryRecord] {
-    let marker = SyncConstants.thresholdZonesVersionSport
+    let sport = SyncConstants.fitThresholdSport
     return try ModelContext(container).fetch(FetchDescriptor<ThresholdHistoryRecord>(
-        predicate: #Predicate { $0.sport != marker }, sortBy: [SortDescriptor(\.day)]
+        predicate: #Predicate { $0.sport == sport }, sortBy: [SortDescriptor(\.day)]
     ))
 }
 

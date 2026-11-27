@@ -203,7 +203,9 @@ public actor SyncEngine: ModelActor {
         let recomputesAll = isFirstLoad || state.readinessVersion < C.readinessVersion
         try updateReadiness(days: recomputesAll ? try storedDays() : touchedDays.union(try loadAffectedDays(upsertedActivities)))
         state.readinessVersion = C.readinessVersion
-        try refreshThresholdZoneSeconds(in: modelContext, limit: mode == .background ? C.backgroundThresholdRefreshLimit : nil)
+        try refreshThresholdZoneSeconds(
+            in: modelContext, limit: mode == .background ? C.backgroundThresholdRefreshLimit : nil, changed: fit.activityIds
+        )
         timer.lap("derivados")
         progress(C.progressAfterDerived)
 

@@ -86,9 +86,25 @@ Com "Corrida do treinador" ligado e relógio Garmin conectado, o relógio recebe
 
 Arquivos: `Insights/DayAdjust.swift`, `Insights/TrainerDayAdjust.swift`, `App/Today/DayAdjustText.swift`, `App/Today/TodayConstants.swift`, `App/Trainer/DayAdjust/`, `App/Workouts/Planned/PlannedHourHeat.swift`, `App/Workouts/Planned/PlannedHoursCard.swift`. Testes: `InsightsTests/DayAdjustTests.swift`, `InsightsTests/TrainerDayAdjustTests.swift`, `AppTests/DayAdjustTextTests.swift`, `AppTests/DayAdjustWatchTests.swift`, `AppTests/PlanAdjustTests.swift`.
 
+## Limiar e FC máxima
+
+O app calcula o limiar de FC e a FC máxima só pelas amostras das corridas (FC, distância e tempo do `.FIT`), sem estimativa do Garmin.
+
+| Regra | Valor | Onde |
+| --- | --- | --- |
+| Treino que entra | limiar com blocos medidos: tipo `tempo` e pace de trabalho (`WorkPace`), a mesma detecção do pace de limiar do treinador | `estimateThresholdHeartRate` |
+| Fracionado | blocos com descanso de até 60 s entre eles (5 s de tolerância): FC média dos 3 últimos blocos, sem o primeiro minuto de cada um | `fractionedMaximumRestSeconds`, `fractionedLastBlocks`, `blockWarmupSeconds` |
+| Contínuo | bloco mais longo com 15 min ou mais: FC média da segunda metade | `continuousMinimumSeconds` |
+| Descarte | calor forte no treino (fração de calor de 0,045 ou mais, já com a adaptação, a mesma do "1 km a menos" do longão), pausa de mais de 30 s dentro do bloco contínuo (abaixo de 0,5 m/s), bloco contínuo com menos de 15 min, descanso de mais de 60 s no fracionado | `maximumHeatFactor`, `continuousMaximumPauseSeconds` |
+| Limiar vigente | mediana das estimativas dos 4 últimos treinos válidos até a data. Antes da primeira estimativa, vale a primeira | `thresholdEstimateRuns`, `ThresholdTimeline` |
+| Sem estimativa | limiar gravado no `.FIT` da corrida mais recente até a data; sem `.FIT`, o do perfil de zonas do Garmin. Só até existir a primeira estimativa do app | `fitThresholdSport`, `HeartRateZonesRecord` |
+| FC máxima | maior FC sustentada por 5 s ou mais (amostras com no máximo 10 s de intervalo) nas corridas dos últimos 12 meses | `sustainedSeconds`, `maxHeartRateWindowDays` |
+
+Cada dia com corrida grava a estimativa (`ThresholdHistoryRecord` com sport `estimate`) e a maior FC sustentada do dia (sport `max`, 0 quando não há). Assim cada corrida passada é analisada com o limiar vigente na data dela. O cálculo roda no fim do sync, antes do tempo em zona (`refreshThresholdEstimates`), e de novo quando o clima de uma corrida chega (`ActivityWeatherStore.refresh`, também no sync leve do fim do treino), para o descarte por calor valer em corrida nova. Só refaz o dia que tem corrida nova ou clima novo; dia sem corrida perde os registros. Subir `SyncConstants.thresholdZonesVersion` apaga as estimativas e refaz tudo. A FC máxima é o topo da Z5 na análise, no detalhe do treino, no envio ao relógio e na carga das corridas do Strava. Arquivos: `WorkoutAnalysis/ThresholdEstimate.swift`, `Sync/ThresholdEstimates.swift`, `Sync/ThresholdTimeline.swift`. Testes: `WorkoutAnalysisTests/ThresholdEstimateTests.swift`, `SyncTests/ThresholdEstimatesTests.swift`.
+
 ## Zonas de FC no Garmin
 
-As zonas de corrida do app partem do limiar do relógio: Z2 a partir de 85%, Z3 90%, Z4 95% e Z5 102%. O tempo em zona da análise usa as mesmas faixas. O aviso de zonas do relógio diferentes no detalhe do treino compara o início da Z5 do relógio com os 102% do limiar. Depois de cada sincronização, se o limiar mudou ou se as zonas de corrida do Garmin estão diferentes, o app grava essas faixas no Garmin, com o interruptor "Manter iguais às do app" em Ajustes › Garmin. Só mexe no perfil de corrida, e o início da Z1 continua o do Garmin. Depois de gravar, o app lê de volta e avisa se não bater. Arquivos: `GarminAPI/HeartRateZoneProfiles.swift`, `App/Garmin/GarminZonesModel.swift`. Testes: `GarminAPITests/HeartRateZoneProfilesTests.swift`.
+As zonas de corrida do app partem do limiar vigente (ver "Limiar e FC máxima"): Z2 a partir de 85%, Z3 90%, Z4 95% e Z5 102%. O tempo em zona da análise usa as mesmas faixas. O aviso de zonas do relógio diferentes no detalhe do treino compara o início da Z5 do relógio com os 102% do limiar. Depois de cada sincronização, se o limiar ou a FC máxima mudaram, ou se as zonas de corrida do Garmin estão diferentes, o app grava essas faixas, o limiar e a FC máxima no Garmin, com o interruptor "Manter iguais às do app" em Ajustes › Garmin. Sem mudança, não grava. O limiar gravado volta nos `.FIT` seguintes, mas o `.FIT` só vale antes da primeira estimativa do app, então a gravação não realimenta o cálculo. Só mexe no perfil de corrida, e o início da Z1 continua o do Garmin. A FC máxima só vai quando fica no início da Z5 (102% do limiar) ou acima; abaixo disso, o Garmin fica com a que já tinha. Depois de gravar, o app lê de volta e avisa se não bater. Arquivos: `GarminAPI/HeartRateZoneProfiles.swift`, `App/Garmin/GarminZonesModel.swift`. Testes: `GarminAPITests/HeartRateZoneProfilesTests.swift`.
 
 ## Divisão do treino em blocos e voltas
 
@@ -384,7 +400,7 @@ Corrida gravada só no Strava entra no app depois de aprovada e vale como uma co
 | Id | id do Strava com o bit `0x2000_0000_0000_0000` | `StravaActivityIdConstants` |
 | Tipo | sem GPS ou VirtualRun vira esteira (sem clima); TrailRun vira trilha | `StravaRunMappingConstants` |
 | Amostras | a cada 5 s, pelo último ponto das séries do Strava; cadência × 2 (passos por minuto) | `sampleStep`, `stepsPerStride` |
-| Carga | TRIMP pela FC média e tempo em movimento, com FC máxima e de repouso das zonas do Garmin (190 e 60 sem zonas); sem FC, sem carga e sem nota | `fallbackMaxHeartRate`, `fallbackRestingHeartRate` |
+| Carga | TRIMP pela FC média e tempo em movimento, com a FC máxima estimada pelo app (ver "Limiar e FC máxima") e a FC de repouso das zonas do Garmin (190 e 60 sem elas); sem FC, sem carga e sem nota | `fallbackMaxHeartRate`, `fallbackRestingHeartRate` |
 | Garmin prevalece | se a mesma corrida chegar pelo Garmin (±15 min, ±10%), a do Strava é apagada no sync | `externalMatchWindow`, `externalDistanceTolerance` |
 
 Depois do import, prontidão dos dias seguintes, nota, clima e texto são recalculados como depois de um sync. A lista de Treinos marca a corrida com o selo "Strava".

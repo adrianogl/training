@@ -79,7 +79,8 @@ enum ScoreStore {
         let runs = records.filter { ActivityTypeKey.isRun($0.typeKey) }
         let runStarts = runs.map(\.start)
         let named = Dictionary(grouping: records.filter { $0.workoutName != nil }) { $0.workoutName.map(WorkoutTitle.comparisonKey) ?? "" }
-        let watchZones = (try? runningZonesRecord(in: context)).flatMap(WorkoutAnalysisContext.zones(from:))
+        let maxHeartRate = try? estimatedMaxHeartRate(on: Day.today(), in: context)
+        let watchZones = (try? runningZonesRecord(in: context)).flatMap { WorkoutAnalysisContext.zones(from: $0, maxHeartRate: maxHeartRate) }
         let thresholdByDay = (try? thresholdHeartRates(on: runs.map(WorkoutAnalysisContext.day), in: context)) ?? [:]
         let hotSessions = ActivityRecord.hotSessionCounts(runs)
         let races = WorkoutAnalysisContext.races(in: context, paceProStore: paceProStore)
