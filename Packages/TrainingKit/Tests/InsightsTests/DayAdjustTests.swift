@@ -82,6 +82,18 @@ import TrainingCore
         #expect(expected < full)
     }
 
+    @Test func lowStepDropsATiroAndKeepsTheStrides() throws {
+        var plan = intervals()
+        plan.steps.insert(PlannedStep(kind: .other, repeats: 4, children: [
+            PlannedStep(kind: .active, meters: 100, target: .pace(fastest: 210, slowest: 216)),
+            PlannedStep(kind: .recovery, meters: 100),
+        ]), at: 1)
+        let result = try #require(adjusted(DayAdjust.adjust(input(plan, shape: .intervals, score: 55))))
+
+        #expect(result.steps[1].repeats == 4 && result.steps[1].isStrides)
+        #expect(result.steps[2].repeats == 4)
+    }
+
     @Test func lowStepDropsOneRepeatInIntervals() throws {
         let result = try #require(adjusted(DayAdjust.adjust(input(intervals(), shape: .intervals, score: 55))))
         #expect(result.steps[1].repeats == 4)

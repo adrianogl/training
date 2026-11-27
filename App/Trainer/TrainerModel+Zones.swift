@@ -1,4 +1,3 @@
-import FITReader
 import Foundation
 import Insights
 import Storage
@@ -20,16 +19,21 @@ extension TrainerModel {
         TrainerZones.bands(thresholdHeartRate: thresholdHeartRate, paces: plan?.paces)
     }
 
-    func realZonePaces() async -> [Int: Double] {
-        guard let threshold = thresholdHeartRate else { return [:] }
+    var zoneTrendKey: TrainerZoneTrendKey {
+        TrainerZoneTrendKey(
+            day: currentDay, runCount: history.runs.count, lastRunId: history.runs.map(\.activityId).max(), target: plan?.target,
+            overrides: plan?.paceOverrides ?? [:]
+        )
+    }
+
+    func zoneTrend() async -> TrainerZoneTrend {
+        let key = zoneTrendKey
+        if let cached = zoneTrendCache, cached.key == key { return cached.value }
         let container = container
-        let since = Calendar.current.date(byAdding: .day, value: -TrainerZoneGuideConstants.realPaceDays, to: .now) ?? .distantPast
-        return await Task.detached(priority: .utility) {
-            let descriptor = FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.start >= since })
-            let runs = ((try? ModelContext(container).fetch(descriptor)) ?? [])
-                .filter { ActivityTypeKey.isRun($0.typeKey) }
-                .compactMap { $0.samplesData.flatMap(FITSampleCoding.decode) }
-            return TrainerZones.realPaces(runs, thresholdHeartRate: threshold)
+        let value = await Task.detached(priority: .utility) {
+            TrainerZoneTrendLoader.load(container: container, today: key.day, target: key.target, overrides: key.overrides)
         }.value
+        zoneTrendCache = (key, value)
+        return value
     }
 }

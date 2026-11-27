@@ -25,5 +25,6 @@ extension TrainerEngineConstants {
     static let strongKinds: Set<TrainerDayKind> = [.threshold, .vo2max, .long]
     static let qualityKinds: Set<TrainerDayKind> = [.threshold, .vo2max]
     static let legGroups: Set<TrainerStrengthGroup> = [.lower, .fullBody]
+    static let weekendStartIndex = 5
     static let previewWeekStart = Day(year: 2000, month: 1, day: 3)
 }

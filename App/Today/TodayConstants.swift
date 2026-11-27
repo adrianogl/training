@@ -199,6 +199,9 @@ enum TodayConstants {
         .warmup: "Aquecimento", .active: "Bloco", .recovery: "Recuperação", .cooldown: "Desaquecimento", .rest: "Descanso", .other: "Passo",
     ]
     static let planRepeatFormat = "%d×"
+    static let stridesTitleFormat = "Strides %d × %@"
+    static let stridesWalkBack = "volta andando até o início"
+    static let stridesNote = "Os strides preparam o corpo para o primeiro tiro. Corra solto, sem forçar, e volte andando até o início."
     static let planZoneFormat = "Z%d"
     static let planHeartRateFormat = "%d–%d bpm"
     static let planMinutesFormat = "%d min"

@@ -104,6 +104,10 @@ enum TrainerEngineConstants {
     static let closingMeters = 200.0
     static let closingJogMeters = 200.0
     static let repetitionBelowVo2 = 6.0
+    static let vo2StridesRepeats = 4
+    static let vo2StridesMeters = 100.0
+    static let stridesWalkPaceLow = 600.0
+    static let stridesWalkPaceHigh = 720.0
     static let raceMinimumRaceMeters = 21_000.0
     static let raceBlockMeters = 4_000.0
     static let raceStartMeters = 8_000.0

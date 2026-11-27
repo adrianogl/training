@@ -81,6 +81,9 @@ struct TrainerDayView: View {
             VStack(alignment: .leading, spacing: 10) {
                 TrainerShapeChart(bars: TrainerText.shapeBars(workout.steps))
                 TrainerStepList(rows: TrainerText.stepRows(workout), bands: app.trainer.planZones.bands)
+                if workout.steps.contains(where: \.isStrides) {
+                    Text(TodayConstants.stridesNote).font(.caption).foregroundStyle(BrandColors.dim).fixedSize(horizontal: false, vertical: true)
+                }
             }
             .brandCard()
         }

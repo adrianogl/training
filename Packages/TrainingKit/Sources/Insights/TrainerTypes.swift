@@ -40,6 +40,7 @@ public enum TrainerMethod: String, Codable, Sendable, CaseIterable {
     case repetition
     case racePace
     case goalPace
+    case strides
 
     public var title: String { TrainerEngineText.methodTitle(self) }
     public var source: String { TrainerEngineText.methodSource(self) }
@@ -95,6 +96,10 @@ public struct TrainerStep: Codable, Sendable, Equatable {
         self.turnsAfter = turnsAfter
         self.zone = zone
     }
+
+    public var isMainWork: Bool { kind == .work && method != .repetition && method != .strides }
+
+    public var isStrides: Bool { method == .strides }
 }
 
 public struct TrainerWorkout: Codable, Sendable, Equatable, Identifiable {

@@ -13,7 +13,7 @@ public enum TrainerDayAdjust {
         ) else { return .rest }
         let total: Int
         let reasons: [DayAdjustReason]
-        switch DayAdjust.decide(factors, meanPaces: activeRanges(workout).map(mean)) {
+        switch DayAdjust.decide(factors, meanPaces: mainRanges(workout).map(mean)) {
         case let .swap(list): return .swap(reasons: list)
         case let .apply(seconds, list):
             total = seconds
@@ -49,6 +49,11 @@ public enum TrainerDayAdjust {
     public static func activeRanges(_ workout: TrainerWorkout) -> [TrainerPaceRange] {
         guard !workout.steps.isEmpty else { return workoutRange(workout).map { [$0] } ?? [] }
         return workout.steps.filter(isActive).compactMap { range($0, in: workout) }
+    }
+
+    public static func mainRanges(_ workout: TrainerWorkout) -> [TrainerPaceRange] {
+        guard workout.steps.contains(where: \.isStrides) else { return activeRanges(workout) }
+        return workout.steps.filter { isActive($0) && !$0.isStrides }.compactMap { range($0, in: workout) }
     }
 
     public static func differs(_ lhs: TrainerDayAdjustResult, _ rhs: TrainerDayAdjustResult) -> Bool {
@@ -148,7 +153,7 @@ public enum TrainerDayAdjust {
 
     private static func droppingRepeat(_ steps: [TrainerStep]) -> [TrainerStep] {
         var result = steps
-        if let index = steps.firstIndex(where: { isActive($0) && $0.repeats > 1 }) {
+        if let index = steps.firstIndex(where: { $0.isMainWork && $0.repeats > 1 }) {
             let repeats = steps[index].repeats
             result[index].repeats = repeats - 1
             let next = index + 1
@@ -161,7 +166,7 @@ public enum TrainerDayAdjust {
             }
             return result
         }
-        let actives = steps.indices.filter { isActive(steps[$0]) }
+        let actives = steps.indices.filter { isActive(steps[$0]) && !steps[$0].isStrides && steps[$0].method != .repetition }
         guard actives.count > 1, let last = actives.last else { return steps }
         result.remove(at: last)
         if last > 0, result[last - 1].kind == .recovery { result.remove(at: last - 1) }

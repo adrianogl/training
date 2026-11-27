@@ -112,6 +112,10 @@ struct TrainerEditWorkoutView: View {
                         .buttonStyle(.plain)
                     }
                 }
+                if let swapWith, let plan = model.plan,
+                   let warning = TrainerEngine.swapWarning(plan: plan, day: workout.day, other: swapWith, candidates: days) {
+                    DSNotice(tone: .attention, title: warning.title, text: warning.text)
+                }
                 Text(TrainerText.swapHint).font(.caption2).foregroundStyle(BrandColors.dim)
             }
         }

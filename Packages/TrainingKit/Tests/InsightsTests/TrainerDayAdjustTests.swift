@@ -31,12 +31,55 @@ import TrainingCore
         ], paceLow: 240, paceHigh: 248, rationale: "")
     }
 
+    private func vo2WithStrides() -> TrainerWorkout {
+        let session = TrainerQualitySession(
+            kind: .vo2max, method: .intervals, blocks: [TrainerQualityBlock(repeats: 5, meters: 1_000)], closing: true
+        )
+        return TrainerEngine.qualityWorkout(
+            day: day, session: session, paces: TrainerPaces(easy: 300, long: 295, threshold: 245, vo2max: 228), lowered: false, rationale: ""
+        )
+    }
+
     private func long() -> TrainerWorkout {
         TrainerWorkout(day: day, kind: .long, title: "Longão 18 km", totalMeters: 18_000, steps: [
             TrainerStep(kind: .warmup, meters: 3_000, paceLow: 330, paceHigh: 345),
             TrainerStep(kind: .steady, meters: 12_000, paceLow: 320, paceHigh: 335),
             TrainerStep(kind: .steady, meters: 3_000, paceLow: 290, paceHigh: 300),
         ], paceLow: 320, paceHigh: 335, rationale: "")
+    }
+
+    @Test func lowReadinessDropsATiroAndKeepsTheStrides() throws {
+        let workout = vo2WithStrides()
+        let change = try #require(adjusted(TrainerDayAdjust.adjust(workout, entries: entries(score: 55))))
+        let strides = change.workout.steps.filter(\.isStrides)
+        let main = try #require(change.workout.steps.first { $0.isMainWork })
+
+        #expect(strides.map(\.repeats) == [4, 4])
+        #expect(main.repeats == 4)
+        #expect(change.workout.steps.filter { $0.method == .repetition }.map(\.repeats) == [3])
+        #expect(TrainerDayAdjust.mainRanges(workout).first?.low == workout.steps.first { $0.isMainWork }?.paceLow)
+    }
+
+    @Test func lowReadinessOnThePyramidDropsTheLastBlockAndKeepsTheClosing() throws {
+        let workout = TrainerWorkout(day: day, kind: .vo2max, title: "VO2 9,1 km", totalMeters: 9_100, steps: [
+            TrainerStep(kind: .warmup, meters: 3_000, paceLow: 300, paceHigh: 320),
+            TrainerStep(kind: .work, repeats: 4, meters: 100, paceLow: 216, paceHigh: 222, method: .strides),
+            TrainerStep(kind: .recovery, repeats: 4, meters: 100, method: .strides),
+            TrainerStep(kind: .work, meters: 1_500, paceLow: 225, paceHigh: 231, method: .intervals),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 240),
+            TrainerStep(kind: .work, meters: 1_000, paceLow: 225, paceHigh: 231, method: .intervals),
+            TrainerStep(kind: .recovery, meters: 0, restSeconds: 180),
+            TrainerStep(kind: .work, repeats: 3, meters: 200, paceLow: 216, paceHigh: 222, method: .repetition),
+            TrainerStep(kind: .recovery, repeats: 2, meters: 200, method: .repetition),
+        ], paceLow: 225, paceHigh: 231, rationale: "")
+        let change = try #require(adjusted(TrainerDayAdjust.adjust(workout, entries: entries(score: 55))))
+        let shape = change.workout.steps.map { "\($0.kind)-\($0.repeats)-\(Int($0.meters))" }
+
+        #expect(shape == [
+            "warmup-1-3000", "work-4-100", "recovery-4-100", "work-1-1500", "recovery-1-0", "work-3-200", "recovery-2-200",
+        ])
+        #expect(change.workout.steps[4].restSeconds == 180)
+        #expect(change.workout.totalMeters == 8_100)
     }
 
     private func adjusted(_ result: TrainerDayAdjustResult) -> TrainerDayAdjustment? {

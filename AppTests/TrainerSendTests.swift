@@ -77,6 +77,20 @@ import TrainingCore
         #expect(!TrainerSendBuilder.runSteps(workout).description.contains("recovery(meters: 0.0)"))
     }
 
+    @Test func stridesGoAsOneSeriesWithTheWalkBackWithoutHeartRate() {
+        let workout = TrainerWorkout(day: day, kind: .vo2max, title: "VO2 11 km", totalMeters: 11_000, steps: [
+            TrainerStep(kind: .warmup, meters: 3_000),
+            TrainerStep(kind: .work, repeats: 4, meters: 100, paceLow: 212, paceHigh: 218, method: .strides),
+            TrainerStep(kind: .recovery, repeats: 4, meters: 100, method: .strides),
+            TrainerStep(kind: .work, repeats: 5, meters: 1_000, restSeconds: 150, paceLow: 224, paceHigh: 228),
+        ], rationale: "")
+
+        let steps = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172, maxHeartRate: 190)
+
+        #expect(steps[1] == .repeated(times: 4, steps: [.interval(meters: 100, fastest: 212, slowest: 218), .recovery(meters: 100)]))
+        #expect(steps[2] == .repeated(times: 5, steps: [.interval(meters: 1_000, fastest: 224, slowest: 228, heartRate: 175...190), .rest(seconds: 150)]))
+    }
+
     @Test func garminNameIsTheWorkoutTitleWithoutPrefix() throws {
         let item = try #require(TrainerSendBuilder.runItem(threshold()))
         let body = try #require(try JSONSerialization.jsonObject(with: item.payload) as? [String: Any])

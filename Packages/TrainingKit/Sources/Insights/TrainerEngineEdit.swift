@@ -152,7 +152,7 @@ extension TrainerEngine {
     public static let editPaceBand = C.qualityBand
 
     private static func mainStep(of workout: TrainerWorkout) -> TrainerStep? {
-        unturnedSteps(workout.steps).first { $0.kind == .work && $0.method != .repetition }
+        unturnedSteps(workout.steps).first(where: \.isMainWork)
     }
 
     private static func center(low: Double?, high: Double?) -> Double? {
@@ -195,7 +195,7 @@ extension TrainerEngine {
     }
 
     private static func qualityEdit(_ draft: TrainerWorkoutDraft, _ workout: TrainerWorkout) -> TrainerWorkout {
-        guard let first = workout.steps.firstIndex(where: { $0.kind == .work && $0.method != .repetition }),
+        guard let first = workout.steps.firstIndex(where: \.isMainWork),
               let main = mainStep(of: workout) else { return workout }
         let band = band(draft.pace, C.qualityBand)
         let closing = workout.steps.firstIndex { $0.method == .repetition }

@@ -33,6 +33,7 @@ enum TrainerEngineText {
         case .repetition: "Repetições em pace R"
         case .racePace: "Ritmo específico"
         case .goalPace: "Extensão do ritmo específico"
+        case .strides: "Strides"
         }
     }
 
@@ -330,11 +331,13 @@ enum TrainerEngineText {
         case .tempo:
             return "Tempo run de \(label) (Daniels), \(rest) parado entre os blocos: 60 s por km de bloco, no máximo 4 min. Volume de \(volume)."
         case .intervals:
-            return "Intervalado em pace I (Daniels): \(label), descanso de \(rest) parado, 0,7 da duração do tiro. Fecha com 3 × 200 m em pace R (Daniels), com 200 m de trote entre eles."
+            return "Intervalado em pace I (Daniels): \(label), descanso de \(rest) parado, 0,7 da duração do tiro. Antes do primeiro tiro, 4 × 100 m de strides em pace R com volta andando. Fecha com 3 × 200 m em pace R (Daniels), com 200 m de trote entre eles."
         case .racePace:
             return "Ritmo específico (Canova, Pfitzinger): \(label) no pace da prova, descanso de \(rest) parado. Entra no lugar do limiar uma semana sim, outra não, e cresce até cerca de 70% da prova em contínuo."
         case .repetition:
             return "Repetições em pace R (Daniels)."
+        case .strides:
+            return "Strides em pace R."
         case .goalPace:
             return "Extensão do ritmo específico (Canova): \(label) no pace-alvo."
         }

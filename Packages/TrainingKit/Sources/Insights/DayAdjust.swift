@@ -95,6 +95,7 @@ public enum DayAdjust {
 
     private static func activePaces(in steps: [PlannedStep]) -> [Double] {
         steps.flatMap { step -> [Double] in
+            if step.isStrides { return [] }
             if !step.children.isEmpty { return activePaces(in: step.children) }
             guard step.kind == .active, case let .pace(fastest, slowest)? = step.target else { return [] }
             return [(fastest + slowest) / 2]
@@ -135,7 +136,7 @@ public enum DayAdjust {
     private static func droppingNestedRepeat(_ steps: [PlannedStep]) -> [PlannedStep]? {
         for index in steps.indices {
             let step = steps[index]
-            guard !step.children.isEmpty, containsActive(step) else { continue }
+            guard !step.children.isEmpty, !step.isStrides, containsActive(step) else { continue }
             var result = steps
             if step.repeats > 1 {
                 result[index].repeats -= 1

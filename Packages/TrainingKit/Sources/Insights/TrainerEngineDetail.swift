@@ -153,7 +153,7 @@ extension TrainerEngine {
 
     static func qualityMeters(_ session: TrainerQualitySession) -> Double {
         let work = session.blocks.reduce(0.0) { $0 + Double($1.repeats) * $1.meters }
-        let closing = session.closing ? Double(C.closingRepeats) * C.closingMeters + Double(C.closingRepeats - 1) * C.closingJogMeters : 0
+        let closing = session.closing ? Double(C.closingRepeats) * C.closingMeters + Double(C.closingRepeats - 1) * C.closingJogMeters + stridesMeters : 0
         let jog = session.variant == .hills ? session.blocks.reduce(0.0) { $0 + Double($1.repeats - 1) * $1.meters } : 0
         return C.warmupMeters + work + closing + jog + session.tailMeters + session.warmupExtraMeters
     }
@@ -294,6 +294,7 @@ extension TrainerEngine {
         }
         let easy = band(paces.easy, C.easyBand)
         var steps = [TrainerStep(kind: .warmup, meters: C.warmupMeters, paceLow: easy.low, paceHigh: easy.high)]
+        if session.closing { steps += stridesSteps(paces: paces) }
         if session.variant == .hills, let block = session.blocks.first {
             steps.append(TrainerStep(kind: .work, repeats: block.repeats, meters: block.meters, method: session.method))
             steps.append(TrainerStep(kind: .recovery, repeats: block.repeats - 1, meters: block.meters))
@@ -322,7 +323,7 @@ extension TrainerEngine {
             }
         }
         if session.closing {
-            let repetition = band(paces.vo2max - C.repetitionBelowVo2, C.qualityBand)
+            let repetition = repetitionBand(paces)
             steps.append(TrainerStep(
                 kind: .work, repeats: C.closingRepeats, meters: C.closingMeters, paceLow: repetition.low, paceHigh: repetition.high,
                 method: .repetition
@@ -332,12 +333,29 @@ extension TrainerEngine {
         return steps
     }
 
+    static let stridesMeters = Double(C.vo2StridesRepeats) * C.vo2StridesMeters * 2
+
+    static func repetitionBand(_ paces: TrainerPaces) -> (low: Double, high: Double) {
+        band(paces.vo2max - C.repetitionBelowVo2, C.qualityBand)
+    }
+
+    static func stridesSteps(paces: TrainerPaces) -> [TrainerStep] {
+        let repetition = repetitionBand(paces)
+        return [
+            TrainerStep(
+                kind: .work, repeats: C.vo2StridesRepeats, meters: C.vo2StridesMeters, paceLow: repetition.low, paceHigh: repetition.high,
+                method: .strides
+            ),
+            TrainerStep(kind: .recovery, repeats: C.vo2StridesRepeats, meters: C.vo2StridesMeters, method: .strides),
+        ]
+    }
+
     static func qualityWorkout(
         day: Day, session: TrainerQualitySession, paces: TrainerPaces, lowered: Bool, note: String? = nil, rationale: String,
         targetPace: Double? = nil, raceMeters: Double? = nil
     ) -> TrainerWorkout {
         let steps = qualitySteps(session: session, paces: paces, lowered: lowered, targetPace: targetPace, raceMeters: raceMeters)
-        let work = steps.filter { $0.kind == .work && $0.method != .repetition }
+        let work = steps.filter(\.isMainWork)
         return TrainerWorkout(
             day: day, kind: session.kind, title: T.title(kind: session.kind, meters: qualityMeters(session), session: session),
             totalMeters: qualityMeters(session), steps: steps,

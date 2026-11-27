@@ -66,6 +66,21 @@ import WorkoutAnalysis
         LongRunCheck(activityId: 1, day: Day(iso: iso)!, distanceKm: 18, longestContinuousKm: nil, pauses: pauses, paceSecondsPerKm: 290, met: nil)
     }
 
+    @Test func stridesShowAsOneStepAndDoNotBecomeTheReps() {
+        var plan = Self.intervals
+        plan.steps.insert(PlannedStep(kind: .other, repeats: 4, children: [
+            PlannedStep(kind: .active, meters: 100, target: .pace(fastest: 200, slowest: 206)),
+            PlannedStep(kind: .recovery, meters: 100),
+        ]), at: 1)
+        let briefing = PlannedBriefingBuilder.briefing(Self.input(plan))
+
+        #expect(briefing.phases[1].when == "Strides 4 × 100 m")
+        #expect(briefing.phases[1].title == "volta andando até o início · 3:20–3:26/km")
+        #expect(briefing.phases[1].detail == TodayConstants.stridesNote)
+        #expect(briefing.reps == PlannedBriefingBuilder.briefing(Self.input(Self.intervals)).reps)
+        #expect(PlannedBriefingBuilder.paceTarget(plan)?.fast == 211)
+    }
+
     @Test func longGoalPointsToLastPauseOfLatestRun() {
         let goal = Self.longGoal(runs: [
             Self.check("2026-11-01", pauses: [RunPause(startMeters: 4_000, seconds: 20)]),

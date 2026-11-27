@@ -32,7 +32,7 @@ extension TrainerEngine {
     }
 
     private static func averagePace(_ steps: [TrainerStep]) -> Double? {
-        let main = steps.filter { $0.kind == .work && $0.method != .repetition }
+        let main = steps.filter(\.isMainWork)
         let source = main.isEmpty ? steps.filter { $0.kind == .steady } : main
         var weighted = 0.0
         var meters = 0.0

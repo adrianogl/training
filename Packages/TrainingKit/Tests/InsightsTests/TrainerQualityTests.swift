@@ -178,12 +178,43 @@ import WorkoutAnalysis
         let jog = try #require(workout.steps.last)
 
         #expect(workout.method == .intervals)
-        #expect(workout.steps.filter { $0.kind == .work }.first?.method == .intervals)
+        #expect(workout.steps.first(where: \.isMainWork)?.method == .intervals)
         #expect(closing.method == .repetition && closing.repeats == 3 && closing.meters == 200)
         #expect(closing.paceLow == 219 && closing.paceHigh == 225)
         #expect(jog.kind == .recovery && jog.meters == 200 && jog.repeats == 2 && jog.restSeconds == nil)
-        #expect(workout.totalMeters == 3_000 + 5_000 + 600 + 400)
+        #expect(workout.totalMeters == 3_000 + 800 + 5_000 + 600 + 400)
         #expect(abs(workout.totalMeters - workout.steps.reduce(0) { $0 + Double($1.repeats) * $1.meters }) < 1)
+    }
+
+    @Test func vo2StartsWithStridesAfterTheWarmup() {
+        let session = TrainerEngine.vo2Session(week: week(1), weeks: [week(1)], lowered: false)
+        let workout = TrainerEngine.qualityWorkout(day: monday, session: session, paces: paces, lowered: false, rationale: "x")
+
+        #expect(workout.steps[0].kind == .warmup)
+        #expect(workout.steps[1] == TrainerStep(kind: .work, repeats: 4, meters: 100, paceLow: 219, paceHigh: 225, method: .strides))
+        #expect(workout.steps[2] == TrainerStep(kind: .recovery, repeats: 4, meters: 100, method: .strides))
+        #expect(workout.steps[3].isMainWork)
+        #expect(workout.title == "VO2 9,8 km")
+        #expect(workout.paceLow == workout.steps[3].paceLow)
+    }
+
+    @Test func hillsAndGoalPaceSkipTheStrides() {
+        let hills = TrainerQualitySession(kind: .vo2max, method: .intervals, blocks: [TrainerQualityBlock(repeats: 8, meters: 200)], closing: false, variant: .hills)
+        let workout = TrainerEngine.qualityWorkout(day: monday, session: hills, paces: paces, lowered: false, rationale: "x")
+
+        #expect(!workout.steps.contains { $0.isStrides })
+    }
+
+    @Test func stridesWalkCountsAtWalkingPace() throws {
+        let session = TrainerEngine.vo2Session(week: week(1), weeks: [week(1)], lowered: false)
+        let workout = TrainerEngine.qualityWorkout(day: monday, session: session, paces: paces, lowered: false, rationale: "x")
+        var withoutWalk = workout
+        withoutWalk.steps.remove(at: 2)
+        withoutWalk.totalMeters -= 400
+        let full = try #require(TrainerEngine.timeEstimate(workout, fallback: nil))
+        let partial = try #require(TrainerEngine.timeEstimate(withoutWalk, fallback: nil))
+
+        #expect(full.fastest - partial.fastest >= 400 * 600 / 1_000 - 60)
     }
 
     @Test func pyramidVo2KeepsTheRestBetweenGroups() {

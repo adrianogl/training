@@ -71,7 +71,7 @@ enum PlannedBriefingBuilder {
     }
 
     static func paceTarget(_ plan: PlannedWorkout) -> (fast: Double, slow: Double)? {
-        for step in plan.steps.flatMap(\.flattened) where step.kind == .active || step.kind == .other {
+        for step in plan.steps.filter({ !$0.isStrides }).flatMap(\.flattened) where step.kind == .active || step.kind == .other {
             if case .pace(let fastest, let slowest) = step.target { return (fastest, slowest) }
         }
         return nil
@@ -106,7 +106,7 @@ enum PlannedBriefingBuilder {
                 text += String(format: C.summaryLongestFormat, km(kilometers))
             }
         case .intervals:
-            let group = plan.steps.first { $0.repeats > 1 && !$0.children.isEmpty }
+            let group = plan.steps.first { $0.repeats > 1 && !$0.children.isEmpty && !$0.isStrides }
             let size = group?.children.first { $0.kind == .active || $0.kind == .other }.flatMap(sizeText) ?? ""
             text = String(format: C.summaryIntervalsFormat, group?.repeats ?? 0, size, target.map { clock(mid($0)) } ?? "—")
         case .tempo:
@@ -171,6 +171,12 @@ enum PlannedBriefingBuilder {
         let single = plan.steps.count == 1 && plan.steps[0].children.isEmpty
         guard kind != .intervals, single, let target, kilometers >= 5 else {
             return plan.steps.map { step in
+                if step.isStrides {
+                    return BriefingPhase(
+                        when: PlanText.stridesTitle(step), length: nil, title: PlanText.stridesDetail(step), detail: TodayConstants.stridesNote,
+                        zone: step.children.first.flatMap { zones?.zone($0) }
+                    )
+                }
                 let name = step.children.isEmpty
                     ? TodayConstants.planStepNames[step.kind] ?? ""
                     : String(format: TodayConstants.planRepeatFormat, step.repeats)
@@ -204,7 +210,7 @@ enum PlannedBriefingBuilder {
     }
 
     private static func reps(_ plan: PlannedWorkout, target: (fast: Double, slow: Double)?, maxHeart: Double?) -> [BriefingRep] {
-        guard let target, let group = plan.steps.first(where: { $0.repeats > 1 && !$0.children.isEmpty }) else { return [] }
+        guard let target, let group = plan.steps.first(where: { $0.repeats > 1 && !$0.children.isEmpty && !$0.isStrides }) else { return [] }
         let count = group.repeats
         let middle = mid(target)
         let early = middle + (target.slow - middle) / 2
@@ -282,7 +288,7 @@ enum PlannedBriefingBuilder {
             let easy = (target?.slow ?? 300) + C.reducedEasyPaceExtra
             reduced = String(format: C.planBLongFormat, km((kilometers * C.reducedLongShare).rounded()), clock(easy))
         case .intervals:
-            let count = plan.steps.first { $0.repeats > 1 }?.repeats ?? 0
+            let count = plan.steps.first { $0.repeats > 1 && !$0.isStrides }?.repeats ?? 0
             reduced = String(format: C.planBIntervalsFormat, max(1, Int((Double(count) * C.reducedRepsShare).rounded())), count)
         case .tempo, .easy:
             reduced = C.planBDefault
