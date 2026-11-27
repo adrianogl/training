@@ -1,11 +1,17 @@
 {
-  "versao": "1.59.0",
-  "build": 99,
-  "versao_app": "1.59.0",
+  "versao": "1.59.1",
+  "build": 100,
+  "versao_app": "1.59.1",
   "notas": [
-    "Envia o treino do dia com o clima da hora escolhida"
+    "Volta a mostrar a prescrição depois do treino feito"
   ],
   "historico": [
+    {
+      "versao": "1.59.1",
+      "notas": [
+        "Volta a mostrar a prescrição depois do treino feito"
+      ]
+    },
     {
       "versao": "1.59.0",
       "notas": [
@@ -60,13 +66,6 @@
       "notas": [
         "Mostra a logo inteira no topo da lista",
         "Tira o corte quadrado do brilho da logo"
-      ]
-    },
-    {
-      "versao": "1.55.1",
-      "notas": [
-        "Troca o contador do sino por um ponto verde",
-        "Tira o espaço vazio acima da logo"
       ]
     }
   ]
