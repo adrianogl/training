@@ -1,13 +1,17 @@
 {
-  "versao": "1.60.0",
-  "build": 101,
-  "versao_app": "1.60.0",
+  "versao": "1.60.1",
+  "build": 102,
+  "versao_app": "1.60.1",
   "notas": [
-    "Evolução por zona no card zonas e ritmos, strides no VO2 e aviso de troca na véspera do longão",
-    "Limiar de FC e FC máxima saem das amostras das corridas",
-    "Zonas e ritmos saem do limiar contínuo, sem a meta"
+    "Refaz os treinos de hoje em diante quando mudam as regras de prescrição"
   ],
   "historico": [
+    {
+      "versao": "1.60.1",
+      "notas": [
+        "Refaz os treinos de hoje em diante quando mudam as regras de prescrição"
+      ]
+    },
     {
       "versao": "1.60.0",
       "notas": [
@@ -63,12 +67,6 @@
       "notas": [
         "Compara recordes da semana do plano com o histórico inteiro",
         "Não conta primeira vez nas distâncias da primeira corrida"
-      ]
-    },
-    {
-      "versao": "1.55.3",
-      "notas": [
-        "Usa a margem lateral do app na lista"
       ]
     }
   ]
