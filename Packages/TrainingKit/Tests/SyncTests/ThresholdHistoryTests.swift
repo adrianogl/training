@@ -14,7 +14,10 @@ private func zonesDTO(threshold: Int?) -> HRZonesDTO {
 }
 
 private func history(in container: ModelContainer) throws -> [ThresholdHistoryRecord] {
-    try ModelContext(container).fetch(FetchDescriptor<ThresholdHistoryRecord>(sortBy: [SortDescriptor(\.day)]))
+    let marker = SyncConstants.thresholdZonesVersionSport
+    return try ModelContext(container).fetch(FetchDescriptor<ThresholdHistoryRecord>(
+        predicate: #Predicate { $0.sport != marker }, sortBy: [SortDescriptor(\.day)]
+    ))
 }
 
 private func activity(_ id: Int64, in container: ModelContainer) throws -> ActivityRecord {
@@ -243,5 +246,31 @@ private func activity(_ id: Int64, in container: ModelContainer) throws -> Activ
         #expect(try refreshThresholdZoneSeconds(in: context, limit: 2) == 0)
         let records = try context.fetch(FetchDescriptor<ActivityRecord>())
         #expect(records.allSatisfy { $0.thresholdUsed == 160 && $0.thresholdZoneSeconds == [0, 0, 59, 0, 0] })
+    }
+
+    @Test func refreshRecomputesOldZonesWithTheSameThresholdOnce() throws {
+        let container = try TrainingSchema.container(inMemory: true)
+        let context = ModelContext(container)
+        let samples = try JSONEncoder().encode((0..<61).map { FITSample(t: Double($0), heartRate: 161) })
+        context.insert(HeartRateZonesRecord(sport: "DEFAULT", lactateThresholdHeartRate: 160))
+        for id in 1...3 {
+            context.insert(ActivityRecord(
+                activityId: Int64(id),
+                typeKey: "running",
+                start: Date(timeIntervalSince1970: 1_790_000_000 + Double(id) * 86_400),
+                samplesData: samples,
+                fitProcessed: true,
+                localDay: today.adding(days: -id).iso,
+                thresholdZoneSeconds: [0, 0, 0, 0, 60],
+                thresholdUsed: 160
+            ))
+        }
+        try context.save()
+
+        #expect(try refreshThresholdZoneSeconds(in: context, limit: 2) == 2)
+        #expect(try refreshThresholdZoneSeconds(in: context, limit: 2) == 1)
+        #expect(try refreshThresholdZoneSeconds(in: context, limit: 2) == 0)
+        let records = try context.fetch(FetchDescriptor<ActivityRecord>())
+        #expect(records.allSatisfy { $0.thresholdUsed == 160 && $0.thresholdZoneSeconds == [0, 0, 0, 60, 0] })
     }
 }

@@ -60,6 +60,7 @@ func assignThresholdZones(to record: ActivityRecord, samples: [FITSample], thres
 
 @discardableResult
 func refreshThresholdZoneSeconds(in context: ModelContext, limit: Int? = nil) throws -> Int {
+    try invalidateOutdatedThresholdZones(in: context)
     let timeline = try ThresholdTimeline(in: context)
     let descriptor = FetchDescriptor<ActivityRecord>(
         predicate: #Predicate { $0.fitProcessed },
@@ -76,6 +77,22 @@ func refreshThresholdZoneSeconds(in context: ModelContext, limit: Int? = nil) th
     }
     if refreshed > 0 { try context.save() }
     return refreshed
+}
+
+func invalidateOutdatedThresholdZones(in context: ModelContext) throws {
+    let sport = SyncConstants.thresholdZonesVersionSport
+    var marker = FetchDescriptor<ThresholdHistoryRecord>(predicate: #Predicate { $0.sport == sport })
+    marker.fetchLimit = 1
+    let stored = try context.fetch(marker).first
+    guard (stored?.heartRate ?? 0) < SyncConstants.thresholdZonesVersion else { return }
+    let runs = try context.fetch(FetchDescriptor<ActivityRecord>(predicate: #Predicate { $0.fitProcessed && $0.thresholdUsed != nil }))
+    for record in runs { record.thresholdUsed = nil }
+    if let stored {
+        stored.heartRate = SyncConstants.thresholdZonesVersion
+    } else {
+        context.insert(ThresholdHistoryRecord(sport: sport, day: "", heartRate: SyncConstants.thresholdZonesVersion))
+    }
+    try context.save()
 }
 
 extension SyncEngine {

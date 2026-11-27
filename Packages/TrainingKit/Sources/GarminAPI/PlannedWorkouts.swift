@@ -148,21 +148,28 @@ public enum PlannedWorkouts {
             kind: kinds[dto.stepType?.stepTypeKey ?? ""] ?? .other,
             seconds: condition == timeCondition ? dto.endConditionValue : nil,
             meters: condition == distanceCondition ? dto.endConditionValue : nil,
-            target: target(dto)
+            target: target(dto),
+            secondaryTarget: dto.secondaryTargetType.flatMap {
+                target(key: $0.workoutTargetTypeKey, one: dto.secondaryTargetValueOne, two: dto.secondaryTargetValueTwo, zone: dto.secondaryZoneNumber)
+            }
         )
     }
 
     static func target(_ dto: StepDTO) -> PlannedTarget? {
-        switch dto.targetType?.workoutTargetTypeKey {
+        target(key: dto.targetType?.workoutTargetTypeKey, one: dto.targetValueOne, two: dto.targetValueTwo, zone: dto.zoneNumber)
+    }
+
+    static func target(key: String?, one: Double?, two: Double?, zone: Int?) -> PlannedTarget? {
+        switch key {
         case paceTarget:
-            guard let one = dto.targetValueOne, let two = dto.targetValueTwo, one > 0, two > 0 else { return nil }
+            guard let one, let two, one > 0, two > 0 else { return nil }
             let paces = [metersPerKilometer / one, metersPerKilometer / two]
             return .pace(fastest: paces.min()!, slowest: paces.max()!)
         case heartRateTarget:
-            if let one = dto.targetValueOne, let two = dto.targetValueTwo { return .heartRate(low: min(one, two), high: max(one, two)) }
-            return dto.zoneNumber.map(PlannedTarget.zone)
+            if let one, let two { return .heartRate(low: min(one, two), high: max(one, two)) }
+            return zone.map(PlannedTarget.zone)
         default:
-            return dto.zoneNumber.map(PlannedTarget.zone)
+            return zone.map(PlannedTarget.zone)
         }
     }
 }

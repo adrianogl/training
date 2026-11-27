@@ -10,7 +10,7 @@ private func steady(_ heartRate: Int, from start: Int, seconds: Int) -> [FITSamp
 @Suite struct ThresholdZonesTests {
     @Test func thresholdZonesFollowFriel() {
         let zones = thresholdZones(thresholdHeartRate: 160)
-        #expect(zones.floors == [0, 136, 144, 152, 160])
+        #expect(zones.floors == [0, 136, 144, 152, 163])
         #expect(zones.maxHeartRate == nil)
     }
 
@@ -40,9 +40,10 @@ private func steady(_ heartRate: Int, from start: Int, seconds: Int) -> [FITSamp
     }
 
     @Test func divergenceBothDirections() {
-        #expect(zoneDivergence(watchZone5Floor: 154, thresholdHeartRate: 160) == -6)
-        #expect(zoneDivergence(watchZone5Floor: 175, thresholdHeartRate: 165) == 10)
-        #expect(zoneDivergence(watchZone5Floor: 158, thresholdHeartRate: 160) == nil)
+        #expect(zoneDivergence(watchZone5Floor: 154, thresholdHeartRate: 160) == -9)
+        #expect(zoneDivergence(watchZone5Floor: 175, thresholdHeartRate: 165) == 7)
+        #expect(zoneDivergence(watchZone5Floor: 161, thresholdHeartRate: 160) == nil)
+        #expect(zoneDivergence(watchZone5Floor: 168, thresholdHeartRate: 165) == nil)
         #expect(zoneDivergence(watchZone5Floor: nil, thresholdHeartRate: 160) == nil)
         #expect(zoneDivergence(watchZone5Floor: 160, thresholdHeartRate: nil) == nil)
     }

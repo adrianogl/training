@@ -291,11 +291,11 @@ import WorkoutAnalysis
 
         #expect(first.kind == .vo2max && first.method == .goalPace)
         #expect(first.title.hasPrefix("Pace-alvo ") && TrainerEngine.describe(first).hasPrefix("4 × 2 km"))
-        #expect(first.paceLow == 237 && first.paceHigh == 243)
+        #expect(first.paceLow == 268 && first.paceHigh == 274)
         #expect(first.steps.first { $0.kind == .recovery }?.restSeconds == 90)
         #expect(second.method == .intervals)
         #expect(plan.workouts.filter { $0.kind == .threshold && $0.day < monday.adding(days: 15) }.allSatisfy { $0.method != .goalPace })
-        #expect(first.rationale.contains("Pace-alvo 4 × 2 km a 4:00, 1:30 parado."))
+        #expect(first.rationale.contains("Pace-alvo 4 × 2 km a 4:31, 1:30 parado."))
     }
 
     @Test func goalPaceGrowsOnlyWhenThePreviousClosedOnTarget() throws {
@@ -312,7 +312,7 @@ import WorkoutAnalysis
 
         let grown = try adjusted(onTarget: 4)
         #expect(grown.title.hasPrefix("Pace-alvo ") && TrainerEngine.describe(grown).hasPrefix("3 × 3 km"))
-        #expect(grown.rationale.contains("Pace-alvo 3 × 3 km a 4:00, 1:30 parado. O anterior fechou no alvo, então o bloco cresce."))
+        #expect(grown.rationale.contains("Pace-alvo 3 × 3 km a 4:31, 1:30 parado. O anterior fechou no alvo, então o bloco cresce."))
         let repeated = try adjusted(onTarget: 2)
         #expect(repeated.title.hasPrefix("Pace-alvo ") && TrainerEngine.describe(repeated).hasPrefix("4 × 2 km"))
         #expect(repeated.rationale.contains("O anterior não fechou no alvo, então a sessão repete."))

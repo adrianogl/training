@@ -44,22 +44,22 @@ import TrainingCore
     }
 
     @Test func rulerShowsBothBarsWithThreshold() throws {
-        let ruler = try #require(try model(threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds).ruler)
+        let ruler = try #require(try model(threshold: 168, thresholdUsed: 168, thresholdSeconds: thresholdSeconds).ruler)
 
         #expect(ruler.watch == ZoneBar(floors: [100, 120, 140, 160, 175], seconds: watchSeconds))
-        #expect(ruler.threshold == ZoneBar(floors: [0, 145, 153, 162, 170], seconds: thresholdSeconds))
-        #expect(ruler.thresholdHeartRate == 170)
-        #expect(ruler.divergence == 5)
-        #expect(ruler.thresholdTitle == "Pelo limiar (170 bpm)")
+        #expect(ruler.threshold == ZoneBar(floors: [0, 143, 151, 160, 171], seconds: thresholdSeconds))
+        #expect(ruler.thresholdHeartRate == 168)
+        #expect(ruler.divergence == 4)
+        #expect(ruler.thresholdTitle == "Pelo limiar (168 bpm)")
     }
 
     @Test func rulerWatchOnlyWithoutSamples() throws {
-        let ruler = try #require(try model(threshold: 170, thresholdUsed: 170, thresholdSeconds: []).ruler)
+        let ruler = try #require(try model(threshold: 168, thresholdUsed: 168, thresholdSeconds: []).ruler)
 
         #expect(ruler.watch.seconds == watchSeconds)
         #expect(ruler.threshold == nil)
-        #expect(ruler.thresholdHeartRate == 170)
-        #expect(ruler.divergence == 5)
+        #expect(ruler.thresholdHeartRate == 168)
+        #expect(ruler.divergence == 4)
     }
 
     @Test func rulerWatchOnlyWithoutThreshold() throws {
@@ -79,8 +79,8 @@ import TrainingCore
 
         #expect(ruler.watch.floors == [110, 130, 140, 150, 160])
         #expect(ruler.thresholdHeartRate == 170)
-        #expect(ruler.divergence == -10)
-        #expect(ruler.note == "Zonas do relógio 10 bpm abaixo do limiar")
+        #expect(ruler.divergence == -13)
+        #expect(ruler.note == "Zonas do relógio 13 bpm abaixo do limiar")
     }
 
     @Test func rulerAndBlocksUseTheThresholdOfTheDay() throws {
@@ -92,7 +92,7 @@ import TrainingCore
         #expect(analysis.thresholdHeartRate == 150)
         #expect(ruler.thresholdHeartRate == 150)
         #expect(ruler.threshold?.floors == analysis.zones?.floors)
-        #expect(ruler.threshold?.floors == [0, 128, 135, 143, 150])
+        #expect(ruler.threshold?.floors == [0, 128, 135, 143, 153])
         #expect(ruler.threshold?.seconds != thresholdSeconds)
     }
 
@@ -108,11 +108,11 @@ import TrainingCore
 
     @Test func rulerFallsBackToZonesRecordFloors() throws {
         let ruler = try #require(try model(
-            threshold: 170, thresholdUsed: 170, thresholdSeconds: thresholdSeconds, activityFloors: [110, 130]
+            threshold: 168, thresholdUsed: 168, thresholdSeconds: thresholdSeconds, activityFloors: [110, 130]
         ).ruler)
 
         #expect(ruler.watch.floors == [100, 120, 140, 160, 175])
-        #expect(ruler.divergence == 5)
+        #expect(ruler.divergence == 4)
     }
 
     @Test func divergenceTextBelowAndAbove() throws {
@@ -121,15 +121,15 @@ import TrainingCore
             thresholdHeartRate: 160, thresholdSeconds: thresholdSeconds
         ))
         let above = try #require(ZoneRulerData.make(
-            watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 170, thresholdSeconds: thresholdSeconds
+            watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 168, thresholdSeconds: thresholdSeconds
         ))
         let close = try #require(ZoneRulerData.make(
             watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 173, thresholdSeconds: thresholdSeconds
         ))
 
-        #expect(below.divergence == -6)
-        #expect(below.note == "Zonas do relógio 6 bpm abaixo do limiar")
-        #expect(above.note == "Zonas do relógio 5 bpm acima do limiar")
+        #expect(below.divergence == -9)
+        #expect(below.note == "Zonas do relógio 9 bpm abaixo do limiar")
+        #expect(above.note == "Zonas do relógio 4 bpm acima do limiar")
         #expect(close.divergence == nil)
         #expect(close.note == nil)
     }
@@ -139,7 +139,7 @@ import TrainingCore
             watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 173, thresholdSeconds: thresholdSeconds
         ))
         let diverging = try #require(ZoneRulerData.make(
-            watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 170, thresholdSeconds: thresholdSeconds
+            watchZones: watchZones, watchSeconds: watchSeconds, thresholdHeartRate: 168, thresholdSeconds: thresholdSeconds
         ))
         #expect(synced.threshold == nil)
         #expect(synced.thresholdTitle == nil)

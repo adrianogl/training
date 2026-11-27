@@ -84,6 +84,7 @@ enum TrainerHistoryLoader {
                 onTarget = active.filter { $0.status == .inTarget || $0.status == .faster }.count
             }
         }
+        let work = workPace(record)
         return TrainerRun(
             activityId: record.activityId,
             day: runDay(record),
@@ -96,7 +97,8 @@ enum TrainerHistoryLoader {
             firstPauseKm: firstPauseKm,
             activeOnTarget: onTarget,
             activeTotal: total,
-            workPaceSeconds: workPace(record)?.pace
+            workPaceSeconds: work?.pace,
+            workFractioned: work?.fractioned ?? false
         )
     }
 

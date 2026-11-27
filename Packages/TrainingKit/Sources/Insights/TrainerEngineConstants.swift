@@ -20,7 +20,6 @@ enum TrainerEngineConstants {
     static let easyBand = 7.0
     static let longBelowEasy = 5.0
     static let thresholdAbovePrediction = 8.0
-    static let vo2BelowThreshold = 15.0
     static let thresholdBelowEasy = 60.0
     static let fallbackEasyPace = 360.0
     static let riegelExponent = 1.06
@@ -30,6 +29,11 @@ enum TrainerEngineConstants {
     static let recentRaceVo2BelowFiveK = 5.0
     static let thresholdPredictionMeters = 10_000.0
     static let vo2PredictionMeters = 5_000.0
+    static let marathonMeters = 42_195.0
+    static let marathonZoneRaceMeters = 30_000.0
+    static let easyOverMarathon = 1.10
+    static let thresholdFractionedOffset = 5.0
+    static let thresholdFractionedMeters = 2_000.0
     static let fallbackWeeklyMeters = 15_000.0
     static let minimumLongMeters = 10_000.0
     static let fallbackLongCap = 20_000.0

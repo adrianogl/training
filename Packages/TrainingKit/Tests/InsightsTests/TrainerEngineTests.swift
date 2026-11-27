@@ -57,7 +57,8 @@ import WorkoutAnalysis
         #expect(paces.easy == 340)
         #expect(paces.long == 335)
         #expect(paces.threshold == 266)
-        #expect(paces.vo2max == 246)
+        #expect(abs(paces.vo2max - 244.03) < 0.01)
+        #expect(paces.vo2Source == nil)
         #expect(paces.easyRuns == 8)
         #expect(paces.thresholdRuns == 4)
     }
@@ -69,7 +70,7 @@ import WorkoutAnalysis
         let paces = TrainerEngine.paces(history: history, today: monday)
 
         #expect(paces.threshold == 262)
-        #expect(paces.vo2max == 247)
+        #expect(abs(paces.vo2max - 240.29) < 0.01)
     }
 
     @Test func halfMarathonPlanHasThirteenWeeksWithPhases() {
@@ -266,8 +267,71 @@ import WorkoutAnalysis
         #expect(paces.threshold == 245)
         #expect(paces.thresholdSource == .work)
         #expect(paces.thresholdWorkRuns == 4)
-        #expect(threshold.paceLow == 242 && threshold.paceHigh == 248)
-        #expect(threshold.rationale.contains("Pace de 4:05/km, a mediana dos blocos dos seus últimos 4 limiares."))
+        #expect(threshold.paceLow == 237 && threshold.paceHigh == 243)
+        #expect(threshold.rationale.contains(
+            "Limiar contínuo de 4:05/km, a mediana dos blocos dos seus últimos 4 limiares, com 5 s/km a mais nos fracionados."
+        ))
+    }
+
+    @Test func fractionedThresholdRunsCountFiveSecondsSlower() {
+        var runs = tempoHistory(workPace: 240).runs
+        for index in runs.indices where runs[index].kind == .tempo && runs[index].activityId % 20 == 2 {
+            runs[index].workFractioned = true
+            runs[index].workPaceSeconds = 236
+        }
+        let paces = TrainerEngine.paces(history: TrainerHistory(runs: runs, predictions: [:]), today: monday)
+
+        #expect(paces.threshold == 240.5)
+        #expect(paces.thresholdWorkRuns == 4)
+    }
+
+    @Test func continuousThresholdDerivesTheOtherPacesByRiegel() {
+        let paces = TrainerEngine.paces(history: tempoHistory(workPace: 253), today: monday)
+
+        #expect(paces.threshold == 253)
+        #expect((TrainerEngine.equivalentPace(threshold: 253, meters: 5_000) * 5).rounded() == 19 * 60 + 44)
+        #expect(paces.vo2max.rounded() == 232)
+        #expect(TrainerEngine.equivalentPace(threshold: 253, meters: 21_097.5).rounded() == 258)
+        #expect(paces.marathon.map { $0.rounded() } == 269)
+        #expect(paces.easy == 340)
+        #expect(paces.long == 335)
+    }
+
+    @Test func manualThresholdReappliesTheEasyAndLongFloor() {
+        var runs = tempoHistory(workPace: 253).runs.filter { $0.kind != .easy }
+        for week in 1...4 {
+            runs.append(run(Int64(week * 10 + 1), monday.adding(days: -7 * week), km: 8, pace: 300, kind: .easy))
+        }
+        let paces = TrainerEngine.paces(history: TrainerHistory(runs: runs, predictions: [:]), today: monday)
+        let manual = TrainerEngine.previewing(paces, overrides: [.threshold: 280])
+        let kept = TrainerEngine.previewing(paces, overrides: [.threshold: 280, .easy: 300])
+        let bands = TrainerZones.bands(thresholdHeartRate: 165, paces: manual)
+        let centers = (2...5).compactMap { zone in bands[zone - 1].paceLow.flatMap { low in bands[zone - 1].paceHigh.map { (low + $0) / 2 } } }
+
+        #expect(paces.easy == 300)
+        #expect(manual.easy.rounded() == 328)
+        #expect(manual.long.rounded() == 328)
+        #expect(kept.easy == 300 && kept.long.rounded() == 328)
+        #expect(centers.count == 4 && centers == centers.sorted(by: >))
+    }
+
+    @Test func oldPlanPacesDecodeUnknownSourceAndMissingFields() throws {
+        let json = #"{"easy":300,"long":295,"threshold":253,"vo2max":232,"easyRuns":0,"thresholdRuns":0,"vo2Runs":0,"vo2Source":"novo"}"#
+        let paces = try JSONDecoder().decode(TrainerPaces.self, from: Data(json.utf8))
+
+        #expect(paces.vo2Source == .fallback)
+        #expect(paces.marathon == nil && paces.marathonPace.rounded() == 269)
+    }
+
+    @Test func easyAndLongNeverFasterThanTenPercentOverTheMarathon() {
+        var runs = tempoHistory(workPace: 253).runs
+        for week in 1...4 {
+            runs.append(run(Int64(week * 10 + 5), monday.adding(days: -7 * week + 5), km: 20, pace: 275, kind: .long))
+        }
+        let paces = TrainerEngine.paces(history: TrainerHistory(runs: runs, predictions: [:]), today: monday)
+
+        #expect(abs(paces.long - 269.197 * 1.1) < 0.01)
+        #expect(paces.long.rounded() == 296)
     }
 
     @Test func thresholdPaceFallsBackToThePredictionWithoutWorkBlocks() {
@@ -277,7 +341,7 @@ import WorkoutAnalysis
         #expect(paces.thresholdSource == .prediction)
     }
 
-    @Test func vo2PaceUsesTheMedianOfTheWorkBlocks() {
+    @Test func vo2PaceComesFromTheThresholdNotFromTheVo2Blocks() {
         var runs = tempoHistory(workPace: nil).runs
         for week in 1...4 {
             var intervals = run(Int64(week * 10 + 3), monday.adding(days: -7 * week + 3), km: 10, pace: 250, kind: .intervals)
@@ -286,8 +350,8 @@ import WorkoutAnalysis
         }
         let paces = TrainerEngine.paces(history: TrainerHistory(runs: runs, predictions: [5_000: 1_230]), today: monday)
 
-        #expect(paces.vo2max == 228)
-        #expect(paces.vo2Source == .work)
+        #expect(abs(paces.vo2max - 240.29) < 0.01)
+        #expect(paces.vo2Source == nil)
     }
 
     @Test func easyRunHasNoHistoryReferenceWithoutEasyRuns() throws {
