@@ -6,10 +6,17 @@ enum TrainerWeekItems {
         let plannedDays = Set(rows.map(\.workout.day.iso))
         let days = doneDays.union(plannedDays).sorted()
         return days.flatMap { day -> [TrainerWeekItem] in
-            if doneDays.contains(day) {
-                return done.filter { $0.dayIso == day }.map(TrainerWeekItem.done)
+            let planned = rows.filter { $0.workout.day.iso == day }
+            let doneOnDay = done.filter { $0.dayIso == day }
+            guard !doneOnDay.isEmpty else { return planned.map(TrainerWeekItem.planned) }
+            let runs = doneOnDay.filter { !$0.isStrength }
+            if !runs.isEmpty, let run = planned.first(where: { $0.workout.kind != .off }) {
+                return [.plannedDone(run, runs)] + doneOnDay.filter(\.isStrength).map(TrainerWeekItem.done)
             }
-            return rows.filter { $0.workout.day.iso == day }.map(TrainerWeekItem.planned)
+            if runs.isEmpty, !planned.isEmpty {
+                return planned.map(TrainerWeekItem.planned) + doneOnDay.map(TrainerWeekItem.done)
+            }
+            return doneOnDay.map(TrainerWeekItem.done)
         }
     }
 }

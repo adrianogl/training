@@ -90,6 +90,10 @@ struct WorkoutDetailView: View {
         VStack(alignment: .leading, spacing: TodayConstants.rowSpacing) {
             let C = WorkoutDetailConstants.self
             howItWent(model)
+            if let prescription = WorkoutPrescriptionBuilder.prescription(row: model.localDay.flatMap(app.trainer.row(for:)), activityId: activityId, isRun: model.isRun, doneMeters: model.meters) {
+                section(WorkoutPrescriptionText.sectionTitle)
+                WorkoutPrescriptionCard(prescription: prescription, bands: app.trainer.planZones.bands)
+            }
             if !model.recordHits.isEmpty {
                 section(RecordText.section(model.recordHits.count))
                 WorkoutRecordsCard(hits: model.recordHits, steps: model.recordSteps, activityId: activityId)

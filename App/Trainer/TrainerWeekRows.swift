@@ -31,6 +31,8 @@ struct TrainerWeekRows: View {
                     )
                 }
                 .buttonStyle(.cardLink)
+            case .plannedDone(let row, let done):
+                TrainerPlannedDoneCard(row: row, done: done, newIds: app.newActivityIds)
             case .done(let row):
                 NavigationLink(value: TrainerRoute.workout(row.activityId)) {
                     WorkoutRow(row: row, isFromPlan: true, isNew: app.newActivityIds.contains(row.activityId))

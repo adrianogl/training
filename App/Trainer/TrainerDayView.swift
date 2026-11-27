@@ -136,7 +136,7 @@ struct TrainerDayView: View {
     private func strengthCard(_ line: TrainerStrengthLine) -> some View {
         let card = StrengthDayCard(model: app.trainer.strengthDayCard(line, day: Day(iso: iso) ?? app.trainer.currentDay))
         if line.source == .trainer {
-            NavigationLink(value: TrainerRoute.strengthDay(iso, line.id)) { card }
+            NavigationLink { TrainerStrengthWorkoutView(iso: iso, sessionId: line.id) } label: { card }
                 .buttonStyle(.cardLink)
         } else {
             card

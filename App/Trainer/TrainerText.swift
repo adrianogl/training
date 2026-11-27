@@ -130,6 +130,7 @@ enum TrainerText {
         "\(weekdayShort(day)) \(day.day)"
     }
     static let plannedLabel = "Planejado"
+    static let doneLabel = "Feito"
     static let paceLabel = "Pace"
     static let notePrefix = "Observação"
     static let runDistance = "Distância"

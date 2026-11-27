@@ -9,10 +9,12 @@ enum TrainerViewPart: Hashable {
 enum TrainerWeekItem: Identifiable {
     case planned(TrainerDayRow)
     case done(WorkoutRowData)
+    case plannedDone(TrainerDayRow, [WorkoutRowData])
 
     var id: String {
         switch self {
         case .planned(let row): "plano-\(row.id)"
+        case .plannedDone(let row, _): "plano-feito-\(row.id)"
         case .done(let row): "feito-\(row.activityId)"
         }
     }

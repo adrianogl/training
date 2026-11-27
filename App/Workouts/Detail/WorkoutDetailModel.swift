@@ -38,6 +38,7 @@ import WorkoutAnalysis
     private(set) var recordHits: [RecordHit] = []
     private(set) var recordSteps: [RecordStep] = []
     private(set) var localDay: String?
+    private(set) var meters: Double?
     private(set) var readinessScore: Int?
     private(set) var weekKilometers: Double?
     private(set) var daysSinceHard: Int?
@@ -111,6 +112,7 @@ import WorkoutAnalysis
         shareInput = Self.shareInput(record, blocks: blocks, route: route, hasPrescription: hasPrescription, reading: reading, assessment: assessment)
         shareInput?.records = recordHits.map { ShareRecord(label: RecordText.label($0.effort.meters), seconds: $0.effort.seconds, isWholeRun: $0.effort.source == .wholeRun) }
         localDay = record.localDay
+        meters = record.distance
         readinessScore = record.localDay.flatMap { Self.readinessScore(context: context, day: $0) }
         performanceCondition = record.performanceCondition
         if isRun, let day = record.localDay.flatMap(Day.init(iso:)) {

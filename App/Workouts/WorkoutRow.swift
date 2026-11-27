@@ -7,8 +7,27 @@ struct WorkoutRow: View {
     var hasChat = false
     var isFromPlan = false
     var isNew = false
+    var isEmbedded = false
 
     var body: some View {
+        if isEmbedded {
+            content.contentShape(Rectangle())
+        } else {
+            content
+                .brandCard()
+                .perfectScoreCard(score: row.score, activityId: row.activityId)
+                .recordCard(row.recordPill != nil && (row.score ?? 0) < ScoreConstants.perfectScore)
+                .overlay {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
+                            .strokeBorder(BrandColors.accentFill, lineWidth: 2)
+                    }
+                }
+                .contentShape(Rectangle())
+        }
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(row.dateText)
@@ -45,19 +64,9 @@ struct WorkoutRow: View {
                 ZoneStrip(shares: row.zoneShares)
                     .padding(.top, 2)
             }
-            CardLinkFooter(title: CardLinkConstants.details)
+            CardLinkFooter(title: isEmbedded ? CardLinkConstants.workout : CardLinkConstants.details)
                 .padding(.top, 4)
         }
-        .brandCard()
-        .perfectScoreCard(score: row.score, activityId: row.activityId)
-        .recordCard(row.recordPill != nil && (row.score ?? 0) < ScoreConstants.perfectScore)
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: BrandConstants.cardCornerRadius, style: .continuous)
-                    .strokeBorder(BrandColors.accentFill, lineWidth: 2)
-            }
-        }
-        .contentShape(Rectangle())
     }
 
     private func badgeLine(showsKind: Bool) -> some View {
