@@ -141,6 +141,7 @@ struct WorkoutAnalysisInputs {
     var hotSessions: [Int64: Int] = [:]
     var races = RaceIndex()
     var includedHeatByActivity: [Int64: Double] = [:]
+    var maxHeartRate: Int?
 }
 
 struct ZoneBar: Equatable, Sendable {

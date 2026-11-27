@@ -53,7 +53,8 @@ func runningZones(on day: Day, _ context: ModelContext) throws -> HeartRateZones
     }
     let record = try runningZonesRecord(in: context)
     let floors = [record?.zone1Floor, record?.zone2Floor, record?.zone3Floor, record?.zone4Floor, record?.zone5Floor].compactMap { $0 }
-    return floors.count == InsightsConstants.zoneCount ? HeartRateZones(floors: floors, maxHeartRate: record?.maxHeartRate) : nil
+    guard floors.count == InsightsConstants.zoneCount else { return nil }
+    return HeartRateZones(floors: floors, maxHeartRate: try estimatedMaxHeartRate(on: day, in: context))
 }
 
 func hasThreshold(_ context: ModelContext, today: Day) throws -> Bool {

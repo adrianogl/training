@@ -13,7 +13,7 @@ extension TrainerModel {
     }
 
     var maxHeartRate: Int? {
-        (try? runningZonesRecord(in: container.mainContext))?.maxHeartRate
+        try? estimatedMaxHeartRate(on: currentDay, in: container.mainContext)
     }
 
     var zoneBands: [TrainerZoneBand] {

@@ -9,7 +9,11 @@ public enum SyncConstants {
     static let secondsPerDay: TimeInterval = 86_400
     public static let fitThresholdSport = "fit"
     static let thresholdZonesVersionSport = "zones-version"
-    static let thresholdZonesVersion = 2
+    static let thresholdZonesVersion = 3
+    public static let thresholdEstimateSport = "estimate"
+    public static let maxHeartRateSport = "max"
+    static let thresholdEstimateRuns = 4
+    static let maxHeartRateWindowDays = 365
     static let dailySummaryWindowDays = 180
     static let hrvWindowDays = 180
     static let sleepWindowDays = 28
@@ -26,7 +30,7 @@ public enum SyncConstants {
     static let reprocessWindowDays = 120.0
     static let defaultZonesSport = "DEFAULT"
     static let runningZonesSport = "running"
-    static let backgroundThresholdRefreshLimit = 50
+    public static let backgroundThresholdRefreshLimit = 50
     static let missingFITStatuses: Set<Int> = [404, 410]
 
     static let progressAfterCleanup = 0.05

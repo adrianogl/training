@@ -4,6 +4,7 @@ import Narrative
 import Foundation
 import Storage
 import SwiftData
+import Sync
 import Testing
 import WorkoutAnalysis
 @testable import trAIning
@@ -209,8 +210,8 @@ import WorkoutAnalysis
         let complete = HeartRateZonesRecord(sport: "RUNNING", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175, maxHeartRate: 190)
         let gap = HeartRateZonesRecord(sport: "RUNNING", zone1Floor: 100, zone2Floor: 120, zone4Floor: 160, zone5Floor: 175, maxHeartRate: 190)
 
-        #expect(WorkoutAnalysisContext.zones(from: complete) == HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRate: 190))
-        #expect(WorkoutAnalysisContext.zones(from: gap) == nil)
+        #expect(WorkoutAnalysisContext.zones(from: complete, maxHeartRate: 187) == HeartRateZones(floors: [100, 120, 140, 160, 175], maxHeartRate: 187))
+        #expect(WorkoutAnalysisContext.zones(from: gap, maxHeartRate: 187) == nil)
     }
 
     @Test func detailShowsScoreForInterval() throws {
@@ -253,6 +254,7 @@ import WorkoutAnalysis
             sport: "DEFAULT", zone1Floor: 100, zone2Floor: 120, zone3Floor: 140, zone4Floor: 160, zone5Floor: 175,
             maxHeartRate: 190, lactateThresholdHeartRate: threshold
         ))
+        context.insert(ThresholdHistoryRecord(sport: SyncConstants.maxHeartRateSport, day: Day.today().iso, heartRate: 190))
         context.insert(F.run(id: 1, meters: 7_400, workoutName: "Rodagem leve", structure: F.easyStructure(activeTarget: activeTarget)))
         try context.save()
         return WorkoutDetailModel(activityId: 1, context: context)

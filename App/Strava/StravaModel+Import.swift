@@ -120,7 +120,8 @@ extension StravaModel {
 
     private func heartRateBounds() -> (resting: Double?, maximum: Double?) {
         let zones = try? runningZonesRecord(in: container.mainContext)
-        return (zones?.restingHeartRate.map(Double.init), zones?.maxHeartRate.map(Double.init))
+        let maximum = try? estimatedMaxHeartRate(on: Day.today(), in: container.mainContext)
+        return (zones?.restingHeartRate.map(Double.init), maximum.map(Double.init))
     }
 
     private func existingRuns(since start: Date) -> [(start: Date, meters: Double)] {

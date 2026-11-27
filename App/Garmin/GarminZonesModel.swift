@@ -10,6 +10,7 @@ import TrainingCore
     private typealias C = GarminZonesConstants
 
     private(set) var threshold: Int?
+    private(set) var maxHeartRate: Int?
     private(set) var upperFloors: [Int] = []
     private(set) var updatedAt: Date?
     private(set) var failed = false
@@ -29,6 +30,7 @@ import TrainingCore
     func load(container: ModelContainer, today: Day = Day.today()) {
         let context = ModelContext(container)
         threshold = (try? thresholdHeartRates(on: [today], in: context))?[today]
+        maxHeartRate = try? estimatedMaxHeartRate(on: today, in: context)
         upperFloors = threshold.map { Array(thresholdZones(thresholdHeartRate: $0).floors.dropFirst()) } ?? []
     }
 
@@ -39,7 +41,9 @@ import TrainingCore
         defer { isWorking = false }
         do {
             let profiles = try await HeartRateZoneProfiles.fetch(client: client)
-            if let updated = HeartRateZoneProfiles.applying(upperFloors: upperFloors, threshold: threshold, to: profiles) {
+            if let updated = HeartRateZoneProfiles.applying(
+                upperFloors: upperFloors, threshold: threshold, maxHeartRate: maxHeartRate, to: profiles
+            ) {
                 try await HeartRateZoneProfiles.save(updated, client: client)
                 let saved = try await HeartRateZoneProfiles.fetch(client: client)
                 guard HeartRateZoneProfiles.running(in: saved)?.upperFloors == upperFloors.map(Optional.some) else {

@@ -2,6 +2,7 @@ import FITReader
 import Foundation
 import Storage
 import SwiftData
+import Sync
 import Testing
 import TrainingCore
 @testable import trAIning
@@ -33,6 +34,7 @@ import TrainingCore
         let container = try TrainingSchema.container(inMemory: true)
         let context = container.mainContext
         context.insert(zonesRecord(threshold: threshold))
+        context.insert(ThresholdHistoryRecord(sport: SyncConstants.maxHeartRateSport, day: Day.today().iso, heartRate: 190))
         let run = F.run(id: 1, meters: 8_000, structure: F.freeStructure(kilometers: 8), samples: samples)
         run.zoneSeconds = watchSeconds
         run.thresholdZoneSeconds = thresholdSeconds

@@ -33,8 +33,9 @@ struct WorkoutAnalysisContext: Codable, Sendable {
 
     nonisolated static func inputs(records: [ActivityRecord], in context: ModelContext, races: RaceIndex? = nil) -> WorkoutAnalysisInputs {
         let runDays = records.filter { ActivityTypeKey.isRun($0.typeKey) }.map(day)
+        let maxHeartRate = try? estimatedMaxHeartRate(on: Day.today(), in: context)
         return WorkoutAnalysisInputs(
-            watchZones: (try? runningZonesRecord(in: context)).flatMap(zones(from:)),
+            watchZones: (try? runningZonesRecord(in: context)).flatMap { zones(from: $0, maxHeartRate: maxHeartRate) },
             thresholdByDay: (try? thresholdHeartRates(on: runDays, in: context)) ?? [:],
             dailyLoad: dailyLoad(records),
             readinessByDay: readinessByDay(context),
@@ -42,7 +43,8 @@ struct WorkoutAnalysisContext: Codable, Sendable {
             legDays: DayConditionBuilder.legDays(),
             hotSessions: ActivityRecord.hotSessionCounts(records),
             races: races ?? Self.races(in: context),
-            includedHeatByActivity: includedHeat(records)
+            includedHeatByActivity: includedHeat(records),
+            maxHeartRate: maxHeartRate
         )
     }
 
@@ -195,7 +197,7 @@ struct WorkoutAnalysisContext: Codable, Sendable {
     static func zones(for record: ActivityRecord, inputs: WorkoutAnalysisInputs) -> HeartRateZones? {
         guard let threshold = inputs.thresholdByDay[day(record)] else { return watchZones(for: record, fallback: inputs.watchZones) }
         var zones = thresholdZones(thresholdHeartRate: threshold)
-        zones.maxHeartRate = inputs.watchZones?.maxHeartRate
+        zones.maxHeartRate = inputs.maxHeartRate
         return zones
     }
 
@@ -204,10 +206,10 @@ struct WorkoutAnalysisContext: Codable, Sendable {
         return HeartRateZones(floors: record.watchZoneFloors, maxHeartRate: fallback?.maxHeartRate)
     }
 
-    static func zones(from record: HeartRateZonesRecord) -> HeartRateZones? {
+    static func zones(from record: HeartRateZonesRecord, maxHeartRate: Int?) -> HeartRateZones? {
         let floors = [record.zone1Floor, record.zone2Floor, record.zone3Floor, record.zone4Floor, record.zone5Floor]
         guard floors.allSatisfy({ $0 != nil }) else { return nil }
-        return HeartRateZones(floors: floors.compactMap { $0 }, maxHeartRate: record.maxHeartRate)
+        return HeartRateZones(floors: floors.compactMap { $0 }, maxHeartRate: maxHeartRate)
     }
 
     nonisolated private static func readinessByDay(_ context: ModelContext) -> [String: Int] {

@@ -2,6 +2,7 @@ import FITReader
 import Foundation
 import Storage
 import SwiftData
+import Sync
 import TrainingCore
 
 enum ActivityWeatherStore {
@@ -32,6 +33,9 @@ enum ActivityWeatherStore {
             updated.insert(item.record.activityId)
         }
         try? context.save()
+        if !updated.isEmpty {
+            _ = try? refreshThresholdZoneSeconds(in: context, limit: SyncConstants.backgroundThresholdRefreshLimit, changed: updated)
+        }
         return updated
     }
 
