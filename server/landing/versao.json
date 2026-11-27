@@ -1,11 +1,21 @@
 {
-  "versao": "1.59.1",
-  "build": 100,
-  "versao_app": "1.59.1",
+  "versao": "1.60.0",
+  "build": 101,
+  "versao_app": "1.60.0",
   "notas": [
-    "Volta a mostrar a prescrição depois do treino feito"
+    "Evolução por zona no card zonas e ritmos, strides no VO2 e aviso de troca na véspera do longão",
+    "Limiar de FC e FC máxima saem das amostras das corridas",
+    "Zonas e ritmos saem do limiar contínuo, sem a meta"
   ],
   "historico": [
+    {
+      "versao": "1.60.0",
+      "notas": [
+        "Evolução por zona no card zonas e ritmos, strides no VO2 e aviso de troca na véspera do longão",
+        "Limiar de FC e FC máxima saem das amostras das corridas",
+        "Zonas e ritmos saem do limiar contínuo, sem a meta"
+      ]
+    },
     {
       "versao": "1.59.1",
       "notas": [
@@ -59,13 +69,6 @@
       "versao": "1.55.3",
       "notas": [
         "Usa a margem lateral do app na lista"
-      ]
-    },
-    {
-      "versao": "1.55.2",
-      "notas": [
-        "Mostra a logo inteira no topo da lista",
-        "Tira o corte quadrado do brilho da logo"
       ]
     }
   ]
