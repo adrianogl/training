@@ -12,9 +12,7 @@ extension TrainerEngineConstants {
     static let progressiveLongShare = 0.2
     static let progressiveLongMinimumMeters = 3_000.0
     static let progressiveLongMaximumMeters = 5_000.0
-    static let progressiveLongOffset = 15.0
     static let fastFinishMeters = 2_000.0
-    static let fastFinishOffset = 10.0
     static let racePaceLongRepeats = 3
     static let racePaceLongPhases: Set<TrainerPhase> = [.build, .specific]
     static let racePaceLongMeters = 3_000.0

@@ -9,10 +9,11 @@ extension TrainerEngine {
             seconds * pow(distance / meters, C.riegelExponent) / (distance / C.metersPerKilometer)
         }
         let fiveK = pace(at: C.recentRaceFiveK)
-        let easy = fiveK * C.recentRaceEasyFactor
+        let floor = pace(at: C.marathonMeters) * C.easyOverMarathon
+        let easy = max(fiveK * C.recentRaceEasyFactor, floor)
         return [
             .easy: easy.rounded(),
-            .long: (easy - C.longBelowEasy).rounded(),
+            .long: max(easy - C.longBelowEasy, floor).rounded(),
             .threshold: pace(at: C.recentRaceThresholdMeters).rounded(),
             .vo2max: (fiveK - C.recentRaceVo2BelowFiveK).rounded(),
         ]

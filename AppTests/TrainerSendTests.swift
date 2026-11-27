@@ -34,9 +34,9 @@ import TrainingCore
         let shortSteps = TrainerSendBuilder.runSteps(short, thresholdHeartRate: 172)
 
         #expect(steps.first == .warmup(meters: 4_000, fastest: 318, slowest: 332, heartRate: 146...154))
-        #expect(steps.last == .repeated(times: 4, steps: [.interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...171), .rest(seconds: 120)]))
-        #expect(shortSteps.last == .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248, heartRate: 163...171), .rest(seconds: 120)]))
-        #expect(ZoneText.label(4, band: TrainerZones.bands(thresholdHeartRate: 172, paces: nil)[3]) == "Z4 · 163–171")
+        #expect(steps.last == .repeated(times: 4, steps: [.interval(meters: 2_000, fastest: 243, slowest: 249, heartRate: 163...174), .rest(seconds: 120)]))
+        #expect(shortSteps.last == .repeated(times: 8, steps: [.interval(meters: 1_000, fastest: 240, slowest: 248, heartRate: 163...174), .rest(seconds: 120)]))
+        #expect(ZoneText.label(4, band: TrainerZones.bands(thresholdHeartRate: 172, paces: nil)[3]) == "Z4 · 163–174")
     }
 
     @Test func vo2UsesMaxHeartRateAsCeilingAndCooldownGoesEasy() {
@@ -48,7 +48,7 @@ import TrainingCore
         let withMax = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172, maxHeartRate: 190)
         let withoutMax = TrainerSendBuilder.runSteps(workout, thresholdHeartRate: 172)
 
-        #expect(withMax.first == .repeated(times: 5, steps: [.interval(meters: 1_000, fastest: 224, slowest: 228, heartRate: 172...190), .rest(seconds: 150)]))
+        #expect(withMax.first == .repeated(times: 5, steps: [.interval(meters: 1_000, fastest: 224, slowest: 228, heartRate: 175...190), .rest(seconds: 150)]))
         #expect(withoutMax.first == .repeated(times: 5, steps: [.interval(meters: 1_000, fastest: 224, slowest: 228), .rest(seconds: 150)]))
         #expect(withMax.last == .cooldown(meters: 1_000, fastest: 318, slowest: 332, heartRate: 146...154))
     }

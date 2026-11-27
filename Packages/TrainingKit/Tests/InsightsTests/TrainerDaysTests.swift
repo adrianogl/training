@@ -45,7 +45,7 @@ import WorkoutAnalysis
             runs.append(run(base + 3, start.adding(days: 3), km: 12, pace: 297, kind: .easy))
             runs.append(run(base + 4, start.adding(days: 5), km: 20, pace: 285, kind: .long))
         }
-        return TrainerHistory(runs: runs, predictions: [10_000: 2_500, 5_000: 1_180])
+        return TrainerHistory(runs: runs, predictions: [10_000: 2_450, 5_000: 1_180])
     }
 
     private func plan(_ structure: [Int: TrainerDayKind], target: TrainerTarget? = nil, peak: Double = 70_000) -> TrainerPlan {

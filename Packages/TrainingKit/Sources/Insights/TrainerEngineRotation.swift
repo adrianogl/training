@@ -231,7 +231,7 @@ extension TrainerEngine {
     }
 
     static func stimulusLong(
-        day: Day, week: TrainerWeek, stimulus: TrainerLongStimulus, paces: TrainerPaces, target: TrainerTarget,
+        day: Day, week: TrainerWeek, weeks: [TrainerWeek] = [], stimulus: TrainerLongStimulus, paces: TrainerPaces, target: TrainerTarget,
         extras: [String], note: String?
     ) -> TrainerWorkout? {
         let meters = week.longMeters
@@ -242,35 +242,40 @@ extension TrainerEngine {
         let variant: TrainerVariant
         switch stimulus {
         case .progressive:
-            let final = paces.threshold + C.progressiveLongOffset
+            let final = paces.marathonPace
             guard final < paces.long else { return nil }
             let progressive = min(max(roundKilometers(meters * C.progressiveLongShare), C.progressiveLongMinimumMeters), C.progressiveLongMaximumMeters)
             let count = Int(progressive / C.metersPerKilometer)
             steps.append(TrainerStep(kind: .steady, meters: meters - progressive, paceLow: easy.low, paceHigh: easy.high))
             for index in 1...count {
                 let range = band(paces.long + (final - paces.long) * Double(index) / Double(count), C.qualityBand)
-                steps.append(TrainerStep(kind: .steady, meters: C.metersPerKilometer, paceLow: range.low, paceHigh: range.high))
+                steps.append(TrainerStep(
+                    kind: .steady, meters: C.metersPerKilometer, paceLow: range.low, paceHigh: range.high, zone: TrainerZonesConstants.marathon
+                ))
             }
             text = T.progressiveLongReason(meters: progressive, from: paces.long, to: final)
             title = T.title(kind: .long, meters: meters, variant: .progressiveLong)
             variant = .progressiveLong
         case .fastFinish:
-            let pace = paces.threshold + C.fastFinishOffset
+            let pace = paces.marathonPace
             guard pace < paces.long else { return nil }
             let fast = band(pace, C.qualityBand)
             steps.append(TrainerStep(kind: .steady, meters: meters - C.fastFinishMeters, paceLow: easy.low, paceHigh: easy.high))
-            steps.append(TrainerStep(kind: .steady, meters: C.fastFinishMeters, paceLow: fast.low, paceHigh: fast.high))
+            steps.append(TrainerStep(
+                kind: .steady, meters: C.fastFinishMeters, paceLow: fast.low, paceHigh: fast.high, zone: TrainerZonesConstants.marathon
+            ))
             text = T.fastFinishReason(meters: C.fastFinishMeters, pace: pace)
             title = T.title(kind: .long, meters: meters, variant: .fastFinish)
             variant = .fastFinish
         case .racePace:
             guard let block = racePaceLongBlock(week: week, target: target) else { return nil }
-            let pace = paces.race ?? paces.threshold
+            let pace = targetPace(paces: paces, target: target, week: week, weeks: weeks)
             let work = band(pace, C.qualityBand)
             let used = Double(block.repeats) * block.meters + Double(block.repeats - 1) * C.racePaceLongJogMeters
             steps.append(TrainerStep(kind: .steady, meters: meters - used, paceLow: easy.low, paceHigh: easy.high))
             steps.append(TrainerStep(
-                kind: .work, repeats: block.repeats, meters: block.meters, paceLow: work.low, paceHigh: work.high, method: .racePace
+                kind: .work, repeats: block.repeats, meters: block.meters, paceLow: work.low, paceHigh: work.high, method: .racePace,
+                zone: racePaceZone(meters: target.distanceMeters)
             ))
             steps.append(TrainerStep(
                 kind: .recovery, repeats: block.repeats - 1, meters: C.racePaceLongJogMeters, paceLow: easy.low, paceHigh: easy.high

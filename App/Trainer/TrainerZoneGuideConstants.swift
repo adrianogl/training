@@ -16,8 +16,8 @@ enum TrainerZoneGuideConstants {
     static let uses: [Int: String] = [
         1: "descanso, trote",
         2: "rodagem, longão, aquecimento",
-        3: "pace-alvo",
-        4: "tempo, limiar",
+        3: "ritmo de maratona, final forte do longão",
+        4: "limiar, tempo, pace-alvo da meia",
         5: "VO2, tiros de 100 m",
     ]
 }

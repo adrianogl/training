@@ -16,14 +16,16 @@ public struct PlannedStep: Sendable, Equatable {
     public var seconds: Double?
     public var meters: Double?
     public var target: PlannedTarget?
+    public var secondaryTarget: PlannedTarget?
     public var repeats: Int
     public var children: [PlannedStep]
 
-    public init(kind: PlannedStepKind, seconds: Double? = nil, meters: Double? = nil, target: PlannedTarget? = nil, repeats: Int = 1, children: [PlannedStep] = []) {
+    public init(kind: PlannedStepKind, seconds: Double? = nil, meters: Double? = nil, target: PlannedTarget? = nil, secondaryTarget: PlannedTarget? = nil, repeats: Int = 1, children: [PlannedStep] = []) {
         self.kind = kind
         self.seconds = seconds
         self.meters = meters
         self.target = target
+        self.secondaryTarget = secondaryTarget
         self.repeats = repeats
         self.children = children
     }
@@ -129,6 +131,10 @@ final class StepDTO: Decodable {
     let targetValueOne: Double?
     let targetValueTwo: Double?
     let zoneNumber: Int?
+    let secondaryTargetType: Key?
+    let secondaryTargetValueOne: Double?
+    let secondaryTargetValueTwo: Double?
+    let secondaryZoneNumber: Int?
     let numberOfIterations: Int?
     let workoutSteps: [StepDTO]?
     let description: String?

@@ -298,7 +298,7 @@ enum TrainerEngineText {
         let history = "Pace pela mediana de \(paces.thresholdRuns) limiares dos últimos 90 dias."
         switch paces.thresholdSource {
         case .work:
-            return "Pace de \(pace(paces.threshold))/km, a mediana dos blocos dos seus últimos \(paces.thresholdWorkRuns ?? 0) limiares."
+            return "Limiar contínuo de \(pace(paces.threshold))/km, a mediana dos blocos dos seus últimos \(paces.thresholdWorkRuns ?? 0) limiares, com 5 s/km a mais nos fracionados."
         case .fallback:
             return "Pace 60 s/km abaixo da rodagem, sem limiares recentes."
         case .manual:
@@ -310,12 +310,10 @@ enum TrainerEngineText {
 
     static func vo2Basis(_ paces: TrainerPaces, predicted: Double?) -> String {
         switch paces.vo2Source {
-        case .work:
-            return "Pace de \(pace(paces.vo2max))/km, a mediana dos blocos dos seus últimos \(paces.vo2WorkRuns ?? 0) treinos de VO2."
         case .manual:
             return manualPaceBasis
-        case .prediction, .history, .fallback, nil:
-            return predicted.map { "Pace do 5 km previsto em \(clock($0))." } ?? "Pace 15 s/km abaixo do limiar, sem previsão de 5 km."
+        case .work, .prediction, .history, .fallback, nil:
+            return "Pace de \(pace(paces.vo2max))/km: o 5 km equivalente ao limiar de \(pace(paces.threshold))/km, menos 5 s/km."
         }
     }
 

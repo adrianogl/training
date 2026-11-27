@@ -20,13 +20,18 @@ Constantes: `Packages/TrainingKit/Sources/Insights/TrainerEngine*Constants.swift
 | Regra | Valor | Constante |
 | --- | --- | --- |
 | Janela do histórico | 90 dias | `paceWindowDays` |
-| Ritmo de limiar | mediana dos blocos dos últimos 4 limiares | `workPaceRuns` |
-| Sem histórico de limiar | previsão de 10 km + 8 s/km | `thresholdAbovePrediction` |
-| Ritmo de VO2 | mediana dos blocos dos últimos treinos de VO2; sem histórico, 15 s/km mais rápido que o limiar | `vo2BelowThreshold` |
+| Limiar contínuo (referência de todos os ritmos) | mediana dos blocos dos últimos 4 limiares. Treino fracionado (mais de um bloco, todos de até 2,5 km medidos) entra com 5 s/km a mais | `workPaceRuns`, `thresholdFractionedOffset`, `fractionedMaximumBlockMeters` |
+| Sem histórico de limiar | previsão de 10 km + 8 s/km; sem previsão, mediana dos limiares; sem limiar, rodagem − 60 s/km | `thresholdAbovePrediction`, `thresholdBelowEasy` |
+| Equivalências | Riegel (expoente 1,06), com o limiar contínuo como ritmo de 15 km | `riegelExponent`, `recentRaceThresholdMeters` |
+| Ritmo de VO2 | ritmo de 5 km equivalente − 5 s/km. Os treinos de VO2 não entram | `recentRaceVo2BelowFiveK` |
+| Ritmo de maratona | ritmo de 42,195 km equivalente | `marathonMeters` |
 | Faixa de qualidade | ± 3 s/km | `qualityBand` |
 | Faixa da rodagem | ± 7 s/km | `easyBand` |
-| Ritmo do longão | mediana dos longões; sem histórico, 5 s/km mais rápido que a rodagem | `longBelowEasy` |
+| Ritmo da rodagem | mediana das rodagens, mas nunca mais rápido que maratona × 1,10 | `easyOverMarathon` |
+| Ritmo do longão | mediana dos longões (sem histórico, rodagem − 5 s/km), mas nunca mais rápido que maratona × 1,10 | `longBelowEasy`, `easyOverMarathon` |
 | Rodagem sem histórico | 6:00/km | `fallbackEasyPace` |
+
+Exemplo: limiar contínuo 4:13/km dá 5 km em 19:44, VO2 3:52/km, meia 4:18/km, maratona 4:29/km e rodagem e longão a partir de 4:56/km. Ajustar o limiar à mão recalcula VO2 e maratona; ajustar o VO2 à mão vale só para ele.
 | Mudança mínima para atualizar ritmo | 2 s/km | `paceChangeSeconds` |
 
 ### Sem corridas no histórico
@@ -37,26 +42,29 @@ Quando a pessoa não tem nenhuma rodagem nos 90 dias, o plano novo pede um tempo
 | --- | --- | --- |
 | VO2 | pace previsto para 5 km − 5 s/km | `recentRaceVo2BelowFiveK` |
 | Limiar | pace previsto para 15 km | `recentRaceThresholdMeters` |
-| Rodagem | pace previsto para 5 km × 1,27 | `recentRaceEasyFactor` |
-| Longão | rodagem − 5 s/km | `longBelowEasy` |
+| Rodagem | pace previsto para 5 km × 1,27, nunca mais rápido que maratona × 1,10 | `recentRaceEasyFactor`, `easyOverMarathon` |
+| Longão | rodagem − 5 s/km, nunca mais rápido que maratona × 1,10 | `longBelowEasy`, `easyOverMarathon` |
 
 Arquivos: `Insights/TrainerEngineRecentRace.swift`, `App/Trainer/TrainerRecentRaceCard.swift`. Testes: `InsightsTests/TrainerRecentRaceTests.swift`.
 
 ## Zonas dos blocos
 
-A zona de cada bloco é de FC, nas faixas do app (a partir do limiar do relógio: Z2 de 85%, Z3 de 90%, Z4 de 95% e Z5 no limiar). O pace continua o alvo principal do bloco; a zona mostra a FC esperada para ele. Arquivos: `Insights/TrainerZones*.swift`, `App/Workouts/ZoneChip.swift`, `App/Trainer/TrainerZoneGuideCard.swift`. Testes: `InsightsTests/TrainerZonesTests.swift`.
+A zona de cada bloco é de FC, nas faixas do app (a partir do limiar do relógio: Z2 de 85%, Z3 de 90%, Z4 de 95% a 101% e Z5 de 102%). O pace continua o alvo principal do bloco; a zona mostra a FC esperada para ele. A meta da prova não define faixa de zona: as zonas saem só do limiar contínuo, e o pace fica mais lento a cada zona abaixo. Arquivos: `Insights/TrainerZones*.swift`, `App/Workouts/ZoneChip.swift`, `App/Trainer/TrainerZoneGuideCard.swift`. Testes: `InsightsTests/TrainerZonesTests.swift`.
 
 | Bloco | Zona | Pace da zona |
 | --- | --- | --- |
 | Descanso e trote | sem zona | trote |
 | Aquecimento, rodagem, longão, volta leve | Z2 | rodagem ± 7 s/km |
-| Pace-alvo e ritmo de prova | Z3 | ritmo de prova ± 3 s/km |
-| Tempo e limiar | Z4 | limiar ± 3 s/km |
+| Ritmo de maratona, final forte e progressivo do longão, pace-alvo e ritmo de prova de 30 km ou mais | Z3 | maratona ± 3 s/km |
+| Limiar fracionado (blocos de até 2 km com pausa) | Z4 | limiar contínuo − 5 s/km ± 3 s/km |
+| Tempo, limiar contínuo e blocos de 3 km ou mais, pace-alvo e ritmo de prova abaixo de 30 km | Z4 | limiar contínuo ± 3 s/km |
 | VO2 e tiros curtos | Z5 | VO2 ± 3 s/km |
 
-- **Treino planejado do Garmin:** a zona sai do alvo do passo: zona → ela mesma; FC → zona da média; pace → zona do ritmo do treinador mais próximo. Sem alvo, aquecimento e volta leve são Z2. A cor da barra e dos quadradinhos segue essa zona.
+O card "Zonas e ritmos" mostra a Z4 com as duas faixas juntas (do menor pace do fracionado ao maior do contínuo, ex.: 4:05–4:16).
+
+- **Treino planejado do Garmin:** a zona sai do alvo do passo: zona → ela mesma; FC → zona da média; pace com FC como segundo alvo (os treinos que o treinador envia) → zona da média da FC, que é a zona do bloco; pace sem segundo alvo → zona do ritmo mais próximo entre rodagem (Z2), maratona (Z3), limiar contínuo (Z4) e VO2 (Z5). Sem alvo, aquecimento e volta leve são Z2. A cor da barra e dos quadradinhos segue essa zona.
 - **Onde aparece:** Hoje (lista de passos), Treinador › dia, detalhe do planejado ("Como fazer") e detalhe do treino feito (zona dominante ao lado da FC média). A semana do treinador, as listas e o mostrador ficam só com a cor.
-- **Zonas e ritmos:** card na aba Treinador com FC, pace e uso de cada zona, e o pace real em cada zona de FC nas corridas dos últimos 42 dias (pelo menos 2 min na zona). Mostra um aviso quando o pace real fica mais de 8 s/km fora da faixa prescrita.
+- **Zonas e ritmos:** card na aba Treinador com FC, pace e uso de cada zona, e o pace real em cada zona de FC nas corridas dos últimos 42 dias (pelo menos 2 min na zona). Mostra um aviso quando o pace real fica mais de 8 s/km fora da faixa da zona.
 
 ## Tempo estimado
 
@@ -129,6 +137,7 @@ Saiu do app: a opção não aparece mais em Dias da semana, e um plano que estav
   - semana leve: 6 km.
 - **Variações:** pirâmide 3-2-1 km, e 6 + 3 km a partir de 9 km de volume.
 - **Descanso parado:** 60 s por km de bloco, entre 60 e 240 s, em degraus de 30 s (`thresholdRestSecondsPerKm`).
+- **Pace:** blocos de até 2 km com pausa vão no limiar contínuo − 5 s/km; tempo, contínuo e blocos de 3 km ou mais, no limiar contínuo (`thresholdFractionedOffset`, `thresholdFractionedMeters`).
 
 ## VO2
 
@@ -144,6 +153,7 @@ Saiu do app: a opção não aparece mais em Dias da semana, e um plano que estav
 - **Descanso:** entre 90 e 150 s.
 - **Frequência:** a cada 2 semanas.
 - **Ritmo-alvo:** segue a escada `goalPaceLadder`, de 4 × 2 km até 1 × 15 km.
+- **Pace do ritmo de prova e do pace-alvo:** prova de 30 km ou mais usa o pace da meta (sem meta, o de maratona equivalente), nunca mais rápido que o limiar contínuo, em Z3. Prova abaixo de 30 km começa no ritmo equivalente à distância da prova e anda em linha reta até o mais lento entre a meta e o limiar contínuo, da primeira à última semana da fase específica; antes dela fica no equivalente, no polimento fica no fim. Nunca mais rápido que o limiar contínuo, em Z4 (`marathonZoneRaceMeters`, `TrainerEngine.targetPace`). O mesmo vale para os blocos de ritmo de prova dentro do longão.
 
 ## Longão em estágios
 
@@ -278,7 +288,7 @@ Arquivos: `Insights/StrengthGenerator.swift`, `Insights/StrengthCatalog*.swift`,
 Arquivos: `GarminAPI/GarminPlannedPayload.swift`, `App/Trainer/Send/*`. Testes: `GarminAPITests/GarminPlannedUploadTests.swift`, `AppTests/TrainerSendTests.swift`.
 
 - **O que vai:** do dia de hoje até o fim do plano de corrida (no mínimo os próximos 7 dias), por tipo (corrida, força ou os dois), com dias desmarcáveis. Força dos dias do treinador e, com "Enviar os treinos do MFIT" ligado, os do MFIT.
-- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo. Todo passo em distância vai com pace como alvo principal: aquecimento, volta leve e desaquecimento com o pace da rodagem, blocos com o pace do bloco. Com limiar no relógio, todos levam a faixa de FC da zona como segundo alvo, inclusive VO2 e tiros curtos. A faixa da Z5 vai do limiar até a FC máxima do Garmin; sem FC máxima, a Z5 vai só com pace. Trote de recuperação e descanso parado seguem sem alvo. Cada bloco vai como uma série só, "repetir N vezes (tiro + descanso)", com o descanso também depois do último tiro, para o bloco não se partir em dois no relógio. Se depois do bloco vier um descanso parado igual ou menor que o da série, ele não vai, porque a série já termina descansando. O treino de corrida de hoje vai com o pace do dia: o mesmo ajuste do card "Treino de hoje" (prontidão, calor na hora habitual, perna pesada e encurtamento com prontidão 50 a 59), recalculado de manhã antes do envio automático. Troca, descanso ou nenhum ajuste mandam o plano como está, e a FC de segundo alvo não muda. Regra completa em `analise.md` ("Pace do dia no relógio"). Com "Corrida do treinador" ligado, o app ignora os treinos que o Garmin marca como vindos da Treinus (`workoutProvider`): eles saem do Hoje, de Treinos, da nota, do mostrador e dos dias de corrida forte da força. No calendário do Garmin eles continuam.
+- **Corrida:** só entra com "Corrida do treinador" ligado. Enquanto a corrida vier da assessoria, fica desligado. Aquecimento e blocos por distância, alvo de pace e descanso parado por tempo. Todo passo em distância vai com pace como alvo principal: aquecimento, volta leve e desaquecimento com o pace da rodagem, blocos com o pace do bloco. Com limiar no relógio, todos levam a faixa de FC da zona como segundo alvo, inclusive VO2 e tiros curtos. A faixa da Z4 vai de 95% a 101% do limiar e a da Z5 de 102% até a FC máxima do Garmin; sem FC máxima, a Z5 vai só com pace. Trote de recuperação e descanso parado seguem sem alvo. Cada bloco vai como uma série só, "repetir N vezes (tiro + descanso)", com o descanso também depois do último tiro, para o bloco não se partir em dois no relógio. Se depois do bloco vier um descanso parado igual ou menor que o da série, ele não vai, porque a série já termina descansando. O treino de corrida de hoje vai com o pace do dia: o mesmo ajuste do card "Treino de hoje" (prontidão, calor na hora habitual, perna pesada e encurtamento com prontidão 50 a 59), recalculado de manhã antes do envio automático. Troca, descanso ou nenhum ajuste mandam o plano como está, e a FC de segundo alvo não muda. Regra completa em `analise.md` ("Pace do dia no relógio"). Com "Corrida do treinador" ligado, o app ignora os treinos que o Garmin marca como vindos da Treinus (`workoutProvider`): eles saem do Hoje, de Treinos, da nota, do mostrador e dos dias de corrida forte da força. No calendário do Garmin eles continuam.
 - **Força:** cada exercício vira um grupo repetido pelo número de séries, com repetições ou tempo, descanso e carga em kg quando houver. A descrição vai sem acento.
 - **Status:** novo (nunca enviado), mudou (o treino gerado ficou diferente do enviado) ou no Garmin.
 - **Apagar o plano:** apaga do relógio as corridas e a força do treinador que o app enviou, de hoje em diante. Os treinos do MFIT ficam. Sem plano de corrida, a força do treinador não é enviada ao relógio.

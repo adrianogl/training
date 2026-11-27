@@ -8,6 +8,8 @@ public enum SyncConstants {
     static let timingLogger = Logger(subsystem: "trAIning", category: "SyncTiming")
     static let secondsPerDay: TimeInterval = 86_400
     public static let fitThresholdSport = "fit"
+    static let thresholdZonesVersionSport = "zones-version"
+    static let thresholdZonesVersion = 2
     static let dailySummaryWindowDays = 180
     static let hrvWindowDays = 180
     static let sleepWindowDays = 28

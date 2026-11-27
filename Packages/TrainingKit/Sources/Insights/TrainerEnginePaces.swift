@@ -16,16 +16,11 @@ extension TrainerEngine {
         let easyPaces = paces(of: .easy)
         let tempoPaces = paces(of: .tempo)
         let allPaces = runs.map { $0.seconds / $0.meters * C.metersPerKilometer }
-        let easy = median(easyPaces) ?? median(allPaces) ?? C.fallbackEasyPace
-        let long = median(paces(of: .long)) ?? easy - C.longBelowEasy
-        func workPaces(of kind: RunKind) -> [Double] {
-            runs.filter { $0.kind == kind && ($0.workPaceSeconds ?? 0) > 0 }
-                .sorted { $0.day > $1.day }
-                .prefix(C.workPaceRuns)
-                .compactMap(\.workPaceSeconds)
-        }
-        let thresholdWork = workPaces(of: .tempo)
-        let vo2Work = workPaces(of: .intervals)
+        let easyMedian = median(easyPaces) ?? median(allPaces) ?? C.fallbackEasyPace
+        let thresholdWork = runs.filter { $0.kind == .tempo && ($0.workPaceSeconds ?? 0) > 0 }
+            .sorted { $0.day > $1.day }
+            .prefix(C.workPaceRuns)
+            .compactMap { run in run.workPaceSeconds.map { $0 + (run.workFractioned ? C.thresholdFractionedOffset : 0) } }
         let threshold: Double
         let thresholdSource: TrainerPaceSource
         if let middle = median(thresholdWork) {
@@ -35,22 +30,56 @@ extension TrainerEngine {
         } else if let middle = median(tempoPaces) {
             (threshold, thresholdSource) = (middle, .history)
         } else {
-            (threshold, thresholdSource) = (easy - C.thresholdBelowEasy, .fallback)
+            (threshold, thresholdSource) = (easyMedian - C.thresholdBelowEasy, .fallback)
         }
-        let vo2: Double
-        let vo2Source: TrainerPaceSource
-        if let middle = median(vo2Work) {
-            (vo2, vo2Source) = (middle, .work)
-        } else if let predicted = history.predictions[C.vo2PredictionMeters] {
-            (vo2, vo2Source) = (predicted / (C.vo2PredictionMeters / C.metersPerKilometer), .prediction)
-        } else {
-            (vo2, vo2Source) = (threshold - C.vo2BelowThreshold, .fallback)
-        }
+        let marathon = equivalentPace(threshold: threshold, meters: C.marathonMeters)
+        let easyFloor = marathon * C.easyOverMarathon
+        let longMedian = median(paces(of: .long)) ?? easyMedian - C.longBelowEasy
         return TrainerPaces(
-            easy: easy, long: long, threshold: threshold, vo2max: vo2, race: nil,
+            easy: max(easyMedian, easyFloor), long: max(longMedian, easyFloor), threshold: threshold,
+            vo2max: vo2Pace(threshold: threshold), race: nil, marathon: marathon,
             easyRuns: easyPaces.count, thresholdRuns: tempoPaces.count, vo2Runs: paces(of: .intervals).count,
-            thresholdSource: thresholdSource, vo2Source: vo2Source, thresholdWorkRuns: thresholdWork.count, vo2WorkRuns: vo2Work.count
+            thresholdSource: thresholdSource, vo2Source: nil, thresholdWorkRuns: thresholdWork.count, vo2WorkRuns: nil
         )
+    }
+
+    public static func equivalentPace(threshold: Double, meters: Double) -> Double {
+        let seconds = threshold * C.recentRaceThresholdMeters / C.metersPerKilometer
+        return riegel(seconds: seconds, from: C.recentRaceThresholdMeters, to: meters, exponent: C.riegelExponent) / (meters / C.metersPerKilometer)
+    }
+
+    static func vo2Pace(threshold: Double) -> Double {
+        equivalentPace(threshold: threshold, meters: C.recentRaceFiveK) - C.recentRaceVo2BelowFiveK
+    }
+
+    public static func fractionedThresholdPace(_ paces: TrainerPaces) -> Double {
+        paces.threshold - C.thresholdFractionedOffset
+    }
+
+    public static func racePaceZone(meters: Double?) -> Int {
+        (meters ?? 0) >= C.marathonZoneRaceMeters ? TrainerZonesConstants.marathon : TrainerZonesConstants.threshold
+    }
+
+    static func targetPace(paces: TrainerPaces, target: TrainerTarget, week: TrainerWeek?, weeks: [TrainerWeek]) -> Double {
+        let goal = paces.race
+        guard let meters = target.distanceMeters, meters > 0 else { return max(goal ?? paces.threshold, paces.threshold) }
+        if meters >= C.marathonZoneRaceMeters { return max(goal ?? paces.marathonPace, paces.threshold) }
+        let start = equivalentPace(threshold: paces.threshold, meters: meters)
+        let end = max(goal ?? paces.threshold, paces.threshold)
+        let specific = weeks.filter { $0.phase == .specific }.map(\.index).sorted()
+        let progress: Double
+        if let week, let first = specific.first, let last = specific.last {
+            if week.index <= first {
+                progress = specific.count == 1 && week.index == first ? 1 : 0
+            } else if week.index >= last {
+                progress = 1
+            } else {
+                progress = Double(week.index - first) / Double(last - first)
+            }
+        } else {
+            progress = week?.phase == .taper ? 1 : 0
+        }
+        return max(start + (end - start) * progress, paces.threshold)
     }
 
     public static func resolvedPaces(
@@ -68,6 +97,12 @@ extension TrainerEngine {
         if let value = overrides[.threshold] {
             result.threshold = value
             result.thresholdSource = .manual
+            result.marathon = equivalentPace(threshold: value, meters: C.marathonMeters)
+            result.vo2max = vo2Pace(threshold: value)
+            result.vo2Source = nil
+            let floor = result.marathonPace * C.easyOverMarathon
+            if overrides[.easy] == nil { result.easy = max(result.easy, floor) }
+            if overrides[.long] == nil { result.long = max(result.long, floor) }
         }
         if let value = overrides[.vo2max] {
             result.vo2max = value
@@ -96,5 +131,11 @@ extension TrainerEngine {
 
     static func band(_ pace: Double, _ width: Double) -> (low: Double, high: Double) {
         ((pace - width).rounded(), (pace + width).rounded())
+    }
+}
+
+public extension TrainerPaces {
+    var marathonPace: Double {
+        marathon ?? TrainerEngine.equivalentPace(threshold: threshold, meters: TrainerEngineConstants.marathonMeters)
     }
 }

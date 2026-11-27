@@ -82,8 +82,9 @@ public struct TrainerStep: Codable, Sendable, Equatable {
     public var paceHigh: Double?
     public var method: TrainerMethod?
     public var turnsAfter: Bool?
+    public var zone: Int?
 
-    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil, method: TrainerMethod? = nil, turnsAfter: Bool? = nil) {
+    public init(kind: TrainerStepKind, repeats: Int = 1, meters: Double, restSeconds: Double? = nil, paceLow: Double? = nil, paceHigh: Double? = nil, method: TrainerMethod? = nil, turnsAfter: Bool? = nil, zone: Int? = nil) {
         self.kind = kind
         self.repeats = repeats
         self.meters = meters
@@ -92,6 +93,7 @@ public struct TrainerStep: Codable, Sendable, Equatable {
         self.paceHigh = paceHigh
         self.method = method
         self.turnsAfter = turnsAfter
+        self.zone = zone
     }
 }
 
@@ -414,6 +416,11 @@ public enum TrainerPaceSource: String, Codable, Sendable, Equatable {
     case history
     case fallback
     case manual
+
+    public init(from decoder: Decoder) throws {
+        let value = try decoder.singleValueContainer().decode(String.self)
+        self = TrainerPaceSource(rawValue: value) ?? .fallback
+    }
 }
 
 public enum TrainerPaceKind: String, Codable, Sendable, CaseIterable {
@@ -430,6 +437,7 @@ public struct TrainerPaces: Codable, Sendable, Equatable {
     public var threshold: Double
     public var vo2max: Double
     public var race: Double?
+    public var marathon: Double?
     public var easyRuns: Int
     public var thresholdRuns: Int
     public var vo2Runs: Int
@@ -438,12 +446,13 @@ public struct TrainerPaces: Codable, Sendable, Equatable {
     public var thresholdWorkRuns: Int?
     public var vo2WorkRuns: Int?
 
-    public init(easy: Double, long: Double, threshold: Double, vo2max: Double, race: Double? = nil, easyRuns: Int = 0, thresholdRuns: Int = 0, vo2Runs: Int = 0, thresholdSource: TrainerPaceSource? = nil, vo2Source: TrainerPaceSource? = nil, thresholdWorkRuns: Int? = nil, vo2WorkRuns: Int? = nil) {
+    public init(easy: Double, long: Double, threshold: Double, vo2max: Double, race: Double? = nil, marathon: Double? = nil, easyRuns: Int = 0, thresholdRuns: Int = 0, vo2Runs: Int = 0, thresholdSource: TrainerPaceSource? = nil, vo2Source: TrainerPaceSource? = nil, thresholdWorkRuns: Int? = nil, vo2WorkRuns: Int? = nil) {
         self.easy = easy
         self.long = long
         self.threshold = threshold
         self.vo2max = vo2max
         self.race = race
+        self.marathon = marathon
         self.easyRuns = easyRuns
         self.thresholdRuns = thresholdRuns
         self.vo2Runs = vo2Runs
@@ -689,8 +698,9 @@ public struct TrainerRun: Sendable, Equatable {
     public var activeOnTarget: Int?
     public var activeTotal: Int?
     public var workPaceSeconds: Double?
+    public var workFractioned: Bool
 
-    public init(activityId: Int64, day: Day, meters: Double, seconds: Double, kind: RunKind, averageHeartRate: Double? = nil, fadeKm: Int? = nil, pauses: Int? = nil, firstPauseKm: Int? = nil, activeOnTarget: Int? = nil, activeTotal: Int? = nil, workPaceSeconds: Double? = nil) {
+    public init(activityId: Int64, day: Day, meters: Double, seconds: Double, kind: RunKind, averageHeartRate: Double? = nil, fadeKm: Int? = nil, pauses: Int? = nil, firstPauseKm: Int? = nil, activeOnTarget: Int? = nil, activeTotal: Int? = nil, workPaceSeconds: Double? = nil, workFractioned: Bool = false) {
         self.activityId = activityId
         self.day = day
         self.meters = meters
@@ -703,6 +713,7 @@ public struct TrainerRun: Sendable, Equatable {
         self.activeOnTarget = activeOnTarget
         self.activeTotal = activeTotal
         self.workPaceSeconds = workPaceSeconds
+        self.workFractioned = workFractioned
     }
 }
 

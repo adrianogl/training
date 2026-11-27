@@ -3,7 +3,7 @@ import TrainingCore
 
 public func thresholdZones(thresholdHeartRate: Int) -> HeartRateZones {
     let inner = ThresholdZonesConstants.floorFractions.map { Int((Double(thresholdHeartRate) * $0).rounded()) }
-    return HeartRateZones(floors: [0] + inner + [thresholdHeartRate], maxHeartRate: nil)
+    return HeartRateZones(floors: [0] + inner, maxHeartRate: nil)
 }
 
 public func zoneSeconds(_ samples: [FITSample], zones: HeartRateZones) -> [Double]? {
@@ -20,6 +20,6 @@ public func zoneSeconds(_ samples: [FITSample], zones: HeartRateZones) -> [Doubl
 
 public func zoneDivergence(watchZone5Floor: Int?, thresholdHeartRate: Int?) -> Int? {
     guard let watchZone5Floor, let thresholdHeartRate else { return nil }
-    let difference = watchZone5Floor - thresholdHeartRate
+    let difference = watchZone5Floor - (thresholdZones(thresholdHeartRate: thresholdHeartRate).floors.last ?? thresholdHeartRate)
     return abs(difference) < ThresholdZonesConstants.minDivergence ? nil : difference
 }
